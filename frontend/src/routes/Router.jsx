@@ -14,6 +14,8 @@ import Login from '../pages/public/Login';
 import Dashboard from '../pages/admin/Dashboard';
 import Users from '../pages/admin/Users';
 import Settings from '../pages/admin/Settings';
+
+// 404 - not found page
 import NotFound from '../pages/NotFound';
 
 const router = createBrowserRouter([
@@ -38,6 +40,12 @@ const router = createBrowserRouter([
             { path: 'users', element: <Users /> },
             { path: 'settings', element: <Settings /> },
         ],
+    },
+
+    // 404 - Not found page route
+    {
+        path: '*',
+        element: <NotFound />,
     },
 ]);
 

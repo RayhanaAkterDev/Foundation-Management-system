@@ -1,1 +1,46 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 @import 'tailwindcss';
+
+/* Reset */
+@layer base {
+    *,
+    *::before,
+    *::after {
+        @apply m-0 p-0 box-border;
+    }
+}
+
+/* Global styles */
+@theme {
+    /* font-family */
+    --font-inter: 'Inter', sans-serif;
+
+    /* custom colors */
+    --color-primary: #0f766e;
+    --color-primary-hover: #115e59;
+
+    --color-accent: #f59e0b;
+
+    --color-background: #f8fafc;
+    --color-surface: #ffffff;
+
+    --color-text-primary: #0f172a;
+    --color-text-secondary: #6b7280;
+
+    --color-border: #e5e7eb;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    @apply font-inter bg-background text-text-primary;
+}
+
+/* Reusable container */
+@layer components {
+    .container-app {
+        @apply max-w-7xl mx-auto px-4;
+    }
+}

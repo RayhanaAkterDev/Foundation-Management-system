@@ -1,5 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
 @import 'tailwindcss';
+@import './components.css';
 
 /* Reset */
 @layer base {
@@ -15,7 +16,7 @@
     /* font-family */
     --font-inter: 'Inter', sans-serif;
 
-    /* custom colors */
+    /* colors */
     --color-primary: #0f766e;
     --color-primary-hover: #115e59;
 
@@ -36,11 +37,4 @@ html {
 
 body {
     @apply font-inter bg-background text-text-primary;
-}
-
-/* Reusable container */
-@layer components {
-    .container-app {
-        @apply max-w-7xl mx-auto px-4;
-    }
 }

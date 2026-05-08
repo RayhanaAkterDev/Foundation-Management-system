@@ -1,0 +1,5 @@
+@layer components {
+    .container-wrapper {
+        @apply max-w-7xl mx-auto px-6;
+    }
+}

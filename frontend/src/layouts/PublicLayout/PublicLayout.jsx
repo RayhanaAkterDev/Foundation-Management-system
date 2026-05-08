@@ -1,14 +1,14 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import PublicNavbar from './PublicNavbar';
-import PublicFooter from './PublicFooter';
+import Navbar from './Navbar';
+import Footer from './Footer';
 
 const PublicLayout = () => {
     return (
         <>
-            <PublicNavbar />
+            <Navbar />
             <Outlet />
-            <PublicFooter />
+            <Footer />
         </>
     );
 };

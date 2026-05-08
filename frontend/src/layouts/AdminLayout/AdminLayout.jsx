@@ -1,13 +1,13 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import AdminSidebar from './AdminSidebar';
+import Sidebar from './Sidebar';
 
 const AdminLayout = () => {
     return (
         <>
             <h1>AdminLayout</h1>
             <div>
-                <AdminSidebar />
+                <Sidebar />
                 <main>
                     <Outlet />
                 </main>

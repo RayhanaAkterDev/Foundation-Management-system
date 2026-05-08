@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import Button from '../../components/common/Button';
 import navLinks from '../../data/navLinks';
+import logo from '../../assets/images/shared/logo.png';
 
 const Navbar = () => {
     const [scrolled, setScrolled] = useState(false);
@@ -33,7 +34,7 @@ const Navbar = () => {
                 {/* Logo */}
                 <Link to="/">
                     <img
-                        src="/careLink-logo.png"
+                        src={logo}
                         alt="CareLink logo"
                         className={`transition-all duration-300 ${
                             scrolled ? 'h-16' : 'h-18'

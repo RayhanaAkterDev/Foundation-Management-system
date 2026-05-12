@@ -22,26 +22,9 @@ const Navbar = () => {
     return (
         <nav
             aria-label="Main Navigation"
-            className={`sticky top-0 z-50 transition-all duration-300 ease-in-out && ${scrolled ? 'h-24 bg-white/60 backdrop-blur border-b border-primary/20 shadow-sm' : 'h-28 bg-transparent border-transparent'}`}
+            className={`sticky top-0 z-50 transition-all duration-300 ease-in-out && ${scrolled ? 'h-22 bg-[#EDF4F7]/60 backdrop-blur border-b border-primary/20 shadow-sm' : 'h-28 bg-[#FCFBFD] lg:bg-[#F4F8F9] border-transparent'}`}
         >
             <div className="container-wrapper flex justify-between items-center h-full">
-                {/* CTA */}
-                <div className="cta-buttons flex items-center gap-4">
-                    <Button variant="outline">Login</Button>
-                    <Button>Donate Now</Button>
-                </div>
-
-                {/* Logo */}
-                <Link to="/">
-                    <img
-                        src={logo}
-                        alt="CareLink logo"
-                        className={`transition-all duration-300 ${
-                            scrolled ? 'h-16' : 'h-18'
-                        }`}
-                    />
-                </Link>
-
                 {/* Menu */}
                 <ul className="text-right flex justify-center items-center gap-6">
                     {navLinks.map((link) => (
@@ -61,6 +44,23 @@ const Navbar = () => {
                         </li>
                     ))}
                 </ul>
+
+                {/* Logo */}
+                <Link to="/">
+                    <img
+                        src={logo}
+                        alt="CareLink logo"
+                        className={`transition-all duration-300 ${
+                            scrolled ? 'h-16' : 'h-18'
+                        }`}
+                    />
+                </Link>
+
+                {/* CTA */}
+                <div className="cta-buttons flex items-center gap-4">
+                    <Button>Donate Now</Button>
+                    <Button variant="outline">Login</Button>
+                </div>
             </div>
         </nav>
     );

@@ -29,6 +29,10 @@
     --color-text-secondary: #6b7280;
 
     --color-border: #e5e7eb;
+
+    /* background images */
+    --background-image-heroMobile: url('/src/assets/images/home/heroBgMobile.png');
+    --background-image-heroDesktop: url('/src/assets/images/home/heroBgDesktop.png');
 }
 
 html {

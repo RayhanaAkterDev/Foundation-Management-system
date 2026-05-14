@@ -22,9 +22,9 @@ const Navbar = () => {
     return (
         <nav
             aria-label="Main Navigation"
-            className={`sticky top-0 z-50 transition-all duration-300 ease-in-out && ${scrolled ? 'h-22 bg-[#EDF4F7]/60 backdrop-blur border-b border-primary/20 shadow-sm' : 'h-28 bg-[#FCFBFD] lg:bg-[#F4F8F9] border-transparent'}`}
+            className={`sticky top-0 z-50 transition-all duration-300 ease-in-out && ${scrolled ? 'h-22 bg-[#EDF4F7]/80 backdrop-blur border-b border-primary/20 shadow-sm' : 'h-28 bg-[#FCFBFD] lg:bg-[#F4F8F9] border-transparent'}`}
         >
-            <div className="container-wrapper flex justify-between items-center h-full">
+            <div className="container-width flex justify-between items-center h-full">
                 {/* Menu */}
                 <ul className="text-right flex justify-center items-center gap-6">
                     {navLinks.map((link) => (

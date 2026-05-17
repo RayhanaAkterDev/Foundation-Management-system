@@ -90,15 +90,15 @@ const FeaturedCampaignHero = () => {
                 </div>
 
                 {/* cta buttons */}
-                <div className="cta-buttons">
-                    <Button>
-                        <TbHeartFilled aria-hidden="true" />
+                <div className="mt-8 flex flex-col sm:flex-row gap-4 sm:justify-start items-start">
+                    <Button className="w-full sm:w-auto">
+                        <TbHeartFilled />
                         Donate Now
                     </Button>
 
-                    <Button variant="outline">
+                    <Button variant="outline" className="w-full sm:w-auto">
                         Learn More
-                        <HiArrowSmRight aria-hidden="true" className="mt-1" />
+                        <HiArrowSmRight className="mt-0.5" />
                     </Button>
                 </div>
             </div>

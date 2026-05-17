@@ -72,6 +72,6 @@ body {
     @apply text-sm text-text-secondary sm:text-base;
 }
 
-.cta-buttons {
-    @apply mt-8 flex w-full flex-col gap-4 sm:w-auto sm:flex-row sm:items-center;
-}
+/* .cta-buttons {
+    @apply flex flex-wrap justify-center items-center gap-4;
+} */

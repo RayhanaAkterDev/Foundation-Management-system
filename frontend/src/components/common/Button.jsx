@@ -1,6 +1,4 @@
-import React from 'react';
-
-function Button({ children, variant = 'primary' }) {
+function Button({ children, variant = 'primary', className = '' }) {
     const baseStyles =
         'px-5 py-2 rounded-md font-medium transition-all duration-300 cursor-pointer flex items-center gap-2';
 
@@ -11,7 +9,7 @@ function Button({ children, variant = 'primary' }) {
     };
 
     return (
-        <button className={`${baseStyles} ${variants[variant]}`}>
+        <button className={`${baseStyles} ${variants[variant]} ${className}`}>
             {children}
         </button>
     );

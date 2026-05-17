@@ -34,22 +34,22 @@ const categoryData = [
         icon: TbMedicalCross,
         count: 14,
     },
-    {
-        id: 4,
-        title: "Food & Nutrition",
-        slug: "food-nutrition",
-        description: "No one should go hungry",
-        icon: TbSoup,
-        count: 20,
-    },
-    {
-        id: 5,
-        title: "Education",
-        slug: "education",
-        description: "Learning for a better future",
-        icon: TbBook,
-        count: 16,
-    },
+    // {
+    //     id: 4,
+    //     title: "Food & Nutrition",
+    //     slug: "food-nutrition",
+    //     description: "No one should go hungry",
+    //     icon: TbSoup,
+    //     count: 20,
+    // },
+    // {
+    //     id: 5,
+    //     title: "Education",
+    //     slug: "education",
+    //     description: "Learning for a better future",
+    //     icon: TbBook,
+    //     count: 16,
+    // },
     {
         id: 6,
         title: "Disaster Relief",
@@ -66,14 +66,14 @@ const categoryData = [
         icon: TbUsers,
         count: 13,
     },
-    {
-        id: 8,
-        title: "Environment",
-        slug: "environment",
-        description: "Protect our planet",
-        icon: TbLeaf,
-        count: 9,
-    },
+    // {
+    //     id: 8,
+    //     title: "Environment",
+    //     slug: "environment",
+    //     description: "Protect our planet",
+    //     icon: TbLeaf,
+    //     count: 9,
+    // },
 ];
 
 export default categoryData;

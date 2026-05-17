@@ -4,7 +4,7 @@ import { TbHeartFilled } from 'react-icons/tb';
 
 const CampaignCategoryNav = () => {
     return (
-        <div className="lg:col-span-1 bg-surface rounded-xl px-5 py-6 shadow-sm border border-border">
+        <div className="lg:col-span-3 bg-surface rounded-xl px-5 py-6 shadow-sm border border-border">
             {/* heading */}
             <h3 className="text-2xl font-semibold text-text-primary leading-tight pl-4 mt-4">
                 Explore by Cause
@@ -33,7 +33,7 @@ const CampaignCategoryNav = () => {
                                 {/* icon */}
                                 <div
                                     className={`
-                                        w-11 h-11 leading-[11] rounded-full flex items-center justify-center
+                                        w-10 h-10 leading-[10] rounded-full flex items-center justify-center
                                         ${
                                             isActive
                                                 ? 'bg-white/15'
@@ -43,7 +43,7 @@ const CampaignCategoryNav = () => {
                                 >
                                     <Icon
                                         className={`
-                                            text-[22px]
+                                            text-[18px]
                                             ${
                                                 isActive
                                                     ? 'text-white'
@@ -105,23 +105,23 @@ const CampaignCategoryNav = () => {
             <div className="mt-7 rounded-2xl bg-background p-5">
                 <div className="flex gap-4">
                     {/* icon */}
-                    <div className="w-12 h-12 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-primary/15 flex items-center justify-center shrink-0">
                         <TbHeartFilled className="text-primary text-xl" />
                     </div>
 
                     {/* content */}
                     <div>
-                        <h4 className="text-lg font-semibold text-primary leading-snug">
+                        <h4 className="text-md font-semibold text-primary leading-snug">
                             Your Support
                             <br />
                             Creates Real Change
                         </h4>
-
-                        <p className="text-sm text-text-secondary mt-2 leading-relaxed">
-                            Every contribution brings hope to someone in need.
-                        </p>
                     </div>
                 </div>
+
+                <p className="text-sm text-text-secondary mt-2 leading-relaxed">
+                    Every contribution brings hope to someone in need.
+                </p>
             </div>
         </div>
     );

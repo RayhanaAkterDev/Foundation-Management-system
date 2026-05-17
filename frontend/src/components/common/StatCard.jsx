@@ -24,7 +24,7 @@ const StatCard = () => {
     return (
         <>
             <div className="mt-10">
-                <div className="grid grid-cols-1 md:grid-cols-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3">
                     {stats.map((stat, index) => {
                         const Icon = stat.icon;
                         const isMiddle = index === 1;

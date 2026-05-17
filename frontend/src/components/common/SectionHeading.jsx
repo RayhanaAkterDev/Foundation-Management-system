@@ -7,7 +7,7 @@ const wrapperStyles = {
 };
 
 const alignStyles = {
-    hero: 'items-start text-left',
+    hero: 'lg:items-start lg:text-left items-center text-center',
     section: 'items-center text-center',
 };
 

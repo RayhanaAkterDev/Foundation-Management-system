@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { FiMenu, FiX } from 'react-icons/fi';
 
 import Button from '../../../components/common/Button';
 import logo from '../../../assets/images/shared/logo.png';
 
 import NavMenu from './NavMenu';
-import { FiMenu, FiX } from 'react-icons/fi';
 
 const Navbar = () => {
     const [scrolled, setScrolled] = useState(false);
@@ -13,90 +13,110 @@ const Navbar = () => {
 
     useEffect(() => {
         const handleScroll = () => {
-            const isScrolled = window.scrollY > 20;
-            setScrolled((prev) => (prev !== isScrolled ? isScrolled : prev));
+            setScrolled(window.scrollY > 20);
         };
 
         window.addEventListener('scroll', handleScroll);
+
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
     return (
         <>
+            {/* NAVBAR */}
             <nav
                 aria-label="Main Navigation"
-                className={`sticky top-0 z-50 transition-all duration-300 ease-in-out ${
+                className={`sticky top-0 z-50 transition-all duration-300 ${
                     scrolled
-                        ? 'h-22 bg-[#EDF4F7]/80 backdrop-blur border-b border-primary/20 shadow-sm'
-                        : 'h-28 bg-[#FAFAFB] border-transparent'
+                        ? 'h-20 bg-[#EDF4F7]/80 backdrop-blur border-b border-primary/20 shadow-sm'
+                        : 'h-24 bg-[#FAFAFB]'
                 }`}
             >
                 <div className="container-width flex h-full items-center justify-between">
-                    {/* Hamburger */}
-                    <button
-                        className="lg:hidden text-2xl"
-                        onClick={() => setMobileOpen(true)}
-                    >
-                        <FiMenu />
-                    </button>
-
-                    {/* Desktop Nav */}
-                    <div className="hidden lg:block">
-                        <NavMenu scrolled={scrolled} />
-                    </div>
-
-                    {/* Logo */}
-                    <Link to="/">
+                    {/* LOGO */}
+                    <Link to="/" className="shrink-0">
                         <img
                             src={logo}
                             alt="CareLink logo"
-                            className={`transition-all duration-300 ${
-                                scrolled ? 'h-16' : 'h-18'
+                            className={`transition-all duration-300 object-contain ${
+                                scrolled ? 'h-14 md:h-16' : 'h-16 md:h-18'
                             }`}
                         />
                     </Link>
 
-                    {/* Desktop CTA */}
-                    <div className="hidden lg:flex gap-4">
-                        <Button>Donate Now</Button>
-                        <Button variant="outline">Login</Button>
+                    {/* DESKTOP NAV */}
+                    <div className="hidden lg:flex items-center gap-10">
+                        <NavMenu scrolled={scrolled} />
+
+                        <div className="flex items-center gap-4">
+                            <Button>Donate Now</Button>
+
+                            <Button variant="outline">Login</Button>
+                        </div>
                     </div>
+
+                    {/* MOBILE / TABLET HAMBURGER */}
+                    <button
+                        aria-label="Open Menu"
+                        onClick={() => setMobileOpen(true)}
+                        className="lg:hidden flex items-center justify-center text-3xl text-primary"
+                    >
+                        <FiMenu />
+                    </button>
                 </div>
             </nav>
 
             {/* OVERLAY */}
-            {mobileOpen && (
-                <div
-                    className="fixed inset-0 bg-black/40 z-50"
-                    onClick={() => setMobileOpen(false)}
-                />
-            )}
+            <div
+                onClick={() => setMobileOpen(false)}
+                className={`fixed inset-0 z-60 bg-black/40 backdrop-blur-[2px] transition-all duration-300 ${
+                    mobileOpen ? 'visible opacity-100' : 'invisible opacity-0'
+                }`}
+            />
 
             {/* DRAWER */}
-            <div
-                className={`fixed top-0 right-0 h-full w-72 bg-[#FAFAFB] z-50 shadow-xl transform transition-transform duration-300 ease-in-out ${
+            <aside
+                className={`fixed top-0 right-0 z-70 h-screen w-[85%] max-w-85 bg-[#FAFAFB] shadow-2xl transition-transform duration-300 ease-in-out flex flex-col ${
                     mobileOpen ? 'translate-x-0' : 'translate-x-full'
                 }`}
             >
-                {/* Close button */}
-                <div className="flex justify-between items-center p-4 border-b">
-                    <h2 className="font-semibold">Menu</h2>
-                    <button onClick={() => setMobileOpen(false)}>
-                        <FiX className="text-2xl" />
+                {/* DRAWER HEADER */}
+                <div className="flex items-center justify-between border-b border-border px-5 py-5">
+                    <Link to="/" onClick={() => setMobileOpen(false)}>
+                        <img
+                            src={logo}
+                            alt="CareLink logo"
+                            className="h-14 object-contain"
+                        />
+                    </Link>
+
+                    <button
+                        aria-label="Close Menu"
+                        onClick={() => setMobileOpen(false)}
+                        className="text-3xl text-primary"
+                    >
+                        <FiX />
                     </button>
                 </div>
 
-                {/* Nav */}
-                <div className="p-4">
-                    <NavMenu mobile onItemClick={() => setMobileOpen(false)} />
+                {/* MOBILE NAV */}
+                <div className="flex-1 overflow-y-auto px-5 py-6">
+                    <NavMenu
+                        mobile
+                        scrolled={scrolled}
+                        onItemClick={() => setMobileOpen(false)}
+                    />
                 </div>
 
-                {/* CTA */}
-                <div className="p-4 flex flex-col gap-3 border-t mt-auto">
-                    <Button>Donate Now</Button>
-                    <Button variant="outline">Login</Button>
+                {/* MOBILE CTA */}
+                <div className="border-t border-border p-5 space-y-3">
+                    <Button className="w-full">Donate Now</Button>
+
+                    <Button variant="outline" className="w-full">
+                        Login
+                    </Button>
                 </div>
-            </div>
+            </aside>
         </>
     );
 };

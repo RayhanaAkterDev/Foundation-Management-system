@@ -11,7 +11,8 @@ const FeaturedCampaign = () => {
             <div className="container-width">
                 {/* section heading */}
                 <SectionHeading
-                    variant="section"
+                    gap="sm"
+                    align="center"
                     headingTag="h2"
                     badge="Featured Campaign"
                     badgeIcon={TbHeartFilled}

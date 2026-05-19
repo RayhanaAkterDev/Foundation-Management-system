@@ -86,6 +86,7 @@ const NavMenu = ({ scrolled, mobile = false, onItemClick }) => {
                                 <DropdownMenu
                                     items={link.children}
                                     scrolled={scrolled}
+                                    mobile={mobile}
                                 />
                             )}
                         </div>

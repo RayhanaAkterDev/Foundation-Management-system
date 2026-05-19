@@ -1,55 +1,122 @@
 import React from 'react';
-import Button from '../../components/common/Button';
+
+/* ================= WRAPPER ================= */
 
 const wrapperStyles = {
-    hero: 'flex flex-col gap-4',
-    section: 'flex flex-col gap-1.5',
+    base: 'flex flex-col',
 };
+
+/* ================= ALIGN ================= */
 
 const alignStyles = {
-    hero: 'lg:items-start lg:text-left items-center text-center',
-    section: 'items-center text-center',
+    left: 'items-start text-left',
+    center: 'items-center text-center',
 };
+
+/* ================= GAP ================= */
+
+const gapStyles = {
+    none: 'gap-0',
+    xs: 'gap-1',
+    sm: 'gap-2',
+    md: 'gap-4',
+    lg: 'gap-6',
+};
+
+/* ================= BADGE ================= */
+
+const badgeStyles = {
+    base: 'flex items-center gap-2 text-sm font-medium text-primary',
+};
+
+/* ================= HEADING ================= */
 
 const headingStyles = {
-    hero: 'hero-heading',
-    section: 'section-heading',
+    hero: 'text-3xl sm:text-5xl font-bold leading-tight',
+    section: 'text-2xl sm:text-4xl font-bold leading-snug',
+    sub: 'text-xl sm:text-2xl font-semibold leading-snug',
+    card: 'text-lg font-semibold leading-snug',
 };
 
+/* ================= DESCRIPTION ================= */
+
 const descriptionStyles = {
-    hero: 'hero-description',
-    section: 'section-description',
+    hero: 'text-base md:text-lg text-text-secondary',
+    section: 'text-base text-text-secondary',
+    sub: 'text-sm text-text-secondary',
+    card: 'text-sm text-text-secondary',
 };
 
 const SectionHeading = ({
+    /* content */
     badge,
     badgeIcon: BadgeIcon,
     title,
     description,
+
+    /* semantic */
     headingTag: HeadingTag = 'h2', // eslint-disable-line no-unused-vars
-    variant = 'section',
+
+    /* structure */
+    align = 'center',
+    gap = 'md',
+
+    /* typography */
+    headingSize = 'section',
+    descriptionSize = 'section',
+
+    /* custom overrides */
+    wrapperClass = '',
+    badgeClass = '',
+    headingClass = '',
+    descriptionClass = '',
 }) => {
     return (
-        <div className={`${wrapperStyles[variant]} ${alignStyles[variant]}`}>
+        <div
+            className={`${wrapperStyles.base}
+                ${alignStyles[align]}
+                ${gapStyles[gap]}
+                ${wrapperClass}
+            `}
+        >
             {/* badge */}
             {badge && (
-                <p className="flex items-center gap-2 text-sm text-primary-hover">
+                <p
+                    className={`${badgeStyles.base}
+                        ${badgeClass}
+                    `}
+                >
                     {BadgeIcon && (
                         <BadgeIcon
                             aria-hidden="true"
-                            className="text-primary"
+                            className="text-current"
                         />
                     )}
+
                     <span>{badge}</span>
                 </p>
             )}
 
             {/* heading */}
-            <HeadingTag className={headingStyles[variant]}>{title}</HeadingTag>
+            <HeadingTag
+                className={`
+                    ${headingStyles[headingSize]}
+                    ${headingClass}
+                `}
+            >
+                {title}
+            </HeadingTag>
 
             {/* description */}
             {description && (
-                <p className={descriptionStyles[variant]}>{description}</p>
+                <p
+                    className={`
+                        ${descriptionStyles[descriptionSize]}
+                        ${descriptionClass}
+                    `}
+                >
+                    {description}
+                </p>
             )}
         </div>
     );

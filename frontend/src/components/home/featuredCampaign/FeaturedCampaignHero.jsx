@@ -11,6 +11,8 @@ import {
 import Button from '../../common/Button';
 import heroCampaignStatData from './data/heroCampaignStatData';
 import featuredCampaign from '../../../assets/images/home/featuredCampaign.png';
+import SectionHeading from '../../common/SectionHeading';
+import StatCard from '../../common/StatCard';
 
 const FeaturedCampaignHero = () => {
     return (
@@ -23,24 +25,23 @@ const FeaturedCampaignHero = () => {
                 />
             </div>
 
-            <div className="w-1/2 rounded-lg py-6 px-5 flex flex-col gap-4">
-                <p className="text-accent bg-accent/10 inline-flex w-2/5 items-center gap-1 rounded-3xl px-4 py-1 font-semibold text-sm">
-                    <span className="">
-                        <TbFlameFilled />
-                    </span>
-                    Urgent Need
-                </p>
-                <h4 className="text-primary text-xl font-bold">
-                    Emergency flood relief for coastal families
-                </h4>
-                <p className="text-text-secondary text-sm">
-                    Severe flooding has displaced thousand of families. Your
+            <div className="w-1/2 py-6 px-5 flex flex-col justify-center gap-8">
+                <SectionHeading
+                    // gap="sm"
+                    align="left"
+                    headingTag="h4"
+                    headingSize="sub"
+                    badge="Urgent Need"
+                    badgeIcon={TbFlameFilled}
+                    badgeClass="badge-accent"
+                    title="Emergency flood relief for coastal families"
+                    description="Severe flooding has displaced thousand of families. Your
                     support provides food, clean water, shelter, and essential
-                    medical aid.
-                </p>
+                    medical aid."
+                />
 
                 {/* progress bar */}
-                <div className="progress-bar flex flex-col gap-2 mt-2">
+                <div className="progress-bar flex flex-col gap-2">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <h5 className="text-primary text-xl font-bold">
@@ -60,7 +61,7 @@ const FeaturedCampaignHero = () => {
                 </div>
 
                 {/* stats */}
-                <div className="grid grid-cols-4 divide-x divide-border bg-surface rounded-xl mt-4 -mb-4">
+                <div className="grid grid-cols-4 divide-x divide-border">
                     {heroCampaignStatData.map((stat) => {
                         const Icon = stat.icon;
 
@@ -90,7 +91,7 @@ const FeaturedCampaignHero = () => {
                 </div>
 
                 {/* cta buttons */}
-                <div className="mt-8 flex flex-col sm:flex-row gap-4 sm:justify-start items-start">
+                <div className="flex flex-col sm:flex-row gap-4 sm:justify-start items-start">
                     <Button className="w-full sm:w-auto">
                         <TbHeartFilled />
                         Donate Now

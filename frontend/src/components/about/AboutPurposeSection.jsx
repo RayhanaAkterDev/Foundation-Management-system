@@ -1,27 +1,21 @@
 import React from 'react';
 import Card from '../common/Card';
+import SectionHeading from '../common/SectionHeading';
 
 const AboutPurposeSection = () => {
     return (
-        <section className="section-gap border border-primary/10 ">
-            <div className="container-width">
-                {/* Main Purpose Block */}
-                <div className="px-10">
-                    <h2 className="text-3xl font-semibold text-text-primary">
-                        Why CareLink Exists
-                    </h2>
+        <section className="section-gap bg-[#F6FAFA] border-y border-primary/8">
+            <div className="container-width flex flex-col items-center gap-12">
+                {/* heading */}
+                <SectionHeading
+                    title="Why CareLink Exists"
+                    description="We built CareLink to make giving more human,
+                        transparent, and immediate — so support reaches people
+                        when it matters most."
+                />
 
-                    <p className="mt-4 text-text-secondary leading-relaxed max-w-3xl">
-                        CareLink is built to make support more transparent,
-                        direct, and human. Every feature exists to ensure help
-                        reaches the right people at the right time.
-                    </p>
-                </div>
-
-                {/* Cards */}
-                <div className="mt-8">
-                    <Card />
-                </div>
+                {/* cards */}
+                <Card />
             </div>
         </section>
     );

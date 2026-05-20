@@ -28,8 +28,8 @@ const Navbar = () => {
                 aria-label="Main Navigation"
                 className={`sticky top-0 z-50 transition-all duration-300 ${
                     scrolled
-                        ? 'h-20 bg-[#EDF4F7]/80 backdrop-blur border-b border-primary/20 shadow-sm'
-                        : 'h-24 bg-[#FAFAFB]'
+                        ? 'h-24 bg-[#EDF4F7]/80 backdrop-blur border-b border-primary/20 shadow-sm'
+                        : 'h-28 bg-[#FAFAFB]'
                 }`}
             >
                 <div className="container-width flex h-full items-center justify-between">
@@ -38,9 +38,7 @@ const Navbar = () => {
                         <img
                             src={logo}
                             alt="CareLink logo"
-                            className={`transition-all duration-300 object-contain ${
-                                scrolled ? 'h-14 md:h-16' : 'h-16 md:h-18'
-                            }`}
+                            className="object-contain h-16"
                         />
                     </Link>
 

@@ -4,7 +4,7 @@ import SectionHeading from '../common/SectionHeading';
 
 const AboutPurposeSection = () => {
     return (
-        <section className="section-gap bg-[#F6FAFA] border-y border-primary/8">
+        <section className="section-gap bg-surface border-t border-border">
             <div className="container-width flex flex-col items-center gap-12">
                 {/* heading */}
                 <SectionHeading

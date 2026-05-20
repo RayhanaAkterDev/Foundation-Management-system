@@ -24,7 +24,7 @@ const AboutIntroSection = () => {
                     />
                 </div>
 
-                <div className="w-3/5 flex flex-col gap-8">
+                <div className="w-3/5 flex flex-col gap-0">
                     <SectionHeading
                         align="left"
                         badge="Who we are"

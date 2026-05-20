@@ -6,11 +6,11 @@ import { HiArrowSmRight } from 'react-icons/hi';
 
 const BePartOfChange = () => {
     return (
-        <section className="section-gap">
-            <div className="container-width">
+        <section className="">
+            <div className="container-width flex flex-col items-center">
                 <SectionHeading
                     gap="sm"
-                    align="left"
+                    // align="left"
                     title="Be part of the Change"
                     headingClass="text-primary"
                     description="Your support today can create a better tomorrow. Join us in building stronger, kinder communities"

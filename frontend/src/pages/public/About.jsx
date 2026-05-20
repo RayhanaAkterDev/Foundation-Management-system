@@ -52,10 +52,10 @@ const About = () => {
                 style={{
                     backgroundImage: `url(${bePartOfChange})`,
                 }}
-                className="bg-cover bg-bottom bg-no-repeat"
+                className="bg-cover bg-bottom bg-no-repeat section-gap bg-fixed"
             >
-                <AboutImpactSection />
                 <BePartOfChange />
+                <AboutImpactSection />
             </div>
         </>
     );

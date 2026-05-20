@@ -24,11 +24,9 @@ const AboutIntroSection = () => {
                     />
                 </div>
 
-                <div className="w-3/5 ">
+                <div className="w-3/5 flex flex-col gap-8">
                     <SectionHeading
                         align="left"
-                        gap="md"
-                        headingTag="h2"
                         badge="Who we are"
                         badgeIcon={TbUsers}
                         badgeClass="badge-primary"

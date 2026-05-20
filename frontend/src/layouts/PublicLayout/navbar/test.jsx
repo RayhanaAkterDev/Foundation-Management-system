@@ -1,98 +1,63 @@
 import React from 'react';
-import Card from '../common/Card';
 
-const AboutPurposeSection = () => {
+const StatCard = ({ stats = [], variant = 'row' }) => {
+    const isColumn = variant === 'column';
+
     return (
-        <section className="section-gap border border-primary/10 ">
-            <div className="container-width">
-                {/* Main Purpose Block */}
-                <div className="px-10">
-                    <h2 className="text-3xl font-semibold text-text-primary">
-                        Why CareLink Exists
-                    </h2>
+        <div className="mt-9 flex gap-x-6">
+            {stats.map((stat, index) => {
+                const Icon = stat.icon;
 
-                    <p className="mt-4 text-text-secondary leading-relaxed max-w-3xl">
-                        CareLink is built to make support more transparent,
-                        direct, and human. Every feature exists to ensure help
-                        reaches the right people at the right time.
-                    </p>
-                </div>
-
-                {/* Cards */}
-                <div className="mt-8">
-                    <Card />
-                </div>
-            </div>
-        </section>
-    );
-};
-
-export default AboutPurposeSection;
-
-// ================================
-
-import React from 'react';
-import Button from './Button';
-import aboutPurposeCards from '../../data/cards/aboutPurposeCards';
-import { HiArrowSmRight } from 'react-icons/hi';
-
-const Card = () => {
-    return (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            {aboutPurposeCards.map((item, index) => {
-                const Icon = item.icon;
-
-                const isAccent = index === 1;
-                // 👆 only ONE card gets accent (Impact Stories)
+                const isMiddle = index === Math.floor(stats.length / 2);
+                const isLast = index === stats.length - 1;
 
                 return (
                     <div
-                        key={item.title}
+                        key={index}
                         className={`
-                            rounded-3xl border p-8 lg:p-10
-                            transition-all duration-300
-                            hover:-translate-y-1 hover:shadow-md
+                            flex-1
+                            flex
                             ${
-                                isAccent
-                                    ? 'border-primary/25 bg-primary-hover/20'
-                                    : 'border-border bg-surface'
+                                isColumn
+                                    ? 'flex-col gap-4 py-3'
+                                    : 'flex-row items-center gap-4'
+                            }
+
+                            ${isMiddle ? 'text-primary' : ''}
+                            px-6
+                            ${
+                                !isLast
+                                    ? 'border-r-2 border-primary-hover/20'
+                                    : ''
                             }
                         `}
                     >
-                        {/* icon */}
+                        {/* ICON */}
                         <div
                             className={`
-                                h-12 w-12 rounded-2xl flex items-center justify-center
-                                transition-all duration-300
+                                h-12 w-12
+                                rounded-full
+                                flex items-center justify-center
+                                shrink-0
                                 ${
-                                    isAccent
+                                    isMiddle
                                         ? 'bg-primary text-white'
                                         : 'bg-primary/10 text-primary'
                                 }
                             `}
                         >
-                            <Icon size={24} />
+                            {Icon && <Icon size={22} strokeWidth={2.5} />}
                         </div>
 
-                        {/* title */}
-                        <h3 className="mt-5 text-2xl font-semibold text-primary-hover">
-                            {item.title}
-                        </h3>
+                        {/* TEXT */}
+                        <div className="flex flex-col gap-3">
+                            <h3 className="text-xl font-bold leading-none text-primary">
+                                {stat.value}
+                            </h3>
 
-                        {/* description */}
-                        <p className="mt-4 text-text-secondary leading-relaxed">
-                            {item.description}
-                        </p>
-
-                        {/* CTA */}
-                        <div className="mt-6 flex justify-end">
-                            <Button
-                                variant="ghost"
-                                className="px-0 text-primary-hover"
-                            >
-                                {item.cta}
-                                <HiArrowSmRight />
-                            </Button>
+                            <p className="text-sm text-text-secondary">
+                                {stat.label}
+                            </p>
                         </div>
                     </div>
                 );
@@ -101,4 +66,4 @@ const Card = () => {
     );
 };
 
-export default Card;
+export default StatCard;

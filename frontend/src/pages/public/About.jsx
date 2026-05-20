@@ -6,6 +6,7 @@ import { HiArrowSmRight } from 'react-icons/hi';
 import { TbHeartFilled } from 'react-icons/tb';
 import AboutIntroSection from '../../components/about/AboutIntroSection';
 import AboutPurposeSection from '../../components/about/AboutPurposeSection';
+import AboutImpactSection from '../../components/about/AboutImpactSection';
 
 const About = () => {
     return (
@@ -19,7 +20,8 @@ const About = () => {
                     <>
                         Connecting <span className="text-primary">hope</span>{' '}
                         <br />
-                        with people who <br /> need it most
+                        with people who <br /> need it{' '}
+                        <span className="text-accent">most</span>
                     </>
                 }
                 description={
@@ -43,6 +45,7 @@ const About = () => {
 
             <AboutIntroSection />
             <AboutPurposeSection />
+            <AboutImpactSection />
         </>
     );
 };

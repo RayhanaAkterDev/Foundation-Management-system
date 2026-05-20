@@ -38,30 +38,6 @@ const Hero = ({
                         descriptionSize="hero"
                     />
 
-                    {/* stats */}
-                    {showStats && (
-                        <StatCard
-                            stats={[
-                                {
-                                    icon: TbUsersGroup,
-                                    value: '25K+',
-                                    label: 'Lives Impacted',
-                                },
-                                {
-                                    icon: TbHeartHandshake,
-                                    value: '8K+',
-                                    label: 'Volunteers',
-                                    featured: true,
-                                },
-                                {
-                                    icon: TbBuildingCommunity,
-                                    value: '120+',
-                                    label: 'Communities',
-                                },
-                            ]}
-                        />
-                    )}
-
                     {/* CTA */}
                     <div className="flex flex-col sm:flex-row gap-4 my-8">
                         {primaryCta && (
@@ -86,6 +62,32 @@ const Hero = ({
                             </Button>
                         )}
                     </div>
+
+                    {/* stats */}
+                    {showStats && (
+                        <StatCard
+                            variant="row"
+                            size="md"
+                            stats={[
+                                {
+                                    icon: TbUsersGroup,
+                                    value: '25K+',
+                                    label: 'Lives Impacted',
+                                },
+                                {
+                                    icon: TbHeartHandshake,
+                                    value: '8K+',
+                                    label: 'Volunteers',
+                                    featured: true,
+                                },
+                                {
+                                    icon: TbBuildingCommunity,
+                                    value: '120+',
+                                    label: 'Communities',
+                                },
+                            ]}
+                        />
+                    )}
                 </div>
             </div>
 

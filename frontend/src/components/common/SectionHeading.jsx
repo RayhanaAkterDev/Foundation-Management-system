@@ -26,7 +26,7 @@ const gapStyles = {
 /* ================= BADGE ================= */
 
 const badgeStyles = {
-    base: 'flex items-center gap-2 text-sm font-medium text-primary',
+    base: 'flex items-center gap-2 text-sm font-semibold text-primary',
 };
 
 /* ================= HEADING ================= */
@@ -99,7 +99,7 @@ const SectionHeading = ({
 
             {/* heading */}
             <HeadingTag
-                className={`
+                className={`capitalize
                     ${headingStyles[headingSize]}
                     ${headingClass}
                 `}
@@ -110,7 +110,7 @@ const SectionHeading = ({
             {/* description */}
             {description && (
                 <p
-                    className={`
+                    className={`w-5/6
                         ${descriptionStyles[descriptionSize]}
                         ${descriptionClass}
                     `}

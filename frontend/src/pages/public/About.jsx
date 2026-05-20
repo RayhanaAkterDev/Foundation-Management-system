@@ -17,17 +17,16 @@ const About = () => {
                 badgeIcon={TbHeartFilled}
                 title={
                     <>
-                        Connecting <span className="text-primary">Hope</span> To{' '}
-                        <br /> Those Who Need It{' '}
-                        <span className="text-accent">Most</span>
+                        Connecting <span className="text-primary">hope</span>{' '}
+                        <br />
+                        with people who <br /> need it most
                     </>
                 }
                 description={
                     <>
-                        Together, we can build a future where help, kindness,
-                        and opportunity reach every community in need. Through
-                        compassion and action, we can create real change for a
-                        more hopeful tomorrow.”
+                        CareLink connects donors, volunteers, and communities
+                        through transparent support systems that turn compassion
+                        into measurable change.”
                     </>
                 }
                 primaryCta={{
@@ -39,7 +38,7 @@ const About = () => {
                     icon: <HiArrowSmRight />,
                 }}
                 image={aboutHeroImage}
-                imageWidth="60%"
+                imageWidth="80%"
             />
 
             <AboutIntroSection />

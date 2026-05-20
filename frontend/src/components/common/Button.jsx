@@ -5,7 +5,7 @@ function Button({ children, variant = 'primary', className = '' }) {
     const variants = {
         primary: 'bg-primary text-white hover:bg-primary-hover',
         outline:
-            'border border-primary text-primary hover:bg-primary hover:text-white',
+            'border border-primary border-2 text-primary hover:bg-primary hover:text-white',
     };
 
     return (

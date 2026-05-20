@@ -5,6 +5,7 @@ import aboutHeroImage from '../../assets/images/about/aboutHero.png';
 import { HiArrowSmRight } from 'react-icons/hi';
 import { TbHeartFilled } from 'react-icons/tb';
 import AboutIntroSection from '../../components/about/AboutIntroSection';
+import AboutPurposeSection from '../../components/about/AboutPurposeSection';
 
 const About = () => {
     return (
@@ -42,6 +43,7 @@ const About = () => {
             />
 
             <AboutIntroSection />
+            <AboutPurposeSection />
         </>
     );
 };

@@ -18,12 +18,12 @@ const StatCard = ({ stats = [], variant = 'row' }) => {
                             flex
                             ${
                                 isColumn
-                                    ? 'flex-col gap-4'
+                                    ? 'flex-col gap-4 py-3'
                                     : 'flex-row items-center gap-4'
                             }
 
                             ${isMiddle ? 'text-primary' : ''}
-                            ${isMiddle ? 'border-x border-primary/20 px-6' : ''}
+                            ${isMiddle ? 'border-x-2 border-primary-hover/20 px-6' : ''}
                         `}
                     >
                         {/* ICON */}
@@ -40,7 +40,7 @@ const StatCard = ({ stats = [], variant = 'row' }) => {
                                 }
                             `}
                         >
-                            {Icon && <Icon size={22} />}
+                            {Icon && <Icon size={22} strokeWidth={2.5} />}
                         </div>
 
                         {/* TEXT */}

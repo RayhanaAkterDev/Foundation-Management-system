@@ -90,6 +90,7 @@ const SectionHeading = ({
                         <BadgeIcon
                             aria-hidden="true"
                             className="text-current"
+                            strokeWidth={3}
                         />
                     )}
 
@@ -110,7 +111,7 @@ const SectionHeading = ({
             {/* description */}
             {description && (
                 <p
-                    className={`w-5/6
+                    className={`max-w-135
                         ${descriptionStyles[descriptionSize]}
                         ${descriptionClass}
                     `}

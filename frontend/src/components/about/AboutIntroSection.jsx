@@ -2,7 +2,7 @@ import React from 'react';
 import SectionHeading from '../common/SectionHeading';
 import {
     TbHeart,
-    TbUsersGroup,
+    TbUsers,
     TbHeartHandshake,
     TbShieldCheck,
     TbLockHeart,
@@ -24,19 +24,17 @@ const AboutIntroSection = () => {
                     />
                 </div>
 
-                <div className="w-3/5 flex flex-col items-center">
+                <div className="w-3/5 ">
                     <SectionHeading
                         align="left"
                         gap="md"
                         headingTag="h2"
                         badge="Who we are"
-                        badgeIcon={TbUsersGroup}
+                        badgeIcon={TbUsers}
                         badgeClass="badge-primary"
                         title={
                             <>
-                                Bridging{' '}
-                                <span className="text-primary">Generosity</span>{' '}
-                                With{' '}
+                                Bridging Generosity <br /> With{' '}
                                 <span className="text-accent">Real Impact</span>
                             </>
                         }

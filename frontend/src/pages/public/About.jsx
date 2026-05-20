@@ -7,6 +7,8 @@ import { TbHeartFilled } from 'react-icons/tb';
 import AboutIntroSection from '../../components/about/AboutIntroSection';
 import AboutPurposeSection from '../../components/about/AboutPurposeSection';
 import AboutImpactSection from '../../components/about/AboutImpactSection';
+import bePartOfChange from '../../assets/images/about/bePartOfChange.png';
+import BePartOfChange from '../../components/about/BePartOfChange';
 
 const About = () => {
     return (
@@ -45,7 +47,16 @@ const About = () => {
 
             <AboutIntroSection />
             <AboutPurposeSection />
-            <AboutImpactSection />
+
+            <div
+                style={{
+                    backgroundImage: `url(${bePartOfChange})`,
+                }}
+                className="bg-cover bg-bottom bg-no-repeat"
+            >
+                <AboutImpactSection />
+                <BePartOfChange />
+            </div>
         </>
     );
 };

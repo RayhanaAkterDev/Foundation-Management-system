@@ -9,6 +9,7 @@ const AboutPurposeSection = () => {
                 {/* heading */}
                 <SectionHeading
                     title="Why CareLink Exists"
+                    headingClass="text-primary"
                     description="We built CareLink to make giving more human,
                         transparent, and immediate — so support reaches people
                         when it matters most."

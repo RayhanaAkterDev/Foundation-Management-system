@@ -5,7 +5,7 @@ import aboutImpactStats from '../../data/stats/aboutImpactStats';
 
 const AboutImpactSection = () => {
     return (
-        <section className="section-gap bg-surface border-b border-border">
+        <section className="section-gap">
             <div className="container-width">
                 <SectionHeading
                     badge="CareLink in numbers"

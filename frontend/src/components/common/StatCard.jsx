@@ -90,7 +90,7 @@ const StatCard = ({
                             <div
                                 className={`
                                     ${s.iconBox}
-                                    rounded-full
+                                    rounded-full border border-primary/10
                                     flex items-center justify-center
                                     shrink-0
                                     ${

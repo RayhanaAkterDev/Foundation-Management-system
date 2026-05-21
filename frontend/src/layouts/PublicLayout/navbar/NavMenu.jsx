@@ -21,7 +21,7 @@ const NavMenu = ({ scrolled, mobile = false, onItemClick }) => {
             }
         >
             {navLinks.map((link) => (
-                <li key={link.id} className="relative">
+                <li key={link.id} className={!mobile ? 'group relative' : ''}>
                     {/* MOBILE BEHAVIOR */}
                     {mobile ? (
                         <div>
@@ -31,12 +31,13 @@ const NavMenu = ({ scrolled, mobile = false, onItemClick }) => {
                                         ? toggleDropdown(link.id)
                                         : onItemClick?.()
                                 }
-                                className="flex items-center gap-2 px-3 py-2 w-full text-left"
+                                className="flex w-full items-center gap-2 px-3 py-2 text-left"
                             >
                                 {link.name}
+
                                 {link.children && (
                                     <IoChevronDown
-                                        className={`transition-transform ${
+                                        className={`transition-transform duration-300 ${
                                             openDropdown === link.id
                                                 ? 'rotate-180'
                                                 : ''
@@ -45,9 +46,9 @@ const NavMenu = ({ scrolled, mobile = false, onItemClick }) => {
                                 )}
                             </button>
 
-                            {/* Mobile dropdown */}
+                            {/* MOBILE DROPDOWN */}
                             {link.children && openDropdown === link.id && (
-                                <div className="ml-4 flex flex-col gap-2">
+                                <div className="ml-4 mt-2 flex flex-col gap-2">
                                     {link.children.map((child) => (
                                         <NavLink
                                             key={child.id}
@@ -62,31 +63,55 @@ const NavMenu = ({ scrolled, mobile = false, onItemClick }) => {
                             )}
                         </div>
                     ) : (
-                        /* DESKTOP BEHAVIOR (your original) */
-                        <div className="group relative">
+                        /* DESKTOP BEHAVIOR */
+                        <div
+                            onMouseEnter={() => setOpenDropdown(link.id)}
+                            onMouseLeave={() => setOpenDropdown(null)}
+                            className="relative"
+                        >
                             <NavLink
                                 to={link.path}
                                 className={({ isActive }) =>
-                                    `flex items-center gap-1 rounded-md px-3 py-2 transition-all duration-300 hover:bg-primary/10 hover:text-primary-hover ${
-                                        isActive
-                                            ? 'font-semibold text-primary'
-                                            : 'text-text-primary'
-                                    }`
+                                    `
+            relative flex items-center gap-1 px-3 py-3
+            text-sm font-medium
+            transition-all duration-300
+
+            hover:bg-primary/10
+            hover:text-primary
+
+            after:absolute
+            after:bottom-0
+            after:left-0
+            after:h-0.5
+            after:w-0
+            after:bg-primary
+            after:transition-all
+            after:duration-300
+
+            hover:after:w-full
+
+            ${isActive ? 'text-primary after:w-full' : 'text-text-primary'}
+        `
                                 }
                             >
                                 {link.name}
 
                                 {link.children && (
-                                    <IoChevronDown className="mt-0.5 text-sm transition-transform duration-300 group-hover:rotate-180" />
+                                    <IoChevronDown
+                                        className={`mt-0.5 text-sm transition-transform duration-300 ${
+                                            openDropdown === link.id
+                                                ? 'rotate-180'
+                                                : ''
+                                        }`}
+                                    />
                                 )}
                             </NavLink>
 
-                            {/* Desktop dropdown */}
-                            {link.children && (
+                            {link.children && openDropdown === link.id && (
                                 <DropdownMenu
                                     items={link.children}
                                     scrolled={scrolled}
-                                    mobile={mobile}
                                 />
                             )}
                         </div>

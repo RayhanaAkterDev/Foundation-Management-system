@@ -47,7 +47,7 @@ const DropdownMenu = ({ items, scrolled, mobile = false, title = 'Menu' }) => {
                                         ${
                                             isActive
                                                 ? 'bg-primary/10 text-primary'
-                                                : '!text-text-secondary hover:!text-primary'
+                                                : 'text-text-secondary hover:text-primary'
                                         }
                                     `
                                     }
@@ -63,8 +63,6 @@ const DropdownMenu = ({ items, scrolled, mobile = false, title = 'Menu' }) => {
     }
 
     // DESKTOP DROPDOWN
-    const positionClass = scrolled ? 'top-16' : 'top-20';
-
     const bgClass = scrolled
         ? 'bg-[#EDF4F7]/95 backdrop-blur'
         : 'bg-[#FAFAFB]/95 backdrop-blur';
@@ -72,24 +70,14 @@ const DropdownMenu = ({ items, scrolled, mobile = false, title = 'Menu' }) => {
     return (
         <div
             className={`
-                absolute left-1/2 ${positionClass}
-                z-50 w-64 -translate-x-1/2
+            absolute left-1/2 top-[calc(100%+12px)] z-50
+            w-64 -translate-x-1/2
 
-                rounded-xl border border-border
-                p-3 shadow-lg
+            rounded-xl border border-border
+            p-3 shadow-lg
 
-                transition-all duration-200 ease-out
-
-                invisible translate-y-3 opacity-0
-                pointer-events-none
-
-                group-hover:pointer-events-auto
-                group-hover:visible
-                group-hover:translate-y-0
-                group-hover:opacity-100
-
-                ${bgClass}
-            `}
+            ${bgClass}
+        `}
         >
             <ul className="space-y-1">
                 {items?.map((child) => (
@@ -98,19 +86,19 @@ const DropdownMenu = ({ items, scrolled, mobile = false, title = 'Menu' }) => {
                             to={child.path}
                             className={({ isActive }) =>
                                 `
-                                block rounded-lg px-4 py-2.5
-                                text-sm font-medium
-                                transition-all duration-200
+                            block rounded-lg px-4 py-2.5
+                            text-sm font-medium
+                            transition-all duration-200
 
-                                hover:bg-primary/10
-                                hover:text-primary
+                            hover:bg-primary/10
+                            hover:text-primary
 
-                                ${
-                                    isActive
-                                        ? 'bg-primary/10 text-primary'
-                                        : 'text-text-secondary!'
-                                }
-                            `
+                            ${
+                                isActive
+                                    ? 'bg-primary/10 text-primary'
+                                    : 'text-text-secondary'
+                            }
+                        `
                             }
                         >
                             {child.name}

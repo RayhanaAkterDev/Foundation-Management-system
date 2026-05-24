@@ -1,11 +1,10 @@
 import React from 'react';
-import Button from './Button';
 import aboutPurposeCards from '../../data/cards/aboutPurposeCards';
 import { HiArrowSmRight } from 'react-icons/hi';
 
 const Card = () => {
     return (
-        <div className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-5 md:grid-cols-2 lg:gap-8">
+        <div className="mx-auto grid w-full max-w-5xl grid-cols-1 gap-7 md:grid-cols-2">
             {aboutPurposeCards.map((item) => {
                 const Icon = item.icon;
 
@@ -13,58 +12,61 @@ const Card = () => {
                     <div
                         key={item.title}
                         className="
-                            group relative overflow-hidden
-                            rounded-3xl bg-white
-
+                            group relative cursor-pointer overflow-hidden
+                            rounded-3xl
+                            bg-white
                             border border-primary/10
-                            border-t-4 border-t-primary/60
-
-                            p-5 sm:p-6 lg:p-8
-
-                            min-h-72.5 sm:min-h-80
-
-                            transition-all duration-300 ease-out
-                            hover:-translate-y-1 hover:shadow-lg
-                            hover:bg-primary/2
+                            p-6 sm:p-7 lg:p-8
+                            transition-all duration-500 ease-out
+                            hover:-translate-y-2
+                            hover:shadow-[0_20px_45px_-18px_rgba(52,168,83,0.18)]
+                            hover:border-primary/20
+                            hover:bg-white
                         "
                     >
-                        {/* watermark */}
-                        <div className="absolute right-3 bottom-3 text-primary/5 pointer-events-none">
-                            <Icon className="size-20 sm:size-24 lg:size-28" />
+                        {/* soft hover glow */}
+                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-linear-to-br from-primary/3 to-transparent pointer-events-none" />
+
+                        {/* watermark icon */}
+                        <div className="absolute right-4 bottom-4 text-primary/5 pointer-events-none transition-all duration-500 group-hover:text-primary/9 group-hover:scale-105">
+                            <Icon className="size-24 sm:size-28 lg:size-32" />
                         </div>
 
-                        <div className="relative z-10 flex h-full flex-col max-w-full sm:max-w-[88%]">
-
-                            {/* icon */}
-                            <div className="flex items-center justify-center h-11 w-11 sm:h-14 sm:w-14 rounded-2xl bg-primary/10 text-primary">
-                                <Icon className="size-5 sm:size-5.5" />
+                        {/* top row */}
+                        <div className="relative flex items-start justify-between">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary transition-all duration-300 group-hover:bg-primary/15">
+                                <Icon className="size-5" />
                             </div>
 
-                            {/* title */}
-                            <h3 className="mt-4 sm:mt-5 text-[clamp(1.2rem,1rem+1vw,1.6rem)] leading-[1.15] font-semibold tracking-tight text-text-primary">
-                                {item.title}
-                            </h3>
+                            <HiArrowSmRight
+                                className="
+                                    text-primary/40
+                                    group-hover:text-primary
+                                    group-hover:translate-x-1
+                                    transition-all duration-300
+                                "
+                                size={20}
+                            />
+                        </div>
 
-                            {/* description */}
-                            <p className="mt-3 text-[clamp(0.95rem,0.9rem+0.2vw,1rem)] leading-relaxed text-text-secondary">
-                                {item.description}
-                            </p>
+                        {/* title */}
+                        <h3 className="relative mt-5 text-xl sm:text-2xl font-semibold text-text-primary">
+                            {item.title}
+                        </h3>
 
-                            {/* CTA */}
-                            <div className="mt-5 sm:mt-6 pt-1">
-                                <Button
-                                    variant="ghost"
-                                    className="group/cta relative inline-flex items-center px-0 font-medium text-primary hover:text-primary-hover"
-                                >
-                                    <span className="relative inline-flex items-center">
-                                        {item.cta}
-                                        <HiArrowSmRight className="ml-1" />
+                        {/* description */}
+                        <p className="relative mt-3 text-sm sm:text-base leading-relaxed text-text-secondary">
+                            {item.description}
+                        </p>
 
-                                        <span className="absolute left-0 -bottom-1 h-0.5 w-1/3 bg-primary/70 origin-left transition-all duration-300 group-hover/cta:w-full" />
-                                    </span>
-                                </Button>
-                            </div>
+                        {/* CTA */}
+                        <div className="relative mt-6 flex items-center gap-2 text-primary font-medium">
+                            <span className="relative">
+                                {item.cta}
+                                <span className="absolute left-0 -bottom-1 h-0.5 w-0 bg-primary transition-all duration-300 group-hover:w-full" />
+                            </span>
 
+                            <HiArrowSmRight className="transition-transform duration-300 group-hover:translate-x-1" />
                         </div>
                     </div>
                 );

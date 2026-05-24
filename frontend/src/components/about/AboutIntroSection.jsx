@@ -15,8 +15,8 @@ import StatCard from '../common/StatCard';
 const AboutIntroSection = () => {
     return (
         <section className="section-gap bg-surface">
-            <div className="container-width flex justify-center items-center gap-12 ">
-                <div className="w-2/5 rounded-2xl">
+            <div className="container-width flex flex-col lg:flex-row justify-center items-center gap-12 ">
+                <div className="w-full lg:w-2/5 rounded-2xl">
                     <img
                         src={aboutIntro}
                         alt=""
@@ -24,9 +24,9 @@ const AboutIntroSection = () => {
                     />
                 </div>
 
-                <div className="w-3/5 flex flex-col gap-0">
+                <div className="w-full lg:w-3/5 flex flex-col gap-0">
                     <SectionHeading
-                        align="left"
+                        align="center"
                         badge="Who we are"
                         badgeIcon={TbUsers}
                         badgeClass="badge-primary"
@@ -37,6 +37,7 @@ const AboutIntroSection = () => {
                             </>
                         }
                         description="CareLink is an AI-powered, community-driven platform that connects donors, volunteers, and communities to deliver help where it’s needed most. Through transparency, compassion, and smart coordination, we turn generosity into real, measurable impact."
+                        wrapperClass="lg:items-start lg:text-left"
                     />
 
                     <StatCard variant="column" stats={aboutStats} />

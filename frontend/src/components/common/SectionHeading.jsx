@@ -1,71 +1,89 @@
 import React from 'react';
 
-/* ================= WRAPPER ================= */
-
 const wrapperStyles = {
     base: 'flex flex-col',
 };
-
-/* ================= ALIGN ================= */
-
-const alignStyles = {
-    left: 'items-start text-left',
-    center: 'items-center text-center',
-};
-
-/* ================= GAP ================= */
 
 const gapStyles = {
     none: 'gap-0',
     xs: 'gap-1',
     sm: 'gap-2',
-    md: 'gap-4',
-    lg: 'gap-6',
+    md: 'gap-3 sm:gap-4 lg:gap-5',
+    lg: 'gap-4 sm:gap-6 lg:gap-7',
 };
-
-/* ================= BADGE ================= */
 
 const badgeStyles = {
-    base: 'flex items-center gap-2 text-sm font-semibold text-primary',
+    base: 'flex items-center gap-2 text-xs sm:text-sm font-semibold text-primary',
 };
 
-/* ================= HEADING ================= */
+/* FLUID TYPOGRAPHY */
 
 const headingStyles = {
-    hero: 'text-3xl sm:text-5xl font-bold leading-tight',
-    section: 'text-2xl sm:text-4xl font-bold leading-snug',
-    sub: 'text-xl sm:text-2xl font-semibold leading-snug',
-    card: 'text-lg font-semibold leading-snug',
+    hero: `
+        text-[clamp(2.1rem,3vw,3.8rem)]
+        font-bold
+        leading-[1.08]
+        tracking-[-0.025em]
+    `,
+
+    section: `
+        text-[clamp(1.6rem,2.2vw,2.8rem)]
+        font-bold
+        leading-[1.15]
+        tracking-[-0.02em]
+    `,
+
+    sub: `
+        text-[clamp(1.15rem,1.4vw,1.7rem)]
+        font-semibold
+        leading-snug
+    `,
+
+    card: `
+        text-[clamp(1rem,1vw,1.15rem)]
+        font-semibold
+        leading-snug
+    `,
 };
 
-/* ================= DESCRIPTION ================= */
-
 const descriptionStyles = {
-    hero: 'text-base md:text-lg text-text-secondary',
-    section: 'text-base text-text-secondary',
-    sub: 'text-sm text-text-secondary',
-    card: 'text-sm text-text-secondary',
+    hero: `
+        text-[clamp(1rem,1.2vw,1.125rem)]
+        text-text-secondary
+        leading-relaxed
+        max-w-full lg:max-w-xl
+    `,
+
+    section: `
+        text-[clamp(0.95rem,1vw,1.05rem)]
+        text-text-secondary
+        leading-relaxed
+        max-w-full lg:max-w-2xl
+    `,
+
+    sub: `
+        text-sm
+        text-text-secondary
+        leading-relaxed
+    `,
+
+    card: `
+        text-sm
+        text-text-secondary
+        leading-relaxed
+    `,
 };
 
 const SectionHeading = ({
-    /* content */
     badge,
     badgeIcon: BadgeIcon,
     title,
     description,
-
-    /* semantic */
     headingTag: HeadingTag = 'h2', // eslint-disable-line no-unused-vars
-
-    /* structure */
     align = 'center',
     gap = 'md',
-
-    /* typography */
     headingSize = 'section',
     descriptionSize = 'section',
-
-    /* custom overrides */
     wrapperClass = '',
     badgeClass = '',
     headingClass = '',
@@ -73,48 +91,39 @@ const SectionHeading = ({
 }) => {
     return (
         <div
-            className={`${wrapperStyles.base}
-                ${alignStyles[align]}
+            className={`
+                ${wrapperStyles.base}
+                ${
+                    align === 'center'
+                        ? 'items-center text-center'
+                        : 'items-start text-left'
+                }
                 ${gapStyles[gap]}
                 ${wrapperClass}
             `}
         >
-            {/* badge */}
+            {/* BADGE */}
             {badge && (
-                <p
-                    className={`${badgeStyles.base}
-                        ${badgeClass}
-                    `}
-                >
+                <p className={`${badgeStyles.base} ${badgeClass}`}>
                     {BadgeIcon && (
-                        <BadgeIcon
-                            aria-hidden="true"
-                            className="text-current"
-                            strokeWidth={3}
-                        />
+                        <BadgeIcon className="text-current" strokeWidth={3} />
                     )}
 
                     <span>{badge}</span>
                 </p>
             )}
 
-            {/* heading */}
+            {/* HEADING */}
             <HeadingTag
-                className={`capitalize
-                    ${headingStyles[headingSize]}
-                    ${headingClass}
-                `}
+                className={`capitalize ${headingStyles[headingSize]} ${headingClass}`}
             >
                 {title}
             </HeadingTag>
 
-            {/* description */}
+            {/* DESCRIPTION */}
             {description && (
                 <p
-                    className={`max-w-135
-                        ${descriptionStyles[descriptionSize]}
-                        ${descriptionClass}
-                    `}
+                    className={`${descriptionStyles[descriptionSize]} ${descriptionClass}`}
                 >
                     {description}
                 </p>

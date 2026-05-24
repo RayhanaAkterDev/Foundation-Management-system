@@ -53,7 +53,7 @@ const StatCard = ({
     const textAlign = alignStyles[align] || alignStyles.left;
 
     return (
-        <div className="mt-9 flex gap-x-6">
+        <div className="mt-9 flex flex-col sm:flex-row gap-x-6">
             {stats.map((stat, index) => {
                 const Icon = stat.icon;
 

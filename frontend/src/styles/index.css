@@ -48,7 +48,12 @@ body {
         @apply max-w-7xl mx-auto px-6;
     }
 
-    /* section reuseable styles */
+    /* readable text width */
+    .content-width {
+        @apply w-full sm:max-w-lg sm:mx-auto lg:mx-0 lg:max-w-lg xl:max-w-xl;
+    }
+
+    /* section reusable styles */
     .section-gap {
         @apply py-16 md:py-18 lg:py-20;
     }

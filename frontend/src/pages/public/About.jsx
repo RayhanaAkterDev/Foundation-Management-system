@@ -23,10 +23,13 @@ const About = () => {
                 badgeClass="text-accent"
                 title={
                     <>
-                        Connecting <span className="text-primary">hope</span>
-                        <br />
-                        with people who need it{' '}
-                        <span className="text-accent">most</span>
+                        Connecting <span className="text-primary">hope</span>{' '}
+                        with
+                        <span className="sm:block inline">
+                            {' '}
+                            people who need it{' '}
+                            <span className="text-accent">most</span>
+                        </span>
                     </>
                 }
                 description="CareLink connects donors, volunteers, and communities through a transparent system that turns compassion into measurable, real-world impact with clarity and trust."
@@ -39,7 +42,7 @@ const About = () => {
                     icon: HiArrowSmRight,
                 }}
                 image={aboutHeroImage}
-                imageWidth="70%"
+                showStats={false}
             />
 
             <AboutIntroSection />

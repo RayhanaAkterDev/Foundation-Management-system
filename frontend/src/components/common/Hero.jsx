@@ -11,6 +11,7 @@ import {
 const Hero = ({
     badge,
     badgeIcon,
+    badgeClass,
     title,
     description,
     primaryCta,
@@ -33,6 +34,7 @@ const Hero = ({
                         headingSize="hero"
                         badge={badge}
                         badgeIcon={badgeIcon}
+                        badgeClass={badgeClass}
                         title={title}
                         description={description}
                         descriptionSize="hero"

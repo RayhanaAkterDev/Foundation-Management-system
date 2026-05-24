@@ -4,11 +4,13 @@ import aboutHeroImage from '../../assets/images/about/aboutHero.png';
 
 import { HiArrowSmRight } from 'react-icons/hi';
 import { TbHeartFilled } from 'react-icons/tb';
+
 import AboutIntroSection from '../../components/about/AboutIntroSection';
 import AboutPurposeSection from '../../components/about/AboutPurposeSection';
 import AboutImpactSection from '../../components/about/AboutImpactSection';
-import bePartOfChange from '../../assets/images/about/bePartOfChange.png';
 import BePartOfChange from '../../components/about/BePartOfChange';
+
+import bePartOfChange from '../../assets/images/about/bePartOfChange.png';
 
 const About = () => {
     return (
@@ -18,45 +20,38 @@ const About = () => {
                 align="left"
                 badge="About CareLink"
                 badgeIcon={TbHeartFilled}
+                badgeClass="text-accent"
                 title={
                     <>
-                        Connecting <span className="text-primary">hope</span>{' '}
+                        Connecting <span className="text-primary">hope</span>
                         <br />
-                        with people who <br /> need it{' '}
+                        with people who need it{' '}
                         <span className="text-accent">most</span>
                     </>
                 }
-                description={
-                    <>
-                        CareLink connects donors, volunteers, and communities
-                        through transparent support systems that turn compassion
-                        into measurable change.”
-                    </>
-                }
+                description="CareLink connects donors, volunteers, and communities through a transparent system that turns compassion into measurable, real-world impact with clarity and trust."
                 primaryCta={{
-                    label: 'Our Mission',
-                    icon: <TbHeartFilled />,
+                    label: 'Discover Mission',
+                    icon: TbHeartFilled,
                 }}
                 secondaryCta={{
-                    label: 'Impact Stories',
-                    icon: <HiArrowSmRight />,
+                    label: 'See Impact Stories',
+                    icon: HiArrowSmRight,
                 }}
                 image={aboutHeroImage}
-                imageWidth="80%"
+                imageWidth="70%"
             />
 
             <AboutIntroSection />
             <AboutPurposeSection />
 
-            <div
-                style={{
-                    backgroundImage: `url(${bePartOfChange})`,
-                }}
-                className="bg-cover bg-bottom bg-no-repeat section-gap"
+            <section
+                className="section-gap bg-cover bg-bottom bg-no-repeat"
+                style={{ backgroundImage: `url(${bePartOfChange})` }}
             >
                 <BePartOfChange />
                 <AboutImpactSection />
-            </div>
+            </section>
         </>
     );
 };

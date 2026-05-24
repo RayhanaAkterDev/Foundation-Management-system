@@ -1,48 +1,49 @@
 import React from 'react';
-import { TbMail, TbShieldCheck } from 'react-icons/tb';
+import {
+    TbFlameFilled,
+    TbHeartFilled,
+    TbHomeHeart,
+    TbUsers,
+    TbCalendarEvent,
+    TbHeartHandshake,
+} from 'react-icons/tb';
+import { HiArrowSmRight } from 'react-icons/hi';
+import Button from '../../components/common/Button';
 
 const FooterCTA = () => {
     return (
         <div className="flex flex-col gap-10 lg:flex-row lg:items-center lg:justify-between">
+            <div className="max-w-2xl space-y-5">
+                <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-accent" />
 
-            {/* LEFT */}
-            <div className="max-w-xl">
-                <div className="flex items-start gap-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                        <TbMail size={22} />
-                    </div>
-
-                    <div>
-                        <h3 className="text-3xl font-semibold text-primary">
-                            Stay updated with CareLink
-                        </h3>
-
-                        <p className="mt-2 text-[15px] leading-7 text-text-secondary">
-                            Get insights, updates, and community impact stories
-                            directly in your inbox.
-                        </p>
-                    </div>
+                    <p className="text-sm font-medium tracking-[0.14em] text-accent">
+                        CARELINK COMMUNITY
+                    </p>
                 </div>
+
+                <h3 className="max-w-xl text-[2rem] font-semibold leading-tight tracking-tight text-primary">
+                    Help organizations create coordinated and meaningful
+                    community impact.
+                </h3>
+
+                <p className="max-w-2xl text-[15.5px] leading-[1.75] text-text-secondary">
+                    Organize donations, volunteers, and campaigns through one
+                    structured platform built for modern foundations and social
+                    initiatives.
+                </p>
             </div>
 
-            {/* RIGHT */}
-            <div className="w-full max-w-md">
-                <div className="flex overflow-hidden rounded-xl border border-border bg-white focus-within:border-primary">
-                    <input
-                        type="email"
-                        placeholder="Enter your email"
-                        className="flex-1 bg-transparent px-4 py-3 text-[15px] outline-none"
-                    />
+            <div className="flex flex-col gap-4 sm:flex-row lg:flex-col">
+                <Button className="w-full sm:w-auto">
+                    <TbHeartFilled size={18} />
+                    Donate Now
+                </Button>
 
-                    <button className="bg-primary px-6 text-[15px] font-medium text-white transition hover:bg-primary-hover">
-                        Subscribe
-                    </button>
-                </div>
-
-                <p className="mt-2 flex items-center gap-2 text-xs text-text-secondary">
-                    <TbShieldCheck />
-                    We respect your privacy. Unsubscribe anytime.
-                </p>
+                <Button variant="outline" className="w-full sm:w-auto">
+                    Learn More
+                    <HiArrowSmRight className="mt-0.5" />
+                </Button>
             </div>
         </div>
     );

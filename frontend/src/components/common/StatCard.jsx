@@ -53,78 +53,84 @@ const StatCard = ({
     const textAlign = alignStyles[align] || alignStyles.left;
 
     return (
-        <div className="mt-9 flex flex-col sm:flex-row gap-x-6">
+        <div
+            className="
+            mt-8
+            grid
+            grid-cols-1
+            sm:grid-cols-2
+            lg:grid-cols-3
+            gap-5
+            lg:gap-4
+        "
+        >
             {stats.map((stat, index) => {
                 const Icon = stat.icon;
 
                 const isMiddle = index === Math.floor(stats.length / 2);
-                const isLast = index === stats.length - 1;
-                const isFirst = index === 0;
 
                 return (
                     <div
                         key={index}
                         className={`
-                            flex-1
-                            flex
-                            ${
-                                isColumn
-                                    ? `flex-col ${s.gap} py-3`
-                                    : `flex-row items-center ${s.gap}`
-                            }
+                        flex-1
+                        flex
+                        ${
+                            isColumn
+                                ? `flex-col ${s.gap}`
+                                : `flex-row items-center ${s.gap}`
+                        }
 
-                            ${textAlign}
+                        ${textAlign}
 
-                            ${isMiddle ? 'text-primary' : ''}
-                            ${!isFirst ? s.pl : ''}
-                            ${!isLast ? s.pr : ''}
-                            ${
-                                !isLast
-                                    ? 'border-r-2 border-primary-hover/20'
-                                    : ''
-                            }
-                        `}
+                        rounded-2xl
+                        p-5
+                        lg:p-4
+
+                        bg-white/60
+                        backdrop-blur-sm
+
+                        border border-primary/10
+                    `}
                     >
                         {/* ICON */}
                         {Icon && (
                             <div
                                 className={`
-                                    ${s.iconBox}
-                                    rounded-full border border-primary/10
-                                    flex items-center justify-center
-                                    shrink-0
-                                    ${
-                                        isMiddle
-                                            ? 'bg-primary text-white'
-                                            : 'bg-primary/10 text-primary'
-                                    }
-                                `}
+                                ${s.iconBox}
+                                rounded-full
+                                flex items-center justify-center
+                                shrink-0
+                                ${
+                                    isMiddle
+                                        ? 'bg-primary text-white'
+                                        : 'bg-primary/10 text-primary'
+                                }
+                            `}
                             >
                                 <Icon size={s.icon} strokeWidth={2.5} />
                             </div>
                         )}
 
                         {/* TEXT */}
-                        <div
-                            className={`
-                                flex flex-col
-                                ${s.textGap}
-                            `}
-                        >
+                        <div className={`flex flex-col ${s.textGap}`}>
                             <h3
                                 className={`
-                                    ${s.value}
-                                    font-bold leading-none text-primary
-                                `}
+                                ${s.value}
+                                font-bold
+                                leading-none
+                                text-primary
+                            `}
                             >
                                 {stat.value}
                             </h3>
 
                             <p
                                 className={`
-                                    ${s.label}
-                                    text-text-secondary
-                                `}
+                                ${s.label}
+                                text-text-secondary
+                                leading-relaxed
+                            `}
                             >
                                 {stat.label}
                             </p>

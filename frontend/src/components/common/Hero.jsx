@@ -23,7 +23,7 @@ const Hero = ({
 }) => {
     return (
         <section
-            className={`relative overflow-hidden pt-16 lg:py-24 ${bgClass}`}
+            className={`relative overflow-hidden mt-24 pt-16 lg:py-24 ${bgClass}`}
         >
             {/* TEXT BLOCK */}
             <div className="relative z-10">

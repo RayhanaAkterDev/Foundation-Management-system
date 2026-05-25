@@ -1,111 +1,138 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { IoChevronDown } from 'react-icons/io5';
+import { FiArrowUpRight } from 'react-icons/fi';
 
-const DropdownMenu = ({ items, scrolled, mobile = false, title = 'Menu' }) => {
-    const [open, setOpen] = useState(false);
-
-    // MOBILE / TABLET DROPDOWN
+const DropdownMenu = ({ groups, mobile = false }) => {
+    // =========================
+    // ✅ MOBILE VERSION (NEW)
+    // =========================
     if (mobile) {
         return (
-            <div className="w-full">
-                {/* Parent Menu */}
-                <button
-                    onClick={() => setOpen(!open)}
-                    className="
-                        flex w-full items-center justify-between
-                        rounded-lg py-3
-                        text-left text-text-primary
-                        transition-all duration-200
-                    "
-                >
-                    <span className="font-medium">{title}</span>
+            <div className="flex flex-col gap-4 p-2">
+                {groups.map((group) => (
+                    <div
+                        key={group.title}
+                        className="bg-surface border border-border/40 rounded-xl p-3 shadow-sm"
+                    >
+                        {/* GROUP TITLE */}
+                        <div className="flex items-center gap-2 mb-3">
+                            <div className="w-1.5 h-1.5 rounded-full bg-accent" />
+                            <p className="text-[11px] uppercase tracking-[0.18em] font-semibold text-text-secondary">
+                                {group.title}
+                            </p>
+                        </div>
 
-                    <IoChevronDown
-                        className={`text-lg transition-transform duration-300 ${
-                            open ? 'rotate-180' : ''
-                        }`}
-                    />
-                </button>
-
-                {/* Accordion Dropdown */}
-                <div
-                    className={`overflow-hidden transition-all duration-300 ${
-                        open ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-                    }`}
-                >
-                    <ul className="space-y-1 border-l border-border pl-4 pb-2">
-                        {items?.map((child) => (
-                            <li key={child.id}>
+                        {/* ITEMS */}
+                        <div className="flex flex-col gap-2">
+                            {group.items.map((item) => (
                                 <NavLink
-                                    to={child.path}
+                                    key={item.id}
+                                    to={item.path}
+                                    onClick={() => {}}
                                     className={({ isActive }) =>
                                         `
-                                        block rounded-lg px-3 py-2
-                                        text-sm transition-all duration-200
+        flex justify-between gap-3
+        p-3 rounded-lg
 
-                                        ${
-                                            isActive
-                                                ? 'bg-primary/10 text-primary'
-                                                : 'text-text-secondary hover:text-primary'
-                                        }
-                                    `
+        transition-all duration-200
+
+        active:scale-[0.98]
+
+        ${
+            isActive
+                ? 'bg-primary/15 text-primary font-semibold shadow-sm'
+                : 'bg-transparent text-text-primary/80'
+        }
+
+        hover:bg-primary/5
+    `
                                     }
                                 >
-                                    {child.name}
+                                    <div>
+                                        <h4 className="text-[14px] font-semibold">
+                                            {item.name}
+                                        </h4>
+
+                                        <p className="text-[12px] text-text-secondary mt-1">
+                                            {item.desc}
+                                        </p>
+                                    </div>
+
+                                    <FiArrowUpRight className="text-text-secondary mt-1" />
                                 </NavLink>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
+                            ))}
+                        </div>
+                    </div>
+                ))}
             </div>
         );
     }
 
-    // DESKTOP DROPDOWN
-    const bgClass = scrolled
-        ? 'bg-[#EDF4F7]/95 backdrop-blur'
-        : 'bg-[#FAFAFB]/95 backdrop-blur';
-
+    // =========================
+    // ✅ DESKTOP VERSION (UNCHANGED)
+    // =========================
     return (
-        <div
-            className={`
-            absolute left-1/2 top-[calc(100%+12px)] z-50
-            w-64 -translate-x-1/2
+        <div className="absolute left-0 top-full z-50">
+            {/* hover bridge */}
+            <div className="absolute left-0 -top-5 w-full h-5" />
 
-            rounded-xl border border-border
-            p-3 shadow-lg
-
-            ${bgClass}
-        `}
-        >
-            <ul className="space-y-1">
-                {items?.map((child) => (
-                    <li key={child.id}>
-                        <NavLink
-                            to={child.path}
-                            className={({ isActive }) =>
-                                `
-                            block rounded-lg px-4 py-2.5
-                            text-sm font-medium
-                            transition-all duration-200
-
-                            hover:bg-primary/10
-                            hover:text-primary
-
-                            ${
-                                isActive
-                                    ? 'bg-primary/10 text-primary'
-                                    : 'text-text-secondary'
-                            }
-                        `
-                            }
+            <div className="min-w-190 bg-surface border border-border rounded-2xl shadow-[0_24px_70px_rgba(15,23,42,0.08)] overflow-hidden">
+                <div className="grid grid-cols-2">
+                    {groups.map((group, index) => (
+                        <div
+                            key={group.title}
+                            className={`
+                                p-7
+                                ${index !== groups.length - 1 ? 'border-r border-border' : ''}
+                            `}
                         >
-                            {child.name}
-                        </NavLink>
-                    </li>
-                ))}
-            </ul>
+                            {/* GROUP TITLE */}
+                            <div className="flex items-center gap-2 mb-5">
+                                <div className="w-1.5 h-1.5 rounded-full bg-accent" />
+                                <p className="text-[11px] uppercase tracking-[0.18em] font-semibold text-text-secondary">
+                                    {group.title}
+                                </p>
+                            </div>
+
+                            {/* ITEMS */}
+                            <div className="flex flex-col gap-2">
+                                {group.items.map((item) => (
+                                    <NavLink
+                                        key={item.id}
+                                        to={item.path}
+                                        className={({ isActive }) =>
+                                            `
+                                                group relative flex justify-between gap-4
+                                                p-4 rounded-xl
+                                                border border-transparent
+                                                transition-all duration-200
+
+                                                ${
+                                                    isActive
+                                                        ? 'bg-primary/10 border-primary/15'
+                                                        : 'hover:bg-background hover:border-border'
+                                                }
+                                            `
+                                        }
+                                    >
+                                        <div>
+                                            <h4 className="text-[15px] font-semibold text-text-primary/80 group-hover:text-primary transition-colors">
+                                                {item.name}
+                                            </h4>
+
+                                            <p className="text-[13px] text-text-secondary mt-1 leading-relaxed">
+                                                {item.desc}
+                                            </p>
+                                        </div>
+
+                                        <FiArrowUpRight className="text-text-secondary group-hover:text-primary transition-colors mt-1" />
+                                    </NavLink>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
         </div>
     );
 };

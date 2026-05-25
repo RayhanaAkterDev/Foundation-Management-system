@@ -2,9 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FiMenu, FiX } from 'react-icons/fi';
 
-import Button from '../../../components/common/Button';
 import logo from '../../../assets/images/shared/logo.png';
-
+import Button from '../../../components/common/Button';
 import NavMenu from './NavMenu';
 
 const Navbar = () => {
@@ -12,107 +11,172 @@ const Navbar = () => {
     const [mobileOpen, setMobileOpen] = useState(false);
 
     useEffect(() => {
-        const handleScroll = () => {
-            setScrolled(window.scrollY > 20);
-        };
-
+        const handleScroll = () => setScrolled(window.scrollY > 8);
         window.addEventListener('scroll', handleScroll);
-
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
     return (
         <>
-            {/* NAVBAR */}
-            <nav
-                aria-label="Main Navigation"
-                className={`sticky top-0 z-50 transition-all duration-300 ${
-                    scrolled
-                        ? 'h-24 bg-[#EDF4F7]/80 backdrop-blur border-b border-primary/20 shadow-sm'
-                        : 'h-28 bg-[#FAFAFB]'
-                }`}
+            <header
+                className={`
+    fixed top-0 left-0 w-full z-50
+    transition-all duration-300
+
+    ${
+        scrolled
+            ? `
+                bg-surface/95
+                backdrop-blur-md
+                shadow-[0_8px_30px_rgba(15,23,42,0.06)]
+            `
+            : 'bg-surface/90 backdrop-blur-sm'
+    }
+`}
             >
-                <div className="container-width flex h-full items-center justify-between">
-                    {/* LOGO */}
-                    <Link to="/" className="shrink-0">
-                        <img
-                            src={logo}
-                            alt="CareLink logo"
-                            className="object-contain h-16"
-                        />
-                    </Link>
+                <div className="max-w-7xl mx-auto">
+                    <div className="h-24 px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+                        {/* LEFT */}
+                        <div className="flex items-center gap-12">
+                            {/* BRAND */}
+                            <Link
+                                to="/"
+                                className="flex items-center gap-3 shrink-0"
+                            >
+                                <img
+                                    src={logo}
+                                    alt="CareLink"
+                                    className="w-12 object-contain"
+                                />
 
-                    {/* DESKTOP NAV */}
-                    <div className="hidden lg:flex items-center gap-10">
-                        <NavMenu scrolled={scrolled} />
+                                <div className="leading-none">
+                                    <h2 className="text-[1.7rem] font-semibold tracking-[-0.03em] text-primary-hover">
+                                        Care
+                                        <span className="text-accent">
+                                            Link
+                                        </span>
+                                    </h2>
 
-                        <div className="flex items-center gap-4">
-                            <Button>Donate Now</Button>
+                                    <p className="mt-1 text-[11px] uppercase tracking-[0.18em] text-text-secondary font-medium">
+                                        Help • Humanity • Hope
+                                    </p>
+                                </div>
+                            </Link>
 
-                            <Button variant="outline">Login</Button>
+                            {/* DESKTOP NAV */}
+                            <div className="hidden lg:block">
+                                <NavMenu />
+                            </div>
                         </div>
-                    </div>
 
-                    {/* MOBILE / TABLET HAMBURGER */}
-                    <button
-                        aria-label="Open Menu"
-                        onClick={() => setMobileOpen(true)}
-                        className="lg:hidden flex items-center justify-center text-3xl text-primary"
-                    >
-                        <FiMenu />
-                    </button>
+                        {/* RIGHT */}
+                        <div className="hidden lg:flex items-center gap-6">
+                            {/* LOGIN (normal link, NOT button) */}
+                            <Link
+                                to="/login"
+                                className="
+            text-[15px]
+            font-medium
+            text-text-secondary
+            hover:text-primary
+            transition-colors
+        "
+                            >
+                                Login
+                            </Link>
+
+                            {/* DONATE CTA (button stays important) */}
+                            <Button>Donate Now</Button>
+                        </div>
+
+                        {/* MOBILE BUTTON */}
+                        <button
+                            onClick={() => setMobileOpen(true)}
+                            className="
+                                lg:hidden
+                                w-11 h-11
+                                flex items-center justify-center
+                                rounded-md
+                                border border-border
+                                text-text-primary
+                            "
+                        >
+                            <FiMenu className="text-[1.4rem]" />
+                        </button>
+                    </div>
                 </div>
-            </nav>
+            </header>
 
             {/* OVERLAY */}
             <div
                 onClick={() => setMobileOpen(false)}
-                className={`fixed inset-0 z-60 bg-black/40 backdrop-blur-[2px] transition-all duration-300 ${
-                    mobileOpen ? 'visible opacity-100' : 'invisible opacity-0'
-                }`}
+                className={`
+                    fixed inset-0 z-40 bg-black/40 transition-all duration-300
+                    ${mobileOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}
+                `}
             />
 
-            {/* DRAWER */}
+            {/* MOBILE DRAWER */}
             <aside
-                className={`fixed top-0 right-0 z-70 h-screen w-[85%] max-w-85 bg-[#FAFAFB] shadow-2xl transition-transform duration-300 ease-in-out flex flex-col ${
-                    mobileOpen ? 'translate-x-0' : 'translate-x-full'
-                }`}
+                className={`
+        fixed top-0 right-0 z-50
+        h-full w-[88%] max-w-95
+        bg-surface
+
+        flex flex-col
+        transition-transform duration-300
+        ${mobileOpen ? 'translate-x-0' : 'translate-x-full'}
+    `}
             >
-                {/* DRAWER HEADER */}
-                <div className="flex items-center justify-between border-b border-border px-5 py-5">
-                    <Link to="/" onClick={() => setMobileOpen(false)}>
-                        <img
-                            src={logo}
-                            alt="CareLink logo"
-                            className="h-14 object-contain"
-                        />
+                {/* TOP */}
+                <div className="h-19.5 px-5 border-b border-border flex items-center justify-between shrink-0">
+                    <Link to="/" className="flex items-center gap-3">
+                        <img src={logo} alt="CareLink" className="w-10" />
+
+                        <div className="leading-none">
+                            <h3 className="text-lg font-semibold text-text-primary">
+                                Care
+                                <span className="text-primary">Link</span>
+                            </h3>
+
+                            <p className="mt-1 text-[10px] uppercase tracking-[0.16em] text-text-secondary">
+                                Humanity Platform
+                            </p>
+                        </div>
                     </Link>
 
                     <button
-                        aria-label="Close Menu"
                         onClick={() => setMobileOpen(false)}
-                        className="text-3xl text-primary"
+                        className="w-10 h-10 flex items-center justify-center rounded-md border border-border text-text-primary"
                     >
-                        <FiX />
+                        <FiX className="text-[1.3rem]" />
                     </button>
                 </div>
 
-                {/* MOBILE NAV */}
-                <div className="flex-1 overflow-y-auto px-5 py-6">
-                    <NavMenu
-                        mobile
-                        scrolled={scrolled}
-                        onItemClick={() => setMobileOpen(false)}
-                    />
+                {/* NAV */}
+                <div className="px-5 py-6 flex-1 overflow-y-auto">
+                    <NavMenu mobile onClose={() => setMobileOpen(false)} />
                 </div>
 
-                {/* MOBILE CTA */}
-                <div className="border-t border-border p-5 space-y-3">
-                    <Button className="w-full">Donate Now</Button>
-
-                    <Button variant="outline" className="w-full">
+                {/* CTA */}
+                <div className="p-5 border-t border-border shrink-0 bg-surface space-y-3">
+                    {/* LOGIN as LINK */}
+                    <Link
+                        to="/login"
+                        className="
+            block text-center
+            text-[15px]
+            font-medium
+            text-text-secondary
+            hover:text-primary
+            transition-colors
+        "
+                    >
                         Login
-                    </Button>
+                    </Link>
+
+                    {/* DONATE as BUTTON */}
+                    <Button className="w-full">Donate Now</Button>
                 </div>
             </aside>
         </>

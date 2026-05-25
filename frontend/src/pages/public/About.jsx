@@ -11,6 +11,7 @@ import AboutImpactSection from '../../components/about/AboutImpactSection';
 import BePartOfChange from '../../components/about/BePartOfChange';
 
 import bePartOfChange from '../../assets/images/about/bePartOfChange.png';
+import aboutImpacts from '../../assets/images/about/aboutImpacts.jpg';
 
 const About = () => {
     return (
@@ -49,11 +50,28 @@ const About = () => {
             <AboutPurposeSection />
 
             <section
-                className="section-gap bg-cover bg-bottom bg-no-repeat"
+                className="relative overflow-hidden bg-cover bg-top bg-no-repeat section-gap"
+                style={{ backgroundImage: `url(${aboutImpacts})` }}
+            >
+                {/* overlay */}
+                <div className="absolute inset-0 bg-black/30 z-0"></div>
+
+                {/* content */}
+                <div className="relative z-10">
+                    <AboutImpactSection />
+                </div>
+            </section>
+
+            <section
+                className="relative overflow-hidden bg-cover bg-top bg-no-repeat"
                 style={{ backgroundImage: `url(${bePartOfChange})` }}
             >
-                <BePartOfChange />
-                <AboutImpactSection />
+                {/* overlay */}
+                <div className="absolute inset-0 bg-white/10"></div>
+
+                <div className="relative">
+                    <BePartOfChange />
+                </div>
             </section>
         </>
     );

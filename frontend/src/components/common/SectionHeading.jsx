@@ -1,7 +1,7 @@
 import React from 'react';
 
 const wrapperStyles = {
-    base: 'flex flex-col',
+    base: 'w-full flex flex-col',
 };
 
 const gapStyles = {
@@ -13,34 +13,39 @@ const gapStyles = {
 };
 
 const badgeStyles = {
-    base: 'flex items-center gap-2 text-xs sm:text-sm font-semibold text-primary',
+    base: `
+        flex items-center gap-2
+        text-[clamp(0.75rem,0.8vw,0.95rem)]
+        font-semibold
+        text-primary
+    `,
 };
 
-/* FLUID TYPOGRAPHY */
+/* IMPROVED FLUID TYPOGRAPHY */
 
 const headingStyles = {
     hero: `
-        text-[clamp(2.1rem,3vw,3.8rem)]
+        text-[clamp(1.9rem,5vw,4rem)]
         font-bold
         leading-[1.08]
-        tracking-[-0.025em]
+        tracking-[-0.03em]
     `,
 
     section: `
-        text-[clamp(1.6rem,2.2vw,2.8rem)]
+        text-[clamp(1.6rem,3vw,3rem)]
         font-bold
-        leading-[1.15]
-        tracking-[-0.02em]
+        leading-[1.12]
+        tracking-[-0.025em]
     `,
 
     sub: `
-        text-[clamp(1.15rem,1.4vw,1.7rem)]
+        text-[clamp(1.15rem,1.8vw,1.8rem)]
         font-semibold
         leading-snug
     `,
 
     card: `
-        text-[clamp(1rem,1vw,1.15rem)]
+        text-[clamp(1rem,1.3vw,1.3rem)]
         font-semibold
         leading-snug
     `,
@@ -48,29 +53,29 @@ const headingStyles = {
 
 const descriptionStyles = {
     hero: `
-        text-[clamp(1rem,1.2vw,1.125rem)]
+        text-[clamp(1rem,1.25vw,1.15rem)]
         text-text-secondary
-        leading-relaxed
+        leading-[1.7]
         max-w-full lg:max-w-xl
     `,
 
     section: `
-        text-[clamp(0.95rem,1vw,1.05rem)]
+        text-[clamp(0.96rem,1.05vw,1.1rem)]
         text-text-secondary
-        leading-relaxed
+        leading-[1.75]
         max-w-full lg:max-w-2xl
     `,
 
     sub: `
-        text-sm
+        text-[clamp(0.95rem,1vw,1.05rem)]
         text-text-secondary
-        leading-relaxed
+        leading-[1.7]
     `,
 
     card: `
-        text-sm
+        text-[clamp(0.92rem,0.95vw,1rem)]
         text-text-secondary
-        leading-relaxed
+        leading-[1.65]
     `,
 };
 
@@ -102,28 +107,36 @@ const SectionHeading = ({
                 ${wrapperClass}
             `}
         >
-            {/* BADGE */}
+            {/* Badge */}
             {badge && (
                 <p className={`${badgeStyles.base} ${badgeClass}`}>
                     {BadgeIcon && (
-                        <BadgeIcon className="text-current" strokeWidth={3} />
+                        <BadgeIcon
+                            className="text-current shrink-0"
+                            strokeWidth={3}
+                        />
                     )}
-
                     <span>{badge}</span>
                 </p>
             )}
 
-            {/* HEADING */}
+            {/* Heading */}
             <HeadingTag
-                className={`capitalize ${headingStyles[headingSize]} ${headingClass}`}
+                className={`
+                    ${headingStyles[headingSize]}
+                    ${headingClass}
+                `}
             >
                 {title}
             </HeadingTag>
 
-            {/* DESCRIPTION */}
+            {/* Description */}
             {description && (
                 <p
-                    className={`${descriptionStyles[descriptionSize]} ${descriptionClass}`}
+                    className={`
+                        ${descriptionStyles[descriptionSize]}
+                        ${descriptionClass}
+                    `}
                 >
                     {description}
                 </p>

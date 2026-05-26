@@ -41,7 +41,7 @@ const Hero = ({
     ];
 
     return (
-        <section className={`relative overflow-hidden mt-24 ${bgClass}`}>
+        <section className={`relative overflow-hidden mt-20 ${bgClass}`}>
             {/* DESKTOP IMAGE */}
             {image && (
                 <div

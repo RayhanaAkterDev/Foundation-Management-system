@@ -86,7 +86,7 @@ const Navbar = () => {
                             </Link>
 
                             {/* DONATE CTA (button stays important) */}
-                            <Button>Donate Now</Button>
+                            <Button variant="accent">Donate Now</Button>
                         </div>
 
                         {/* MOBILE BUTTON */}
@@ -176,7 +176,9 @@ const Navbar = () => {
                     </Link>
 
                     {/* DONATE as BUTTON */}
-                    <Button className="w-full">Donate Now</Button>
+                    <Button variant="accent" className="w-full">
+                        Donate Now
+                    </Button>
                 </div>
             </aside>
         </>

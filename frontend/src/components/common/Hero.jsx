@@ -21,15 +21,63 @@ const Hero = ({
     showStats = false,
     bgClass = 'bg-[#FCFBFD]',
 }) => {
+    const stats = [
+        {
+            icon: TbUsersGroup,
+            value: '25K+',
+            label: 'People Supported',
+        },
+        {
+            icon: TbHeartHandshake,
+            value: '8K+',
+            label: 'Active Volunteers',
+            featured: true,
+        },
+        {
+            icon: TbBuildingCommunity,
+            value: '120+',
+            label: 'Communities Reached',
+        },
+    ];
+
     return (
-        <section
-            className={`relative overflow-hidden mt-24 pt-16 lg:py-24 ${bgClass}`}
-        >
-            {/* TEXT BLOCK */}
-            <div className="relative z-10">
-                <div className="container-width">
-                    {/* CONTENT WIDTH CONTROL */}
-                    <div className="content-width">
+        <section className={`relative overflow-hidden mt-24 ${bgClass}`}>
+            {/* DESKTOP IMAGE */}
+            {image && (
+                <div
+                    className="
+                        hidden lg:flex
+                        items-center
+                        absolute
+                        inset-y-0
+                        right-0
+                        w-[48vw]
+                        xl:w-[52vw]
+                        2xl:w-[56vw]
+                        z-0
+                        pointer-events-none
+                    "
+                >
+                    <img
+                        src={image}
+                        alt="hero illustration"
+                        className="
+                            w-full
+                            h-auto
+                            object-contain
+                            object-right
+                            lg:translate-x-6
+                            xl:translate-x-10
+                        "
+                    />
+                </div>
+            )}
+
+            {/* MAIN CONTENT */}
+            <div className="relative z-10 container-width py-16 lg:py-24">
+                <div className="grid grid-cols-1 lg:grid-cols-2 items-center gap-12">
+                    {/* LEFT CONTENT */}
+                    <div className="text-center lg:text-left">
                         <SectionHeading
                             align="center"
                             headingTag="h1"
@@ -45,7 +93,18 @@ const Hero = ({
                         />
 
                         {/* CTA */}
-                        <div className="flex flex-col sm:flex-row gap-4 mt-6 sm:mt-8 lg:mt-10 justify-center lg:justify-start">
+                        <div
+                            className="
+                                flex
+                                flex-col
+                                sm:flex-row
+                                gap-4
+                                mt-6
+                                lg:mt-10
+                                justify-center
+                                lg:justify-start
+                            "
+                        >
                             {primaryCta && (
                                 <Button className="w-full sm:w-auto">
                                     {primaryCta.icon && (
@@ -53,6 +112,7 @@ const Hero = ({
                                             {primaryCta.icon}
                                         </span>
                                     )}
+
                                     {primaryCta.label}
                                 </Button>
                             )}
@@ -60,7 +120,14 @@ const Hero = ({
                             {secondaryCta && (
                                 <Button
                                     variant="outline"
-                                    className="w-full sm:w-auto flex items-center gap-2"
+                                    className="
+                                        w-full
+                                        sm:w-auto
+                                        flex
+                                        items-center
+                                        justify-center
+                                        gap-2
+                                    "
                                 >
                                     {secondaryCta.label}
 
@@ -73,58 +140,43 @@ const Hero = ({
                             )}
                         </div>
 
-                        {/* STATS */}
+                        {/* DESKTOP STATS */}
                         {showStats && (
-                            <div className="mt-8">
+                            <div className="hidden lg:block mt-10">
                                 <StatCard
                                     variant="row"
                                     size="sm"
-                                    stats={[
-                                        {
-                                            icon: TbUsersGroup,
-                                            value: '25K+',
-                                            label: 'Lives Impacted',
-                                        },
-                                        {
-                                            icon: TbHeartHandshake,
-                                            value: '8K+',
-                                            label: 'Volunteers',
-                                            featured: true,
-                                        },
-                                        {
-                                            icon: TbBuildingCommunity,
-                                            value: '120+',
-                                            label: 'Communities',
-                                        },
-                                    ]}
+                                    stats={stats}
                                 />
                             </div>
                         )}
                     </div>
+
+                    {/* EMPTY RIGHT COLUMN FOR DESKTOP BALANCE */}
+                    <div className="hidden lg:block" />
+                </div>
+
+                {/* MOBILE IMAGE + STATS FLOW */}
+                <div className="lg:hidden mt-12 space-y-8">
+                    {image && (
+                        <div className="w-full">
+                            <img
+                                src={image}
+                                alt="hero illustration"
+                                className="
+                                    w-full
+                                    h-auto
+                                    object-contain
+                                "
+                            />
+                        </div>
+                    )}
+
+                    {showStats && (
+                        <StatCard variant="row" size="sm" stats={stats} />
+                    )}
                 </div>
             </div>
-
-            {/* MOBILE IMAGE */}
-            {image && (
-                <div className="block lg:hidden mt-14 w-full">
-                    <img
-                        src={image}
-                        alt="hero illustration"
-                        className="w-full h-auto object-cover"
-                    />
-                </div>
-            )}
-
-            {/* DESKTOP IMAGE */}
-            {image && (
-                <div className="absolute right-0 top-0 hidden lg:block w-4/6">
-                    <img
-                        src={image}
-                        alt="hero illustration"
-                        className="w-full h-full object-cover"
-                    />
-                </div>
-            )}
         </section>
     );
 };

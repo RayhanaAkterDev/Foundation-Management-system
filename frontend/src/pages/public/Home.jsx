@@ -10,25 +10,24 @@ const Home = () => {
     return (
         <>
             <Hero
-                badge="Turning compassion into real-world impact"
+                badge="Bringing donors, volunteers & communities together"
                 badgeIcon={TbHeartFilled}
                 title={
                     <>
-                        Connecting Care
+                        Delivering <span className="text-primary">Support</span>
                         <span className="block">
-                            Delivering Help in Real Time
+                            Where It’s
+                            <span className="text-accent"> Needed Most</span>
                         </span>
                     </>
                 }
-                description="A transparent platform that connects donors, volunteers,
-                        and communities to deliver food, medicine, and urgent
-                        support where it's needed most."
+                description="CareLink brings donors, volunteers, and communities together to deliver food, medical aid, and emergency support to people who need it most."
                 primaryCta={{
                     label: 'Donate Now',
                     icon: <TbHeartFilled />,
                 }}
                 secondaryCta={{
-                    label: 'Learn More',
+                    label: 'How It Works',
                     icon: <HiArrowSmRight />,
                 }}
                 image={heroIllustration}

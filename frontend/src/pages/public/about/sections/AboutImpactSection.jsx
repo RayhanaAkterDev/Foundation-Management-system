@@ -1,9 +1,9 @@
 import React from 'react';
 
-import SectionHeading from '../common/SectionHeading';
-import StatCard from '../common/StatCard';
+import SectionHeading from '@/components/SectionHeading';
+import StatCard from '@/components/StatCard';
 
-import aboutImpactStats from '../../data/stats/aboutImpactStats';
+import aboutImpactStats from './data/aboutImpactStats';
 
 const AboutImpactSection = () => {
     return (

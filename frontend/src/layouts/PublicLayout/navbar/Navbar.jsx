@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FiMenu, FiX } from 'react-icons/fi';
 
-import logo from '../../../assets/images/shared/logo.png';
-import Button from '../../../components/common/Button';
+import logo from '@/assets/shared/logo.png';
+import Button from '@/components/Button';
 import NavMenu from './NavMenu';
 
 const Navbar = () => {

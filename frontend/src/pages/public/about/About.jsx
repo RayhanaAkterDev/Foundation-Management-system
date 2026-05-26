@@ -1,17 +1,22 @@
 import React from 'react';
-import Hero from '../../components/common/Hero';
-import aboutHeroImage from '../../assets/images/about/aboutHero.png';
 
+// reuseable components
+import Hero from '@/components/Hero';
+
+// react icons
 import { HiArrowSmRight } from 'react-icons/hi';
 import { TbHeartFilled } from 'react-icons/tb';
 
-import AboutIntroSection from '../../components/about/AboutIntroSection';
-import AboutPurposeSection from '../../components/about/AboutPurposeSection';
-import AboutImpactSection from '../../components/about/AboutImpactSection';
-import BePartOfChange from '../../components/about/BePartOfChange';
+// sections
+import AboutIntroSection from './sections/AboutIntroSection';
+import AboutPurposeSection from './sections/AboutPurposeSection';
+import AboutImpactSection from './sections/AboutImpactSection';
+import BePartOfChange from './sections/BePartOfChange';
 
-import bePartOfChange from '../../assets/images/about/bePartOfChange.png';
-import aboutImpacts from '../../assets/images/about/aboutImpacts.jpg';
+// assets->images
+import aboutHeroImage from '@/assets/about/aboutHero.png';
+import bePartOfChange from '@/assets/about/bePartOfChange.png';
+import aboutImpacts from '@/assets/about/aboutImpacts.jpg';
 
 const About = () => {
     return (

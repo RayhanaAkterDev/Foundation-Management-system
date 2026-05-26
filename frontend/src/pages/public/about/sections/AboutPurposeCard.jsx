@@ -1,8 +1,8 @@
 import React from 'react';
-import aboutPurposeCards from '../../data/cards/aboutPurposeCards';
+import aboutPurposeCards from './data/aboutPurposeCards.js';
 import { HiArrowSmRight } from 'react-icons/hi';
 
-const Card = () => {
+const AboutPurposeCard = () => {
     return (
         <div className="mx-auto grid w-full max-w-5xl grid-cols-1 gap-7 md:grid-cols-2">
             {aboutPurposeCards.map((item) => {
@@ -75,4 +75,4 @@ const Card = () => {
     );
 };
 
-export default Card;
+export default AboutPurposeCard;

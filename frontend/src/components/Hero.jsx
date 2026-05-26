@@ -1,7 +1,7 @@
 import React from 'react';
-import Button from '../common/Button';
-import StatCard from '../common/StatCard';
-import SectionHeading from '../common/SectionHeading';
+import Button from './Button';
+import StatCard from './StatCard';
+import SectionHeading from './SectionHeading';
 
 import {
     TbUsersGroup,

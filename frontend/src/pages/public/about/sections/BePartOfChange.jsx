@@ -1,6 +1,6 @@
 import React from 'react';
-import SectionHeading from '../common/SectionHeading';
-import Button from '../common/Button';
+import SectionHeading from '@/components/SectionHeading';
+import Button from '@/components/Button';
 
 import { TbHeartFilled } from 'react-icons/tb';
 import { HiArrowSmRight } from 'react-icons/hi';

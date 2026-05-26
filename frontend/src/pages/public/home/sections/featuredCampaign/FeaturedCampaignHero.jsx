@@ -8,11 +8,11 @@ import {
     TbCalendarEvent,
     TbHeartHandshake,
 } from 'react-icons/tb';
-import Button from '../../common/Button';
+import Button from '@/components/Button';
 import heroCampaignStatData from './data/heroCampaignStatData';
-import featuredCampaign from '../../../assets/images/home/featuredCampaign.png';
-import SectionHeading from '../../common/SectionHeading';
-import StatCard from '../../common/StatCard';
+import featuredCampaign from '@/assets/home/featuredCampaign.png';
+import SectionHeading from '@/components/SectionHeading';
+import StatCard from '@/components/StatCard';
 
 const FeaturedCampaignHero = () => {
     return (

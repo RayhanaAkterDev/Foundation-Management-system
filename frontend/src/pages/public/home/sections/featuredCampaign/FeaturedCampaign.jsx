@@ -2,7 +2,7 @@ import React from 'react';
 import CampaignCategoryNav from './CampaignCategoryNav';
 import FeaturedCampaignMain from './FeaturedCampaignHero';
 import FeaturedMiniGrid from './FeaturedMiniGrid';
-import SectionHeading from '../../common/SectionHeading';
+import SectionHeading from '@/components/SectionHeading';
 import { TbHeartFilled } from 'react-icons/tb';
 
 const FeaturedCampaign = () => {

@@ -1,11 +1,11 @@
 import React from 'react';
-import SectionHeading from '../common/SectionHeading';
 import { TbUsers } from 'react-icons/tb';
+import aboutIntro from '@/assets/about/aboutIntro.png';
 
-import aboutIntro from '../../assets/images/about/aboutIntro.png';
+import { aboutStats } from './data/aboutStats';
 
-import { aboutStats } from '../../data/stats/aboutStats';
-import StatCard from '../common/StatCard';
+import SectionHeading from '@/components/SectionHeading';
+import StatCard from '@/components/StatCard';
 
 const AboutIntroSection = () => {
     return (

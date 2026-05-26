@@ -1,6 +1,6 @@
 import React from 'react';
-import Card from '../common/Card';
-import SectionHeading from '../common/SectionHeading';
+import Card from './AboutPurposeCard';
+import SectionHeading from '@/components/SectionHeading';
 
 const AboutPurposeSection = () => {
     return (

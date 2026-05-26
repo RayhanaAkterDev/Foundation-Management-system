@@ -1,7 +1,7 @@
 import React from 'react';
-import Hero from '../../components/common/Hero';
-import FeaturedCampaign from '../../components/home/featuredCampaign/FeaturedCampaign';
-import heroIllustration from '../../assets/images/home/heroIllustration.png';
+import Hero from '@/components/Hero';
+import FeaturedCampaign from './sections/featuredCampaign/FeaturedCampaign';
+import heroIllustration from '@/assets/home/heroIllustration.png';
 
 import { TbHeartFilled } from 'react-icons/tb';
 import { HiArrowSmRight } from 'react-icons/hi';

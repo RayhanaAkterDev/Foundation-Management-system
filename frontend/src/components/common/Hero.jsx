@@ -38,6 +38,7 @@ const Hero = ({
                             badgeIcon={badgeIcon}
                             badgeClass={badgeClass}
                             title={title}
+                            headingClass="capitalize"
                             description={description}
                             descriptionSize="hero"
                             wrapperClass="lg:items-start lg:text-left"
@@ -77,7 +78,7 @@ const Hero = ({
                             <div className="mt-8">
                                 <StatCard
                                     variant="row"
-                                    size="md"
+                                    size="sm"
                                     stats={[
                                         {
                                             icon: TbUsersGroup,

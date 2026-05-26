@@ -26,7 +26,7 @@ const About = () => {
                     <>
                         Connecting <span className="text-primary">hope</span>{' '}
                         with
-                        <span className="sm:block inline">
+                        <span className="block">
                             {' '}
                             people who need it{' '}
                             <span className="text-accent">most</span>

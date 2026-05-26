@@ -10,25 +10,19 @@ const Home = () => {
     return (
         <>
             <Hero
-                badge="Together, we create real change"
+                badge="Turning compassion into real-world impact"
                 badgeIcon={TbHeartFilled}
                 title={
                     <>
-                        Connecting <span className="text-primary">Care</span>
+                        Connecting Care
                         <span className="block">
-                            And Changing{' '}
-                            <span className="text-accent">Lives</span>
+                            Delivering Help in Real Time
                         </span>
                     </>
                 }
-                description={
-                    <>
-                        A platform where kindness becomes action
-                        <span className="block">
-                            through smart donation and volunteer coordination.
-                        </span>
-                    </>
-                }
+                description="A transparent platform that connects donors, volunteers,
+                        and communities to deliver food, medicine, and urgent
+                        support where it's needed most."
                 primaryCta={{
                     label: 'Donate Now',
                     icon: <TbHeartFilled />,

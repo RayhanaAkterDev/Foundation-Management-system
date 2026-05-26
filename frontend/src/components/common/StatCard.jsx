@@ -6,8 +6,10 @@ const StatCard = ({
     size = 'md',
     align = 'left',
     gridCols = 'lg:grid-cols-3',
+    layout = 'section', // 'section' | 'hero' | 'hero-minimal'
 }) => {
     const isColumn = variant === 'column';
+    const isHeroMinimal = layout === 'hero-minimal';
 
     const sizeStyles = {
         sm: {
@@ -55,13 +57,19 @@ const StatCard = ({
                 grid-cols-1
                 sm:grid-cols-2
                 ${gridCols}
-                gap-5
-                lg:gap-4
+                gap-5 lg:gap-6
+
+                ${
+                    layout === 'hero'
+                        ? 'w-full max-w-4xl mx-auto'
+                        : layout === 'hero-minimal'
+                          ? 'w-full max-w-3xl mx-auto mt-6 lg:mt-8'
+                          : ''
+                }
             `}
         >
             {stats.map((stat, index) => {
                 const Icon = stat.icon;
-
                 const isMiddle = index === Math.floor(stats.length / 2);
 
                 return (
@@ -69,6 +77,7 @@ const StatCard = ({
                         key={index}
                         className={`
                             flex
+
                             ${
                                 isColumn
                                     ? `flex-col ${s.gap}`
@@ -78,13 +87,14 @@ const StatCard = ({
                             ${textAlign}
 
                             rounded-2xl
-                            p-5
-                            lg:p-4
 
-                            bg-white
-                            backdrop-blur-sm
-
-                            border border-primary/10
+                            ${
+                                layout === 'hero-minimal'
+                                    ? 'p-4 lg:p-4 bg-white/70 backdrop-blur-sm border border-primary/10'
+                                    : layout === 'hero'
+                                      ? 'p-6 lg:p-6 bg-white border border-primary/10 shadow-sm hover:shadow-md transition-shadow'
+                                      : 'p-5 lg:p-4 bg-white border border-primary/10'
+                            }
                         `}
                     >
                         {/* ICON */}
@@ -95,10 +105,17 @@ const StatCard = ({
                                     rounded-full
                                     flex items-center justify-center
                                     shrink-0
+
                                     ${
-                                        isMiddle
+                                        isMiddle && layout !== 'hero-minimal'
                                             ? 'bg-primary text-white'
                                             : 'bg-primary/10 text-primary'
+                                    }
+
+                                    ${
+                                        isHeroMinimal
+                                            ? 'bg-primary/10 text-primary'
+                                            : ''
                                     }
                                 `}
                             >

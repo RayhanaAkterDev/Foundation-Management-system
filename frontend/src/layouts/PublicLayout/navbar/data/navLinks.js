@@ -112,33 +112,16 @@ const navLinks = [
         type: 'mega',
 
         groups: [
-            {
-                title: 'Transparency',
-                items: [
-                    {
-                        id: 'impact',
-                        name: 'Impact Statistics',
-                        desc: 'Live data and platform impact metrics.',
-                        path: '/impact',
-                    },
-                    {
-                        id: 'reports',
-                        name: 'Reports & Transparency',
-                        desc: 'Track platform accountability and reports.',
-                        path: '/reports',
-                    },
-                    {
-                        id: 'safety',
-                        name: 'Trust & Safety',
-                        desc: 'Fraud prevention and verification system.',
-                        path: '/trust-safety',
-                    },
-                ],
-            },
 
             {
                 title: 'About CareLink',
                 items: [
+                    {
+                        id: 'about',
+                        name: 'Overview',
+                        desc: 'Who we are and what CareLink stands for.',
+                        path: '/about',
+                    },
                     {
                         id: 'mission',
                         name: 'Our Mission',
@@ -162,6 +145,30 @@ const navLinks = [
                         name: 'Contact Us',
                         desc: 'Reach out to the CareLink team.',
                         path: '/contact',
+                    },
+                ],
+            },
+
+            {
+                title: 'Transparency',
+                items: [
+                    {
+                        id: 'impact',
+                        name: 'Impact Statistics',
+                        desc: 'Live data and platform impact metrics.',
+                        path: '/impact',
+                    },
+                    {
+                        id: 'reports',
+                        name: 'Reports & Transparency',
+                        desc: 'Track platform accountability and reports.',
+                        path: '/reports',
+                    },
+                    {
+                        id: 'safety',
+                        name: 'Trust & Safety',
+                        desc: 'Fraud prevention and verification system.',
+                        path: '/trust-safety',
                     },
                 ],
             },

@@ -50,7 +50,7 @@ const Navbar = () => {
                                 />
 
                                 <div className="leading-none">
-                                    <h2 className="text-[1.7rem] font-semibold tracking-[-0.03em] text-primary-hover">
+                                    <h2 className="text-[1.7rem] font-semibold tracking-[-0.03em] text-primary">
                                         Care
                                         <span className="text-accent">
                                             Link

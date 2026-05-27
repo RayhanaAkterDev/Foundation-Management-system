@@ -16,6 +16,7 @@ import StatCard from '@/components/StatCard';
 
 // Data
 import statsData from './data/statsData';
+import HowItWorksSection from './sections/howCareLinkWorks/HowItWorksSection';
 
 const Home = () => {
     return (
@@ -23,7 +24,6 @@ const Home = () => {
             <Hero
                 badge="Bringing donors, volunteers & communities together"
                 badgeIcon={TbHeartFilled}
-                badgeClass="badge-primary"
                 title={
                     <>
                         Delivering <span className="text-primary">Support</span>
@@ -46,9 +46,12 @@ const Home = () => {
                 showStats={true}
             />
 
+            <HowItWorksSection />
+            <FeaturedCampaign />
+
             {/* STATS */}
             {statsData && (
-                <div className="container-width mt-14 lg:mt-16">
+                <div className="container-width">
                     <StatCard
                         stats={statsData}
                         size="hero"
@@ -59,7 +62,6 @@ const Home = () => {
                     />
                 </div>
             )}
-            <FeaturedCampaign />
         </>
     );
 };

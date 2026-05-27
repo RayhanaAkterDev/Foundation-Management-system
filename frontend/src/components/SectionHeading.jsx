@@ -25,53 +25,55 @@ const badgeBase = `
     text-primary
 `;
 
-/* HEADINGS (UPDATED SYSTEM) */
+/* HEADINGS */
 const headingStyles = {
     hero: `
-        text-[clamp(1.7rem,3vw,2.8rem)]
+        text-[clamp(2.2rem,4vw,3.4rem)]
         font-bold
-        leading-[1.2]
-        tracking-[-0.03em]
+        leading-[1.25]
+        tracking-[-0.045em]
     `,
 
-    pageHero: `
-        text-[clamp(1.6rem,2.6vw,2.4rem)]
+    sectionHero: `
+        text-[clamp(1.85rem,3vw,2.6rem)]
         font-bold
-        leading-[1.2]
-        tracking-[-0.025em]
+        leading-[1.1]
+        tracking-[-0.04em]
     `,
 
     section: `
-        text-[clamp(1.4rem,2vw,2rem)]
-        font-bold
-        leading-[1.15]
+        text-[clamp(1.4rem,2vw,1.9rem)]
+        font-semibold
+        leading-[1.25]
         tracking-[-0.02em]
     `,
 
     sub: `
-        text-[clamp(1.1rem,1.5vw,1.4rem)]
+        text-[clamp(1.1rem,1.4vw,1.3rem)]
         font-semibold
-        leading-snug
+        leading-[1.35]
+        tracking-[-0.01em]
     `,
 
     card: `
-        text-[clamp(1rem,1.2vw,1.2rem)]
+        text-[clamp(1rem,1.15vw,1.2rem)]
         font-semibold
-        leading-snug
+        leading-[1.4]
+        tracking-[-0.01em]
     `,
 };
 
-/* DESCRIPTION (kept balanced) */
+/* DESCRIPTION */
 const descriptionStyles = {
     hero: `
-        text-[clamp(0.98rem,1.1vw,1.1rem)]
+        text-[clamp(1rem,1.15vw,1.15rem)]
         text-text-secondary
         leading-[1.75]
         max-w-full lg:max-w-2xl
     `,
 
-    pageHero: `
-        text-[clamp(0.95rem,1.05vw,1.05rem)]
+    sectionHero: `
+        text-[clamp(0.98rem,1.1vw,1.1rem)]
         text-text-secondary
         leading-[1.75]
         max-w-full lg:max-w-2xl

@@ -39,7 +39,12 @@ const AboutIntroSection = () => {
                     </div>
 
                     {/* STATS */}
-                    <StatCard variant="column" stats={aboutStats} />
+                    <StatCard
+                        variant="column"
+                        stats={aboutStats}
+                        size="section"
+                        gridCols="lg:grid-cols-3"
+                    />
                 </div>
 
                 {/* DESKTOP IMAGE */}

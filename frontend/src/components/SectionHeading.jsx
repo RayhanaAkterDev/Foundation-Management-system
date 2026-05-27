@@ -21,7 +21,7 @@ const gapStyles = {
 const badgeBase = `
     inline-flex items-center gap-2
     text-[clamp(0.75rem,0.85vw,0.95rem)]
-    font-semibold
+    font-medium
     text-primary
 `;
 

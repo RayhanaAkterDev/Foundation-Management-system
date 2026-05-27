@@ -1,150 +1,193 @@
 import React from 'react';
+import StatValue from './StatValue';
 
 const StatCard = ({
     stats = [],
     variant = 'row',
-    size = 'md',
+    size = 'section',
+    style = 'card', // minimal | card
     align = 'left',
-    gridCols = 'lg:grid-cols-3',
-    layout = 'section', // 'section' | 'hero' | 'hero-minimal'
+    gridCols = 'grid-cols-2 lg:grid-cols-4',
+    className = '',
 }) => {
-    const isColumn = variant === 'column';
-    const isHeroMinimal = layout === 'hero-minimal';
+    // =========================
+    // SIZE STYLES
+    // =========================
 
-    const sizeStyles = {
-        sm: {
-            iconBox: 'h-10 w-10',
-            icon: 18,
-            value: 'text-lg',
+    const sizes = {
+        hero: {
+            value: 'text-2xl sm:text-3xl xl:text-4xl',
+            label: 'text-sm sm:text-base',
+            iconBox: 'w-14 h-14',
+            icon: 24,
+            padding: 'p-6 xl:p-7',
+            gap: 'gap-5',
+        },
+
+        section: {
+            value: 'text-xl sm:text-2xl',
             label: 'text-sm',
-            gap: 'gap-3',
-            textGap: 'gap-2',
-        },
-
-        md: {
-            iconBox: 'h-12 w-12',
+            iconBox: 'w-12 h-12',
             icon: 22,
-            value: 'text-xl',
-            label: 'text-md',
+            padding: 'p-5',
             gap: 'gap-4',
-            textGap: 'gap-3',
         },
 
-        lg: {
-            iconBox: 'h-14 w-14',
-            icon: 26,
-            value: 'text-2xl',
-            label: 'text-base font-semibold',
-            gap: 'gap-6',
-            textGap: 'gap-4',
+        compact: {
+            value: 'text-lg',
+            label: 'text-xs',
+            iconBox: 'w-10 h-10',
+            icon: 18,
+            padding: 'p-4',
+            gap: 'gap-3',
         },
     };
 
-    const alignStyles = {
+    const s = sizes[size] || sizes.section;
+
+    const alignment = {
         left: 'items-start text-left',
         center: 'items-center text-center',
         right: 'items-end text-right',
     };
 
-    const s = sizeStyles[size] || sizeStyles.md;
-    const textAlign = alignStyles[align] || alignStyles.left;
+    const currentAlign = alignment[align] || alignment.left;
+
+    if (!Array.isArray(stats) || stats.length === 0) return null;
+
+    const isHero = size === 'hero';
 
     return (
         <div
             className={`
                 mt-8
                 grid
-                grid-cols-1
-                sm:grid-cols-2
                 ${gridCols}
-                gap-5 lg:gap-6
-
-                ${
-                    layout === 'hero'
-                        ? 'w-full max-w-4xl mx-auto'
-                        : layout === 'hero-minimal'
-                          ? 'w-full max-w-3xl mx-auto mt-6 lg:mt-8'
-                          : ''
-                }
+                ${isHero ? 'gap-0' : 'gap-4 sm:gap-5 lg:gap-6'}
+                ${className}
             `}
         >
             {stats.map((stat, index) => {
-                const Icon = stat.icon;
-                const isMiddle = index === Math.floor(stats.length / 2);
+                const Icon = stat?.icon;
+                const isMinimal = style === 'minimal';
+                const isLast = index === stats.length - 1;
 
                 return (
                     <div
                         key={index}
                         className={`
-                            flex
+                            relative
+                            ${s.padding}
+                            transition-all duration-300
 
                             ${
-                                isColumn
-                                    ? `flex-col ${s.gap}`
-                                    : `flex-row items-center ${s.gap}`
-                            }
-
-                            ${textAlign}
-
-                            rounded-2xl
-
-                            ${
-                                layout === 'hero-minimal'
-                                    ? 'p-4 lg:p-4 bg-white/70 backdrop-blur-sm border border-primary/10'
-                                    : layout === 'hero'
-                                      ? 'p-6 lg:p-6 bg-white border border-primary/10 shadow-sm hover:shadow-md transition-shadow'
-                                      : 'p-5 lg:p-4 bg-white border border-primary/10'
+                                isHero
+                                    ? `
+                                        bg-transparent
+                                        shadow-none
+                                        rounded-none
+                                    `
+                                    : isMinimal
+                                      ? `
+                                            rounded-2xl
+                                            border border-transparent
+                                            bg-transparent
+                                            hover:border-primary/10
+                                            hover:bg-white/70
+                                            hover:shadow-sm
+                                        `
+                                      : `
+                                            overflow-hidden
+                                            rounded-3xl
+                                            border border-primary/8
+                                            bg-white/90
+                                            backdrop-blur-sm
+                                            shadow-sm
+                                            hover:-translate-y-1
+                                            hover:shadow-xl
+                                        `
                             }
                         `}
                     >
-                        {/* ICON */}
-                        {Icon && (
-                            <div
-                                className={`
-                                    ${s.iconBox}
-                                    rounded-full
-                                    flex items-center justify-center
-                                    shrink-0
+                        {/* HERO SEPARATORS ONLY (NO BORDERS) */}
+                        {isHero && !isLast && (
+                            <>
+                                {/* desktop vertical line */}
+                                <span className="hidden lg:block absolute right-0 top-1/4 h-1/2 w-px bg-primary/10" />
 
-                                    ${
-                                        isMiddle && layout !== 'hero-minimal'
-                                            ? 'bg-primary text-white'
-                                            : 'bg-primary/10 text-primary'
-                                    }
-
-                                    ${
-                                        isHeroMinimal
-                                            ? 'bg-primary/10 text-primary'
-                                            : ''
-                                    }
-                                `}
-                            >
-                                <Icon size={s.icon} strokeWidth={2.5} />
-                            </div>
+                                {/* mobile horizontal line */}
+                                <span className="block lg:hidden absolute bottom-0 left-1/4 w-1/2 h-px bg-primary/10" />
+                            </>
                         )}
 
-                        {/* TEXT */}
-                        <div className={`flex flex-col ${s.textGap}`}>
-                            <h3
-                                className={`
-                                    ${s.value}
-                                    font-bold
-                                    leading-none
-                                    text-primary
-                                `}
-                            >
-                                {stat.value}
-                            </h3>
+                        {/* background glow (only non-hero card mode) */}
+                        {!isMinimal && !isHero && (
+                            <div className="absolute inset-0 bg-linear-to-br from-primary/3 to-transparent pointer-events-none" />
+                        )}
 
-                            <p
-                                className={`
-                                    ${s.label}
-                                    text-text-secondary
-                                    leading-relaxed
-                                `}
-                            >
-                                {stat.label}
-                            </p>
+                        <div
+                            className={`
+                                relative
+                                flex
+
+                                ${
+                                    variant === 'column'
+                                        ? `flex-col ${s.gap}`
+                                        : `items-center ${s.gap}`
+                                }
+
+                                ${
+                                    isHero
+                                        ? 'justify-center text-center'
+                                        : currentAlign
+                                }
+                            `}
+                        >
+                            {/* ICON */}
+                            {Icon && (
+                                <div
+                                    className={`
+                                        ${s.iconBox}
+                                        flex items-center justify-center
+                                        rounded-2xl shrink-0
+
+                                        ${
+                                            isHero
+                                                ? 'bg-primary/5 text-primary'
+                                                : isMinimal
+                                                  ? 'bg-primary/5 text-primary'
+                                                  : stat?.featured
+                                                    ? 'bg-primary text-white shadow-md'
+                                                    : 'bg-primary/8 text-primary group-hover:bg-primary group-hover:text-white'
+                                        }
+                                    `}
+                                >
+                                    <Icon size={s.icon} strokeWidth={2.1} />
+                                </div>
+                            )}
+
+                            {/* TEXT */}
+                            <div className="space-y-1">
+                                <StatValue
+                                    value={stat?.value}
+                                    className={`
+                                        font-bold
+                                        tracking-tight
+                                        text-text-primary/80
+                                        ${s.value}
+                                    `}
+                                />
+
+                                <p
+                                    className={`
+                                        text-text-secondary
+                                        leading-relaxed
+                                        ${s.label}
+                                    `}
+                                >
+                                    {stat?.label}
+                                </p>
+                            </div>
                         </div>
                     </div>
                 );

@@ -1,13 +1,8 @@
 import React from 'react';
-import Button from './Button';
-import StatCard from './StatCard';
-import SectionHeading from './SectionHeading';
 
-import {
-    TbUsersGroup,
-    TbHeartHandshake,
-    TbBuildingCommunity,
-} from 'react-icons/tb';
+// Reusable UI components
+import Button from './Button';
+import SectionHeading from './SectionHeading';
 
 const Hero = ({
     badge,
@@ -18,28 +13,8 @@ const Hero = ({
     primaryCta,
     secondaryCta,
     image,
-    showStats = false,
     bgClass = 'bg-[#FCFBFD]',
 }) => {
-    const stats = [
-        {
-            icon: TbUsersGroup,
-            value: '25K+',
-            label: 'People Supported',
-        },
-        {
-            icon: TbHeartHandshake,
-            value: '8K+',
-            label: 'Active Volunteers',
-            featured: true,
-        },
-        {
-            icon: TbBuildingCommunity,
-            value: '120+',
-            label: 'Communities Reached',
-        },
-    ];
-
     return (
         <section className={`relative overflow-hidden mt-20 ${bgClass}`}>
             {/* DESKTOP IMAGE */}
@@ -107,13 +82,12 @@ const Hero = ({
                         >
                             {primaryCta && (
                                 <Button className="w-full sm:w-auto">
+                                    {primaryCta.label}
                                     {primaryCta.icon && (
                                         <span className="mr-2">
                                             {primaryCta.icon}
                                         </span>
                                     )}
-
-                                    {primaryCta.label}
                                 </Button>
                             )}
 
@@ -139,17 +113,6 @@ const Hero = ({
                                 </Button>
                             )}
                         </div>
-
-                        {/* DESKTOP STATS */}
-                        {showStats && (
-                            <div className="hidden lg:block mt-10">
-                                <StatCard
-                                    variant="row"
-                                    size="sm"
-                                    stats={stats}
-                                />
-                            </div>
-                        )}
                     </div>
 
                     {/* EMPTY RIGHT COLUMN FOR DESKTOP BALANCE */}
@@ -170,10 +133,6 @@ const Hero = ({
                                 "
                             />
                         </div>
-                    )}
-
-                    {showStats && (
-                        <StatCard variant="row" size="sm" stats={stats} />
                     )}
                 </div>
             </div>

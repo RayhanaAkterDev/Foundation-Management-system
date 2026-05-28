@@ -75,7 +75,7 @@ const lineVariants = {
 
 const HowCareLinkWorks = () => {
     return (
-        <section className="section-gap bg-background overflow-hidden">
+        <section className="section-gap bg-background">
             <div className="container-width">
                 {/* HEADER */}
                 <SectionHeading

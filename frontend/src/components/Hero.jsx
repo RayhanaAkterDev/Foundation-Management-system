@@ -16,43 +16,18 @@ const Hero = ({
     bgClass = 'bg-[#FCFBFD]',
 }) => {
     return (
-        <section className={`relative overflow-hidden mt-20 ${bgClass}`}>
-            {/* DESKTOP IMAGE */}
-            {image && (
-                <div
-                    className="
-                        hidden lg:flex
-                        items-center
-                        absolute
-                        inset-y-0
-                        right-0
-                        w-[48vw]
-                        xl:w-[52vw]
-                        2xl:w-[56vw]
-                        z-0
-                        pointer-events-none
-                    "
-                >
-                    <img
-                        src={image}
-                        alt="hero illustration"
-                        className="
-                            w-full
-                            h-auto
-                            object-contain
-                            object-right
-                            lg:translate-x-6
-                            xl:translate-x-10
-                        "
-                    />
-                </div>
-            )}
+        <section
+            className={`mt-24 bg-cover bg-center relative ${bgClass}`}
+            style={{ backgroundImage: `url(${image})` }}
+        >
+            {/* OVERLAY */}
+            <div className="absolute z-0 inset-0 bg-white/30" />
 
             {/* MAIN CONTENT */}
             <div className="relative z-10 container-width py-16 lg:py-24">
                 <div className="grid grid-cols-1 lg:grid-cols-2 items-center gap-12">
                     {/* LEFT CONTENT */}
-                    <div className="text-center lg:text-left">
+                    <div className="text-center sm:text-left">
                         <SectionHeading
                             align="center"
                             headingTag="h1"
@@ -64,7 +39,7 @@ const Hero = ({
                             headingClass="capitalize"
                             description={description}
                             descriptionSize="hero"
-                            wrapperClass="lg:items-start lg:text-left"
+                            wrapperClass="sm:items-start sm:text-left"
                         />
 
                         {/* CTA */}
@@ -77,7 +52,7 @@ const Hero = ({
                                 mt-6
                                 lg:mt-10
                                 justify-center
-                                lg:justify-start
+                                sm:justify-start
                             "
                         >
                             {primaryCta && (
@@ -117,23 +92,6 @@ const Hero = ({
 
                     {/* EMPTY RIGHT COLUMN FOR DESKTOP BALANCE */}
                     <div className="hidden lg:block" />
-                </div>
-
-                {/* MOBILE IMAGE + STATS FLOW */}
-                <div className="lg:hidden mt-12 space-y-8">
-                    {image && (
-                        <div className="w-full">
-                            <img
-                                src={image}
-                                alt="hero illustration"
-                                className="
-                                    w-full
-                                    h-auto
-                                    object-contain
-                                "
-                            />
-                        </div>
-                    )}
                 </div>
             </div>
         </section>

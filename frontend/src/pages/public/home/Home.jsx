@@ -1,7 +1,13 @@
 import React from 'react';
 
 // Icons (external libraries)
-import { TbHeartFilled } from 'react-icons/tb';
+import {
+    TbHeartFilled,
+    TbShieldCheck,
+    TbShieldCheckered,
+    TbShieldCheckeredFilled,
+    TbShieldCheckFilled,
+} from 'react-icons/tb';
 import { HiArrowSmRight } from 'react-icons/hi';
 
 // Reusable/shared components
@@ -22,8 +28,9 @@ const Home = () => {
     return (
         <>
             <Hero
-                badge="Bringing donors, volunteers & communities together"
-                badgeIcon={TbHeartFilled}
+                badge="Together, we make a real difference"
+                badgeIcon={TbShieldCheck}
+                badgeClass="badge-primary"
                 title={
                     <>
                         Delivering <span className="text-primary">Support</span>
@@ -33,7 +40,7 @@ const Home = () => {
                         </span>
                     </>
                 }
-                description="CareLink brings donors, volunteers, and communities together to deliver food, medical aid, and emergency support to people who need it most."
+                description="A network for fast, coordinated humanitarian support."
                 primaryCta={{
                     icon: <TbHeartFilled />,
                     label: 'I Want to Help',

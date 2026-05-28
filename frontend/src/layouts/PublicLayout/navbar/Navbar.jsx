@@ -26,11 +26,14 @@ const Navbar = () => {
     ${
         scrolled
             ? `
-                bg-surface/95
-                backdrop-blur-md
-                shadow-[0_8px_30px_rgba(15,23,42,0.06)]
+            bg-transparent
+            backdrop-blur-md
+            shadow-[0_8px_30px_rgba(15,23,42,0.06)]
             `
-            : 'bg-surface/90 backdrop-blur-sm'
+            : `
+            bg-[linear-gradient(to_right,#F4F7FE_0%,#FAFBFD_28%,#F7FAFE_55%,#F5F9FE_78%,#F1F7FD_100%)]
+            backdrop-blur-md
+            `
     }
 `}
             >
@@ -121,7 +124,7 @@ const Navbar = () => {
                 className={`
         fixed top-0 right-0 z-50
         h-full w-[88%] max-w-95
-        bg-surface
+        bg-[linear-gradient(to_right,#F4F7FE_0%,#FAFBFD_28%,#F7FAFE_55%,#F5F9FE_78%,#F1F7FD_100%)]
 
         flex flex-col
         transition-transform duration-300
@@ -129,14 +132,14 @@ const Navbar = () => {
     `}
             >
                 {/* TOP */}
-                <div className="h-19.5 px-5 border-b border-border flex items-center justify-between shrink-0">
+                <div className="h-24 px-5 border-b border-border flex items-center justify-between shrink-0">
                     <Link to="/" className="flex items-center gap-3">
                         <img src={logo} alt="CareLink" className="w-10" />
 
                         <div className="leading-none">
-                            <h3 className="text-lg font-semibold text-text-primary">
+                            <h3 className="text-lg font-semibold text-primary">
                                 Care
-                                <span className="text-primary">Link</span>
+                                <span className="text-accent">Link</span>
                             </h3>
 
                             <p className="mt-1 text-[10px] uppercase tracking-[0.16em] text-text-secondary">
@@ -159,7 +162,7 @@ const Navbar = () => {
                 </div>
 
                 {/* CTA */}
-                <div className="p-5 border-t border-border shrink-0 bg-surface space-y-3">
+                <div className="p-5 border-t border-border shrink-0 bg-[linear-gradient(to_right,#F4F7FE_0%,#FAFBFD_28%,#F7FAFE_55%,#F5F9FE_78%,#F1F7FD_100%)] space-y-3">
                     {/* LOGIN as LINK */}
                     <Link
                         to="/login"

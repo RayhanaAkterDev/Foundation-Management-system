@@ -21,7 +21,8 @@
 
     --color-accent: #f59e0b;
 
-    --color-background: #f4f8f9;
+    /* --color-background: #f4f8f9; */
+    --color-background: #f5f9fe;
     --color-surface: #ffffff;
 
     --color-text-primary: #0f172a;
@@ -66,7 +67,9 @@ body {
 }
 
 .badge-primary {
-    @apply bg-primary/10 px-2 py-1 rounded-2xl border border-primary;
+    @apply bg-white/10 text-primary px-3 py-1 rounded-full
+  border border-white/20 backdrop-blur-md
+  shadow-sm text-xs font-semibold;
 }
 
 .badge-default {

@@ -1,4 +1,5 @@
 import React from 'react';
+import Badge from '@/components/Badge';
 
 const wrapperStyles = {
     base: 'w-full flex flex-col',
@@ -17,14 +18,6 @@ const gapStyles = {
     lg: 'gap-4 sm:gap-6 lg:gap-7',
 };
 
-/* BADGE */
-const badgeBase = `
-    inline-flex items-center gap-2
-    text-[clamp(0.75rem,0.85vw,0.95rem)]
-    font-medium
-    text-primary
-`;
-
 /* HEADINGS */
 const headingStyles = {
     hero: `
@@ -33,28 +26,24 @@ const headingStyles = {
         leading-[1.25]
         tracking-[-0.045em]
     `,
-
     sectionHero: `
         text-[clamp(1.85rem,3vw,2.6rem)]
         font-bold
         leading-[1.1]
         tracking-[-0.04em]
     `,
-
     section: `
         text-[clamp(1.4rem,2vw,1.9rem)]
         font-semibold
         leading-[1.25]
         tracking-[-0.02em]
     `,
-
     sub: `
         text-[clamp(1.1rem,1.4vw,1.3rem)]
         font-semibold
         leading-[1.35]
         tracking-[-0.01em]
     `,
-
     card: `
         text-[clamp(1rem,1.15vw,1.2rem)]
         font-semibold
@@ -71,27 +60,23 @@ const descriptionStyles = {
         leading-[1.75]
         max-w-full lg:max-w-2xl
     `,
-
     sectionHero: `
         text-[clamp(0.98rem,1.1vw,1.1rem)]
         text-text-secondary
         leading-[1.75]
         max-w-full lg:max-w-2xl
     `,
-
     section: `
         text-[clamp(0.96rem,1.05vw,1.1rem)]
         text-text-secondary
         leading-[1.75]
         max-w-full lg:max-w-2xl
     `,
-
     sub: `
         text-[clamp(0.95rem,1vw,1.05rem)]
         text-text-secondary
         leading-[1.7]
     `,
-
     card: `
         text-[clamp(0.92rem,0.95vw,1rem)]
         text-text-secondary
@@ -102,7 +87,8 @@ const descriptionStyles = {
 const SectionHeading = ({
     badge,
     badges,
-    badgeIcon: BadgeIcon,
+    badgeIcon: BadgeIcon, // eslint-disable-line no-unused-vars
+
     title,
     description,
 
@@ -117,7 +103,6 @@ const SectionHeading = ({
     maxWidth = 'default',
 
     wrapperClass = '',
-    badgeClass = '',
     headingClass = '',
     descriptionClass = '',
 }) => {
@@ -131,43 +116,40 @@ const SectionHeading = ({
             `}
         >
             {/* BADGE */}
-            {/* BADGE */}
-            {(badge || badges) && (
+            {badge && (
                 <div className="flex flex-wrap items-center gap-3">
-                    {/* SINGLE BADGE */}
-                    {badge && (
-                        <div className={`${badgeBase} ${badgeClass}`}>
-                            {BadgeIcon && (
-                                <BadgeIcon
-                                    className="text-current shrink-0"
-                                    strokeWidth={3}
-                                />
-                            )}
-
-                            <span>{badge}</span>
-                        </div>
+                    {typeof badge === 'object' ? (
+                        <Badge
+                            variant={badge.variant || 'default'}
+                            tone={badge.tone || 'soft'}
+                            icon={badge.icon}
+                            size={badge.size || 'sm'}
+                            dot={badge.dot}
+                            pulse={badge.pulse}
+                        >
+                            {badge.label}
+                        </Badge>
+                    ) : (
+                        /* STRING fallback (OLD SUPPORT) */
+                        <Badge variant="primary" tone="soft" size="sm">
+                            {badge}
+                        </Badge>
                     )}
 
                     {/* MULTIPLE BADGES */}
-                    {badges?.map((item, index) => {
-                        const Icon = item.icon;
-
-                        return (
-                            <div
-                                key={index}
-                                className={`${badgeBase} ${item.className || ''}`}
-                            >
-                                {Icon && (
-                                    <Icon
-                                        className="text-current shrink-0"
-                                        strokeWidth={3}
-                                    />
-                                )}
-
-                                <span>{item.label}</span>
-                            </div>
-                        );
-                    })}
+                    {badges?.map((item, index) => (
+                        <Badge
+                            key={index}
+                            variant={item.variant || 'default'}
+                            tone={item.tone || 'soft'}
+                            icon={item.icon}
+                            size="sm"
+                            dot={item.dot}
+                            pulse={item.pulse}
+                        >
+                            {item.label}
+                        </Badge>
+                    ))}
                 </div>
             )}
 

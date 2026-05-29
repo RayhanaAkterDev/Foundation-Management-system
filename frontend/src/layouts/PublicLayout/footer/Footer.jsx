@@ -27,7 +27,7 @@ const socialIcons = [
 
 const Footer = () => {
     return (
-        <footer className="relative mt-24 bg-[#F7FAF8] border-t border-border overflow-hidden">
+        <footer className="relative bg-[#F7FAF8] border-t border-border overflow-hidden">
             {/* ambient background */}
             <div className="absolute inset-0 pointer-events-none opacity-50">
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-150 h-60 bg-accent/5 blur-[140px] rounded-full" />

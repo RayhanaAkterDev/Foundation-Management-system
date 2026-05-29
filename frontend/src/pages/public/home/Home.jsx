@@ -22,15 +22,19 @@ const Home = () => {
     return (
         <>
             <Hero
-                badge="Together, we make a real difference"
-                badgeIcon={TbShieldCheck}
-                badgeClass="badge-primary"
+                badge={{
+                    label: 'Together, we make a real difference',
+                    icon: TbShieldCheck,
+                    variant: 'primary',
+                    tone: 'glass',
+                    size: 'sm',
+                }}
                 title={
                     <>
                         Delivering <span className="text-primary">Support</span>
                         <span className="block">
-                            Where It's
-                            <span className="text-accent"> Needed Most</span>
+                            Where It's{' '}
+                            <span className="text-accent">Needed Most</span>
                         </span>
                     </>
                 }
@@ -52,7 +56,7 @@ const Home = () => {
 
             {/* STATS */}
             {statsData && (
-                <div className="container-width">
+                <div className="container-width hidden">
                     <StatCard
                         stats={statsData}
                         size="hero"

@@ -79,8 +79,12 @@ const HowCareLinkWorks = () => {
             <div className="container-width">
                 {/* HEADER */}
                 <SectionHeading
-                    badgeClass="badge-primary"
-                    badge="How CareLink Works"
+                    badge={{
+                        label: 'How CareLink Works',
+                        variant: 'primary',
+                        tone: 'solid',
+                        size: 'sm',
+                    }}
                     title="A structured flow for real-world response"
                     headingSize="sectionHero"
                 />

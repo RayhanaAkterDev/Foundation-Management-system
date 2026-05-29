@@ -59,27 +59,3 @@ body {
         @apply py-16 md:py-18 lg:py-20;
     }
 }
-
-/* =============================== */
-
-.badge-accent {
-    @apply text-accent! bg-accent/10 px-2 py-1 rounded-2xl border border-accent;
-}
-
-.badge-accent {
-    @apply bg-white/10 text-accent px-3 py-1 rounded-full
-  border border-white/20 backdrop-blur-md
-  shadow-sm font-bold;
-}
-
-.badge-primary {
-    @apply bg-white/10 text-primary px-3 py-1 rounded-full
-  border border-white/20 backdrop-blur-md
-  shadow-sm text-xs font-semibold;
-}
-
-.badge-default {
-    @apply bg-white/10 text-text-primary px-3 py-1 rounded-full
-  border border-white/20 backdrop-blur-md
-  shadow-sm text-xs font-semibold;
-}

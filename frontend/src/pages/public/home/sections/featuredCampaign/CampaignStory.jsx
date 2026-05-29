@@ -1,10 +1,17 @@
 import React from 'react';
 import stats from './data/statsData';
 import SectionHeading from '@/components/SectionHeading';
+import Motion from '@/components/motion/Motion';
 
 const CampaignStory = () => {
     return (
-        <div className="absolute bottom-0 left-0 max-w-2xl p-8 lg:p-12">
+        <Motion
+            variant="fadeUp"
+            className="absolute bottom-0 left-0 max-w-2xl p-8 lg:p-12"
+            transition={{
+                duration: 0.9,
+            }}
+        >
             <SectionHeading
                 align="left"
                 title="Emergency Flood Relief for Families in Khulna"
@@ -14,7 +21,7 @@ const CampaignStory = () => {
                 descriptionClass="text-surface/80!"
             />
 
-            {/* STATS (MAPPED) */}
+            {/* STATS → NO MOTION (intentional) */}
             <div className="mt-10 flex flex-wrap gap-10 text-white">
                 {stats.map((item) => (
                     <div key={item.label}>
@@ -25,7 +32,7 @@ const CampaignStory = () => {
                     </div>
                 ))}
             </div>
-        </div>
+        </Motion>
     );
 };
 

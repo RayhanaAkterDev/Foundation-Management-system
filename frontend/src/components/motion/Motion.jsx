@@ -1,18 +1,22 @@
 import { motion } from 'framer-motion';
 import React from 'react';
 
+const easing = [0.22, 1, 0.36, 1];
+
 const variantsMap = {
     fadeUp: {
         hidden: {
             opacity: 0,
-            y: 18,
+            y: 36,
         },
+
         show: {
             opacity: 1,
             y: 0,
+
             transition: {
-                duration: 0.45,
-                ease: [0.16, 1, 0.3, 1],
+                duration: 0.75,
+                ease: easing,
             },
         },
     },
@@ -22,12 +26,14 @@ const variantsMap = {
             opacity: 0,
             scale: 0.96,
         },
+
         show: {
             opacity: 1,
             scale: 1,
+
             transition: {
-                duration: 0.4,
-                ease: [0.16, 1, 0.3, 1],
+                duration: 0.45,
+                ease: easing,
             },
         },
     },
@@ -35,14 +41,16 @@ const variantsMap = {
     fadeLeft: {
         hidden: {
             opacity: 0,
-            x: 20,
+            x: 32,
         },
+
         show: {
             opacity: 1,
             x: 0,
+
             transition: {
-                duration: 0.45,
-                ease: [0.16, 1, 0.3, 1],
+                duration: 0.55,
+                ease: easing,
             },
         },
     },
@@ -50,30 +58,16 @@ const variantsMap = {
     fadeRight: {
         hidden: {
             opacity: 0,
-            x: -20,
+            x: -32,
         },
+
         show: {
             opacity: 1,
             x: 0,
-            transition: {
-                duration: 0.45,
-                ease: [0.16, 1, 0.3, 1],
-            },
-        },
-    },
 
-    lineReveal: {
-        hidden: {
-            width: 0,
-            opacity: 0,
-        },
-        show: {
-            width: 40,
-            opacity: 1,
             transition: {
-                duration: 0.4,
-                delay: 0.1,
-                ease: [0.16, 1, 0.3, 1],
+                duration: 0.55,
+                ease: easing,
             },
         },
     },
@@ -82,15 +76,87 @@ const variantsMap = {
         hidden: {
             opacity: 0,
             filter: 'blur(8px)',
-            y: 10,
+            y: 16,
         },
+
         show: {
             opacity: 1,
             filter: 'blur(0px)',
             y: 0,
+
+            transition: {
+                duration: 0.6,
+                ease: easing,
+            },
+        },
+    },
+
+    lineReveal: {
+        hidden: {
+            scaleX: 0,
+            opacity: 0,
+        },
+
+        show: {
+            scaleX: 1,
+            opacity: 1,
+
+            transition: {
+                duration: 1,
+                ease: easing,
+                delay: 0.15,
+            },
+        },
+    },
+
+    widthReveal: {
+        hidden: {
+            width: 0,
+            opacity: 0,
+        },
+
+        show: {
+            width: 56,
+            opacity: 1,
+
+            transition: {
+                duration: 0.65,
+                delay: 0.2,
+                ease: easing,
+            },
+        },
+    },
+
+    softLift: {
+        hidden: {
+            opacity: 0,
+            y: 14,
+            scale: 0.98,
+        },
+
+        show: {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+
+            transition: {
+                duration: 0.6,
+                ease: easing,
+            },
+        },
+    },
+
+    fadeIn: {
+        hidden: {
+            opacity: 0,
+        },
+
+        show: {
+            opacity: 1,
+
             transition: {
                 duration: 0.5,
-                ease: [0.16, 1, 0.3, 1],
+                ease: easing,
             },
         },
     },
@@ -99,14 +165,23 @@ const variantsMap = {
 const Motion = ({
     as = 'div',
     variant = 'fadeUp',
+
     stagger = false,
-    staggerDelay = 0.08,
+    staggerDelay = 0.12,
     delayChildren = 0,
+
     className = '',
     children,
+
     whileHover,
-    viewport = { once: true, amount: 0.3 },
+
+    viewport = {
+        once: true,
+        amount: 0.12,
+    },
+
     transition,
+
     ...props
 }) => {
     const Comp = motion[as] || motion.div;
@@ -115,6 +190,7 @@ const Motion = ({
 
     const staggerContainer = {
         hidden: {},
+
         show: {
             transition: {
                 staggerChildren: staggerDelay,

@@ -66,6 +66,12 @@ body {
     @apply text-accent! bg-accent/10 px-2 py-1 rounded-2xl border border-accent;
 }
 
+.badge-accent {
+    @apply bg-white/10 text-accent px-3 py-1 rounded-full
+  border border-white/20 backdrop-blur-md
+  shadow-sm font-bold;
+}
+
 .badge-primary {
     @apply bg-white/10 text-primary px-3 py-1 rounded-full
   border border-white/20 backdrop-blur-md
@@ -73,5 +79,7 @@ body {
 }
 
 .badge-default {
-    @apply bg-black/10 py-1 rounded-2xl border border-black/30 text-text-primary! p-2;
+    @apply bg-white/10 text-text-primary px-3 py-1 rounded-full
+  border border-white/20 backdrop-blur-md
+  shadow-sm text-xs font-semibold;
 }

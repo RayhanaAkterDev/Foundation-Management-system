@@ -101,6 +101,7 @@ const descriptionStyles = {
 
 const SectionHeading = ({
     badge,
+    badges,
     badgeIcon: BadgeIcon,
     title,
     description,
@@ -130,15 +131,43 @@ const SectionHeading = ({
             `}
         >
             {/* BADGE */}
-            {badge && (
-                <div className={`${badgeBase} ${badgeClass}`}>
-                    {BadgeIcon && (
-                        <BadgeIcon
-                            className="text-current shrink-0"
-                            strokeWidth={3}
-                        />
+            {/* BADGE */}
+            {(badge || badges) && (
+                <div className="flex flex-wrap items-center gap-3">
+                    {/* SINGLE BADGE */}
+                    {badge && (
+                        <div className={`${badgeBase} ${badgeClass}`}>
+                            {BadgeIcon && (
+                                <BadgeIcon
+                                    className="text-current shrink-0"
+                                    strokeWidth={3}
+                                />
+                            )}
+
+                            <span>{badge}</span>
+                        </div>
                     )}
-                    <span>{badge}</span>
+
+                    {/* MULTIPLE BADGES */}
+                    {badges?.map((item, index) => {
+                        const Icon = item.icon;
+
+                        return (
+                            <div
+                                key={index}
+                                className={`${badgeBase} ${item.className || ''}`}
+                            >
+                                {Icon && (
+                                    <Icon
+                                        className="text-current shrink-0"
+                                        strokeWidth={3}
+                                    />
+                                )}
+
+                                <span>{item.label}</span>
+                            </div>
+                        );
+                    })}
                 </div>
             )}
 

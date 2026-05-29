@@ -1,19 +1,14 @@
 import React from 'react';
 
 // Icons (external libraries)
-import {
-    TbHeartFilled,
-    TbShieldCheck,
-    TbShieldCheckered,
-    TbShieldCheckeredFilled,
-    TbShieldCheckFilled,
-} from 'react-icons/tb';
+import { TbHeartFilled, TbShieldCheck } from 'react-icons/tb';
 import { HiArrowSmRight } from 'react-icons/hi';
 
 // Reusable/shared components
 import Hero from '@/components/Hero';
 
 // Page sections
+import HowItWorksSection from './sections/howCareLinkWorks/HowItWorksSection';
 import FeaturedCampaign from './sections/featuredCampaign/FeaturedCampaign';
 
 // Assets
@@ -22,7 +17,6 @@ import StatCard from '@/components/StatCard';
 
 // Data
 import statsData from './data/statsData';
-import HowItWorksSection from './sections/howCareLinkWorks/HowItWorksSection';
 
 const Home = () => {
     return (

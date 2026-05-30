@@ -31,20 +31,6 @@ const CampaignHeader = () => {
                     descriptionSize="hero"
                 />
             </Motion>
-
-            {/* RIGHT */}
-            <Motion
-                variant="scaleUp"
-                className="w-full lg:w-auto"
-                transition={{
-                    duration: 0.5,
-                    delay: 0.1,
-                }}
-            >
-                <Button variant="outline" className="w-full sm:w-auto">
-                    View All Campaigns
-                </Button>
-            </Motion>
         </div>
     );
 };

@@ -50,7 +50,7 @@ const DonationCard = () => {
                     </Button>
 
                     <Button variant="outline" className="w-full sm:w-auto">
-                        View
+                        View Details
                         <HiArrowSmRight className="mt-0.5" />
                     </Button>
                 </div>

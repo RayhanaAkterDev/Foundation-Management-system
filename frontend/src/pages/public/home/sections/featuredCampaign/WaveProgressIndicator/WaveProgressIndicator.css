@@ -1,50 +1,134 @@
-.wave-fill {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    background: rgba(var(--primary-rgb, 0, 0, 0), 0.18);
+.progress-water {
+    position: relative;
+    width: 88px;
+    height: 88px;
+    border-radius: 24px;
     overflow: hidden;
+
+    background: rgba(15, 118, 109, 0.08);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    backdrop-filter: blur(10px);
 }
 
-/* top wave */
+.water {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+
+    transition: height 1.4s cubic-bezier(0.22, 1, 0.36, 1);
+
+    background: linear-gradient(
+        to top,
+        rgba(15, 118, 109, 0.45),
+        rgba(15, 118, 109, 0.25)
+    );
+
+    overflow: visible;
+}
+
+/* floating water surface */
+.water-surface {
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 24px;
+
+    animation: surfaceBob 4s ease-in-out infinite;
+}
+
 .wave {
     position: absolute;
-    top: -8px;
+    top: -12px;
     left: 0;
+
     width: 200%;
-    height: 20px;
-    background-repeat: repeat-x;
-    background-size: 50% 100%;
-    opacity: 0.8;
+    height: 36px;
 }
 
-/* main wave */
-.wave-1 {
-    background-image: radial-gradient(
-        circle at 50% 50%,
-        rgba(59, 130, 246, 0.35) 35%,
-        transparent 36%
-    );
-    animation: waveMove 4s linear infinite;
+.wave-front {
+    fill: rgba(15, 118, 109, 0.55);
+
+    animation: waveFront 5s linear infinite;
 }
 
-/* secondary softer wave */
-.wave-2 {
-    top: -4px;
-    opacity: 0.5;
-    background-image: radial-gradient(
-        circle at 50% 50%,
-        rgba(59, 130, 246, 0.2) 35%,
-        transparent 36%
-    );
-    animation: waveMove 6s linear infinite reverse;
+.wave-back {
+    fill: rgba(15, 118, 109, 0.28);
+
+    animation: waveBack 8s linear infinite;
 }
 
-@keyframes waveMove {
-    0% {
+/* glossy highlight */
+.water::after {
+    content: '';
+
+    position: absolute;
+    top: 8px;
+    left: 15%;
+
+    width: 70%;
+    height: 10px;
+
+    border-radius: 999px;
+
+    background: rgba(255, 255, 255, 0.2);
+
+    filter: blur(4px);
+}
+
+/* content */
+.content {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+}
+
+.content h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-primary);
+}
+
+.content p {
+    font-size: 0.65rem;
+    opacity: 0.7;
+}
+
+/* animations */
+
+@keyframes waveFront {
+    from {
         transform: translateX(0);
     }
-    100% {
+
+    to {
         transform: translateX(-50%);
+    }
+}
+
+@keyframes waveBack {
+    from {
+        transform: translateX(-50%);
+    }
+
+    to {
+        transform: translateX(0);
+    }
+}
+
+/* makes water feel alive */
+@keyframes surfaceBob {
+    0%,
+    100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-4px);
     }
 }

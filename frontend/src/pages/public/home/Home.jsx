@@ -17,6 +17,7 @@ import StatCard from '@/components/StatCard';
 
 // Data
 import statsData from './data/statsData';
+import ExploreCategories from './sections/exploreCategories/ExploreCategories';
 
 const Home = () => {
     return (
@@ -53,6 +54,7 @@ const Home = () => {
 
             <HowItWorksSection />
             <FeaturedCampaign />
+            <ExploreCategories />
 
             {/* STATS */}
             {statsData && (

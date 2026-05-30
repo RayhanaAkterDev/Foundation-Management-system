@@ -18,21 +18,21 @@ import StatCard from '@/components/StatCard';
 // Data
 import statsData from './data/statsData';
 import ExploreCategories from './sections/exploreCategories/ExploreCategories';
+import LocalImpact from './sections/localImpact/LocalImpact';
 
 const Home = () => {
     return (
         <>
             <Hero
                 badge={{
-                    label: 'Together, we make a real difference',
-                    icon: TbShieldCheck,
+                    label: 'Support that matters',
                     variant: 'primary',
-                    tone: 'glass',
-                    size: 'sm',
+                    tone: 'soft',
+                    size: 'lg',
                 }}
                 title={
                     <>
-                        Delivering <span className="text-primary">Support</span>
+                        Deliver <span className="text-primary">Supports</span>
                         <span className="block">
                             Where It's{' '}
                             <span className="text-accent">Needed Most</span>
@@ -54,6 +54,7 @@ const Home = () => {
 
             <HowItWorksSection />
             <FeaturedCampaign />
+            <LocalImpact />
             <ExploreCategories />
 
             {/* STATS */}

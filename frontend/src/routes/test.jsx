@@ -32,8 +32,8 @@ import Story from '../pages/public/about/Story';
 import Team from '../pages/public/about/Team';
 
 // general
-import Contact from '../pages/public/Contact';
-import Login from '../pages/public/Login';
+import Contact from '../pages/public/contact/Contact';
+import Login from '../pages/public/Login/Login';
 
 // 404
 import NotFound from '../pages/NotFound';

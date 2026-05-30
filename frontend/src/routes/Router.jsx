@@ -7,8 +7,8 @@ import AdminLayout from '../layouts/AdminLayout/AdminLayout';
 // public pages
 import Home from '../pages/public/home/Home';
 import About from '../pages/public/about/About';
-import Contact from '../pages/public/Contact';
-import Login from '../pages/public/Login';
+import Contact from '../pages/public/contact/Contact';
+import Login from '../pages/public/Login/Login';
 
 // admin pages
 import Dashboard from '../pages/admin/Dashboard';

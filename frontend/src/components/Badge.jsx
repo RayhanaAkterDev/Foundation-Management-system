@@ -82,43 +82,41 @@ const toneStyles = {
 
     dark: {
         primary: `
-            bg-black/60
-            text-white
-            border-white/10
-            backdrop-blur-xl
-        `,
-        accent: `
-            bg-black/60
-            text-white
-            border-white/10
-            backdrop-blur-xl
-        `,
-        urgent: `
-            bg-black/60
-            text-red-300
-            border-white/10
-            backdrop-blur-xl
-        `,
-        success: `
-            bg-black/60
-            text-emerald-300
-            border-white/10
-            backdrop-blur-xl
-        `,
-        warning: `
-            bg-black/60
-            text-amber-300
-            border-white/10
-            backdrop-blur-xl
-        `,
-        default: `
-            bg-black/60
-            text-white
-            border-white/10
-            backdrop-blur-xl
-        `,
-    },
+        bg-slate-800/80
+        text-white
+        border-slate-700
+    `,
 
+        accent: `
+        bg-sky-950/80
+        text-sky-300
+        border-sky-800
+    `,
+
+        urgent: `
+        bg-red-950/80
+        text-red-300
+        border-red-900
+    `,
+
+        success: `
+        bg-emerald-950/80
+        text-emerald-300
+        border-emerald-900
+    `,
+
+        warning: `
+        bg-amber-950/80
+        text-amber-300
+        border-amber-900
+    `,
+
+        default: `
+        bg-zinc-800/80
+        text-zinc-300
+        border-zinc-700
+    `,
+    },
     solid: {
         primary: `
             bg-primary

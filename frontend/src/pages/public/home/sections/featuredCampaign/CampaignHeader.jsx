@@ -16,8 +16,12 @@ const CampaignHeader = () => {
             >
                 <SectionHeading
                     align="left"
-                    badge="Featured Emergency"
-                    badgeClass="badge-accent"
+                    badge={{
+                        label: 'Urgent Situation',
+                        variant: 'primary',
+                        tone: 'solid',
+                        size: 'lg',
+                    }}
                     title={
                         <>
                             Real people.

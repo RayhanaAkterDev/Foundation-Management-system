@@ -11,8 +11,8 @@ const HowCareLinkWorks = () => {
                     badge={{
                         label: 'How CareLink Works',
                         variant: 'primary',
-                        tone: 'solid',
-                        size: 'sm',
+                        tone: 'glass',
+                        size: 'lg',
                     }}
                     title="A structured flow for real-world response"
                     headingSize="sectionHero"

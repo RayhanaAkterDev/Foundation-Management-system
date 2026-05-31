@@ -79,7 +79,7 @@ const RightPanel = () => {
                     <div className="absolute left-2.5 sm:left-3 top-0 bottom-0 w-px bg-primary/10" />
 
                     {/* scroll container */}
-                    <div className="space-y-6 sm:space-y-8 pr-2 sm:pr-4 pl-1 overflow-y-auto max-h-[60vh] sm:max-h-[65vh] md:max-h-[35vh] lg:max-h-[25.5vh] xl:max-h-[37vh] custom-scroll">
+                    <div className="space-y-6 sm:space-y-8 pr-2 sm:pr-4 pl-1 overflow-y-auto max-h-70 md:max-h-68 lg:max-h-75 xl:max-h-87 2xl:max-h-75 custom-scroll">
                         {localCases.map((item) => (
                             <Link
                                 key={item.id}

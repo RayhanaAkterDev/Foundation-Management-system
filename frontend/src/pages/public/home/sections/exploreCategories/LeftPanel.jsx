@@ -9,63 +9,68 @@ import Motion from '@/components/motion/Motion';
 const LeftPanel = ({ current }) => {
     return (
         <div className="lg:col-span-5 w-full">
-            <div className="lg:sticky lg:top-24 space-y-5 md:space-y-6">
+            <div className="lg:sticky lg:top-24 space-y-5 sm:space-y-6">
                 {/* LABEL */}
                 <div
-                    className="text-[11px] sm:text-xs font-medium uppercase tracking-wider"
+                    className="text-[10px] sm:text-[11px] uppercase tracking-widest font-medium"
                     style={{ color: current.color }}
                 >
-                    Active Impact Area
+                    Impact Focus Area
                 </div>
 
-                {/* CONTENT */}
-                <div className="relative min-h-50 sm:min-h-40 lg:min-h-65 xl:min-h-60">
+                {/* STORY WINDOW (stable height system) */}
+                <div className="relative min-h-40 sm:min-h-35 lg:min-h-55">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={current.id}
-                            initial={{ opacity: 0, y: 8, filter: 'blur(6px)' }}
+                            initial={{ opacity: 0, y: 10, filter: 'blur(6px)' }}
                             animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                            exit={{ opacity: 0, y: -8, filter: 'blur(6px)' }}
+                            exit={{ opacity: 0, y: -10, filter: 'blur(6px)' }}
                             transition={{ duration: 0.35 }}
                             className="absolute inset-0"
                         >
-                            <h2 className="text-2xl md:text-3xl font-semibold text-gray-900 leading-tight">
+                            <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold text-text-primary leading-tight">
                                 {current.title}
                             </h2>
 
-                            <p className="mt-4 md:mt-5 text-sm md:text-base text-gray-600 leading-relaxed">
+                            <div
+                                className="h-0.5 w-14 sm:w-16 mt-3 rounded-full"
+                                style={{ backgroundColor: current.color }}
+                            />
+
+                            <p className="mt-4 sm:mt-5 text-sm md:text-base text-gray-600 leading-relaxed">
                                 {current.story}
                             </p>
                         </motion.div>
                     </AnimatePresence>
                 </div>
 
-                {/* META */}
+                {/* IMPACT SNAPSHOT */}
                 <motion.div
-                    key={current.id + '-meta'}
+                    key={current.id + '-impact'}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.3 }}
-                    className="pt-4 border-t border-border space-y-2"
+                    className="space-y-2 pt-4 border-t border-border"
                 >
-                    <div className="text-xs sm:text-sm text-primary">
-                        {current.activeCases} active cases •{' '}
-                        {current.avgResponseTime} response time
+                    <div className="text-sm font-medium text-text-primary">
+                        {current.outcome}
                     </div>
 
-                    <div className="text-xs sm:text-sm text-text-secondary leading-relaxed">
-                        {current.outcome}
+                    <div className="text-xs text-text-secondary/90 leading-relaxed">
+                        ~ {current.activeCases} situations active • Avg
+                        response: {current.avgResponseTime}
                     </div>
                 </motion.div>
 
-                {/* CTA (UNCHANGED) */}
+                {/* CTA */}
                 <Motion variant="fadeUp">
                     <Link
                         to={`/categories/${current.id}`}
-                        className="inline-flex items-center gap-2 font-medium mt-2 text-sm sm:text-base"
+                        className="inline-flex items-center gap-2 text-sm font-medium"
                         style={{ color: current.color }}
                     >
-                        Take action
+                        Explore this impact
                         <FiArrowRight />
                     </Link>
                 </Motion>

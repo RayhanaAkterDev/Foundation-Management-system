@@ -13,17 +13,19 @@ const categories = [
         icon: TbAlertTriangle,
         title: 'Disaster Relief',
         description:
-            'Immediate emergency response for natural disasters and crises.',
+            'Emergency response when lives are disrupted within minutes.',
+        image:
+            'https://images.unsplash.com/photo-1524492412937-b28074a5d7da?q=80&w=1200&auto=format&fit=crop',
         story:
-            'When disasters strike, entire communities can be displaced within minutes. Families lose homes, access to food, clean water, and safety. In these moments, fast coordinated action becomes the difference between survival and long-term suffering. Relief efforts focus on restoring stability, delivering essential supplies, and helping people rebuild their lives step by step.',
+            'When disasters strike, entire communities lose everything in moments — homes, safety, and access to basic survival needs. Families are forced into uncertainty without warning, and immediate response becomes the only barrier between crisis and collapse.',
         color: '#ef4444',
-        impactHint: 'Critical urgency zone',
+        impactHint: 'Survival-critical response',
         urgency: 'critical',
         avgResponseTime: '1–6 hours',
         activeCases: 142,
         monthlyDonors: 8200,
         outcome:
-            'Provides emergency shelter, rescue coordination, and rapid resource deployment.',
+            'Emergency shelter, rescue coordination, and rapid life-saving relief delivered within hours.',
     },
 
     {
@@ -31,17 +33,19 @@ const categories = [
         icon: TbSchool,
         title: 'Education Support',
         description:
-            'Empowering students with access to learning and academic resources.',
+            'Helping children continue learning despite financial barriers.',
+        image:
+            'https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=1200&auto=format&fit=crop',
         story:
-            'For many children, education is not just a path to knowledge but the only bridge out of poverty. Yet countless students are held back by lack of school supplies, tuition fees, and learning opportunities. Supporting education means investing in long-term change — helping children build skills, confidence, and a future they can shape themselves.',
+            'For many children, education is the only path out of generational poverty. But school fees, lack of materials, and limited access force thousands to fall behind before they ever get a chance to grow.',
         color: '#3b82f6',
-        impactHint: 'Long-term transformation',
+        impactHint: 'Long-term life change',
         urgency: 'medium',
         avgResponseTime: '2–7 days',
         activeCases: 310,
         monthlyDonors: 5400,
         outcome:
-            'Supports scholarships, school supplies, and digital learning access for students.',
+            'Scholarships, learning materials, and access to education for underserved students.',
     },
 
     {
@@ -49,17 +53,19 @@ const categories = [
         icon: TbHeart,
         title: 'Food Assistance',
         description:
-            'Providing meals and nutrition support to vulnerable families.',
+            'Ensuring no family is forced to live without a meal.',
+        image:
+            'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=1200&auto=format&fit=crop',
         story:
-            'Food insecurity affects both health and dignity. Many families struggle daily to secure even one proper meal, often sacrificing nutrition for survival. Food assistance programs ensure that no one is forced to choose between hunger and basic needs, restoring stability and hope one meal at a time.',
+            'Hunger quietly shapes daily life for millions of families. Parents often skip meals so children can eat, while nutrition insecurity slowly affects health, dignity, and hope.',
         color: '#f59e0b',
-        impactHint: 'Daily essential support',
+        impactHint: 'Daily survival support',
         urgency: 'high',
         avgResponseTime: '6–24 hours',
         activeCases: 520,
         monthlyDonors: 9300,
         outcome:
-            'Delivers meals, food packages, and nutritional aid to vulnerable households.',
+            'Nutritious meals and essential food supplies delivered to vulnerable households.',
     },
 
     {
@@ -67,17 +73,19 @@ const categories = [
         icon: TbMedicalCross,
         title: 'Medical Aid',
         description:
-            'Supporting healthcare access, treatment, and essential medicines.',
+            'Making essential healthcare accessible when it is out of reach.',
+        image:
+            'https://images.unsplash.com/photo-1584515933487-779824d29309?q=80&w=1200&auto=format&fit=crop',
         story:
-            'Illness can quickly become overwhelming when medical care is out of reach. Many individuals delay treatment due to cost, distance, or lack of access to facilities. Medical support ensures that essential care, medication, and treatment reach those who need it most, helping patients recover with dignity and hope.',
+            'For many people, illness becomes life-threatening not because it is severe, but because treatment is delayed or unavailable. Lack of access turns treatable conditions into crises.',
         color: '#06b6d4',
-        impactHint: 'Critical care support',
+        impactHint: 'Critical care access',
         urgency: 'critical',
         avgResponseTime: '1–12 hours',
         activeCases: 210,
         monthlyDonors: 6700,
         outcome:
-            'Covers hospital bills, medicines, emergency treatments, and medical supplies.',
+            'Medical treatment, emergency care, and essential medicines provided to those in need.',
     },
 
     {
@@ -85,17 +93,19 @@ const categories = [
         icon: TbUsers,
         title: 'Children Support',
         description:
-            'Protecting and supporting children with care, safety, and education.',
+            'Protecting vulnerable children and supporting their development.',
+        image:
+            'https://images.unsplash.com/photo-1516627145497-ae6968895b74?q=80&w=1200&auto=format&fit=crop',
         story:
-            'Children are the most vulnerable during crises, yet they also represent the greatest hope for the future. Many face challenges such as lack of education, nutrition, or safe living conditions. Supporting children means creating environments where they can grow safely, learn freely, and develop into confident individuals.',
+            'Children are the most affected in times of crisis, often losing access to safety, education, and emotional stability. Early support helps shape their future before instability defines it.',
         color: '#8b5cf6',
-        impactHint: 'Future generation focus',
+        impactHint: 'Future protection',
         urgency: 'high',
         avgResponseTime: '1–3 days',
         activeCases: 180,
         monthlyDonors: 6100,
         outcome:
-            'Provides child protection, education access, and emotional support programs.',
+            'Child protection programs, education access, and emotional care initiatives.',
     },
 
     {
@@ -103,17 +113,19 @@ const categories = [
         icon: TbHomeHand,
         title: 'Community Development',
         description:
-            'Strengthening communities through sustainable growth and support systems.',
+            'Building stronger, more resilient communities over time.',
+        image:
+            'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=1200&auto=format&fit=crop',
         story:
-            'Strong communities are built through collective effort, shared resources, and long-term investment. When communities grow stronger, they become more resilient to crises and better equipped to support their own members. Development initiatives focus on sustainability, opportunity creation, and improving quality of life at every level.',
+            'Strong communities are built through shared progress, local empowerment, and long-term investment. When communities grow together, they become more resilient to future crises.',
         color: '#10b981',
-        impactHint: 'Sustainable long-term growth',
+        impactHint: 'Long-term resilience',
         urgency: 'medium',
         avgResponseTime: '3–10 days',
         activeCases: 95,
         monthlyDonors: 4500,
         outcome:
-            'Supports infrastructure, training programs, and long-term community development.',
+            'Infrastructure, training, and sustainable development programs that strengthen communities.',
     },
 ];
 

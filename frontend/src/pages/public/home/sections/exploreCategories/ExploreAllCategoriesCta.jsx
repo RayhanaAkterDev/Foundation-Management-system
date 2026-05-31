@@ -1,22 +1,29 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-const ExploreAllCategoriesCta = () => {
+const ExploreAllCategoriesCta = ({ current }) => {
     return (
-        <div className="pt-5 sm:pt-6 pl-1 sm:pl-6 lg:pl-20">
-            <Link
-                to="/categories"
-                className="
-                    group inline-flex items-center gap-2
-                    text-primary font-medium text-sm sm:text-base hover:text-accent
-                    transition-all duration-200
-                "
-            >
-                Explore all impact areas
-                <span className="transition-transform duration-200 group-hover:translate-x-1">
-                    →
+        <div className="pt-6 sm:pt-8 flex justify-end sm:pr-6 lg:pr-10">
+            <div className="flex flex-col items-end gap-2 opacity-80 hover:opacity-100 transition">
+                <span className="text-[10px] uppercase tracking-widest text-gray-400">
+                    View more
                 </span>
-            </Link>
+
+                <div className="flex items-center gap-3">
+                    <div
+                        className="w-8 sm:w-10 h-px"
+                        style={{ backgroundColor: current?.color || '#d1d5db' }}
+                    />
+
+                    <Link
+                        to="/categories"
+                        className="text-sm sm:text-base font-medium tracking-wide"
+                        style={{ color: current?.color || '#111827' }}
+                    >
+                        Explore full impact map
+                    </Link>
+                </div>
+            </div>
         </div>
     );
 };

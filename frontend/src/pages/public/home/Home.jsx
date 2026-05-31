@@ -53,9 +53,9 @@ const Home = () => {
             />
 
             <HowItWorksSection />
+            <ExploreCategories />
             <FeaturedCampaign />
             <LocalImpact />
-            <ExploreCategories />
 
             {/* STATS */}
             {statsData && (

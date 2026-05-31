@@ -8,6 +8,7 @@ const wrapperStyles = {
 const alignStyles = {
     center: 'items-center text-center',
     left: 'items-start text-left',
+    right: 'items-end text-right',
 };
 
 const gapStyles = {

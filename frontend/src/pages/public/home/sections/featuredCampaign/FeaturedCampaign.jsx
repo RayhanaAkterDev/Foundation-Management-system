@@ -1,6 +1,6 @@
 import React from 'react';
 import { TbDroplet, TbMapPin } from 'react-icons/tb';
-import featuredCampaign from '@/assets/home/featuredCampaign.png';
+import featuredCampaign from '@/assets/home/featuredCampaign/featuredCampaign.png';
 
 // Components
 import Badge from '@/components/Badge';

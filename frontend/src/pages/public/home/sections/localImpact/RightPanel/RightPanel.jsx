@@ -21,55 +21,126 @@ const RightPanel = () => {
                     </Badge>
                 </div>
 
-                {/* SCROLL AREA */}
-                <div className="relative mt-6 sm:mt-8 flex-1">
+                {/* LOCAL ACTIVITY */}
+                <div className="mt-6 rounded-2xl border border-primary/10 bg-primary/3 p-4 sm:p-5">
+                    <div className="flex items-center gap-2">
+                        <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                        <span className="text-sm font-medium text-primary">
+                            Nearby Activity
+                        </span>
+                    </div>
+
+                    <p className="mt-2 text-sm text-text-secondary">
+                        Emerging needs identified around your area.
+                    </p>
+
+                    <div className="mt-4 space-y-3">
+                        <div className="flex items-center justify-between">
+                            <span className="text-sm text-text-secondary">
+                                Highest Priority
+                            </span>
+                            <Badge variant="danger" tone="soft" size="sm">
+                                Medical Emergency
+                            </Badge>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                            <span className="text-sm text-text-secondary">
+                                Most Active Area
+                            </span>
+                            <span className="text-sm font-medium text-text-primary">
+                                Dhaka
+                            </span>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                            <span className="text-sm text-text-secondary">
+                                Nearest Case
+                            </span>
+                            <span className="text-sm font-medium text-text-primary">
+                                1.2 km away
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="mt-4 pt-4 border-t border-primary/10 flex items-center justify-between">
+                        <span className="text-xs text-text-secondary">
+                            Updated 5 minutes ago
+                        </span>
+                        <span className="text-xs font-medium text-primary">
+                            Live tracking
+                        </span>
+                    </div>
+                </div>
+
+                {/* TIMELINE */}
+                <div className="relative mt-8 flex-1 min-h-0">
                     {/* timeline line */}
                     <div className="absolute left-2.5 sm:left-3 top-0 bottom-0 w-px bg-primary/10" />
 
                     {/* scroll container */}
-                    <div
-                        className="
-                        space-y-6 sm:space-y-8
-                        pr-2 sm:pr-3
-                        overflow-y-auto
-                        max-h-85 md:max-h-88 lg:max-h-90 xl:max-h-85
-                        custom-scroll
-                    "
-                    >
+                    <div className="space-y-6 sm:space-y-8 pr-2 sm:pr-4 pl-1 overflow-y-auto max-h-[60vh] sm:max-h-[65vh] md:max-h-[35vh] lg:max-h-[25.5vh] xl:max-h-[37vh] custom-scroll">
                         {localCases.map((item) => (
                             <Link
                                 key={item.id}
                                 to={`/campaign/${item.id}`}
-                                className="group flex gap-4 sm:gap-5"
+                                className="group flex gap-3 sm:gap-4"
                             >
                                 {/* DOT */}
                                 <div className="relative z-10 mt-1">
-                                    <div className="h-5 w-5 sm:h-6 sm:w-6 rounded-full border-4 border-white bg-primary transition-all duration-200" />
+                                    <div className="h-5 w-5 rounded-full border-4 border-white bg-primary" />
                                 </div>
 
                                 {/* CONTENT */}
-                                <div className="flex-1 transition-transform duration-200 group-hover:translate-x-1">
-                                    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                                        <Badge
-                                            variant="primary"
-                                            tone="soft"
-                                            size="md"
-                                        >
-                                            {item.category}
-                                        </Badge>
+                                <div className="flex-1 pb-5 border-b border-primary/8">
+                                    <div className="flex justify-between gap-3">
+                                        {/* LEFT */}
+                                        <div className="flex-1 min-w-0">
+                                            <h5 className="font-medium leading-snug text-text-primary group-hover:text-primary transition-colors line-clamp-2">
+                                                {item.title}
+                                            </h5>
 
-                                        <span className="text-xs text-text-secondary">
-                                            {item.distance}
-                                        </span>
+                                            {/* META */}
+                                            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-text-secondary">
+                                                <FiMapPin size={13} />
+                                                <span>{item.location}</span>
+
+                                                <span className="text-primary/40">
+                                                    •
+                                                </span>
+
+                                                <span className="font-medium">
+                                                    {item.distance}
+                                                </span>
+                                            </div>
+
+                                            {/* BADGE */}
+                                            <div className="mt-2">
+                                                <Badge
+                                                    variant="primary"
+                                                    tone="soft"
+                                                    size="sm"
+                                                >
+                                                    {item.category}
+                                                </Badge>
+                                            </div>
+                                        </div>
+
+                                        {/* IMAGE */}
+                                        <div className="shrink-0">
+                                            <img
+                                                src={item.image}
+                                                alt={item.title}
+                                                className="h-12 w-12 sm:h-16 sm:w-16 rounded-xl object-cover border border-primary/10"
+                                            />
+                                        </div>
                                     </div>
 
-                                    <h5 className="font-medium pt-1 sm:pt-2 leading-snug text-text-primary group-hover:text-primary transition-colors text-sm sm:text-base">
-                                        {item.title}
-                                    </h5>
-
-                                    <div className="mt-2 flex items-center gap-2 text-xs sm:text-sm text-text-secondary">
-                                        <FiMapPin size={14} />
-                                        <span>{item.location}</span>
+                                    {/* CTA */}
+                                    <div className="mt-3 flex items-center justify-end">
+                                        <span className="text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                                            View →
+                                        </span>
                                     </div>
                                 </div>
                             </Link>

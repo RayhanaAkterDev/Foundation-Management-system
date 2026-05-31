@@ -13,7 +13,7 @@ const alignStyles = {
 const gapStyles = {
     none: 'gap-0',
     xs: 'gap-1',
-    sm: 'gap-2',
+    sm: 'gap-2 sm:gap-3 lg:gap-4',
     md: 'gap-3 sm:gap-4 lg:gap-5',
     lg: 'gap-4 sm:gap-6 lg:gap-7',
 };

@@ -3,6 +3,10 @@ import React from 'react';
 // Reusable UI components
 import Button from './Button';
 import SectionHeading from './SectionHeading';
+import UrgentRequestsCard from '@/pages/public/home/sections/hero/UrgentRequestsCard';
+import LiveImpactCard from '@/pages/public/home/sections/hero/LiveImpactCard';
+import HeroStats from '@/pages/public/home/sections/hero/HeroStats';
+import ImpactSnapshot from '@/pages/public/home/sections/hero/ImpactSnapshot';
 
 const Hero = ({
     badge,
@@ -17,17 +21,17 @@ const Hero = ({
 }) => {
     return (
         <section
-            className={`mt-24 bg-cover bg-center relative ${bgClass}`}
+            className={`mt-24 bg-cover bg-right relative ${bgClass}`}
             style={{ backgroundImage: `url(${image})` }}
         >
             {/* OVERLAY */}
             <div className="absolute z-0 inset-0 bg-white/30" />
 
             {/* MAIN CONTENT */}
-            <div className="relative z-10 container-width py-16 lg:py-24">
-                <div className="grid grid-cols-1 lg:grid-cols-2 items-center gap-12">
+            <div className="relative z-10 container-width">
+                <div className="grid grid-cols-1 lg:grid-cols-2">
                     {/* LEFT CONTENT */}
-                    <div className="text-center sm:text-left">
+                    <div className="text-center sm:text-left py-16 lg:py-24 xl:pl-16">
                         <SectionHeading
                             align="center"
                             headingTag="h1"
@@ -41,6 +45,9 @@ const Hero = ({
                             descriptionSize="hero"
                             wrapperClass="sm:items-start sm:text-left"
                         />
+
+                        {/* Stats */}
+                        <HeroStats />
 
                         {/* CTA */}
                         <div
@@ -68,7 +75,7 @@ const Hero = ({
 
                             {secondaryCta && (
                                 <Button
-                                    variant="outline"
+                                    variant="ghost"
                                     className="
                                         w-full
                                         sm:w-auto
@@ -90,8 +97,12 @@ const Hero = ({
                         </div>
                     </div>
 
-                    {/* EMPTY RIGHT COLUMN FOR DESKTOP BALANCE */}
-                    <div className="hidden lg:block" />
+                    {/* RIGHT CONTENT */}
+                    <div>
+                        <UrgentRequestsCard />
+                        <LiveImpactCard />
+                        <ImpactSnapshot />
+                    </div>
                 </div>
             </div>
         </section>

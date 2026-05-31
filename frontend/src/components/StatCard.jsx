@@ -60,7 +60,6 @@ const StatCard = ({
     return (
         <div
             className={`
-                mt-8
                 grid
                 ${gridCols}
                 ${isHero ? 'gap-0' : 'gap-4 sm:gap-5 lg:gap-6'}
@@ -89,12 +88,7 @@ const StatCard = ({
                                     `
                                     : isMinimal
                                       ? `
-                                            rounded-2xl
-                                            border border-transparent
-                                            bg-transparent
-                                            hover:border-primary/10
-                                            hover:bg-white/70
-                                            hover:shadow-sm
+                                            border-l border-border/80 first:border-none
                                         `
                                       : `
                                             overflow-hidden

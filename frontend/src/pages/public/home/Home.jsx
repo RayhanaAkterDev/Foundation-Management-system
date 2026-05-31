@@ -8,7 +8,7 @@ import { HiArrowSmRight } from 'react-icons/hi';
 import Hero from '@/components/Hero';
 
 // Assets
-import heroIllustration from '@/assets/home/heroIllustration.png';
+import heroBG from '@/assets/home/hero/heroBG.png';
 
 // Page sections
 import HowItWorksSection from './sections/howCareLinkWorks/HowItWorksSection';
@@ -21,31 +21,24 @@ const Home = () => {
     return (
         <>
             <Hero
-                badge={{
-                    label: 'Support that matters',
-                    variant: 'primary',
-                    tone: 'soft',
-                    size: 'lg',
-                }}
                 title={
                     <>
-                        Deliver <span className="text-primary">Supports</span>
-                        <span className="block">
-                            Where It's{' '}
-                            <span className="text-accent">Needed Most</span>
+                        Real Needs. <span className="block">Real People.</span>
+                        <span className="text-primary block">
+                            Real Response.
                         </span>
                     </>
                 }
-                description="A network for fast, coordinated humanitarian support."
+                description="CareLink helps communities report urgent needs, coordinate support, and track aid from request to delivery."
                 primaryCta={{
                     icon: <TbHeartFilled />,
-                    label: 'I Want to Help',
+                    label: 'Request Help',
                 }}
                 secondaryCta={{
                     label: 'See How It Works',
                     icon: <HiArrowSmRight />,
                 }}
-                image={heroIllustration}
+                image={heroBG}
                 showStats={true}
             />
 

@@ -60,7 +60,7 @@ function Button({
     return (
         <button
             disabled={disabled}
-            className={`${baseStyles} ${sizes[size]} ${variants[variant]} ${className}`}
+            className={`${baseStyles} ${sizes[size]} ${variants[variant]} ${className} cursor-pointer`}
             {...props}
         >
             {children}

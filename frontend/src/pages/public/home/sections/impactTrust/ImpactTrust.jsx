@@ -4,7 +4,7 @@ import SectionHeading from '@/components/SectionHeading';
 import Motion from '@/components/motion/Motion';
 
 import HumanProof from './HumanProof';
-import ImpactSnapshot from './ImpactSnapshot';
+import ImpactSnapshot from '../hero/ImpactSnapshot';
 import TrustProof from './TrustProof';
 import TrustBanner from './TrustBanner';
 
@@ -37,14 +37,7 @@ const ImpactTrust = () => {
                 {/* Middle grid (FULL responsive fix) */}
                 <Motion variant="fadeUp">
                     <div className="mt-20 grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-                        <ImpactSnapshot />
                         <TrustProof />
-                    </div>
-                </Motion>
-
-                {/* CTA */}
-                <Motion variant="fadeUp">
-                    <div className="mt-14">
                         <TrustBanner />
                     </div>
                 </Motion>

@@ -4,14 +4,12 @@ import Button from '@/components/Button';
 const TrustBanner = () => {
     return (
         <div
-            className="
-                rounded-[32px]
+            className="h-full
+                rounded-4xl
                 border border-border
                 bg-surface
                 p-6 md:p-10
-                flex flex-col lg:flex-row
-                lg:items-center
-                justify-between
+                flex flex-col justify-center
                 gap-6
             "
         >
@@ -30,7 +28,7 @@ const TrustBanner = () => {
                 </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+            <div className="flex flex-col sm:flex-row gap-3 w-full ">
                 <Button className="w-full sm:w-auto" variant="accent">
                     Donate Now
                 </Button>

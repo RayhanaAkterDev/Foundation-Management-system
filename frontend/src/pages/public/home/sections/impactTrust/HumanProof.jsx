@@ -3,7 +3,7 @@ import humanProof from '@/assets/home/transparency/humanProof.png';
 
 const HumanProof = () => {
     return (
-        <div className="rounded-[32px] border border-border bg-surface p-6 md:p-10">
+        <div className="rounded-4xl border border-border bg-surface p-6 md:p-10">
             <div className="grid grid-cols-1 md:grid-cols-5 gap-8 items-center">
                 {/* text */}
                 <div className="md:col-span-3">

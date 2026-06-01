@@ -44,8 +44,9 @@ function Button({
 
         outline: `
             border border-border
-            bg-transparent text-text-primary
-            hover:bg-background
+            text-text-primary
+            font-medium
+            bg-background
             hover:border-primary/30
             focus-visible:ring-primary/30
         `,

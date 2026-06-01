@@ -1,37 +1,33 @@
 import React from 'react';
-import stats from './data/statsData';
 import SectionHeading from '@/components/SectionHeading';
 import Motion from '@/components/motion/Motion';
+import ImpactRibbon from './ImpactRibbon';
 
 const CampaignStory = () => {
     return (
         <Motion
             variant="fadeUp"
-            className="absolute bottom-0 left-0 max-w-2xl p-8 lg:p-12"
+            className="absolute top-28 left-16 max-w-lg"
             transition={{
                 duration: 0.9,
             }}
         >
             <SectionHeading
                 align="left"
-                title="Emergency Flood Relief for Families in Khulna"
+                badge={{
+                    variant: 'primary',
+                    tone: 'solid',
+                    size: 'md',
+                    label: 'Flood Relief •  Khulna, Bangladesh',
+                }}
+                title="Flood-affected communities in Khulna need urgent support"
                 headingClass="text-surface"
-                description="Thousands of families are displaced due to severe flooding. Volunteers are coordinating essential supplies across affected regions."
-                descriptionSize="sectionHero"
+                description="Heavy flooding in Khulna has displaced thousands of families and disrupted access to basic services. Relief efforts are currently underway."
                 descriptionClass="text-surface/80!"
             />
 
-            {/* STATS → NO MOTION (intentional) */}
-            <div className="mt-10 flex flex-wrap gap-10 text-white">
-                {stats.map((item) => (
-                    <div key={item.label}>
-                        <p className="text-sm text-white/55">{item.label}</p>
-                        <h4 className="mt-2 text-3xl font-bold">
-                            {item.value}
-                        </h4>
-                    </div>
-                ))}
-            </div>
+            {/* IMPACT RIBBON */}
+            <ImpactRibbon />
         </Motion>
     );
 };

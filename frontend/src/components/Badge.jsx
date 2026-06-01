@@ -154,6 +154,12 @@ const toneStyles = {
             border-text-primary
             shadow-[0_8px_24px_rgba(15,23,42,0.16)]
         `,
+         white: `
+            bg-surface
+            text-text-primary
+            border-text-primary
+            shadow-[0_8px_24px_rgba(15,23,42,0.16)]
+        `,
     },
 };
 
@@ -204,7 +210,7 @@ const Badge = ({
                     inline-flex items-center justify-center
                     whitespace-nowrap
                     border
-                    font-medium tracking-[0.01em]
+                    font-semibold tracking-[0.01em]
                     transition-all duration-300
                     select-none
                 `,

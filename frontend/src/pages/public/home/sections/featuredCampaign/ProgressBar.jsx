@@ -22,7 +22,7 @@ const ProgressBar = ({ value = 62 }) => {
     }, [isInView, value, controls]);
 
     return (
-        <div className="mt-8">
+        <div>
             <div
                 ref={ref}
                 className="h-3 overflow-hidden rounded-full bg-primary/10"
@@ -33,11 +33,6 @@ const ProgressBar = ({ value = 62 }) => {
                     animate={controls}
                 />
             </div>
-
-            <p className="mt-4 text-sm text-text-secondary leading-6">
-                5 days left to deliver emergency food, clean water, and medical
-                supplies.
-            </p>
         </div>
     );
 };

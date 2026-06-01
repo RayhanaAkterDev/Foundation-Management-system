@@ -14,8 +14,8 @@ const WaveProgressIndicator = ({ value = 62 }) => {
     }, [value]);
 
     return (
-        <Motion variant="fadeIn" className="border border-border rounded-3xl">
-            <div className="progress-water">
+        <Motion variant="fadeIn" className="flex flex-col items-center gap-2">
+            <div className="progress-water border border-border">
                 {/* LIQUID */}
                 <div className="water" style={{ height: `${animatedValue}%` }}>
                     <div className="water-surface">
@@ -28,8 +28,6 @@ const WaveProgressIndicator = ({ value = 62 }) => {
                         </svg>
                     </div>
                 </div>
-
-                {/* TEXT */}
                 <div className="content">
                     <h4>{value}%</h4>
                     <p>funded</p>

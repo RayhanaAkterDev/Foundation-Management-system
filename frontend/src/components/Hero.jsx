@@ -101,7 +101,7 @@ const Hero = ({
                     <div>
                         <UrgentRequestsCard />
                         <LiveImpactCard />
-                        <ImpactSnapshot />
+                        {/* <ImpactSnapshot /> */}
                     </div>
                 </div>
             </div>

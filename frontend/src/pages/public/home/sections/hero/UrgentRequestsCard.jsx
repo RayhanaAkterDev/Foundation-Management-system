@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 const UrgentRequestsCard = () => {
     return (
         <div
-            className="absolute left-[50%] top-25
+            className="absolute right-0 bottom-10
                 w-full max-w-md
                 rounded-[28px]
                 border border-white/50
@@ -25,7 +25,7 @@ const UrgentRequestsCard = () => {
                 </h3>
                 <button className="text-sm font-medium text-emerald-600 hover:opacity-80 cursor-pointer">
                     <Link>
-                        <Badge variant='primary' tone='soft' pulse dot>View All</Badge>
+                        <Badge variant='success' tone='soft' pulse dot>View All</Badge>
                     </Link>
                 </button>
             </div>

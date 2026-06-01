@@ -14,7 +14,7 @@ const HowCareLinkWorks = () => {
                         tone: 'glass',
                         size: 'lg',
                     }}
-                    title="A structured flow for real-world response"
+                    title="From urgent need to verified support"
                     headingSize="sectionHero"
                 />
 

@@ -19,7 +19,7 @@ const WorkflowLink = () => {
             >
                 <span className="relative">
                     <span className="group-hover:text-accent/80 transition">
-                        Explore the full CareLink workflow
+                        See how CareLink works
                     </span>
 
                     <span className="absolute left-0 -bottom-1 w-full h-px bg-linear-to-r from-primary/30 via-primary/15 to-transparent group-hover:from-accent/60 group-hover:via-accent/30 transition" />

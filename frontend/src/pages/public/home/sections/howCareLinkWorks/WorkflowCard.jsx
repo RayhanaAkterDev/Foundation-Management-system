@@ -62,7 +62,7 @@ const WorkflowCard = ({ item, index, flow }) => {
                 <div className="flex items-center justify-between">
                     <span
                         className={`
-                            text-[11px] sm:text-xs uppercase font-semibold tracking-[0.22em]
+                            text-xs sm:text-sm uppercase font-semibold tracking-tight
                             ${isAccent ? 'text-accent' : 'text-primary/60'}
                         `}
                     >
@@ -88,17 +88,10 @@ const WorkflowCard = ({ item, index, flow }) => {
                     {item.desc}
                 </p>
 
-                {/* FOOTER */}
-                {isSoft && (
-                    <div className="mt-6 text-sm font-medium text-accent">
-                        The challenge CareLink is solving
-                    </div>
-                )}
-
                 {isStrong && (
                     <div className="mt-6 flex items-center gap-2 text-sm font-medium text-primary">
                         <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                        Verified help delivered with clarity
+                        Support delivered where it's needed most
                     </div>
                 )}
             </Motion>

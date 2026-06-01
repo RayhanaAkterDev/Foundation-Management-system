@@ -1,7 +1,7 @@
 import React from 'react';
 import SectionHeading from '@/components/SectionHeading';
 import LeftPanel from './LeftPanel';
-import RightPanel from './RightPanel/RightPanel';
+import RightPanel from './RightPanel';
 
 const LocalImpact = () => {
     return (

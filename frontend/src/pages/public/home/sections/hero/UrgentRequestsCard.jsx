@@ -25,7 +25,7 @@ const UrgentRequestsCard = () => {
                 </h3>
                 <button className="text-sm font-medium text-emerald-600 hover:opacity-80 cursor-pointer">
                     <Link>
-                        <Badge variant='success' tone='soft' pulse dot>View All</Badge>
+                        <Badge variant='default' className='text-text-secondary border-none'>View All</Badge>
                     </Link>
                 </button>
             </div>

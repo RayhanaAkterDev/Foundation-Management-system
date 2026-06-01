@@ -11,6 +11,7 @@ const LocalImpact = () => {
                     title="Needs Emerging Around You"
                     headingSize="sectionHero"
                     description="See urgent requests and ongoing community needs in nearby areas, and discover where help is needed most right now."
+                    descriptionSize="sectionHero"
                 />
 
                 <div className="mt-10 grid grid-cols-1 md:grid-cols-5 gap-6 lg:gap-8 items-start">

@@ -2,5 +2,14 @@
     "search.useGlobalIgnoreFiles": true,
     "search.useParentIgnoreFiles": true,
     "css.lint.unknownAtRules": "ignore",
-    "cSpell.words": ["CARELINK"]
+    "cSpell.words": [
+        "Bogra",
+        "CARELINK",
+        "Feni",
+        "Kurigram",
+        "Rangpur",
+        "Salma",
+        "Sunamganj",
+        "Sylhet"
+    ]
 }

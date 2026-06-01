@@ -6,7 +6,6 @@ import SectionHeading from './SectionHeading';
 import UrgentRequestsCard from '@/pages/public/home/sections/hero/UrgentRequestsCard';
 import LiveImpactCard from '@/pages/public/home/sections/hero/LiveImpactCard';
 import HeroStats from '@/pages/public/home/sections/hero/HeroStats';
-import ImpactSnapshot from '@/pages/public/home/sections/hero/ImpactSnapshot';
 
 const Hero = ({
     badge,
@@ -52,7 +51,7 @@ const Hero = ({
                         {/* CTA */}
                         <div
                             className="
-                                flex
+                            flex
                                 flex-col
                                 sm:flex-row
                                 gap-4
@@ -101,7 +100,6 @@ const Hero = ({
                     <div>
                         <UrgentRequestsCard />
                         <LiveImpactCard />
-                        {/* <ImpactSnapshot /> */}
                     </div>
                 </div>
             </div>

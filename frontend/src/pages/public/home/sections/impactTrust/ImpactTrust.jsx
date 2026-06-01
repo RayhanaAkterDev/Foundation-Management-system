@@ -1,12 +1,9 @@
 import React from 'react';
-
 import SectionHeading from '@/components/SectionHeading';
 import Motion from '@/components/motion/Motion';
-
+import StoriesPreview from './StoriesPreview';
 import HumanProof from './HumanProof';
-import ImpactSnapshot from '../hero/ImpactSnapshot';
-import TrustProof from './TrustProof';
-import TrustBanner from './TrustBanner';
+import FinalCTA from './FinalCTA';
 
 const ImpactTrust = () => {
     return (
@@ -17,29 +14,40 @@ const ImpactTrust = () => {
                     <SectionHeading
                         align="left"
                         badge={{
-                            label: 'Trust & Accountability',
+                            label: 'Transparency & Trust',
                             variant: 'primary',
                             tone: 'solid',
                             size: 'lg',
                         }}
-                        title="Why People Trust CareLink"
-                        description="Every request is verified, every contribution is traceable, and every impact is measurable."
+                        title={
+                            <>
+                                Every impact is real.
+                                <span className="block text-primary pt-1">
+                                    Every action is verified.
+                                </span>
+                            </>
+                        }
+                        headingSize="sectionHero"
+                        description="Support reaches people through verified requests across real situations."
+                        descriptionSize="sectionHero"
                     />
                 </Motion>
 
-                {/* Human Proof */}
+                {/* 1. HUMAN PROOF (peak trust) */}
                 <Motion variant="softLift">
                     <div className="mt-12">
                         <HumanProof />
                     </div>
                 </Motion>
 
-                {/* Middle grid (FULL responsive fix) */}
-                <Motion variant="fadeUp">
-                    <div className="mt-20 grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-                        <TrustProof />
-                        <TrustBanner />
-                    </div>
+                {/* 2. SYSTEM ACTIVITY */}
+                <Motion variant="softLift">
+                    <StoriesPreview />
+                </Motion>
+
+                {/* 3. FINAL CTA (decision) */}
+                <Motion variant="softLift">
+                    <FinalCTA />
                 </Motion>
             </div>
         </section>

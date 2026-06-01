@@ -1,5 +1,7 @@
 import React from 'react';
+import { TbShieldCheck } from 'react-icons/tb';
 import humanProof from '@/assets/home/transparency/humanProof.png';
+import Badge from '@/components/Badge';
 
 const HumanProof = () => {
     return (
@@ -7,18 +9,43 @@ const HumanProof = () => {
             <div className="grid grid-cols-1 md:grid-cols-5 gap-8 items-center">
                 {/* text */}
                 <div className="md:col-span-3">
-                    <span className="text-xs uppercase tracking-[0.25em] text-primary">
-                        Real Impact
-                    </span>
+                    <div className="flex  items-center gap-2">
+                        <Badge
+                            variant="primary"
+                            tone="soft"
+                            size="sm"
+                            icon={TbShieldCheck}
+                        >
+                            Verified Recipient
+                        </Badge>
 
-                    <blockquote className="mt-4 text-xl md:text-2xl lg:text-3xl font-semibold leading-tight">
+                        <span className="text-xs text-text-secondary">
+                            Case ID #CRL-2048 · Kurigram District
+                        </span>
+                    </div>
+
+                    <div className="mt-4 text-sm text-text-secondary">
+                        <span className="font-medium text-text-primary">
+                            Flood recovery support
+                        </span>
+                        <span className="mx-2">•</span>
+                        <span>verified case</span>
+                    </div>
+
+                    <blockquote className="mt-6 text-xl md:text-2xl lg:text-3xl font-semibold leading-tight">
                         “Support arrived within two days after the flood. We
                         were able to rebuild our home and send our children back
                         to school.”
                     </blockquote>
 
-                    <div className="mt-6 text-sm md:text-base text-text-secondary">
-                        Salma Begum · Flood Recovery Program
+                    <div className="mt-6 flex justify-between items-center h-16">
+                        <span className="self-start font-medium">
+                            {' '}
+                            — Salma Begum
+                        </span>
+                        <span className="text-xs text-text-secondary/80 self-end">
+                            Verified May 2026
+                        </span>
                     </div>
                 </div>
 
@@ -26,7 +53,7 @@ const HumanProof = () => {
                 <div className="md:col-span-2">
                     <img
                         src={humanProof}
-                        alt=""
+                        alt="Verified impact story"
                         className="w-full h-auto rounded-3xl object-cover"
                     />
                 </div>

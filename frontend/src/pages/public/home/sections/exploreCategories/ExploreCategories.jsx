@@ -54,6 +54,7 @@ const ExploreCategories = () => {
                         title="Where would you like your help to go?"
                         headingSize="sectionHero"
                         description="Every category represents real people and real situations. Choose where your support should make a difference."
+                        descriptionSize="sectionHero"
                     />
                 </Motion>
 

@@ -1,26 +1,26 @@
 const flow = [
     {
         step: '01',
-        title: 'Needs Go Unnoticed',
-        desc: 'Urgent community needs are often lost in scattered communication, delayed reporting, and lack of verification.',
+        title: 'Need Reported',
+        desc: 'Community members, volunteers, or local leaders report urgent needs through a structured and location-based submission process.',
         emphasis: 'soft',
     },
     {
         step: '02',
-        title: 'Requests Get Submitted',
-        desc: 'CareLink helps individuals and volunteers submit real-world needs through a guided and structured reporting flow.',
+        title: 'Request Submitted',
+        desc: 'Essential details, supporting evidence, and location data are collected to create a complete and actionable request.',
     },
     {
         step: '03',
-        title: 'CareLink Verifies Everything',
-        desc: 'AI validation, duplicate detection, and priority scoring organize every request into reliable and actionable data.',
+        title: 'Verified by CareLink',
+        desc: 'AI-assisted validation, duplicate detection, and human review help ensure every request is credible and ready for response.',
     },
     {
         step: '04',
-        title: 'Support Reaches Faster',
-        desc: 'Verified requests connect with donors and volunteers faster — improving transparency, coordination, and measurable impact.',
+        title: 'Support Delivered',
+        desc: 'Verified requests are matched with donors, volunteers, and partners so help reaches communities faster and with greater transparency.',
         emphasis: 'strong',
     },
 ];
 
-export default flow
+export default flow;

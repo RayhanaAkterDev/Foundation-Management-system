@@ -1,4 +1,7 @@
+import React from 'react';
 import urgentRequests from './data/urgentRequests';
+import Badge from '@/components/Badge';
+import { Link } from 'react-router-dom';
 
 const UrgentRequestsCard = () => {
     return (
@@ -20,9 +23,10 @@ const UrgentRequestsCard = () => {
                 <h3 className="text-base font-semibold text-slate-900">
                     Urgent Requests
                 </h3>
-
                 <button className="text-sm font-medium text-emerald-600 hover:opacity-80 cursor-pointer">
-                    View All
+                    <Link>
+                        <Badge variant='primary' tone='soft' pulse dot>View All</Badge>
+                    </Link>
                 </button>
             </div>
 

@@ -1,123 +1,99 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-
-import logo from '@/assets/shared/logo.png';
-import FooterLinks from './FooterLinks';
-
-import footerPlatformData from './data/footerPlatformData';
-import footerExploreData from './data/footerExploreData';
-import footerResourceData from './data/footerResourceData';
-
 import {
     TbBrandFacebook,
     TbBrandInstagram,
     TbBrandLinkedin,
     TbBrandTwitter,
-    TbBrandYoutube,
 } from 'react-icons/tb';
 
-const socialIcons = [
-    TbBrandFacebook,
-    TbBrandTwitter,
-    TbBrandInstagram,
-    TbBrandLinkedin,
-    TbBrandYoutube,
-];
+import { footerLinks, legalLinks } from './data/data.js';
+
+const iconMap = {
+    facebook: TbBrandFacebook,
+    twitter: TbBrandTwitter,
+    instagram: TbBrandInstagram,
+    linkedin: TbBrandLinkedin,
+};
 
 const Footer = () => {
     return (
-        <footer>
-            <div className="container-width py-16 lg:py-20">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-14 lg:gap-20">
-                    {/* LEFT */}
-                    <div className="lg:col-span-5 space-y-10">
-                        {/* brand */}
-                        <div className="flex items-center gap-4">
-                            <img
-                                src={logo}
-                                alt="CareLink"
-                                className="w-14 h-14 sm:w-16 sm:h-16"
-                            />
+        <footer className="border-t border-border bg-surface">
+            <div className="container-width pt-16 pb-10 lg:pt-24 lg:pb-16 space-y-8 lg:space-y-12">
+                {/* ================= TOP LINKS ================= */}
+                <div className="flex flex-col lg:flex-row justify-between gap-10">
+                    {footerLinks.map((group, i) => (
+                        <div key={i}>
+                            <h4 className="text-xs lg:text-sm uppercase tracking-[0.14em] font-semibold text-primary/50 mb-6">
+                                {group.title}
+                            </h4>
 
-                            <div>
-                                <h3 className="text-[26px] sm:text-[28px] font-semibold text-primary leading-tight">
-                                    Care
-                                    <span className="text-accent">Link</span>
-                                </h3>
-
-                                <p className="text-[13px] sm:text-[14px] tracking-[0.25em] text-text-secondary uppercase mt-1">
-                                    Foundation Management
-                                </p>
+                            <div className="space-y-3">
+                                {group.links.map((item, idx) => (
+                                    <Link
+                                        key={idx}
+                                        to={item.to}
+                                        className="block text-[15px] lg:text-base text-text-secondary/75 hover:text-primary transition-colors font-normal leading-7"
+                                    >
+                                        {item.label}
+                                    </Link>
+                                ))}
                             </div>
                         </div>
+                    ))}
+                </div>
 
-                        {/* description */}
-                        <p className="text-[16px] sm:text-[17px] text-text-secondary leading-[1.85] max-w-md">
-                            Empowering accountable aid distribution through
-                            structured coordination, volunteer engagement, and
-                            transparent impact tracking.
-                        </p>
+                {/* ================= DIVIDER ================= */}
+                <div className="border-t border-border/40" />
 
-                        {/* socials */}
-                        <div className="flex flex-wrap gap-3 pt-2">
-                            {socialIcons.map((Icon, i) => (
-                                <a
+                {/* ================= BOTTOM ================= */}
+                <div className="space-y-10">
+                    {/* ================= BRAND + LEGAL ================= */}
+                    <div>
+                        <h3 className="text-2xl lg:text-3xl font-semibold tracking-tight text-primary mb-4">
+                            Care<span className="text-accent">Link</span>
+                        </h3>
+
+                        <div className="flex flex-wrap gap-4">
+                            {legalLinks.map((item, i) => (
+                                <Link
                                     key={i}
-                                    href="#"
-                                    className="w-12 h-12 rounded-xl border border-border
-                                               flex items-center justify-center
-                                               text-text-secondary
-                                               hover:text-accent hover:bg-white
-                                               transition"
+                                    to={item.to}
+                                    className="text-[15px] lg:text-base text-text-secondary/75 hover:text-primary transition-colors font-normal"
                                 >
-                                    <Icon size={19} />
-                                </a>
+                                    {item.label}
+                                </Link>
                             ))}
                         </div>
 
-                        {/* support */}
-                        <Link
-                            to="/support"
-                            className="inline-flex items-center text-[15px] sm:text-[16px]
-                                       font-medium text-primary hover:text-accent transition"
-                        >
-                            Contact support →
-                        </Link>
+                        <p className="mt-4 text-[15px] lg:text-base leading-7 lg:leading-8 text-text-secondary/80 max-w-md font-light">
+                            © 2026 CareLink. AI-powered verification.
+                            Transparent community support.
+                        </p>
                     </div>
 
-                    {/* RIGHT */}
-                    <div className="lg:col-span-7 lg:pl-10 lg:border-l border-border/30">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-14">
-                            <FooterLinks
-                                title="Platform"
-                                links={footerPlatformData}
-                            />
+                    {/* ================= SOCIAL ================= */}
+                    <div>
+                        <h4 className="text-xs uppercase tracking-[0.14em] font-semibold text-primary/40 mb-4">
+                            Find us on
+                        </h4>
 
-                            <FooterLinks
-                                title="Explore"
-                                links={footerExploreData}
-                            />
+                        <div className="flex gap-5">
+                            {Object.keys(iconMap).map((key) => {
+                                const Icon = iconMap[key];
 
-                            <FooterLinks
-                                title="Resources"
-                                links={footerResourceData}
-                            />
+                                return (
+                                    <a
+                                        key={key}
+                                        href="/"
+                                        className="text-text-secondary/60 hover:text-primary transition-colors"
+                                    >
+                                        <Icon size={18} />
+                                    </a>
+                                );
+                            })}
                         </div>
                     </div>
-                </div>
-            </div>
-
-            {/* bottom */}
-            <div className="bg-surface border-t border-border">
-                <div className="container-width py-10 lg:py-12 flex flex-col md:flex-row justify-between gap-5">
-                    <p className="text-[13px] sm:text-[14px] text-text-secondary">
-                        © 2026 CareLink Foundation Management System. All rights
-                        reserved.
-                    </p>
-
-                    <p className="text-[13px] sm:text-[14px] font-medium text-primary tracking-wide">
-                        Accountability • Transparency • Impact • Dignity
-                    </p>
                 </div>
             </div>
         </footer>

@@ -4,7 +4,7 @@ import SectionHeading from '@/components/SectionHeading';
 
 const FinalCTA = () => {
     return (
-        <div className="pt-28 pb-20 border-b border-border">
+        <div className="pt-24 pb-12">
             <div className="grid md:grid-cols-12 gap-10 items-end">
                 {/* Left content */}
                 <div className="md:col-span-7">

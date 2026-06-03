@@ -45,17 +45,13 @@ body {
 /* ============================ */
 
 @layer components {
+    /* main container */
     .container-width {
-        @apply max-w-7xl mx-auto px-6;
+        @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
     }
 
-    /* readable text width */
-    .content-width {
-        @apply w-full sm:max-w-lg sm:mx-auto lg:mx-0 lg:max-w-lg xl:max-w-xl;
-    }
-
-    /* section reusable styles */
+    /* balanced section spacing (fits footer + homepage) */
     .section-gap {
-        @apply py-16 md:py-18 lg:py-20;
+        @apply py-12 sm:py-14 md:py-16 lg:py-20;
     }
 }

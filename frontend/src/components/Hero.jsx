@@ -1,6 +1,5 @@
 import React from 'react';
 
-// Reusable UI components
 import Button from './Button';
 import SectionHeading from './SectionHeading';
 import UrgentRequestsCard from '@/pages/public/home/sections/hero/UrgentRequestsCard';
@@ -16,89 +15,76 @@ const Hero = ({
     primaryCta,
     secondaryCta,
     image,
-    bgClass = 'bg-[#FCFBFD]',
 }) => {
     return (
-        <section
-            className={`mt-24 bg-cover bg-right relative ${bgClass}`}
-            style={{ backgroundImage: `url(${image})` }}
-        >
-            {/* OVERLAY */}
-            <div className="absolute z-0 inset-0 bg-white/30" />
+        <section className="mt-20 bg-surface">
+            <div className="container-width grid grid-cols-1 lg:grid-cols-2">
+                {/* LEFT */}
+                <div className="text-center lg:text-left section-gap">
+                    <SectionHeading
+                        align="center"
+                        headingTag="h1"
+                        headingSize="hero"
+                        badge={badge}
+                        badgeIcon={badgeIcon}
+                        badgeClass={badgeClass}
+                        title={title}
+                        headingClass="capitalize"
+                        description={description}
+                        descriptionSize="hero"
+                        descriptionClass="w-sm lg:w-full"
+                        wrapperClass="lg:items-start lg:text-left"
+                    />
 
-            {/* MAIN CONTENT */}
-            <div className="relative z-10 container-width">
-                <div className="grid grid-cols-1 lg:grid-cols-2">
-                    {/* LEFT CONTENT */}
-                    <div className="text-center sm:text-left py-16 lg:py-24 xl:pl-16">
-                        <SectionHeading
-                            align="center"
-                            headingTag="h1"
-                            headingSize="hero"
-                            badge={badge}
-                            badgeIcon={badgeIcon}
-                            badgeClass={badgeClass}
-                            title={title}
-                            headingClass="capitalize"
-                            description={description}
-                            descriptionSize="hero"
-                            wrapperClass="sm:items-start sm:text-left"
-                        />
+                    <HeroStats />
 
-                        {/* Stats */}
-                        <HeroStats />
+                    <div className="flex flex-col sm:flex-row gap-4 mt-6 md:mt-10 justify-center lg:justify-start">
+                        {primaryCta && (
+                            <Button className="w-full sm:w-auto">
+                                {primaryCta.label}
+                            </Button>
+                        )}
+                        {secondaryCta && (
+                            <Button
+                                variant="ghost"
+                                className="w-full sm:w-auto"
+                            >
+                                {secondaryCta.label}
+                            </Button>
+                        )}
+                    </div>
+                </div>
 
-                        {/* CTA */}
-                        <div
-                            className="
-                            flex
-                                flex-col
-                                sm:flex-row
-                                gap-4
-                                mt-6
-                                lg:mt-10
-                                justify-center
-                                sm:justify-start
-                            "
-                        >
-                            {primaryCta && (
-                                <Button className="w-full sm:w-auto">
-                                    {primaryCta.label}
-                                    {primaryCta.icon && (
-                                        <span className="mr-2">
-                                            {primaryCta.icon}
-                                        </span>
-                                    )}
-                                </Button>
-                            )}
+                {/* RIGHT - CANVAS */}
+                <div className="relative flex items-center justify-center xl:-mr-14">
+                    <img
+                        src={image}
+                        alt="bd map"
+                        className="w-full max-w-175 h-auto object-contain"
+                    />
 
-                            {secondaryCta && (
-                                <Button
-                                    variant="ghost"
-                                    className="
-                                        w-full
-                                        sm:w-auto
-                                        flex
-                                        items-center
-                                        justify-center
-                                        gap-2
-                                    "
-                                >
-                                    {secondaryCta.label}
-
-                                    {secondaryCta.icon && (
-                                        <span className="inline-flex mt-0.5">
-                                            {secondaryCta.icon}
-                                        </span>
-                                    )}
-                                </Button>
-                            )}
-                        </div>
+                    {/* URGENT REQUESTS */}
+                    <div
+                        className="
+        absolute
+        bottom-[8%]
+        right-[2%]
+        w-[85%]
+        max-w-md
+    "
+                    >
+                        <UrgentRequestsCard />
                     </div>
 
-                    {/* RIGHT CONTENT */}
-                    <div>
-                        <UrgentRequestsCard />
+                    {/* LIVE IMPACT */}
+                    <div
+                        className="
+        absolute
+        top-[18%]
+        left-[4%]
+        w-[clamp(140px,18vw,200px)]
+    "
+                    >
                         <LiveImpactCard />
                     </div>
                 </div>

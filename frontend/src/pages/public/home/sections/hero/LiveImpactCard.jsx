@@ -6,19 +6,26 @@ const LiveImpactCard = () => {
     return (
         <div
             className="
-                hidden lg:flex
-                w-56
+                flex items-center justify-between
+                w-full
+                p-3
                 border border-border
-                bg-surface
-                p-4
+                bg-white/50
+                backdrop-blur
                 rounded-2xl
-                justify-between
-                lg:absolute right-105 top-35
+                shadow-lg
             "
         >
-            <div className="flex flex-col">
+            <div className="flex flex-col min-w-0">
                 <Badge
-                    className="border-none bg-transparent pl-0"
+                    className="
+                        border-none
+                        bg-transparent
+                        pl-0
+                        text-[10px]
+                        lg:text-[9px]
+                        xl:text-[10px]
+                    "
                     variant="primary"
                     pulse
                     dot
@@ -26,17 +33,59 @@ const LiveImpactCard = () => {
                     Help Delivered
                 </Badge>
 
-                <p className="text-text-secondary font-medium pb-1 text-sm"></p>
+                <h3
+                    className="
+                        text-lg
+                        md:text-xl
+                        lg:text-base
+                        xl:text-xl
+                        font-semibold
+                        leading-tight
+                        py-1
+                    "
+                >
+                    8,764+
+                </h3>
 
-                <h3 className="text-xl font-semibold leading-8 py-1">8,764+</h3>
-
-                <p className="text-text-secondary text-xs tracking-wider uppercase">
+                <p
+                    className="
+                        text-text-secondary
+                        text-[9px]
+                        md:text-[10px]
+                        lg:text-[8px]
+                        xl:text-xs
+                        tracking-wider
+                        uppercase
+                    "
+                >
                     Live Impacted
                 </p>
             </div>
 
-            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 text-primary">
-                <TbHeartPlus size={24} />
+            <div
+                className="
+                    flex
+                    items-center
+                    justify-center
+                    shrink-0
+
+                    w-8 h-8
+                    md:w-10 md:h-10
+                    lg:w-8 lg:h-8
+                    xl:w-12 xl:h-12
+
+                    rounded-full
+                    bg-primary/10
+                    text-primary
+                "
+            >
+                <TbHeartPlus
+                    className="
+                        text-base
+                        lg:text-sm
+                        xl:text-xl
+                    "
+                />
             </div>
         </div>
     );

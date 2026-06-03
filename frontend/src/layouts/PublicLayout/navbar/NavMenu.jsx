@@ -17,6 +17,9 @@ const NavMenu = ({ mobile = false, onClose }) => {
         );
     };
 
+    // =========================
+    // MOBILE
+    // =========================
     if (mobile) {
         return (
             <ul className="flex flex-col gap-1">
@@ -38,25 +41,30 @@ const NavMenu = ({ mobile = false, onClose }) => {
                                     }
                                 }}
                                 className={`
-                                w-full p-4
-                                flex items-center justify-between
-                                rounded-xl
-                                transition-colors duration-200
+                                    w-full
+                                    p-4
+                                    flex items-center justify-between
+                                    rounded-xl
 
-                                ${
-                                    isHome
-                                        ? homeActive
-                                            ? 'bg-primary/10 text-primary'
-                                            : 'hover:bg-background text-text-primary/70'
-                                        : parentActive
-                                          ? 'bg-primary/10 text-primary'
-                                          : 'hover:bg-background text-text-primary/70'
-                                }
-                            `}
+                                    text-[15px]
+                                    font-semibold
+
+                                    transition-colors duration-200 ease-out
+
+                                    ${
+                                        isHome
+                                            ? homeActive
+                                                ? 'bg-primary/10 text-primary'
+                                                : 'text-text-primary/70 hover:bg-background hover:text-text-primary'
+                                            : parentActive
+                                              ? 'bg-primary/10 text-primary'
+                                              : 'text-text-primary/70 hover:bg-background hover:text-text-primary'
+                                    }
+
+                                    active:scale-[0.98]
+                                `}
                             >
-                                <span className="text-[15px] font-semibold">
-                                    {link.name}
-                                </span>
+                                <span>{link.name}</span>
 
                                 {link.groups && (
                                     <IoChevronDown className="text-text-secondary" />
@@ -65,12 +73,7 @@ const NavMenu = ({ mobile = false, onClose }) => {
 
                             {link.groups && open === link.id && (
                                 <div className="px-3 pb-3">
-                                    <div className="mt-2">
-                                        <DropdownMenu
-                                            groups={link.groups}
-                                            mobile
-                                        />
-                                    </div>
+                                    <DropdownMenu groups={link.groups} mobile />
                                 </div>
                             )}
                         </li>
@@ -80,6 +83,9 @@ const NavMenu = ({ mobile = false, onClose }) => {
         );
     }
 
+    // =========================
+    // DESKTOP
+    // =========================
     return (
         <ul className="flex items-center gap-9 xl:gap-11">
             {navLinks.map((link) => {
@@ -99,28 +105,38 @@ const NavMenu = ({ mobile = false, onClose }) => {
                             className={`
                                 relative flex items-center gap-2
                                 h-24
+                                px-3 py-2
+                                rounded-lg
+
                                 text-[15px]
                                 font-medium
-                                transition-colors duration-200
+
+                                transition-colors duration-200 ease-out
 
                                 ${
                                     isHome
                                         ? homeActive
-                                            ? 'text-primary font-sem'
-                                            : 'text-text-primary/70 hover:text-primary'
+                                            ? 'text-primary'
+                                            : 'text-text-primary/70 hover:text-text-primary'
                                         : parentActive
                                           ? 'text-primary'
-                                          : 'text-text-primary/70 hover:text-primary'
+                                          : 'text-text-primary/70 hover:text-text-primary'
                                 }
+
+                                hover:bg-black/5
+                                dark:hover:bg-white/5
                             `}
                         >
-                            {link.name}
+                            {/* TEXT */}
+                            <span>{link.name}</span>
 
+                            {/* DROPDOWN ICON */}
                             {link.groups && (
                                 <IoChevronDown
                                     className={`
                                         text-[0.82rem]
-                                        transition-transform duration-300
+                                        transition-transform duration-200 ease-out
+
                                         ${
                                             open === link.id
                                                 ? 'rotate-180 text-primary'
@@ -131,6 +147,7 @@ const NavMenu = ({ mobile = false, onClose }) => {
                             )}
                         </NavLink>
 
+                        {/* DROPDOWN */}
                         {link.groups && open === link.id && (
                             <DropdownMenu groups={link.groups} />
                         )}

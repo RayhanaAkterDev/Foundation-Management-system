@@ -6,13 +6,13 @@ import { Link } from 'react-router-dom';
 const UrgentRequestsCard = () => {
     return (
         <div
-            className="absolute right-0 bottom-10
+            className="
+                hidden lg:block
+                absolute right-0 bottom-10
                 w-full max-w-md
                 rounded-[28px]
                 border border-white/50
-                bg-linear-to-b
-                from-white
-                to-slate-50/90
+                bg-linear-to-b from-white to-slate-50/90
                 p-5
                 shadow-[0_20px_60px_rgba(15,23,42,0.08)]
                 backdrop-blur-xl
@@ -23,9 +23,15 @@ const UrgentRequestsCard = () => {
                 <h3 className="text-base font-semibold text-slate-900">
                     Urgent Requests
                 </h3>
+
                 <button className="text-sm font-medium text-emerald-600 hover:opacity-80 cursor-pointer">
                     <Link>
-                        <Badge variant='default' className='text-text-secondary border-none'>View All</Badge>
+                        <Badge
+                            variant="default"
+                            className="text-text-secondary border-none"
+                        >
+                            View All
+                        </Badge>
                     </Link>
                 </button>
             </div>
@@ -59,7 +65,6 @@ const UrgentRequestsCard = () => {
                                     <h4 className="text-[13px] font-semibold text-slate-800">
                                         {request.title}
                                     </h4>
-
                                     <p className="mt-0.5 text-xs text-slate-500">
                                         {request.location}
                                     </p>

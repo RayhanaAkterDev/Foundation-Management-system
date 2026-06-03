@@ -45,13 +45,11 @@ body {
 /* ============================ */
 
 @layer components {
-    /* main container */
     .container-width {
         @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
     }
 
-    /* balanced section spacing (fits footer + homepage) */
     .section-gap {
-        @apply py-12 sm:py-14 md:py-16 lg:py-20;
+        @apply py-14 md:py-16 lg:py-20;
     }
 }

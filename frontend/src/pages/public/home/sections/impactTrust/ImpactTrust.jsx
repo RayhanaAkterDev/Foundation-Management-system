@@ -33,22 +33,23 @@ const ImpactTrust = () => {
                     />
                 </Motion>
 
-                {/* 1. HUMAN PROOF (peak trust) */}
-                <Motion variant="softLift">
-                    <div className="mt-12">
+                {/* CONTENT STACK (controlled spacing system) */}
+                <div className="mt-8 sm:mt-12 space-y-10 sm:space-y-12">
+                    {/* 1. HUMAN PROOF */}
+                    <Motion variant="softLift">
                         <HumanProof />
-                    </div>
-                </Motion>
+                    </Motion>
 
-                {/* 2. SYSTEM ACTIVITY */}
-                <Motion variant="softLift">
-                    <StoriesPreview />
-                </Motion>
+                    {/* 2. SYSTEM ACTIVITY */}
+                    <Motion variant="softLift">
+                        <StoriesPreview />
+                    </Motion>
 
-                {/* 3. FINAL CTA (decision) */}
-                <Motion variant="softLift">
-                    <FinalCTA />
-                </Motion>
+                    {/* 3. FINAL CTA */}
+                    <Motion variant="softLift">
+                        <FinalCTA />
+                    </Motion>
+                </div>
             </div>
         </section>
     );

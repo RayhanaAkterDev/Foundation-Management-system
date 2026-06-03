@@ -5,7 +5,7 @@ import Motion from '@/components/motion/Motion';
 
 const CampaignHeader = () => {
     return (
-        <div className="mb-16 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between lg:gap-10">
+        <div className="mb-8 md:mb-10 flex flex-col gap-4 sm:gap-5 md:gap-6 lg:flex-row lg:items-end lg:justify-between lg:gap-10">
             {/* LEFT */}
             <Motion
                 variant="fadeUp"
@@ -30,9 +30,9 @@ const CampaignHeader = () => {
                             </span>
                         </>
                     }
-                    headingSize="hero"
+                    headingSize="sectionHero"
                     description="CareLink connects donors and verified emergency campaigns to deliver fast humanitarian support where it matters most."
-                    descriptionSize="hero"
+                    descriptionSize="sectionHero"
                 />
             </Motion>
         </div>

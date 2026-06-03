@@ -5,8 +5,8 @@ import RightPanel from './RightPanel';
 
 const LocalImpact = () => {
     return (
-        <section className="">
-            <div className="container-width section-gap">
+        <section className="section-gap">
+            <div className="container-width">
                 <SectionHeading
                     title="Needs Emerging Around You"
                     headingSize="sectionHero"

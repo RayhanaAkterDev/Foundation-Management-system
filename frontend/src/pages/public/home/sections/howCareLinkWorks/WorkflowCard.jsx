@@ -43,7 +43,7 @@ const WorkflowCard = ({ item, index, flow }) => {
                     relative rounded-3xl border backdrop-blur-sm
 
                     p-5 sm:p-6 lg:p-8
-                    min-h-65 sm:min-h-70
+                    min-h-65 md:h-full xl:min-h-65
 
                     transition-colors duration-500
 

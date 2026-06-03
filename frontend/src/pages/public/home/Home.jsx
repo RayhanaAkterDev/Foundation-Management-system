@@ -41,7 +41,6 @@ const Home = () => {
                 image={heroBG}
                 showStats={true}
             />
-
             <HowItWorksSection />
             <ExploreCategories />
             <FeaturedCampaign />

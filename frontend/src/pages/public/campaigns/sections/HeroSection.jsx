@@ -79,14 +79,6 @@ const HeroSection = () => {
                                 className="w-full h-120 rounded-4xl object-cover"
                             />
                         </div>
-
-                        <SectionHeading
-                            title="Discover Campaigns"
-                            headingSize="sectionHero"
-                            description="Support the causes that matter most today and create meaningful impact."
-                            descriptionSize="sectionHero"
-                            wrapperClass="-mb-28! mt-12"
-                        />
                     </div>
                 </div>
             </section>

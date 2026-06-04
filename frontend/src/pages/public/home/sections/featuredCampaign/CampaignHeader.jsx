@@ -1,5 +1,4 @@
 import React from 'react';
-import Button from '@/components/Button';
 import SectionHeading from '@/components/SectionHeading';
 import Motion from '@/components/motion/Motion';
 

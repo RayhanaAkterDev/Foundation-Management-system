@@ -8,6 +8,9 @@ import { HiArrowSmRight } from 'react-icons/hi';
 import Button from '@/components/Button';
 import SectionHeading from '@/components/SectionHeading';
 
+// Asset
+import campaignsHeroImage from '@/assets/campaigns/campaignsHeroImage.png';
+
 const HeroSection = () => {
     return (
         <>
@@ -65,6 +68,25 @@ const HeroSection = () => {
                         <div>✓ Verified Requests</div>
                         <div>✓ Transparent Progress Tracking</div>
                         <div>✓ AI-Assisted Prioritization</div>
+                    </div>
+
+                    {/* Image */}
+                    <div className="section-gap flex flex-col gap-20">
+                        <div className="rounded-4xl">
+                            <img
+                                src={campaignsHeroImage}
+                                alt="campaignsHeroImage"
+                                className="w-full h-120 rounded-4xl object-cover"
+                            />
+                        </div>
+
+                        <SectionHeading
+                            title="Discover Campaigns"
+                            headingSize="sectionHero"
+                            description="Support the causes that matter most today and create meaningful impact."
+                            descriptionSize="sectionHero"
+                            wrapperClass="-mb-28! mt-12"
+                        />
                     </div>
                 </div>
             </section>

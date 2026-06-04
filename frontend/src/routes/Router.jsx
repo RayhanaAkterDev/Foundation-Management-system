@@ -1,14 +1,13 @@
 import { createBrowserRouter } from 'react-router-dom';
 
 // layouts
-import PublicLayout from '../layouts/PublicLayout/PublicLayout';
-import AdminLayout from '../layouts/AdminLayout/AdminLayout';
+import PublicLayout from '@/layouts/PublicLayout/PublicLayout';
+import AdminLayout from '@/layouts/AdminLayout/AdminLayout';
 
 // public pages
-import Home from '../pages/public/home/Home';
-import About from '../pages/public/about/About';
-import Contact from '../pages/public/contact/Contact';
-import Login from '../pages/public/Login/Login';
+import Home from '@/pages/public/home/Home';
+import About from '@/pages/public/about/About';
+import Campaigns from '@/pages/public/campaigns/Campaigns'
 
 // admin pages
 import Dashboard from '../pages/admin/Dashboard';
@@ -26,8 +25,7 @@ const router = createBrowserRouter([
         children: [
             { path: '', element: <Home /> },
             { path: 'about', element: <About /> },
-            { path: 'contact', element: <Contact /> },
-            { path: 'login', element: <Login /> },
+            { path: 'campaigns', element: <Campaigns /> },
         ],
     },
 

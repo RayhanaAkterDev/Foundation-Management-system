@@ -19,7 +19,7 @@ const iconMap = {
 const Footer = () => {
     return (
         <footer className="border-t border-border bg-surface">
-            <div className="container-width pt-16 pb-10 lg:pt-24 lg:pb-16 space-y-8 lg:space-y-12">
+            <div className="container-width pt-16 pb-10 lg:pt-24 lg:pb-16 space-y-6">
                 {/* ================= TOP LINKS ================= */}
                 <div className="flex flex-col lg:flex-row justify-between gap-10">
                     {footerLinks.map((group, i) => (
@@ -47,7 +47,7 @@ const Footer = () => {
                 <div className="border-t border-border/40" />
 
                 {/* ================= BOTTOM ================= */}
-                <div className="space-y-10">
+                <div className="space-y-8">
                     {/* ================= BRAND + LEGAL ================= */}
                     <div>
                         <h3 className="text-2xl lg:text-3xl font-semibold tracking-tight text-primary mb-4">

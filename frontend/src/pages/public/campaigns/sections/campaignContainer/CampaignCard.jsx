@@ -6,10 +6,6 @@ export default function CampaignCard({ campaign }) {
             <article
                 className="
                     relative overflow-hidden rounded-3xl
-                    bg-black
-                    shadow-md/30
-                    transition-all duration-500
-                    hover:-translate-y-0.5
                 "
             >
                 {/* Image */}
@@ -21,8 +17,8 @@ export default function CampaignCard({ campaign }) {
                     "
                 />
 
-                {/* Overlay system (kept, slightly stabilized only) */}
-                <div className="absolute inset-0 bg-linear-to-t from-black/85 via-black/40 to-transparent" />
+                {/* Overlay */}
+                <div className="absolute inset-0 bg-linear-to-t from-black/85 via-black/55 to-transparent" />
                 <div className="absolute inset-0 bg-linear-to-b from-transparent via-transparent to-black/25" />
 
                 {/* Content */}
@@ -67,7 +63,7 @@ export default function CampaignCard({ campaign }) {
                     <div
                         className="
                         rounded-2xl
-                        bg-white/5 border border-white/10
+                        bg-white/15 border border-white/20
                         backdrop-blur-md
                         p-4 space-y-3
                     "
@@ -93,16 +89,15 @@ export default function CampaignCard({ campaign }) {
                             <div
                                 className="
                                     h-full rounded-full
-                                    bg-linear-to-r from-emerald-400 to-emerald-500
+                                    bg-linear-to-r from-emerald-600 via-emerald-500 to-emerald-400
                                     transition-all duration-700 ease-out
                                 "
                                 style={{ width: `${campaign.progress}%` }}
                             />
                         </div>
 
-                        {/* Micro line (slightly improved clarity, not redesign) */}
                         <div className="text-xs text-white/65">
-                            Funding progress updates automatically
+                            Backed by {campaign.supporters} donors
                         </div>
                     </div>
                 </div>

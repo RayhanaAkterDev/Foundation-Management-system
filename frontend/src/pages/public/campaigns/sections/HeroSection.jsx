@@ -71,14 +71,12 @@ const HeroSection = () => {
                     </div>
 
                     {/* Image */}
-                    <div className="section-gap flex flex-col gap-20">
-                        <div className="rounded-4xl">
-                            <img
-                                src={campaignsHeroImage}
-                                alt="campaignsHeroImage"
-                                className="w-full h-120 rounded-4xl object-cover"
-                            />
-                        </div>
+                    <div className="rounded-4xl">
+                        <img
+                            src={campaignsHeroImage}
+                            alt="campaignsHeroImage"
+                            className="w-full h-120 rounded-4xl object-cover mt-12"
+                        />
                     </div>
                 </div>
             </section>

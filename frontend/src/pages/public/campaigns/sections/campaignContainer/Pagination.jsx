@@ -3,7 +3,7 @@ import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 
 const Pagination = ({ currentPage, totalPages, onPageChange }) => {
     return (
-        <div className="flex items-center justify-center mt-16">
+        <div className="flex items-center justify-center mt-16 mb-20">
             <div className="flex items-center gap-6">
                 {/* Prev */}
                 <button

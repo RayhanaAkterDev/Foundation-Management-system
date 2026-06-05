@@ -10,7 +10,7 @@ const SearchBar = ({ value, onChange }) => {
                 pt-2 pb-4
                 transition-colors
                 focus-within:border-primary/20
-                mb-12 mt-8
+                mb-2 mt-8
             "
         >
             <FiSearch className="text-text-secondary text-lg shrink-0" />

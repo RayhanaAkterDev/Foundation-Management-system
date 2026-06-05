@@ -64,7 +64,7 @@ const HeroSection = () => {
                     </div>
 
                     {/* Stats */}
-                    <div className="mt-14 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm text-text-secondary">
+                    <div className="mt-14 flex flex-col sm:flex-row items-center justify-center gap-x-8 gap-y-3 text-sm text-text-secondary">
                         <div>✓ Verified Requests</div>
                         <div>✓ Transparent Progress Tracking</div>
                         <div>✓ AI-Assisted Prioritization</div>

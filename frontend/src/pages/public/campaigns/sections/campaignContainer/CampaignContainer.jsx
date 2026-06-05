@@ -4,6 +4,7 @@ import campaignsData from './data/campaignsData';
 import CampaignCard from './CampaignCard';
 import SectionHeading from '@/components/SectionHeading';
 import Pagination from './Pagination';
+import Stats from './Stats';
 
 const ITEMS_PER_PAGE = 6;
 
@@ -11,15 +12,19 @@ const CampaignContainer = () => {
     const [search, setSearch] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
 
-    // Filter
+    // SAFE FILTER (prevents .toLowerCase crash)
     const filteredCampaigns = useMemo(() => {
-        return campaignsData.filter(
-            (c) =>
-                c.title.toLowerCase().includes(search.toLowerCase()) ||
-                c.description.toLowerCase().includes(search.toLower()),
-        );
+        const query = (search || '').toString().toLowerCase();
+
+        return campaignsData.filter((c) => {
+            const title = (c.title || '').toString().toLowerCase();
+            const description = (c.description || '').toString().toLowerCase();
+
+            return title.includes(query) || description.includes(query);
+        });
     }, [search]);
 
+    // TOTAL PAGES (never 0)
     const totalPages = Math.max(
         1,
         Math.ceil(filteredCampaigns.length / ITEMS_PER_PAGE),
@@ -27,46 +32,66 @@ const CampaignContainer = () => {
 
     const safeCurrentPage = Math.min(currentPage, totalPages);
 
+    // PAGINATED DATA
     const currentCampaigns = useMemo(() => {
         const start = (safeCurrentPage - 1) * ITEMS_PER_PAGE;
         const end = start + ITEMS_PER_PAGE;
         return filteredCampaigns.slice(start, end);
     }, [safeCurrentPage, filteredCampaigns]);
 
+    // ACTIVE CAMPAIGN NUMBER COUNT
+    const formatCampaignCount = (count) => {
+        if (count <= 10) return `${Math.max(1, count - 1)}+`;
+
+        if (count <= 100) {
+            const rounded = Math.floor(count / 5) * 5;
+            return `${rounded}+`;
+        }
+
+        if (count <= 1000) {
+            const rounded = Math.floor(count / 10) * 10;
+            return `${rounded}+`;
+        }
+
+        const rounded = Math.floor(count / 50) * 50;
+        return `${rounded}+`;
+    };
+
     return (
         <section className="section-gap">
             <div className="container-width">
-                {/* HEADER (STATIC) */}
+                {/* HEADER */}
                 <div className="flex flex-col gap-3">
                     <p className="text-xs uppercase tracking-[0.3em] text-zinc-500">
                         Ongoing Initiatives
                     </p>
-
                     <SectionHeading
                         align="left"
-                        title="10+ Active Campaigns"
+                        title={`${formatCampaignCount(campaignsData.length)} Active Campaigns`}
                         headingSize="sectionHero"
                     />
+                </div>
 
-                    {/* SEARCH RESULT INFO (DYNAMIC) */}
+                {/* SEARCH */}
+                <div>
+                    <SearchBar
+                        value={search}
+                        onChange={(value) => {
+                            setSearch(String(value || ''));
+                            setCurrentPage(1);
+                        }}
+                    />
+
+                    {/* SEARCH RESULT TEXT */}
                     {search && (
-                        <p className="text-sm text-text-secondary">
+                        <p className="text-sm text-text-secondary/80">
                             {filteredCampaigns.length} active campaigns found
                         </p>
                     )}
                 </div>
 
-                {/* Search */}
-                <SearchBar
-                    value={search}
-                    onChange={(value) => {
-                        setSearch(value);
-                        setCurrentPage(1);
-                    }}
-                />
-
-                {/* Grid */}
-                <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 mt-8">
+                {/* GRID */}
+                <div className="grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 pt-8">
                     {filteredCampaigns.length > 0 ? (
                         currentCampaigns.map((campaign) => (
                             <CampaignCard
@@ -87,7 +112,7 @@ const CampaignContainer = () => {
                     )}
                 </div>
 
-                {/* Pagination */}
+                {/* PAGINATION */}
                 {filteredCampaigns.length > 0 && (
                     <Pagination
                         currentPage={safeCurrentPage}
@@ -95,6 +120,9 @@ const CampaignContainer = () => {
                         onPageChange={setCurrentPage}
                     />
                 )}
+
+                {/* Stats */}
+                <Stats />
             </div>
         </section>
     );

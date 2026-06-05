@@ -1,119 +1,158 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { TbAlertTriangle } from 'react-icons/tb';
 import campaigns from './data/campaignsData';
 
-const CampaignGrid = () => {
+const getProgress = (raised, goal) =>
+    Math.min(Math.round((raised / goal) * 100), 100);
+
+const getUrgency = (daysLeft) => {
+    if (daysLeft <= 3) return 'critical';
+    if (daysLeft <= 7) return 'urgent';
+    return null;
+};
+
+const ProgressRing = ({ progress }) => {
+    const radius = 20;
+    const circumference = 2 * Math.PI * radius;
+    const offset = circumference - (progress / 100) * circumference;
+
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 mt-12">
-            {campaigns.map((c) => {
-                const progress = Math.min(
-                    Math.round((c.raised / c.goal) * 100),
-                    100,
-                );
+        <div className="relative h-12 w-12">
+            <svg className="h-12 w-12 -rotate-90" viewBox="0 0 48 48">
+                <circle
+                    cx="24"
+                    cy="24"
+                    r={radius}
+                    fill="none"
+                    stroke="#e5e7eb"
+                    strokeWidth="4"
+                />
 
-                const isUrgent = c.daysLeft <= 7;
+                <circle
+                    cx="24"
+                    cy="24"
+                    r={radius}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    strokeLinecap="round"
+                    strokeDasharray={circumference}
+                    strokeDashoffset={offset}
+                    className="text-primary"
+                />
+            </svg>
 
-                return (
-                    <article
-                        key={c.id}
-                        className="
-                            group overflow-hidden rounded-2xl
-                            bg-white border border-border
+            <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-[10px] font-semibold">{progress}%</span>
+            </div>
+        </div>
+    );
+};
+
+const CampaignGrid = () => {
+    const enhancedCampaigns = useMemo(() => {
+        return campaigns.map((c) => ({
+            ...c,
+            progress: getProgress(c.raised, c.goal),
+            urgency: getUrgency(c.daysLeft),
+        }));
+    }, []);
+
+    return (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 mt-10">
+            {enhancedCampaigns.map((c) => (
+                <article
+                    key={c.id}
+                    className="
+                            group
+                            cursor-pointer
+                            overflow-hidden
+                            rounded-xl
+                            border border-border
+                            bg-white
+                            shadow-sm
                             transition-all duration-300
-                            hover:-translate-y-1
-                            hover:shadow-lg
                         "
-                    >
-                        {/* IMAGE */}
-                        <div className="relative h-64 overflow-hidden">
-                            <img
-                                src={c.image}
-                                alt={c.title}
-                                className="
-                                    h-full w-full object-cover
-                                    transition duration-500
-                                    group-hover:scale-105
+                >
+                    {/* IMAGE */}
+                    <div className="h-52">
+                        <img
+                            src={c.image}
+                            alt={c.title}
+                            className="
+                                    h-full
+                                    w-full
+                                    object-cover
                                 "
-                            />
+                        />
 
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-black/10 to-transparent" />
+                        <div className="absolute inset-0 bg-black/10" />
 
-                            {isUrgent && (
-                                <div
-                                    className="
-                                        absolute bottom-0 left-0 right-0
-                                        flex items-center gap-2
-                                        bg-black/45 px-4 py-2
-                                        text-xs font-medium text-white
-                                        backdrop-blur-sm
-                                    "
+                        <div className="absolute left-4 top-4">
+                            <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-medium">
+                                {c.category}
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* CONTENT */}
+                    <div className="p-5 flex flex-col">
+                        <div className="flex items-center justify-between">
+                            {c.urgency ? (
+                                <span
+                                    className={`
+                                            flex items-center gap-1 text-xs font-medium
+                                            ${
+                                                c.urgency === 'critical'
+                                                    ? 'text-red-600'
+                                                    : 'text-orange-600'
+                                            }
+                                        `}
                                 >
                                     <TbAlertTriangle size={14} />
-
-                                    <span>
-                                        {c.daysLeft <= 1
-                                            ? 'Last day to help'
-                                            : `${c.daysLeft} days left • Urgent support needed`}
-                                    </span>
-                                </div>
+                                    {c.urgency === 'critical'
+                                        ? 'Ending soon'
+                                        : `${c.daysLeft}d left`}
+                                </span>
+                            ) : (
+                                <span className="text-xs text-gray-500">
+                                    Ongoing Campaign
+                                </span>
                             )}
+
+                            <span className="text-[11px] px-2.5 py-1 rounded-md bg-gray-100 text-gray-600">
+                                {c.category}
+                            </span>
                         </div>
 
-                        {/* CONTENT */}
-                        <div className="p-6">
-                            {/* TITLE */}
-                            <h3 className="text-xl font-semibold leading-snug text-text-primary">
-                                {c.title}
-                            </h3>
+                        <h3 className="mt-3 text-lg font-semibold leading-snug text-gray-900">
+                            {c.title}
+                        </h3>
 
-                            {/* DESCRIPTION */}
-                            <p className="mt-2 text-sm leading-relaxed text-text-secondary line-clamp-2">
-                                {c.description}
-                            </p>
+                        <p className="mt-2 text-sm text-gray-600 line-clamp-2">
+                            {c.description}
+                        </p>
 
-                            {/* DONATION INFO */}
-                            <div className="mt-6">
-                                <div className="flex items-end justify-between">
-                                    <div>
-                                        <p className="text-2xl font-bold text-text-primary">
-                                            ৳{c.raised.toLocaleString()}
-                                        </p>
-
-                                        <p className="text-sm text-text-secondary">
-                                            raised of ৳{c.goal.toLocaleString()}
-                                        </p>
-                                    </div>
-
-                                    <span className="text-sm font-medium text-primary">
-                                        {progress}%
+                        <div className="mt-5 border-t border-gray-100 pt-4 flex justify-between">
+                            <div>
+                                <p className="text-xl font-bold">
+                                    ৳{c.raised.toLocaleString()}
+                                    <span className="text-text-secondary text-sm font-normal ml-2">
+                                        raised by
                                     </span>
-                                </div>
-
-                                <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-muted">
-                                    <div
-                                        className="h-full rounded-full bg-primary transition-all duration-700"
-                                        style={{
-                                            width: `${progress}%`,
-                                        }}
-                                    />
-                                </div>
+                                </p>
+                                <p className="text-sm text-text-secondary font-normal">
+                                    {c.supporters} supporters
+                                </p>
                             </div>
 
-                            {/* CTA */}
-                            <button
-                                className="
-                                    mt-6 w-full rounded-xl
-                                    bg-primary py-3
-                                    font-medium text-white
-                                    transition hover:bg-primary/90
-                                "
-                            >
-                                Donate Now
-                            </button>
+                            <div className="rounded-full bg-transparent p-1">
+                                <ProgressRing progress={c.progress} />
+                            </div>
                         </div>
-                    </article>
-                );
-            })}
+                    </div>
+                </article>
+            ))}
         </div>
     );
 };

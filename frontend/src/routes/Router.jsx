@@ -7,7 +7,8 @@ import AdminLayout from '@/layouts/AdminLayout/AdminLayout';
 // public pages
 import Home from '@/pages/public/home/Home';
 import About from '@/pages/public/about/About';
-import Campaigns from '@/pages/public/campaigns/Campaigns'
+import Campaigns from '@/pages/public/campaigns/Campaigns';
+import CampaignDetails from '@/pages/public/campaigns/campaignDetails/CampaignDetails';
 
 // admin pages
 import Dashboard from '../pages/admin/Dashboard';
@@ -26,6 +27,7 @@ const router = createBrowserRouter([
             { path: '', element: <Home /> },
             { path: 'about', element: <About /> },
             { path: 'campaigns', element: <Campaigns /> },
+            { path: 'campaigns/:id', element: <CampaignDetails /> },
         ],
     },
 

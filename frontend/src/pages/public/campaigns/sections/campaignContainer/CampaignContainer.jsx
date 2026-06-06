@@ -56,27 +56,66 @@ const CampaignContainer = () => {
         return `${rounded}+`;
     };
 
+    // const stats = [
+    //     {
+    //         value: '6',
+    //         label: 'Urgent Cases',
+    //     },
+    //     {
+    //         value: '14',
+    //         label: 'Recently Updated',
+    //     },
+    //     {
+    //         value: '100%',
+    //         label: 'Verified',
+    //     },
+    //     {
+    //         value: '1K+',
+    //         label: 'Supporters',
+    //     },
+    // ];
+
     return (
         <section className="bg-surface section-gap">
             <div className="container-width">
-                {/* HEADER */}
-                <div className="flex flex-col gap-2 sm:gap-3">
-                    <p
-                        className="
+                <div className="">
+                    {/* HEADER */}
+                    <div className="flex flex-col gap-2 sm:gap-3">
+                        <p
+                            className="
                     text-[11px] sm:text-xs
                     uppercase
                     tracking-[0.22em] sm:tracking-[0.3em]
                     text-zinc-500
                 "
-                    >
-                        Ongoing Initiatives
-                    </p>
+                        >
+                            Ongoing Initiatives
+                        </p>
 
-                    <SectionHeading
-                        align="left"
-                        title={`${formatCampaignCount(campaignsData.length)} Active Campaigns`}
-                        headingSize="sectionHero"
-                    />
+                        <SectionHeading
+                            align="left"
+                            title={`${formatCampaignCount(campaignsData.length)} Active Campaigns`}
+                            headingSize="sectionHero"
+                        />
+                    </div>
+
+                    {/* Right */}
+                    {/* <div className="flex">
+                        {stats.map((stat) => (
+                            <div
+                                key={stat.label}
+                                className="flex items-baseline gap-2"
+                            >
+                                <span className="text-lg font-semibold text-primary">
+                                    {stat.value}
+                                </span>
+
+                                <span className="text-sm text-text-secondary">
+                                    {stat.label}
+                                </span>
+                            </div>
+                        ))}
+                    </div> */}
                 </div>
 
                 {/* SEARCH */}

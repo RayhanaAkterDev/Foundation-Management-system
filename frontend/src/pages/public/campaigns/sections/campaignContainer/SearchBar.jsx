@@ -5,15 +5,22 @@ const SearchBar = ({ value, onChange }) => {
     return (
         <div
             className="
-                flex items-center gap-3
-                border-b border-border
-                pt-2 pb-4
-                transition-colors
-                focus-within:border-primary/20
-                mb-2 mt-8
-            "
+        flex items-center gap-3
+        border-b border-border
+        py-3 sm:py-4
+        transition-colors
+        focus-within:border-primary/30
+        mt-6 md:mt-8
+        mb-2
+    "
         >
-            <FiSearch className="text-text-secondary text-lg shrink-0" />
+            <FiSearch
+                className="
+            shrink-0
+            text-lg md:text-xl
+            text-text-secondary
+        "
+            />
 
             <input
                 type="text"
@@ -21,12 +28,13 @@ const SearchBar = ({ value, onChange }) => {
                 onChange={(e) => onChange(e.target.value)}
                 placeholder="Search campaigns, causes, or locations"
                 className="
-                    w-full
-                    bg-transparent
-                    outline-none
-                    text-text-primary
-                    placeholder:text-text-secondary/60
-                "
+            w-full
+            bg-transparent
+            outline-none
+            text-sm md:text-base
+            text-text-primary
+            placeholder:text-text-secondary/60
+        "
             />
         </div>
     );

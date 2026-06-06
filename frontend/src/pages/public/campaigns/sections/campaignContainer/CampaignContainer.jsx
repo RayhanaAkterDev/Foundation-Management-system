@@ -4,7 +4,6 @@ import campaignsData from './data/campaignsData';
 import CampaignCard from './CampaignCard';
 import SectionHeading from '@/components/SectionHeading';
 import Pagination from './Pagination';
-import Stats from './Stats';
 
 const ITEMS_PER_PAGE = 6;
 
@@ -58,13 +57,21 @@ const CampaignContainer = () => {
     };
 
     return (
-        <section className="section-gap">
+        <section className="bg-surface section-gap">
             <div className="container-width">
                 {/* HEADER */}
-                <div className="flex flex-col gap-3">
-                    <p className="text-xs uppercase tracking-[0.3em] text-zinc-500">
+                <div className="flex flex-col gap-2 sm:gap-3">
+                    <p
+                        className="
+                    text-[11px] sm:text-xs
+                    uppercase
+                    tracking-[0.22em] sm:tracking-[0.3em]
+                    text-zinc-500
+                "
+                    >
                         Ongoing Initiatives
                     </p>
+
                     <SectionHeading
                         align="left"
                         title={`${formatCampaignCount(campaignsData.length)} Active Campaigns`}
@@ -73,7 +80,7 @@ const CampaignContainer = () => {
                 </div>
 
                 {/* SEARCH */}
-                <div>
+                <div className="mt-6 md:mt-8">
                     <SearchBar
                         value={search}
                         onChange={(value) => {
@@ -82,16 +89,25 @@ const CampaignContainer = () => {
                         }}
                     />
 
-                    {/* SEARCH RESULT TEXT */}
                     {search && (
-                        <p className="text-sm text-text-secondary/80">
-                            {filteredCampaigns.length} active campaigns found
+                        <p className="mt-2 text-sm text-text-secondary/80">
+                            {filteredCampaigns.length} active campaign
+                            {filteredCampaigns.length !== 1 ? 's' : ''} found
                         </p>
                     )}
                 </div>
 
                 {/* GRID */}
-                <div className="grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 pt-8">
+                <div
+                    className="
+                pt-8 md:pt-10
+                grid
+                grid-cols-1
+                sm:grid-cols-2
+                xl:grid-cols-3
+                gap-5 sm:gap-6 xl:gap-8
+            "
+                >
                     {filteredCampaigns.length > 0 ? (
                         currentCampaigns.map((campaign) => (
                             <CampaignCard
@@ -100,12 +116,19 @@ const CampaignContainer = () => {
                             />
                         ))
                     ) : (
-                        <div className="col-span-full flex flex-col items-center justify-center py-20 text-center">
+                        <div
+                            className="
+                        col-span-full
+                        flex flex-col items-center justify-center
+                        py-14 sm:py-18 md:py-24
+                        text-center
+                    "
+                        >
                             <p className="text-lg font-medium text-text-primary">
                                 No campaigns found
                             </p>
 
-                            <p className="text-sm text-text-secondary mt-2">
+                            <p className="mt-2 text-sm text-text-secondary">
                                 Try searching with different keywords.
                             </p>
                         </div>
@@ -114,15 +137,14 @@ const CampaignContainer = () => {
 
                 {/* PAGINATION */}
                 {filteredCampaigns.length > 0 && (
-                    <Pagination
-                        currentPage={safeCurrentPage}
-                        totalPages={totalPages}
-                        onPageChange={setCurrentPage}
-                    />
+                    <div className="mt-10 md:mt-12">
+                        <Pagination
+                            currentPage={safeCurrentPage}
+                            totalPages={totalPages}
+                            onPageChange={setCurrentPage}
+                        />
+                    </div>
                 )}
-
-                {/* Stats */}
-                <Stats />
             </div>
         </section>
     );

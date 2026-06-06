@@ -3,8 +3,8 @@ import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 
 const Pagination = ({ currentPage, totalPages, onPageChange }) => {
     return (
-        <div className="flex items-center justify-center mt-16 mb-20">
-            <div className="flex items-center gap-6">
+        <div className="flex justify-center mt-12 md:mt-16 lg:mt-18">
+            <div className="flex items-center gap-3 sm:gap-5 md:gap-6">
                 {/* Prev */}
                 <button
                     type="button"
@@ -12,31 +12,39 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
                     onClick={() => onPageChange(Math.max(currentPage - 1, 1))}
                     disabled={currentPage === 1}
                     className="
-                        flex items-center gap-2
+                        flex items-center gap-1.5 sm:gap-2
                         text-text-secondary
-                        hover:text-primary hover:opacity-90
+                        hover:text-primary
                         transition-all duration-200
-                        focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-2
+                        focus:outline-none
+                        focus:ring-2 focus:ring-primary/30
+                        focus:ring-offset-2
                         disabled:opacity-30
                         disabled:cursor-not-allowed
                         disabled:pointer-events-none
                     "
                 >
-                    <FiChevronLeft />
-                    <span className="text-sm font-medium">Previous</span>
+                    <FiChevronLeft className="text-lg" />
+                    <span className="hidden sm:inline text-sm font-medium">
+                        Previous
+                    </span>
                 </button>
 
-                {/* Center indicator */}
+                {/* Center */}
                 <div
                     className="
-                    text-sm text-text-secondary
-                    px-3 py-1 rounded-md
-                    bg-muted/20
-                    border border-border/30
-                "
+                        rounded-lg
+                        border border-border/40
+                        bg-muted/20
+                        px-3 sm:px-4
+                        py-1.5 sm:py-2
+                        text-xs sm:text-sm
+                        text-text-secondary
+                        whitespace-nowrap
+                    "
                 >
                     Page{' '}
-                    <span className="text-text-primary font-semibold">
+                    <span className="font-semibold text-text-primary">
                         {currentPage}
                     </span>{' '}
                     of {totalPages}
@@ -51,18 +59,22 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
                     }
                     disabled={currentPage === totalPages}
                     className="
-                        flex items-center gap-2
+                        flex items-center gap-1.5 sm:gap-2
                         text-text-secondary
-                        hover:text-primary hover:opacity-90
+                        hover:text-primary
                         transition-all duration-200
-                        focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-2
+                        focus:outline-none
+                        focus:ring-2 focus:ring-primary/30
+                        focus:ring-offset-2
                         disabled:opacity-30
                         disabled:cursor-not-allowed
                         disabled:pointer-events-none
                     "
                 >
-                    <span className="text-sm font-medium">Next</span>
-                    <FiChevronRight />
+                    <span className="hidden sm:inline text-sm font-medium">
+                        Next
+                    </span>
+                    <FiChevronRight className="text-lg" />
                 </button>
             </div>
         </div>

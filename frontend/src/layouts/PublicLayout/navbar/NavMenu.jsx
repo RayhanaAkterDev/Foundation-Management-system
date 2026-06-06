@@ -87,7 +87,7 @@ const NavMenu = ({ mobile = false, onClose }) => {
     // DESKTOP
     // =========================
     return (
-        <ul className="flex items-center gap-9 xl:gap-11">
+        <ul className="flex items-center gap-2 xl:gap-6">
             {navLinks.map((link) => {
                 const isHome = link.id === 'home';
                 const homeActive = location.pathname === '/';

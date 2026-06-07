@@ -1,29 +1,44 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import SearchBar from './SearchBar';
-import campaignsData from './data/campaignsData';
 import CampaignCard from './CampaignCard';
 import SectionHeading from '@/components/SectionHeading';
 import Pagination from './Pagination';
+
+import { getCampaigns, getCampaignCardView } from '@/api/campaigns';
 
 const ITEMS_PER_PAGE = 6;
 
 const CampaignContainer = () => {
     const [search, setSearch] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
+    const [campaigns, setCampaigns] = useState([]);
 
-    // SAFE FILTER (prevents .toLowerCase crash)
+    // LOAD DATA (API LAYER)
+    useEffect(() => {
+        const loadData = async () => {
+            const data = await getCampaigns();
+            const cardData = getCampaignCardView(data);
+            setCampaigns(cardData);
+        };
+
+        loadData();
+    }, []);
+
+    // SAFE FILTER
     const filteredCampaigns = useMemo(() => {
         const query = (search || '').toString().toLowerCase();
 
-        return campaignsData.filter((c) => {
+        return campaigns.filter((c) => {
             const title = (c.title || '').toString().toLowerCase();
-            const description = (c.description || '').toString().toLowerCase();
+            const description = (c.shortDescription || '')
+                .toString()
+                .toLowerCase();
 
             return title.includes(query) || description.includes(query);
         });
-    }, [search]);
+    }, [search, campaigns]);
 
-    // TOTAL PAGES (never 0)
+    // TOTAL PAGES
     const totalPages = Math.max(
         1,
         Math.ceil(filteredCampaigns.length / ITEMS_PER_PAGE),
@@ -31,14 +46,14 @@ const CampaignContainer = () => {
 
     const safeCurrentPage = Math.min(currentPage, totalPages);
 
-    // PAGINATED DATA
+    // PAGINATION
     const currentCampaigns = useMemo(() => {
         const start = (safeCurrentPage - 1) * ITEMS_PER_PAGE;
         const end = start + ITEMS_PER_PAGE;
         return filteredCampaigns.slice(start, end);
     }, [safeCurrentPage, filteredCampaigns]);
 
-    // ACTIVE CAMPAIGN NUMBER COUNT
+    // FORMAT COUNT
     const formatCampaignCount = (count) => {
         if (count <= 10) return `${Math.max(1, count - 1)}+`;
 
@@ -52,70 +67,23 @@ const CampaignContainer = () => {
             return `${rounded}+`;
         }
 
-        const rounded = Math.floor(count / 50) * 50;
-        return `${rounded}+`;
+        return `${Math.floor(count / 50) * 50}+`;
     };
-
-    // const stats = [
-    //     {
-    //         value: '6',
-    //         label: 'Urgent Cases',
-    //     },
-    //     {
-    //         value: '14',
-    //         label: 'Recently Updated',
-    //     },
-    //     {
-    //         value: '100%',
-    //         label: 'Verified',
-    //     },
-    //     {
-    //         value: '1K+',
-    //         label: 'Supporters',
-    //     },
-    // ];
 
     return (
         <section className="bg-surface section-gap">
             <div className="container-width">
-                <div className="">
-                    {/* HEADER */}
-                    <div className="flex flex-col gap-2 sm:gap-3">
-                        <p
-                            className="
-                    text-[11px] sm:text-xs
-                    uppercase
-                    tracking-[0.22em] sm:tracking-[0.3em]
-                    text-zinc-500
-                "
-                        >
-                            Ongoing Initiatives
-                        </p>
+                {/* HEADER */}
+                <div className="flex flex-col gap-2 sm:gap-3">
+                    <p className="text-[11px] sm:text-xs uppercase tracking-[0.22em] sm:tracking-[0.3em] text-zinc-500">
+                        Ongoing Initiatives
+                    </p>
 
-                        <SectionHeading
-                            align="left"
-                            title={`${formatCampaignCount(campaignsData.length)} Active Campaigns`}
-                            headingSize="sectionHero"
-                        />
-                    </div>
-
-                    {/* Right */}
-                    {/* <div className="flex">
-                        {stats.map((stat) => (
-                            <div
-                                key={stat.label}
-                                className="flex items-baseline gap-2"
-                            >
-                                <span className="text-lg font-semibold text-primary">
-                                    {stat.value}
-                                </span>
-
-                                <span className="text-sm text-text-secondary">
-                                    {stat.label}
-                                </span>
-                            </div>
-                        ))}
-                    </div> */}
+                    <SectionHeading
+                        align="left"
+                        title={`${formatCampaignCount(campaigns.length)} Active Campaigns`}
+                        headingSize="sectionHero"
+                    />
                 </div>
 
                 {/* SEARCH */}
@@ -137,16 +105,7 @@ const CampaignContainer = () => {
                 </div>
 
                 {/* GRID */}
-                <div
-                    className="
-                pt-8 md:pt-10
-                grid
-                grid-cols-1
-                sm:grid-cols-2
-                xl:grid-cols-3
-                gap-5 sm:gap-6 xl:gap-8
-            "
-                >
+                <div className="pt-8 md:pt-10 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 sm:gap-6 xl:gap-8">
                     {filteredCampaigns.length > 0 ? (
                         currentCampaigns.map((campaign) => (
                             <CampaignCard
@@ -155,18 +114,10 @@ const CampaignContainer = () => {
                             />
                         ))
                     ) : (
-                        <div
-                            className="
-                        col-span-full
-                        flex flex-col items-center justify-center
-                        py-14 sm:py-18 md:py-24
-                        text-center
-                    "
-                        >
+                        <div className="col-span-full flex flex-col items-center justify-center py-14 sm:py-18 md:py-24 text-center">
                             <p className="text-lg font-medium text-text-primary">
                                 No campaigns found
                             </p>
-
                             <p className="mt-2 text-sm text-text-secondary">
                                 Try searching with different keywords.
                             </p>

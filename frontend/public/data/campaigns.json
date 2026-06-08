@@ -1,396 +1,58 @@
 [
     {
         "id": 1,
+
         "title": "Emergency Food Support for Flood-Affected Families",
-        "shortDescription": "Providing urgent food assistance to families affected by severe flooding.",
+
+        "shortDescription": "Help provide emergency food assistance to families struggling to recover after devastating floods in Kurigram.",
+
         "category": "Food Relief",
         "urgency": "Critical",
+
         "location": "Kurigram, Bangladesh",
+
         "image": "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c",
+
         "targetAmount": 50000,
         "raised": 39000,
         "progress": 78,
         "daysLeft": 4,
+
         "supporters": 279,
-        "beneficiaries": 1200,
-        "areasCovered": 14,
+
+        "beneficiary": "Flood-affected families across vulnerable communities in Kurigram",
+
+        "createdAt": "2026-05-18",
+
         "organizer": {
             "name": "StandForPeople Foundation",
             "verified": true,
             "role": "Relief Organization"
         },
-        "story": "Recent flooding has displaced hundreds of families, leaving them without access to food and basic necessities.",
-        "challenge": "Many communities remain isolated due to damaged roads and limited resources.",
-        "solution": "We are distributing emergency food packages through local volunteers and community leaders.",
-        "impact": [
-            "Provide food packages for 1,200 people",
-            "Support affected families for 30 days",
-            "Reduce immediate food insecurity"
+
+        "story": [
+            "Severe flooding across Kurigram has forced hundreds of families from their homes, leaving many without reliable access to food, clean water, and safe shelter. Entire communities have seen roads submerged, farmland damaged, and local markets disrupted, making daily survival increasingly difficult.",
+
+            "For many families, the flood arrived with little warning. Homes that took years to build were damaged within days, while stored food supplies were lost to rising water. Parents are now struggling to provide basic meals for their children while living in temporary shelters or overcrowded community spaces.",
+
+            "Although emergency response efforts have begun, many vulnerable households remain underserved due to damaged transportation routes and limited local resources. Elderly residents, children, and families with limited income face the greatest challenges as recovery continues.",
+
+            "This campaign will help fund emergency food packages containing essential items such as rice, lentils, cooking oil, salt, and other daily necessities. Local volunteers and community leaders will coordinate distribution efforts to ensure assistance reaches families with the most urgent needs.",
+
+            "Every contribution, regardless of size, helps provide immediate relief to people facing uncertainty and hardship. With your support, we can deliver critical food assistance while helping communities take their first steps toward recovery and stability."
         ],
+
         "updates": [
             {
                 "title": "Initial Assessment Completed",
-                "date": "2 days ago",
-                "content": "Field teams completed assessments in the most affected areas."
+                "date": "2026-05-22",
+                "content": "Volunteer teams completed field assessments across the most heavily affected communities and identified priority households requiring immediate food assistance."
+            },
+            {
+                "title": "First Distribution Phase Underway",
+                "date": "2026-05-28",
+                "content": "Emergency food packages have started reaching families in several flood-affected areas. Distribution efforts will continue throughout the coming weeks."
             }
-        ],
-        "timeline": [
-            "Campaign launched",
-            "Assessment completed",
-            "Distribution phase"
         ]
-    },
-    {
-        "id": 2,
-        "title": "Clean Water for Rural Communities",
-        "shortDescription": "Installing safe water sources in underserved villages.",
-        "category": "Water & Sanitation",
-        "urgency": "High",
-        "location": "Sunamganj, Bangladesh",
-        "image": "https://images.unsplash.com/photo-1541544741938-0af808871cc0",
-        "targetAmount": 80000,
-        "raised": 52000,
-        "progress": 65,
-        "daysLeft": 18,
-        "supporters": 341,
-        "beneficiaries": 2500,
-        "areasCovered": 9,
-        "organizer": {
-            "name": "StandForPeople Foundation",
-            "verified": true,
-            "role": "Community Development Organization"
-        },
-        "story": "Thousands of villagers rely on contaminated water sources for daily use.",
-        "challenge": "Waterborne diseases continue to affect children and elderly residents.",
-        "solution": "The project will install tube wells and provide hygiene awareness training.",
-        "impact": [
-            "Provide clean water access",
-            "Reduce waterborne diseases",
-            "Improve community health"
-        ],
-        "updates": [
-            {
-                "title": "Site Selection Finalized",
-                "date": "5 days ago",
-                "content": "Nine villages have been selected for the first phase."
-            }
-        ],
-        "timeline": ["Planning phase", "Site selection", "Installation begins"]
-    },
-    {
-        "id": 3,
-        "title": "Education Kits for Underprivileged Children",
-        "shortDescription": "Helping children continue learning with essential school supplies.",
-        "category": "Education",
-        "urgency": "Medium",
-        "location": "Rajshahi, Bangladesh",
-        "image": "https://images.unsplash.com/photo-1509062522246-3755977927d7",
-        "targetAmount": 60000,
-        "raised": 27000,
-        "progress": 45,
-        "daysLeft": 25,
-        "supporters": 192,
-        "beneficiaries": 1500,
-        "areasCovered": 11,
-        "organizer": {
-            "name": "StandForPeople Foundation",
-            "verified": true,
-            "role": "Education Support Organization"
-        },
-        "story": "Many children lack basic school supplies due to financial hardship.",
-        "challenge": "School dropout rates increase when families cannot afford educational materials.",
-        "solution": "We will distribute complete education kits and learning resources.",
-        "impact": [
-            "Support 1,500 students",
-            "Improve school attendance",
-            "Reduce dropout risks"
-        ],
-        "updates": [
-            {
-                "title": "School Partnerships Confirmed",
-                "date": "1 week ago",
-                "content": "Local schools have agreed to assist with distribution."
-            }
-        ],
-        "timeline": [
-            "Campaign launched",
-            "Partner schools onboarded",
-            "Kit distribution"
-        ]
-    },
-    {
-        "id": 4,
-        "title": "Winter Clothing for Vulnerable Families",
-        "shortDescription": "Providing warm clothing and blankets during the winter season.",
-        "category": "Seasonal Relief",
-        "urgency": "High",
-        "location": "Panchagarh, Bangladesh",
-        "image": "https://images.unsplash.com/photo-1512436991641-6745cdb1723f",
-        "targetAmount": 45000,
-        "raised": 31000,
-        "progress": 69,
-        "daysLeft": 12,
-        "supporters": 224,
-        "beneficiaries": 900,
-        "areasCovered": 8,
-        "organizer": {
-            "name": "StandForPeople Foundation",
-            "verified": true,
-            "role": "Humanitarian Organization"
-        },
-        "story": "Low-income families struggle to stay warm during extreme winter conditions.",
-        "challenge": "Many households lack blankets and winter clothing.",
-        "solution": "Distribute blankets, jackets, and warm clothing to vulnerable groups.",
-        "impact": [
-            "Protect families from cold weather",
-            "Support elderly residents",
-            "Improve winter safety"
-        ],
-        "updates": [
-            {
-                "title": "Procurement Started",
-                "date": "3 days ago",
-                "content": "Winter clothing suppliers have been selected."
-            }
-        ],
-        "timeline": ["Fundraising", "Procurement", "Distribution campaign"]
-    },
-    {
-        "id": 5,
-        "title": "Healthcare Camp for Remote Villages",
-        "shortDescription": "Delivering free medical services to underserved communities.",
-        "category": "Healthcare",
-        "urgency": "High",
-        "location": "Bandarban, Bangladesh",
-        "image": "https://images.unsplash.com/photo-1584515933487-779824d29309",
-        "targetAmount": 100000,
-        "raised": 74000,
-        "progress": 74,
-        "daysLeft": 16,
-        "supporters": 412,
-        "beneficiaries": 3200,
-        "areasCovered": 12,
-        "organizer": {
-            "name": "StandForPeople Foundation",
-            "verified": true,
-            "role": "Medical Outreach Organization"
-        },
-        "story": "Remote communities have limited access to healthcare facilities.",
-        "challenge": "Patients often travel long distances for basic treatment.",
-        "solution": "Organize mobile healthcare camps with volunteer doctors.",
-        "impact": [
-            "Provide free medical consultations",
-            "Distribute essential medicines",
-            "Increase healthcare access"
-        ],
-        "updates": [
-            {
-                "title": "Medical Team Confirmed",
-                "date": "4 days ago",
-                "content": "Doctors and nurses have joined the initiative."
-            }
-        ],
-        "timeline": [
-            "Medical team recruitment",
-            "Logistics preparation",
-            "Healthcare camp launch"
-        ]
-    },
-    {
-        "id": 6,
-        "title": "Planting Trees for a Greener Future",
-        "shortDescription": "Community-driven tree plantation to combat environmental degradation.",
-        "category": "Environment",
-        "urgency": "Medium",
-        "location": "Khulna, Bangladesh",
-        "image": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e",
-        "targetAmount": 35000,
-        "raised": 18000,
-        "progress": 51,
-        "daysLeft": 30,
-        "supporters": 167,
-        "beneficiaries": 5000,
-        "areasCovered": 20,
-        "organizer": {
-            "name": "StandForPeople Foundation",
-            "verified": true,
-            "role": "Environmental Organization"
-        },
-        "story": "Deforestation and climate challenges threaten local ecosystems.",
-        "challenge": "Urbanization has reduced green spaces significantly.",
-        "solution": "Plant and maintain thousands of trees with community participation.",
-        "impact": [
-            "Plant 5,000 trees",
-            "Improve air quality",
-            "Promote environmental awareness"
-        ],
-        "updates": [
-            {
-                "title": "Volunteer Registration Open",
-                "date": "6 days ago",
-                "content": "Community members are joining the plantation drive."
-            }
-        ],
-        "timeline": [
-            "Volunteer recruitment",
-            "Sapling procurement",
-            "Plantation activities"
-        ]
-    },
-    {
-        "id": 7,
-        "title": "Support for Orphaned Children",
-        "shortDescription": "Providing nutrition, education, and care for orphaned children.",
-        "category": "Child Welfare",
-        "urgency": "Critical",
-        "location": "Dhaka, Bangladesh",
-        "image": "https://images.unsplash.com/photo-1516627145497-ae6968895b74",
-        "targetAmount": 120000,
-        "raised": 93000,
-        "progress": 78,
-        "daysLeft": 9,
-        "supporters": 530,
-        "beneficiaries": 350,
-        "areasCovered": 5,
-        "organizer": {
-            "name": "StandForPeople Foundation",
-            "verified": true,
-            "role": "Child Protection Organization"
-        },
-        "story": "Many orphaned children lack access to consistent support and care.",
-        "challenge": "Limited resources affect education and nutrition opportunities.",
-        "solution": "Provide comprehensive support programs and mentorship.",
-        "impact": [
-            "Improve child wellbeing",
-            "Support education access",
-            "Ensure nutritional assistance"
-        ],
-        "updates": [
-            {
-                "title": "New Children Enrolled",
-                "date": "1 day ago",
-                "content": "Additional beneficiaries joined the support program."
-            }
-        ],
-        "timeline": [
-            "Enrollment phase",
-            "Support services rollout",
-            "Ongoing monitoring"
-        ]
-    },
-    {
-        "id": 8,
-        "title": "Women Empowerment Through Skills Training",
-        "shortDescription": "Helping women achieve financial independence through vocational training.",
-        "category": "Women Empowerment",
-        "urgency": "Medium",
-        "location": "Jessore, Bangladesh",
-        "image": "https://images.unsplash.com/photo-1521791136064-7986c2920216",
-        "targetAmount": 70000,
-        "raised": 42000,
-        "progress": 60,
-        "daysLeft": 21,
-        "supporters": 298,
-        "beneficiaries": 450,
-        "areasCovered": 7,
-        "organizer": {
-            "name": "StandForPeople Foundation",
-            "verified": true,
-            "role": "Skills Development Organization"
-        },
-        "story": "Women in rural communities often have limited earning opportunities.",
-        "challenge": "Lack of vocational skills creates economic barriers.",
-        "solution": "Provide hands-on training and entrepreneurship support.",
-        "impact": [
-            "Train 450 women",
-            "Increase household income",
-            "Promote entrepreneurship"
-        ],
-        "updates": [
-            {
-                "title": "Training Center Prepared",
-                "date": "4 days ago",
-                "content": "Facilities are ready for the first batch of participants."
-            }
-        ],
-        "timeline": ["Registration", "Training sessions", "Business mentoring"]
-    },
-    {
-        "id": 9,
-        "title": "Rebuilding Homes After Cyclone Damage",
-        "shortDescription": "Supporting families whose homes were destroyed by a cyclone.",
-        "category": "Disaster Recovery",
-        "urgency": "Critical",
-        "location": "Bhola, Bangladesh",
-        "image": "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
-        "targetAmount": 150000,
-        "raised": 98000,
-        "progress": 65,
-        "daysLeft": 14,
-        "supporters": 487,
-        "beneficiaries": 700,
-        "areasCovered": 10,
-        "organizer": {
-            "name": "StandForPeople Foundation",
-            "verified": true,
-            "role": "Disaster Recovery Organization"
-        },
-        "story": "Cyclone damage has left hundreds of families without shelter.",
-        "challenge": "Reconstruction costs exceed the capacity of affected households.",
-        "solution": "Provide building materials and reconstruction assistance.",
-        "impact": [
-            "Rebuild safe homes",
-            "Restore community stability",
-            "Improve disaster resilience"
-        ],
-        "updates": [
-            {
-                "title": "Construction Materials Delivered",
-                "date": "2 days ago",
-                "content": "First shipment of materials arrived in target communities."
-            }
-        ],
-        "timeline": [
-            "Damage assessment",
-            "Material procurement",
-            "Home reconstruction"
-        ]
-    },
-    {
-        "id": 10,
-        "title": "Digital Learning Center Initiative",
-        "shortDescription": "Creating technology-enabled learning spaces for students.",
-        "category": "Technology & Education",
-        "urgency": "Medium",
-        "location": "Mymensingh, Bangladesh",
-        "image": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3",
-        "targetAmount": 90000,
-        "raised": 36000,
-        "progress": 40,
-        "daysLeft": 35,
-        "supporters": 215,
-        "beneficiaries": 1800,
-        "areasCovered": 6,
-        "organizer": {
-            "name": "StandForPeople Foundation",
-            "verified": true,
-            "role": "Educational Technology Organization"
-        },
-        "story": "Students in underserved communities lack access to digital learning resources.",
-        "challenge": "Technology gaps limit educational opportunities and skills development.",
-        "solution": "Establish digital learning centers equipped with computers and internet access.",
-        "impact": [
-            "Support digital literacy",
-            "Expand learning opportunities",
-            "Prepare students for future careers"
-        ],
-        "updates": [
-            {
-                "title": "Equipment Procurement Started",
-                "date": "3 days ago",
-                "content": "Computer and networking equipment orders have been placed."
-            }
-        ],
-        "timeline": ["Fundraising", "Equipment installation", "Center launch"]
     }
 ]

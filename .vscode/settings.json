@@ -3,13 +3,22 @@
     "search.useParentIgnoreFiles": true,
     "css.lint.unknownAtRules": "ignore",
     "cSpell.words": [
+        "Bandarban",
+        "Barisal",
+        "Bhola",
         "Bogra",
         "CARELINK",
+        "Chattogram",
         "Feni",
+        "Jessore",
         "Kurigram",
+        "Mymensingh",
+        "Narayanganj",
+        "Panchagarh",
         "Rangpur",
         "Salma",
         "Sunamganj",
-        "Sylhet"
+        "Sylhet",
+        "underserved"
     ]
 }

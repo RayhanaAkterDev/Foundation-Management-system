@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { IoChevronDown } from 'react-icons/io5';
 
 import navLinks from './data/navLinks';
@@ -8,6 +8,7 @@ import DropdownMenu from './DropdownMenu';
 const NavMenu = ({ mobile = false, onClose }) => {
     const [open, setOpen] = useState(null);
     const location = useLocation();
+    const navigate = useNavigate();
 
     const isParentActive = (link) => {
         if (!link.groups) return false;
@@ -17,77 +18,46 @@ const NavMenu = ({ mobile = false, onClose }) => {
         );
     };
 
-    // =========================
-    // MOBILE
-    // =========================
     if (mobile) {
         return (
             <ul className="flex flex-col gap-1">
-                {navLinks.map((link) => {
-                    const isHome = link.id === 'home';
-                    const homeActive = location.pathname === '/';
-                    const parentActive = isParentActive(link);
+                {navLinks.map((link) => (
+                    <li key={link.id}>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                if (link.groups) {
+                                    setOpen((prev) =>
+                                        prev === link.id ? null : link.id,
+                                    );
+                                } else {
+                                    if (link.path) navigate(link.path);
+                                    onClose?.();
+                                }
+                            }}
+                            className="
+                                w-full p-4 flex items-center justify-between
+                                rounded-xl
+                                text-[15px] font-semibold
+                            "
+                        >
+                            <span>{link.name}</span>
+                            {link.groups && <IoChevronDown />}
+                        </button>
 
-                    return (
-                        <li key={link.id}>
-                            <button
-                                onClick={() => {
-                                    if (link.groups) {
-                                        setOpen((prev) =>
-                                            prev === link.id ? null : link.id,
-                                        );
-                                    } else {
-                                        onClose?.();
-                                    }
-                                }}
-                                className={`
-                                    w-full
-                                    p-4
-                                    flex items-center justify-between
-                                    rounded-xl
-
-                                    text-[15px]
-                                    font-semibold
-
-                                    transition-colors duration-200 ease-out
-
-                                    ${
-                                        isHome
-                                            ? homeActive
-                                                ? 'bg-primary/10 text-primary'
-                                                : 'text-text-primary/70 hover:bg-background hover:text-text-primary'
-                                            : parentActive
-                                              ? 'bg-primary/10 text-primary'
-                                              : 'text-text-primary/70 hover:bg-background hover:text-text-primary'
-                                    }
-
-                                    active:scale-[0.98]
-                                `}
-                            >
-                                <span>{link.name}</span>
-
-                                {link.groups && (
-                                    <IoChevronDown className="text-text-secondary" />
-                                )}
-                            </button>
-
-                            {link.groups && open === link.id && (
-                                <div className="px-3 pb-3">
-                                    <DropdownMenu groups={link.groups} mobile />
-                                </div>
-                            )}
-                        </li>
-                    );
-                })}
+                        {link.groups && open === link.id && (
+                            <div className="px-3 pb-3">
+                                <DropdownMenu groups={link.groups} mobile />
+                            </div>
+                        )}
+                    </li>
+                ))}
             </ul>
         );
     }
 
-    // =========================
-    // DESKTOP
-    // =========================
     return (
-        <ul className="flex items-center gap-2 xl:gap-6">
+        <ul className="flex items-center gap-3 xl:gap-4 whitespace-nowrap">
             {navLinks.map((link) => {
                 const isHome = link.id === 'home';
                 const homeActive = location.pathname === '/';
@@ -103,16 +73,12 @@ const NavMenu = ({ mobile = false, onClose }) => {
                         <NavLink
                             to={link.path || '#'}
                             className={`
-                                relative flex items-center gap-2
-                                h-24
+                                flex items-center gap-2
                                 px-3 py-2
                                 rounded-lg
-
                                 text-[15px]
                                 font-medium
-
-                                transition-colors duration-200 ease-out
-
+                                transition-colors
                                 ${
                                     isHome
                                         ? homeActive
@@ -122,32 +88,26 @@ const NavMenu = ({ mobile = false, onClose }) => {
                                           ? 'text-primary'
                                           : 'text-text-primary/70 hover:text-text-primary'
                                 }
-
-                                hover:bg-black/5
-                                dark:hover:bg-white/5
+                                hover:bg-black/5 dark:hover:bg-white/5
                             `}
                         >
-                            {/* TEXT */}
                             <span>{link.name}</span>
 
-                            {/* DROPDOWN ICON */}
                             {link.groups && (
                                 <IoChevronDown
                                     className={`
-                                        text-[0.82rem]
-                                        transition-transform duration-200 ease-out
-
+                                        text-[0.8rem]
+                                        transition-transform
                                         ${
                                             open === link.id
                                                 ? 'rotate-180 text-primary'
-                                                : 'text-text-secondary'
+                                                : ''
                                         }
                                     `}
                                 />
                             )}
                         </NavLink>
 
-                        {/* DROPDOWN */}
                         {link.groups && open === link.id && (
                             <DropdownMenu groups={link.groups} />
                         )}

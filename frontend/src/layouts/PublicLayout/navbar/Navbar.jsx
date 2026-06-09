@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FiMenu, FiX } from 'react-icons/fi';
+import { FiMenu } from 'react-icons/fi';
 
 import logo from '@/assets/shared/logo.png';
 import Button from '@/components/Button';
@@ -20,49 +20,23 @@ const Navbar = () => {
         <>
             <header
                 className={`
-    fixed top-0 left-0 w-full z-50
-    transition-all duration-300
-
-    ${
-        scrolled
-            ? `
-            bg-surface
-            backdrop-blur-md
-            shadow-md
-            `
-            : `
-            bg-surface
-            `
-    }
-`}
+                    fixed top-0 left-0 w-full z-50
+                    overflow-x-clip
+                    transition-all duration-300
+                    bg-surface
+                    ${scrolled ? 'shadow-md backdrop-blur-md' : ''}
+                `}
             >
                 <div className="container-width">
-                    <div className="h-20 flex items-center justify-between">
+                    <div className="flex items-center justify-between h-20">
                         {/* LEFT */}
-                        <div className="flex items-center gap-12">
-                            {/* BRAND */}
-                            <Link
-                                to="/"
-                                className="flex items-center gap-3 shrink-0"
-                            >
+                        <div className="flex items-center gap-6">
+                            <Link to="/">
                                 <img
                                     src={logo}
-                                    alt="CareLink"
-                                    className="w-12 object-contain"
+                                    alt="StandFor People"
+                                    className="w-56 xl:w-64 object-contain"
                                 />
-
-                                <div className="leading-none">
-                                    <h2 className="text-[1.7rem] font-semibold tracking-[-0.03em] text-primary">
-                                        Care
-                                        <span className="text-accent">
-                                            Link
-                                        </span>
-                                    </h2>
-
-                                    <p className="mt-1 text-[11px] uppercase tracking-[0.18em] text-text-secondary font-medium">
-                                        Help • Humanity • Hope
-                                    </p>
-                                </div>
                             </Link>
 
                             {/* DESKTOP NAV */}
@@ -72,22 +46,20 @@ const Navbar = () => {
                         </div>
 
                         {/* RIGHT */}
-                        <div className="hidden lg:flex items-center gap-6">
-                            {/* LOGIN (normal link, NOT button) */}
+                        <div className="hidden lg:flex items-center gap-5 shrink-0">
                             <Link
                                 to="/login"
                                 className="
-            text-[15px]
-            font-medium
-            text-text-secondary
-            hover:text-primary
-            transition-colors
-        "
+                                    text-[15px]
+                                    font-medium
+                                    text-text-secondary
+                                    hover:text-primary
+                                    transition-colors
+                                "
                             >
                                 Login
                             </Link>
 
-                            {/* DONATE CTA (button stays important) */}
                             <Button variant="accent">Donate Now</Button>
                         </div>
 
@@ -101,6 +73,7 @@ const Navbar = () => {
                                 rounded-md
                                 border border-border
                                 text-text-primary
+                                shrink-0
                             "
                         >
                             <FiMenu className="text-[1.4rem]" />
@@ -121,34 +94,23 @@ const Navbar = () => {
             {/* MOBILE DRAWER */}
             <aside
                 className={`
-        fixed top-0 right-0 z-50
-        h-full w-[88%] max-w-95
-        bg-surface
-
-        flex flex-col
-        transition-transform duration-300
-        ${mobileOpen ? 'translate-x-0' : 'translate-x-full'}
-    `}
+                    fixed top-0 right-0 z-50
+                    h-full w-[88%] max-w-95
+                    bg-surface
+                    flex flex-col
+                    transition-transform duration-300
+                    ${mobileOpen ? 'translate-x-0' : 'translate-x-full'}
+                `}
             >
                 {/* TOP */}
-                <div className="h-24 px-5  flex items-center justify-between shrink-0">
-                    <Link to="/" className="flex items-center gap-3">
-                        <img src={logo} alt="CareLink" className="w-10" />
-
-                        <div className="leading-none">
-                            <h3 className="text-xl font-semibold text-primary">
-                                Care
-                                <span className="text-accent">Link</span>
-                            </h3>
-                        </div>
+                <div className="h-20 px-5 flex items-center justify-between shrink-0">
+                    <Link to="/" className="flex items-center">
+                        <img
+                            src={logo}
+                            alt="StandFor People"
+                            className="w-40 object-contain"
+                        />
                     </Link>
-
-                    <button
-                        onClick={() => setMobileOpen(false)}
-                        className="w-10 h-10 flex items-center justify-center rounded-md border border-border text-text-primary"
-                    >
-                        <FiX className="text-[1.3rem]" />
-                    </button>
                 </div>
 
                 {/* NAV */}
@@ -158,22 +120,19 @@ const Navbar = () => {
 
                 {/* CTA */}
                 <div className="p-5 border-t border-border shrink-0 bg-surface space-y-3">
-                    {/* LOGIN as LINK */}
                     <Link
                         to="/login"
                         className="
-            block text-center
-            text-[15px]
-            font-medium
-            text-text-secondary
-            hover:text-primary
-            transition-colors
-        "
+                            block text-center
+                            text-[15px]
+                            font-medium
+                            text-text-secondary
+                            hover:text-primary
+                        "
                     >
                         Login
                     </Link>
 
-                    {/* DONATE as BUTTON */}
                     <Button variant="accent" className="w-full">
                         Donate Now
                     </Button>

@@ -5,7 +5,7 @@ import FlowCTA from './WorkflowLink';
 
 const HowCareLinkWorks = () => {
     return (
-        <section className="section-gap bg-background padding-top">
+        <section className="section-gap bg-background">
             <div className="container-width">
                 <SectionHeading
                     badge={{

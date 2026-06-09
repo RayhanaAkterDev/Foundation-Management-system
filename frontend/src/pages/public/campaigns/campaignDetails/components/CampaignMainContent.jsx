@@ -2,6 +2,14 @@ import Badge from '@/components/Badge';
 import CampaignStory from './CampaignStory';
 import SectionHeading from '@/components/SectionHeading';
 
+import { TbCircleCheck, TbStethoscope, TbTruckDelivery } from 'react-icons/tb';
+
+const iconMap = {
+    TbCircleCheck: TbCircleCheck,
+    TbStethoscope: TbStethoscope,
+    TbTruckDelivery: TbTruckDelivery,
+};
+
 const CampaignMainContent = ({ campaign }) => {
     return (
         <div>
@@ -42,32 +50,57 @@ const CampaignMainContent = ({ campaign }) => {
             {/* STORY */}
             <CampaignStory story={campaign.story} />
 
-            {/* UPDATES */}
+            {/* CAMPAIGN UPDATES */}
             {campaign.updates?.length > 0 && (
                 <section className="mt-20">
-                    <h2 className="text-3xl font-semibold text-text-primary mb-10">
-                        Latest Updates
-                    </h2>
+                    <div className="mb-10">
+                        <h2 className="text-2xl md:text-3xl font-bold text-text-primary">
+                            Campaign Updates
+                        </h2>
 
-                    <div className="space-y-10">
-                        {campaign.updates.map((update, index) => (
-                            <div
-                                key={index}
-                                className="border-b border-border pb-8 last:border-0"
-                            >
-                                <p className="text-sm text-text-secondary mb-2">
-                                    {update.date}
-                                </p>
+                        <div className="mt-3 h-1 w-16 bg-primary rounded-full" />
+                    </div>
 
-                                <h3 className="text-xl font-semibold text-text-primary">
-                                    {update.title}
-                                </h3>
+                    <div className="relative">
+                        {campaign.updates.map((update, index) => {
+                            const Icon = iconMap[update.icon];
 
-                                <p className="mt-3 text-text-secondary leading-8">
-                                    {update.content}
-                                </p>
-                            </div>
-                        ))}
+                            return (
+                                <div
+                                    key={index}
+                                    className="relative flex gap-6 pb-10 last:pb-0"
+                                >
+                                    {/* Timeline */}
+                                    <div className="relative flex flex-col items-center shrink-0">
+                                        <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center text-white shadow-sm">
+                                            {Icon && <Icon size={22} />}
+                                        </div>
+
+                                        {index !==
+                                            campaign.updates.length - 1 && (
+                                            <div className="w-px flex-1 bg-border mt-2 min-h-[70px]" />
+                                        )}
+                                    </div>
+
+                                    {/* Content */}
+                                    <div className="flex-1 flex flex-col md:flex-row md:items-start md:justify-between gap-3">
+                                        <div className="max-w-2xl">
+                                            <h3 className="text-lg font-semibold text-text-primary">
+                                                {update.title}
+                                            </h3>
+
+                                            <p className="mt-2 text-text-secondary leading-7">
+                                                {update.content}
+                                            </p>
+                                        </div>
+
+                                        <div className="shrink-0 text-sm text-text-secondary md:text-right">
+                                            {update.date}
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
                 </section>
             )}

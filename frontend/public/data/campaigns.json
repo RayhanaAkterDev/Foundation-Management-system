@@ -45,13 +45,21 @@
         "updates": [
             {
                 "title": "Initial Assessment Completed",
-                "date": "2026-05-22",
-                "content": "Volunteer teams completed field assessments across the most heavily affected communities and identified priority households requiring immediate food assistance."
+                "date": "2026-05-12",
+                "content": "Volunteer teams completed field assessments across affected communities.",
+                "icon": "TbCircleCheck"
             },
             {
-                "title": "First Distribution Phase Underway",
-                "date": "2026-05-28",
-                "content": "Emergency food packages have started reaching families in several flood-affected areas. Distribution efforts will continue throughout the coming weeks."
+                "title": "Medical Team Deployment",
+                "date": "2026-05-18",
+                "content": "Healthcare volunteers have begun conducting medical assessments in targeted villages.",
+                "icon": "TbStethoscope"
+            },
+            {
+                "title": "Relief Supplies Delivered",
+                "date": "2026-05-25",
+                "content": "Emergency food and hygiene kits have reached over 500 families.",
+                "icon": "TbTruckDelivery"
             }
         ]
     },

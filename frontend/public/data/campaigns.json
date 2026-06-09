@@ -54,5 +54,240 @@
                 "content": "Emergency food packages have started reaching families in several flood-affected areas. Distribution efforts will continue throughout the coming weeks."
             }
         ]
+    },
+    {
+        "id": 2,
+
+        "title": "Medical Assistance for Rural Communities",
+
+        "shortDescription": "Support essential healthcare services and medicine distribution for underserved families in remote villages.",
+
+        "category": "Healthcare",
+        "urgency": "High",
+
+        "location": "Sunamganj, Bangladesh",
+
+        "image": "https://images.unsplash.com/photo-1584515933487-779824d29309",
+
+        "targetAmount": 75000,
+        "raised": 48000,
+        "progress": 64,
+        "daysLeft": 12,
+
+        "supporters": 342,
+
+        "beneficiary": "Low-income families lacking access to healthcare services",
+
+        "createdAt": "2026-05-12",
+
+        "organizer": {
+            "name": "StandForPeople Foundation",
+            "verified": true,
+            "role": "Healthcare Initiative"
+        },
+
+        "story": [
+            "Many rural communities continue to face significant barriers to healthcare access due to distance, limited medical facilities, and financial hardship.",
+            "Preventable illnesses often become severe because families cannot afford consultations, medicines, or transportation to hospitals.",
+            "Children, elderly residents, and pregnant women remain among the most vulnerable groups in these underserved regions.",
+            "This campaign will support mobile medical camps, essential medicine distribution, and basic health screenings.",
+            "Your contribution will help bring vital healthcare services closer to those who need them most."
+        ],
+
+        "updates": [
+            {
+                "title": "Medical Team Deployment",
+                "date": "2026-05-18",
+                "content": "Healthcare volunteers have begun conducting medical assessments in targeted villages."
+            }
+        ]
+    },
+    {
+        "id": 3,
+
+        "title": "School Supplies for Underprivileged Students",
+
+        "shortDescription": "Help students continue their education by providing school supplies and learning materials.",
+
+        "category": "Education",
+        "urgency": "Medium",
+
+        "location": "Rangpur, Bangladesh",
+
+        "image": "https://images.unsplash.com/photo-1509062522246-3755977927d7",
+
+        "targetAmount": 40000,
+        "raised": 22000,
+        "progress": 55,
+        "daysLeft": 18,
+
+        "supporters": 195,
+
+        "beneficiary": "Students from low-income households",
+
+        "createdAt": "2026-05-10",
+
+        "organizer": {
+            "name": "StandForPeople Foundation",
+            "verified": true,
+            "role": "Education Support Program"
+        },
+
+        "story": [
+            "Thousands of students face educational challenges because they lack access to basic school materials.",
+            "Many families struggle to purchase notebooks, textbooks, uniforms, and stationery due to financial constraints.",
+            "Without proper resources, students risk falling behind in their studies or dropping out entirely.",
+            "This campaign aims to provide complete education kits to deserving students.",
+            "Together, we can support children's dreams and create opportunities through education."
+        ],
+
+        "updates": [
+            {
+                "title": "School Selection Completed",
+                "date": "2026-05-15",
+                "content": "Partner schools have identified students who will receive support packages."
+            }
+        ]
+    },
+    {
+        "id": 4,
+
+        "title": "Safe Drinking Water for Drought-Prone Areas",
+
+        "shortDescription": "Provide clean drinking water solutions to communities facing chronic water shortages.",
+
+        "category": "Water & Sanitation",
+        "urgency": "High",
+
+        "location": "Rajshahi, Bangladesh",
+
+        "image": "https://images.unsplash.com/photo-1541544181051-e46607d640d5",
+
+        "targetAmount": 90000,
+        "raised": 58500,
+        "progress": 65,
+        "daysLeft": 15,
+
+        "supporters": 387,
+
+        "beneficiary": "Families affected by water scarcity and contamination",
+
+        "createdAt": "2026-05-08",
+
+        "organizer": {
+            "name": "StandForPeople Foundation",
+            "verified": true,
+            "role": "Water Access Initiative"
+        },
+
+        "story": [
+            "Access to clean drinking water remains a daily challenge for many communities in drought-prone regions.",
+            "Residents often rely on unsafe water sources that increase the risk of disease and health complications.",
+            "Women and children frequently travel long distances to collect water for household needs.",
+            "This campaign will support tube wells, water filtration systems, and community water access points.",
+            "Every donation helps create a healthier and more sustainable future."
+        ],
+
+        "updates": [
+            {
+                "title": "Site Survey Finished",
+                "date": "2026-05-16",
+                "content": "Engineers completed assessments for proposed water installation locations."
+            }
+        ]
+    },
+    {
+        "id": 5,
+
+        "title": "Winter Clothing Distribution Program",
+
+        "shortDescription": "Help vulnerable families stay warm during the winter season through clothing assistance.",
+
+        "category": "Clothing Support",
+        "urgency": "Medium",
+
+        "location": "Panchagarh, Bangladesh",
+
+        "image": "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f",
+
+        "targetAmount": 35000,
+        "raised": 14000,
+        "progress": 40,
+        "daysLeft": 22,
+
+        "supporters": 128,
+
+        "beneficiary": "Children, elderly people, and low-income families",
+
+        "createdAt": "2026-05-05",
+
+        "organizer": {
+            "name": "StandForPeople Foundation",
+            "verified": true,
+            "role": "Community Relief Program"
+        },
+
+        "story": [
+            "Winter temperatures can become especially difficult for families without adequate clothing and protection.",
+            "Many vulnerable individuals face health risks due to prolonged exposure to cold weather.",
+            "Children and elderly residents are particularly susceptible to seasonal illnesses.",
+            "Funds raised will help distribute blankets, jackets, sweaters, and other winter essentials.",
+            "Your support can provide comfort and protection during the coldest months."
+        ],
+
+        "updates": [
+            {
+                "title": "Collection Drive Started",
+                "date": "2026-05-12",
+                "content": "Volunteer teams have begun gathering winter clothing and preparing distribution plans."
+            }
+        ]
+    },
+    {
+        "id": 6,
+
+        "title": "Emergency Shelter Support After Cyclone",
+
+        "shortDescription": "Provide temporary shelter materials and emergency assistance to cyclone-affected families.",
+
+        "category": "Disaster Relief",
+        "urgency": "Critical",
+
+        "location": "Barisal, Bangladesh",
+
+        "image": "https://images.unsplash.com/photo-1524492449090-1abe9ba2b8a8",
+
+        "targetAmount": 120000,
+        "raised": 87000,
+        "progress": 73,
+        "daysLeft": 6,
+
+        "supporters": 521,
+
+        "beneficiary": "Families displaced by severe cyclone damage",
+
+        "createdAt": "2026-05-20",
+
+        "organizer": {
+            "name": "StandForPeople Foundation",
+            "verified": true,
+            "role": "Emergency Response Team"
+        },
+
+        "story": [
+            "A powerful cyclone recently caused extensive damage across coastal communities, leaving many families homeless.",
+            "Strong winds and flooding destroyed homes, damaged infrastructure, and disrupted access to essential services.",
+            "Affected families are currently relying on temporary shelters and community support.",
+            "This campaign will fund emergency shelter kits, tarpaulins, bedding, and recovery assistance.",
+            "With timely support, we can help families regain safety and stability during recovery."
+        ],
+
+        "updates": [
+            {
+                "title": "Shelter Materials Procured",
+                "date": "2026-05-25",
+                "content": "Emergency shelter supplies have been purchased and distribution logistics are underway."
+            }
+        ]
     }
 ]

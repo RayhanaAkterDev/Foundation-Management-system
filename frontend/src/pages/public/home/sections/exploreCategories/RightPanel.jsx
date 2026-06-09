@@ -73,7 +73,7 @@ const RightPanel = ({ categories, active, setActive }) => {
                                 </div>
                             </div>
 
-                            {/* EXPAND AREA (smooth + stable) */}
+                            {/* EXPAND AREA */}
                             <div
                                 className={`
                                     overflow-hidden transition-all duration-300

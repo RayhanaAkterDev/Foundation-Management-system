@@ -2,9 +2,9 @@ import React from 'react';
 
 import Button from './Button';
 import SectionHeading from './SectionHeading';
-import UrgentRequestsCard from '@/pages/public/home/sections/hero/UrgentRequestsCard';
-import LiveImpactCard from '@/pages/public/home/sections/hero/LiveImpactCard';
-import HeroStats from '@/pages/public/home/sections/hero/HeroStats';
+// import UrgentRequestsCard from '@/pages/public/home/sections/hero/UrgentRequestsCard';
+// import LiveImpactCard from '@/pages/public/home/sections/hero/LiveImpactCard';
+// import HeroStats from '@/pages/public/home/sections/hero/HeroStats';
 
 const Hero = ({
     badge,
@@ -36,7 +36,7 @@ const Hero = ({
                         wrapperClass="lg:items-start lg:text-left"
                     />
 
-                    <HeroStats />
+                    {/* <HeroStats /> */}
 
                     <div className="flex flex-col sm:flex-row gap-4 mt-6 md:mt-10 justify-center lg:justify-start">
                         {primaryCta && (
@@ -73,7 +73,7 @@ const Hero = ({
         max-w-md
     "
                     >
-                        <UrgentRequestsCard />
+                        {/* <UrgentRequestsCard /> */}
                     </div>
 
                     {/* LIVE IMPACT */}
@@ -85,7 +85,7 @@ const Hero = ({
         w-[clamp(140px,18vw,200px)]
     "
                     >
-                        <LiveImpactCard />
+                        {/* <LiveImpactCard /> */}
                     </div>
                 </div>
             </div>

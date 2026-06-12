@@ -11,11 +11,11 @@ import Hero from '@/components/Hero';
 import heroBG from '@/assets/home/hero/heroBG.png';
 
 // Page sections
-import HowItWorksSection from './sections/howCareLinkWorks/HowItWorksSection';
-import FeaturedCampaign from './sections/featuredCampaign/FeaturedCampaign';
-import ExploreCategories from './sections/exploreCategories/ExploreCategories';
-import LocalImpact from './sections/localImpact/LocalImpact';
-import ImpactTrust from './sections/impactTrust/ImpactTrust';
+// import HowItWorksSection from './sections/howCareLinkWorks/HowItWorksSection';
+// import FeaturedCampaign from './sections/featuredCampaign/FeaturedCampaign';
+// import ExploreCategories from './sections/exploreCategories/ExploreCategories';
+// import LocalImpact from './sections/localImpact/LocalImpact';
+// import ImpactTrust from './sections/impactTrust/ImpactTrust';
 
 const Home = () => {
     return (
@@ -41,11 +41,11 @@ const Home = () => {
                 image={heroBG}
                 showStats={true}
             />
-            <HowItWorksSection />
+            {/* <HowItWorksSection />
             <ExploreCategories />
             <FeaturedCampaign />
             <LocalImpact />
-            <ImpactTrust />
+            <ImpactTrust /> */}
         </>
     );
 };

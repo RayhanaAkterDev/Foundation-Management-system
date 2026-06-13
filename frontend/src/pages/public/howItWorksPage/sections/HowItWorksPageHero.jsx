@@ -5,7 +5,7 @@ import Motion from '@/components/motion/Motion';
 
 const HowItWorksPageHero = () => {
     return (
-        <section className="section-gap mt-24">
+        <section className="section-gap mt-24 bg-surface">
             <div className="container-width">
                 <SectionHeading
                     gap="lg"
@@ -32,9 +32,9 @@ const HowItWorksPageHero = () => {
                 </Motion>
 
                 {/* SYSTEM PREVIEW STRIP (NEW — IMPORTANT) */}
-                <Motion variant="fadeUp" className="mt-12 mx-auto max-w-4xl">
-                    <div className="rounded-2xl border border-border bg-surface/40 p-6 md:p-8">
-                        <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-sm text-text-secondary">
+                <Motion variant="fadeUp" className="mt-12 mx-auto max-w-4xl ">
+                    <div className="rounded-2xl border border-primary/20 bg-primary/10 p-6 md:p-8">
+                        <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-sm text-primary">
                             <span>Need → Intake → Verification → Delivery</span>
 
                             <span className="hidden md:block text-primary/30">
@@ -48,7 +48,7 @@ const HowItWorksPageHero = () => {
 
                 {/* SCROLL INDICATOR */}
                 <Motion className="mt-10 flex justify-center">
-                    <div className="flex flex-col items-center gap-2 text-primary/50 text-sm tracking-wider">
+                    <div className="flex flex-col items-center gap-2 text-text-secondary/80 text-sm tracking-wider">
                         <TbArrowNarrowDown
                             size={18}
                             className="animate-bounce"

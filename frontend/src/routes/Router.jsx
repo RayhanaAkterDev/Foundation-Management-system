@@ -16,7 +16,7 @@ import Home from '@/pages/public/home/Home';
 // import Settings from '../pages/admin/Settings';
 
 // 404 - not found page
-// import NotFound from '../pages/NotFound';
+import NotFound from '../pages/NotFound';
 
 const router = createBrowserRouter([
     // public routes
@@ -45,7 +45,7 @@ const router = createBrowserRouter([
     // 404 - Not found page route
     {
         path: '*',
-        // element: <NotFound />,
+        element: <NotFound />,
     },
 ]);
 

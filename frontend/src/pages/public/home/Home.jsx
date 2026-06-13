@@ -23,13 +23,13 @@ const Home = () => {
             <Hero
                 title={
                     <>
-                        Real Needs. <span className="block">Real People.</span>
+                        Requests become action.
                         <span className="text-primary block">
-                            Real Response.
+                            In real time.
                         </span>
                     </>
                 }
-                description="CareLink helps communities report urgent needs, coordinate support, and track aid from request to delivery."
+                description="Stand For People connects real human needs with real-time community support — making it easier to request help, coordinate volunteers, and track aid delivery transparently from start to finish."
                 primaryCta={{
                     icon: <TbHeartFilled />,
                     label: 'Request Help',

@@ -45,7 +45,7 @@ body {
 }
 
 h1 {
-    @apply font-fraunces tracking-wide;
+    @apply font-poppins tracking-wide;
 }
 
 h2,

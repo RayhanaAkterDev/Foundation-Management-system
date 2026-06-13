@@ -6,7 +6,7 @@ import AdminLayout from '@/layouts/AdminLayout/AdminLayout';
 
 // public pages
 import Home from '@/pages/public/home/Home';
-import HowItWorksPage from '@/pages/public/howItWorks/HowItWorksPage';
+import HowItWorksPage from '@/pages/public/howItWorksPage/HowItWorksPage';
 // import About from '@/pages/public/about/About';
 // import Campaigns from '@/pages/public/campaigns/Campaigns';
 // import CampaignDetails from '@/pages/public/campaigns/campaignDetails/CampaignDetails';

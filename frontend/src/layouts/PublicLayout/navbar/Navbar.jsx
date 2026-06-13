@@ -41,9 +41,11 @@ const Navbar = () => {
 
                         {/* RIGHT */}
 
-                        <div className="lg:flex gap-6 hidden">
+                        <div className="lg:flex gap-10 hidden">
                             <NavMenu />
-                            <Button variant="accent" size='lg'>Donate Now</Button>
+                            <Button variant="accent" size="lg">
+                                Donate Now
+                            </Button>
                         </div>
 
                         {/* MOBILE BUTTON */}
@@ -77,8 +79,8 @@ const Navbar = () => {
             {/* MOBILE DRAWER */}
             <aside
                 className={`
-                    fixed top-0 right-0 z-50
-                    h-full w-[88%] max-w-95
+                    fixed top-28 right-0 z-50
+                    h-full w-full max-w-95
                     bg-surface
                     flex flex-col
                     transition-transform duration-300
@@ -86,7 +88,7 @@ const Navbar = () => {
                 `}
             >
                 {/* TOP */}
-                <div className="h-20 px-5 flex items-center justify-between shrink-0">
+                {/* <div className="h-20 px-5 flex items-center justify-between shrink-0">
                     <Link to="/" className="flex items-center">
                         <img
                             src={logo}
@@ -94,7 +96,7 @@ const Navbar = () => {
                             className="w-40 object-contain"
                         />
                     </Link>
-                </div>
+                </div> */}
 
                 {/* NAV */}
                 <div className="px-5 py-6 flex-1 overflow-y-auto">

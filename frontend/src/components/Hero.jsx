@@ -4,7 +4,7 @@ import Button from './Button';
 import SectionHeading from './SectionHeading';
 // import UrgentRequestsCard from '@/pages/public/home/sections/hero/UrgentRequestsCard';
 // import LiveImpactCard from '@/pages/public/home/sections/hero/LiveImpactCard';
-// import HeroStats from '@/pages/public/home/sections/hero/HeroStats';
+import HeroStats from '@/pages/public/home/sections/hero/HeroStats';
 
 const Hero = ({
     badge,
@@ -17,12 +17,7 @@ const Hero = ({
     image,
 }) => {
     return (
-        <section
-            className="mt-24 bg-right bg-no-repeat bg-contain bg-surface"
-            style={{
-                backgroundImage: `url(${image})`,
-            }}
-        >
+        <section className="mt-24 bg-surface">
             <div className="container-width grid grid-cols-1 lg:grid-cols-2">
                 {/* LEFT */}
                 <div className="text-center lg:text-left section-gap">
@@ -41,7 +36,7 @@ const Hero = ({
                         wrapperClass="lg:items-start lg:text-left"
                     />
 
-                    {/* <HeroStats /> */}
+                    <HeroStats />
 
                     <div className="flex flex-col sm:flex-row gap-4 mt-6 md:mt-10 justify-center lg:justify-start">
                         {primaryCta && (
@@ -63,11 +58,11 @@ const Hero = ({
 
                 {/* RIGHT - CANVAS */}
                 <div className="relative">
-                    {/* <img
+                    <img
                         src={image}
                         alt="bd map"
                         className="w-full max-w-175 h-auto object-contain"
-                    /> */}
+                    />
                 </div>
             </div>
         </section>

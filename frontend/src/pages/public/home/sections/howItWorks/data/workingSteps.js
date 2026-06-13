@@ -1,24 +1,24 @@
 const flow = [
     {
         step: '01',
-        title: 'Need Reported',
-        desc: 'Community members, volunteers, or local leaders report urgent needs through a structured and location-based submission process.',
+        title: 'Need Identified',
+        desc: 'Urgent needs are reported by community members, volunteers, or local partners through structured, location-based submissions.',
         emphasis: 'soft',
     },
     {
         step: '02',
-        title: 'Request Submitted',
-        desc: 'Essential details, supporting evidence, and location data are collected to create a complete and actionable request.',
+        title: 'Request Structured',
+        desc: 'Submitted information is converted into a structured request with key details, evidence, category, and location data.',
     },
     {
         step: '03',
-        title: 'Verified by CareLink',
-        desc: 'AI-assisted validation, duplicate detection, and human review help ensure every request is credible and ready for response.',
+        title: 'Verification & Prioritization',
+        desc: 'AI-assisted checks and human review validate authenticity, detect duplicates, and assign urgency levels for fair prioritization.',
     },
     {
         step: '04',
         title: 'Support Delivered',
-        desc: 'Verified requests are matched with donors, volunteers, and partners so help reaches communities faster and with greater transparency.',
+        desc: 'Verified requests are matched with donors and volunteers, ensuring timely, transparent, and accountable delivery of support.',
         emphasis: 'strong',
     },
 ];

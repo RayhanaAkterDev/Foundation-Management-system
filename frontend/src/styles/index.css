@@ -44,12 +44,12 @@ body {
     @apply font-jost bg-background text-text-primary;
 }
 
-h1 {
-    @apply font-poppins tracking-wide;
+h1,
+h2,
+h3 {
+    @apply font-poppins tracking-wide font-semibold;
 }
 
-h2,
-h3,
 h4,
 h5,
 h6,

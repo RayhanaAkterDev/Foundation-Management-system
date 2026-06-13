@@ -6,6 +6,7 @@ import AdminLayout from '@/layouts/AdminLayout/AdminLayout';
 
 // public pages
 import Home from '@/pages/public/home/Home';
+import HowItWorksPage from '@/pages/public/howItWorks/HowItWorksPage';
 // import About from '@/pages/public/about/About';
 // import Campaigns from '@/pages/public/campaigns/Campaigns';
 // import CampaignDetails from '@/pages/public/campaigns/campaignDetails/CampaignDetails';
@@ -25,6 +26,7 @@ const router = createBrowserRouter([
         element: <PublicLayout />,
         children: [
             { path: '', element: <Home /> },
+            { path: '/how-it-works', element: <HowItWorksPage /> },
             // { path: 'about', element: <About /> },
             // { path: 'campaigns', element: <Campaigns /> },
             // { path: 'campaigns/:id', element: <CampaignDetails /> },

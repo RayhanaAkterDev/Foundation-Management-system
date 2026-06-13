@@ -56,8 +56,6 @@ const headingStyles = {
         md:tracking-[-0.045em]
 
         max-w-full
-        sm:max-w-3xl
-        lg:max-w-4xl
     `,
 
     sectionHero: `
@@ -73,7 +71,6 @@ const headingStyles = {
         tracking-[-0.03em]
 
         max-w-full
-        sm:max-w-3xl
     `,
 
     section: `
@@ -116,8 +113,7 @@ const headingStyles = {
 /* DESCRIPTION */
 const descriptionStyles = {
     hero: `
-        text-sm
-        sm:text-base
+        text-base
         lg:text-lg
 
         text-text-secondary

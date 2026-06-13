@@ -8,8 +8,9 @@ const HowCareLinkWorks = () => {
         <section className="section-gap">
             <div className="container-width">
                 <SectionHeading
+                    gap="lg"
                     badge={{
-                        label: 'How Stand For People Works Works',
+                        label: 'How Stand For People Works',
                         variant: 'primary',
                         tone: 'solid',
                         size: 'lg',

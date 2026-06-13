@@ -11,7 +11,7 @@ import Hero from '@/components/Hero';
 import heroBG from '@/assets/home/hero/hero.jpg';
 
 // Page sections
-// import HowItWorksSection from './sections/howCareLinkWorks/HowItWorksSection';
+import HowItWorksSection from './sections/howItWorks/HowItWorks';
 // import FeaturedCampaign from './sections/featuredCampaign/FeaturedCampaign';
 // import ExploreCategories from './sections/exploreCategories/ExploreCategories';
 // import LocalImpact from './sections/localImpact/LocalImpact';
@@ -41,8 +41,10 @@ const Home = () => {
                 image={heroBG}
                 showStats={true}
             />
-            {/* <HowItWorksSection />
-            <ExploreCategories />
+
+            <HowItWorksSection />
+
+            {/* <ExploreCategories />
             <FeaturedCampaign />
             <LocalImpact />
             <ImpactTrust /> */}

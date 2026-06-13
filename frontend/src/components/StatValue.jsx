@@ -8,7 +8,6 @@ const StatValue = ({ value, className }) => {
 
     const suffix = raw.replace(/[\d,.]/g, '');
 
-    // ✅ hooks MUST be here (top level)
     const [count, setCount] = useState(0);
 
     useEffect(() => {

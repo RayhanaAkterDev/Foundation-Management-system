@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Jost:ital,wght@0,100..900;1,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 @import 'tailwindcss';
 
 /* Reset */
@@ -13,7 +13,9 @@
 /* Global styles */
 @theme {
     /* font-family */
-    --font-inter: 'Inter', sans-serif;
+    --font-jost: 'Jost', sans-serif;
+    --font-fraunces: 'Fraunces', serif;
+    --font-poppins: 'Poppins', sans-serif;
 
     /* colors */
     --color-primary: #0f766e;
@@ -39,7 +41,21 @@ html {
     scroll-behavior: smooth;
 }
 body {
-    @apply font-inter bg-background text-text-primary;
+    @apply font-jost bg-background text-text-primary;
+}
+
+h1 {
+    @apply font-fraunces tracking-wide;
+}
+
+h2,
+h3,
+h4,
+h5,
+h6,
+button,
+a {
+    @apply font-jost font-medium;
 }
 
 /* ============================ */

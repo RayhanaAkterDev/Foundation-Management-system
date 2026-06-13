@@ -11,7 +11,8 @@ function Button({
     const baseStyles = `
         inline-flex items-center justify-center gap-2
         rounded-xl
-        font-medium
+        
+        font-jost
         transition-all duration-200 ease-out
         whitespace-nowrap
         active:scale-[0.98]

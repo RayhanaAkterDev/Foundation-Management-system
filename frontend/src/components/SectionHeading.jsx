@@ -23,7 +23,7 @@ const gapStyles = {
 /* HEADINGS */
 const headingStyles = {
     hero: `
-        text-[clamp(2.4rem,5vw,3.6rem)]
+        text-[clamp(2.5rem,8vw,3.6rem)]
         font-bold
         leading-[1.15]
         tracking-[-0.045em]

@@ -174,6 +174,14 @@ const navLinks = [
             },
         ],
     },
+
+
+    {
+        id: 'login',
+        name: 'Login',
+        path: '/login',
+        type: 'single'
+    }
 ];
 
 export default navLinks;

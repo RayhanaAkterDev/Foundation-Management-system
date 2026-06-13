@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { FiMenu } from 'react-icons/fi';
 
 import logo from '@/assets/shared/logo.png';
+// import logo2 from '@/assets/shared/logo2.png';
 import Button from '@/components/Button';
 import NavMenu from './NavMenu';
 
@@ -28,39 +29,21 @@ const Navbar = () => {
                 `}
             >
                 <div className="container-width">
-                    <div className="flex items-center justify-between h-20">
+                    <div className="flex items-center justify-between h-28">
                         {/* LEFT */}
-                        <div className="flex items-center gap-6">
-                            <Link to="/">
-                                <img
-                                    src={logo}
-                                    alt="StandFor People"
-                                    className="w-56 xl:w-64 object-contain"
-                                />
-                            </Link>
-
-                            {/* DESKTOP NAV */}
-                            <div className="hidden lg:block">
-                                <NavMenu />
-                            </div>
-                        </div>
+                        <Link to="/">
+                            <img
+                                src={logo}
+                                alt="StandFor People"
+                                className="w-55"
+                            />
+                        </Link>
 
                         {/* RIGHT */}
-                        <div className="hidden lg:flex items-center gap-5 shrink-0">
-                            <Link
-                                to="/login"
-                                className="
-                                    text-[15px]
-                                    font-medium
-                                    text-text-secondary
-                                    hover:text-primary
-                                    transition-colors
-                                "
-                            >
-                                Login
-                            </Link>
 
-                            <Button variant="accent">Donate Now</Button>
+                        <div className="lg:flex gap-6 hidden">
+                            <NavMenu />
+                            <Button variant="accent" size='lg'>Donate Now</Button>
                         </div>
 
                         {/* MOBILE BUTTON */}

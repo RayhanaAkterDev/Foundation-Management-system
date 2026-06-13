@@ -76,7 +76,6 @@ const NavMenu = ({ mobile = false, onClose }) => {
                                 flex items-center gap-2
                                 px-3 py-2
                                 rounded-lg
-                                text-[15px]
                                 font-medium
                                 transition-colors
                                 ${
@@ -88,7 +87,7 @@ const NavMenu = ({ mobile = false, onClose }) => {
                                           ? 'text-primary'
                                           : 'text-text-primary/70 hover:text-text-primary'
                                 }
-                                hover:bg-black/5 dark:hover:bg-white/5
+                                hover:bg-black/5 dark:hover:bg-white/5 hover:text-primary!
                             `}
                         >
                             <span>{link.name}</span>

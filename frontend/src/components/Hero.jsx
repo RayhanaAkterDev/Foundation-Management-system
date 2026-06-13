@@ -18,7 +18,7 @@ const Hero = ({
 }) => {
     return (
         <section
-            className="mt-28 bg-right bg-no-repeat bg-contain bg-surface"
+            className="mt-24 bg-right bg-no-repeat bg-contain bg-surface"
             style={{
                 backgroundImage: `url(${image})`,
             }}

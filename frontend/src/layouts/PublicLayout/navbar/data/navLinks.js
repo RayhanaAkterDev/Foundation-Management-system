@@ -7,48 +7,56 @@ const navLinks = [
     },
 
     {
-        id: 'get-started',
-        name: 'Get Started',
+        id: 'get-involved',
+        name: 'Get Involved',
         type: 'mega',
+
+        preview: {
+            title: 'Get Involved',
+            desc: 'Join hands to support people in need through donation, volunteering, and partnerships.',
+            highlight: 'Become part of real-world humanitarian action',
+            image: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=1200&q=80',
+            cta: '/donate',
+        },
 
         groups: [
             {
-                title: 'Take Action',
+                title: 'Action',
                 items: [
                     {
                         id: 'donate',
-                        name: 'Donate Now',
-                        desc: 'Support verified campaigns instantly.',
+                        name: 'Donate',
+                        desc: 'Support verified people in need.',
                         path: '/donate',
                     },
                     {
                         id: 'volunteer',
-                        name: 'Become a Volunteer',
-                        desc: 'Join relief and support activities.',
+                        name: 'Volunteer',
+                        desc: 'Join field and community support.',
                         path: '/volunteer',
                     },
                     {
                         id: 'partner',
-                        name: 'Partner With CareLink',
-                        desc: 'Collaborate as an organization or sponsor.',
+                        name: 'Partner With Us',
+                        desc: 'Work with organizations & sponsors.',
                         path: '/partner',
                     },
                 ],
             },
 
             {
-                title: 'Get Help',
+                title: 'Support Requests',
                 items: [
                     {
                         id: 'request-help',
                         name: 'Request Help',
-                        desc: 'Submit emergency or support requests.',
+                        desc: 'Submit urgent or basic needs.',
                         path: '/request-help',
                     },
                     {
                         id: 'how-it-works',
                         name: 'How It Works',
-                        desc: 'Understand how CareLink processes requests.',
+                        desc: 'Understand how support is delivered.',
                         path: '/how-it-works',
                     },
                 ],
@@ -61,26 +69,34 @@ const navLinks = [
         name: 'Explore',
         type: 'mega',
 
+        preview: {
+            title: 'Explore Impact',
+            desc: 'Discover campaigns, urgent needs, and real transformation stories.',
+            highlight: 'See real humanitarian impact',
+            image: 'https://images.unsplash.com/photo-1520975922284-9b456ef0d6e1?auto=format&fit=crop&w=1200&q=80',
+            cta: '/campaigns',
+        },
+
         groups: [
             {
                 title: 'Campaigns',
                 items: [
                     {
                         id: 'browse-campaigns',
-                        name: 'Browse Campaigns',
-                        desc: 'Explore active campaigns and causes.',
+                        name: 'All Campaigns',
+                        desc: 'Browse active donation campaigns.',
                         path: '/campaigns',
                     },
                     {
                         id: 'featured',
-                        name: 'Featured Causes',
-                        desc: 'Highlighted campaigns needing attention.',
+                        name: 'Featured',
+                        desc: 'Highlighted urgent campaigns.',
                         path: '/campaigns/featured',
                     },
                     {
                         id: 'urgent',
                         name: 'Urgent Needs',
-                        desc: 'Emergency support requests and relief.',
+                        desc: 'Critical real-time support requests.',
                         path: '/campaigns/urgent',
                     },
                 ],
@@ -91,14 +107,14 @@ const navLinks = [
                 items: [
                     {
                         id: 'categories',
-                        name: 'Browse Categories',
-                        desc: 'Food, medicine, education, emergency and more.',
+                        name: 'Categories',
+                        desc: 'Food, education, health & more.',
                         path: '/categories',
                     },
                     {
                         id: 'stories',
-                        name: 'Success Stories',
-                        desc: 'See how donations changed lives.',
+                        name: 'Impact Stories',
+                        desc: 'Real lives changed by donations.',
                         path: '/stories',
                     },
                 ],
@@ -107,44 +123,45 @@ const navLinks = [
     },
 
     {
-        id: 'trust',
-        name: 'Trust',
+        id: 'about',
+        name: 'About',
         type: 'mega',
 
-        groups: [
+        preview: {
+            title: 'About Stand For People',
+            desc: 'Learn about our mission, transparency, and the people behind the platform.',
+            highlight: 'Built on trust & transparency',
+            image: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1200&q=80',
+            cta: '/about',
+        },
 
+        groups: [
             {
-                title: 'About CareLink',
+                title: 'Organization',
                 items: [
                     {
-                        id: 'about',
+                        id: 'overview',
                         name: 'Overview',
-                        desc: 'Who we are and what CareLink stands for.',
+                        desc: 'What Stand For People is about.',
                         path: '/about',
                     },
                     {
                         id: 'mission',
-                        name: 'Our Mission',
-                        desc: 'Why CareLink exists and what drives us.',
+                        name: 'Mission',
+                        desc: 'Why we exist and our goals.',
                         path: '/about/mission',
                     },
                     {
                         id: 'story',
                         name: 'Our Story',
-                        desc: 'Journey behind CareLink.',
+                        desc: 'How the platform started.',
                         path: '/about/story',
                     },
                     {
                         id: 'team',
-                        name: 'Our Team',
-                        desc: 'Meet the people behind the platform.',
+                        name: 'Team',
+                        desc: 'People behind the platform.',
                         path: '/about/team',
-                    },
-                    {
-                        id: 'contact',
-                        name: 'Contact Us',
-                        desc: 'Reach out to the CareLink team.',
-                        path: '/contact',
                     },
                 ],
             },
@@ -154,20 +171,20 @@ const navLinks = [
                 items: [
                     {
                         id: 'impact',
-                        name: 'Impact Statistics',
-                        desc: 'Live data and platform impact metrics.',
+                        name: 'Impact',
+                        desc: 'Live stats of platform support.',
                         path: '/impact',
                     },
                     {
                         id: 'reports',
-                        name: 'Reports & Transparency',
-                        desc: 'Track platform accountability and reports.',
+                        name: 'Reports',
+                        desc: 'Financial & activity transparency.',
                         path: '/reports',
                     },
                     {
                         id: 'safety',
                         name: 'Trust & Safety',
-                        desc: 'Fraud prevention and verification system.',
+                        desc: 'Fraud prevention & verification.',
                         path: '/trust-safety',
                     },
                 ],
@@ -175,13 +192,12 @@ const navLinks = [
         ],
     },
 
-
     {
-        id: 'login',
-        name: 'Login',
+        id: 'account',
+        name: 'Account',
+        type: 'single',
         path: '/login',
-        type: 'single'
-    }
+    },
 ];
 
 export default navLinks;

@@ -1,99 +1,104 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { IoChevronDown } from 'react-icons/io5';
-
 import navLinks from './data/navLinks';
-import DropdownMenu from './DropdownMenu';
 
-const NavMenu = ({ mobile = false, onClose }) => {
-    const [open, setOpen] = useState(null);
-
+const NavMenu = ({ mobile = false, onClose, activeMenu, setActiveMenu }) => {
     const location = useLocation();
     const navigate = useNavigate();
 
-    const isParentActive = (link) => {
-        if (!link.groups) return false;
+    // =============================
+    // ACTIVE LINK CHECKER
+    // =============================
+    const isActiveLink = (link) => {
+        if (link.type === 'single') {
+            return location.pathname === link.path;
+        }
 
-        return link.groups.some((group) =>
-            group.items.some((item) =>
-                location.pathname.startsWith(item.path),
-            ),
-        );
+        if (link.type === 'mega') {
+            return link.groups?.some((group) =>
+                group.items.some((item) =>
+                    location.pathname.startsWith(item.path),
+                ),
+            );
+        }
+
+        return false;
     };
 
-    // ================= MOBILE =================
+    // =============================
+    // MOBILE MENU (INDEPENDENT STATE)
+    // =============================
+    const [openId, setOpenId] = React.useState(null);
 
     if (mobile) {
         return (
-            <ul className="flex flex-col gap-1">
+            <ul className="flex flex-col">
                 {navLinks.map((link) => {
-                    const isActive =
-                        link.path === '/'
-                            ? location.pathname === '/'
-                            : isParentActive(link);
+                    const active = isActiveLink(link);
+                    const isOpen = openId === link.id;
 
                     return (
-                        <li key={link.id}>
+                        <li key={link.id} className="select-none">
+                            {/* MAIN ITEM */}
                             <button
-                                type="button"
                                 onClick={() => {
-                                    if (link.groups) {
-                                        setOpen((prev) =>
-                                            prev === link.id
-                                                ? null
-                                                : link.id,
-                                        );
-                                    } else {
-                                        if (link.path)
-                                            navigate(link.path);
-
+                                    if (link.type === 'single') {
+                                        navigate(link.path);
                                         onClose?.();
+                                        return;
                                     }
+                                    setOpenId(isOpen ? null : link.id);
                                 }}
-                                className={`
-                                    w-full
-
-                                    px-4 py-4
-
-                                    flex items-center justify-between
-
-                                    rounded-lg
-
-                                    text-[15px]
-                                    font-medium
-
-                                    transition-all duration-300
-
-                                    ${
-                                        isActive
-                                            ? 'text-primary bg-primary/5'
-                                            : 'text-text-primary hover:bg-black/5 dark:hover:bg-white/5'
-                                    }
-                                `}
+                                className={`w-full flex items-center justify-between px-5 py-4 text-[16px] leading-[1.4] font-medium transition-colors duration-200 ${
+                                    active
+                                        ? 'text-primary'
+                                        : 'text-text-primary'
+                                } hover:text-primary`}
                             >
-                                <span>{link.name}</span>
+                                <span className="flex items-center gap-2">
+                                    {active && (
+                                        <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                                    )}
+                                    {link.name}
+                                </span>
 
-                                {link.groups && (
+                                {link.type === 'mega' && (
                                     <IoChevronDown
-                                        className={`
-                                            transition-all duration-300
-
-                                            ${
-                                                open === link.id
-                                                    ? 'rotate-180 text-primary'
-                                                    : 'opacity-60'
-                                            }
-                                        `}
+                                        className={`text-[18px] text-text-secondary transition-transform duration-200 ${
+                                            isOpen ? 'rotate-180' : ''
+                                        }`}
                                     />
                                 )}
                             </button>
 
-                            {link.groups && open === link.id && (
-                                <div className="px-3 pb-3">
-                                    <DropdownMenu
-                                        groups={link.groups}
-                                        mobile
-                                    />
+                            {/* SUBMENU */}
+                            {link.type === 'mega' && isOpen && (
+                                <div className="ml-6 pl-4 border-l border-border/50 mt-1 mb-3 space-y-4">
+                                    {link.groups.map((group) => (
+                                        <div key={group.title}>
+                                            {/* GROUP LABEL */}
+                                            <p className="text-[11px] leading-[1.6] tracking-[0.14em] uppercase text-text-secondary mb-3">
+                                                {group.title}
+                                            </p>
+
+                                            {/* ITEMS */}
+                                            <div className="space-y-2">
+                                                {group.items.map((item) => (
+                                                    <button
+                                                        key={item.id}
+                                                        onClick={() => {
+                                                            navigate(item.path);
+                                                            onClose?.();
+                                                        }}
+                                                        className="w-full text-left px-3 py-2 text-[14px] leading-[1.6] font-normal text-text-secondary hover:text-text-primary transition-colors"
+                                                    >
+                                                        {item.name}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             )}
                         </li>
@@ -103,134 +108,51 @@ const NavMenu = ({ mobile = false, onClose }) => {
         );
     }
 
-    // ================= DESKTOP =================
-
+    // =============================
+    // DESKTOP MENU (USES PARENT STATE)
+    // =============================
     return (
-        <ul className="flex items-center gap-10 whitespace-nowrap">
+        <ul className="flex items-center gap-10">
             {navLinks.map((link) => {
-                const isHome = link.id === 'home';
-
-                const homeActive =
-                    location.pathname === '/';
-
-                const parentActive =
-                    isParentActive(link);
-
-                const isActive = isHome
-                    ? homeActive
-                    : parentActive;
+                const active = isActiveLink(link);
+                const isOpen = activeMenu === link.id;
 
                 return (
-                    <li
-                        key={link.id}
-                        className="relative"
-                        onMouseEnter={() =>
-                            setOpen(link.id)
-                        }
-                        onMouseLeave={() =>
-                            setOpen(null)
-                        }
-                    >
-                        <NavLink
-                            to={link.path || '#'}
-                            className={`
-                                group
-
-                                relative
-
-                                flex items-center gap-1
-
-                                py-3
-
-                                transition-all duration-300
-
-                                ${
-                                    isActive
-                                        ? `
-                                            text-primary
-                                            font-semibold
-                                        `
-                                        : `
-                                            text-text-primary/70
-
-                                            hover:text-text-primary
-
-                                            hover:font-semibold
-                                        `
-                                }
-                            `}
-                        >
-                            <span className="relative z-10">
+                    <li key={link.id}>
+                        {link.type === 'single' ? (
+                            <NavLink
+                                to={link.path}
+                                className={`py-2 text-[15px] transition-all ${
+                                    active
+                                        ? 'text-primary font-semibold'
+                                        : 'text-text-primary/70 hover:text-text-primary'
+                                }`}
+                            >
                                 {link.name}
-                            </span>
-
-                            {link.groups && (
+                            </NavLink>
+                        ) : (
+                            <button
+                                onMouseEnter={() =>
+                                    window.innerWidth >= 1024 &&
+                                    setActiveMenu?.(link.id)
+                                }
+                                onClick={() =>
+                                    setActiveMenu?.(isOpen ? null : link.id)
+                                }
+                                className={`py-2 flex items-center gap-1 text-[15px] transition-all ${
+                                    active
+                                        ? 'text-primary font-semibold'
+                                        : 'text-text-primary/70 hover:text-text-primary'
+                                }`}
+                            >
+                                <span>{link.name}</span>
                                 <IoChevronDown
-                                    className={`
-                                        text-[14px]
-
-                                        transition-all duration-300
-
-                                        ${
-                                            open === link.id
-                                                ? `
-                                                    rotate-180
-                                                    text-primary
-                                                `
-                                                : `
-                                                    opacity-60
-
-                                                    group-hover:opacity-100
-                                                `
-                                        }
-                                    `}
+                                    className={`text-sm transition-transform ${
+                                        isOpen ? 'rotate-180' : ''
+                                    }`}
                                 />
-                            )}
-
-                            {/* Bottom Border */}
-
-                            <span
-                                className={`
-                                    absolute
-
-                                    left-0
-                                    bottom-0
-
-                                    h-0.5
-
-                                    rounded-full
-
-                                    bg-primary
-
-                                    transition-all duration-300 ease-out
-
-                                    ${
-                                        isActive
-                                            ? `
-                                                w-full
-
-                                                opacity-100
-                                            `
-                                            : `
-                                                w-0
-
-                                                opacity-0
-
-                                                group-hover:w-full
-
-                                                group-hover:opacity-100
-                                            `
-                                    }
-                                `}
-                            />
-                        </NavLink>
-
-                        {link.groups &&
-                            open === link.id && (
-                                <DropdownMenu
-                                    groups={link.groups}
-                                />
-                            )}
+                            </button>
+                        )}
                     </li>
                 );
             })}

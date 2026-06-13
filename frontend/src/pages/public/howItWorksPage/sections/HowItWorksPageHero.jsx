@@ -1,22 +1,23 @@
-// sections/Hero.jsx
 import React from 'react';
+import { TbArrowNarrowDown } from 'react-icons/tb';
 import SectionHeading from '@/components/SectionHeading';
 import Motion from '@/components/motion/Motion';
-import { TbArrowNarrowDown } from 'react-icons/tb';
 
-const Hero = () => {
+const HowItWorksPageHero = () => {
     return (
-        <section className="section-gap mt-18">
-            <div className="container-width text-center">
+        <section className="section-gap mt-24">
+            <div className="container-width">
                 <SectionHeading
+                    gap="lg"
                     title="Turning urgent needs into verified support"
                     headingSize="hero"
+                    headingClass="text-primary/80 text-shadow-primary-hover text-shadow-sm/20"
                     description="Stand For People is a structured coordination system that connects real-world needs with verified donors and volunteers using AI-assisted validation and transparent workflows."
                     descriptionSize="hero"
                 />
 
                 {/* TRUST CHIPS (refined hierarchy) */}
-                <Motion className="mt-10 flex flex-wrap justify-center gap-3">
+                <Motion variant='fadeUp' className="mt-10 flex flex-wrap justify-center gap-3">
                     <span className="px-4 py-2 text-sm rounded-full bg-primary/5 border border-primary/10">
                         Verified Request System
                     </span>
@@ -47,7 +48,7 @@ const Hero = () => {
 
                 {/* SCROLL INDICATOR */}
                 <Motion className="mt-10 flex justify-center">
-                    <div className="flex flex-col items-center gap-2 text-primary/40 text-sm">
+                    <div className="flex flex-col items-center gap-2 text-primary/50 text-sm tracking-wider">
                         <TbArrowNarrowDown
                             size={18}
                             className="animate-bounce"
@@ -60,4 +61,4 @@ const Hero = () => {
     );
 };
 
-export default Hero;
+export default HowItWorksPageHero;

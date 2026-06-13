@@ -64,30 +64,7 @@ const Hero = ({
                         className="w-full max-w-175 h-auto object-contain"
                     />
 
-                    {/* URGENT REQUESTS */}
-                    <div
-                        className="
-        absolute
-        bottom-[8%]
-        right-[2%]
-        w-[85%]
-        max-w-md
-    "
-                    >
-                        {/* <UrgentRequestsCard /> */}
-                    </div>
-
-                    {/* LIVE IMPACT */}
-                    <div
-                        className="
-        absolute
-        top-[18%]
-        left-[4%]
-        w-[clamp(140px,18vw,200px)]
-    "
-                    >
-                        {/* <LiveImpactCard /> */}
-                    </div>
+                    
                 </div>
             </div>
         </section>

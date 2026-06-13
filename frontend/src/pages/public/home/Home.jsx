@@ -8,7 +8,7 @@ import { HiArrowSmRight } from 'react-icons/hi';
 import Hero from '@/components/Hero';
 
 // Assets
-import heroBG from '@/assets/home/hero/heroBG.png';
+import heroBG from '@/assets/home/hero/hero.jpg';
 
 // Page sections
 // import HowItWorksSection from './sections/howCareLinkWorks/HowItWorksSection';

@@ -3,32 +3,43 @@ import SectionHeading from '@/components/SectionHeading';
 
 const ProblemContext = () => {
     return (
-        <section className="pb-14 md:pb-16 lg:pb-20 bg-surface">
+        <section className="pb-12 md:pb-16 lg:pb-20 bg-surface">
             <div className="container-width">
                 <div
                     className="
-                    grid lg:grid-cols-2 gap-8
+                    grid lg:grid-cols-2
+                    gap-8 lg:gap-12
                     items-stretch
-                    bg-background rounded-2xl overflow-hidden border border-border
+                    bg-background
+                    border border-border
+                    rounded-2xl
+                    overflow-hidden
                 "
                 >
                     {/* LEFT CONTENT */}
-                    <div className="p-6 md:p-10 lg:p-12 order-2 lg:order-1">
+                    <div
+                        className="
+                        order-2 lg:order-1
+                        p-6 sm:p-8 md:p-10 lg:p-12
+                    "
+                    >
                         <SectionHeading
                             align="left"
                             title="Why this system exists"
                             headingSize="sectionHero"
-                            headingClass="tracking-normal leading-tight"
+                            headingClass="leading-tight tracking-normal text-text-primary"
                             description="Real-world aid distribution breaks not from lack of intent, but from lack of structure."
                             descriptionSize="sectionHero"
+                            descriptionClass="text-text-secondary"
                         />
 
                         <div
                             className="
                             mt-6 md:mt-8
                             space-y-4 md:space-y-5
-                            text-text-secondary/90 leading-relaxed
-                            text-base md:text-[17px] lg:text-lg
+                            text-text-secondary
+                            leading-relaxed
+                            text-base md:text-[16px]
                         "
                         >
                             <p>
@@ -53,7 +64,7 @@ const ProblemContext = () => {
                                 requests.
                             </p>
 
-                            <p className="text-text-primary/80 font-medium">
+                            <p className="text-text-primary font-medium">
                                 Stand For People introduces structure,
                                 validation, and traceability to solve this gap.
                             </p>
@@ -64,8 +75,8 @@ const ProblemContext = () => {
                     <div
                         className="
                         relative
-                        w-full
-                        min-h-65 sm:min-h-80 md:min-h-full order-1 lg:order-2
+                        order-1 lg:order-2
+                        min-h-64 sm:min-h-80 lg:min-h-full
                     "
                     >
                         <img
@@ -74,11 +85,14 @@ const ProblemContext = () => {
                             className="w-full h-full object-cover"
                         />
 
-                        {/* overlay for readability */}
+                        {/* softer overlay (less harsh than before) */}
                         <div
                             className="
                             absolute inset-0
-                            bg-linear-to-l from-background/40 via-background/10 to-transparent
+                            bg-linear-to-l
+                            from-background/50
+                            via-background/10
+                            to-transparent
                         "
                         />
 
@@ -87,10 +101,12 @@ const ProblemContext = () => {
                             className="
                             absolute bottom-4 left-4
                             text-[11px] sm:text-xs
-                            text-white/70
-                            backdrop-blur-sm
-                            px-2 py-1 rounded-md
-                            bg-black/20
+                            text-text-secondary
+                            bg-surface/80
+                            border border-border
+                            backdrop-blur-md
+                            px-2.5 py-1
+                            rounded-md
                         "
                         >
                             Real-world coordination challenges

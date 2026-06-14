@@ -3,6 +3,7 @@ import HowItWorksPageHero from './sections/HowItWorksPageHero';
 import ProblemContext from './sections/ProblemContext';
 import SystemOverview from './sections/SystemOverview';
 import ProcessScenes from './sections/processScene/ProcessScenes';
+import FinalCTA from './sections/FinalCTA';
 
 const HowItWorksPage = () => {
     return (
@@ -11,6 +12,7 @@ const HowItWorksPage = () => {
             <ProblemContext />
             <SystemOverview />
             <ProcessScenes />
+            <FinalCTA />
         </>
     );
 };

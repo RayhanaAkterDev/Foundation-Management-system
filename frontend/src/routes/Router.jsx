@@ -7,6 +7,7 @@ import AdminLayout from '@/layouts/AdminLayout/AdminLayout';
 // public pages
 import Home from '@/pages/public/home/Home';
 import HowItWorksPage from '@/pages/public/howItWorksPage/HowItWorksPage';
+import Categories from '@/pages/public/categoriesPage/CategoriesPage';
 // import About from '@/pages/public/about/About';
 // import Campaigns from '@/pages/public/campaigns/Campaigns';
 // import CampaignDetails from '@/pages/public/campaigns/campaignDetails/CampaignDetails';
@@ -27,6 +28,7 @@ const router = createBrowserRouter([
         children: [
             { path: '', element: <Home /> },
             { path: '/how-it-works', element: <HowItWorksPage /> },
+            { path: '/categories', element: <Categories /> },
             // { path: 'about', element: <About /> },
             // { path: 'campaigns', element: <Campaigns /> },
             // { path: 'campaigns/:id', element: <CampaignDetails /> },

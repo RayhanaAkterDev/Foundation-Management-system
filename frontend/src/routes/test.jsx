@@ -18,7 +18,7 @@ import HowItWorks from '../pages/public/HowItWorks';
 import Campaigns from '../pages/public/Campaigns';
 import FeaturedCampaigns from '../pages/public/FeaturedCampaigns';
 import UrgentCampaigns from '../pages/public/UrgentCampaigns';
-import Categories from '../pages/public/Categories';
+import Categories from '../pages/public/categoriesPage';
 import Stories from '../pages/public/Stories';
 
 // Trust

@@ -30,12 +30,12 @@ export const FoundationNode = () => {
             </div>
 
             <h3 className="relative mt-4 text-xl sm:text-2xl font-bold">
-                Foundation
+                Coordination Layer
             </h3>
 
             <p className="relative mt-2 text-sm leading-6 text-primary-foreground/80">
-                Verifies requests, prioritizes urgent cases and coordinates
-                donations, volunteers and partnerships to maximize impact.
+                Validates requests, allocates priority, and connects donors,
+                volunteers and partners into a unified response system.
             </p>
         </div>
     );
@@ -49,12 +49,12 @@ export const CommunityNode = () => {
             </div>
 
             <h3 className="mt-4 text-lg sm:text-xl font-bold text-foreground">
-                Communities
+                Impact Network
             </h3>
 
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Receive verified assistance and long-term support through a
-                transparent and coordinated network.
+                Receives verified support through a transparent system of
+                coordinated aid delivery.
             </p>
         </div>
     );

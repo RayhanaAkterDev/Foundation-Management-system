@@ -19,7 +19,7 @@ const toneStyles = {
         text: 'text-red-400',
         ring: 'border-red-200',
         badge: 'bg-red-50 text-red-600',
-        label: 'Immediate Dispatch',
+        label: 'Immediate Action',
     },
 
     high: {
@@ -61,13 +61,7 @@ const PriorityDiagram = () => {
                                 {/* NODE */}
                                 <div className="absolute left-0 top-3 sm:top-4">
                                     <div
-                                        className={`
-                                            w-6 h-6 sm:w-8 sm:h-8
-                                            rounded-full
-                                            border ${style.ring}
-                                            flex items-center justify-center
-                                            bg-white
-                                        `}
+                                        className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full border ${style.ring} flex items-center justify-center bg-white`}
                                     >
                                         <div
                                             className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full ${style.dot}`}
@@ -99,7 +93,7 @@ const PriorityDiagram = () => {
                                             </div>
 
                                             <div className="text-[10px] sm:text-xs uppercase tracking-widest text-text-secondary">
-                                                AI Score
+                                                Priority Score
                                             </div>
                                         </div>
                                     </div>
@@ -116,7 +110,7 @@ const PriorityDiagram = () => {
                                         </div>
 
                                         <div className="mt-2 flex justify-between text-[10px] sm:text-xs text-text-secondary">
-                                            <span>Priority Level</span>
+                                            <span>Ranking Strength</span>
                                             <span>{item.score}%</span>
                                         </div>
                                     </div>
@@ -126,7 +120,7 @@ const PriorityDiagram = () => {
                                         <span
                                             className={`inline-flex text-[10px] sm:text-xs px-2 py-1 rounded-full font-medium ${style.badge}`}
                                         >
-                                            Rank #{index + 1}
+                                            Queue Position #{index + 1}
                                         </span>
                                     </div>
                                 </div>

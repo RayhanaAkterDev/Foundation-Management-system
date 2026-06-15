@@ -3,25 +3,15 @@ import React from 'react';
 const UnderstandingDiagram = () => {
     const insights = [
         { label: 'Location', value: 'Dhaka', highlight: false },
-        { label: 'Need', value: 'Medicine', highlight: true },
-        { label: 'Urgency', value: 'High', highlight: true },
+        { label: 'Need Type', value: 'Medical Support', highlight: true },
+        { label: 'Urgency Level', value: 'High', highlight: true },
         { label: 'Category', value: 'Healthcare', highlight: false },
     ];
 
     return (
         <div className="w-full max-w-md sm:max-w-lg mx-auto space-y-6 sm:space-y-8">
             {/* INPUT CARD */}
-            <div
-                className="
-                    relative
-                    rounded-2xl sm:rounded-3xl
-                    border border-border
-                    bg-surface
-                    p-4 sm:p-6
-                    overflow-hidden
-                "
-            >
-                {/* glow */}
+            <div className="relative rounded-2xl sm:rounded-3xl border border-border bg-surface p-4 sm:p-6 overflow-hidden">
                 <div className="absolute -top-10 -right-10 w-24 sm:w-32 h-24 sm:h-32 bg-primary/10 blur-2xl rounded-full" />
 
                 <div className="flex items-center justify-between mb-2 sm:mb-3">
@@ -35,10 +25,9 @@ const UnderstandingDiagram = () => {
                 </div>
 
                 <p className="text-base sm:text-lg font-medium leading-relaxed text-text-primary">
-                    I need medicine support for my father.
+                    Need urgent medicine for my father in Dhaka.
                 </p>
 
-                {/* typing indicator */}
                 <div className="mt-3 sm:mt-4 flex gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-primary/40 animate-pulse" />
                     <span className="w-1.5 h-1.5 rounded-full bg-primary/30 animate-pulse delay-150" />
@@ -47,27 +36,17 @@ const UnderstandingDiagram = () => {
             </div>
 
             {/* AI OUTPUT CARD */}
-            <div
-                className="
-                    relative
-                    rounded-2xl sm:rounded-3xl
-                    border border-border
-                    bg-surface
-                    p-4 sm:p-6
-                    overflow-hidden
-                "
-            >
-                {/* AI glow */}
+            <div className="relative rounded-2xl sm:rounded-3xl border border-border bg-surface p-4 sm:p-6 overflow-hidden">
                 <div className="absolute inset-0 bg-linear-to-br from-primary/5 via-transparent to-transparent" />
 
                 <div className="relative">
                     <div className="flex items-center justify-between mb-4 sm:mb-5">
                         <span className="font-semibold text-sm sm:text-base">
-                            AI Understanding
+                            Structured Understanding
                         </span>
 
                         <span className="text-primary font-semibold text-xs sm:text-sm">
-                            96% confidence
+                            Confidence: 96%
                         </span>
                     </div>
 
@@ -102,7 +81,7 @@ const UnderstandingDiagram = () => {
                     {/* CONFIDENCE BAR */}
                     <div className="mt-5 sm:mt-6">
                         <div className="flex justify-between text-[10px] sm:text-xs text-text-secondary mb-2">
-                            <span>Understanding Confidence</span>
+                            <span>Clarity Score</span>
                             <span>96%</span>
                         </div>
 

@@ -23,15 +23,18 @@
 
     --color-accent: #f59e0b;
 
-    --color-background: #eef3f6;
-    /* --color-background: #f5f9fe; */
+    /* background system (refined) */
+    --color-background: #f6f8fb;
+    --color-background-alt: #eef2f6;
+
     --color-surface: #ffffff;
+    --color-surface-soft: #f9fbfd;
 
     --color-text-primary: #0f172a;
-    --color-text-secondary: #6b7280;
+    --color-text-secondary: #64748b;
 
-    --color-border: #e5e7eb;
-
+    --color-border: #e2e8f0;
+    
     /* background images */
     --background-image-heroMobile: url('/src/assets/images/home/heroBgMobile.png');
     --background-image-heroDesktop: url('/src/assets/images/home/heroBgDesktop.png');

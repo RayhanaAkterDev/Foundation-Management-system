@@ -29,8 +29,8 @@ const ProblemContext = () => {
                             headingSize="sectionHero"
                             headingClass="leading-tight tracking-normal text-text-primary"
                             description="Real-world aid distribution breaks not from lack of intent, but from lack of structure."
-                            descriptionSize="sectionHero"
-                            descriptionClass="text-text-secondary"
+                            descriptionSize="section"
+                            descriptionClass="font-poppins"
                         />
 
                         <div
@@ -43,30 +43,30 @@ const ProblemContext = () => {
                         "
                         >
                             <p>
-                                In crisis situations, help requests often arrive
-                                in unstructured, incomplete, or duplicated
-                                forms—making it difficult to determine what is
-                                truly urgent and actionable.
+                                In times of crisis, people often struggle to
+                                find help quickly, while donors and volunteers
+                                struggle to understand where their support is
+                                needed most.
                             </p>
 
                             <p>
-                                Donors and volunteers also lack a reliable way
-                                to verify authenticity or priority. As a result,
-                                decisions are made using fragmented information,
-                                slowing response and reducing accuracy.
+                                Information is scattered, communication is
+                                fragmented, and good intentions are frequently
+                                slowed down by uncertainty and lack of
+                                coordination.
                             </p>
 
                             <p>
-                                Over time, this creates a system where critical
-                                needs are buried in noise—not due to lack of
-                                support, but because there is no structured
-                                layer to organize, validate, and prioritize
-                                requests.
+                                As a result, urgent needs may wait longer than
+                                they should—not because people don't care, but
+                                because there is no simple and trustworthy way
+                                to connect needs with support.
                             </p>
 
-                            <p className="text-text-primary font-medium">
-                                Stand For People introduces structure,
-                                validation, and traceability to solve this gap.
+                            <p>
+                                Stand For People was created to bridge this gap
+                                and make community support more transparent,
+                                coordinated, and accessible.
                             </p>
                         </div>
                     </div>

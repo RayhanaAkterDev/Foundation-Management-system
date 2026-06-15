@@ -1,9 +1,9 @@
 import { TbCheck } from 'react-icons/tb';
 
 const items = [
-    { label: 'Identity Verified', status: 'verified' },
-    { label: 'Duplicate Check', status: 'verified' },
-    { label: 'Location Confirmed', status: 'verified' },
+    { label: 'Identity Check', status: 'verified' },
+    { label: 'Duplicate Detection', status: 'verified' },
+    { label: 'Location Validation', status: 'verified' },
     { label: 'Human Review', status: 'verified' },
 ];
 
@@ -20,28 +20,17 @@ const TrustDiagram = () => {
                     <div className="absolute inset-0 rounded-full border border-primary/20 animate-pulse" />
 
                     {/* core */}
-                    <div
-                        className="
-                            w-40 h-40 sm:w-48 sm:h-48
-                            rounded-full
-                            border border-primary/30
-                            bg-linear-to-b from-primary/10 to-transparent
-
-                            flex flex-col items-center justify-center
-                            relative
-                            backdrop-blur-md
-                        "
-                    >
+                    <div className="w-40 h-40 sm:w-48 sm:h-48 rounded-full border border-primary/30 bg-linear-to-b from-primary/10 to-transparent flex flex-col items-center justify-center relative backdrop-blur-md">
                         <h2 className="text-4xl sm:text-6xl font-bold tracking-tight text-primary">
-                            92
+                            94
                         </h2>
 
                         <p className="text-xs sm:text-sm text-text-secondary mt-1">
-                            Trust Score
+                            Trust Index
                         </p>
 
                         <div className="mt-2 sm:mt-3 text-[10px] sm:text-xs px-2 sm:px-3 py-1 rounded-full bg-primary/10 text-primary font-medium">
-                            High Confidence
+                            Verified System
                         </div>
                     </div>
                 </div>
@@ -52,18 +41,7 @@ const TrustDiagram = () => {
                 {items.map((item, idx) => (
                     <div
                         key={item.label}
-                        className="
-                            relative overflow-hidden
-                            rounded-xl sm:rounded-2xl
-                            border border-border
-                            bg-surface
-                            p-3 sm:p-5
-
-                            flex items-center justify-between
-
-                            transition
-                            hover:border-primary/30
-                        "
+                        className="relative overflow-hidden rounded-xl sm:rounded-2xl border border-border bg-surface p-3 sm:p-5 flex items-center justify-between transition hover:border-primary/30"
                     >
                         {/* subtle glow */}
                         <div className="absolute inset-0 bg-linear-to-r from-primary/5 via-transparent to-transparent" />
@@ -80,7 +58,7 @@ const TrustDiagram = () => {
 
                         <div className="relative flex items-center gap-1 sm:gap-2">
                             <span className="text-[10px] sm:text-xs text-primary font-medium">
-                                Verified
+                                Passed
                             </span>
 
                             <TbCheck className="text-primary text-base sm:text-xl" />
@@ -91,7 +69,7 @@ const TrustDiagram = () => {
 
             {/* summary */}
             <div className="text-center text-[10px] sm:text-xs text-text-secondary leading-relaxed px-2">
-                Verification completed across multiple trust signals
+                Multiple verification signals validated before processing
             </div>
         </div>
     );

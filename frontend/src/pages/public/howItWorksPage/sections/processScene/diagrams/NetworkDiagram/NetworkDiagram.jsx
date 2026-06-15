@@ -13,7 +13,7 @@ const NetworkDiagram = () => {
                 title="Stand Together For People"
                 headingSize="section"
                 headingClass="text-primary lg:text-2xl!"
-                description="Bringing together donors, volunteers and partners to deliver trusted support where it matters most."
+                description="A coordinated network of donors, volunteers and partners delivering verified support where it is needed most."
                 wrapperClass="mb-10! sm:mb-12!"
             />
 
@@ -63,7 +63,6 @@ const NetworkDiagram = () => {
                 {nodes.map((node, index) => (
                     <React.Fragment key={node.title}>
                         <TopNode {...node} />
-
                         {index < nodes.length - 1 && (
                             <div className="w-px h-6 bg-border/60" />
                         )}
@@ -72,7 +71,6 @@ const NetworkDiagram = () => {
 
                 {/* foundation */}
                 <div className="w-px h-6 bg-border/60" />
-
                 <FoundationNode />
 
                 {/* arrow */}

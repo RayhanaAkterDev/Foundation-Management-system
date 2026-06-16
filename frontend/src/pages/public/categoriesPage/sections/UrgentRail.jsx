@@ -1,12 +1,11 @@
 import { Link } from 'react-router-dom';
-import { urgentCampaigns } from '@/data/selectors';
+import { getUrgentCampaigns } from '@/data/selectors';
 
 const UrgentRail = () => {
-    if (!urgentCampaigns.length) return null;
-
+    if (!getUrgentCampaigns.length) return null;
     return (
         <div className="flex gap-3 overflow-x-auto pb-3">
-            {urgentCampaigns.map((c) => (
+            {getUrgentCampaigns.map((c) => (
                 <Link
                     key={c.id}
                     to={`/campaign/${c.id}`}

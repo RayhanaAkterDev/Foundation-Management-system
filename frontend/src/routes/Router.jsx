@@ -7,47 +7,59 @@ import AdminLayout from '@/layouts/AdminLayout/AdminLayout';
 // public pages
 import Home from '@/pages/public/home/Home';
 import HowItWorksPage from '@/pages/public/howItWorksPage/HowItWorksPage';
+
 import Categories from '@/pages/public/categoriesPage/CategoriesPage';
-// import About from '@/pages/public/about/About';
-// import Campaigns from '@/pages/public/campaigns/Campaigns';
-// import CampaignDetails from '@/pages/public/campaigns/campaignDetails/CampaignDetails';
+import Campaigns from '@/pages/public/campaignsPage/Campaigns';
+import CampaignDetails from '@/pages/public/campaignsPage/campaignDetails/CampaignDetails';
 
-// admin pages
-// import Dashboard from '../pages/admin/Dashboard';
-// import Users from '../pages/admin/Users';
-// import Settings from '../pages/admin/Settings';
-
-// 404 - not found page
+// 404
 import NotFound from '../pages/NotFound';
 
 const router = createBrowserRouter([
-    // public routes
+    // =========================
+    // PUBLIC ROUTES
+    // =========================
     {
         path: '/',
         element: <PublicLayout />,
         children: [
             { path: '', element: <Home /> },
-            { path: '/how-it-works', element: <HowItWorksPage /> },
-            { path: '/categories', element: <Categories /> },
-            { path: '/categories/:categoryId', element: <Categories /> },
-            // { path: 'about', element: <About /> },
-            // { path: 'campaigns', element: <Campaigns /> },
-            // { path: 'campaigns/:id', element: <CampaignDetails /> },
+
+            { path: 'how-it-works', element: <HowItWorksPage /> },
+
+            // CATEGORY PAGE (exploration only)
+            { path: 'categories', element: <Categories /> },
+
+            // OPTIONAL (if you want category page direct access)
+            { path: 'categories/:categoryId', element: <Categories /> },
+
+            // =========================
+            // CAMPAIGNS SYSTEM
+            // =========================
+
+            // ALL campaigns
+            { path: 'campaigns', element: <Campaigns /> },
+
+            // CATEGORY FILTERED campaigns (IMPORTANT FIX)
+            { path: 'campaigns/category/:categoryId', element: <Campaigns /> },
+
+            // SINGLE campaign details
+            { path: 'campaign/:id', element: <CampaignDetails /> },
         ],
     },
 
-    // admin routes
+    // =========================
+    // ADMIN ROUTES
+    // =========================
     {
         path: '/admin',
         element: <AdminLayout />,
-        children: [
-            // { path: '', element: <Dashboard /> },
-            // { path: 'users', element: <Users /> },
-            // { path: 'settings', element: <Settings /> },
-        ],
+        children: [],
     },
 
-    // 404 - Not found page route
+    // =========================
+    // 404
+    // =========================
     {
         path: '*',
         element: <NotFound />,

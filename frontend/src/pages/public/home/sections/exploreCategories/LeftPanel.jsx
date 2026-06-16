@@ -201,7 +201,7 @@ const LeftPanel = ({ current }) => {
                 <div className="border-t border-border pt-6">
                     <Motion variant="fadeUp">
                         <Link
-                            to={`/categories/${current.id}`}
+                            to={`/campaigns/category/${current.id}`}
                             className="
                                         group
                                         inline-flex

@@ -1,53 +1,57 @@
-import { useNavigate, useParams } from 'react-router-dom';
-import { categories } from '@/data/categories';
+import React from 'react';
+import { Link } from 'react-router-dom';
 
-const CategorySidebar = () => {
-    const navigate = useNavigate();
-    const { categoryId } = useParams();
+// eslint-disable-next-line no-unused-vars
+import { motion } from 'framer-motion';
 
-    const isActive = (id) => categoryId === id;
-
+const CategorySidebar = ({ categories, activeCategoryId }) => {
     return (
-        <aside className="sticky top-32 w-full rounded-2xl bg-primary border border-white/10 p-4">
+        <div className="space-y-3">
             {/* ALL */}
-            <button
-                onClick={() => navigate('/categories')}
-                className={`w-full text-left px-3 py-2 rounded-lg ${
-                    !categoryId ? 'bg-white/15 text-white' : 'text-white/70'
-                }`}
-            >
-                All Campaigns
-            </button>
+            <Link to="/categories" className="relative block py-2 transition">
+                {!activeCategoryId && (
+                    <motion.div
+                        layoutId="activeIndicator"
+                        className="absolute left-0 top-0 h-full w-1 bg-black rounded"
+                    />
+                )}
+                All Categories
+            </Link>
 
             {/* URGENT */}
-            <button
-                onClick={() => navigate('/categories/urgent')}
-                className={`w-full text-left px-3 py-2 rounded-lg ${
-                    categoryId === 'urgent'
-                        ? 'bg-white/15 text-white'
-                        : 'text-white/70'
-                }`}
+            <Link
+                to="/categories/urgent"
+                className="relative block py-2 transition"
             >
-                Urgent Cases
-            </button>
+                {activeCategoryId === 'urgent' && (
+                    <motion.div
+                        layoutId="activeIndicator"
+                        className="absolute left-0 top-0 h-full w-1 bg-red-500 rounded"
+                    />
+                )}
+                Urgent
+            </Link>
 
-            <div className="my-3 h-px bg-white/10" />
-
-            {/* CATEGORIES */}
-            {categories.map((cat) => (
-                <button
-                    key={cat.id}
-                    onClick={() => navigate(`/categories/${cat.id}`)}
-                    className={`w-full text-left px-3 py-2 rounded-lg ${
-                        isActive(cat.id)
-                            ? 'bg-white/15 text-white'
-                            : 'text-white/70'
-                    }`}
-                >
-                    {cat.name}
-                </button>
-            ))}
-        </aside>
+            {/* CATEGORY LIST */}
+            <div className="pt-4 space-y-2">
+                {categories.map((cat) => (
+                    <Link
+                        key={cat.id}
+                        to={`/categories/${cat.id}`}
+                        className="relative block py-2 transition"
+                    >
+                        {activeCategoryId === cat.id && (
+                            <motion.div
+                                layoutId="activeIndicator"
+                                className="absolute left-0 top-0 h-full w-1 rounded"
+                                style={{ backgroundColor: cat.color }}
+                            />
+                        )}
+                        {cat.name}
+                    </Link>
+                ))}
+            </div>
+        </div>
     );
 };
 

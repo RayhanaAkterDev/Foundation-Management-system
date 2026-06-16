@@ -2,147 +2,106 @@ import { campaigns } from './campaigns';
 import { categories } from './categories';
 
 // ==============================
-// CORE DATA EXPORTS
+// CORE
 // ==============================
 
 export const allCampaigns = campaigns;
 export const allCategories = categories;
 
 // ==============================
-// CATEGORY HELPERS
+// CATEGORY
 // ==============================
 
 export const getAllCategories = () => categories;
 
 export const getCategoryById = (id) =>
-    categories.find(
-        (category) => String(category.id) === String(id)
-    );
+    categories.find((c) => String(c.id) === String(id));
 
 export const getFeaturedCategories = () =>
-    categories.filter((category) => category.featured);
+    categories.filter((c) => c.featured);
 
+// 🔥 IMPORTANT FIX (this was missing earlier)
 export const featuredCategories = getFeaturedCategories();
 
 // ==============================
-// CAMPAIGN HELPERS
+// CAMPAIGNS
 // ==============================
 
 export const getAllCampaigns = () => campaigns;
 
-export const getCampaignById = (id) =>
-    campaigns.find(
-        (campaign) => String(campaign.id) === String(id)
+export const getCampaignById = (id) => {
+    if (!id) return null;
+
+    return campaigns.find(
+        (c) => String(c.id) === String(id)
     );
+};
 
 // ==============================
-// CAMPAIGN FILTERS
+// FILTERS
 // ==============================
 
 export const getActiveCampaigns = () =>
-    campaigns.filter((campaign) => campaign.status === 'active');
+    campaigns.filter((c) => c.status === 'active');
 
 export const getUrgentCampaigns = () =>
     campaigns.filter(
-        (campaign) =>
-            campaign.urgency === 'critical' ||
-            campaign.urgency === 'urgent'
+        (c) => c.urgency === 'urgent' || c.urgency === 'critical'
     );
 
 export const getFeaturedCampaigns = () =>
-    campaigns.filter((campaign) => campaign.featured === true);
+    campaigns.filter((c) => c.featured === true);
 
 export const getLocalImpactCampaigns = () =>
-    campaigns.filter((campaign) => campaign.localImpact === true);
+    campaigns.filter((c) => c.localImpact === true);
 
 // ==============================
-// 🔥 FIXED CATEGORY FILTER (MAIN BUG FIX)
+// CATEGORY FILTER
 // ==============================
 
 export const getCampaignsByCategory = (categoryId) => {
     if (!categoryId || categoryId === 'all') return campaigns;
 
     return campaigns.filter(
-        (campaign) =>
-            String(campaign.category).trim() ===
+        (c) =>
+            String(c.category).trim() ===
             String(categoryId).trim()
     );
 };
 
 // ==============================
-// CATEGORY + CAMPAIGNS BUNDLE
+// FEATURED SINGLE
 // ==============================
 
-export const getCategoryWithCampaigns = (categoryId) => {
-    const category = getCategoryById(categoryId);
-
-    if (!category) return null;
-
-    return {
-        ...category,
-        campaigns: getCampaignsByCategory(categoryId),
-    };
-};
-
-// ==============================
-// SORTING HELPERS
-// ==============================
-
-export const getCampaignsSortedByUrgency = () => {
-    const order = {
-        critical: 0,
-        urgent: 1,
-        normal: 2,
-    };
-
-    return [...campaigns].sort(
-        (a, b) =>
-            (order[a.urgency] ?? 999) -
-            (order[b.urgency] ?? 999)
+export const getFeaturedCampaign = () => {
+    return (
+        campaigns.find((c) => c.featured === true) ||
+        campaigns[0] ||
+        null
     );
 };
 
-// newest first
+// ==============================
+// SORTING
+// ==============================
+
 export const getNewestCampaigns = () =>
     [...campaigns].sort((a, b) => b.id - a.id);
 
 // ==============================
-// COUNTS
+// STATS
 // ==============================
 
 export const getTotalCampaignsCount = () => campaigns.length;
-
 export const getTotalCategoriesCount = () => categories.length;
 
 export const getActiveCount = () => getActiveCampaigns().length;
-
 export const getUrgentCount = () => getUrgentCampaigns().length;
-
 export const getFeaturedCount = () => getFeaturedCampaigns().length;
-
-export const getLocalImpactCount = () =>
-    getLocalImpactCampaigns().length;
+export const getLocalImpactCount = () => getLocalImpactCampaigns().length;
 
 export const getCategoryCount = (categoryId) =>
     getCampaignsByCategory(categoryId).length;
-
-// active campaigns under category
-export const getCategoryActiveCount = (categoryId) =>
-    getCampaignsByCategory(categoryId).filter(
-        (campaign) => campaign.status === 'active'
-    ).length;
-
-// urgent campaigns under category
-export const getCategoryUrgentCount = (categoryId) =>
-    getCampaignsByCategory(categoryId).filter(
-        (campaign) =>
-            campaign.urgency === 'critical' ||
-            campaign.urgency === 'urgent'
-    ).length;
-
-// ==============================
-// DASHBOARD STATS
-// ==============================
 
 export const getAllCampaignStats = () => ({
     total: getTotalCampaignsCount(),

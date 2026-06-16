@@ -13,7 +13,7 @@ import heroBG from '@/assets/home/hero/hero.jpg';
 // Page sections
 import HowItWorksSection from './sections/howItWorks/HowItWorks';
 import ExploreCategories from './sections/exploreCategories/ExploreCategories';
-// import FeaturedCampaign from './sections/featuredCampaign/FeaturedCampaign';
+import FeaturedCampaign from './sections/featuredCampaign/FeaturedCampaign';
 // import LocalImpact from './sections/localImpact/LocalImpact';
 // import ImpactTrust from './sections/impactTrust/ImpactTrust';
 
@@ -44,9 +44,9 @@ const Home = () => {
 
             <HowItWorksSection />
             <ExploreCategories />
-            
-            {/*<FeaturedCampaign />
-            <LocalImpact />
+            <FeaturedCampaign />
+
+            {/*            <LocalImpact />
             <ImpactTrust /> */}
         </>
     );

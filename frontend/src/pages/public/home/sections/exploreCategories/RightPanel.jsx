@@ -1,101 +1,89 @@
 import React from 'react';
+import SectionHeading from '@/components/SectionHeading';
+import Motion from '@/components/motion/Motion';
 import ExploreAllCategoriesCta from './ExploreAllCategoriesCta';
 
 const RightPanel = ({ categories, active, setActive }) => {
     return (
-        <div className="lg:col-span-7 space-y-4 sm:space-y-5">
-            {categories.map((cat) => {
-                const Icon = cat.icon;
-                const isActive = active.id === cat.id;
+        <div className="lg:sticky lg:top-24">
+            <Motion variant="fadeUp">
+                <SectionHeading
+                    gap="lg"
+                    align="left"
+                    title="Where would you like your help to go?"
+                    headingClass='lg:leading-14! font-fraunces!'
+                    headingSize="sectionHero"
+                    description="Every category represents real people and real situations. Choose where your support should make a difference."
+                    descriptionSize="sectionHero"
+                />
+            </Motion>
 
-                return (
-                    <div
-                        key={cat.id}
-                        onClick={() => setActive(cat)}
-                        className={`
-                            relative cursor-pointer overflow-hidden rounded-xl group
-                            transition-all duration-300
-                            ${isActive ? 'py-5 sm:py-6' : 'py-3 sm:py-4 opacity-70 hover:opacity-100'}
-                        `}
-                    >
-                        {/* LEFT BAR */}
-                        <div
-                            className="absolute left-0 top-0 h-full w-0.5"
-                            style={{
-                                backgroundColor: cat.color,
-                                opacity: isActive ? 1 : 0.25,
-                            }}
-                        />
+            <div className="my-10">
+                <p className="text-xs uppercase tracking-[0.25em] text-text-secondary">
+                    Categories
+                </p>
+            </div>
 
-                        {/* GLOW */}
-                        {isActive && (
-                            <div
-                                className="absolute inset-0 opacity-10"
-                                style={{
-                                    background: `radial-gradient(circle at left, ${cat.color}, transparent 70%)`,
-                                }}
+            <div className="space-y-8">
+                {categories.map((cat) => {
+                    const isActive = active.id === cat.id;
+
+                    return (
+                        <button
+                            key={cat.id}
+                            onClick={() => setActive(cat)}
+                            type="button"
+                            className={`
+                                relative w-full text-left group
+                                transition-all duration-300
+                                ${isActive ? 'scale-[1.01]' : 'opacity-80 hover:opacity-100'}
+                            `}
+                        >
+                            {/* guide line */}
+                            <span className="absolute left-0 top-1 bottom-1 w-px bg-border opacity-40" />
+
+                            {/* active indicator */}
+                            <span
+                                className={`
+                                    absolute left-0 top-0 h-full w-0.5 rounded-full
+                                    transition-all duration-300
+                                    ${isActive ? 'opacity-100' : 'opacity-0'}
+                                `}
+                                style={{ backgroundColor: cat.color }}
                             />
-                        )}
 
-                        <div className="pl-4 sm:pl-5 pr-3 sm:pr-5">
-                            {/* TOP ROW */}
-                            <div className="flex items-start sm:items-center justify-between gap-3">
-                                <div className="flex items-center gap-3 min-w-0">
-                                    <div
-                                        className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shrink-0"
-                                        style={{
-                                            backgroundColor: cat.color + '15',
-                                            color: cat.color,
-                                        }}
-                                    >
-                                        <Icon size={16} />
-                                    </div>
-
-                                    <h4
-                                        className="text-sm sm:text-base font-medium truncate leading-snug"
+                            <div className="pl-6">
+                                <div className="flex items-baseline justify-between gap-4">
+                                    <span
+                                        className="text-base sm:text-lg transition-all duration-300"
                                         style={{
                                             color: isActive
                                                 ? cat.color
                                                 : '#111827',
+                                            fontWeight: isActive ? 600 : 400,
                                         }}
                                     >
-                                        {cat.title}
-                                    </h4>
+                                        {cat.name}
+                                    </span>
+
+                                    <span className="text-xs text-text-secondary whitespace-nowrap">
+                                        {cat.urgency}
+                                    </span>
                                 </div>
 
-                                <div
-                                    className="text-[10px] sm:text-[11px] uppercase tracking-[0.15em] whitespace-nowrap"
-                                    style={{
-                                        color: isActive ? cat.color : '#6b7280',
-                                    }}
-                                >
-                                    {cat.urgency}
-                                </div>
-                            </div>
-
-                            {/* EXPAND AREA */}
-                            <div
-                                className={`
-                                    overflow-hidden transition-all duration-300
-                                    ${isActive ? 'max-h-40 mt-4' : 'max-h-0'}
-                                `}
-                            >
-                                <p className="text-xs sm:text-sm text-gray-600 leading-relaxed max-w-prose">
-                                    {cat.description}
+                                <p className="text-xs text-text-secondary/70 leading-relaxed mt-2">
+                                    {cat.microHint ||
+                                        'Explore active requests in this category'}
                                 </p>
-
-                                <div className="mt-3 text-[11px] sm:text-xs text-gray-500 flex gap-3 flex-wrap leading-relaxed">
-                                    <span>{cat.activeCases} active</span>
-                                    <span>•</span>
-                                    <span>{cat.avgResponseTime}</span>
-                                </div>
                             </div>
-                        </div>
-                    </div>
-                );
-            })}
+                        </button>
+                    );
+                })}
+            </div>
 
-            <ExploreAllCategoriesCta />
+            <div className="mt-14">
+                <ExploreAllCategoriesCta />
+            </div>
         </div>
     );
 };

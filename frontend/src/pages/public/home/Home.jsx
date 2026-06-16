@@ -43,8 +43,8 @@ const Home = () => {
             />
 
             <HowItWorksSection />
-
             <ExploreCategories />
+            
             {/*<FeaturedCampaign />
             <LocalImpact />
             <ImpactTrust /> */}

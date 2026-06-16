@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 const ExploreAllCategoriesCta = ({ current }) => {
     return (
-        <div className="pt-8 sm:pt-10 flex justify-end sm:pr-6 lg:pr-10">
+        <div className="pb-8 sm:pb-10 flex justify-end sm:pr-6 lg:pr-10">
             <div className="flex flex-col items-end gap-3 opacity-80 hover:opacity-100 transition">
                 <span className="text-[10px] sm:text-[11px] uppercase tracking-[0.2em] text-gray-400">
                     View more

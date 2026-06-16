@@ -128,8 +128,7 @@ const descriptionStyles = {
     `,
 
     sectionHero: `
-        text-sm
-        sm:text-base
+        text-base
         lg:text-[1.1rem]
 
         text-text-secondary
@@ -144,8 +143,7 @@ const descriptionStyles = {
     `,
 
     section: `
-        text-sm
-        sm:text-base
+        text-base
 
         text-text-secondary
 

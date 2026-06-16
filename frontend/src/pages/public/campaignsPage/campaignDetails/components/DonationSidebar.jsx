@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import Button from '@/components/Button';
 import {
     TbClock,
@@ -10,16 +11,12 @@ import {
 } from 'react-icons/tb';
 
 const DonationSidebar = ({ campaign, organizer }) => {
-    const percent = Math.min(
-        100,
-        Math.max(0, campaign?.progress || 0)
-    );
+    const percent = Math.min(100, Math.max(0, campaign?.progress || 0));
 
     const radius = 56;
     const circumference = 2 * Math.PI * radius;
 
-    const offset =
-        circumference - (percent / 100) * circumference;
+    const offset = circumference - (percent / 100) * circumference;
 
     const presetAmounts = [25, 50, 100, 250];
 
@@ -34,14 +31,11 @@ const DonationSidebar = ({ campaign, organizer }) => {
 
     // scalable impact logic (instead of hardcoding)
     const impactText = useMemo(() => {
-        if (activeAmount <= 0)
-            return 'Enter an amount to see your impact';
+        if (activeAmount <= 0) return 'Enter an amount to see your impact';
 
-        if (activeAmount < 25)
-            return 'Provides small but meaningful support';
+        if (activeAmount < 25) return 'Provides small but meaningful support';
 
-        if (activeAmount < 50)
-            return 'Helps cover urgent relief essentials';
+        if (activeAmount < 50) return 'Helps cover urgent relief essentials';
 
         if (activeAmount < 100)
             return 'Supports food, medicine, and basic needs';
@@ -53,10 +47,7 @@ const DonationSidebar = ({ campaign, organizer }) => {
     }, [activeAmount]);
 
     // smooth proportional bar instead of fake mapping
-    const impactPercent = Math.min(
-        100,
-        (activeAmount / 250) * 100
-    );
+    const impactPercent = Math.min(100, (activeAmount / 250) * 100);
 
     const handlePresetClick = (amount) => {
         setSelectedAmount(amount);
@@ -66,7 +57,6 @@ const DonationSidebar = ({ campaign, organizer }) => {
     return (
         <aside className="lg:sticky lg:top-24">
             <div className="overflow-hidden rounded-3xl border border-border bg-background shadow-sm">
-
                 {/* HERO */}
                 <div className="relative overflow-hidden bg-primary text-white">
                     <div className="absolute -top-16 -right-16 h-52 w-52 rounded-full bg-white/10" />
@@ -78,7 +68,8 @@ const DonationSidebar = ({ campaign, organizer }) => {
                         </h3>
 
                         <p className="mt-2 text-sm text-white/75 leading-relaxed">
-                            Your support helps deliver food, relief, and emergency aid.
+                            Your support helps deliver food, relief, and
+                            emergency aid.
                         </p>
 
                         {/* PROGRESS */}
@@ -136,7 +127,9 @@ const DonationSidebar = ({ campaign, organizer }) => {
                         <div className="mt-6 flex items-center justify-center gap-6 text-sm">
                             <div className="flex items-center gap-2">
                                 <TbUsers size={16} />
-                                <span>{campaign?.supporters || 0} supporters</span>
+                                <span>
+                                    {campaign?.supporters || 0} supporters
+                                </span>
                             </div>
 
                             <div className="h-4 w-px bg-white/20" />
@@ -151,10 +144,7 @@ const DonationSidebar = ({ campaign, organizer }) => {
 
                 {/* DONATION */}
                 <div className="p-8">
-
-                    <h4 className="mb-5 text-lg font-bold">
-                        Choose Amount
-                    </h4>
+                    <h4 className="mb-5 text-lg font-bold">Choose Amount</h4>
 
                     {/* PRESETS */}
                     <div className="grid grid-cols-2 gap-3">
@@ -184,9 +174,7 @@ const DonationSidebar = ({ campaign, organizer }) => {
                         <input
                             type="number"
                             value={customAmount}
-                            onChange={(e) =>
-                                setCustomAmount(e.target.value)
-                            }
+                            onChange={(e) => setCustomAmount(e.target.value)}
                             placeholder="Custom amount"
                             className="ml-2 flex-1 bg-transparent outline-none"
                         />
@@ -217,13 +205,15 @@ const DonationSidebar = ({ campaign, organizer }) => {
                     </div>
 
                     {/* CTA */}
-                    <Button
-                        variant="accent"
-                        size="lg"
-                        className="mt-5 h-14 w-full text-base font-bold"
-                    >
-                        Donate ${activeAmount || selectedAmount}
-                    </Button>
+                    <Link to={`/donate/${campaign.id}`}>
+                        <Button
+                            variant="accent"
+                            size="lg"
+                            className="mt-5 h-14 w-full text-base font-bold"
+                        >
+                            Donate ${activeAmount || selectedAmount}
+                        </Button>
+                    </Link>
 
                     <div className="mt-4 flex items-center justify-center gap-2 text-sm text-text-secondary">
                         <TbLockCheck size={16} />
@@ -238,9 +228,7 @@ const DonationSidebar = ({ campaign, organizer }) => {
 
                 {/* TRUST */}
                 <div className="border-t border-border p-8">
-                    <h4 className="mb-4 text-lg font-bold">
-                        Trust & Safety
-                    </h4>
+                    <h4 className="mb-4 text-lg font-bold">Trust & Safety</h4>
 
                     <div className="space-y-4 text-sm text-text-secondary">
                         <div className="flex items-start gap-3">

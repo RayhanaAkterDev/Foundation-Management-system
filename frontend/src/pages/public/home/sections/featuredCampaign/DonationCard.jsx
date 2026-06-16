@@ -134,10 +134,12 @@ const DonationCard = ({ campaign }) => {
 
                 {/* CTA */}
                 <div className="mt-5 sm:mt-6 flex flex-col sm:flex-row gap-3">
-                    <Button className="flex-1">
-                        <TbHeartFilled />
-                        Donate Now
-                    </Button>
+                    <Link to={`/donate/${data.id}`} className="flex-1">
+                        <Button className="w-full justify-center">
+                            <TbHeartFilled />
+                            Donate Now
+                        </Button>
+                    </Link>
 
                     {/* ONLY FIX: correct route */}
                     <Link to={`/campaign/${data.id}`} className="flex-1">

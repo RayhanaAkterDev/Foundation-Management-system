@@ -14,6 +14,9 @@ import CampaignDetails from '@/pages/public/campaignsPage/campaignDetails/Campai
 
 // 404
 import NotFound from '../pages/NotFound';
+import Donate from '@/pages/public/donationPage/Donate';
+import DonateHub from '@/pages/public/donationPage/DonateHub';
+import Volunteer from '@/pages/public/volunteerPage/Volunteer';
 
 const router = createBrowserRouter([
     // =========================
@@ -45,6 +48,13 @@ const router = createBrowserRouter([
 
             // SINGLE campaign details
             { path: 'campaign/:id', element: <CampaignDetails /> },
+
+            // Donate page
+            { path: '/donate', element: <DonateHub /> },
+            { path: '/donate/:id', element: <Donate /> },
+
+            // Volunteer
+            { path: 'volunteer', element: <Volunteer /> },
         ],
     },
 

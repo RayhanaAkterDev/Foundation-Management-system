@@ -17,6 +17,8 @@ import NotFound from '../pages/NotFound';
 import Donate from '@/pages/public/donationPage/Donate';
 import DonateHub from '@/pages/public/donationPage/DonateHub';
 import Volunteer from '@/pages/public/volunteerPage/Volunteer';
+import RequestHelp from '@/pages/public/requestHelpPage/RequestHelp';
+import Partner from '@/pages/public/partnersPage/Partner';
 
 const router = createBrowserRouter([
     // =========================
@@ -55,6 +57,13 @@ const router = createBrowserRouter([
 
             // Volunteer
             { path: 'volunteer', element: <Volunteer /> },
+
+            // Request help page
+            { path: 'request-help', element: <RequestHelp /> },
+
+            // Partner page
+            { path: 'partner', element: <Partner /> },
+
         ],
     },
 

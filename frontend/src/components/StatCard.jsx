@@ -3,186 +3,153 @@ import StatValue from './StatValue';
 
 const StatCard = ({
     stats = [],
-    variant = 'row',
     size = 'section',
-    style = 'card', // minimal | card
-    align = 'left',
-    gridCols = 'grid-cols-2 lg:grid-cols-4',
+    tone = 'light', // light | primary
     className = '',
 }) => {
-    // =========================
-    // SIZE STYLES
-    // =========================
-
     const sizes = {
         hero: {
-            value: 'text-2xl sm:text-3xl xl:text-4xl',
+            value: 'text-2xl sm:text-3xl lg:text-4xl',
             label: 'text-sm sm:text-base',
-            iconBox: 'w-14 h-14',
-            icon: 24,
-            padding: 'p-6 xl:p-7',
-            gap: 'gap-5',
+            iconBox: 'w-12 h-12 sm:w-14 sm:h-14',
+            icon: 22,
+            padding: 'p-5 sm:p-6 lg:p-7',
+            gap: 'gap-3 sm:gap-4 lg:gap-5',
         },
 
         section: {
-            value: 'text-xl sm:text-2xl',
-            label: 'text-sm',
-            iconBox: 'w-12 h-12',
-            icon: 22,
-            padding: 'p-5',
-            gap: 'gap-4',
+            value: 'text-xl sm:text-2xl lg:text-3xl',
+            label: 'text-sm sm:text-base',
+            iconBox: 'w-11 h-11 sm:w-12 sm:h-12',
+            icon: 20,
+            padding: 'p-5 sm:p-6',
+            gap: 'gap-3 sm:gap-4',
         },
 
         compact: {
-            value: 'text-lg',
-            label: 'text-xs',
-            iconBox: 'w-10 h-10',
+            value: 'text-lg sm:text-xl',
+            label: 'text-xs sm:text-sm',
+            iconBox: 'w-10 h-10 sm:w-11 sm:h-11',
             icon: 18,
-            padding: 'p-4',
-            gap: 'gap-3',
+            padding: 'p-4 sm:p-5',
+            gap: 'gap-2 sm:gap-3',
         },
     };
 
     const s = sizes[size] || sizes.section;
-
-    const alignment = {
-        left: 'items-start text-left',
-        center: 'items-center text-center',
-        right: 'items-end text-right',
-    };
-
-    const currentAlign = alignment[align] || alignment.left;
+    const isPrimary = tone === 'primary';
 
     if (!Array.isArray(stats) || stats.length === 0) return null;
-
-    const isHero = size === 'hero';
 
     return (
         <div
             className={`
                 grid
-                ${gridCols}
-                ${isHero ? 'gap-0' : 'gap-4 sm:gap-5 lg:gap-6'}
+                grid-cols-1
+                sm:grid-cols-2
+                lg:grid-cols-4
+                gap-5 sm:gap-6 lg:gap-8
                 ${className}
             `}
         >
             {stats.map((stat, index) => {
                 const Icon = stat?.icon;
-                const isMinimal = style === 'minimal';
-                const isLast = index === stats.length - 1;
 
                 return (
                     <div
                         key={index}
                         className={`
-                            relative
+                            relative group
                             ${s.padding}
-                            transition-all duration-300
+                            rounded-2xl
+
+                            flex flex-col items-center justify-center text-center
+                            transition-all duration-300 ease-out
+
+                            min-h-35 sm:min-h-40 lg:min-h-45
 
                             ${
-                                isHero
+                                isPrimary
                                     ? `
-                                        bg-transparent
-                                        shadow-none
-                                        rounded-none
+                                        bg-white/10
+                                        backdrop-blur-md
+                                        border border-white/15
+                                        hover:bg-white/15
+                                        hover:-translate-y-1
                                     `
-                                    : isMinimal
-                                      ? `
-                                            border-l border-border/80 first:border-none
-                                        `
-                                      : `
-                                            overflow-hidden
-                                            rounded-3xl
-                                            border border-primary/8
-                                            bg-white/90
-                                            backdrop-blur-sm
-                                            shadow-sm
-                                            hover:-translate-y-1
-                                            hover:shadow-xl
-                                        `
+                                    : `
+                                        bg-surface
+                                        border border-black/5
+                                        shadow-sm
+                                        hover:shadow-lg
+                                        hover:-translate-y-1
+                                    `
                             }
                         `}
                     >
-                        {/* HERO SEPARATORS ONLY (NO BORDERS) */}
-                        {isHero && !isLast && (
-                            <>
-                                {/* desktop vertical line */}
-                                <span className="hidden lg:block absolute right-0 top-1/4 h-1/2 w-px bg-primary/10" />
-
-                                {/* mobile horizontal line */}
-                                <span className="block lg:hidden absolute bottom-0 left-1/4 w-1/2 h-px bg-primary/10" />
-                            </>
-                        )}
-
-                        {/* background glow (only non-hero card mode) */}
-                        {!isMinimal && !isHero && (
-                            <div className="absolute inset-0 bg-linear-to-br from-primary/3 to-transparent pointer-events-none" />
-                        )}
-
+                        {/* glow */}
                         <div
                             className={`
-                                relative
-                                flex
-
+                                absolute inset-0 rounded-2xl pointer-events-none
                                 ${
-                                    variant === 'column'
-                                        ? `flex-col ${s.gap}`
-                                        : `items-center ${s.gap}`
+                                    isPrimary
+                                        ? 'bg-linear-to-br from-white/10 to-transparent'
+                                        : 'bg-linear-to-br from-primary/5 to-transparent'
                                 }
+                            `}
+                        />
 
+                        {/* ICON */}
+                        {Icon && (
+                            <div
+                                className={`
+                                    ${s.iconBox}
+                                    flex items-center justify-center
+                                    rounded-xl
+                                    transition-all duration-300
+                                    mb-4 sm:mb-5
+
+                                    ${
+                                        isPrimary
+                                            ? 'bg-white/15 text-white group-hover:bg-white/25'
+                                            : 'bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white'
+                                    }
+                                `}
+                            >
+                                <Icon size={s.icon} strokeWidth={2} />
+                            </div>
+                        )}
+
+                        {/* VALUE */}
+                        <StatValue
+                            value={stat?.value}
+                            className={`
+                                font-bold tracking-tight
+                                leading-tight
+                                ${s.value}
                                 ${
-                                    isHero
-                                        ? 'justify-center text-center'
-                                        : currentAlign
+                                    isPrimary
+                                        ? 'text-white'
+                                        : 'text-text-primary'
+                                }
+                            `}
+                        />
+
+                        {/* LABEL */}
+                        <p
+                            className={`
+                                mt-2 sm:mt-3
+                                leading-snug sm:leading-relaxed
+                                ${s.label}
+                                ${
+                                    isPrimary
+                                        ? 'text-white/75'
+                                        : 'text-text-secondary'
                                 }
                             `}
                         >
-                            {/* ICON */}
-                            {Icon && (
-                                <div
-                                    className={`
-                                        ${s.iconBox}
-                                        flex items-center justify-center
-                                        rounded-2xl shrink-0
-
-                                        ${
-                                            isHero
-                                                ? 'bg-primary/5 text-primary'
-                                                : isMinimal
-                                                  ? 'bg-primary/5 text-primary'
-                                                  : stat?.featured
-                                                    ? 'bg-primary text-white shadow-md'
-                                                    : 'bg-primary/8 text-primary group-hover:bg-primary group-hover:text-white'
-                                        }
-                                    `}
-                                >
-                                    <Icon size={s.icon} strokeWidth={2.1} />
-                                </div>
-                            )}
-
-                            {/* TEXT */}
-                            <div className="space-y-1">
-                                <StatValue
-                                    value={stat?.value}
-                                    className={`
-                                        font-bold
-                                        tracking-tight
-                                        text-text-primary/80
-                                        ${s.value}
-                                    `}
-                                />
-
-                                <p
-                                    className={`
-                                        text-text-secondary
-                                        leading-relaxed
-                                        ${s.label}
-                                    `}
-                                >
-                                    {stat?.label}
-                                </p>
-                            </div>
-                        </div>
+                            {stat?.label}
+                        </p>
                     </div>
                 );
             })}

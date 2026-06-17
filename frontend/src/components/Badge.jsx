@@ -42,42 +42,27 @@ const toneStyles = {
 
 const sizeStyles = {
     sm: `
-        px-2.5 py-1
+        h-7
+        px-3
         text-[11px]
         gap-1.5
         rounded-full
-
-        sm:px-3 sm:py-1
-        md:px-3 md:py-1
-        lg:px-3.5 lg:py-1.5
-
-        md:text-xs
     `,
 
     md: `
-        px-3 py-1.5
-        text-xs
+        h-9
+        px-4
+        text-sm
         gap-2
         rounded-full
-
-        sm:px-3.5 sm:py-1.5
-        md:px-4 md:py-1.5
-        lg:px-[18px] lg:py-2
-
-        lg:text-sm
     `,
 
     lg: `
-        px-4 py-2
-        text-sm
+        h-11
+        px-5
+        text-[15px]
         gap-2.5
         rounded-full
-
-        sm:px-4.5 sm:py-2
-        md:px-5 md:py-2
-        lg:px-5.5 lg:py-2.5
-
-        lg:text-[15px]
     `,
 };
 
@@ -103,13 +88,17 @@ const Badge = ({
         <div
             className={clsx(
                 `
-                    inline-flex items-center justify-center
-                    max-w-full
-                    border
-                    font-semibold tracking-[0.01em]
-                    transition-all duration-300
-                    select-none
-                    leading-none
+                inline-flex items-center justify-center
+                max-w-full
+                whitespace-nowrap
+                shrink-0
+
+                border
+                font-semibold
+                tracking-[0.01em]
+
+                transition-all duration-300
+                select-none
                 `,
                 toneClass,
                 sizeStyles[size],
@@ -134,16 +123,16 @@ const Badge = ({
                 <Icon
                     className={clsx(
                         'shrink-0',
-                        size === 'sm' && 'size-3',
-                        size === 'md' && 'size-3.5',
-                        size === 'lg' && 'size-4',
+                        size === 'sm' && 'size-3.5',
+                        size === 'md' && 'size-4',
+                        size === 'lg' && 'size-4.5',
                     )}
-                    strokeWidth={2.2}
+                    strokeWidth={2.1}
                 />
             )}
 
             {/* LABEL */}
-            <span className="leading-none truncate">{children}</span>
+            <span className="truncate">{children}</span>
         </div>
     );
 };

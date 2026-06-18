@@ -5,6 +5,7 @@ const StatCard = ({
     stats = [],
     size = 'section',
     tone = 'light', // light | primary
+    variant = 'card', // NEW: card | line
     className = '',
 }) => {
     const sizes = {
@@ -38,6 +39,7 @@ const StatCard = ({
 
     const s = sizes[size] || sizes.section;
     const isPrimary = tone === 'primary';
+    const isLine = variant === 'line';
 
     if (!Array.isArray(stats) || stats.length === 0) return null;
 
@@ -61,15 +63,22 @@ const StatCard = ({
                         className={`
                             relative group
                             ${s.padding}
-                            rounded-2xl
 
                             flex flex-col items-center justify-center text-center
                             transition-all duration-300 ease-out
 
                             min-h-35 sm:min-h-40 lg:min-h-45
 
+                            rounded-2xl
+
                             ${
-                                isPrimary
+                                isLine
+                                    ? `
+                                        bg-transparent
+                                        border-0
+                                        shadow-none
+                                    `
+                                    : isPrimary
                                     ? `
                                         bg-white/10
                                         backdrop-blur-md
@@ -87,17 +96,19 @@ const StatCard = ({
                             }
                         `}
                     >
-                        {/* glow */}
-                        <div
-                            className={`
-                                absolute inset-0 rounded-2xl pointer-events-none
-                                ${
-                                    isPrimary
-                                        ? 'bg-linear-to-br from-white/10 to-transparent'
-                                        : 'bg-linear-to-br from-primary/5 to-transparent'
-                                }
-                            `}
-                        />
+                        {/* glow (DISABLED in line mode) */}
+                        {!isLine && (
+                            <div
+                                className={`
+                                    absolute inset-0 rounded-2xl pointer-events-none
+                                    ${
+                                        isPrimary
+                                            ? 'bg-linear-to-br from-white/10 to-transparent'
+                                            : 'bg-linear-to-br from-primary/5 to-transparent'
+                                    }
+                                `}
+                            />
+                        )}
 
                         {/* ICON */}
                         {Icon && (
@@ -110,9 +121,21 @@ const StatCard = ({
                                     mb-4 sm:mb-5
 
                                     ${
-                                        isPrimary
-                                            ? 'bg-white/15 text-white group-hover:bg-white/25'
-                                            : 'bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white'
+                                        isLine
+                                            ? `
+                                                bg-transparent
+                                                text-primary
+                                                mb-3 sm:mb-4
+                                            `
+                                            : isPrimary
+                                            ? `
+                                                bg-white/15 text-white
+                                                group-hover:bg-white/25
+                                            `
+                                            : `
+                                                bg-primary/10 text-primary
+                                                group-hover:bg-primary group-hover:text-white
+                                            `
                                     }
                                 `}
                             >

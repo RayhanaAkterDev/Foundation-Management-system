@@ -20,6 +20,7 @@ import Volunteer from '@/pages/public/volunteerPage/Volunteer';
 import RequestHelp from '@/pages/public/requestHelpPage/RequestHelp';
 import Partner from '@/pages/public/partnersPage/Partner';
 import Stories from '@/pages/public/storiesPage/Stories';
+import About from '@/pages/public/about/About';
 
 const router = createBrowserRouter([
     // =========================
@@ -30,6 +31,8 @@ const router = createBrowserRouter([
         element: <PublicLayout />,
         children: [
             { path: '', element: <Home /> },
+
+            { path: '/about', element: <About /> },
 
             { path: 'how-it-works', element: <HowItWorksPage /> },
 

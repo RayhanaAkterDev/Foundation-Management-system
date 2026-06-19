@@ -1,3 +1,4 @@
+import SectionHeading from '@/components/SectionHeading';
 import { useState } from 'react';
 
 const faqs = [
@@ -19,35 +20,87 @@ const VolunteerFAQ = () => {
     const [open, setOpen] = useState(null);
 
     return (
-        <section className="max-w-3xl mx-auto space-y-8">
-            <h2 className="text-center text-2xl md:text-4xl font-semibold">
-                Frequently asked questions
-            </h2>
+        <section className="section-gap bg-surface">
+            <div className="container-width max-w-2xl">
+                {/* Heading */}
+                <SectionHeading
+                    title="Frequently asked questions"
+                    description="Everything you need to know before joining as a volunteer."
+                    descriptionSize="sectionHero"
+                />
 
-            <div className="space-y-4">
-                {faqs.map((f, i) => (
-                    <div
-                        key={i}
-                        className="border border-border rounded-xl p-4"
-                    >
-                        <button
-                            onClick={() => setOpen(open === i ? null : i)}
-                            className="w-full text-left font-medium"
-                        >
-                            {f.q}
-                        </button>
+                {/* FAQ list */}
+                <div className="mt-10 sm:mt-14 md:mt-16 space-y-5 sm:space-y-7 md:space-y-8">
+                    {faqs.map((f, i) => {
+                        const isOpen = open === i;
 
-                        <div
-                            className={`overflow-hidden transition-all duration-300 ${
-                                open === i ? 'max-h-40 mt-2' : 'max-h-0'
-                            }`}
-                        >
-                            <p className="text-muted-foreground text-sm">
-                                {f.a}
-                            </p>
-                        </div>
-                    </div>
-                ))}
+                        return (
+                            <div
+                                key={i}
+                                className="
+                                    border-b border-border last:border-b-0
+                                    pb-5 sm:pb-6 md:pb-7
+                                "
+                            >
+                                {/* Question */}
+                                <button
+                                    onClick={() => setOpen(isOpen ? null : i)}
+                                    className="
+                                        w-full
+                                        flex items-start justify-between
+                                        gap-4
+                                        text-left
+                                        py-2 sm:py-3
+                                        cursor-pointer
+                                    "
+                                >
+                                    <span
+                                        className="
+                                            text-base sm:text-lg md:text-xl
+                                            font-medium
+                                            leading-snug
+                                        "
+                                    >
+                                        {f.q}
+                                    </span>
+
+                                    <span
+                                        className="
+                                            text-primary
+                                            text-xl sm:text-2xl
+                                            leading-none
+                                            select-none
+                                            transition-transform duration-300
+                                            ${isOpen ? 'rotate-45' : ''}
+                                        "
+                                    >
+                                        +
+                                    </span>
+                                </button>
+
+                                {/* Answer */}
+                                <div
+                                    className={`
+                                        overflow-hidden
+                                        transition-all duration-300 ease-in-out
+                                        ${isOpen ? 'max-h-96 mt-3 sm:mt-4' : 'max-h-0'}
+                                    `}
+                                >
+                                    <p
+                                        className="
+                                            text-sm sm:text-base md:text-lg
+                                            text-muted-foreground
+                                            leading-relaxed
+                                            pr-2
+                                        "
+                                    >
+                                        {f.a}
+                                    </p>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
             </div>
         </section>
     );

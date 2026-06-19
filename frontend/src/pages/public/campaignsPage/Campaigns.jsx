@@ -22,7 +22,7 @@ const Campaigns = () => {
         ? getCampaignsByCategory(categoryId)
         : getAllCampaigns();
 
-    // 🔥 FIX 1: safe text fields (NO crashes)
+    // safe text fields
     const filtered = useMemo(() => {
         const q = search.toLowerCase();
 
@@ -37,7 +37,7 @@ const Campaigns = () => {
         });
     }, [search, campaigns]);
 
-    // 🔥 FIX 2: safe pagination
+    // pagination
     const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
 
     const current = useMemo(() => {
@@ -46,22 +46,27 @@ const Campaigns = () => {
     }, [filtered, currentPage]);
 
     return (
-        <section className="section-gap bg-surface">
-            <div className="container-width">
+        <section className="bg-surface min-h-screen">
+            {/* HERO */}
+            <HeroSection />
+
+            <div
+                id="explore"
+                className="container-width pb-14 md:pb-16 lg:pb-20"
+            >
                 {/* HEADER */}
                 <SectionHeading
                     align="left"
-                    title={
-                        categoryId
-                            ? `${campaigns.length} Campaigns`
-                            : `${campaigns.length} Active Campaigns`
-                    }
+                    title={categoryId ? `Browse Campaigns` : `Active Campaigns`}
                     headingSize="sectionHero"
-                    wrapperClass="pt-14 md:pt-16 lg:pt-20"
                 />
 
-                {/* SEARCH */}
-                <div className="mt-6">
+                <p className="text-gray-600 mt-2 max-w-2xl">
+                    Discover verified causes and support real people in need.
+                </p>
+
+                {/* SEARCH (minimal, not boxed) */}
+                <div className="mt-6 max-w-xl">
                     <SearchBar
                         value={search}
                         onChange={(v) => {
@@ -81,15 +86,15 @@ const Campaigns = () => {
                             />
                         ))
                     ) : (
-                        <p className="text-center col-span-full text-gray-500">
+                        <div className="col-span-full text-center py-16 text-gray-500">
                             No campaigns found
-                        </p>
+                        </div>
                     )}
                 </div>
 
                 {/* PAGINATION */}
-                {filtered.length > 0 && (
-                    <div className="mt-10">
+                {filtered.length > ITEMS_PER_PAGE && (
+                    <div className="flex justify-center">
                         <Pagination
                             currentPage={currentPage}
                             totalPages={totalPages}
@@ -97,9 +102,6 @@ const Campaigns = () => {
                         />
                     </div>
                 )}
-
-                {/* HERO */}
-                <HeroSection />
             </div>
         </section>
     );

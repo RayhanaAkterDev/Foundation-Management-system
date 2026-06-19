@@ -63,7 +63,7 @@ const FinalCTA = () => {
 
                         {/* primary CTA */}
                         <Link
-                            to="/request"
+                            to="/request-help"
                             className="
                                 mt-5 sm:mt-6 block text-center
                                 px-5 sm:px-6 py-2.5 sm:py-3

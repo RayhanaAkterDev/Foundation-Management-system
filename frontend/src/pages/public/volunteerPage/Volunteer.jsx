@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 import VolunteerHero from './components/VolunteerHero';
 import VolunteerRoles from './components/VolunteerRoles.jsx';
 import VolunteerJourney from './components/VolunteerJourney';
@@ -8,15 +10,17 @@ import VolunteerForm from './components/VolunteerForm';
 import VolunteerFAQ from './components/VolunteerFAQ';
 
 const Volunteer = () => {
+    const [focusForm, setFocusForm] = useState(false);
     return (
         <main>
             <VolunteerHero />
             <VolunteerRoles />
-            <VolunteerJourney />
             <VolunteerBenefits />
+            <VolunteerJourney />
             <VolunteerStories />
-            <VolunteerCTA />
-            <VolunteerForm />
+
+            <VolunteerCTA onClickJoin={() => setFocusForm(true)} />
+            <VolunteerForm focus={focusForm} />
             <VolunteerFAQ />
         </main>
     );

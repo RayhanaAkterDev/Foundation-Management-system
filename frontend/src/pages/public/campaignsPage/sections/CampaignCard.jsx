@@ -35,7 +35,7 @@ export default function CampaignCard({ campaign }) {
                         <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
 
                         <span className="text-xs font-medium text-white/90">
-                            {campaign.daysLeft} days left
+                            {campaign.daysLeft} days left 
                         </span>
                     </div>
 

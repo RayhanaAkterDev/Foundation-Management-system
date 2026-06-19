@@ -45,7 +45,7 @@ const Navbar = () => {
                                 activeMenu={activeMenu}
                                 setActiveMenu={setActiveMenu}
                             />
-                            <Button variant="accent" size="lg">
+                            <Button to="/donate" variant="accent" size="lg">
                                 Donate Now
                             </Button>
                         </div>
@@ -61,7 +61,7 @@ const Navbar = () => {
                 </div>
             </header>
 
-            {/* ✅ MEGA MENU (FIXED LAYERING) */}
+            {/* MEGA MENU */}
             <MegaMenu item={activeItem} onClose={() => setActiveMenu(null)} />
 
             {/* OVERLAY */}
@@ -93,7 +93,12 @@ const Navbar = () => {
                 </div>
 
                 <div className="p-5 shrink-0">
-                    <Button variant="accent" size='lg' className="w-full">
+                    <Button
+                        size="lg"
+                        to="/donate"
+                        variant="accent"
+                        className="w-full"
+                    >
                         Donate Now
                     </Button>
                 </div>

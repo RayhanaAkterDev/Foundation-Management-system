@@ -26,9 +26,7 @@ const NavMenu = ({ mobile = false, onClose, activeMenu, setActiveMenu }) => {
         return false;
     };
 
-    // =============================
-    // MOBILE MENU (INDEPENDENT STATE)
-    // =============================
+    // MOBILE MENU
     const [openId, setOpenId] = React.useState(null);
 
     if (mobile) {

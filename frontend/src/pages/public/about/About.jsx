@@ -16,26 +16,17 @@ import BePartOfChange from './sections/BePartOfChange';
 // assets->images
 import aboutHeroImage from '@/assets/about/aboutHero.png';
 import bePartOfChange from '@/assets/about/bePartOfChange.png';
-import aboutImpacts from '@/assets/about/aboutImpacts.jpg';
 
 const About = () => {
     return (
         <>
             <Hero
-                bgClass="bg-[#F4F3F2]"
                 align="left"
-                badge="About CareLink"
-                badgeIcon={TbHeartFilled}
-                badgeClass="text-accent"
                 title={
                     <>
                         Connecting <span className="text-primary">hope</span>{' '}
-                        with
-                        <span className="block">
-                            {' '}
-                            people who need it{' '}
-                            <span className="text-accent">most</span>
-                        </span>
+                        where it’s needed{' '}
+                        <span className="text-accent">most</span>
                     </>
                 }
                 description="CareLink connects donors, volunteers, and communities through a transparent system that turns compassion into measurable, real-world impact with clarity and trust."
@@ -54,17 +45,8 @@ const About = () => {
             <AboutIntroSection />
             <AboutPurposeSection />
 
-            <section
-                className="relative overflow-hidden bg-cover bg-top bg-no-repeat section-gap"
-                style={{ backgroundImage: `url(${aboutImpacts})` }}
-            >
-                {/* overlay */}
-                <div className="absolute inset-0 bg-black/30 z-0"></div>
-
-                {/* content */}
-                <div className="relative z-10">
-                    <AboutImpactSection />
-                </div>
+            <section className="bg-primary">
+                <AboutImpactSection />
             </section>
 
             <section

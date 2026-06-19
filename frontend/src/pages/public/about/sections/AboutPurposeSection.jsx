@@ -22,6 +22,7 @@ const AboutPurposeSection = () => {
                             </>
                         }
                         headingClass="text-primary"
+                        headingSize="sectionHero"
                         description="We built CareLink to fix a simple but broken reality in humanitarian support."
                     />
 

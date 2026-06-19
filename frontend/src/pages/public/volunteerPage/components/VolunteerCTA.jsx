@@ -8,14 +8,14 @@ const stats = [
     { value: '100%', label: 'Active Support' },
 ];
 
-const VolunteerCTA = () => {
+const VolunteerCTA = ({ onClickJoin }) => {
     return (
         <section className="section-gap bg-primary text-white">
             <div className="container-width text-center">
-                {/* SMALL LABEL */}
                 <p className="text-[11px] sm:text-xs tracking-[0.35em] uppercase text-white/70 mb-6">
                     Volunteer with StandForPeople
                 </p>
+
                 <SectionHeading
                     title={
                         <>
@@ -29,7 +29,7 @@ const VolunteerCTA = () => {
                         <>
                             Join thousands of volunteers who are already
                             supporting communities,
-                            <span className="lg: block">
+                            <span className="lg:block">
                                 responding to needs, and creating measurable
                                 change every day.
                             </span>
@@ -39,7 +39,6 @@ const VolunteerCTA = () => {
                     descriptionClass="text-white/80!"
                 />
 
-                {/* Stats */}
                 <div className="my-6 max-w-2xl mx-auto">
                     <StatCard
                         stats={stats}
@@ -49,9 +48,8 @@ const VolunteerCTA = () => {
                     />
                 </div>
 
-                {/* CTA */}
                 <div>
-                    <Button size="lg" variant="accent">
+                    <Button size="lg" variant="accent" onClick={onClickJoin}>
                         Join as Volunteer
                     </Button>
 

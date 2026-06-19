@@ -39,18 +39,16 @@ const AllCategoriesView = ({ categories }) => {
                                     />
                                 </div>
 
-                                <h3 className="font-semibold text-gray-900">
-                                    {cat.name}
-                                </h3>
+                                <h3 className="font-semibold">{cat.name}</h3>
                             </div>
 
                             {/* DESCRIPTION */}
-                            <p className="text-sm text-gray-500 line-clamp-2">
+                            <p className="text-sm text-text-secondary line-clamp-2">
                                 {cat.description}
                             </p>
 
                             {/* META */}
-                            <div className="flex justify-between text-xs text-gray-400 pt-2">
+                            <div className="flex justify-between text-xs text-text-secondary pt-2">
                                 <span>
                                     {getCategoryCount(cat.id)} campaigns
                                 </span>

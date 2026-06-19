@@ -44,11 +44,22 @@ const VolunteerHero = () => {
                         />
 
                         <div className="flex flex-col sm:flex-row gap-4 mt-8 md:mt-10">
-                            <Button size="lg" className="w-full sm:w-auto">
+                            <Button
+                                size="lg"
+                                className="w-full sm:w-auto"
+                                onClick={() => {
+                                    document
+                                        .getElementById('volunteer-form')
+                                        ?.scrollIntoView({
+                                            behavior: 'smooth',
+                                        });
+                                }}
+                            >
                                 Become a Volunteer
                             </Button>
 
                             <Button
+                                to="/how-it-works"
                                 variant="outline"
                                 size="lg"
                                 className="w-full sm:w-auto"

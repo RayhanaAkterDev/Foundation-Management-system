@@ -6,28 +6,52 @@ const RequestSuccessModal = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-            navigate('/');
-        }, 2500);
-
-        return () => clearTimeout(timer);
+        const t = setTimeout(() => navigate('/'), 3000);
+        return () => clearTimeout(t);
     }, [navigate]);
 
     return (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-            <div className="bg-white p-8 rounded-2xl text-center max-w-sm shadow-xl">
-                <div className="w-14 h-14 mx-auto rounded-full bg-green-100 flex items-center justify-center mb-4">
-                    <TbCheck className="text-green-600 text-3xl" />
+        <div
+            className="
+            fixed inset-0 z-50
+            flex items-center justify-center
+            bg-black/40 backdrop-blur-sm
+            px-4
+        "
+        >
+            <div
+                className="
+                w-full max-w-sm sm:max-w-md
+                rounded-2xl sm:rounded-3xl
+                bg-surface
+                border border-border
+                shadow-xl
+                p-6 sm:p-8
+                text-center
+            "
+            >
+                <div
+                    className="
+                    mx-auto mb-5 sm:mb-6
+                    h-14 w-14 sm:h-16 sm:w-16
+                    rounded-full
+                    bg-green-50
+                    flex items-center justify-center
+                "
+                >
+                    <TbCheck className="text-2xl sm:text-3xl text-green-600" />
                 </div>
 
-                <h2 className="text-xl font-semibold">Request Submitted</h2>
+                <h2 className="text-lg sm:text-xl font-semibold">
+                    Request Received
+                </h2>
 
-                <p className="text-sm text-text-secondary mt-2">
-                    Authority will contact you soon.
+                <p className="mt-3 text-sm text-text-secondary">
+                    Your request is under review.
                 </p>
 
-                <p className="text-xs mt-4 text-text-secondary">
-                    Redirecting to homepage...
+                <p className="mt-2 text-xs text-text-secondary">
+                    Redirecting...
                 </p>
             </div>
         </div>

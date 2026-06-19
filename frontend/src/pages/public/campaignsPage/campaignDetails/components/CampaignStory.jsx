@@ -6,16 +6,15 @@ const CampaignStory = ({ story = [] }) => {
     const visibleStory = expanded ? story : story.slice(0, 3);
 
     return (
-        <section className="mt-16">
-            <h2 className="text-3xl font-semibold text-text-primary mb-8">
-                Our Story
+        <section className="">
+            {/* SECTION TITLE */}
+            <h2 className="text-3xl font-semibold text-text-primary py-6">
+                The Story
             </h2>
 
             <div className="relative">
                 <div
-                    className={`space-y-8 overflow-hidden transition-all duration-500 ${
-                        expanded ? '' : 'max-h-85'
-                    }`}
+                    className={`space-y-8 ${expanded ? '' : 'max-h-55 overflow-hidden'}`}
                 >
                     {visibleStory.map((paragraph, index) => (
                         <p
@@ -27,36 +26,23 @@ const CampaignStory = ({ story = [] }) => {
                     ))}
                 </div>
 
-                {!expanded && story.length > 3 && (
-                    <div
-                        className="
-                            absolute
-                            bottom-12
-                            left-0
-                            right-0
-                            h-56
-                            bg-linear-to-t
-                            from-surface
-                            to-transparent
-                            pointer-events-none
-                        "
-                    />
-                )}
-
-                {story.length > 3 && (
-                    <button
-                        onClick={() => setExpanded(!expanded)}
-                        className="
-                            mt-6
-                            text-primary
-                            font-medium
-                            hover:text-primary-hover
-                            transition-colors
-                        "
-                    >
-                        {expanded ? 'Show Less ←' : 'Continue Reading →'}
-                    </button>
-                )}
+                {/* CTA */}
+                <div className="text-right">
+                    {story.length > 3 && (
+                        <button
+                            onClick={() => setExpanded(!expanded)}
+                            className="
+                                mt-8
+                                text-primary
+                                font-medium
+                                hover:text-primary-hover
+                                transition-all duration-200 border-b border-transparent hover:border-primary/60
+                            "
+                        >
+                            {expanded ? 'Show Less ←' : 'Continue Reading →'}
+                        </button>
+                    )}
+                </div>
             </div>
         </section>
     );

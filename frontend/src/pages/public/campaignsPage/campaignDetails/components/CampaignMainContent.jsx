@@ -2,11 +2,7 @@ import Badge from '@/components/Badge';
 import CampaignStory from './CampaignStory';
 import SectionHeading from '@/components/SectionHeading';
 
-import {
-    TbCircleCheck,
-    TbStethoscope,
-    TbTruckDelivery,
-} from 'react-icons/tb';
+import { TbCircleCheck, TbStethoscope, TbTruckDelivery } from 'react-icons/tb';
 
 const iconMap = {
     TbCircleCheck,
@@ -18,95 +14,105 @@ const CampaignMainContent = ({ campaign }) => {
     const updates = campaign?.updates || [];
 
     return (
-        <div>
-            {/* META */}
-            <div className="flex flex-wrap items-center gap-3 mb-5">
+        <div className="space-y-6">
+            {/* META (compact) */}
+            <div className="flex flex-wrap items-center gap-2">
                 <Badge
                     variant={
-                        campaign.urgency === 'Critical'
-                            ? 'urgent'
-                            : 'primary'
+                        campaign.urgency === 'Critical' ? 'urgent' : 'primary'
                     }
-                    size="sm"
                 >
                     {campaign.urgency}
                 </Badge>
 
-                <p className="text-primary text-sm">
-                    {campaign.category} • {campaign.location}
-                </p>
+                <span className="text-text-secondary">
+                    <span className="uppercase">{campaign.category} • </span>
+                    {campaign.location}
+                </span>
             </div>
 
-            {/* TITLE */}
             <SectionHeading
+                gap="sm"
                 align="left"
                 title={campaign.title}
-                headingSize="hero"
-                headingClass="leading-18! tracking-normal"
+                headingSize="sectionHero"
                 description={campaign.shortDescription}
                 descriptionSize="hero"
-                descriptionClass="leading-9! tracking-wide"
             />
 
-            {/* HERO IMAGE */}
-            <img
-                src={campaign.image}
-                alt={campaign.title}
-                className="w-full mt-10 rounded-3xl object-cover"
-            />
+            {/* IMAGE (reduced height) */}
+            <div className="relative overflow-hidden rounded-2xl">
+                <img
+                    src={campaign.image}
+                    alt={campaign.title}
+                    className="w-full h-80 object-cover"
+                />
 
-            {/* STORY */}
+                <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent" />
+            </div>
+
+            {/* STORY (compact container) */}
             <CampaignStory story={campaign.story} />
 
             {/* UPDATES */}
             {updates.length > 0 && (
-                <section className="mt-20">
-                    <div className="mb-10">
-                        <h2 className="text-2xl md:text-3xl font-bold text-text-primary">
-                            Campaign Updates
+                <section className="pt-2">
+                    {/* HEADER (tight) */}
+                    <div className="mb-6">
+                        <h2 className="text-xl md:text-2xl font-semibold text-text-primary">
+                            Updates
                         </h2>
-                        <div className="mt-3 h-1 w-16 bg-primary rounded-full" />
+
+                        <p className="text-xs text-text-secondary mt-1">
+                            Field reports & progress
+                        </p>
                     </div>
 
+                    {/* TIMELINE (compact UI) */}
                     <div className="relative">
+                        <div className="absolute left-5 top-0 bottom-0 w-px bg-border/60" />
+
                         {updates.map((update, index) => {
                             const Icon = iconMap?.[update.icon];
 
                             return (
                                 <div
                                     key={index}
-                                    className="relative flex gap-6 pb-10 last:pb-0"
+                                    className="relative flex gap-4 pb-6 last:pb-0"
                                 >
-                                    {/* Timeline */}
-                                    <div className="relative flex flex-col items-center shrink-0">
-                                        <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center text-white shadow-sm">
+                                    {/* ICON (smaller) */}
+                                    <div className="z-10">
+                                        <div
+                                            className="
+                                            w-9 h-9 rounded-xl
+                                            bg-surface border border-border
+                                            flex items-center justify-center
+                                            text-primary
+                                        "
+                                        >
                                             {Icon ? (
-                                                <Icon size={22} />
+                                                <Icon size={16} />
                                             ) : (
-                                                <TbCircleCheck size={22} />
+                                                <TbCircleCheck size={16} />
                                             )}
                                         </div>
-
-                                        {index !== updates.length - 1 && (
-                                            <div className="w-px flex-1 bg-border mt-2 min-h-17.5" />
-                                        )}
                                     </div>
 
-                                    {/* Content */}
-                                    <div className="flex-1 flex flex-col md:flex-row md:items-start md:justify-between gap-3">
-                                        <div className="max-w-2xl">
-                                            <h3 className="text-lg font-semibold text-text-primary">
+                                    {/* CONTENT (compact text) */}
+                                    <div className="flex-1">
+                                        <div className="flex justify-between gap-3">
+                                            <h3 className="text-sm font-medium text-text-primary">
                                                 {update.title}
                                             </h3>
 
-                                            <p className="mt-2 text-text-secondary leading-7">
-                                                {update.content}
-                                            </p>
+                                            <span className="text-[11px] text-text-secondary whitespace-nowrap">
+                                                {update.date}
+                                            </span>
                                         </div>
 
-                                        <div className="shrink-0 text-sm text-text-secondary md:text-right">
-                                            {update.date}
-                                        </div>
+                                        <p className="text-xs text-text-secondary mt-1 leading-relaxed">
+                                            {update.content}
+                                        </p>
                                     </div>
                                 </div>
                             );

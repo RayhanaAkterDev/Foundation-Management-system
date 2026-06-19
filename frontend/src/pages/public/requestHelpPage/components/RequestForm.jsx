@@ -1,134 +1,167 @@
 import React, { useState } from 'react';
 import Button from '@/components/Button';
-import RequestInput from './RequestInput';
-import RequestTypeSelector from './RequestTypeSelector';
-import UrgencySelector from './UrgencySelector';
 
 const RequestForm = ({ setSuccess }) => {
     const [form, setForm] = useState({
+        description: '',
         name: '',
         phone: '',
         location: '',
-        requestType: '',
-        customRequestType: '',
-        urgency: '',
-        details: '',
+        urgencyHint: '',
     });
 
-    const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState({});
 
     const handleChange = (e) => {
-        setForm({ ...form, [e.target.name]: e.target.value });
-        setErrors({ ...errors, [e.target.name]: '' });
-    };
+        const { name, value } = e.target;
 
-    const validate = () => {
-        const err = {};
+        setForm((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
 
-        if (!form.name) err.name = 'Required';
-        if (!form.phone) err.phone = 'Required';
-        if (!form.location) err.location = 'Required';
-
-        if (!form.requestType) err.requestType = 'Select type';
-
-        if (form.requestType === 'Other' && !form.customRequestType) {
-            err.customRequestType = 'Specify type';
-        }
-
-        if (!form.urgency) err.urgency = 'Select urgency';
-        if (!form.details) err.details = 'Required';
-
-        return err;
+        setError((prev) => ({
+            ...prev,
+            [name]: '',
+        }));
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        const err = validate();
-        if (Object.keys(err).length) {
-            setErrors(err);
+        if (!form.description.trim()) {
+            setError({
+                description: 'Please describe your situation',
+            });
             return;
         }
 
+        setError({});
         setLoading(true);
 
         setTimeout(() => {
             setLoading(false);
             setSuccess(true);
-        }, 1000);
+        }, 1200);
     };
 
     return (
         <form
             onSubmit={handleSubmit}
-            className="space-y-10 p-8 border border-border rounded-3xl bg-white/50"
+            className="
+                w-full
+                bg-surface
+                border-l border-border
+                p-5 sm:p-7 lg:p-10
+            "
         >
+            {/* HEADER */}
             <div>
-                <h2 className="text-lg font-semibold mb-4">Personal Info</h2>
+                <h2
+                    className="
+                    text-xl sm:text-2xl lg:text-3xl
+                    font-semibold text-text-primary
+                "
+                >
+                    Tell us what happened
+                </h2>
 
-                <div className="grid md:grid-cols-2 gap-5">
-                    <RequestInput
-                        name="name"
-                        placeholder="Full Name"
-                        value={form.name}
-                        onChange={handleChange}
-                        error={errors.name}
-                    />
-
-                    <RequestInput
-                        name="phone"
-                        placeholder="Phone Number"
-                        value={form.phone}
-                        onChange={handleChange}
-                        error={errors.phone}
-                    />
-
-                    <RequestInput
-                        name="location"
-                        placeholder="Location"
-                        value={form.location}
-                        onChange={handleChange}
-                        error={errors.location}
-                    />
-                </div>
+                <p className="mt-2 text-sm text-text-secondary">
+                    Your request will be reviewed carefully and matched with
+                    support.
+                </p>
             </div>
 
-            <RequestTypeSelector
-                form={form}
-                setForm={setForm}
-                error={errors.requestType}
-            />
-
-            <UrgencySelector
-                form={form}
-                setForm={setForm}
-                error={errors.urgency}
-            />
-
-            <div>
+            {/* STORY */}
+            <div className="mt-6 sm:mt-8 lg:mt-10">
                 <textarea
-                    name="details"
-                    value={form.details}
+                    name="description"
+                    value={form.description}
                     onChange={handleChange}
-                    rows={6}
-                    className="w-full border border-border rounded-xl px-4 py-3"
+                    rows={window.innerWidth < 640 ? 6 : 9}
                     placeholder="Describe your situation..."
+                    className="
+                        w-full
+                        text-sm
+                        leading-7
+                        bg-background
+                        rounded-xl sm:rounded-2xl
+                        p-4 sm:p-5
+                        border border-border
+                        focus:outline-none
+                        focus:border-primary
+                        focus:ring-2 focus:ring-primary/10
+                    "
                 />
 
-                {errors.details && (
-                    <p className="text-red-500 text-xs mt-1">
-                        {errors.details}
+                {error.description && (
+                    <p className="mt-2 text-sm text-accent">
+                        {error.description}
                     </p>
                 )}
             </div>
 
-            <div className="flex justify-between items-center border-t pt-6">
-                <p className="text-sm text-text-secondary">
-                    Verified before processing
+            {/* OPTIONAL */}
+            <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                {['name', 'phone', 'location'].map((field) => (
+                    <input
+                        key={field}
+                        name={field}
+                        placeholder={field}
+                        value={form[field]}
+                        onChange={handleChange}
+                        className="
+                            h-11 sm:h-12
+                            px-3 sm:px-4
+                            rounded-xl
+                            border border-border
+                            bg-background
+                            text-sm
+                            focus:outline-none
+                            focus:border-primary
+                            focus:ring-2 focus:ring-primary/10
+                        "
+                    />
+                ))}
+
+                <select
+                    name="urgencyHint"
+                    value={form.urgencyHint}
+                    onChange={handleChange}
+                    className="
+                        h-11 sm:h-12
+                        px-3 sm:px-4
+                        rounded-xl
+                        border border-border
+                        bg-background
+                        text-sm
+                    "
+                >
+                    <option value="">Urgency</option>
+                    <option>Low</option>
+                    <option>Medium</option>
+                    <option>High</option>
+                    <option>Critical</option>
+                </select>
+            </div>
+
+            {/* FOOTER */}
+            <div
+                className="
+                mt-8 sm:mt-10
+                pt-5 sm:pt-6
+                border-t border-border
+                flex flex-col sm:flex-row
+                gap-4 sm:gap-0
+                sm:items-center sm:justify-between
+            "
+            >
+                <p className="text-xs text-text-secondary">
+                    Secure & confidential review process
                 </p>
 
-                <Button type="submit" disabled={loading}>
+                <Button disabled={loading}>
                     {loading ? 'Submitting...' : 'Submit Request'}
                 </Button>
             </div>

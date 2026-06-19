@@ -1,90 +1,80 @@
 import React from 'react';
-
-// Icons
 import { TbHeartFilled } from 'react-icons/tb';
 import { HiArrowSmRight } from 'react-icons/hi';
 
-// Components
 import Button from '@/components/Button';
 import SectionHeading from '@/components/SectionHeading';
-
-// Assets
 import campaignsHeroImage from '@/assets/campaigns/campaignsHeroImage.png';
 
 const HeroSection = () => {
+    const handleScroll = () => {
+        document.getElementById('explore')?.scrollIntoView({
+            behavior: 'smooth',
+        });
+    };
+
     return (
         <section className="bg-surface">
-            <div className="container-width">
-                {/* Hero Image */}
-                <div className="my-12 xl:my-16 overflow-hidden rounded-3xl lg:rounded-4xl">
-                    <img
-                        src={campaignsHeroImage}
-                        alt="Campaigns Hero"
-                        className="
-                            w-full
-                            h-75
-                            sm:h-105
-                            md:h-115
-                            lg:h-140
-                            xl:h-160
-                            object-cover
-                        "
-                    />
-                </div>
-
-                {/* Heading */}
+            <div className="container-width section-gap mt-24">
+                {/* TEXT BLOCK */}
                 <SectionHeading
-                    gap="lg"
                     badge={{
-                        label: 'Active Campaigns',
+                        label: 'All Campaigns',
                         variant: 'accent',
                         tone: 'soft',
-                        size: 'lg',
+                        size: 'md',
                     }}
                     title={
                         <>
-                            Support verified causes{' '}
-                            <span className="block text-primary">
-                                making a real impact today.
+                            Support real people{' '}
+                            <span className="text-primary sm:block">
+                                when it matters most
                             </span>
                         </>
                     }
                     headingSize="hero"
                     description={
                         <>
-                            Explore verified campaigns, respond to urgent needs,
-                            and{' '}
-                            <span className="inline md:block">
-                                stand with people when it matters most.
-                            </span>
+                            Browse verified campaigns and contribute to urgent
+                            needs across communities.
                         </>
                     }
-                    descriptionSize="hero"
-                    descriptionClass="max-w-3xl mx-auto"
+                    descriptionClass="max-w-2xl"
                 />
 
                 {/* CTA */}
-                <div className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-4 sm:gap-5">
-                    <Button size="lg" className="w-full sm:w-auto">
-                        <TbHeartFilled />
-                        Browse Urgent Cases
-                    </Button>
-
+                <div className="mt-7 flex flex-col sm:flex-row gap-3 justify-center">
                     <Button
-                        variant="outline"
                         size="lg"
+                        to="/volunteer"
+                        variant="accent"
                         className="w-full sm:w-auto"
                     >
                         Become a Volunteer
-                        <HiArrowSmRight className="mt-0.5" />
+                    </Button>
+
+                    <Button
+                        size="lg"
+                        variant="ghost"
+                        onClick={handleScroll}
+                        className=""
+                    >
+                        Explore Campaigns
+                        <HiArrowSmRight className="mt-0.75" />
                     </Button>
                 </div>
 
-                {/* Stats */}
-                <div className="mt-10 lg:mt-12 flex flex-col md:flex-row justify-center gap-x-8 gap-y-3 text-center text-sm text-text-secondary">
-                    <div>✓ Verified Requests</div>
-                    <div>✓ Transparent Progress Tracking</div>
-                    <div>✓ AI-Assisted Prioritization</div>
+                {/* IMAGE (reduced importance) */}
+                <div className="mt-16 overflow-hidden rounded-3xl">
+                    <img
+                        src={campaignsHeroImage}
+                        alt="Campaigns Hero"
+                        className="
+                            w-full
+                            h-56 sm:h-72 md:h-80 lg:h-136
+                            object-cover
+                        "
+                    />
                 </div>
             </div>
         </section>

@@ -15,7 +15,7 @@ import CampaignDetails from '@/pages/public/campaignsPage/campaignDetails/Campai
 // 404
 import NotFound from '../pages/NotFound';
 import Donate from '@/pages/public/donationPage/Donate';
-import DonateHub from '@/pages/public/donationPage/DonateHub';
+import DonateHub from '@/pages/public/donationPage/DonateHub/DonateHub';
 import Volunteer from '@/pages/public/volunteerPage/Volunteer';
 import RequestHelp from '@/pages/public/requestHelpPage/RequestHelp';
 import Partner from '@/pages/public/partnersPage/Partner';

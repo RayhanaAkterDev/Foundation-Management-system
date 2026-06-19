@@ -1,15 +1,12 @@
 import SectionHeading from '@/components/SectionHeading';
 import React from 'react';
 
-const CategoryHeader = ({ title, description, activeCategory }) => {
+const CategoryHeader = ({ title, description }) => {
     return (
         <div className="mb-10">
-            {/* TOP BADGE */}
-
             <SectionHeading
                 gap="sm"
                 align="left"
-                badge={'Active: ' + activeCategory}
                 title={title}
                 headingSize="sectionHero"
                 description={description}

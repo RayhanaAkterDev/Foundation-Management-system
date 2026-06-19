@@ -14,8 +14,8 @@ import heroBG from '@/assets/home/hero/hero.jpg';
 import HowItWorksSection from './sections/howItWorks/HowItWorks';
 import ExploreCategories from './sections/exploreCategories/ExploreCategories';
 import FeaturedCampaign from './sections/featuredCampaign/FeaturedCampaign';
-// import LocalImpact from './sections/localImpact/LocalImpact';
-// import ImpactTrust from './sections/impactTrust/ImpactTrust';
+import LocalImpact from './sections/localImpact/LocalImpact';
+import ImpactTrust from './sections/impactTrust/ImpactTrust';
 
 const Home = () => {
     return (
@@ -33,21 +33,21 @@ const Home = () => {
                 primaryCta={{
                     icon: <TbHeartFilled />,
                     label: 'Request Help',
+                    to: '/request-help',
                 }}
                 secondaryCta={{
                     label: 'See How It Works',
                     icon: <HiArrowSmRight />,
+                    to: '/how-it-works',
                 }}
                 image={heroBG}
-                showStats={true}
+                showStats
             />
-
             <HowItWorksSection />
             <ExploreCategories />
             <FeaturedCampaign />
-
-            {/*            <LocalImpact />
-            <ImpactTrust /> */}
+            <LocalImpact />
+            <ImpactTrust />
         </>
     );
 };

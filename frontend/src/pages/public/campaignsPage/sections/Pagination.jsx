@@ -17,7 +17,6 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
                         hover:text-primary
                         transition-all duration-200
                         focus:outline-none
-                        focus:ring-2 focus:ring-primary/30
                         focus:ring-offset-2
                         disabled:opacity-30
                         disabled:cursor-not-allowed
@@ -34,7 +33,6 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
                 <div
                     className="
                         rounded-lg
-                        border border-border/40
                         bg-muted/20
                         px-3 sm:px-4
                         py-1.5 sm:py-2
@@ -64,7 +62,6 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
                         hover:text-primary
                         transition-all duration-200
                         focus:outline-none
-                        focus:ring-2 focus:ring-primary/30
                         focus:ring-offset-2
                         disabled:opacity-30
                         disabled:cursor-not-allowed

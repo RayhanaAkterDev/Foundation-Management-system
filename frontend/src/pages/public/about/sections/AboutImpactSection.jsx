@@ -8,14 +8,14 @@ import aboutImpactStats from './data/aboutImpactStats';
 const AboutImpactSection = () => {
     return (
         <section>
-            <div className="container-width">
-                <div className="mx-auto max-w-3xl">
+            <div className="container-width section-gap">
+                <div className="max-w-3xl mx-auto mb-16">
                     <SectionHeading
                         align="center"
                         gap="md"
-                        badge="CareLink in numbers"
                         badgeClass="badge-accent text-surface! border-border! bg-surface/10!"
                         title="Real impact powered by people who care"
+                        headingSize="sectionHero"
                         description="From emergency support to community-driven initiatives, every contribution helps us reach more lives with dignity, compassion, and meaningful support."
                         headingClass="text-surface!"
                         descriptionClass="text-surface/80!"
@@ -23,15 +23,14 @@ const AboutImpactSection = () => {
                 </div>
 
                 {/* stat cards */}
-                <div className="mx-auto mt-14 max-w-6xl">
-                    <StatCard
-                        size="lg"
-                        variant="column"
-                        align="center"
-                        gridCols="lg:grid-cols-4 md:grid-cols-2"
-                        stats={aboutImpactStats}
-                    />
-                </div>
+                <StatCard
+                    size="section"
+                    tone="primary"
+                    variant="card"
+                    align="center"
+                    gridCols="lg:grid-cols-4 md:grid-cols-2"
+                    stats={aboutImpactStats}
+                />
             </div>
         </section>
     );

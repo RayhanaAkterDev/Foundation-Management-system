@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import Button from '@/components/Button';
 import {
@@ -17,42 +17,6 @@ const DonationSidebar = ({ campaign, organizer }) => {
     const circumference = 2 * Math.PI * radius;
 
     const offset = circumference - (percent / 100) * circumference;
-
-    const presetAmounts = [25, 50, 100, 250];
-
-    const [selectedAmount, setSelectedAmount] = useState(50);
-    const [customAmount, setCustomAmount] = useState('');
-
-    const activeAmount = useMemo(() => {
-        const val = Number(customAmount || selectedAmount);
-        if (Number.isNaN(val) || val <= 0) return 0;
-        return val;
-    }, [customAmount, selectedAmount]);
-
-    // scalable impact logic (instead of hardcoding)
-    const impactText = useMemo(() => {
-        if (activeAmount <= 0) return 'Enter an amount to see your impact';
-
-        if (activeAmount < 25) return 'Provides small but meaningful support';
-
-        if (activeAmount < 50) return 'Helps cover urgent relief essentials';
-
-        if (activeAmount < 100)
-            return 'Supports food, medicine, and basic needs';
-
-        if (activeAmount < 250)
-            return 'Funds multi-family emergency assistance';
-
-        return 'Drives large-scale emergency response support';
-    }, [activeAmount]);
-
-    // smooth proportional bar instead of fake mapping
-    const impactPercent = Math.min(100, (activeAmount / 250) * 100);
-
-    const handlePresetClick = (amount) => {
-        setSelectedAmount(amount);
-        setCustomAmount('');
-    };
 
     return (
         <aside className="lg:sticky lg:top-24">
@@ -143,87 +107,27 @@ const DonationSidebar = ({ campaign, organizer }) => {
                 </div>
 
                 {/* DONATION */}
-                <div className="p-8">
-                    <h4 className="mb-5 text-lg font-bold">Choose Amount</h4>
-
-                    {/* PRESETS */}
-                    <div className="grid grid-cols-2 gap-3">
-                        {presetAmounts.map((amount) => (
-                            <button
-                                key={amount}
-                                onClick={() => handlePresetClick(amount)}
-                                className={`relative overflow-hidden rounded-2xl border py-5 text-center transition-all duration-200 ${
-                                    activeAmount === amount
-                                        ? 'border-primary bg-primary text-white shadow-md'
-                                        : 'border-border hover:border-primary hover:bg-muted/40'
-                                }`}
-                            >
-                                <div className="text-2xl font-bold">
-                                    ${amount}
-                                </div>
-                            </button>
-                        ))}
-                    </div>
-
-                    {/* CUSTOM */}
-                    <div className="mt-4 flex h-14 items-center rounded-2xl border border-border bg-muted/20 px-4">
-                        <span className="font-semibold text-text-secondary">
-                            $
-                        </span>
-
-                        <input
-                            type="number"
-                            value={customAmount}
-                            onChange={(e) => setCustomAmount(e.target.value)}
-                            placeholder="Custom amount"
-                            className="ml-2 flex-1 bg-transparent outline-none"
-                        />
-                    </div>
-
-                    {/* IMPACT */}
-                    <div className="mt-5 rounded-xl border border-border/60 bg-muted/10 p-4">
-                        <div className="flex items-center justify-between">
-                            <span className="text-lg font-bold text-primary">
-                                ${activeAmount || 0}
-                            </span>
-
-                            <span className="text-[11px] uppercase text-text-secondary">
-                                live impact
-                            </span>
-                        </div>
-
-                        <p className="mt-2 text-sm text-text-secondary leading-relaxed">
-                            {impactText}
-                        </p>
-
-                        <div className="mt-3 h-0.75 w-full rounded-full bg-border overflow-hidden">
-                            <div
-                                className="h-full bg-primary transition-all duration-300"
-                                style={{ width: `${impactPercent}%` }}
-                            />
-                        </div>
-                    </div>
-
-                    {/* CTA */}
-                    <Link to={`/donate/${campaign.id}`}>
-                        <Button
-                            variant="accent"
-                            size="lg"
-                            className="mt-5 h-14 w-full text-base font-bold"
-                        >
-                            Donate ${activeAmount || selectedAmount}
-                        </Button>
-                    </Link>
-
-                    <div className="mt-4 flex items-center justify-center gap-2 text-sm text-text-secondary">
-                        <TbLockCheck size={16} />
-                        Secure encrypted payment processing
-                    </div>
-
+                <div className="p-8 pt-0">
                     <button className="mt-5 flex w-full items-center justify-center gap-2 text-sm font-medium text-primary hover:underline">
                         <TbShare size={16} />
                         Share Campaign
                     </button>
+
+                    {/* CTA */}
+                    <Link to={`/donate/${campaign.id}`}>
+                        <Button
+                            variant="primary"
+                            size="lg"
+                            className="mt-5 h-14 w-full text-base font-bold"
+                        >
+                            Donate Now
+                        </Button>
+                    </Link>
+
+                    <div className="mt-3 flex items-center gap-2 text-sm text-text-secondary">
+                        <TbLockCheck size={16} />
+                        Secure encrypted payment processing
+                    </div>
                 </div>
 
                 {/* TRUST */}

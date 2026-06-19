@@ -1,5 +1,4 @@
 import React from 'react';
-import { FiArrowRight } from 'react-icons/fi';
 import Button from './Button';
 import SectionHeading from './SectionHeading';
 import HeroStats from '@/pages/public/home/sections/hero/HeroStats';
@@ -8,18 +7,22 @@ const Hero = ({
     badge,
     badgeIcon,
     badgeClass,
+
     title,
     description,
+
     primaryCta,
     secondaryCta,
+
     showStats,
+
     image,
     imageAlt = 'Hero image',
 }) => {
     return (
         <section className="mt-18 bg-surface">
             <div className="container-width">
-                <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-6  section-gap">
+                <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-6 section-gap">
                     {/* LEFT CONTENT */}
                     <div className="w-full lg:w-1/2 order-2 lg:order-1">
                         <SectionHeading
@@ -39,16 +42,18 @@ const Hero = ({
 
                         {showStats && <HeroStats />}
 
-                        {/* CTA */}
                         {(primaryCta || secondaryCta) && (
                             <div className="flex flex-col sm:flex-row gap-4 mt-8 justify-center lg:justify-start">
                                 {primaryCta && (
                                     <Button
                                         size="lg"
+                                        to={primaryCta.to}
                                         className="w-full sm:w-auto"
-                                        onClick={primaryCta.onClick}
                                     >
-                                        {primaryCta.label}
+                                        <span className="flex items-center gap-2">
+                                            {primaryCta.icon}
+                                            {primaryCta.label}
+                                        </span>
                                     </Button>
                                 )}
 
@@ -56,12 +61,12 @@ const Hero = ({
                                     <Button
                                         variant="ghost"
                                         size="lg"
+                                        to={secondaryCta.to}
                                         className="w-full sm:w-auto group"
-                                        onClick={secondaryCta.onClick}
                                     >
                                         <span className="flex items-center gap-2">
                                             {secondaryCta.label}
-                                            <FiArrowRight className="transition-transform duration-200 group-hover:translate-x-1" />
+                                            {secondaryCta.icon}
                                         </span>
                                     </Button>
                                 )}
@@ -79,7 +84,6 @@ const Hero = ({
                                 loading="lazy"
                             />
 
-                            {/* subtle overlay */}
                             <div className="absolute inset-0 bg-black/10" />
                         </div>
                     </div>

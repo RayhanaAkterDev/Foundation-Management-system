@@ -5,7 +5,7 @@ function Button({
     children,
 
     to,
-
+    type = 'button',
     variant = 'primary',
     size = 'md',
 
@@ -121,12 +121,7 @@ function Button({
     // Normal button
 
     return (
-        <button
-            type="button"
-            disabled={disabled}
-            className={classes}
-            {...props}
-        >
+        <button type={type} disabled={disabled} className={classes} {...props}>
             {children}
         </button>
     );

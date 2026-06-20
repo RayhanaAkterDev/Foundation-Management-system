@@ -79,7 +79,7 @@ const RequestForm = ({ setSuccess }) => {
                     name="description"
                     value={form.description}
                     onChange={handleChange}
-                    rows={window.innerWidth < 640 ? 6 : 9}
+                    rows={8}
                     placeholder="Describe your situation..."
                     className="
                         w-full
@@ -161,7 +161,7 @@ const RequestForm = ({ setSuccess }) => {
                     Secure & confidential review process
                 </p>
 
-                <Button disabled={loading}>
+                <Button disabled={loading} type='submit'>
                     {loading ? 'Submitting...' : 'Submit Request'}
                 </Button>
             </div>

@@ -11,9 +11,9 @@ const HowCareLinkWorks = () => {
                     gap="lg"
                     badge={{
                         label: 'How Stand For People Works',
-                        variant: 'primary',
-                        tone: 'solid',
-                        size: 'lg',
+                        variant: 'accent',
+                        // tone: 'solid',
+                        size: 'md',
                     }}
                     title="From urgent need to verified support"
                     headingSize="sectionHero"

@@ -196,7 +196,7 @@ const navLinks = [
         id: 'account',
         name: 'Account',
         type: 'single',
-        path: '/login',
+        path: '/account',
     },
 ];
 

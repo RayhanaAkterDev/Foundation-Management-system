@@ -12,8 +12,6 @@ import Categories from '@/pages/public/categoriesPage/CategoriesPage';
 import Campaigns from '@/pages/public/campaignsPage/Campaigns';
 import CampaignDetails from '@/pages/public/campaignsPage/campaignDetails/CampaignDetails';
 
-// 404
-import NotFound from '../pages/NotFound';
 import Donate from '@/pages/public/donationPage/Donate';
 import DonateHub from '@/pages/public/donationPage/DonateHub/DonateHub';
 import Volunteer from '@/pages/public/volunteerPage/Volunteer';
@@ -21,6 +19,13 @@ import RequestHelp from '@/pages/public/requestHelpPage/RequestHelp';
 import Partner from '@/pages/public/partnersPage/Partner';
 import Stories from '@/pages/public/storiesPage/Stories';
 import About from '@/pages/public/about/About';
+
+// Account pages
+import AccountSelection from '@/auth/AccountSelection/AccountSelection';
+
+
+// 404
+import NotFound from '../pages/NotFound';
 
 const router = createBrowserRouter([
     // =========================
@@ -32,27 +37,19 @@ const router = createBrowserRouter([
         children: [
             { path: '', element: <Home /> },
 
-            { path: '/about', element: <About /> },
+            // Account/logins
+            { path: '/account', element: <AccountSelection /> },
 
+            { path: '/about', element: <About /> },
             { path: 'how-it-works', element: <HowItWorksPage /> },
 
-            // CATEGORY PAGE (exploration only)
+            // CATEGORY PAGE
             { path: 'categories', element: <Categories /> },
-
-            // OPTIONAL (if you want category page direct access)
             { path: 'categories/:categoryId', element: <Categories /> },
-
-            // =========================
-            // CAMPAIGNS SYSTEM
-            // =========================
 
             // ALL campaigns
             { path: 'campaigns', element: <Campaigns /> },
-
-            // CATEGORY FILTERED campaigns (IMPORTANT FIX)
             { path: 'campaigns/category/:categoryId', element: <Campaigns /> },
-
-            // SINGLE campaign details
             { path: 'campaign/:id', element: <CampaignDetails /> },
 
             // Donate page

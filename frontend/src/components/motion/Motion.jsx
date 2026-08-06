@@ -3,19 +3,36 @@ import React from 'react';
 
 const easing = [0.22, 1, 0.36, 1];
 
+/* =========================
+   VARIANTS
+========================= */
+
 const variantsMap = {
     fadeUp: {
         hidden: {
             opacity: 0,
-            y: 36,
+            y: 24,
         },
-
         show: {
             opacity: 1,
             y: 0,
-
             transition: {
-                duration: 0.75,
+                duration: 0.55,
+                ease: easing,
+            },
+        },
+    },
+
+    fadeDown: {
+        hidden: {
+            opacity: 0,
+            y: -24,
+        },
+        show: {
+            opacity: 1,
+            y: 0,
+            transition: {
+                duration: 0.55,
                 ease: easing,
             },
         },
@@ -26,11 +43,9 @@ const variantsMap = {
             opacity: 0,
             scale: 0.96,
         },
-
         show: {
             opacity: 1,
             scale: 1,
-
             transition: {
                 duration: 0.45,
                 ease: easing,
@@ -41,15 +56,13 @@ const variantsMap = {
     fadeLeft: {
         hidden: {
             opacity: 0,
-            x: 32,
+            x: -24,
         },
-
         show: {
             opacity: 1,
             x: 0,
-
             transition: {
-                duration: 0.55,
+                duration: 0.5,
                 ease: easing,
             },
         },
@@ -58,70 +71,13 @@ const variantsMap = {
     fadeRight: {
         hidden: {
             opacity: 0,
-            x: -32,
+            x: 24,
         },
-
         show: {
             opacity: 1,
             x: 0,
-
             transition: {
-                duration: 0.55,
-                ease: easing,
-            },
-        },
-    },
-
-    blurIn: {
-        hidden: {
-            opacity: 0,
-            filter: 'blur(8px)',
-            y: 16,
-        },
-
-        show: {
-            opacity: 1,
-            filter: 'blur(0px)',
-            y: 0,
-
-            transition: {
-                duration: 0.6,
-                ease: easing,
-            },
-        },
-    },
-
-    lineReveal: {
-        hidden: {
-            scaleX: 0,
-            opacity: 0,
-        },
-
-        show: {
-            scaleX: 1,
-            opacity: 1,
-
-            transition: {
-                duration: 1,
-                ease: easing,
-                delay: 0.15,
-            },
-        },
-    },
-
-    widthReveal: {
-        hidden: {
-            width: 0,
-            opacity: 0,
-        },
-
-        show: {
-            width: 56,
-            opacity: 1,
-
-            transition: {
-                duration: 0.65,
-                delay: 0.2,
+                duration: 0.5,
                 ease: easing,
             },
         },
@@ -130,17 +86,15 @@ const variantsMap = {
     softLift: {
         hidden: {
             opacity: 0,
-            y: 14,
-            scale: 0.98,
+            y: 16,
+            scale: 0.985,
         },
-
         show: {
             opacity: 1,
             y: 0,
             scale: 1,
-
             transition: {
-                duration: 0.6,
+                duration: 0.5,
                 ease: easing,
             },
         },
@@ -150,17 +104,37 @@ const variantsMap = {
         hidden: {
             opacity: 0,
         },
-
         show: {
             opacity: 1,
-
             transition: {
-                duration: 0.5,
+                duration: 0.45,
+                ease: easing,
+            },
+        },
+    },
+
+    /* safer blur usage (ONLY for hero text / big headings) */
+    blurIn: {
+        hidden: {
+            opacity: 0,
+            y: 10,
+            filter: 'blur(6px)',
+        },
+        show: {
+            opacity: 1,
+            y: 0,
+            filter: 'blur(0px)',
+            transition: {
+                duration: 0.55,
                 ease: easing,
             },
         },
     },
 };
+
+/* =========================
+   COMPONENT
+========================= */
 
 const Motion = ({
     as = 'div',
@@ -177,7 +151,7 @@ const Motion = ({
 
     viewport = {
         once: true,
-        amount: 0.12,
+        amount: 0.2,
     },
 
     transition,
@@ -190,7 +164,6 @@ const Motion = ({
 
     const staggerContainer = {
         hidden: {},
-
         show: {
             transition: {
                 staggerChildren: staggerDelay,

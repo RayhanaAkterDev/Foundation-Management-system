@@ -21,8 +21,12 @@ import Stories from '@/pages/public/storiesPage/Stories';
 import About from '@/pages/public/about/About';
 
 // Account pages
+import AuthLayout from '@/layouts/AuthLayout/AuthLayout'
 import AccountSelection from '@/auth/AccountSelection/AccountSelection';
-
+import Login from '@/auth/Login/Login';
+import Register from '@/auth/Register/Register';
+// import ForgotPassword from '@/auth/ForgotPassword/ForgotPassword';
+// import VerifyEmail from '@/auth/VerifyEmail/VerifyEmail';
 
 // 404
 import NotFound from '../pages/NotFound';
@@ -36,9 +40,7 @@ const router = createBrowserRouter([
         element: <PublicLayout />,
         children: [
             { path: '', element: <Home /> },
-
-            // Account/logins
-            { path: '/account', element: <AccountSelection /> },
+            { path: 'account', element: <AccountSelection /> },
 
             { path: '/about', element: <About /> },
             { path: 'how-it-works', element: <HowItWorksPage /> },
@@ -77,6 +79,20 @@ const router = createBrowserRouter([
         path: '/admin',
         element: <AdminLayout />,
         children: [],
+    },
+
+    // =========================
+    // ACCOUNT ROUTES
+    // =========================
+    {
+        path: '/account',
+        element: <AuthLayout />,
+        children: [
+            { path: 'login', element: <Login /> },
+            { path: 'register', element: <Register /> },
+            // { path: 'forgot-password', element: <ForgotPassword /> },
+            // { path: 'verify-email', element: <VerifyEmail /> },
+        ],
     },
 
     // =========================

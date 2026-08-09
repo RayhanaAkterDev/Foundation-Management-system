@@ -2,7 +2,7 @@ import { createBrowserRouter } from 'react-router-dom';
 
 // layouts
 import PublicLayout from '@/layouts/PublicLayout/PublicLayout';
-import AdminLayout from '@/layouts/AdminLayout/AdminLayout';
+// import AdminLayout from '@/layouts/AdminLayout/AdminLayout';
 
 // public pages
 import Home from '@/pages/public/home/Home';
@@ -21,12 +21,18 @@ import Stories from '@/pages/public/storiesPage/Stories';
 import About from '@/pages/public/about/About';
 
 // Account pages
-import AuthLayout from '@/layouts/AuthLayout/AuthLayout'
+import AuthLayout from '@/layouts/AuthLayout/AuthLayout';
 import AccountSelection from '@/auth/AccountSelection/AccountSelection';
 import Login from '@/auth/Login/Login';
 import Register from '@/auth/Register/Register';
 // import ForgotPassword from '@/auth/ForgotPassword/ForgotPassword';
 // import VerifyEmail from '@/auth/VerifyEmail/VerifyEmail';
+
+// Dashboard routes imports
+import DashboardLayout from '@/layouts/DashboardLayout/DashboardLayout';
+import IndividualDashboard from '@/dashboard/individual/IndividualDashboard';
+import OrganizationDashboard from '@/dashboard/organization/OrgDashboard';
+import AdminDashboard from '@/dashboard/admin/AdminDashboard';
 
 // 404
 import NotFound from '../pages/NotFound';
@@ -73,15 +79,6 @@ const router = createBrowserRouter([
     },
 
     // =========================
-    // ADMIN ROUTES
-    // =========================
-    {
-        path: '/admin',
-        element: <AdminLayout />,
-        children: [],
-    },
-
-    // =========================
     // ACCOUNT ROUTES
     // =========================
     {
@@ -101,6 +98,33 @@ const router = createBrowserRouter([
     {
         path: '*',
         element: <NotFound />,
+    },
+
+    // =========================
+    // DASHBOARD ROUTES
+    // =========================
+    {
+        path: '/dashboard',
+        element: <DashboardLayout />,
+        children: [
+            // INDIVIDUAL
+            {
+                path: 'individual',
+                element: <IndividualDashboard />,
+            },
+
+            // ORGANIZATION
+            {
+                path: 'organization',
+                element: <OrganizationDashboard />,
+            },
+
+            // ADMIN
+            {
+                path: 'admin',
+                element: <AdminDashboard />,
+            },
+        ],
     },
 ]);
 

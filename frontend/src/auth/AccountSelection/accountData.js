@@ -1,4 +1,4 @@
-import { Building2, UserRound } from 'lucide-react';
+import { Building2, UserRound, ShieldCheck } from 'lucide-react';
 
 export const accountData = [
     {
@@ -47,5 +47,29 @@ export const accountData = [
         buttonText: 'Continue as Organization',
 
         path: '/account/login?role=organization',
+    },
+
+    {
+        id: 'admin',
+        title: 'Administrator',
+        icon: ShieldCheck,
+        color: 'admin',
+
+        audience:
+            'Authorized Stand For People administrators responsible for managing and monitoring the platform.',
+
+        description:
+            'Access the administration dashboard to manage users, organizations, help requests, campaigns, donations, volunteers, verification, and platform reports.',
+
+        features: [
+            'Manage users and organizations',
+            'Review and verify organizations',
+            'Monitor help requests and campaigns',
+            'Review donations, volunteers, and reports',
+        ],
+
+        buttonText: 'Continue as Administrator',
+
+        path: '/account/login?role=admin',
     },
 ];

@@ -58,6 +58,8 @@ const LoginForm = () => {
                 navigate('/dashboard/individual');
             } else if (data.user.role === 'organization') {
                 navigate('/dashboard/organization');
+            } else if (data.user.role === 'admin') {
+                navigate('/dashboard/admin');
             } else {
                 throw new Error('Unknown account type.');
             }

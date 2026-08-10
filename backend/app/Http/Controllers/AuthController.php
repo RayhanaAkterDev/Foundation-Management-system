@@ -170,7 +170,7 @@ class AuthController extends Controller
         $validated = $request->validate([
             'email' => 'required|email',
             'password' => 'required|string',
-            'role' => 'required|in:individual,organization',
+            'role' => 'required|in:individual,organization,admin',
         ]);
 
         $user = User::where('email', $validated['email'])->first();

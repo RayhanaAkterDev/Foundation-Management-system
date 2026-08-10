@@ -1,8 +1,10 @@
 import { createBrowserRouter } from 'react-router-dom';
 
+// 404
+import NotFound from '../pages/NotFound';
+
 // layouts
 import PublicLayout from '@/layouts/PublicLayout/PublicLayout';
-// import AdminLayout from '@/layouts/AdminLayout/AdminLayout';
 
 // public pages
 import Home from '@/pages/public/home/Home';
@@ -32,10 +34,17 @@ import Register from '@/auth/Register/Register';
 import DashboardLayout from '@/layouts/DashboardLayout/DashboardLayout';
 import IndividualDashboard from '@/dashboard/individual/IndividualDashboard';
 import OrganizationDashboard from '@/dashboard/organization/OrgDashboard';
-import AdminDashboard from '@/dashboard/admin/AdminDashboard';
 
-// 404
-import NotFound from '../pages/NotFound';
+// Admin dashboard routes
+import AdminDashboard from '@/dashboard/admin/AdminDashboard';
+import AdminUsers from '@/dashboard/admin/AdminUsers';
+import AdminOrganizations from '@/dashboard/admin/AdminOrganizations';
+import AdminHelpRequests from '@/dashboard/admin/AdminHelpRequests';
+import AdminDonations from '@/dashboard/admin/AdminDonations';
+import AdminVolunteers from '@/dashboard/admin/AdminVolunteers';
+import AdminCampaigns from '@/dashboard/admin/AdminCampaigns';
+import AdminReports from '@/dashboard/admin/AdminReports';
+import AdminSettings from '@/dashboard/admin/AdminSettings';
 
 const router = createBrowserRouter([
     // =========================
@@ -122,7 +131,44 @@ const router = createBrowserRouter([
             // ADMIN
             {
                 path: 'admin',
-                element: <AdminDashboard />,
+                children: [
+                    {
+                        index: true,
+                        element: <AdminDashboard />,
+                    },
+                    {
+                        path: 'users',
+                        element: <AdminUsers />,
+                    },
+                    {
+                        path: 'organizations',
+                        element: <AdminOrganizations />,
+                    },
+                    {
+                        path: 'help-requests',
+                        element: <AdminHelpRequests />,
+                    },
+                    {
+                        path: 'donations',
+                        element: <AdminDonations />,
+                    },
+                    {
+                        path: 'volunteers',
+                        element: <AdminVolunteers />,
+                    },
+                    {
+                        path: 'campaigns',
+                        element: <AdminCampaigns />,
+                    },
+                    {
+                        path: 'reports',
+                        element: <AdminReports />,
+                    },
+                    {
+                        path: 'settings',
+                        element: <AdminSettings />,
+                    },
+                ],
             },
         ],
     },

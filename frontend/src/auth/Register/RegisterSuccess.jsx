@@ -7,18 +7,18 @@ const RegisterSuccess = ({ accountType }) => {
   const isOrganization = accountType === 'organization';
 
   const handleSignIn = () => {
-    navigate('/login');
+    navigate('/account');
   };
 
   return (
     <div className="flex flex-col items-center py-8 text-center">
       {/* Icon */}
-      <span className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-[#0f766e]/10">
-        <CheckCircle className="h-10 w-10 text-[#0f766e]" strokeWidth={1.5} />
+      <span className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
+        <CheckCircle className="h-10 w-10 text-primary" strokeWidth={1.5} />
       </span>
 
       {/* Heading */}
-      <h2 className="font-['Fraunces'] text-2xl font-semibold text-[#0f172a] md:text-3xl">
+      <h2 className="font-['Fraunces'] text-2xl font-semibold text-text-primary md:text-3xl">
         {isOrganization
           ? 'Organization account created successfully'
           : 'Account created successfully'}
@@ -33,9 +33,9 @@ const RegisterSuccess = ({ accountType }) => {
 
       {/* Organization verification notice */}
       {isOrganization && (
-        <div className="mt-5 flex max-w-md items-start gap-3 rounded-xl border border-[#f59e0b]/30 bg-[#f59e0b]/8 p-4 text-left">
-          <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-[#f59e0b]" />
-          <p className="text-sm leading-relaxed text-[#0f172a]">
+        <div className="mt-5 flex max-w-md items-start gap-3 rounded-xl border border-accent/30 bg-accent/8 p-4 text-left">
+          <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-accent" />
+          <p className="text-sm leading-relaxed text-text-primary">
             Some organization features may require verification by Stand For People before they
             become available.
           </p>
@@ -46,7 +46,7 @@ const RegisterSuccess = ({ accountType }) => {
       <button
         type="button"
         onClick={handleSignIn}
-        className="mt-8 inline-flex h-12 items-center justify-center rounded-xl bg-[#0f766e] px-8 text-sm font-medium text-white transition-colors hover:bg-[#115e59]"
+        className="mt-8 inline-flex h-12 items-center justify-center rounded-xl bg-primary px-8 text-sm font-medium text-white transition-colors hover:bg-primary-hover"
       >
         Continue to Sign In
       </button>

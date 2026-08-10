@@ -26,7 +26,7 @@ export const accountData = [
     },
 
     {
-        id: 'ngo',
+        id: 'organization',
         title: 'NGO / Organization',
         icon: Building2,
         color: 'accent',
@@ -46,6 +46,6 @@ export const accountData = [
 
         buttonText: 'Continue as Organization',
 
-        path: '/account/login?role=ngo',
+        path: '/account/login?role=organization',
     },
 ];

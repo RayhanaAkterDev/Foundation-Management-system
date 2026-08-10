@@ -8,108 +8,120 @@ import logo from '@/assets/shared/footerLogo.png';
 const Login = () => {
     return (
         <section className="min-h-screen bg-background">
-            <div className="grid min-h-screen lg:grid-cols-[1.15fr_0.85fr]">
-                {/* Left */}
-                <div className="relative hidden overflow-hidden lg:flex">
-                    {/* Background */}
-                    <div className="absolute inset-0 bg-[#0d6b63]" />
+            <div className="grid min-h-screen lg:grid-cols-[0.95fr_1.05fr]">
+                {/* =========================================================
+                    LEFT — Brand / Welcome
+                ========================================================= */}
+                <div className="relative hidden overflow-hidden bg-primary lg:block">
+                    {/* Soft background shapes */}
+                    <div className="pointer-events-none absolute inset-0">
+                        <div className="absolute -right-40 -top-40 h-125 w-125 rounded-full bg-white/5 blur-3xl" />
 
-                    {/* Soft Ambient Light */}
-                    <div className="absolute -top-48 -right-32 h-130 w-130 rounded-full bg-white/10 blur-[140px]" />
-                    <div className="absolute -bottom-52 -left-32 h-120 w-120 rounded-full bg-black/15 blur-[160px]" />
+                        <div className="absolute -bottom-40 -left-40 h-125 w-125 rounded-full bg-black/10 blur-3xl" />
 
-                    {/* Subtle Grid */}
-                    <div
-                        className="absolute inset-0 opacity-[0.035]"
-                        style={{
-                            backgroundImage: `
-                linear-gradient(rgba(255,255,255,.8) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,.8) 1px, transparent 1px)
-            `,
-                            backgroundSize: '44px 44px',
-                        }}
-                    />
+                        {/* Minimal decorative line */}
+                        <div className="absolute bottom-24 right-20 h-64 w-px rotate-45 bg-white/10" />
 
-                    {/* Decorative Circle */}
-                    <div className="absolute -right-24 bottom-20 flex h-85 w-85 items-center justify-center rounded-full border border-white/10">
-                        <div className="flex h-65 w-65 items-center justify-center rounded-full border border-white/10">
-                            <div className="flex h-45 w-45 items-center justify-center rounded-full border border-white/10">
-                                <div className="h-3 w-3 rounded-full bg-white/70" />
-                            </div>
-                        </div>
+                        <div className="absolute bottom-20 right-32 h-40 w-px rotate-45 bg-white/10" />
                     </div>
 
-                    <div className="relative z-10 flex h-full w-full flex-col px-16 py-14 text-white">
-                        <div className='flex-1'>
-                            {/* Brand */}
-                            <div className="flex items-center gap-4">
-                                <img
-                                    src={logo}
-                                    alt="Stand For People"
-                                    className="h-14 w-14 rounded-xl bg-white p-2"
-                                />
+                    <div className="relative z-10 flex min-h-screen flex-col px-12 py-12 xl:px-16 xl:py-14">
+                        {/* Brand */}
+                        <div className="flex items-center gap-3">
+                            <img
+                                src={logo}
+                                alt="Stand For People"
+                                className="h-11 w-11 rounded-xl bg-white p-1.5"
+                            />
 
-                                <div>
-                                    <h1 className="font-fraunces text-[30px] leading-none">
-                                        Stand For People
-                                    </h1>
+                            <div>
+                                <p className="font-fraunces text-xl leading-none text-white">
+                                    Stand For People
+                                </p>
 
-                                    <p className="mt-1 text-sm text-white/70">
-                                        Helping people. Building stronger
-                                        communities.
-                                    </p>
-                                </div>
+                                <p className="mt-1 text-xs text-white/60">
+                                    Helping people. Building stronger
+                                    communities.
+                                </p>
                             </div>
+                        </div>
 
-                            {/* Hero */}
-                            <div className="mt-16">
-                                <div className="max-w-lg">
-                                    <span className="inline-flex rounded-full border border-white/15 px-4 py-1.5 text-[11px] font-medium uppercase tracking-[0.28em] text-white/70">
-                                        Welcome Back
+                        {/* Main content */}
+                        <div className="flex flex-1 items-center">
+                            <div className="max-w-xl">
+                                {/* Small label */}
+                                <div className="flex items-center gap-3">
+                                    <span className="h-px w-8 bg-white/40" />
+
+                                    <span className="text-[11px] font-medium uppercase tracking-[0.25em] text-white/65">
+                                        Welcome back
                                     </span>
+                                </div>
 
-                                    <h2 className="mt-8 font-fraunces text-[50px] leading-16 tracking-wider">
-                                        Continue helping
-                                        <br />
-                                        people in need.
-                                    </h2>
+                                <h1 className="mt-7 max-w-lg font-fraunces text-5xl font-medium leading-[1.08] text-white xl:text-[58px]">
+                                    Continue making
+                                    <span className="block text-white/65">
+                                        a difference.
+                                    </span>
+                                </h1>
 
-                                    <p className="mt-7 text-lg leading-8 text-white/75">
-                                        Sign in to manage your donations,
-                                        volunteer activities, and community
-                                        requests in one trusted place.
-                                    </p>
+                                <p className="mt-7 max-w-md text-base leading-7 text-white/70 xl:text-lg xl:leading-8">
+                                    Sign in to continue supporting people,
+                                    managing your activities, and staying
+                                    connected with the communities that need
+                                    you.
+                                </p>
+
+                                {/* Simple stat */}
+                                <div className="mt-10 flex items-center gap-5">
+                                    <div>
+                                        <p className="font-fraunces text-3xl text-white">
+                                            12,800+
+                                        </p>
+
+                                        <p className="mt-1 text-xs text-white/55">
+                                            People supported
+                                        </p>
+                                    </div>
+
+                                    <div className="h-10 w-px bg-white/15" />
+
+                                    <div>
+                                        <p className="font-fraunces text-3xl text-white">
+                                            2026
+                                        </p>
+
+                                        <p className="mt-1 text-xs text-white/55">
+                                            Building together
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Footer */}
+                        {/* Bottom */}
                         <div className="flex items-end justify-between">
-                            <div>
-                                <div className="my-10 h-px w-20 bg-white/15" />
+                            <p className="max-w-xs text-xs leading-5 text-white/40">
+                                A trusted space for individuals and
+                                organizations working together for stronger
+                                communities.
+                            </p>
 
-                                <p className="font-fraunces text-4xl">
-                                    12,800+
-                                </p>
-
-                                <p className="mt-2 text-sm text-white/65">
-                                    People supported through verified campaigns.
-                                </p>
-                            </div>
-
-                            <div className="text-right text-xs uppercase tracking-[0.25em] text-white/40">
-                                Since 2026
-                            </div>
+                            <span className="text-[10px] uppercase tracking-[0.25em] text-white/35">
+                                Stand For People
+                            </span>
                         </div>
                     </div>
                 </div>
 
-                {/* Right */}
-                <div className="flex items-center justify-center px-8 py-10 lg:px-20">
+                {/* =========================================================
+                    RIGHT — Login
+                ========================================================= */}
+                <div className="flex min-h-screen items-center justify-center px-5 py-10 sm:px-8 lg:px-14 xl:px-20">
                     <div className="w-full max-w-md">
                         <LoginHeader />
 
-                        <div className="mt-8 rounded-4xl border border-border/70 bg-surface p-8 shadow-sm/10">
+                        <div className="mt-8 rounded-3xl border border-border/80 bg-surface p-6 shadow-[0_12px_40px_-20px_rgba(15,23,42,0.18)] sm:p-8">
                             <LoginForm />
                         </div>
 

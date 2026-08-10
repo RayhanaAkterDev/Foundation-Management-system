@@ -156,7 +156,7 @@ class AdminController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8'],
-            'role' => ['required', 'in:individual,organization'],
+            'role' => ['required', 'in:individual,organization,admin'],
         ]);
 
         $newUser = User::create($validated);
@@ -202,7 +202,7 @@ class AdminController extends Controller
                 'max:255',
                 'unique:users,email,' . $targetUser->id,
             ],
-            'role' => ['required', 'in:individual,organization'],
+            'role' => ['required', 'in:individual,organization,admin'],
             'password' => ['nullable', 'string', 'min:8'],
         ]);
 

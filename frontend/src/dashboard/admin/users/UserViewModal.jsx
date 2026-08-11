@@ -8,108 +8,133 @@ const UserViewModal = ({ user, loading, error, onClose }) => {
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-            <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-[3px]">
+            <div className="w-full max-w-lg overflow-hidden rounded-2xl border border-border bg-white shadow-2xl shadow-slate-900/10">
                 {/* Header */}
-                <div className="flex items-center justify-between border-b border-border px-6 py-4">
-                    <div>
-                        <h2 className="text-lg font-semibold text-text-primary">
-                            User Details
-                        </h2>
-
-                        <p className="mt-1 text-xs text-text-secondary">
-                            View information about this user.
-                        </p>
-                    </div>
-
+                <div className="relative px-6 pb-5 pt-6">
                     <button
                         type="button"
                         onClick={onClose}
-                        className="rounded-lg p-2 text-text-secondary transition-colors hover:bg-background-alt hover:text-text-primary"
+                        className="absolute right-5 top-5 flex h-9 w-9 items-center justify-center rounded-lg text-text-secondary transition-all hover:bg-background-alt hover:text-text-primary"
                         aria-label="Close"
                     >
                         <X size={18} />
                     </button>
+
+                    <p className="text-xs font-semibold uppercase tracking-[0.08em] text-primary">
+                        User profile
+                    </p>
+
+                    <h2 className="mt-1.5 pr-12 text-xl font-semibold tracking-tight text-text-primary">
+                        {user ? user.name : 'User Details'}
+                    </h2>
+
+                    {user && (
+                        <div className="mt-2 flex items-center gap-2">
+                            <span className="text-sm capitalize text-text-secondary">
+                                {user.role === 'admin'
+                                    ? 'Administrator'
+                                    : user.role}
+                            </span>
+
+                            <span className="h-1 w-1 rounded-full bg-border" />
+
+                            <StatusBadge status={user.status} />
+                        </div>
+                    )}
+
+                    {!user && !loading && error && (
+                        <p className="mt-1 text-sm text-text-secondary">
+                            Unable to load this account
+                        </p>
+                    )}
                 </div>
 
                 {/* Content */}
-                <div className="p-6">
+                <div className="px-6 pb-6">
                     {loading && (
-                        <div className="py-8 text-center text-sm text-text-secondary">
-                            Loading user details...
+                        <div className="flex min-h-48 flex-col items-center justify-center text-center">
+                            <div className="mb-3 h-7 w-7 animate-spin rounded-full border-2 border-border border-t-primary" />
+
+                            <p className="text-sm font-medium text-text-primary">
+                                Loading user details...
+                            </p>
+
+                            <p className="mt-1 text-xs text-text-secondary">
+                                Please wait a moment.
+                            </p>
                         </div>
                     )}
 
                     {error && (
-                        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-600">
+                        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3.5 text-sm text-red-600">
                             {error}
                         </div>
                     )}
 
                     {user && !loading && (
                         <div className="space-y-5">
-                            {/* User identity */}
-                            <div className="flex items-center gap-4">
-                                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
-                                    <UserRound size={22} />
+                            {/* Identity */}
+                            <div className="flex items-center gap-4 rounded-xl bg-background-alt/60 px-4 py-4">
+                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                                    <UserRound size={22} strokeWidth={1.8} />
                                 </div>
 
-                                <div>
-                                    <h3 className="font-semibold text-text-primary">
-                                        {user.name}
-                                    </h3>
+                                <div className="min-w-0">
+                                    <p className="text-sm font-medium text-text-primary">
+                                        Account holder
+                                    </p>
 
-                                    <p className="text-sm capitalize text-text-secondary">
-                                        {user.role}
+                                    <p className="mt-0.5 truncate text-xs text-text-secondary">
+                                        {user.email}
                                     </p>
                                 </div>
                             </div>
 
-                            {/* User information */}
+                            {/* Details */}
                             <div className="divide-y divide-border rounded-xl border border-border">
-                                <div className="flex items-center gap-3 p-4">
-                                    <Mail
-                                        size={18}
-                                        className="text-text-secondary"
-                                    />
+                                <div className="flex items-center gap-4 px-4 py-4">
+                                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-background-alt text-text-secondary">
+                                        <Mail size={17} strokeWidth={1.8} />
+                                    </div>
 
-                                    <div>
-                                        <p className="text-xs text-text-secondary">
-                                            Email
+                                    <div className="min-w-0">
+                                        <p className="text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                                            Email address
                                         </p>
 
-                                        <p className="mt-1 text-sm font-medium text-text-primary">
+                                        <p className="mt-1 truncate text-sm font-medium text-text-primary">
                                             {user.email}
                                         </p>
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-3 p-4">
-                                    <Shield
-                                        size={18}
-                                        className="text-text-secondary"
-                                    />
+                                <div className="flex items-center gap-4 px-4 py-4">
+                                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-background-alt text-text-secondary">
+                                        <Shield size={17} strokeWidth={1.8} />
+                                    </div>
 
                                     <div>
-                                        <p className="text-xs text-text-secondary">
-                                            Role
+                                        <p className="text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                                            Account role
                                         </p>
 
                                         <p className="mt-1 text-sm font-medium capitalize text-text-primary">
-                                            {user.role}
+                                            {user.role === 'admin'
+                                                ? 'Administrator'
+                                                : user.role}
                                         </p>
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-3 p-4">
-                                    <Calendar
-                                        size={18}
-                                        className="text-text-secondary"
-                                    />
+                                <div className="flex items-center gap-4 px-4 py-4">
+                                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-background-alt text-text-secondary">
+                                        <Calendar size={17} strokeWidth={1.8} />
+                                    </div>
 
                                     <div>
-                                        <p className="text-xs text-text-secondary">
-                                            Joined
+                                        <p className="text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                                            Member since
                                         </p>
 
                                         <p className="mt-1 text-sm font-medium text-text-primary">
@@ -120,22 +145,18 @@ const UserViewModal = ({ user, loading, error, onClose }) => {
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-3 p-4">
-                                    <div className="h-4.5 w-4.5" />
+                                <div className="flex items-center gap-4 px-4 py-4">
+                                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-background-alt text-text-secondary">
+                                        <Shield size={17} strokeWidth={1.8} />
+                                    </div>
 
                                     <div>
-                                        <p className="text-xs text-text-secondary">
-                                            Email Status
+                                        <p className="text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                                            Account status
                                         </p>
 
                                         <div className="mt-1">
-                                            <StatusBadge
-                                                status={
-                                                    user.email_verified_at
-                                                        ? 'active'
-                                                        : 'pending'
-                                                }
-                                            />
+                                            <StatusBadge status={user.status} />
                                         </div>
                                     </div>
                                 </div>
@@ -149,9 +170,9 @@ const UserViewModal = ({ user, loading, error, onClose }) => {
                     <button
                         type="button"
                         onClick={onClose}
-                        className="rounded-xl border border-border px-4 py-2 text-sm font-medium text-text-primary transition-colors hover:bg-background-alt"
+                        className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-all hover:bg-primary-hover"
                     >
-                        Close
+                        Done
                     </button>
                 </div>
             </div>

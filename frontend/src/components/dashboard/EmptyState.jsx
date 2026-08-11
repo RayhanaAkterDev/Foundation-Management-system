@@ -16,7 +16,7 @@ const EmptyState = ({ icon: Icon = Inbox, title = 'Nothing here yet', message, a
       <span className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#eef3f6] text-[#6b7280]">
         <Icon className="h-7 w-7" strokeWidth={1.5} />
       </span>
-      <p className="font-['Fraunces'] text-base font-semibold text-[#0f172a]">{title}</p>
+      <p className="font-['Fraunces'] text-base font-semibold text-text-primary">{title}</p>
       {message && (
         <p className="mt-1.5 max-w-xs text-sm leading-relaxed text-[#6b7280]">{message}</p>
       )}
@@ -24,7 +24,7 @@ const EmptyState = ({ icon: Icon = Inbox, title = 'Nothing here yet', message, a
         <button
           type="button"
           onClick={action.onClick}
-          className="mt-5 inline-flex h-10 items-center justify-center rounded-xl bg-[#0f766e] px-5 text-sm font-medium text-white transition-colors hover:bg-[#115e59]"
+          className="mt-5 inline-flex h-10 items-center justify-center rounded-xl bg-primary px-5 text-sm font-medium text-white transition-colors hover:bg-primary-hover"
         >
           {action.label}
         </button>

@@ -78,12 +78,17 @@ class AdminController extends Controller
                     'name',
                     'email',
                     'role',
+                    'status',
                     'created_at',
                 ]),
 
             'recentActivity' => [],
         ]);
     }
+
+    // ---------------------------------------------------------
+    // Users - List
+    // ---------------------------------------------------------
 
     public function users(Request $request)
     {
@@ -101,6 +106,7 @@ class AdminController extends Controller
                 'name',
                 'email',
                 'role',
+                'status',
                 'email_verified_at',
                 'created_at',
             ]);
@@ -109,6 +115,10 @@ class AdminController extends Controller
             'users' => $users,
         ]);
     }
+
+    // ---------------------------------------------------------
+    // Users - View
+    // ---------------------------------------------------------
 
     public function showUser(Request $request, int $id)
     {
@@ -134,6 +144,7 @@ class AdminController extends Controller
                 'name',
                 'email',
                 'role',
+                'status',
                 'email_verified_at',
                 'created_at',
                 'updated_at',
@@ -141,6 +152,9 @@ class AdminController extends Controller
         ]);
     }
 
+    // ---------------------------------------------------------
+    // Users - Add
+    // ---------------------------------------------------------
 
     public function storeUser(Request $request)
     {
@@ -154,20 +168,50 @@ class AdminController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'string', 'min:8'],
-            'role' => ['required', 'in:individual,organization,admin'],
+
+            'email' => [
+                'required',
+                'email',
+                'max:255',
+                'unique:users,email',
+            ],
+
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+            ],
+
+            'role' => [
+                'required',
+                'in:individual,organization,admin',
+            ],
+
+            // Optional when creating.
+            // New users will automatically become active.
+            'status' => [
+                'nullable',
+                'in:active,inactive,suspended',
+            ],
         ]);
 
-        $newUser = User::create($validated);
+        $newUser = User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => $validated['password'],
+            'role' => $validated['role'],
+            'status' => $validated['status'] ?? 'active',
+        ]);
 
         return response()->json([
             'message' => 'User created successfully.',
+
             'user' => $newUser->only([
                 'id',
                 'name',
                 'email',
                 'role',
+                'status',
                 'email_verified_at',
                 'created_at',
                 'updated_at',
@@ -175,6 +219,9 @@ class AdminController extends Controller
         ], 201);
     }
 
+    // ---------------------------------------------------------
+    // Users - Edit
+    // ---------------------------------------------------------
 
     public function updateUser(Request $request, int $id)
     {
@@ -195,20 +242,41 @@ class AdminController extends Controller
         }
 
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
             'email' => [
                 'required',
                 'email',
                 'max:255',
                 'unique:users,email,' . $targetUser->id,
             ],
-            'role' => ['required', 'in:individual,organization,admin'],
-            'password' => ['nullable', 'string', 'min:8'],
+
+            'role' => [
+                'required',
+                'in:individual,organization,admin',
+            ],
+
+            // Status is required when editing.
+            'status' => [
+                'required',
+                'in:active,inactive,suspended',
+            ],
+
+            'password' => [
+                'nullable',
+                'string',
+                'min:8',
+            ],
         ]);
 
         $targetUser->name = $validated['name'];
         $targetUser->email = $validated['email'];
         $targetUser->role = $validated['role'];
+        $targetUser->status = $validated['status'];
 
         if (!empty($validated['password'])) {
             $targetUser->password = $validated['password'];
@@ -218,17 +286,23 @@ class AdminController extends Controller
 
         return response()->json([
             'message' => 'User updated successfully.',
+
             'user' => $targetUser->only([
                 'id',
                 'name',
                 'email',
                 'role',
+                'status',
                 'email_verified_at',
                 'created_at',
                 'updated_at',
             ]),
         ]);
     }
+
+    // ---------------------------------------------------------
+    // Users - Delete
+    // ---------------------------------------------------------
 
     public function destroyUser(Request $request, int $id)
     {
@@ -255,7 +329,8 @@ class AdminController extends Controller
             ], 422);
         }
 
-        // Do not allow deleting another admin through the user-management page.
+        // Do not allow deleting another admin
+        // through the user-management page.
         if ($targetUser->role === 'admin') {
             return response()->json([
                 'message' => 'Admin accounts cannot be deleted from user management.',
@@ -268,6 +343,10 @@ class AdminController extends Controller
             'message' => 'User deleted successfully.',
         ]);
     }
+
+    // ---------------------------------------------------------
+    // Organizations
+    // ---------------------------------------------------------
 
     public function organizations(Request $request)
     {
@@ -288,6 +367,10 @@ class AdminController extends Controller
         ]);
     }
 
+    // ---------------------------------------------------------
+    // Help Requests
+    // ---------------------------------------------------------
+
     public function helpRequests(Request $request)
     {
         $user = $request->user();
@@ -306,6 +389,10 @@ class AdminController extends Controller
             'helpRequests' => $helpRequests,
         ]);
     }
+
+    // ---------------------------------------------------------
+    // Donations
+    // ---------------------------------------------------------
 
     public function donations(Request $request)
     {
@@ -329,6 +416,10 @@ class AdminController extends Controller
         ]);
     }
 
+    // ---------------------------------------------------------
+    // Volunteers
+    // ---------------------------------------------------------
+
     public function volunteers(Request $request)
     {
         $user = $request->user();
@@ -351,6 +442,10 @@ class AdminController extends Controller
         ]);
     }
 
+    // ---------------------------------------------------------
+    // Campaigns
+    // ---------------------------------------------------------
+
     public function campaigns(Request $request)
     {
         $user = $request->user();
@@ -371,6 +466,10 @@ class AdminController extends Controller
             'campaigns' => $campaigns,
         ]);
     }
+
+    // ---------------------------------------------------------
+    // Reports
+    // ---------------------------------------------------------
 
     public function reports(Request $request)
     {

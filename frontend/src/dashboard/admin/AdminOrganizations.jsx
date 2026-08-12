@@ -50,6 +50,14 @@ const AdminOrganizations = () => {
     const [viewError, setViewError] = useState('');
 
     // --------------------------------
+    // Review / Verification organization
+    // --------------------------------
+    const [selectedReviewOrganization, setSelectedReviewOrganization] =
+        useState(null);
+    const [reviewLoading, setReviewLoading] = useState(false);
+    const [reviewError, setReviewError] = useState('');
+
+    // --------------------------------
     // Add organization
     // --------------------------------
     const [showAddModal, setShowAddModal] = useState(false);
@@ -231,7 +239,9 @@ const AdminOrganizations = () => {
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.message || 'Unable to load organization.');
+                throw new Error(
+                    data.message || 'Unable to load organization.',
+                );
             }
 
             setSelectedOrganization(data.organization);
@@ -242,16 +252,86 @@ const AdminOrganizations = () => {
         }
     };
 
-    // --------------------------------
-    // Review organization
-    // --------------------------------
-    const handleReviewOrganization = async (organizationId) => {
-        await handleViewOrganization(organizationId);
-    };
-
     const closeViewModal = () => {
         setSelectedOrganization(null);
         setViewError('');
+    };
+
+    // --------------------------------
+    // Review organization
+    // --------------------------------
+    const handleReviewOrganization = (organization) => {
+        setReviewError('');
+        setSelectedReviewOrganization(organization);
+    };
+
+    const closeReviewModal = () => {
+        if (reviewLoading) {
+            return;
+        }
+
+        setSelectedReviewOrganization(null);
+        setReviewError('');
+    };
+
+    const handleVerificationChange = async (status) => {
+        if (!selectedReviewOrganization) {
+            return;
+        }
+
+        setReviewLoading(true);
+        setReviewError('');
+
+        try {
+            const token = getAuthToken();
+
+            if (!token) {
+                throw new Error('Authentication token not found.');
+            }
+
+            const response = await fetch(
+                `http://127.0.0.1:8000/api/admin/organizations/${selectedReviewOrganization.id}/verification`,
+                {
+                    method: 'PATCH',
+                    headers: {
+                        Accept: 'application/json',
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        verification_status: status,
+                    }),
+                },
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.message ||
+                        'Unable to update verification status.',
+                );
+            }
+
+            setSelectedReviewOrganization(null);
+
+            await loadOrganizations();
+
+            showSuccessToast(
+                status === 'verified'
+                    ? 'Organization verified successfully.'
+                    : status === 'rejected'
+                      ? 'Organization rejected successfully.'
+                      : 'Organization kept pending.',
+            );
+        } catch (err) {
+            setReviewError(
+                err.message ||
+                    'Unable to update verification status.',
+            );
+        } finally {
+            setReviewLoading(false);
+        }
     };
 
     // --------------------------------
@@ -358,7 +438,9 @@ const AdminOrganizations = () => {
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.message || 'Unable to load organization.');
+                throw new Error(
+                    data.message || 'Unable to load organization.',
+                );
             }
 
             setSelectedEditOrganization(data.organization);
@@ -568,7 +650,8 @@ const AdminOrganizations = () => {
 
         if (typeFilter !== 'all') {
             result = result.filter(
-                (organization) => organization.organization_type === typeFilter,
+                (organization) =>
+                    organization.organization_type === typeFilter,
             );
         }
 
@@ -585,7 +668,9 @@ const AdminOrganizations = () => {
             result = result.filter(
                 (organization) =>
                     organization.name?.toLowerCase().includes(search) ||
-                    organization.user?.email?.toLowerCase().includes(search) ||
+                    organization.user?.email
+                        ?.toLowerCase()
+                        .includes(search) ||
                     organization.registration_number
                         ?.toLowerCase()
                         .includes(search),
@@ -639,13 +724,16 @@ const AdminOrganizations = () => {
     // --------------------------------
     const totalPages = Math.max(
         1,
-        Math.ceil(filteredOrganizations.length / ORGANIZATIONS_PER_PAGE),
+        Math.ceil(
+            filteredOrganizations.length / ORGANIZATIONS_PER_PAGE,
+        ),
     );
 
     const safeCurrentPage = Math.min(currentPage, totalPages);
 
     const paginatedOrganizations = useMemo(() => {
-        const startIndex = (safeCurrentPage - 1) * ORGANIZATIONS_PER_PAGE;
+        const startIndex =
+            (safeCurrentPage - 1) * ORGANIZATIONS_PER_PAGE;
 
         return filteredOrganizations.slice(
             startIndex,
@@ -701,18 +789,38 @@ const AdminOrganizations = () => {
 
     const getSortIcon = (key) => {
         if (sortConfig.key !== key) {
-            return <ChevronsUpDown size={14} strokeWidth={1.8} />;
+            return (
+                <ChevronsUpDown
+                    size={14}
+                    strokeWidth={1.8}
+                />
+            );
         }
 
         if (sortConfig.direction === 'asc') {
-            return <ArrowUp size={14} strokeWidth={2} />;
+            return (
+                <ArrowUp
+                    size={14}
+                    strokeWidth={2}
+                />
+            );
         }
 
         if (sortConfig.direction === 'desc') {
-            return <ArrowDown size={14} strokeWidth={2} />;
+            return (
+                <ArrowDown
+                    size={14}
+                    strokeWidth={2}
+                />
+            );
         }
 
-        return <ChevronsUpDown size={14} strokeWidth={1.8} />;
+        return (
+            <ChevronsUpDown
+                size={14}
+                strokeWidth={1.8}
+            />
+        );
     };
 
     // --------------------------------
@@ -732,23 +840,30 @@ const AdminOrganizations = () => {
             'Registered',
         ];
 
-        const csvRows = filteredOrganizations.map((organization) => [
-            organization.name,
-            organization.organization_type,
-            organization.user?.email,
-            organization.registration_number,
-            organization.verification_status,
-            organization.created_at
-                ? new Date(organization.created_at).toLocaleDateString()
-                : '',
-        ]);
+        const csvRows = filteredOrganizations.map(
+            (organization) => [
+                organization.name,
+                organization.organization_type,
+                organization.user?.email,
+                organization.registration_number,
+                organization.verification_status,
+                organization.created_at
+                    ? new Date(
+                          organization.created_at,
+                      ).toLocaleDateString()
+                    : '',
+            ],
+        );
 
         const csvContent = [headers, ...csvRows]
             .map((row) =>
                 row
                     .map(
                         (value) =>
-                            `"${String(value ?? '').replace(/"/g, '""')}"`,
+                            `"${String(value ?? '').replace(
+                                /"/g,
+                                '""',
+                            )}"`,
                     )
                     .join(','),
             )
@@ -759,11 +874,11 @@ const AdminOrganizations = () => {
         });
 
         const url = URL.createObjectURL(blob);
-
         const link = document.createElement('a');
 
         link.href = url;
-        link.download = 'stand-for-people-organizations.csv';
+        link.download =
+            'stand-for-people-organizations.csv';
 
         document.body.appendChild(link);
         link.click();
@@ -771,24 +886,34 @@ const AdminOrganizations = () => {
 
         URL.revokeObjectURL(url);
 
-        showSuccessToast('Organizations exported successfully.');
+        showSuccessToast(
+            'Organizations exported successfully.',
+        );
     };
 
     // --------------------------------
     // Table rows
     // --------------------------------
-    const rows = paginatedOrganizations.map((organization, index) => ({
-        ...organization,
+    const rows = paginatedOrganizations.map(
+        (organization, index) => ({
+            ...organization,
 
-        contactEmail: organization.user?.email || '—',
+            contactEmail:
+                organization.user?.email || '—',
 
-        registeredDate: organization.created_at
-            ? new Date(organization.created_at).toLocaleDateString()
-            : '—',
+            registeredDate: organization.created_at
+                ? new Date(
+                      organization.created_at,
+                  ).toLocaleDateString()
+                : '—',
 
-        serialNumber:
-            (safeCurrentPage - 1) * ORGANIZATIONS_PER_PAGE + index + 1,
-    }));
+            serialNumber:
+                (safeCurrentPage - 1) *
+                    ORGANIZATIONS_PER_PAGE +
+                index +
+                1,
+        }),
+    );
 
     // --------------------------------
     // Table columns
@@ -800,34 +925,40 @@ const AdminOrganizations = () => {
             align: 'center',
             width: '60px',
         },
+
         {
             key: 'name',
             header: 'Organization',
             sortable: true,
             sortKey: 'name',
         },
+
         {
             key: 'organization_type',
             header: 'Type',
             sortable: true,
             sortKey: 'organization_type',
         },
+
         {
             key: 'contactEmail',
             header: 'Contact',
         },
+
         {
             key: 'registeredDate',
             header: 'Registered',
             sortable: true,
             sortKey: 'created_at',
         },
+
         {
             key: 'verification_status',
             header: 'Verification',
             sortable: true,
             sortKey: 'verification_status',
         },
+
         {
             key: 'id',
             header: 'Actions',
@@ -838,7 +969,9 @@ const AdminOrganizations = () => {
                     {row.verification_status === 'pending' && (
                         <button
                             type="button"
-                            onClick={() => handleReviewOrganization(row.id)}
+                            onClick={() =>
+                                handleReviewOrganization(row)
+                            }
                             className="text-xs font-semibold text-primary transition-colors hover:text-primary-hover"
                         >
                             Review
@@ -847,7 +980,9 @@ const AdminOrganizations = () => {
 
                     <button
                         type="button"
-                        onClick={() => handleViewOrganization(row.id)}
+                        onClick={() =>
+                            handleViewOrganization(row.id)
+                        }
                         className="text-xs font-semibold text-text-secondary transition-colors hover:text-primary"
                     >
                         View
@@ -855,7 +990,9 @@ const AdminOrganizations = () => {
 
                     <button
                         type="button"
-                        onClick={() => openEditModal(row.id)}
+                        onClick={() =>
+                            openEditModal(row.id)
+                        }
                         className="text-xs font-semibold text-text-secondary transition-colors hover:text-primary"
                     >
                         Edit
@@ -863,7 +1000,9 @@ const AdminOrganizations = () => {
 
                     <button
                         type="button"
-                        onClick={() => openDeleteModal(row)}
+                        onClick={() =>
+                            openDeleteModal(row)
+                        }
                         className="text-xs font-semibold text-red-600 transition-colors hover:text-red-700"
                     >
                         Delete
@@ -893,7 +1032,8 @@ const AdminOrganizations = () => {
                         </p>
 
                         <p className="mt-1 text-xs text-text-secondary">
-                            Please wait while we retrieve the organization list.
+                            Please wait while we retrieve the
+                            organization list.
                         </p>
                     </div>
                 </div>
@@ -931,7 +1071,9 @@ const AdminOrganizations = () => {
                             <button
                                 type="button"
                                 onClick={handleExportCSV}
-                                disabled={filteredOrganizations.length === 0}
+                                disabled={
+                                    filteredOrganizations.length === 0
+                                }
                                 className="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-white px-4 text-sm font-medium text-text-primary transition-colors hover:border-primary/30 hover:bg-background-alt disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 <Download size={16} />
@@ -1018,9 +1160,13 @@ const AdminOrganizations = () => {
                             typeFilter={typeFilter}
                             statusFilter={statusFilter}
                             organizations={organizations}
-                            onSearchChange={handleSearchChange}
+                            onSearchChange={
+                                handleSearchChange
+                            }
                             onTypeChange={handleTypeChange}
-                            onStatusChange={handleStatusChange}
+                            onStatusChange={
+                                handleStatusChange
+                            }
                         />
                     </div>
 
@@ -1031,7 +1177,9 @@ const AdminOrganizations = () => {
                             rows={rows}
                             onSort={handleSort}
                             getSortIcon={getSortIcon}
-                            resultCount={filteredOrganizations.length}
+                            resultCount={
+                                filteredOrganizations.length
+                            }
                         />
                     </div>
 
@@ -1040,8 +1188,12 @@ const AdminOrganizations = () => {
                         <OrganizationPagination
                             currentPage={safeCurrentPage}
                             totalPages={totalPages}
-                            totalItems={filteredOrganizations.length}
-                            itemsPerPage={ORGANIZATIONS_PER_PAGE}
+                            totalItems={
+                                filteredOrganizations.length
+                            }
+                            itemsPerPage={
+                                ORGANIZATIONS_PER_PAGE
+                            }
                             onPageChange={setCurrentPage}
                         />
                     )}
@@ -1062,6 +1214,15 @@ const AdminOrganizations = () => {
                 onClose={closeViewModal}
             />
 
+            {/* Review / Verification */}
+            <OrganizationVerificationModal
+                organization={selectedReviewOrganization}
+                loading={reviewLoading}
+                error={reviewError}
+                onClose={closeReviewModal}
+                onConfirm={handleVerificationChange}
+            />
+
             {/* Add */}
             <OrganizationFormModal
                 key={showAddModal ? 'add-open' : 'add-closed'}
@@ -1076,7 +1237,10 @@ const AdminOrganizations = () => {
 
             {/* Edit */}
             <OrganizationFormModal
-                key={selectedEditOrganization?.id || 'edit-organization'}
+                key={
+                    selectedEditOrganization?.id ||
+                    'edit-organization'
+                }
                 mode="edit"
                 open={Boolean(selectedEditOrganization)}
                 loading={editLoading}

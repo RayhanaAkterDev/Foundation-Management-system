@@ -13,7 +13,14 @@ class HelpRequestAssignment extends Model
         'volunteer_id',
         'assigned_by',
         'status',
-        'notes',
+        'assignment_note',
+        'assigned_at',
+        'completed_at',
+    ];
+
+    protected $casts = [
+        'assigned_at' => 'datetime',
+        'completed_at' => 'datetime',
     ];
 
     public function helpRequest(): BelongsTo
@@ -28,7 +35,7 @@ class HelpRequestAssignment extends Model
 
     public function volunteer(): BelongsTo
     {
-        return $this->belongsTo(Volunteer::class);
+        return $this->belongsTo(User::class, 'volunteer_id');
     }
 
     public function assignedBy(): BelongsTo

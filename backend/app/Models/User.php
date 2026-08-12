@@ -63,4 +63,12 @@ class User extends Authenticatable
     {
         return $this->hasOne(Organization::class);
     }
+
+    /**
+     * Volunteer relationship.
+     */
+    public function volunteer()
+    {
+        return $this->hasOne(Volunteer::class);
+    }
 }

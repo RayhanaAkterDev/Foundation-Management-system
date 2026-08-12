@@ -9,6 +9,7 @@ use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Volunteer;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 
 class AdminController extends Controller
 {
@@ -21,6 +22,135 @@ class AdminController extends Controller
                 'message' => 'Unauthorized.',
             ], 403);
         }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Recent Activity
+    |--------------------------------------------------------------------------
+    | Build the activity feed from the latest records across the platform.
+    | No mock/static activity is used.
+    */
+
+        $recentActivity = collect()
+            ->merge(
+                User::whereIn('role', ['individual', 'admin'])
+                    ->latest()
+                    ->take(5)
+                    ->get([
+                        'id',
+                        'name',
+                        'role',
+                        'created_at',
+                    ])
+                    ->map(function ($item) {
+                        return [
+                            'id' => 'user-' . $item->id,
+                            'type' => 'user',
+                            'text' => "{$item->name} registered as {$item->role}.",
+                            'time' => $item->created_at->diffForHumans(),
+                            'created_at' => $item->created_at,
+                        ];
+                    })
+            )
+            ->merge(
+                Organization::latest()
+                    ->take(5)
+                    ->get([
+                        'id',
+                        'name',
+                        'verification_status',
+                        'created_at',
+                    ])
+                    ->map(function ($item) {
+                        return [
+                            'id' => 'organization-' . $item->id,
+                            'type' => 'organization',
+                            'text' => "{$item->name} registered as an organization.",
+                            'time' => $item->created_at->diffForHumans(),
+                            'created_at' => $item->created_at,
+                        ];
+                    })
+            )
+            ->merge(
+                HelpRequest::latest()
+                    ->take(5)
+                    ->get([
+                        'id',
+                        'title',
+                        'status',
+                        'created_at',
+                    ])
+                    ->map(function ($item) {
+                        return [
+                            'id' => 'help-request-' . $item->id,
+                            'type' => 'helpRequest',
+                            'text' => "Help request \"{$item->title}\" was submitted.",
+                            'time' => $item->created_at->diffForHumans(),
+                            'created_at' => $item->created_at,
+                        ];
+                    })
+            )
+            ->merge(
+                Donation::latest()
+                    ->take(5)
+                    ->get([
+                        'id',
+                        'amount',
+                        'status',
+                        'created_at',
+                    ])
+                    ->map(function ($item) {
+                        return [
+                            'id' => 'donation-' . $item->id,
+                            'type' => 'donation',
+                            'text' => "Donation of ৳" .
+                                number_format((float) $item->amount, 2) .
+                                " was recorded.",
+                            'time' => $item->created_at->diffForHumans(),
+                            'created_at' => $item->created_at,
+                        ];
+                    })
+            )
+            ->merge(
+                Volunteer::latest()
+                    ->take(5)
+                    ->get([
+                        'id',
+                        'status',
+                        'created_at',
+                    ])
+                    ->map(function ($item) {
+                        return [
+                            'id' => 'volunteer-' . $item->id,
+                            'type' => 'volunteer',
+                            'text' => "A volunteer application was {$item->status}.",
+                            'time' => $item->created_at->diffForHumans(),
+                            'created_at' => $item->created_at,
+                        ];
+                    })
+            )
+            ->merge(
+                Campaign::latest()
+                    ->take(5)
+                    ->get([
+                        'id',
+                        'title',
+                        'status',
+                        'created_at',
+                    ])
+                    ->map(function ($item) {
+                        return [
+                            'id' => 'campaign-' . $item->id,
+                            'type' => 'campaign',
+                            'text' => "Campaign \"{$item->title}\" was created.",
+                            'time' => $item->created_at->diffForHumans(),
+                            'created_at' => $item->created_at,
+                        ];
+                    })
+            )
+            ->sortByDesc('created_at')
+            ->take(8)
+            ->values();
 
         return response()->json([
             'stats' => [
@@ -82,7 +212,7 @@ class AdminController extends Controller
                     'created_at',
                 ]),
 
-            'recentActivity' => [],
+            'recentActivity' => $recentActivity,
         ]);
     }
 
@@ -443,6 +573,196 @@ class AdminController extends Controller
 
         return response()->json([
             'helpRequests' => $helpRequests,
+        ]);
+    }
+
+    // ---------------------------------------------------------
+    // Help Requests - Assign Organization / Volunteer
+    // ---------------------------------------------------------
+
+    public function assignHelpRequest(Request $request, int $id)
+    {
+        $user = $request->user();
+
+        if (!$user || $user->role !== 'admin') {
+            return response()->json([
+                'message' => 'Unauthorized.',
+            ], 403);
+        }
+
+        $helpRequest = HelpRequest::find($id);
+
+        if (!$helpRequest) {
+            return response()->json([
+                'message' => 'Help request not found.',
+            ], 404);
+        }
+
+        if ($helpRequest->status !== 'verified') {
+            return response()->json([
+                'message' => 'Only verified help requests can be assigned.',
+            ], 422);
+        }
+
+        $validated = $request->validate([
+            'organization_id' => [
+                'nullable',
+                'integer',
+                'exists:organizations,id',
+            ],
+
+            'volunteer_id' => [
+                'nullable',
+                'integer',
+                'exists:users,id',
+            ],
+
+            'assignment_note' => [
+                'nullable',
+                'string',
+                'max:1000',
+            ],
+        ]);
+
+        if (
+            empty($validated['organization_id']) &&
+            empty($validated['volunteer_id'])
+        ) {
+            return response()->json([
+                'message' => 'At least one organization or volunteer must be assigned.',
+            ], 422);
+        }
+
+        // If an organization is selected, it must be verified.
+        if (!empty($validated['organization_id'])) {
+            $organization = Organization::find(
+                $validated['organization_id']
+            );
+
+            if ($organization->verification_status !== 'verified') {
+                return response()->json([
+                    'message' => 'The selected organization is not verified.',
+                ], 422);
+            }
+        }
+
+        // If a volunteer is selected, they must be
+        // an active individual user with an approved volunteer application.
+        if (!empty($validated['volunteer_id'])) {
+            $volunteerUser = User::find($validated['volunteer_id']);
+
+            if (!$volunteerUser) {
+                return response()->json([
+                    'message' => 'Selected volunteer user not found.',
+                ], 422);
+            }
+
+            if ($volunteerUser->role !== 'individual') {
+                return response()->json([
+                    'message' => 'Only individual users can act as volunteers.',
+                ], 422);
+            }
+
+            if ($volunteerUser->status !== 'active') {
+                return response()->json([
+                    'message' => 'The selected volunteer account is not active.',
+                ], 422);
+            }
+
+            $volunteer = Volunteer::where('user_id', $volunteerUser->id)
+                ->where('status', 'approved')
+                ->first();
+
+            if (!$volunteer) {
+                return response()->json([
+                    'message' => 'The selected user is not an approved SP volunteer.',
+                ], 422);
+            }
+        }
+
+        $assignment = \App\Models\HelpRequestAssignment::create([
+            'help_request_id' => $helpRequest->id,
+
+            'organization_id' => $validated['organization_id'] ?? null,
+
+            'volunteer_id' => $validated['volunteer_id'] ?? null,
+
+            'assigned_by' => $user->id,
+
+            'status' => 'assigned',
+
+            'assignment_note' => $validated['assignment_note'] ?? null,
+
+            'assigned_at' => now(),
+        ]);
+
+        return response()->json([
+            'message' => 'Help request assigned successfully.',
+
+            'assignment' => $assignment->load([
+                'helpRequest',
+                'organization',
+                'volunteer',
+                'assignedBy',
+            ]),
+        ], 201);
+    }
+
+    // ---------------------------------------------------------
+    // Help Requests - Verify / Reject
+    // ---------------------------------------------------------
+
+    public function updateHelpRequestVerification(
+        Request $request,
+        int $id
+    ) {
+        $user = $request->user();
+
+        if (!$user || $user->role !== 'admin') {
+            return response()->json([
+                'message' => 'Unauthorized.',
+            ], 403);
+        }
+
+        $helpRequest = HelpRequest::find($id);
+
+        if (!$helpRequest) {
+            return response()->json([
+                'message' => 'Help request not found.',
+            ], 404);
+        }
+
+        // Only pending requests can be reviewed.
+        if ($helpRequest->status !== 'pending') {
+            return response()->json([
+                'message' => 'Only pending help requests can be reviewed.',
+            ], 422);
+        }
+
+        $validated = $request->validate([
+            'status' => [
+                'required',
+                'in:verified,rejected',
+            ],
+
+            'verification_note' => [
+                'nullable',
+                'string',
+                'max:2000',
+            ],
+        ]);
+
+        $helpRequest->update([
+            'status' => $validated['status'],
+            'verification_note' => $validated['verification_note'] ?? null,
+        ]);
+
+        return response()->json([
+            'message' => $validated['status'] === 'verified'
+                ? 'Help request verified successfully.'
+                : 'Help request rejected successfully.',
+
+            'help_request' => $helpRequest->fresh()->load('user'),
         ]);
     }
 

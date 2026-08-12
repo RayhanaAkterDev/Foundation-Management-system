@@ -34,8 +34,19 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     );
     Route::delete('/organizations/{id}', [AdminController::class, 'destroyOrganization']);
 
-    // Other admin modules
+    // Help Request
     Route::get('/help-requests', [AdminController::class, 'helpRequests']);
+    Route::patch(
+        '/help-requests/{id}/verification',
+        [AdminController::class, 'updateHelpRequestVerification']
+    );
+    Route::patch(
+        '/help-requests/{id}/assignment',
+        [AdminController::class, 'assignHelpRequest']
+    );
+
+
+    // Other admin modules
     Route::get('/donations', [AdminController::class, 'donations']);
     Route::get('/volunteers', [AdminController::class, 'volunteers']);
     Route::get('/campaigns', [AdminController::class, 'campaigns']);

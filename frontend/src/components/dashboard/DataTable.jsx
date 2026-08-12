@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react';
+import { ChevronsUpDown } from 'lucide-react';
 
 import EmptyState from './EmptyState';
 
@@ -42,7 +42,7 @@ const DataTable = ({
                 </div>
             )}
 
-            {/* Empty State */}
+            {/* Empty */}
             {rows.length === 0 ? (
                 <div className="px-6 py-16">
                     <EmptyState {...(empty || {})} />
@@ -51,7 +51,7 @@ const DataTable = ({
                 <div className="overflow-x-auto">
                     <table className="w-full min-w-205">
                         <thead>
-                            <tr className="border-b border-border bg-background-alt/30">
+                            <tr className="border-b border-border bg-background-alt/35">
                                 {columns.map((col) => {
                                     const sortable = col.sortable && onSort;
 
@@ -63,7 +63,7 @@ const DataTable = ({
                                             style={{
                                                 width: col.width,
                                             }}
-                                            className={`whitespace-nowrap px-5 py-3.5 text-[10px] font-bold uppercase tracking-widest text-text-secondary ${
+                                            className={`whitespace-nowrap px-5 py-3.5 text-[10px] font-bold uppercase tracking-[0.12em] text-text-secondary ${
                                                 col.align === 'right'
                                                     ? 'text-right'
                                                     : col.align === 'center'
@@ -111,7 +111,7 @@ const DataTable = ({
                             {rows.map((row) => (
                                 <tr
                                     key={row[keyField]}
-                                    className="group border-b border-border/70 last:border-b-0 transition-colors hover:bg-primary/2.5"
+                                    className="group border-b border-border/70 transition-colors last:border-b-0 hover:bg-background-alt/30"
                                 >
                                     {columns.map((col) => (
                                         <td

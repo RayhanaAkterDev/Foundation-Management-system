@@ -35,10 +35,6 @@ const AdminUsers = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
-    // -----------------------------
-    // Filters / Search / Sorting
-    // -----------------------------
-
     const [activeCategory, setActiveCategory] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
     const [roleFilter, setRoleFilter] = useState('all');
@@ -51,43 +47,23 @@ const AdminUsers = () => {
 
     const [currentPage, setCurrentPage] = useState(1);
 
-    // -----------------------------
-    // View user
-    // -----------------------------
-
     const [selectedUser, setSelectedUser] = useState(null);
     const [viewLoading, setViewLoading] = useState(false);
     const [viewError, setViewError] = useState('');
-
-    // -----------------------------
-    // Add user
-    // -----------------------------
 
     const [showAddModal, setShowAddModal] = useState(false);
     const [addLoading, setAddLoading] = useState(false);
     const [addError, setAddError] = useState('');
     const [addFieldErrors, setAddFieldErrors] = useState({});
 
-    // -----------------------------
-    // Edit user
-    // -----------------------------
-
     const [selectedEditUser, setSelectedEditUser] = useState(null);
     const [editLoading, setEditLoading] = useState(false);
     const [editError, setEditError] = useState('');
     const [editFieldErrors, setEditFieldErrors] = useState({});
 
-    // -----------------------------
-    // Delete user
-    // -----------------------------
-
     const [selectedDeleteUser, setSelectedDeleteUser] = useState(null);
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [deleteError, setDeleteError] = useState('');
-
-    // -----------------------------
-    // Success toast
-    // -----------------------------
 
     const [toast, setToast] = useState({
         show: false,
@@ -107,10 +83,6 @@ const AdminUsers = () => {
             });
         }, 3000);
     };
-
-    // -----------------------------
-    // Load users
-    // -----------------------------
 
     const loadUsers = async () => {
         try {
@@ -156,9 +128,9 @@ const AdminUsers = () => {
         };
     }, []);
 
-    // -----------------------------
+    // --------------------------------
     // View user
-    // -----------------------------
+    // --------------------------------
 
     const handleViewUser = async (userId) => {
         setViewLoading(true);
@@ -181,9 +153,9 @@ const AdminUsers = () => {
         setViewError('');
     };
 
-    // -----------------------------
+    // --------------------------------
     // Add user
-    // -----------------------------
+    // --------------------------------
 
     const openAddModal = () => {
         setAddError('');
@@ -227,9 +199,9 @@ const AdminUsers = () => {
         }
     };
 
-    // -----------------------------
+    // --------------------------------
     // Edit user
-    // -----------------------------
+    // --------------------------------
 
     const openEditModal = async (userId) => {
         setEditLoading(true);
@@ -286,9 +258,9 @@ const AdminUsers = () => {
         }
     };
 
-    // -----------------------------
+    // --------------------------------
     // Delete user
-    // -----------------------------
+    // --------------------------------
 
     const openDeleteModal = (user) => {
         setDeleteError('');
@@ -327,9 +299,9 @@ const AdminUsers = () => {
         }
     };
 
-    // -----------------------------
-    // User statistics
-    // -----------------------------
+    // --------------------------------
+    // Statistics
+    // --------------------------------
 
     const statistics = useMemo(() => {
         return {
@@ -343,36 +315,35 @@ const AdminUsers = () => {
         };
     }, [users]);
 
-    // -----------------------------
-    // Category tabs
-    // -----------------------------
+    const categoryTabs = useMemo(
+        () => [
+            {
+                key: 'all',
+                label: 'All Users',
+                count: statistics.total,
+            },
+            {
+                key: 'individual',
+                label: 'Individuals',
+                count: statistics.individuals,
+            },
+            {
+                key: 'organization',
+                label: 'Organizations',
+                count: statistics.organizations,
+            },
+            {
+                key: 'admin',
+                label: 'Administrators',
+                count: statistics.administrators,
+            },
+        ],
+        [statistics],
+    );
 
-    const categoryTabs = [
-        {
-            key: 'all',
-            label: 'All Users',
-            count: statistics.total,
-        },
-        {
-            key: 'individual',
-            label: 'Individuals',
-            count: statistics.individuals,
-        },
-        {
-            key: 'organization',
-            label: 'Organizations',
-            count: statistics.organizations,
-        },
-        {
-            key: 'admin',
-            label: 'Administrators',
-            count: statistics.administrators,
-        },
-    ];
-
-    // -----------------------------
+    // --------------------------------
     // Filtering + sorting
-    // -----------------------------
+    // --------------------------------
 
     const filteredUsers = useMemo(() => {
         let result = [...users];
@@ -399,7 +370,6 @@ const AdminUsers = () => {
             );
         }
 
-        // No active sort → keep default order
         if (!sortConfig.key || !sortConfig.direction) {
             return result;
         }
@@ -442,9 +412,9 @@ const AdminUsers = () => {
         sortConfig,
     ]);
 
-    // -----------------------------
+    // --------------------------------
     // Pagination
-    // -----------------------------
+    // --------------------------------
 
     const totalPages = Math.max(
         1,
@@ -458,6 +428,10 @@ const AdminUsers = () => {
 
         return filteredUsers.slice(startIndex, startIndex + USERS_PER_PAGE);
     }, [filteredUsers, safeCurrentPage]);
+
+    // --------------------------------
+    // Controls
+    // --------------------------------
 
     const handleCategoryChange = (category) => {
         setActiveCategory(category);
@@ -481,7 +455,6 @@ const AdminUsers = () => {
 
     const handleSort = (key) => {
         setSortConfig((current) => {
-            // First click → ascending
             if (current.key !== key) {
                 return {
                     key,
@@ -489,7 +462,6 @@ const AdminUsers = () => {
                 };
             }
 
-            // Second click → descending
             if (current.direction === 'asc') {
                 return {
                     key,
@@ -497,7 +469,6 @@ const AdminUsers = () => {
                 };
             }
 
-            // Third click → default / unsorted
             return {
                 key: null,
                 direction: null,
@@ -521,9 +492,9 @@ const AdminUsers = () => {
         return <ChevronsUpDown size={14} strokeWidth={1.8} />;
     };
 
-    // -----------------------------
+    // --------------------------------
     // CSV Export
-    // -----------------------------
+    // --------------------------------
 
     const handleExportCSV = () => {
         if (filteredUsers.length === 0) {
@@ -570,9 +541,9 @@ const AdminUsers = () => {
         showSuccessToast('Users exported successfully.');
     };
 
-    // -----------------------------
-    // Table rows
-    // -----------------------------
+    // --------------------------------
+    // Table
+    // --------------------------------
 
     const rows = paginatedUsers.map((user, index) => ({
         ...user,
@@ -604,11 +575,6 @@ const AdminUsers = () => {
             header: 'Role',
             sortable: true,
             sortKey: 'role',
-            render: (value) => (
-                <span className="capitalize text-text-primary">
-                    {value === 'admin' ? 'Administrator' : value}
-                </span>
-            ),
         },
         {
             key: 'joinedDate',
@@ -656,46 +622,48 @@ const AdminUsers = () => {
         },
     ];
 
-    // -----------------------------
+    // --------------------------------
     // Loading
-    // -----------------------------
+    // --------------------------------
 
     if (loading) {
         return (
-            <div className="space-y-6">
+            <div className="space-y-8">
                 <PageHeader
                     title="Users"
                     subtitle="Manage all registered users on the Stand For People platform."
                 />
 
-                <div className="rounded-2xl border border-border bg-white px-6 py-16 text-center">
-                    <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-border border-t-primary" />
+                <div className="flex min-h-70 items-center justify-center border-y border-border bg-white">
+                    <div className="text-center">
+                        <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-border border-t-primary" />
 
-                    <p className="text-sm font-medium text-text-primary">
-                        Loading users...
-                    </p>
+                        <p className="text-sm font-semibold text-text-primary">
+                            Loading users...
+                        </p>
 
-                    <p className="mt-1 text-xs text-text-secondary">
-                        Please wait while we retrieve the user list.
-                    </p>
+                        <p className="mt-1 text-xs text-text-secondary">
+                            Please wait while we retrieve the user list.
+                        </p>
+                    </div>
                 </div>
             </div>
         );
     }
 
-    // -----------------------------
+    // --------------------------------
     // Error
-    // -----------------------------
+    // --------------------------------
 
     if (error) {
         return (
-            <div className="space-y-6">
+            <div className="space-y-8">
                 <PageHeader
                     title="Users"
                     subtitle="Manage all registered users on the Stand For People platform."
                 />
 
-                <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-600">
+                <div className="border-l-4 border-red-500 bg-red-50 px-5 py-4 text-sm text-red-600">
                     {error}
                 </div>
             </div>
@@ -704,18 +672,18 @@ const AdminUsers = () => {
 
     return (
         <>
-            <div className="space-y-7">
-                {/* Page Header */}
+            <div className="space-y-9">
+                {/* Header */}
                 <PageHeader
                     title="Users"
                     subtitle="Manage all registered users on the Stand For People platform."
                     action={
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2.5">
                             <button
                                 type="button"
                                 onClick={handleExportCSV}
                                 disabled={filteredUsers.length === 0}
-                                className="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-white px-4 text-sm font-medium text-text-primary transition-all hover:border-primary/30 hover:bg-background-alt disabled:cursor-not-allowed disabled:opacity-50"
+                                className="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-white px-4 text-sm font-medium text-text-primary transition-colors hover:border-primary/30 hover:bg-background-alt disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 <Download size={16} />
                                 Export
@@ -724,7 +692,7 @@ const AdminUsers = () => {
                             <button
                                 type="button"
                                 onClick={openAddModal}
-                                className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-white shadow-sm transition-all hover:bg-primary-hover hover:shadow-md"
+                                className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-hover"
                             >
                                 <Plus size={17} />
                                 Add User
@@ -733,56 +701,105 @@ const AdminUsers = () => {
                     }
                 />
 
-                {/* Overview */}
-                <UserStats
-                    total={statistics.total}
-                    individuals={statistics.individuals}
-                    organizations={statistics.organizations}
-                    administrators={statistics.administrators}
-                />
+                {/* --------------------------------
+                    USER OVERVIEW
+                -------------------------------- */}
+                <section>
+                    <div className="mb-4 flex items-end justify-between">
+                        <div>
+                            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
+                                Platform overview
+                            </p>
 
-                {/* Categories */}
-                <UserCategoryTabs
-                    tabs={categoryTabs}
-                    activeCategory={activeCategory}
-                    onChange={handleCategoryChange}
-                />
+                            <h2 className="mt-1 text-lg font-bold tracking-tight text-text-primary">
+                                User base
+                            </h2>
+                        </div>
 
-                {/* Filters */}
-                <UserFilters
-                    searchTerm={searchTerm}
-                    roleFilter={roleFilter}
-                    statusFilter={statusFilter}
-                    onSearchChange={handleSearchChange}
-                    onRoleChange={handleRoleChange}
-                    onStatusChange={handleStatusChange}
-                />
+                        <p className="hidden text-xs text-text-secondary sm:block">
+                            Registered account distribution
+                        </p>
+                    </div>
 
-                {/* Table */}
-                <UserTable
-                    columns={columns}
-                    rows={rows}
-                    onSort={handleSort}
-                    getSortIcon={getSortIcon}
-                    resultCount={filteredUsers.length}
-                />
-
-                {/* Pagination */}
-                {filteredUsers.length > 0 && (
-                    <UserPagination
-                        currentPage={safeCurrentPage}
-                        totalPages={totalPages}
-                        totalItems={filteredUsers.length}
-                        itemsPerPage={USERS_PER_PAGE}
-                        onPageChange={setCurrentPage}
+                    <UserStats
+                        total={statistics.total}
+                        individuals={statistics.individuals}
+                        organizations={statistics.organizations}
+                        administrators={statistics.administrators}
                     />
-                )}
+                </section>
+
+                {/* --------------------------------
+                    USER MANAGEMENT
+                -------------------------------- */}
+                <section className="border-t border-border pt-8">
+                    <div className="mb-5">
+                        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
+                            Administration
+                        </p>
+
+                        <div className="mt-1 flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
+                            <div>
+                                <h2 className="text-lg font-bold tracking-tight text-text-primary">
+                                    User management
+                                </h2>
+                            </div>
+
+                            <p className="text-xs font-medium text-text-secondary">
+                                {filteredUsers.length}{' '}
+                                {filteredUsers.length === 1 ? 'user' : 'users'}{' '}
+                                shown
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Categories */}
+                    <UserCategoryTabs
+                        tabs={categoryTabs}
+                        activeCategory={activeCategory}
+                        onChange={handleCategoryChange}
+                    />
+
+                    {/* Filters */}
+                    <div className="mt-4">
+                        <UserFilters
+                            searchTerm={searchTerm}
+                            roleFilter={roleFilter}
+                            statusFilter={statusFilter}
+                            onSearchChange={handleSearchChange}
+                            onRoleChange={handleRoleChange}
+                            onStatusChange={handleStatusChange}
+                        />
+                    </div>
+
+                    {/* Table */}
+                    <div className="mt-5">
+                        <UserTable
+                            columns={columns}
+                            rows={rows}
+                            onSort={handleSort}
+                            getSortIcon={getSortIcon}
+                            resultCount={filteredUsers.length}
+                        />
+                    </div>
+
+                    {/* Pagination */}
+                    {filteredUsers.length > 0 && (
+                        <UserPagination
+                            currentPage={safeCurrentPage}
+                            totalPages={totalPages}
+                            totalItems={filteredUsers.length}
+                            itemsPerPage={USERS_PER_PAGE}
+                            onPageChange={setCurrentPage}
+                        />
+                    )}
+                </section>
             </div>
 
-            {/* Success Toast */}
+            {/* Toast */}
             <UserSuccessToast show={toast.show} message={toast.message} />
 
-            {/* Existing Modals */}
+            {/* View */}
             <UserViewModal
                 user={selectedUser}
                 loading={viewLoading}
@@ -790,6 +807,7 @@ const AdminUsers = () => {
                 onClose={closeViewModal}
             />
 
+            {/* Add */}
             <UserFormModal
                 mode="add"
                 open={showAddModal}
@@ -800,6 +818,7 @@ const AdminUsers = () => {
                 onSubmit={handleAddUser}
             />
 
+            {/* Edit */}
             <UserFormModal
                 key={selectedEditUser?.id || 'edit-user'}
                 mode="edit"
@@ -822,6 +841,7 @@ const AdminUsers = () => {
                 </div>
             )}
 
+            {/* Delete */}
             <UserDeleteModal
                 user={selectedDeleteUser}
                 loading={deleteLoading}

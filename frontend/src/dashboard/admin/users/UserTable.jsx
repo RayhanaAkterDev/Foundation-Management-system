@@ -47,7 +47,7 @@ const UserTable = ({ columns, rows, onSort, getSortIcon, resultCount }) => {
                 return {
                     ...column,
                     render: (value) => (
-                        <span className="inline-flex items-center rounded-full bg-background-alt px-2.5 py-1 text-[11px] font-semibold capitalize text-text-secondary">
+                        <span className="inline-flex items-center rounded-md bg-background-alt px-2.5 py-1 text-[11px] font-semibold capitalize text-text-secondary">
                             {value === 'admin' ? 'Administrator' : value}
                         </span>
                     ),

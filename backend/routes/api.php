@@ -19,6 +19,7 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
 
     // Organizations
     Route::get('/organizations', [AdminController::class, 'organizations']);
+    Route::post('/organizations', [AdminController::class, 'storeOrganization']);
     Route::get('/organizations/{id}', [AdminController::class, 'showOrganization']);
     Route::put('/organizations/{id}', [AdminController::class, 'updateOrganization']);
     Route::patch(

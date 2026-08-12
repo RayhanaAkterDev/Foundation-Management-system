@@ -1,5 +1,5 @@
 import React from 'react';
-import { CircleCheck } from 'lucide-react';
+import { Check } from 'lucide-react';
 
 const OrganizationSuccessToast = ({ show, message }) => {
     if (!show) {
@@ -7,12 +7,18 @@ const OrganizationSuccessToast = ({ show, message }) => {
     }
 
     return (
-        <div className="fixed bottom-6 right-6 z-100 flex items-center gap-3 rounded-xl border border-emerald-200 bg-white px-4 py-3 shadow-xl">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
-                <CircleCheck size={17} />
-            </div>
+        <div className="fixed bottom-6 right-6 z-100 w-[calc(100%-2rem)] max-w-sm">
+            <div className="flex items-center gap-3 rounded-xl border border-border bg-white px-4 py-3.5 shadow-[0_10px_35px_rgba(15,23,42,0.12)]">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <Check size={18} strokeWidth={2.4} />
+                </div>
 
-            <p className="text-sm font-medium text-text-primary">{message}</p>
+                <div className="min-w-0">
+                    <p className="text-sm font-medium leading-5 text-text-primary">
+                        {message}
+                    </p>
+                </div>
+            </div>
         </div>
     );
 };

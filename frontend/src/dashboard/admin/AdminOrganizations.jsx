@@ -10,6 +10,7 @@ import {
 import PageHeader from '@/components/dashboard/PageHeader';
 
 import OrganizationViewModal from './organizations/OrganizationViewModal';
+import OrganizationVerificationModal from './organizations/OrganizationVerificationModal';
 import OrganizationFormModal from './organizations/OrganizationFormModal';
 import OrganizationDeleteModal from './organizations/OrganizationDeleteModal';
 import OrganizationStats from './organizations/OrganizationStats';
@@ -1063,6 +1064,7 @@ const AdminOrganizations = () => {
 
             {/* Add */}
             <OrganizationFormModal
+                key={showAddModal ? 'add-open' : 'add-closed'}
                 mode="add"
                 open={showAddModal}
                 loading={addLoading}

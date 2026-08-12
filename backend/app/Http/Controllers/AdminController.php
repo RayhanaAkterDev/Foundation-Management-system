@@ -345,6 +345,62 @@ class AdminController extends Controller
     }
 
     // ---------------------------------------------------------
+    // Organizations - Add
+    // ---------------------------------------------------------
+    public function storeOrganization(Request $request)
+    {
+        $user = $request->user();
+
+        if (!$user || $user->role !== 'admin') {
+            return response()->json([
+                'message' => 'Unauthorized.',
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'organization_type' => ['nullable', 'string', 'max:255'],
+            'registration_number' => ['nullable', 'string', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:50'],
+            'website' => ['nullable', 'string', 'max:255'],
+            'address' => ['nullable', 'string'],
+            'email' => [
+                'required',
+                'email',
+                'max:255',
+                'unique:users,email',
+            ],
+        ]);
+
+        $temporaryPassword = \Illuminate\Support\Str::random(12);
+
+        $organizationUser = User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => $temporaryPassword,
+            'role' => 'organization',
+            'status' => 'active',
+        ]);
+
+        $organization = Organization::create([
+            'user_id' => $organizationUser->id,
+            'name' => $validated['name'],
+            'organization_type' => $validated['organization_type'] ?? null,
+            'registration_number' => $validated['registration_number'] ?? null,
+            'phone' => $validated['phone'] ?? null,
+            'website' => $validated['website'] ?? null,
+            'address' => $validated['address'] ?? null,
+            'verification_status' => 'pending',
+        ]);
+
+        return response()->json([
+            'message' => 'Organization added successfully.',
+            'organization' => $organization->fresh()->load('user'),
+            'temporary_password' => $temporaryPassword,
+        ], 201);
+    }
+
+    // ---------------------------------------------------------
     // Organizations
     // ---------------------------------------------------------
 
@@ -415,7 +471,6 @@ class AdminController extends Controller
             'organization' => $organization,
         ]);
     }
-
 
     // ---------------------------------------------------------
     // Organizations - Edit

@@ -1,72 +1,80 @@
 import React from 'react';
-import { Building2, CircleCheck, Clock3, CircleX } from 'lucide-react';
+import { Building2, BadgeCheck, Clock3, XCircle } from 'lucide-react';
 
 const OrganizationStats = ({ total, verified, pending, rejected }) => {
-    const items = [
-        {
-            label: 'Total organizations',
-            value: total,
-            icon: Building2,
-            emphasis: true,
-        },
-        {
-            label: 'Verified',
-            value: verified,
-            icon: CircleCheck,
-        },
-        {
-            label: 'Pending review',
-            value: pending,
-            icon: Clock3,
-        },
-        {
-            label: 'Rejected',
-            value: rejected,
-            icon: CircleX,
-        },
-    ];
-
     return (
-        <section className="overflow-hidden rounded-2xl border border-border bg-white">
-            <div className="grid grid-cols-2 divide-x divide-y divide-border sm:grid-cols-4 sm:divide-y-0">
-                {items.map((item) => {
-                    const Icon = item.icon;
+        <section className="overflow-hidden rounded-2xl border border-primary/15 bg-white shadow-sm">
+            <div className="grid grid-cols-1 lg:grid-cols-[1.15fr_2.85fr]">
+                {/* Primary metric */}
+                <div className="relative overflow-hidden bg-primary px-6 py-7 text-white sm:px-7">
+                    <div className="absolute -right-10 -top-10 h-36 w-36 rounded-full bg-white/5" />
+                    <div className="absolute -bottom-16 right-8 h-40 w-40 rounded-full bg-white/5" />
 
-                    return (
-                        <div
-                            key={item.label}
-                            className={`group relative px-5 py-5 transition-colors hover:bg-background-alt/30 ${
-                                item.emphasis ? 'sm:bg-primary/2.5' : ''
-                            }`}
-                        >
-                            <div className="flex items-start justify-between gap-3">
-                                <div>
-                                    <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-secondary">
-                                        {item.label}
-                                    </p>
-
-                                    <p
-                                        className={`mt-2 font-bold tracking-tight ${
-                                            item.emphasis
-                                                ? 'text-3xl text-text-primary'
-                                                : 'text-2xl text-text-primary'
-                                        }`}
-                                    >
-                                        {item.value}
-                                    </p>
-                                </div>
-
-                                <Icon
-                                    size={18}
-                                    strokeWidth={1.7}
-                                    className="mt-0.5 text-primary/50 transition-colors group-hover:text-primary"
-                                />
+                    <div className="relative">
+                        <div className="flex items-center justify-between">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/12">
+                                <Building2 size={20} strokeWidth={1.8} />
                             </div>
+
+                            <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/60">
+                                All organizations
+                            </span>
                         </div>
-                    );
-                })}
+
+                        <p className="mt-7 text-[11px] font-bold uppercase tracking-[0.12em] text-white/65">
+                            Total organizations
+                        </p>
+
+                        <p className="mt-1 text-4xl font-bold tracking-tight sm:text-5xl">
+                            {total}
+                        </p>
+
+                        <p className="mt-2 max-w-55 text-xs leading-5 text-white/65">
+                            Total registered organizations across the platform.
+                        </p>
+                    </div>
+                </div>
+
+                {/* Supporting metrics */}
+                <div className="grid grid-cols-1 divide-y divide-border sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+                    <StatItem
+                        label="Verified"
+                        value={verified}
+                        icon={BadgeCheck}
+                    />
+
+                    <StatItem label="Pending" value={pending} icon={Clock3} />
+
+                    <StatItem
+                        label="Rejected"
+                        value={rejected}
+                        icon={XCircle}
+                    />
+                </div>
             </div>
         </section>
+    );
+};
+
+const StatItem = ({ label, value, icon: Icon }) => {
+    return (
+        <div className="flex min-h-35 items-center px-6 py-6 transition-colors hover:bg-background-alt/35">
+            <div className="flex w-full items-start justify-between gap-4">
+                <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-text-secondary">
+                        {label}
+                    </p>
+
+                    <p className="mt-2 text-3xl font-bold tracking-tight text-text-primary">
+                        {value}
+                    </p>
+                </div>
+
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/8 text-primary">
+                    <Icon size={17} strokeWidth={1.8} />
+                </div>
+            </div>
+        </div>
     );
 };
 

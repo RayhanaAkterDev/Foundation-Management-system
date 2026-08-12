@@ -9,23 +9,15 @@ import {
 
 import PageHeader from '@/components/dashboard/PageHeader';
 
+import OrganizationViewModal from './organizations/OrganizationViewModal';
+import OrganizationFormModal from './organizations/OrganizationFormModal';
+import OrganizationDeleteModal from './organizations/OrganizationDeleteModal';
 import OrganizationStats from './organizations/OrganizationStats';
 import OrganizationCategoryTabs from './organizations/OrganizationCategoryTabs';
 import OrganizationFilters from './organizations/OrganizationFilters';
 import OrganizationTable from './organizations/OrganizationTable';
-import OrganizationViewModal from './organizations/OrganizationViewModal';
-import OrganizationFormModal from './organizations/OrganizationFormModal';
-import OrganizationVerificationModal from './organizations/OrganizationVerificationModal';
-import OrganizationDeleteModal from './organizations/OrganizationDeleteModal';
+import OrganizationPagination from './organizations/OrganizationPagination';
 import OrganizationSuccessToast from './organizations/OrganizationSuccessToast';
-
-import {
-    fetchOrganizations,
-    fetchOrganization,
-    updateOrganization,
-    updateOrganizationVerification,
-    deleteOrganization,
-} from './organizations/organizationApi';
 
 const ORGANIZATIONS_PER_PAGE = 25;
 
@@ -34,18 +26,13 @@ const AdminOrganizations = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
-    // ---------------------------------------------------------
-    // Filters
-    // ---------------------------------------------------------
-
+    // --------------------------------
+    // Filters / Search / Sorting
+    // --------------------------------
     const [activeCategory, setActiveCategory] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
     const [typeFilter, setTypeFilter] = useState('all');
     const [statusFilter, setStatusFilter] = useState('all');
-
-    // ---------------------------------------------------------
-    // Sorting
-    // ---------------------------------------------------------
 
     const [sortConfig, setSortConfig] = useState({
         key: 'created_at',
@@ -54,53 +41,41 @@ const AdminOrganizations = () => {
 
     const [currentPage, setCurrentPage] = useState(1);
 
-    // ---------------------------------------------------------
-    // View
-    // ---------------------------------------------------------
-
+    // --------------------------------
+    // View organization
+    // --------------------------------
     const [selectedOrganization, setSelectedOrganization] = useState(null);
-
     const [viewLoading, setViewLoading] = useState(false);
     const [viewError, setViewError] = useState('');
 
-    // ---------------------------------------------------------
-    // Edit
-    // ---------------------------------------------------------
+    // --------------------------------
+    // Add organization
+    // --------------------------------
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [addLoading, setAddLoading] = useState(false);
+    const [addError, setAddError] = useState('');
+    const [addFieldErrors, setAddFieldErrors] = useState({});
 
+    // --------------------------------
+    // Edit organization
+    // --------------------------------
     const [selectedEditOrganization, setSelectedEditOrganization] =
         useState(null);
-
     const [editLoading, setEditLoading] = useState(false);
     const [editError, setEditError] = useState('');
     const [editFieldErrors, setEditFieldErrors] = useState({});
 
-    // ---------------------------------------------------------
-    // Verification
-    // ---------------------------------------------------------
-
-    const [
-        selectedVerificationOrganization,
-        setSelectedVerificationOrganization,
-    ] = useState(null);
-
-    const [verificationLoading, setVerificationLoading] = useState(false);
-
-    const [verificationError, setVerificationError] = useState('');
-
-    // ---------------------------------------------------------
-    // Delete
-    // ---------------------------------------------------------
-
+    // --------------------------------
+    // Delete organization
+    // --------------------------------
     const [selectedDeleteOrganization, setSelectedDeleteOrganization] =
         useState(null);
-
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [deleteError, setDeleteError] = useState('');
 
-    // ---------------------------------------------------------
-    // Toast
-    // ---------------------------------------------------------
-
+    // --------------------------------
+    // Success toast
+    // --------------------------------
     const [toast, setToast] = useState({
         show: false,
         message: '',
@@ -120,20 +95,54 @@ const AdminOrganizations = () => {
         }, 3000);
     };
 
-    // ---------------------------------------------------------
-    // Load organizations
-    // ---------------------------------------------------------
+    // --------------------------------
+    // Authentication
+    // --------------------------------
+    const getAuthToken = () => {
+        return (
+            localStorage.getItem('auth_token') ||
+            sessionStorage.getItem('auth_token')
+        );
+    };
 
+    // --------------------------------
+    // Load organizations
+    // --------------------------------
     const loadOrganizations = async () => {
         try {
             setLoading(true);
             setError('');
 
-            const data = await fetchOrganizations();
+            const token = getAuthToken();
+
+            if (!token) {
+                throw new Error('Authentication token not found.');
+            }
+
+            const response = await fetch(
+                'http://127.0.0.1:8000/api/admin/organizations',
+                {
+                    headers: {
+                        Accept: 'application/json',
+                        Authorization: `Bearer ${token}`,
+                    },
+                },
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.message || 'Unable to load organizations.',
+                );
+            }
 
             setOrganizations(data.organizations || []);
         } catch (err) {
-            setError(err.message || 'Unable to load organizations.');
+            setError(
+                err.message ||
+                    'Something went wrong while loading organizations.',
+            );
         } finally {
             setLoading(false);
         }
@@ -144,7 +153,29 @@ const AdminOrganizations = () => {
 
         const loadInitialOrganizations = async () => {
             try {
-                const data = await fetchOrganizations();
+                const token = getAuthToken();
+
+                if (!token) {
+                    throw new Error('Authentication token not found.');
+                }
+
+                const response = await fetch(
+                    'http://127.0.0.1:8000/api/admin/organizations',
+                    {
+                        headers: {
+                            Accept: 'application/json',
+                            Authorization: `Bearer ${token}`,
+                        },
+                    },
+                );
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(
+                        data.message || 'Unable to load organizations.',
+                    );
+                }
 
                 if (!cancelled) {
                     setOrganizations(data.organizations || []);
@@ -152,7 +183,10 @@ const AdminOrganizations = () => {
                 }
             } catch (err) {
                 if (!cancelled) {
-                    setError(err.message || 'Unable to load organizations.');
+                    setError(
+                        err.message ||
+                            'Something went wrong while loading organizations.',
+                    );
                 }
             } finally {
                 if (!cancelled) {
@@ -168,90 +202,50 @@ const AdminOrganizations = () => {
         };
     }, []);
 
-    // ---------------------------------------------------------
-    // Statistics
-    // ---------------------------------------------------------
-
-    const statistics = useMemo(() => {
-        return {
-            total: organizations.length,
-
-            verified: organizations.filter(
-                (organization) =>
-                    organization.verification_status === 'verified',
-            ).length,
-
-            pending: organizations.filter(
-                (organization) =>
-                    organization.verification_status === 'pending',
-            ).length,
-
-            rejected: organizations.filter(
-                (organization) =>
-                    organization.verification_status === 'rejected',
-            ).length,
-        };
-    }, [organizations]);
-
-    // ---------------------------------------------------------
-    // Organization types
-    // ---------------------------------------------------------
-
-    const organizationTypes = useMemo(() => {
-        return [
-            ...new Set(
-                organizations
-                    .map((organization) => organization.organization_type)
-                    .filter(Boolean),
-            ),
-        ].sort((a, b) => a.localeCompare(b));
-    }, [organizations]);
-
-    // ---------------------------------------------------------
-    // Category tabs
-    // ---------------------------------------------------------
-
-    const categoryTabs = [
-        {
-            key: 'all',
-            label: 'All Organizations',
-            count: statistics.total,
-        },
-        {
-            key: 'pending',
-            label: 'Pending',
-            count: statistics.pending,
-        },
-        {
-            key: 'verified',
-            label: 'Verified',
-            count: statistics.verified,
-        },
-        {
-            key: 'rejected',
-            label: 'Rejected',
-            count: statistics.rejected,
-        },
-    ];
-
-    // ---------------------------------------------------------
+    // --------------------------------
     // View organization
-    // ---------------------------------------------------------
-
+    // --------------------------------
     const handleViewOrganization = async (organizationId) => {
         setViewLoading(true);
         setViewError('');
         setSelectedOrganization(null);
 
         try {
-            const data = await fetchOrganization(organizationId);
+            const token = getAuthToken();
+
+            if (!token) {
+                throw new Error('Authentication token not found.');
+            }
+
+            const response = await fetch(
+                `http://127.0.0.1:8000/api/admin/organizations/${organizationId}`,
+                {
+                    headers: {
+                        Accept: 'application/json',
+                        Authorization: `Bearer ${token}`,
+                    },
+                },
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Unable to load organization.');
+            }
 
             setSelectedOrganization(data.organization);
         } catch (err) {
-            setViewError(err.message || 'Unable to load organization details.');
+            setViewError(err.message);
         } finally {
             setViewLoading(false);
         }
+    };
+
+    // --------------------------------
+    // Review organization
+    // --------------------------------
+    const handleReviewOrganization = async (organizationId) => {
+        await handleViewOrganization(organizationId);
     };
 
     const closeViewModal = () => {
@@ -259,10 +253,84 @@ const AdminOrganizations = () => {
         setViewError('');
     };
 
-    // ---------------------------------------------------------
-    // Edit organization
-    // ---------------------------------------------------------
+    // --------------------------------
+    // Add organization
+    // --------------------------------
+    const openAddModal = () => {
+        setAddError('');
+        setAddFieldErrors({});
+        setShowAddModal(true);
+    };
 
+    const closeAddModal = () => {
+        if (addLoading) {
+            return;
+        }
+
+        setShowAddModal(false);
+        setAddError('');
+        setAddFieldErrors({});
+    };
+
+    const handleAddOrganization = async (formData) => {
+        setAddLoading(true);
+        setAddError('');
+        setAddFieldErrors({});
+
+        try {
+            const token = getAuthToken();
+
+            if (!token) {
+                throw new Error('Authentication token not found.');
+            }
+
+            const response = await fetch(
+                'http://127.0.0.1:8000/api/admin/organizations',
+                {
+                    method: 'POST',
+                    headers: {
+                        Accept: 'application/json',
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify(formData),
+                },
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                const validationError = new Error(
+                    data.message || 'Unable to create organization.',
+                );
+
+                validationError.status = response.status;
+                validationError.errors = data.errors;
+
+                throw validationError;
+            }
+
+            setShowAddModal(false);
+
+            await loadOrganizations();
+
+            setCurrentPage(1);
+
+            showSuccessToast('Organization added successfully.');
+        } catch (err) {
+            if (err.status === 422 && err.errors) {
+                setAddFieldErrors(err.errors);
+            }
+
+            setAddError(err.message);
+        } finally {
+            setAddLoading(false);
+        }
+    };
+
+    // --------------------------------
+    // Edit organization
+    // --------------------------------
     const openEditModal = async (organizationId) => {
         setEditLoading(true);
         setEditError('');
@@ -270,11 +338,31 @@ const AdminOrganizations = () => {
         setSelectedEditOrganization(null);
 
         try {
-            const data = await fetchOrganization(organizationId);
+            const token = getAuthToken();
+
+            if (!token) {
+                throw new Error('Authentication token not found.');
+            }
+
+            const response = await fetch(
+                `http://127.0.0.1:8000/api/admin/organizations/${organizationId}`,
+                {
+                    headers: {
+                        Accept: 'application/json',
+                        Authorization: `Bearer ${token}`,
+                    },
+                },
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Unable to load organization.');
+            }
 
             setSelectedEditOrganization(data.organization);
         } catch (err) {
-            setEditError(err.message || 'Unable to load organization.');
+            setEditError(err.message);
         } finally {
             setEditLoading(false);
         }
@@ -300,7 +388,37 @@ const AdminOrganizations = () => {
         setEditFieldErrors({});
 
         try {
-            await updateOrganization(selectedEditOrganization.id, formData);
+            const token = getAuthToken();
+
+            if (!token) {
+                throw new Error('Authentication token not found.');
+            }
+
+            const response = await fetch(
+                `http://127.0.0.1:8000/api/admin/organizations/${selectedEditOrganization.id}`,
+                {
+                    method: 'PUT',
+                    headers: {
+                        Accept: 'application/json',
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify(formData),
+                },
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                const validationError = new Error(
+                    data.message || 'Unable to update organization.',
+                );
+
+                validationError.status = response.status;
+                validationError.errors = data.errors;
+
+                throw validationError;
+            }
 
             setSelectedEditOrganization(null);
 
@@ -312,62 +430,15 @@ const AdminOrganizations = () => {
                 setEditFieldErrors(err.errors);
             }
 
-            setEditError(err.message || 'Unable to update organization.');
+            setEditError(err.message);
         } finally {
             setEditLoading(false);
         }
     };
 
-    // ---------------------------------------------------------
-    // Verification
-    // ---------------------------------------------------------
-
-    const openVerificationModal = (organization) => {
-        setVerificationError('');
-        setSelectedVerificationOrganization(organization);
-    };
-
-    const closeVerificationModal = () => {
-        if (verificationLoading) {
-            return;
-        }
-
-        setSelectedVerificationOrganization(null);
-        setVerificationError('');
-    };
-
-    const handleVerificationChange = async (status) => {
-        if (!selectedVerificationOrganization) {
-            return;
-        }
-
-        setVerificationLoading(true);
-        setVerificationError('');
-
-        try {
-            await updateOrganizationVerification(
-                selectedVerificationOrganization.id,
-                status,
-            );
-
-            setSelectedVerificationOrganization(null);
-
-            await loadOrganizations();
-
-            showSuccessToast('Organization verification updated successfully.');
-        } catch (err) {
-            setVerificationError(
-                err.message || 'Unable to update verification status.',
-            );
-        } finally {
-            setVerificationLoading(false);
-        }
-    };
-
-    // ---------------------------------------------------------
-    // Delete
-    // ---------------------------------------------------------
-
+    // --------------------------------
+    // Delete organization
+    // --------------------------------
     const openDeleteModal = (organization) => {
         setDeleteError('');
         setSelectedDeleteOrganization(organization);
@@ -391,7 +462,30 @@ const AdminOrganizations = () => {
         setDeleteError('');
 
         try {
-            await deleteOrganization(selectedDeleteOrganization.id);
+            const token = getAuthToken();
+
+            if (!token) {
+                throw new Error('Authentication token not found.');
+            }
+
+            const response = await fetch(
+                `http://127.0.0.1:8000/api/admin/organizations/${selectedDeleteOrganization.id}`,
+                {
+                    method: 'DELETE',
+                    headers: {
+                        Accept: 'application/json',
+                        Authorization: `Bearer ${token}`,
+                    },
+                },
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.message || 'Unable to delete organization.',
+                );
+            }
 
             setSelectedDeleteOrganization(null);
 
@@ -399,16 +493,68 @@ const AdminOrganizations = () => {
 
             showSuccessToast('Organization deleted successfully.');
         } catch (err) {
-            setDeleteError(err.message || 'Unable to delete organization.');
+            setDeleteError(err.message);
         } finally {
             setDeleteLoading(false);
         }
     };
 
-    // ---------------------------------------------------------
-    // Filtering + sorting
-    // ---------------------------------------------------------
+    // --------------------------------
+    // Statistics
+    // --------------------------------
+    const statistics = useMemo(() => {
+        return {
+            total: organizations.length,
 
+            verified: organizations.filter(
+                (organization) =>
+                    organization.verification_status === 'verified',
+            ).length,
+
+            pending: organizations.filter(
+                (organization) =>
+                    organization.verification_status === 'pending',
+            ).length,
+
+            rejected: organizations.filter(
+                (organization) =>
+                    organization.verification_status === 'rejected',
+            ).length,
+        };
+    }, [organizations]);
+
+    // --------------------------------
+    // Category tabs
+    // --------------------------------
+    const categoryTabs = useMemo(
+        () => [
+            {
+                key: 'all',
+                label: 'All Organizations',
+                count: statistics.total,
+            },
+            {
+                key: 'verified',
+                label: 'Verified',
+                count: statistics.verified,
+            },
+            {
+                key: 'pending',
+                label: 'Pending',
+                count: statistics.pending,
+            },
+            {
+                key: 'rejected',
+                label: 'Rejected',
+                count: statistics.rejected,
+            },
+        ],
+        [statistics],
+    );
+
+    // --------------------------------
+    // Filtering + sorting
+    // --------------------------------
     const filteredOrganizations = useMemo(() => {
         let result = [...organizations];
 
@@ -435,24 +581,14 @@ const AdminOrganizations = () => {
         const search = searchTerm.trim().toLowerCase();
 
         if (search) {
-            result = result.filter((organization) => {
-                const name = organization.name?.toLowerCase() || '';
-
-                const email = organization.user?.email?.toLowerCase() || '';
-
-                const type =
-                    organization.organization_type?.toLowerCase() || '';
-
-                const registration =
-                    organization.registration_number?.toLowerCase() || '';
-
-                return (
-                    name.includes(search) ||
-                    email.includes(search) ||
-                    type.includes(search) ||
-                    registration.includes(search)
-                );
-            });
+            result = result.filter(
+                (organization) =>
+                    organization.name?.toLowerCase().includes(search) ||
+                    organization.user?.email?.toLowerCase().includes(search) ||
+                    organization.registration_number
+                        ?.toLowerCase()
+                        .includes(search),
+            );
         }
 
         if (!sortConfig.key || !sortConfig.direction) {
@@ -497,10 +633,9 @@ const AdminOrganizations = () => {
         sortConfig,
     ]);
 
-    // ---------------------------------------------------------
+    // --------------------------------
     // Pagination
-    // ---------------------------------------------------------
-
+    // --------------------------------
     const totalPages = Math.max(
         1,
         Math.ceil(filteredOrganizations.length / ORGANIZATIONS_PER_PAGE),
@@ -517,10 +652,9 @@ const AdminOrganizations = () => {
         );
     }, [filteredOrganizations, safeCurrentPage]);
 
-    // ---------------------------------------------------------
-    // Filters
-    // ---------------------------------------------------------
-
+    // --------------------------------
+    // Controls
+    // --------------------------------
     const handleCategoryChange = (category) => {
         setActiveCategory(category);
         setCurrentPage(1);
@@ -540,10 +674,6 @@ const AdminOrganizations = () => {
         setSearchTerm(event.target.value);
         setCurrentPage(1);
     };
-
-    // ---------------------------------------------------------
-    // Sorting
-    // ---------------------------------------------------------
 
     const handleSort = (key) => {
         setSortConfig((current) => {
@@ -577,13 +707,16 @@ const AdminOrganizations = () => {
             return <ArrowUp size={14} strokeWidth={2} />;
         }
 
-        return <ArrowDown size={14} strokeWidth={2} />;
+        if (sortConfig.direction === 'desc') {
+            return <ArrowDown size={14} strokeWidth={2} />;
+        }
+
+        return <ChevronsUpDown size={14} strokeWidth={1.8} />;
     };
 
-    // ---------------------------------------------------------
+    // --------------------------------
     // CSV Export
-    // ---------------------------------------------------------
-
+    // --------------------------------
     const handleExportCSV = () => {
         if (filteredOrganizations.length === 0) {
             return;
@@ -594,7 +727,6 @@ const AdminOrganizations = () => {
             'Type',
             'Contact Email',
             'Registration Number',
-            'Phone',
             'Verification Status',
             'Registered',
         ];
@@ -604,7 +736,6 @@ const AdminOrganizations = () => {
             organization.organization_type,
             organization.user?.email,
             organization.registration_number,
-            organization.phone,
             organization.verification_status,
             organization.created_at
                 ? new Date(organization.created_at).toLocaleDateString()
@@ -627,6 +758,7 @@ const AdminOrganizations = () => {
         });
 
         const url = URL.createObjectURL(blob);
+
         const link = document.createElement('a');
 
         link.href = url;
@@ -641,17 +773,11 @@ const AdminOrganizations = () => {
         showSuccessToast('Organizations exported successfully.');
     };
 
-    // ---------------------------------------------------------
+    // --------------------------------
     // Table rows
-    // ---------------------------------------------------------
-
+    // --------------------------------
     const rows = paginatedOrganizations.map((organization, index) => ({
         ...organization,
-
-        serialNumber:
-            (safeCurrentPage - 1) * ORGANIZATIONS_PER_PAGE + index + 1,
-
-        type: organization.organization_type || 'Not specified',
 
         contactEmail: organization.user?.email || '—',
 
@@ -659,9 +785,13 @@ const AdminOrganizations = () => {
             ? new Date(organization.created_at).toLocaleDateString()
             : '—',
 
-        verificationStatus: organization.verification_status || 'pending',
+        serialNumber:
+            (safeCurrentPage - 1) * ORGANIZATIONS_PER_PAGE + index + 1,
     }));
 
+    // --------------------------------
+    // Table columns
+    // --------------------------------
     const columns = [
         {
             key: 'serialNumber',
@@ -669,40 +799,34 @@ const AdminOrganizations = () => {
             align: 'center',
             width: '60px',
         },
-
         {
             key: 'name',
             header: 'Organization',
             sortable: true,
             sortKey: 'name',
         },
-
         {
-            key: 'type',
+            key: 'organization_type',
             header: 'Type',
             sortable: true,
             sortKey: 'organization_type',
         },
-
         {
             key: 'contactEmail',
             header: 'Contact',
         },
-
         {
             key: 'registeredDate',
             header: 'Registered',
             sortable: true,
             sortKey: 'created_at',
         },
-
         {
-            key: 'verificationStatus',
+            key: 'verification_status',
             header: 'Verification',
             sortable: true,
             sortKey: 'verification_status',
         },
-
         {
             key: 'id',
             header: 'Actions',
@@ -710,10 +834,20 @@ const AdminOrganizations = () => {
 
             render: (_, row) => (
                 <div className="flex items-center justify-end gap-4">
+                    {row.verification_status === 'pending' && (
+                        <button
+                            type="button"
+                            onClick={() => handleReviewOrganization(row.id)}
+                            className="text-xs font-semibold text-primary transition-colors hover:text-primary-hover"
+                        >
+                            Review
+                        </button>
+                    )}
+
                     <button
                         type="button"
                         onClick={() => handleViewOrganization(row.id)}
-                        className="text-xs font-semibold text-primary transition-colors hover:text-primary-hover"
+                        className="text-xs font-semibold text-text-secondary transition-colors hover:text-primary"
                     >
                         View
                     </button>
@@ -728,14 +862,6 @@ const AdminOrganizations = () => {
 
                     <button
                         type="button"
-                        onClick={() => openVerificationModal(row)}
-                        className="text-xs font-semibold text-amber-600 transition-colors hover:text-amber-700"
-                    >
-                        Review
-                    </button>
-
-                    <button
-                        type="button"
                         onClick={() => openDeleteModal(row)}
                         className="text-xs font-semibold text-red-600 transition-colors hover:text-red-700"
                     >
@@ -746,46 +872,46 @@ const AdminOrganizations = () => {
         },
     ];
 
-    // ---------------------------------------------------------
+    // --------------------------------
     // Loading
-    // ---------------------------------------------------------
-
+    // --------------------------------
     if (loading) {
         return (
-            <div className="space-y-6">
+            <div className="space-y-8">
                 <PageHeader
                     title="Organizations"
-                    subtitle="Review and manage organizations registered on the Stand For People platform."
+                    subtitle="Manage organizations registered on the Stand For People platform."
                 />
 
-                <div className="rounded-2xl border border-border bg-white px-6 py-16 text-center">
-                    <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-border border-t-primary" />
+                <div className="flex min-h-70 items-center justify-center border-y border-border bg-white">
+                    <div className="text-center">
+                        <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-border border-t-primary" />
 
-                    <p className="text-sm font-medium text-text-primary">
-                        Loading organizations...
-                    </p>
+                        <p className="text-sm font-semibold text-text-primary">
+                            Loading organizations...
+                        </p>
 
-                    <p className="mt-1 text-xs text-text-secondary">
-                        Please wait while we retrieve the organization list.
-                    </p>
+                        <p className="mt-1 text-xs text-text-secondary">
+                            Please wait while we retrieve the organization list.
+                        </p>
+                    </div>
                 </div>
             </div>
         );
     }
 
-    // ---------------------------------------------------------
+    // --------------------------------
     // Error
-    // ---------------------------------------------------------
-
+    // --------------------------------
     if (error) {
         return (
-            <div className="space-y-6">
+            <div className="space-y-8">
                 <PageHeader
                     title="Organizations"
-                    subtitle="Review and manage organizations registered on the Stand For People platform."
+                    subtitle="Manage organizations registered on the Stand For People platform."
                 />
 
-                <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-600">
+                <div className="border-l-4 border-red-500 bg-red-50 px-5 py-4 text-sm text-red-600">
                     {error}
                 </div>
             </div>
@@ -794,117 +920,140 @@ const AdminOrganizations = () => {
 
     return (
         <>
-            <div className="space-y-7">
+            <div className="space-y-9">
+                {/* Header */}
                 <PageHeader
                     title="Organizations"
-                    subtitle="Review and manage organizations registered on the Stand For People platform."
+                    subtitle="Manage organizations registered on the Stand For People platform."
                     action={
-                        <button
-                            type="button"
-                            onClick={handleExportCSV}
-                            disabled={filteredOrganizations.length === 0}
-                            className="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-white px-4 text-sm font-medium text-text-primary transition-all hover:border-primary/30 hover:bg-background-alt disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                            <Download size={16} />
-                            Export
-                        </button>
+                        <div className="flex items-center gap-2.5">
+                            <button
+                                type="button"
+                                onClick={handleExportCSV}
+                                disabled={filteredOrganizations.length === 0}
+                                className="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-white px-4 text-sm font-medium text-text-primary transition-colors hover:border-primary/30 hover:bg-background-alt disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                <Download size={16} />
+                                Export
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={openAddModal}
+                                className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-hover"
+                            >
+                                <Plus size={17} />
+                                Add Organization
+                            </button>
+                        </div>
                     }
                 />
 
-                <OrganizationStats
-                    total={statistics.total}
-                    verified={statistics.verified}
-                    pending={statistics.pending}
-                    rejected={statistics.rejected}
-                />
+                {/* --------------------------------
+                    ORGANIZATION OVERVIEW
+                -------------------------------- */}
+                <section>
+                    <div className="mb-4 flex items-end justify-between">
+                        <div>
+                            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
+                                Platform overview
+                            </p>
 
-                <OrganizationCategoryTabs
-                    tabs={categoryTabs}
-                    activeCategory={activeCategory}
-                    onChange={handleCategoryChange}
-                />
+                            <h2 className="mt-1 text-lg font-bold tracking-tight text-text-primary">
+                                Organization base
+                            </h2>
+                        </div>
 
-                <OrganizationFilters
-                    searchTerm={searchTerm}
-                    typeFilter={typeFilter}
-                    statusFilter={statusFilter}
-                    organizationTypes={organizationTypes}
-                    onSearchChange={handleSearchChange}
-                    onTypeChange={handleTypeChange}
-                    onStatusChange={handleStatusChange}
-                />
+                        <p className="hidden text-xs text-text-secondary sm:block">
+                            Registered organization distribution
+                        </p>
+                    </div>
 
-                <OrganizationTable
-                    columns={columns}
-                    rows={rows}
-                    onSort={handleSort}
-                    getSortIcon={getSortIcon}
-                    resultCount={filteredOrganizations.length}
-                />
+                    <OrganizationStats
+                        total={statistics.total}
+                        verified={statistics.verified}
+                        pending={statistics.pending}
+                        rejected={statistics.rejected}
+                    />
+                </section>
 
-                {filteredOrganizations.length > 0 && (
-                    <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
-                        <p className="text-xs text-text-secondary">
-                            Showing{' '}
-                            <span className="font-semibold text-text-primary">
-                                {(safeCurrentPage - 1) *
-                                    ORGANIZATIONS_PER_PAGE +
-                                    1}
-                            </span>{' '}
-                            –{' '}
-                            <span className="font-semibold text-text-primary">
-                                {Math.min(
-                                    safeCurrentPage * ORGANIZATIONS_PER_PAGE,
-                                    filteredOrganizations.length,
-                                )}
-                            </span>{' '}
-                            of{' '}
-                            <span className="font-semibold text-text-primary">
-                                {filteredOrganizations.length}
-                            </span>{' '}
-                            organizations
+                {/* --------------------------------
+                    ORGANIZATION MANAGEMENT
+                -------------------------------- */}
+                <section className="border-t border-border pt-8">
+                    <div className="mb-5">
+                        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
+                            Administration
                         </p>
 
-                        <div className="flex items-center gap-1">
-                            <button
-                                type="button"
-                                disabled={safeCurrentPage === 1}
-                                onClick={() =>
-                                    setCurrentPage((page) =>
-                                        Math.max(1, page - 1),
-                                    )
-                                }
-                                className="h-9 rounded-lg border border-border bg-white px-3 text-xs font-medium text-text-secondary transition-colors hover:bg-background-alt disabled:cursor-not-allowed disabled:opacity-40"
-                            >
-                                Previous
-                            </button>
-
-                            <div className="flex h-9 min-w-9 items-center justify-center rounded-lg bg-primary px-3 text-xs font-semibold text-white">
-                                {safeCurrentPage}
+                        <div className="mt-1 flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
+                            <div>
+                                <h2 className="text-lg font-bold tracking-tight text-text-primary">
+                                    Organization management
+                                </h2>
                             </div>
 
-                            <button
-                                type="button"
-                                disabled={safeCurrentPage === totalPages}
-                                onClick={() =>
-                                    setCurrentPage((page) =>
-                                        Math.min(totalPages, page + 1),
-                                    )
-                                }
-                                className="h-9 rounded-lg border border-border bg-white px-3 text-xs font-medium text-text-secondary transition-colors hover:bg-background-alt disabled:cursor-not-allowed disabled:opacity-40"
-                            >
-                                Next
-                            </button>
+                            <p className="text-xs font-medium text-text-secondary">
+                                {filteredOrganizations.length}{' '}
+                                {filteredOrganizations.length === 1
+                                    ? 'organization'
+                                    : 'organizations'}{' '}
+                                shown
+                            </p>
                         </div>
                     </div>
-                )}
+
+                    {/* Categories */}
+                    <OrganizationCategoryTabs
+                        tabs={categoryTabs}
+                        activeCategory={activeCategory}
+                        onChange={handleCategoryChange}
+                    />
+
+                    {/* Filters */}
+                    <div className="mt-4">
+                        <OrganizationFilters
+                            searchTerm={searchTerm}
+                            typeFilter={typeFilter}
+                            statusFilter={statusFilter}
+                            organizations={organizations}
+                            onSearchChange={handleSearchChange}
+                            onTypeChange={handleTypeChange}
+                            onStatusChange={handleStatusChange}
+                        />
+                    </div>
+
+                    {/* Table */}
+                    <div className="mt-5">
+                        <OrganizationTable
+                            columns={columns}
+                            rows={rows}
+                            onSort={handleSort}
+                            getSortIcon={getSortIcon}
+                            resultCount={filteredOrganizations.length}
+                        />
+                    </div>
+
+                    {/* Pagination */}
+                    {filteredOrganizations.length > 0 && (
+                        <OrganizationPagination
+                            currentPage={safeCurrentPage}
+                            totalPages={totalPages}
+                            totalItems={filteredOrganizations.length}
+                            itemsPerPage={ORGANIZATIONS_PER_PAGE}
+                            onPageChange={setCurrentPage}
+                        />
+                    )}
+                </section>
             </div>
 
+            {/* Toast */}
             <OrganizationSuccessToast
                 show={toast.show}
                 message={toast.message}
             />
 
+            {/* View */}
             <OrganizationViewModal
                 organization={selectedOrganization}
                 loading={viewLoading}
@@ -912,7 +1061,21 @@ const AdminOrganizations = () => {
                 onClose={closeViewModal}
             />
 
+            {/* Add */}
             <OrganizationFormModal
+                mode="add"
+                open={showAddModal}
+                loading={addLoading}
+                error={addError}
+                fieldErrors={addFieldErrors}
+                onClose={closeAddModal}
+                onSubmit={handleAddOrganization}
+            />
+
+            {/* Edit */}
+            <OrganizationFormModal
+                key={selectedEditOrganization?.id || 'edit-organization'}
+                mode="edit"
                 open={Boolean(selectedEditOrganization)}
                 loading={editLoading}
                 error={editError}
@@ -932,14 +1095,7 @@ const AdminOrganizations = () => {
                 </div>
             )}
 
-            <OrganizationVerificationModal
-                organization={selectedVerificationOrganization}
-                loading={verificationLoading}
-                error={verificationError}
-                onClose={closeVerificationModal}
-                onConfirm={handleVerificationChange}
-            />
-
+            {/* Delete */}
             <OrganizationDeleteModal
                 organization={selectedDeleteOrganization}
                 loading={deleteLoading}

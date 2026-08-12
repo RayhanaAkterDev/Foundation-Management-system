@@ -4,31 +4,6 @@ import { Building2 } from 'lucide-react';
 import DataTable from '@/components/dashboard/DataTable';
 import StatusBadge from '@/components/dashboard/StatusBadge';
 
-const VerificationBadge = ({ status }) => {
-    const styles = {
-        pending: 'bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200',
-        verified:
-            'bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-200',
-        rejected: 'bg-red-50 text-red-700 ring-1 ring-inset ring-red-200',
-    };
-
-    const labels = {
-        pending: 'Pending',
-        verified: 'Verified',
-        rejected: 'Rejected',
-    };
-
-    return (
-        <span
-            className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ${
-                styles[status] || 'bg-background-alt text-text-secondary'
-            }`}
-        >
-            {labels[status] || status || 'Unknown'}
-        </span>
-    );
-};
-
 const OrganizationTable = ({
     columns,
     rows,
@@ -52,7 +27,7 @@ const OrganizationTable = ({
 
                     return (
                         <div className="flex items-center gap-3">
-                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-[11px] font-bold text-primary">
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[11px] font-bold text-primary">
                                 {initials}
                             </div>
 
@@ -61,9 +36,9 @@ const OrganizationTable = ({
                                     {value || '—'}
                                 </p>
 
-                                {row.contactEmail && (
-                                    <p className="mt-0.5 max-w-64 truncate text-xs text-text-secondary">
-                                        {row.contactEmail}
+                                {row.registration_number && (
+                                    <p className="mt-0.5 max-w-60 truncate text-xs text-text-secondary">
+                                        Reg. {row.registration_number}
                                     </p>
                                 )}
                             </div>
@@ -73,7 +48,7 @@ const OrganizationTable = ({
             };
         }
 
-        if (column.key === 'type') {
+        if (column.key === 'organization_type') {
             return {
                 ...column,
                 render: (value) => (
@@ -88,8 +63,15 @@ const OrganizationTable = ({
             return {
                 ...column,
                 render: (value) => (
-                    <span className="text-text-secondary">{value || '—'}</span>
+                    <span className="text-text-secondary">{value}</span>
                 ),
+            };
+        }
+
+        if (column.key === 'verification_status') {
+            return {
+                ...column,
+                render: (value) => <StatusBadge status={value} />,
             };
         }
 
@@ -97,15 +79,8 @@ const OrganizationTable = ({
             return {
                 ...column,
                 render: (value) => (
-                    <span className="text-text-secondary">{value || '—'}</span>
+                    <span className="text-text-secondary">{value}</span>
                 ),
-            };
-        }
-
-        if (column.key === 'verificationStatus') {
-            return {
-                ...column,
-                render: (value) => <VerificationBadge status={value} />,
             };
         }
 

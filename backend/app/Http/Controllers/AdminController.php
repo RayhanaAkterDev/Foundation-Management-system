@@ -391,6 +391,195 @@ class AdminController extends Controller
     }
 
     // ---------------------------------------------------------
+    // Organizations - View
+    // ---------------------------------------------------------
+    public function showOrganization(Request $request, int $id)
+    {
+        $user = $request->user();
+
+        if (!$user || $user->role !== 'admin') {
+            return response()->json([
+                'message' => 'Unauthorized.',
+            ], 403);
+        }
+
+        $organization = Organization::with('user')->find($id);
+
+        if (!$organization) {
+            return response()->json([
+                'message' => 'Organization not found.',
+            ], 404);
+        }
+
+        return response()->json([
+            'organization' => $organization,
+        ]);
+    }
+
+
+    // ---------------------------------------------------------
+    // Organizations - Edit
+    // ---------------------------------------------------------
+    public function updateOrganization(Request $request, int $id)
+    {
+        $user = $request->user();
+
+        if (!$user || $user->role !== 'admin') {
+            return response()->json([
+                'message' => 'Unauthorized.',
+            ], 403);
+        }
+
+        $organization = Organization::find($id);
+
+        if (!$organization) {
+            return response()->json([
+                'message' => 'Organization not found.',
+            ], 404);
+        }
+
+        $validated = $request->validate([
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'organization_type' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
+            'registration_number' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
+            'phone' => [
+                'nullable',
+                'string',
+                'max:50',
+            ],
+
+            'website' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
+            'address' => [
+                'nullable',
+                'string',
+            ],
+
+            'mission' => [
+                'nullable',
+                'string',
+            ],
+
+            'focus_areas' => [
+                'nullable',
+                'string',
+            ],
+
+            'communities_served' => [
+                'nullable',
+                'string',
+            ],
+
+            'team_size' => [
+                'nullable',
+                'integer',
+                'min:0',
+            ],
+
+            'primary_activities' => [
+                'nullable',
+                'string',
+            ],
+        ]);
+
+        $organization->update($validated);
+
+        return response()->json([
+            'message' => 'Organization updated successfully.',
+            'organization' => $organization->fresh()->load('user'),
+        ]);
+    }
+
+
+    // ---------------------------------------------------------
+    // Organizations - Verification
+    // ---------------------------------------------------------
+    public function updateOrganizationVerification(
+        Request $request,
+        int $id
+    ) {
+        $user = $request->user();
+
+        if (!$user || $user->role !== 'admin') {
+            return response()->json([
+                'message' => 'Unauthorized.',
+            ], 403);
+        }
+
+        $organization = Organization::find($id);
+
+        if (!$organization) {
+            return response()->json([
+                'message' => 'Organization not found.',
+            ], 404);
+        }
+
+        $validated = $request->validate([
+            'verification_status' => [
+                'required',
+                'in:pending,verified,rejected',
+            ],
+        ]);
+
+        $organization->update([
+            'verification_status' => $validated['verification_status'],
+        ]);
+
+        return response()->json([
+            'message' => 'Organization verification status updated successfully.',
+            'organization' => $organization->fresh()->load('user'),
+        ]);
+    }
+
+
+    // ---------------------------------------------------------
+    // Organizations - Delete
+    // ---------------------------------------------------------
+    public function destroyOrganization(Request $request, int $id)
+    {
+        $user = $request->user();
+
+        if (!$user || $user->role !== 'admin') {
+            return response()->json([
+                'message' => 'Unauthorized.',
+            ], 403);
+        }
+
+        $organization = Organization::find($id);
+
+        if (!$organization) {
+            return response()->json([
+                'message' => 'Organization not found.',
+            ], 404);
+        }
+
+        $organization->delete();
+
+        return response()->json([
+            'message' => 'Organization deleted successfully.',
+        ]);
+    }
+
+    // ---------------------------------------------------------
     // Donations
     // ---------------------------------------------------------
 

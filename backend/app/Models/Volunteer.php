@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Volunteer extends Model
 {
@@ -26,5 +27,10 @@ class Volunteer extends Model
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);
+    }
+
+    public function helpRequestAssignments(): HasMany
+    {
+        return $this->hasMany(HelpRequestAssignment::class);
     }
 }

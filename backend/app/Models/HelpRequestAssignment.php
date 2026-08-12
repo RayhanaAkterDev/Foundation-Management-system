@@ -11,10 +11,9 @@ class HelpRequestAssignment extends Model
         'help_request_id',
         'organization_id',
         'volunteer_id',
+        'assigned_by',
         'status',
-        'assignment_note',
-        'assigned_at',
-        'completed_at',
+        'notes',
     ];
 
     public function helpRequest(): BelongsTo
@@ -30,5 +29,10 @@ class HelpRequestAssignment extends Model
     public function volunteer(): BelongsTo
     {
         return $this->belongsTo(Volunteer::class);
+    }
+
+    public function assignedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'assigned_by');
     }
 }

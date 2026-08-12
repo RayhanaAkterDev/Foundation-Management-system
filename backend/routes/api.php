@@ -2,10 +2,16 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\HelpRequestController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/help-requests', [HelpRequestController::class, 'store']);
+    Route::get('/help-requests/{id}', [HelpRequestController::class, 'show']);
+});
 
 Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard']);

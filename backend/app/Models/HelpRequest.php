@@ -29,4 +29,9 @@ class HelpRequest extends Model
     {
         return $this->hasMany(HelpRequestAssignment::class);
     }
+
+    public function campaigns(): HasMany
+    {
+        return $this->hasMany(Campaign::class);
+    }
 }

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -70,5 +71,23 @@ class User extends Authenticatable
     public function volunteer()
     {
         return $this->hasOne(Volunteer::class);
+    }
+
+    public function donations()
+    {
+        return $this->hasMany(Donation::class);
+    }
+
+    public function campaignVolunteerAssignments(): HasMany
+    {
+        return $this->hasMany(
+            CampaignVolunteerAssignment::class,
+            'volunteer_id'
+        );
+    }
+
+    public function createdCampaigns()
+    {
+        return $this->hasMany(Campaign::class, 'created_by');
     }
 }

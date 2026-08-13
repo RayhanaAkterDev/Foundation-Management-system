@@ -9,6 +9,7 @@ use App\Models\HelpRequestAssignment;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Volunteer;
+use App\Models\CampaignVolunteerAssignment;
 use Illuminate\Http\Request;
 
 class AdminController extends Controller
@@ -1178,6 +1179,118 @@ class AdminController extends Controller
         return response()->json([
             'campaigns' => $campaigns,
         ]);
+    }
+
+    public function updateCampaignVerification(Request $request, int $id)
+    {
+        $user = $request->user();
+
+        if (!$user || $user->role !== 'admin') {
+            return response()->json([
+                'message' => 'Unauthorized.',
+            ], 403);
+        }
+
+        $request->validate([
+            'status' => 'required|in:active,rejected',
+        ]);
+
+        $campaign = Campaign::find($id);
+
+        if (!$campaign) {
+            return response()->json([
+                'message' => 'Campaign not found.',
+            ], 404);
+        }
+
+        if ($campaign->status !== 'pending') {
+            return response()->json([
+                'message' => 'Only pending campaigns can be verified.',
+            ], 422);
+        }
+
+        $campaign->update([
+            'status' => $request->status,
+        ]);
+
+        return response()->json([
+            'message' => $request->status === 'active'
+                ? 'Campaign approved successfully.'
+                : 'Campaign rejected successfully.',
+            'campaign' => $campaign->load([
+                'organization:id,name',
+                'creator:id,name,email',
+            ]),
+        ]);
+    }
+
+    public function assignCampaignVolunteer(Request $request, int $id)
+    {
+        $user = $request->user();
+
+        if (!$user || $user->role !== 'admin') {
+            return response()->json([
+                'message' => 'Unauthorized.',
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'volunteer_id' => ['required', 'integer', 'exists:users,id'],
+            'assignment_note' => ['nullable', 'string'],
+        ]);
+
+        $campaign = Campaign::find($id);
+
+        if (!$campaign) {
+            return response()->json([
+                'message' => 'Campaign not found.',
+            ], 404);
+        }
+
+        if ($campaign->status !== 'active') {
+            return response()->json([
+                'message' => 'Only active campaigns can have volunteers assigned.',
+            ], 422);
+        }
+
+        $volunteer = User::find($validated['volunteer_id']);
+
+        if ($volunteer->role !== 'individual') {
+            return response()->json([
+                'message' => 'Only individual users can be assigned as volunteers.',
+            ], 422);
+        }
+
+        $existingAssignment = CampaignVolunteerAssignment::where(
+            'campaign_id',
+            $campaign->id
+        )
+            ->where('volunteer_id', $volunteer->id)
+            ->first();
+
+        if ($existingAssignment) {
+            return response()->json([
+                'message' => 'This volunteer is already assigned to the campaign.',
+            ], 422);
+        }
+
+        $assignment = CampaignVolunteerAssignment::create([
+            'campaign_id' => $campaign->id,
+            'volunteer_id' => $volunteer->id,
+            'assigned_by' => $user->id,
+            'status' => 'assigned',
+            'assignment_note' => $validated['assignment_note'] ?? null,
+            'assigned_at' => now(),
+        ]);
+
+        return response()->json([
+            'message' => 'Volunteer assigned to campaign successfully.',
+            'assignment' => $assignment->load([
+                'campaign:id,title',
+                'volunteer:id,name,email',
+                'assignedBy:id,name',
+            ]),
+        ], 201);
     }
 
     // ---------------------------------------------------------

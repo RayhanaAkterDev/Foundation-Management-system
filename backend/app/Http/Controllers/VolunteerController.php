@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Volunteer;
+use App\Models\CampaignVolunteerAssignment;
 use Illuminate\Http\Request;
 
 class VolunteerController extends Controller
@@ -331,6 +332,183 @@ class VolunteerController extends Controller
             'assignment' => $assignment->fresh()->load([
                 'helpRequest',
                 'organization:id,name',
+                'assignedBy:id,name,email',
+            ]),
+        ]);
+    }
+
+    /**
+     * Individual: Accept an assigned campaign volunteer assignment.
+     */
+    public function acceptCampaignAssignment(Request $request, int $id)
+    {
+        $user = $request->user();
+
+        if (!$user || $user->role !== 'individual') {
+            return response()->json([
+                'message' => 'Only individual users can accept campaign assignments.',
+            ], 403);
+        }
+
+        $assignment = CampaignVolunteerAssignment::with('campaign')
+            ->where('id', $id)
+            ->where('volunteer_id', $user->id)
+            ->first();
+
+        if (!$assignment) {
+            return response()->json([
+                'message' => 'Campaign assignment not found.',
+            ], 404);
+        }
+
+        if ($assignment->status !== 'assigned') {
+            return response()->json([
+                'message' => 'Only assigned campaign assignments can be accepted.',
+            ], 422);
+        }
+
+        $assignment->update([
+            'status' => 'accepted',
+        ]);
+
+        return response()->json([
+            'message' => 'Campaign assignment accepted successfully.',
+            'assignment' => $assignment->fresh()->load([
+                'campaign',
+                'volunteer:id,name,email',
+                'assignedBy:id,name,email',
+            ]),
+        ]);
+    }
+
+    /**
+     * Individual: Reject an assigned campaign volunteer assignment.
+     */
+    public function rejectCampaignAssignment(Request $request, int $id)
+    {
+        $user = $request->user();
+
+        if (!$user || $user->role !== 'individual') {
+            return response()->json([
+                'message' => 'Only individual users can reject campaign assignments.',
+            ], 403);
+        }
+
+        $assignment = CampaignVolunteerAssignment::with('campaign')
+            ->where('id', $id)
+            ->where('volunteer_id', $user->id)
+            ->first();
+
+        if (!$assignment) {
+            return response()->json([
+                'message' => 'Campaign assignment not found.',
+            ], 404);
+        }
+
+        if ($assignment->status !== 'assigned') {
+            return response()->json([
+                'message' => 'Only assigned campaign assignments can be rejected.',
+            ], 422);
+        }
+
+        $assignment->update([
+            'status' => 'rejected',
+        ]);
+
+        return response()->json([
+            'message' => 'Campaign assignment rejected successfully.',
+            'assignment' => $assignment->fresh()->load([
+                'campaign',
+                'volunteer:id,name,email',
+                'assignedBy:id,name,email',
+            ]),
+        ]);
+    }
+
+    /**
+     * Individual: Start an accepted campaign volunteer assignment.
+     */
+    public function startCampaignAssignment(Request $request, int $id)
+    {
+        $user = $request->user();
+
+        if (!$user || $user->role !== 'individual') {
+            return response()->json([
+                'message' => 'Only individual users can start campaign assignments.',
+            ], 403);
+        }
+
+        $assignment = CampaignVolunteerAssignment::with('campaign')
+            ->where('id', $id)
+            ->where('volunteer_id', $user->id)
+            ->first();
+
+        if (!$assignment) {
+            return response()->json([
+                'message' => 'Campaign assignment not found.',
+            ], 404);
+        }
+
+        if ($assignment->status !== 'accepted') {
+            return response()->json([
+                'message' => 'Only accepted campaign assignments can be started.',
+            ], 422);
+        }
+
+        $assignment->update([
+            'status' => 'in_progress',
+        ]);
+
+        return response()->json([
+            'message' => 'Campaign assignment marked as in progress.',
+            'assignment' => $assignment->fresh()->load([
+                'campaign',
+                'volunteer:id,name,email',
+                'assignedBy:id,name,email',
+            ]),
+        ]);
+    }
+
+    /**
+     * Individual: Complete an in-progress campaign volunteer assignment.
+     */
+    public function completeCampaignAssignment(Request $request, int $id)
+    {
+        $user = $request->user();
+
+        if (!$user || $user->role !== 'individual') {
+            return response()->json([
+                'message' => 'Only individual users can complete campaign assignments.',
+            ], 403);
+        }
+
+        $assignment = CampaignVolunteerAssignment::with('campaign')
+            ->where('id', $id)
+            ->where('volunteer_id', $user->id)
+            ->first();
+
+        if (!$assignment) {
+            return response()->json([
+                'message' => 'Campaign assignment not found.',
+            ], 404);
+        }
+
+        if ($assignment->status !== 'in_progress') {
+            return response()->json([
+                'message' => 'Only in-progress campaign assignments can be completed.',
+            ], 422);
+        }
+
+        $assignment->update([
+            'status' => 'completed',
+            'completed_at' => now(),
+        ]);
+
+        return response()->json([
+            'message' => 'Campaign assignment completed successfully.',
+            'assignment' => $assignment->fresh()->load([
+                'campaign',
+                'volunteer:id,name,email',
                 'assignedBy:id,name,email',
             ]),
         ]);

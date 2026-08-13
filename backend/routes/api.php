@@ -5,16 +5,29 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HelpRequestController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\VolunteerController;
+use App\Http\Controllers\CampaignController;
+use App\Http\Controllers\DonationController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::get('/campaigns', [CampaignController::class, 'index']);
+Route::get('/campaigns/{id}', [CampaignController::class, 'show']);
+Route::post('/donations', [DonationController::class, 'store']);
+
 
 Route::middleware('auth:sanctum')->group(function () {
 
     // Help Requests - Individual/Public authenticated users
     Route::post('/help-requests', [HelpRequestController::class, 'store']);
     Route::get('/help-requests/{id}', [HelpRequestController::class, 'show']);
+
+
+    // ---------------------------------------------------------
+    // Campaigns - Individual
+    // ---------------------------------------------------------
+
+    Route::post('/campaigns', [CampaignController::class, 'store']);
 
     // ---------------------------------------------------------
     // Volunteer - Individual
@@ -46,6 +59,30 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch(
         '/volunteer/assignments/{id}/complete',
         [VolunteerController::class, 'completeAssignment']
+    );
+
+    // ---------------------------------------------------------
+    // Campaign Volunteer Assignments - Individual
+    // ---------------------------------------------------------
+
+    Route::patch(
+        '/volunteer/campaign-assignments/{id}/accept',
+        [VolunteerController::class, 'acceptCampaignAssignment']
+    );
+
+    Route::patch(
+        '/volunteer/campaign-assignments/{id}/reject',
+        [VolunteerController::class, 'rejectCampaignAssignment']
+    );
+
+    Route::patch(
+        '/volunteer/campaign-assignments/{id}/start',
+        [VolunteerController::class, 'startCampaignAssignment']
+    );
+
+    Route::patch(
+        '/volunteer/campaign-assignments/{id}/complete',
+        [VolunteerController::class, 'completeCampaignAssignment']
     );
 
     // ---------------------------------------------------------
@@ -156,7 +193,18 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     // Other Admin Modules
     // ---------------------------------------------------------
 
-    Route::get('/donations', [AdminController::class, 'donations']);
     Route::get('/campaigns', [AdminController::class, 'campaigns']);
+
+    Route::patch(
+        '/campaigns/{id}/verification',
+        [AdminController::class, 'updateCampaignVerification']
+    );
+
+    Route::patch(
+        '/campaigns/{id}/assignment',
+        [AdminController::class, 'assignCampaignVolunteer']
+    );
+
+    Route::get('/donations', [AdminController::class, 'donations']);
     Route::get('/reports', [AdminController::class, 'reports']);
 });

@@ -123,7 +123,7 @@ const HelpRequestVerificationModal = ({
                                 </p>
 
                                 <p className="mt-1 text-xs font-semibold capitalize text-text-primary">
-                                    {request.priority || '—'}
+                                    {request.urgency || '—'}
                                 </p>
                             </div>
 

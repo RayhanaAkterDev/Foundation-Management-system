@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Download, ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react';
 
 import PageHeader from '@/components/dashboard/PageHeader';
+
 import HelpRequestViewModal from './helpRequests/HelpRequestViewModal';
 import HelpRequestVerificationModal from './helpRequests/HelpRequestVerificationModal';
 import HelpRequestAssignmentModal from './helpRequests/HelpRequestAssignmentModal';
@@ -11,6 +12,7 @@ import HelpRequestFilters from './helpRequests/HelpRequestFilters';
 import HelpRequestTable from './helpRequests/HelpRequestTable';
 import HelpRequestPagination from './helpRequests/HelpRequestPagination';
 import HelpRequestSuccessToast from './helpRequests/HelpRequestSuccessToast';
+import UserViewModal from './helpRequests/UserViewModal';
 
 const HELP_REQUESTS_PER_PAGE = 25;
 
@@ -45,6 +47,14 @@ const AdminHelpRequests = () => {
     const [viewError, setViewError] = useState('');
 
     // --------------------------------
+    // View requester
+    // --------------------------------
+
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [userLoading, setUserLoading] = useState(false);
+    const [userError, setUserError] = useState('');
+
+    // --------------------------------
     // Review / Verification
     // --------------------------------
 
@@ -58,7 +68,6 @@ const AdminHelpRequests = () => {
 
     const [selectedAssignmentRequest, setSelectedAssignmentRequest] =
         useState(null);
-
     const [assignmentLoading, setAssignmentLoading] = useState(false);
     const [assignmentError, setAssignmentError] = useState('');
 
@@ -99,6 +108,43 @@ const AdminHelpRequests = () => {
     // --------------------------------
     // Load help requests
     // --------------------------------
+
+    const loadHelpRequests = async () => {
+        try {
+            setError('');
+
+            const token = getAuthToken();
+
+            if (!token) {
+                throw new Error('Authentication token not found.');
+            }
+
+            const response = await fetch(
+                'http://127.0.0.1:8000/api/admin/help-requests',
+                {
+                    headers: {
+                        Accept: 'application/json',
+                        Authorization: `Bearer ${token}`,
+                    },
+                },
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.message || 'Unable to load help requests.',
+                );
+            }
+
+            setHelpRequests(data.helpRequests || []);
+        } catch (err) {
+            setError(
+                err.message ||
+                    'Something went wrong while loading help requests.',
+            );
+        }
+    };
 
     useEffect(() => {
         let cancelled = false;
@@ -158,89 +204,72 @@ const AdminHelpRequests = () => {
     }, []);
 
     // --------------------------------
-    // Refresh help requests
+    // View help request
     // --------------------------------
-
-    const loadHelpRequests = async () => {
-        try {
-            setError('');
-
-            const token = getAuthToken();
-
-            if (!token) {
-                throw new Error('Authentication token not found.');
-            }
-
-            const response = await fetch(
-                'http://127.0.0.1:8000/api/admin/help-requests',
-                {
-                    headers: {
-                        Accept: 'application/json',
-                        Authorization: `Bearer ${token}`,
-                    },
-                },
-            );
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    data.message || 'Unable to load help requests.',
-                );
-            }
-
-            setHelpRequests(data.helpRequests || []);
-        } catch (err) {
-            setError(
-                err.message ||
-                    'Something went wrong while loading help requests.',
-            );
-        }
-    };
 
     // --------------------------------
     // View help request
     // --------------------------------
-
-    const handleViewRequest = async (requestId) => {
-        setViewLoading(true);
+    const handleViewRequest = (request) => {
         setViewError('');
-        setSelectedRequest(null);
-
-        try {
-            const token = getAuthToken();
-
-            if (!token) {
-                throw new Error('Authentication token not found.');
-            }
-
-            const response = await fetch(
-                `http://127.0.0.1:8000/api/admin/help-requests/${requestId}`,
-                {
-                    headers: {
-                        Accept: 'application/json',
-                        Authorization: `Bearer ${token}`,
-                    },
-                },
-            );
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || 'Unable to load help request.');
-            }
-
-            setSelectedRequest(data.help_request);
-        } catch (err) {
-            setViewError(err.message || 'Unable to load help request.');
-        } finally {
-            setViewLoading(false);
-        }
+        setViewLoading(false);
+        setSelectedRequest(request);
     };
 
     const closeViewModal = () => {
         setSelectedRequest(null);
         setViewError('');
+    };
+
+    // --------------------------------
+    // View requester
+    // --------------------------------
+
+    const handleViewUser = async (userId) => {
+        if (!userId) {
+            setUserError('Requester information is unavailable.');
+            setSelectedUser(null);
+            return;
+        }
+
+        setUserLoading(true);
+        setUserError('');
+        setSelectedUser(null);
+
+        try {
+            const token = getAuthToken();
+
+            if (!token) {
+                throw new Error('Authentication token not found.');
+            }
+
+            const response = await fetch(
+                `http://127.0.0.1:8000/api/admin/users/${userId}`,
+                {
+                    headers: {
+                        Accept: 'application/json',
+                        Authorization: `Bearer ${token}`,
+                    },
+                },
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Unable to load user details.');
+            }
+
+            setSelectedUser(data.user);
+        } catch (err) {
+            setUserError(err.message || 'Unable to load user details.');
+        } finally {
+            setUserLoading(false);
+        }
+    };
+
+    const closeUserModal = () => {
+        setSelectedUser(null);
+        setUserError('');
     };
 
     // --------------------------------
@@ -479,7 +508,8 @@ const AdminHelpRequests = () => {
 
         if (priorityFilter !== 'all') {
             result = result.filter(
-                (request) => request.priority === priorityFilter,
+                (request) =>
+                    (request.priority || request.urgency) === priorityFilter,
             );
         }
 
@@ -662,8 +692,11 @@ const AdminHelpRequests = () => {
             request.user?.name || request.requester?.name || '',
 
             request.title || '',
+
             request.category || '',
-            request.priority || '',
+
+            request.priority || request.urgency || '',
+
             request.status || '',
 
             request.created_at
@@ -694,7 +727,9 @@ const AdminHelpRequests = () => {
         link.download = 'stand-for-people-help-requests.csv';
 
         document.body.appendChild(link);
+
         link.click();
+
         document.body.removeChild(link);
 
         URL.revokeObjectURL(url);
@@ -712,6 +747,12 @@ const AdminHelpRequests = () => {
         requesterName: request.user?.name || request.requester?.name || '—',
 
         requesterEmail: request.user?.email || request.requester?.email || '—',
+
+        requesterId:
+            request.user?.id ||
+            request.requester?.id ||
+            request.user_id ||
+            null,
 
         submittedDate: request.created_at
             ? new Date(request.created_at).toLocaleDateString()
@@ -741,7 +782,7 @@ const AdminHelpRequests = () => {
         },
 
         {
-            key: 'requesterName',
+            key: 'requester',
             header: 'Requester',
         },
 
@@ -757,6 +798,8 @@ const AdminHelpRequests = () => {
             header: 'Priority',
             sortable: true,
             sortKey: 'priority',
+
+            render: (value, row) => value || row.urgency || '—',
         },
 
         {
@@ -802,7 +845,7 @@ const AdminHelpRequests = () => {
 
                     <button
                         type="button"
-                        onClick={() => handleViewRequest(row.id)}
+                        onClick={() => handleViewRequest(row)}
                         className="text-xs font-semibold text-text-secondary transition-colors hover:text-primary"
                     >
                         View
@@ -970,6 +1013,7 @@ const AdminHelpRequests = () => {
                             onSort={handleSort}
                             getSortIcon={getSortIcon}
                             resultCount={filteredHelpRequests.length}
+                            onRequesterClick={handleViewUser}
                         />
                     </div>
 
@@ -994,13 +1038,22 @@ const AdminHelpRequests = () => {
                 message={toast.message}
             />
 
-            {/* View */}
+            {/* View request */}
 
             <HelpRequestViewModal
                 request={selectedRequest}
                 loading={viewLoading}
                 error={viewError}
                 onClose={closeViewModal}
+            />
+
+            {/* View requester */}
+
+            <UserViewModal
+                user={selectedUser}
+                loading={userLoading}
+                error={userError}
+                onClose={closeUserModal}
             />
 
             {/* Review / Verification */}

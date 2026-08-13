@@ -1,4 +1,8 @@
 import React from 'react';
+import { UserRound } from 'lucide-react';
+
+import DataTable from '@/components/dashboard/DataTable';
+import StatusBadge from '@/components/dashboard/StatusBadge';
 
 const HelpRequestTable = ({
     columns,
@@ -6,112 +10,196 @@ const HelpRequestTable = ({
     onSort,
     getSortIcon,
     resultCount,
+    onRequesterClick,
 }) => {
-    return (
-        <div className="overflow-hidden border border-border bg-white">
-            <div className="overflow-x-auto">
-                <table className="w-full min-w-225 border-collapse">
-                    <thead>
-                        <tr className="border-b border-border bg-background-alt">
-                            {columns.map((column) => (
-                                <th
-                                    key={column.key}
-                                    style={{
-                                        width: column.width,
-                                    }}
-                                    className={`px-4 py-3 text-[11px] font-bold uppercase tracking-[0.08em] text-text-secondary ${
-                                        column.align === 'center'
-                                            ? 'text-center'
-                                            : column.align === 'right'
-                                              ? 'text-right'
-                                              : 'text-left'
-                                    }`}
-                                >
-                                    {column.sortable ? (
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                onSort(
-                                                    column.sortKey ||
-                                                        column.key,
-                                                )
-                                            }
-                                            className="inline-flex items-center gap-1.5 transition-colors hover:text-primary"
-                                        >
-                                            {column.header}
-                                            {getSortIcon(
-                                                column.sortKey || column.key,
-                                            )}
-                                        </button>
-                                    ) : (
-                                        column.header
-                                    )}
-                                </th>
-                            ))}
-                        </tr>
-                    </thead>
+    const enhancedColumns = columns.map((column) => {
+        // --------------------------------
+        // Help Request
+        // --------------------------------
 
-                    <tbody>
-                        {rows.length > 0 ? (
-                            rows.map((row, rowIndex) => (
-                                <tr
-                                    key={row.id ?? rowIndex}
-                                    className="border-b border-border last:border-b-0 transition-colors hover:bg-background"
-                                >
-                                    {columns.map((column) => (
-                                        <td
-                                            key={column.key}
-                                            className={`px-4 py-4 text-sm ${
-                                                column.align === 'center'
-                                                    ? 'text-center'
-                                                    : column.align === 'right'
-                                                      ? 'text-right'
-                                                      : 'text-left'
-                                            }`}
-                                        >
-                                            {column.render
-                                                ? column.render(
-                                                      row[column.key],
-                                                      row,
-                                                  )
-                                                : (row[column.key] ?? '—')}
-                                        </td>
-                                    ))}
-                                </tr>
-                            ))
-                        ) : (
-                            <tr>
-                                <td
-                                    colSpan={columns.length}
-                                    className="px-6 py-14 text-center"
-                                >
-                                    <p className="text-sm font-semibold text-text-primary">
-                                        No help requests found
-                                    </p>
+        if (column.key === 'title') {
+            return {
+                ...column,
 
-                                    <p className="mt-1 text-xs text-text-secondary">
-                                        Try changing your filters or search
-                                        term.
-                                    </p>
-                                </td>
-                            </tr>
+                render: (value, row) => (
+                    <div className="min-w-0 max-w-80">
+                        <p className="truncate font-semibold text-text-primary">
+                            {value || 'Untitled request'}
+                        </p>
+
+                        {row.description && (
+                            <p className="mt-1 line-clamp-2 text-xs leading-5 text-text-secondary">
+                                {row.description}
+                            </p>
                         )}
-                    </tbody>
-                </table>
-            </div>
+                    </div>
+                ),
+            };
+        }
 
-            {resultCount > 0 && (
-                <div className="border-t border-border px-4 py-3">
-                    <p className="text-xs text-text-secondary">
-                        Showing{' '}
-                        <span className="font-semibold text-text-primary">
-                            {resultCount}
-                        </span>{' '}
-                        matching {resultCount === 1 ? 'request' : 'requests'}
-                    </p>
-                </div>
-            )}
-        </div>
+        // --------------------------------
+        // Requester
+        // --------------------------------
+
+        if (column.key === 'requester' || column.key === 'requesterName') {
+            return {
+                ...column,
+
+                render: (value, row) => {
+                    const requester = row.user || row.requester;
+
+                    if (!requester && !row.requesterId) {
+                        return <span className="text-text-secondary">—</span>;
+                    }
+
+                    const name =
+                        requester?.name ||
+                        requester?.full_name ||
+                        value ||
+                        'Unknown user';
+
+                    const email = requester?.email || row.requesterEmail;
+
+                    const requesterId =
+                        requester?.id || row.requesterId || row.user_id;
+
+                    if (!requesterId) {
+                        return (
+                            <div className="min-w-0">
+                                <p className="truncate text-sm font-semibold text-text-primary">
+                                    {name}
+                                </p>
+
+                                {email && (
+                                    <p className="mt-0.5 max-w-52 truncate text-xs text-text-secondary">
+                                        {email}
+                                    </p>
+                                )}
+                            </div>
+                        );
+                    }
+
+                    return (
+                        <button
+                            type="button"
+                            onClick={() => onRequesterClick(requesterId, row)}
+                            className="group flex min-w-0 items-center gap-2.5 text-left"
+                            title="View requester details"
+                        >
+                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-white">
+                                <UserRound size={15} strokeWidth={1.8} />
+                            </span>
+
+                            <span className="min-w-0">
+                                <span className="flex items-center gap-1.5">
+                                    <span className="truncate text-sm font-semibold text-primary transition-colors group-hover:text-primary-hover group-hover:underline">
+                                        {name}
+                                    </span>
+                                </span>
+
+                                {email && (
+                                    <span className="mt-0.5 block max-w-52 truncate text-xs text-text-secondary">
+                                        {email}
+                                    </span>
+                                )}
+                            </span>
+                        </button>
+                    );
+                },
+            };
+        }
+
+        // --------------------------------
+        // Category
+        // --------------------------------
+
+        if (column.key === 'category') {
+            return {
+                ...column,
+
+                render: (value) => (
+                    <span className="inline-flex items-center rounded-full bg-background-alt px-2.5 py-1 text-[11px] font-semibold capitalize text-text-secondary">
+                        {value || 'Not specified'}
+                    </span>
+                ),
+            };
+        }
+
+        // --------------------------------
+        // Urgency / Priority
+        // --------------------------------
+
+        if (column.key === 'urgency' || column.key === 'priority') {
+            return {
+                ...column,
+
+                render: (value, row) => {
+                    const urgency = value || row.urgency || row.priority;
+
+                    const urgencyStyles = {
+                        urgent: 'bg-red-50 text-red-600',
+                        high: 'bg-orange-50 text-orange-600',
+                        normal: 'bg-background-alt text-text-secondary',
+                        low: 'bg-background-alt text-text-secondary',
+                    };
+
+                    return (
+                        <span
+                            className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold capitalize ${
+                                urgencyStyles[urgency] ||
+                                'bg-background-alt text-text-secondary'
+                            }`}
+                        >
+                            {urgency || 'Normal'}
+                        </span>
+                    );
+                },
+            };
+        }
+
+        // --------------------------------
+        // Status
+        // --------------------------------
+
+        if (column.key === 'status') {
+            return {
+                ...column,
+
+                render: (value) => <StatusBadge status={value} />,
+            };
+        }
+
+        // --------------------------------
+        // Submitted date
+        // --------------------------------
+
+        if (column.key === 'submittedDate') {
+            return {
+                ...column,
+
+                render: (value) => (
+                    <span className="whitespace-nowrap text-text-secondary">
+                        {value || '—'}
+                    </span>
+                ),
+            };
+        }
+
+        return column;
+    });
+
+    return (
+        <DataTable
+            columns={enhancedColumns}
+            rows={rows}
+            onSort={onSort}
+            getSortIcon={getSortIcon}
+            resultCount={resultCount}
+            empty={{
+                title: 'No help requests found',
+                message: 'Try changing your search or filter options.',
+            }}
+        />
     );
 };
 

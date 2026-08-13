@@ -117,7 +117,7 @@ const HelpRequestViewModal = ({ request, loading, error, onClose }) => {
                                     <InfoItem
                                         icon={Clock3}
                                         label="Priority"
-                                        value={request.priority || '—'}
+                                        value={request.urgency || '—'}
                                     />
 
                                     <InfoItem
@@ -184,9 +184,7 @@ const HelpRequestViewModal = ({ request, loading, error, onClose }) => {
                                         icon={Phone}
                                         label="Phone"
                                         value={
-                                            requester?.phone ||
-                                            request.phone ||
-                                            '—'
+                                            requester?.phone || request.phone
                                         }
                                     />
                                 </div>

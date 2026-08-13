@@ -32,7 +32,7 @@ const HelpRequestFormModal = ({
         return {
             title: request.title || '',
             category: request.category || '',
-            priority: request.priority || 'normal',
+            priority: request.urgency || 'normal',
             description: request.description || '',
             location: request.location || '',
             people_affected: request.people_affected ?? '',

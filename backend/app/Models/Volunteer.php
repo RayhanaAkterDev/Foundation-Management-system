@@ -31,6 +31,10 @@ class Volunteer extends Model
 
     public function helpRequestAssignments(): HasMany
     {
-        return $this->hasMany(HelpRequestAssignment::class);
+        return $this->hasMany(
+            HelpRequestAssignment::class,
+            'volunteer_id',
+            'user_id'
+        );
     }
 }

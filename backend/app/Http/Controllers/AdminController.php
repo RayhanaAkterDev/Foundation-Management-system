@@ -5,11 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Organization;
 use App\Models\HelpRequest;
+use App\Models\HelpRequestAssignment;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Volunteer;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
 
 class AdminController extends Controller
 {
@@ -24,12 +24,12 @@ class AdminController extends Controller
         }
 
         /*
-    |--------------------------------------------------------------------------
-    | Recent Activity
-    |--------------------------------------------------------------------------
-    | Build the activity feed from the latest records across the platform.
-    | No mock/static activity is used.
-    */
+        |--------------------------------------------------------------------------
+        | Recent Activity
+        |--------------------------------------------------------------------------
+        | Build the activity feed from the latest records across the platform.
+        | No mock/static activity is used.
+        */
 
         $recentActivity = collect()
             ->merge(
@@ -317,8 +317,6 @@ class AdminController extends Controller
                 'in:individual,organization,admin',
             ],
 
-            // Optional when creating.
-            // New users will automatically become active.
             'status' => [
                 'nullable',
                 'in:active,inactive,suspended',
@@ -390,7 +388,6 @@ class AdminController extends Controller
                 'in:individual,organization,admin',
             ],
 
-            // Status is required when editing.
             'status' => [
                 'required',
                 'in:active,inactive,suspended',
@@ -452,15 +449,12 @@ class AdminController extends Controller
             ], 404);
         }
 
-        // Prevent an admin from deleting their own account.
         if ($targetUser->id === $user->id) {
             return response()->json([
                 'message' => 'You cannot delete your own admin account.',
             ], 422);
         }
 
-        // Do not allow deleting another admin
-        // through the user-management page.
         if ($targetUser->role === 'admin') {
             return response()->json([
                 'message' => 'Admin accounts cannot be deleted from user management.',
@@ -477,6 +471,7 @@ class AdminController extends Controller
     // ---------------------------------------------------------
     // Organizations - Add
     // ---------------------------------------------------------
+
     public function storeOrganization(Request $request)
     {
         $user = $request->user();
@@ -494,6 +489,7 @@ class AdminController extends Controller
             'phone' => ['nullable', 'string', 'max:50'],
             'website' => ['nullable', 'string', 'max:255'],
             'address' => ['nullable', 'string'],
+
             'email' => [
                 'required',
                 'email',
@@ -611,9 +607,15 @@ class AdminController extends Controller
                 'exists:organizations,id',
             ],
 
-            'volunteer_id' => [
+            'volunteer_ids' => [
                 'nullable',
+                'array',
+                'min:1',
+            ],
+
+            'volunteer_ids.*' => [
                 'integer',
+                'distinct',
                 'exists:users,id',
             ],
 
@@ -624,87 +626,233 @@ class AdminController extends Controller
             ],
         ]);
 
-        if (
-            empty($validated['organization_id']) &&
-            empty($validated['volunteer_id'])
-        ) {
+        $organizationId = $validated['organization_id'] ?? null;
+        $volunteerIds = $validated['volunteer_ids'] ?? [];
+
+        /*
+        |--------------------------------------------------------------------------
+        | At least one assignment target is required
+        |--------------------------------------------------------------------------
+        */
+
+        if (!$organizationId && empty($volunteerIds)) {
             return response()->json([
-                'message' => 'At least one organization or volunteer must be assigned.',
+                'message' => 'Select an organization or at least one volunteer.',
             ], 422);
         }
 
-        // If an organization is selected, it must be verified.
-        if (!empty($validated['organization_id'])) {
-            $organization = Organization::find(
-                $validated['organization_id']
-            );
+        /*
+        |--------------------------------------------------------------------------
+        | Validate organization
+        |--------------------------------------------------------------------------
+        */
 
-            if ($organization->verification_status !== 'verified') {
+        if ($organizationId) {
+            $organization = Organization::find($organizationId);
+
+            if (
+                !$organization ||
+                $organization->verification_status !== 'verified'
+            ) {
                 return response()->json([
                     'message' => 'The selected organization is not verified.',
                 ], 422);
             }
         }
 
-        // If a volunteer is selected, they must be
-        // an active individual user with an approved volunteer application.
-        if (!empty($validated['volunteer_id'])) {
-            $volunteerUser = User::find($validated['volunteer_id']);
+        /*
+        |--------------------------------------------------------------------------
+        | Validate volunteers
+        |--------------------------------------------------------------------------
+        */
+
+        foreach ($volunteerIds as $volunteerId) {
+            $volunteerUser = User::find($volunteerId);
 
             if (!$volunteerUser) {
                 return response()->json([
-                    'message' => 'Selected volunteer user not found.',
+                    'message' => "Volunteer user #{$volunteerId} not found.",
                 ], 422);
             }
 
             if ($volunteerUser->role !== 'individual') {
                 return response()->json([
-                    'message' => 'Only individual users can act as volunteers.',
+                    'message' => "User #{$volunteerId} is not an individual user.",
                 ], 422);
             }
 
             if ($volunteerUser->status !== 'active') {
                 return response()->json([
-                    'message' => 'The selected volunteer account is not active.',
+                    'message' => "Volunteer {$volunteerUser->name} is not active.",
                 ], 422);
             }
 
-            $volunteer = Volunteer::where('user_id', $volunteerUser->id)
+            /*
+            |--------------------------------------------------------------------------
+            | Volunteer application must be approved
+            |--------------------------------------------------------------------------
+            */
+
+            $volunteer = Volunteer::where('user_id', $volunteerId)
                 ->where('status', 'approved')
                 ->first();
 
             if (!$volunteer) {
                 return response()->json([
-                    'message' => 'The selected user is not an approved SP volunteer.',
+                    'message' => "{$volunteerUser->name} is not an approved SP volunteer.",
+                ], 422);
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Volunteer must currently be available
+            |--------------------------------------------------------------------------
+            */
+
+            if ($volunteer->availability !== 'available') {
+                return response()->json([
+                    'message' => "{$volunteerUser->name} is currently unavailable.",
+                ], 422);
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Volunteer must not already have an active assignment
+            |--------------------------------------------------------------------------
+            |
+            | "assigned" is included because an assignment immediately starts
+            | in the assigned state.
+            |
+            */
+
+            $hasActiveAssignment = HelpRequestAssignment::where(
+                'volunteer_id',
+                $volunteerId
+            )
+                ->whereIn('status', [
+                    'assigned',
+                    'pending',
+                    'accepted',
+                    'in_progress',
+                ])
+                ->exists();
+
+            if ($hasActiveAssignment) {
+                return response()->json([
+                    'message' => "{$volunteerUser->name} is currently unavailable.",
+                ], 422);
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Prevent duplicate assignment to the same help request
+            |--------------------------------------------------------------------------
+            */
+
+            $alreadyAssigned = HelpRequestAssignment::where(
+                'help_request_id',
+                $helpRequest->id
+            )
+                ->where('volunteer_id', $volunteerId)
+                ->exists();
+
+            if ($alreadyAssigned) {
+                return response()->json([
+                    'message' => "{$volunteerUser->name} is already assigned to this help request.",
                 ], 422);
             }
         }
 
-        $assignment = \App\Models\HelpRequestAssignment::create([
-            'help_request_id' => $helpRequest->id,
+        /*
+        |--------------------------------------------------------------------------
+        | Prevent duplicate organization assignment
+        |--------------------------------------------------------------------------
+        */
 
-            'organization_id' => $validated['organization_id'] ?? null,
+        if ($organizationId) {
+            $organizationAlreadyAssigned = HelpRequestAssignment::where(
+                'help_request_id',
+                $helpRequest->id
+            )
+                ->where('organization_id', $organizationId)
+                ->exists();
 
-            'volunteer_id' => $validated['volunteer_id'] ?? null,
+            if ($organizationAlreadyAssigned) {
+                return response()->json([
+                    'message' => 'This organization is already assigned to the help request.',
+                ], 422);
+            }
+        }
 
-            'assigned_by' => $user->id,
+        /*
+        |--------------------------------------------------------------------------
+        | Create assignments
+        |--------------------------------------------------------------------------
+        */
 
+        $assignments = collect();
+
+        if ($organizationId) {
+            $assignments->push(
+                HelpRequestAssignment::create([
+                    'help_request_id' => $helpRequest->id,
+                    'organization_id' => $organizationId,
+                    'volunteer_id' => null,
+                    'assigned_by' => $user->id,
+                    'status' => 'assigned',
+                    'assignment_note' => $validated['assignment_note'] ?? null,
+                    'assigned_at' => now(),
+                ])
+            );
+        }
+
+        foreach ($volunteerIds as $volunteerId) {
+            $assignments->push(
+                HelpRequestAssignment::create([
+                    'help_request_id' => $helpRequest->id,
+                    'organization_id' => null,
+                    'volunteer_id' => $volunteerId,
+                    'assigned_by' => $user->id,
+                    'status' => 'assigned',
+                    'assignment_note' => $validated['assignment_note'] ?? null,
+                    'assigned_at' => now(),
+                ])
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Move help request from verified → assigned
+        |--------------------------------------------------------------------------
+        */
+
+        $helpRequest->update([
             'status' => 'assigned',
-
-            'assignment_note' => $validated['assignment_note'] ?? null,
-
-            'assigned_at' => now(),
         ]);
 
-        return response()->json([
-            'message' => 'Help request assigned successfully.',
+        /*
+        |--------------------------------------------------------------------------
+        | Return assignments with relationships
+        |--------------------------------------------------------------------------
+        |
+        | $assignments is a normal Collection, so we must load each
+        | Eloquent model individually.
+        |
+        */
 
-            'assignment' => $assignment->load([
+        $assignments = $assignments->map(function ($assignment) {
+            return $assignment->fresh()->load([
                 'helpRequest',
                 'organization',
                 'volunteer',
                 'assignedBy',
-            ]),
+            ]);
+        });
+
+        return response()->json([
+            'message' => 'Help request assigned successfully.',
+
+            'assignments' => $assignments,
         ], 201);
     }
 
@@ -732,7 +880,6 @@ class AdminController extends Controller
             ], 404);
         }
 
-        // Only pending requests can be reviewed.
         if ($helpRequest->status !== 'pending') {
             return response()->json([
                 'message' => 'Only pending help requests can be reviewed.',
@@ -769,6 +916,7 @@ class AdminController extends Controller
     // ---------------------------------------------------------
     // Organizations - View
     // ---------------------------------------------------------
+
     public function showOrganization(Request $request, int $id)
     {
         $user = $request->user();
@@ -795,6 +943,7 @@ class AdminController extends Controller
     // ---------------------------------------------------------
     // Organizations - Edit
     // ---------------------------------------------------------
+
     public function updateOrganization(Request $request, int $id)
     {
         $user = $request->user();
@@ -884,10 +1033,10 @@ class AdminController extends Controller
         ]);
     }
 
-
     // ---------------------------------------------------------
     // Organizations - Verification
     // ---------------------------------------------------------
+
     public function updateOrganizationVerification(
         Request $request,
         int $id
@@ -925,10 +1074,10 @@ class AdminController extends Controller
         ]);
     }
 
-
     // ---------------------------------------------------------
     // Organizations - Delete
     // ---------------------------------------------------------
+
     public function destroyOrganization(Request $request, int $id)
     {
         $user = $request->user();

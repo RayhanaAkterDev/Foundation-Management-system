@@ -3,52 +3,160 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\HelpRequestController;
+use App\Http\Controllers\OrganizationController;
+use App\Http\Controllers\VolunteerController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
+
+    // Help Requests - Individual/Public authenticated users
     Route::post('/help-requests', [HelpRequestController::class, 'store']);
     Route::get('/help-requests/{id}', [HelpRequestController::class, 'show']);
+
+    // ---------------------------------------------------------
+    // Volunteer - Individual
+    // ---------------------------------------------------------
+
+    Route::post('/volunteer', [VolunteerController::class, 'store']);
+    Route::get('/volunteer', [VolunteerController::class, 'show']);
+
+    Route::get(
+        '/volunteer/assignments',
+        [VolunteerController::class, 'assignments']
+    );
+
+    Route::patch(
+        '/volunteer/assignments/{id}/accept',
+        [VolunteerController::class, 'acceptAssignment']
+    );
+
+    Route::patch(
+        '/volunteer/assignments/{id}/reject',
+        [VolunteerController::class, 'rejectAssignment']
+    );
+
+    Route::patch(
+        '/volunteer/assignments/{id}/start',
+        [VolunteerController::class, 'startAssignment']
+    );
+
+    Route::patch(
+        '/volunteer/assignments/{id}/complete',
+        [VolunteerController::class, 'completeAssignment']
+    );
+
+    // ---------------------------------------------------------
+    // Organization
+    // ---------------------------------------------------------
+
+    Route::get(
+        '/organization/assignments',
+        [OrganizationController::class, 'assignments']
+    );
+
+    Route::patch(
+        '/organization/assignments/{id}/accept',
+        [OrganizationController::class, 'acceptAssignment']
+    );
+
+    Route::patch(
+        '/organization/assignments/{id}/reject',
+        [OrganizationController::class, 'rejectAssignment']
+    );
+
+    Route::patch(
+        '/organization/assignments/{id}/start',
+        [OrganizationController::class, 'startAssignment']
+    );
+
+    Route::patch(
+        '/organization/assignments/{id}/complete',
+        [OrganizationController::class, 'completeAssignment']
+    );
 });
 
+
+// =============================================================
+// ADMIN
+// =============================================================
+
 Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
+
     Route::get('/dashboard', [AdminController::class, 'dashboard']);
 
+    // ---------------------------------------------------------
     // Users
+    // ---------------------------------------------------------
+
     Route::get('/users', [AdminController::class, 'users']);
     Route::get('/users/{id}', [AdminController::class, 'showUser']);
     Route::post('/users', [AdminController::class, 'storeUser']);
     Route::put('/users/{id}', [AdminController::class, 'updateUser']);
     Route::delete('/users/{id}', [AdminController::class, 'destroyUser']);
 
+    // ---------------------------------------------------------
     // Organizations
+    // ---------------------------------------------------------
+
     Route::get('/organizations', [AdminController::class, 'organizations']);
     Route::post('/organizations', [AdminController::class, 'storeOrganization']);
     Route::get('/organizations/{id}', [AdminController::class, 'showOrganization']);
-    Route::put('/organizations/{id}', [AdminController::class, 'updateOrganization']);
+
+    Route::put(
+        '/organizations/{id}',
+        [AdminController::class, 'updateOrganization']
+    );
+
     Route::patch(
         '/organizations/{id}/verification',
         [AdminController::class, 'updateOrganizationVerification']
     );
-    Route::delete('/organizations/{id}', [AdminController::class, 'destroyOrganization']);
 
-    // Help Request
+    Route::delete(
+        '/organizations/{id}',
+        [AdminController::class, 'destroyOrganization']
+    );
+
+    // ---------------------------------------------------------
+    // Help Requests
+    // ---------------------------------------------------------
+
     Route::get('/help-requests', [AdminController::class, 'helpRequests']);
+
     Route::patch(
         '/help-requests/{id}/verification',
         [AdminController::class, 'updateHelpRequestVerification']
     );
+
     Route::patch(
         '/help-requests/{id}/assignment',
         [AdminController::class, 'assignHelpRequest']
     );
 
+    // ---------------------------------------------------------
+    // Volunteers - Admin
+    // ---------------------------------------------------------
 
-    // Other admin modules
+    Route::get('/volunteers', [VolunteerController::class, 'index']);
+
+    Route::get(
+        '/volunteers/{id}',
+        [VolunteerController::class, 'adminShow']
+    );
+
+    Route::patch(
+        '/volunteers/{id}/status',
+        [VolunteerController::class, 'updateStatus']
+    );
+
+    // ---------------------------------------------------------
+    // Other Admin Modules
+    // ---------------------------------------------------------
+
     Route::get('/donations', [AdminController::class, 'donations']);
-    Route::get('/volunteers', [AdminController::class, 'volunteers']);
     Route::get('/campaigns', [AdminController::class, 'campaigns']);
     Route::get('/reports', [AdminController::class, 'reports']);
 });

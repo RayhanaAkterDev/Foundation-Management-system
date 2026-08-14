@@ -1,4 +1,5 @@
 import { createBrowserRouter } from 'react-router-dom';
+import ProtectedRoute from './ProtectedRoute';
 
 // 404
 import NotFound from '../pages/NotFound';
@@ -118,55 +119,70 @@ const router = createBrowserRouter([
         children: [
             // INDIVIDUAL
             {
-                path: 'individual',
-                element: <IndividualDashboard />,
+                element: <ProtectedRoute allowedRoles={['individual']} />,
+                children: [
+                    {
+                        path: 'individual',
+                        element: <IndividualDashboard />,
+                    },
+                ],
             },
 
             // ORGANIZATION
             {
-                path: 'organization',
-                element: <OrganizationDashboard />,
+                element: <ProtectedRoute allowedRoles={['organization']} />,
+                children: [
+                    {
+                        path: 'organization',
+                        element: <OrganizationDashboard />,
+                    },
+                ],
             },
 
             // ADMIN
             {
-                path: 'admin',
+                element: <ProtectedRoute allowedRoles={['admin']} />,
                 children: [
                     {
-                        index: true,
-                        element: <AdminDashboard />,
-                    },
-                    {
-                        path: 'users',
-                        element: <AdminUsers />,
-                    },
-                    {
-                        path: 'organizations',
-                        element: <AdminOrganizations />,
-                    },
-                    {
-                        path: 'help-requests',
-                        element: <AdminHelpRequests />,
-                    },
-                    {
-                        path: 'donations',
-                        element: <AdminDonations />,
-                    },
-                    {
-                        path: 'volunteers',
-                        element: <AdminVolunteers />,
-                    },
-                    {
-                        path: 'campaigns',
-                        element: <AdminCampaigns />,
-                    },
-                    {
-                        path: 'reports',
-                        element: <AdminReports />,
-                    },
-                    {
-                        path: 'settings',
-                        element: <AdminSettings />,
+                        path: 'admin',
+                        children: [
+                            {
+                                index: true,
+                                element: <AdminDashboard />,
+                            },
+                            {
+                                path: 'users',
+                                element: <AdminUsers />,
+                            },
+                            {
+                                path: 'organizations',
+                                element: <AdminOrganizations />,
+                            },
+                            {
+                                path: 'help-requests',
+                                element: <AdminHelpRequests />,
+                            },
+                            {
+                                path: 'donations',
+                                element: <AdminDonations />,
+                            },
+                            {
+                                path: 'volunteers',
+                                element: <AdminVolunteers />,
+                            },
+                            {
+                                path: 'campaigns',
+                                element: <AdminCampaigns />,
+                            },
+                            {
+                                path: 'reports',
+                                element: <AdminReports />,
+                            },
+                            {
+                                path: 'settings',
+                                element: <AdminSettings />,
+                            },
+                        ],
                     },
                 ],
             },

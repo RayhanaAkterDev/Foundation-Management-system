@@ -4,11 +4,65 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Volunteer;
+use App\Models\HelpRequestAssignment;
 use App\Models\CampaignVolunteerAssignment;
 use Illuminate\Http\Request;
 
 class VolunteerController extends Controller
 {
+    /**
+     * Update volunteer availability based on approval status
+     * and active assignments.
+     */
+    private function syncVolunteerAvailability(int $userId): void
+    {
+        $volunteer = Volunteer::where('user_id', $userId)->first();
+
+        if (!$volunteer) {
+            return;
+        }
+
+        // Only approved volunteers can be available.
+        if ($volunteer->status !== 'approved') {
+            $volunteer->update([
+                'availability' => null,
+            ]);
+
+            return;
+        }
+
+        $hasActiveHelpRequestAssignment = HelpRequestAssignment::where(
+            'volunteer_id',
+            $userId
+        )
+            ->whereIn('status', [
+                'assigned',
+                'accepted',
+                'in_progress',
+            ])
+            ->exists();
+
+        $hasActiveCampaignAssignment = CampaignVolunteerAssignment::where(
+            'volunteer_id',
+            $userId
+        )
+            ->whereIn('status', [
+                'assigned',
+                'accepted',
+                'in_progress',
+            ])
+            ->exists();
+
+        $volunteer->update([
+            'availability' => (
+                !$hasActiveHelpRequestAssignment &&
+                !$hasActiveCampaignAssignment
+            )
+                ? 'available'
+                : 'unavailable',
+        ]);
+    }
+
     /**
      * Admin: View all volunteers.
      */
@@ -173,7 +227,7 @@ class VolunteerController extends Controller
             ], 403);
         }
 
-        $assignment = \App\Models\HelpRequestAssignment::with('helpRequest')
+        $assignment = HelpRequestAssignment::with('helpRequest')
             ->where('id', $id)
             ->where('volunteer_id', $user->id)
             ->first();
@@ -193,6 +247,10 @@ class VolunteerController extends Controller
         $assignment->update([
             'status' => 'accepted',
         ]);
+
+        $this->syncVolunteerAvailability($user->id);
+
+        $assignment->helpRequest->syncStatusFromAssignments();
 
         return response()->json([
             'message' => 'Help request accepted successfully.',
@@ -217,7 +275,7 @@ class VolunteerController extends Controller
             ], 403);
         }
 
-        $assignment = \App\Models\HelpRequestAssignment::with('helpRequest')
+        $assignment = HelpRequestAssignment::with('helpRequest')
             ->where('id', $id)
             ->where('volunteer_id', $user->id)
             ->first();
@@ -237,6 +295,10 @@ class VolunteerController extends Controller
         $assignment->update([
             'status' => 'rejected',
         ]);
+
+        $this->syncVolunteerAvailability($user->id);
+
+        $assignment->helpRequest->syncStatusFromAssignments();
 
         return response()->json([
             'message' => 'Help request rejected successfully.',
@@ -261,7 +323,7 @@ class VolunteerController extends Controller
             ], 403);
         }
 
-        $assignment = \App\Models\HelpRequestAssignment::with('helpRequest')
+        $assignment = HelpRequestAssignment::with('helpRequest')
             ->where('id', $id)
             ->where('volunteer_id', $user->id)
             ->first();
@@ -281,6 +343,10 @@ class VolunteerController extends Controller
         $assignment->update([
             'status' => 'in_progress',
         ]);
+
+        $this->syncVolunteerAvailability($user->id);
+
+        $assignment->helpRequest->syncStatusFromAssignments();
 
         return response()->json([
             'message' => 'Help request marked as in progress.',
@@ -305,7 +371,7 @@ class VolunteerController extends Controller
             ], 403);
         }
 
-        $assignment = \App\Models\HelpRequestAssignment::with('helpRequest')
+        $assignment = HelpRequestAssignment::with('helpRequest')
             ->where('id', $id)
             ->where('volunteer_id', $user->id)
             ->first();
@@ -326,6 +392,10 @@ class VolunteerController extends Controller
             'status' => 'completed',
             'completed_at' => now(),
         ]);
+
+        $this->syncVolunteerAvailability($user->id);
+
+        $assignment->helpRequest->syncStatusFromAssignments();
 
         return response()->json([
             'message' => 'Help request completed successfully.',
@@ -371,6 +441,8 @@ class VolunteerController extends Controller
             'status' => 'accepted',
         ]);
 
+        $this->syncVolunteerAvailability($user->id);
+
         return response()->json([
             'message' => 'Campaign assignment accepted successfully.',
             'assignment' => $assignment->fresh()->load([
@@ -414,6 +486,8 @@ class VolunteerController extends Controller
         $assignment->update([
             'status' => 'rejected',
         ]);
+
+        $this->syncVolunteerAvailability($user->id);
 
         return response()->json([
             'message' => 'Campaign assignment rejected successfully.',
@@ -459,6 +533,8 @@ class VolunteerController extends Controller
             'status' => 'in_progress',
         ]);
 
+        $this->syncVolunteerAvailability($user->id);
+
         return response()->json([
             'message' => 'Campaign assignment marked as in progress.',
             'assignment' => $assignment->fresh()->load([
@@ -503,6 +579,8 @@ class VolunteerController extends Controller
             'status' => 'completed',
             'completed_at' => now(),
         ]);
+
+        $this->syncVolunteerAvailability($user->id);
 
         return response()->json([
             'message' => 'Campaign assignment completed successfully.',
@@ -573,12 +651,9 @@ class VolunteerController extends Controller
 
         $volunteer->update([
             'status' => $validated['status'],
-
-            // Availability only exists for approved volunteers.
-            'availability' => $validated['status'] === 'approved'
-                ? 'available'
-                : null,
         ]);
+
+        $this->syncVolunteerAvailability($volunteer->user_id);
 
         return response()->json([
             'message' => $validated['status'] === 'approved'

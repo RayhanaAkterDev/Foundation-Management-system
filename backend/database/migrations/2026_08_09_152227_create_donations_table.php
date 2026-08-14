@@ -13,8 +13,9 @@ return new class extends Migration
 
             // User who made the donation
             $table->foreignId('user_id')
+                ->nullable()
                 ->constrained('users')
-                ->cascadeOnDelete();
+                ->nullOnDelete();
 
             // Campaign receiving the donation
             $table->foreignId('campaign_id')

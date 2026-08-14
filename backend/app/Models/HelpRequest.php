@@ -30,6 +30,50 @@ class HelpRequest extends Model
         return $this->hasMany(HelpRequestAssignment::class);
     }
 
+    public function syncStatusFromAssignments(): void
+    {
+        $assignments = $this->assignments()->get();
+
+        if ($assignments->isEmpty()) {
+            return;
+        }
+
+        if ($assignments->contains('status', 'in_progress')) {
+            $this->update([
+                'status' => 'in_progress',
+            ]);
+
+            return;
+        }
+
+        $activeAssignments = $assignments->whereIn('status', [
+            'assigned',
+            'accepted',
+        ]);
+
+        if ($activeAssignments->isNotEmpty()) {
+            $this->update([
+                'status' => 'assigned',
+            ]);
+
+            return;
+        }
+
+        $completedAssignments = $assignments->where('status', 'completed');
+
+        if ($completedAssignments->isNotEmpty()) {
+            $this->update([
+                'status' => 'completed',
+            ]);
+
+            return;
+        }
+
+        $this->update([
+            'status' => 'verified',
+        ]);
+    }
+
     public function campaigns(): HasMany
     {
         return $this->hasMany(Campaign::class);

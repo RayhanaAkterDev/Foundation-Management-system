@@ -134,6 +134,8 @@ class OrganizationController extends Controller
             'status' => 'rejected',
         ]);
 
+        $assignment->helpRequest->syncStatusFromAssignments();
+
         return response()->json([
             'message' => 'Help request rejected successfully.',
             'assignment' => $assignment->fresh()->load([
@@ -184,6 +186,8 @@ class OrganizationController extends Controller
         $assignment->update([
             'status' => 'in_progress',
         ]);
+
+        $assignment->helpRequest->syncStatusFromAssignments();
 
         return response()->json([
             'message' => 'Help request marked as in progress.',
@@ -236,6 +240,8 @@ class OrganizationController extends Controller
             'status' => 'completed',
             'completed_at' => now(),
         ]);
+
+        $assignment->helpRequest->syncStatusFromAssignments();
 
         return response()->json([
             'message' => 'Help request completed successfully.',

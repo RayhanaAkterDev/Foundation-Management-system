@@ -819,6 +819,11 @@ class AdminController extends Controller
                     'assigned_at' => now(),
                 ])
             );
+
+            // Mark volunteer unavailable immediately after assignment.
+            Volunteer::where('user_id', $volunteerId)->update([
+                'availability' => 'unavailable',
+            ]);
         }
 
         /*
@@ -1191,8 +1196,11 @@ class AdminController extends Controller
             ], 403);
         }
 
-        $request->validate([
-            'status' => 'required|in:active,rejected',
+        $validated = $request->validate([
+            'status' => [
+                'required',
+                'in:active,rejected',
+            ],
         ]);
 
         $campaign = Campaign::find($id);
@@ -1210,14 +1218,15 @@ class AdminController extends Controller
         }
 
         $campaign->update([
-            'status' => $request->status,
+            'status' => $validated['status'],
         ]);
 
         return response()->json([
-            'message' => $request->status === 'active'
+            'message' => $validated['status'] === 'active'
                 ? 'Campaign approved successfully.'
                 : 'Campaign rejected successfully.',
-            'campaign' => $campaign->load([
+
+            'campaign' => $campaign->fresh()->load([
                 'organization:id,name',
                 'creator:id,name,email',
             ]),
@@ -1362,6 +1371,10 @@ class AdminController extends Controller
             'status' => 'assigned',
             'assignment_note' => $validated['assignment_note'] ?? null,
             'assigned_at' => now(),
+        ]);
+
+        Volunteer::where('user_id', $volunteerUser->id)->update([
+            'availability' => 'unavailable',
         ]);
 
         return response()->json([

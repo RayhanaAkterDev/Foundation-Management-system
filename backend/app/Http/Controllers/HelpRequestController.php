@@ -14,10 +14,10 @@ class HelpRequestController extends Controller
     {
         $user = $request->user();
 
-        // Only individuals and organizations can submit help requests.
-        if (!in_array($user->role, ['individual', 'organization'])) {
+        // Only individual users can submit help requests.
+        if (!$user || $user->role !== 'individual') {
             return response()->json([
-                'message' => 'Only individuals and organizations can submit help requests.',
+                'message' => 'Only individual users can submit help requests.',
             ], 403);
         }
 

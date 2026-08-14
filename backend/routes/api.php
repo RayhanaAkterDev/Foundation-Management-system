@@ -13,7 +13,10 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/campaigns', [CampaignController::class, 'index']);
 Route::get('/campaigns/{id}', [CampaignController::class, 'show']);
-Route::post('/donations', [DonationController::class, 'store']);
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/donations', [DonationController::class, 'store']);
+});
 
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -24,7 +27,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     // ---------------------------------------------------------
-    // Campaigns - Individual
+    // Campaigns - Organization
     // ---------------------------------------------------------
 
     Route::post('/campaigns', [CampaignController::class, 'store']);

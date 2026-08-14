@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Organization;
+use App\Models\IndividualProfile;
 use App\Models\HelpRequest;
 use App\Models\HelpRequestAssignment;
 use App\Models\Campaign;
@@ -11,10 +12,18 @@ use App\Models\Donation;
 use App\Models\Volunteer;
 use App\Models\CampaignVolunteerAssignment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class AdminController extends Controller
 {
-    public function dashboard(Request $request)
+    /*
+    |--------------------------------------------------------------------------
+    | Admin Authorization Helper
+    |--------------------------------------------------------------------------
+    */
+
+    private function authorizeAdmin(Request $request)
     {
         $user = $request->user();
 
@@ -24,17 +33,32 @@ class AdminController extends Controller
             ], 403);
         }
 
+        return $user;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Dashboard
+    |--------------------------------------------------------------------------
+    */
+
+    public function dashboard(Request $request)
+    {
+        $user = $this->authorizeAdmin($request);
+
+        if ($user instanceof \Illuminate\Http\JsonResponse) {
+            return $user;
+        }
+
         /*
         |--------------------------------------------------------------------------
         | Recent Activity
         |--------------------------------------------------------------------------
-        | Build the activity feed from the latest records across the platform.
-        | No mock/static activity is used.
         */
 
         $recentActivity = collect()
             ->merge(
-                User::whereIn('role', ['individual', 'admin'])
+                User::whereIn('role', ['individual', 'organization', 'admin'])
                     ->latest()
                     ->take(5)
                     ->get([
@@ -104,9 +128,9 @@ class AdminController extends Controller
                         return [
                             'id' => 'donation-' . $item->id,
                             'type' => 'donation',
-                            'text' => "Donation of ৳" .
+                            'text' => 'Donation of ৳' .
                                 number_format((float) $item->amount, 2) .
-                                " was recorded.",
+                                ' was recorded.',
                             'time' => $item->created_at->diffForHumans(),
                             'created_at' => $item->created_at,
                         ];
@@ -217,21 +241,25 @@ class AdminController extends Controller
         ]);
     }
 
-    // ---------------------------------------------------------
-    // Users - List
-    // ---------------------------------------------------------
+    /*
+    |--------------------------------------------------------------------------
+    | Users - List
+    |--------------------------------------------------------------------------
+    */
 
     public function users(Request $request)
     {
-        $user = $request->user();
+        $user = $this->authorizeAdmin($request);
 
-        if (!$user || $user->role !== 'admin') {
-            return response()->json([
-                'message' => 'Unauthorized.',
-            ], 403);
+        if ($user instanceof \Illuminate\Http\JsonResponse) {
+            return $user;
         }
 
-        $users = User::latest()
+        $users = User::with([
+            'individualProfile',
+            'organization',
+        ])
+            ->latest()
             ->get([
                 'id',
                 'name',
@@ -247,18 +275,18 @@ class AdminController extends Controller
         ]);
     }
 
-    // ---------------------------------------------------------
-    // Users - View
-    // ---------------------------------------------------------
+    /*
+    |--------------------------------------------------------------------------
+    | Users - View
+    |--------------------------------------------------------------------------
+    */
 
     public function showUser(Request $request, int $id)
     {
-        $user = $request->user();
+        $user = $this->authorizeAdmin($request);
 
-        if (!$user || $user->role !== 'admin') {
-            return response()->json([
-                'message' => 'Unauthorized.',
-            ], 403);
+        if ($user instanceof \Illuminate\Http\JsonResponse) {
+            return $user;
         }
 
         $targetUser = User::with([
@@ -277,22 +305,26 @@ class AdminController extends Controller
         ]);
     }
 
-    // ---------------------------------------------------------
-    // Users - Add
-    // ---------------------------------------------------------
+    /*
+    |--------------------------------------------------------------------------
+    | Users - Add
+    |--------------------------------------------------------------------------
+    */
 
     public function storeUser(Request $request)
     {
-        $user = $request->user();
+        $user = $this->authorizeAdmin($request);
 
-        if (!$user || $user->role !== 'admin') {
-            return response()->json([
-                'message' => 'Unauthorized.',
-            ], 403);
+        if ($user instanceof \Illuminate\Http\JsonResponse) {
+            return $user;
         }
 
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+            ],
 
             'email' => [
                 'required',
@@ -316,44 +348,180 @@ class AdminController extends Controller
                 'nullable',
                 'in:active,inactive,suspended',
             ],
+
+            /*
+            |--------------------------------------------------------------------------
+            | Organization fields
+            |--------------------------------------------------------------------------
+            */
+
+            'organization_type' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
+            'registration_number' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
+            'phone' => [
+                'nullable',
+                'string',
+                'max:50',
+            ],
+
+            'website' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
+            'address' => [
+                'nullable',
+                'string',
+            ],
+
+            'mission' => [
+                'nullable',
+                'string',
+            ],
+
+            'focus_areas' => [
+                'nullable',
+            ],
+
+            'communities_served' => [
+                'nullable',
+            ],
+
+            'team_size' => [
+                'nullable',
+                'integer',
+                'min:0',
+            ],
+
+            'primary_activities' => [
+                'nullable',
+            ],
         ]);
 
-        $newUser = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => $validated['password'],
-            'role' => $validated['role'],
-            'status' => $validated['status'] ?? 'active',
-        ]);
+        $result = DB::transaction(function () use ($validated) {
+
+            $newUser = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => $validated['password'],
+                'role' => $validated['role'],
+                'status' => $validated['status'] ?? 'active',
+            ]);
+
+            $individualProfile = null;
+            $organization = null;
+
+            /*
+            |--------------------------------------------------------------------------
+            | Individual Account
+            |--------------------------------------------------------------------------
+            */
+
+            if ($validated['role'] === 'individual') {
+                $individualProfile = IndividualProfile::create([
+                    'user_id' => $newUser->id,
+                ]);
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Organization Account
+            |--------------------------------------------------------------------------
+            */
+
+            if ($validated['role'] === 'organization') {
+                $organization = Organization::create([
+                    'user_id' => $newUser->id,
+
+                    'name' => $validated['name'],
+
+                    'organization_type' =>
+                    $validated['organization_type'] ?? null,
+
+                    'registration_number' =>
+                    $validated['registration_number'] ?? null,
+
+                    'phone' =>
+                    $validated['phone'] ?? null,
+
+                    'website' =>
+                    $validated['website'] ?? null,
+
+                    'address' =>
+                    $validated['address'] ?? null,
+
+                    'mission' =>
+                    $validated['mission'] ?? null,
+
+                    'focus_areas' =>
+                    $validated['focus_areas'] ?? null,
+
+                    'communities_served' =>
+                    $validated['communities_served'] ?? null,
+
+                    'team_size' =>
+                    $validated['team_size'] ?? null,
+
+                    'primary_activities' =>
+                    $validated['primary_activities'] ?? null,
+
+                    'verification_status' => 'pending',
+                ]);
+            }
+
+            return [
+                'user' => $newUser,
+                'individualProfile' => $individualProfile,
+                'organization' => $organization,
+            ];
+        });
 
         return response()->json([
             'message' => 'User created successfully.',
 
-            'user' => $newUser->only([
-                'id',
-                'name',
-                'email',
-                'role',
-                'status',
-                'email_verified_at',
-                'created_at',
-                'updated_at',
+            'user' => $result['user']->fresh()->load([
+                'individualProfile',
+                'organization',
             ]),
+
+            'individualProfile' => $result['individualProfile'],
+
+            'organization' => $result['organization'],
         ], 201);
     }
 
-    // ---------------------------------------------------------
-    // Users - Edit
-    // ---------------------------------------------------------
+    /*
+    |--------------------------------------------------------------------------
+    | Users - Edit
+    |--------------------------------------------------------------------------
+    |
+    | IMPORTANT:
+    | Existing user roles are not changed here.
+    |
+    | Changing an existing individual into an organization, or an
+    | organization into an individual, can break organization records,
+    | campaigns, help-request assignments, volunteer records, etc.
+    |
+    | Role is therefore treated as the account's identity.
+    |--------------------------------------------------------------------------
+    */
 
     public function updateUser(Request $request, int $id)
     {
-        $user = $request->user();
+        $user = $this->authorizeAdmin($request);
 
-        if (!$user || $user->role !== 'admin') {
-            return response()->json([
-                'message' => 'Unauthorized.',
-            ], 403);
+        if ($user instanceof \Illuminate\Http\JsonResponse) {
+            return $user;
         }
 
         $targetUser = User::find($id);
@@ -395,9 +563,35 @@ class AdminController extends Controller
             ],
         ]);
 
+        /*
+        |--------------------------------------------------------------------------
+        | Prevent role switching
+        |--------------------------------------------------------------------------
+        */
+
+        if ($validated['role'] !== $targetUser->role) {
+            return response()->json([
+                'message' => 'User role cannot be changed after account creation.',
+            ], 422);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Prevent editing yourself into a non-admin account
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            $targetUser->id === $user->id &&
+            $validated['role'] !== 'admin'
+        ) {
+            return response()->json([
+                'message' => 'You cannot change your own admin role.',
+            ], 422);
+        }
+
         $targetUser->name = $validated['name'];
         $targetUser->email = $validated['email'];
-        $targetUser->role = $validated['role'];
         $targetUser->status = $validated['status'];
 
         if (!empty($validated['password'])) {
@@ -406,34 +600,40 @@ class AdminController extends Controller
 
         $targetUser->save();
 
+        /*
+        |--------------------------------------------------------------------------
+        | Keep organization name synchronized with user name
+        |--------------------------------------------------------------------------
+        */
+
+        if ($targetUser->role === 'organization') {
+            Organization::where('user_id', $targetUser->id)->update([
+                'name' => $targetUser->name,
+            ]);
+        }
+
         return response()->json([
             'message' => 'User updated successfully.',
 
-            'user' => $targetUser->only([
-                'id',
-                'name',
-                'email',
-                'role',
-                'status',
-                'email_verified_at',
-                'created_at',
-                'updated_at',
+            'user' => $targetUser->fresh()->load([
+                'individualProfile',
+                'organization',
             ]),
         ]);
     }
 
-    // ---------------------------------------------------------
-    // Users - Delete
-    // ---------------------------------------------------------
+    /*
+    |--------------------------------------------------------------------------
+    | Users - Delete
+    |--------------------------------------------------------------------------
+    */
 
     public function destroyUser(Request $request, int $id)
     {
-        $user = $request->user();
+        $user = $this->authorizeAdmin($request);
 
-        if (!$user || $user->role !== 'admin') {
-            return response()->json([
-                'message' => 'Unauthorized.',
-            ], 403);
+        if ($user instanceof \Illuminate\Http\JsonResponse) {
+            return $user;
         }
 
         $targetUser = User::find($id);
@@ -463,27 +663,55 @@ class AdminController extends Controller
         ]);
     }
 
-    // ---------------------------------------------------------
-    // Organizations - Add
-    // ---------------------------------------------------------
+    /*
+    |--------------------------------------------------------------------------
+    | Organizations - Add
+    |--------------------------------------------------------------------------
+    */
 
     public function storeOrganization(Request $request)
     {
-        $user = $request->user();
+        $user = $this->authorizeAdmin($request);
 
-        if (!$user || $user->role !== 'admin') {
-            return response()->json([
-                'message' => 'Unauthorized.',
-            ], 403);
+        if ($user instanceof \Illuminate\Http\JsonResponse) {
+            return $user;
         }
 
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'organization_type' => ['nullable', 'string', 'max:255'],
-            'registration_number' => ['nullable', 'string', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:50'],
-            'website' => ['nullable', 'string', 'max:255'],
-            'address' => ['nullable', 'string'],
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'organization_type' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
+            'registration_number' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
+            'phone' => [
+                'nullable',
+                'string',
+                'max:50',
+            ],
+
+            'website' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
+            'address' => [
+                'nullable',
+                'string',
+            ],
 
             'email' => [
                 'required',
@@ -493,46 +721,73 @@ class AdminController extends Controller
             ],
         ]);
 
-        $temporaryPassword = \Illuminate\Support\Str::random(12);
+        $temporaryPassword = Str::random(12);
 
-        $organizationUser = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => $temporaryPassword,
-            'role' => 'organization',
-            'status' => 'active',
-        ]);
+        $result = DB::transaction(function () use (
+            $validated,
+            $temporaryPassword
+        ) {
 
-        $organization = Organization::create([
-            'user_id' => $organizationUser->id,
-            'name' => $validated['name'],
-            'organization_type' => $validated['organization_type'] ?? null,
-            'registration_number' => $validated['registration_number'] ?? null,
-            'phone' => $validated['phone'] ?? null,
-            'website' => $validated['website'] ?? null,
-            'address' => $validated['address'] ?? null,
-            'verification_status' => 'pending',
-        ]);
+            $organizationUser = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => $temporaryPassword,
+                'role' => 'organization',
+                'status' => 'active',
+            ]);
+
+            $organization = Organization::create([
+                'user_id' => $organizationUser->id,
+
+                'name' => $validated['name'],
+
+                'organization_type' =>
+                $validated['organization_type'] ?? null,
+
+                'registration_number' =>
+                $validated['registration_number'] ?? null,
+
+                'phone' =>
+                $validated['phone'] ?? null,
+
+                'website' =>
+                $validated['website'] ?? null,
+
+                'address' =>
+                $validated['address'] ?? null,
+
+                'verification_status' => 'pending',
+            ]);
+
+            return [
+                'user' => $organizationUser,
+                'organization' => $organization,
+            ];
+        });
 
         return response()->json([
             'message' => 'Organization added successfully.',
-            'organization' => $organization->fresh()->load('user'),
+
+            'organization' => $result['organization']
+                ->fresh()
+                ->load('user'),
+
             'temporary_password' => $temporaryPassword,
         ], 201);
     }
 
-    // ---------------------------------------------------------
-    // Organizations
-    // ---------------------------------------------------------
+    /*
+    |--------------------------------------------------------------------------
+    | Organizations - List
+    |--------------------------------------------------------------------------
+    */
 
     public function organizations(Request $request)
     {
-        $user = $request->user();
+        $user = $this->authorizeAdmin($request);
 
-        if (!$user || $user->role !== 'admin') {
-            return response()->json([
-                'message' => 'Unauthorized.',
-            ], 403);
+        if ($user instanceof \Illuminate\Http\JsonResponse) {
+            return $user;
         }
 
         $organizations = Organization::with('user')
@@ -544,387 +799,18 @@ class AdminController extends Controller
         ]);
     }
 
-    // ---------------------------------------------------------
-    // Help Requests
-    // ---------------------------------------------------------
-
-    public function helpRequests(Request $request)
-    {
-        $user = $request->user();
-
-        if (!$user || $user->role !== 'admin') {
-            return response()->json([
-                'message' => 'Unauthorized.',
-            ], 403);
-        }
-
-        $helpRequests = HelpRequest::with('user')
-            ->latest()
-            ->get();
-
-        return response()->json([
-            'helpRequests' => $helpRequests,
-        ]);
-    }
-
-    // ---------------------------------------------------------
-    // Help Requests - Assign Organization / Volunteer
-    // ---------------------------------------------------------
-
-    public function assignHelpRequest(Request $request, int $id)
-    {
-        $user = $request->user();
-
-        if (!$user || $user->role !== 'admin') {
-            return response()->json([
-                'message' => 'Unauthorized.',
-            ], 403);
-        }
-
-        $helpRequest = HelpRequest::find($id);
-
-        if (!$helpRequest) {
-            return response()->json([
-                'message' => 'Help request not found.',
-            ], 404);
-        }
-
-        if (!in_array($helpRequest->status, ['verified', 'assigned'])) {
-            return response()->json([
-                'message' => 'Only verified help requests can be assigned.',
-            ], 422);
-        }
-
-        $validated = $request->validate([
-            'organization_id' => [
-                'nullable',
-                'integer',
-                'exists:organizations,id',
-            ],
-
-            'volunteer_ids' => [
-                'nullable',
-                'array',
-                'min:1',
-            ],
-
-            'volunteer_ids.*' => [
-                'integer',
-                'distinct',
-                'exists:users,id',
-            ],
-
-            'assignment_note' => [
-                'nullable',
-                'string',
-                'max:1000',
-            ],
-        ]);
-
-        $organizationId = $validated['organization_id'] ?? null;
-        $volunteerIds = $validated['volunteer_ids'] ?? [];
-
-        /*
-        |--------------------------------------------------------------------------
-        | At least one assignment target is required
-        |--------------------------------------------------------------------------
-        */
-
-        if (!$organizationId && empty($volunteerIds)) {
-            return response()->json([
-                'message' => 'Select an organization or at least one volunteer.',
-            ], 422);
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Validate organization
-        |--------------------------------------------------------------------------
-        */
-
-        if ($organizationId) {
-            $organization = Organization::find($organizationId);
-
-            if (
-                !$organization ||
-                $organization->verification_status !== 'verified'
-            ) {
-                return response()->json([
-                    'message' => 'The selected organization is not verified.',
-                ], 422);
-            }
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Validate volunteers
-        |--------------------------------------------------------------------------
-        */
-
-        foreach ($volunteerIds as $volunteerId) {
-            $volunteerUser = User::find($volunteerId);
-
-            if (!$volunteerUser) {
-                return response()->json([
-                    'message' => "Volunteer user #{$volunteerId} not found.",
-                ], 422);
-            }
-
-            if ($volunteerUser->role !== 'individual') {
-                return response()->json([
-                    'message' => "User #{$volunteerId} is not an individual user.",
-                ], 422);
-            }
-
-            if ($volunteerUser->status !== 'active') {
-                return response()->json([
-                    'message' => "Volunteer {$volunteerUser->name} is not active.",
-                ], 422);
-            }
-
-            /*
-            |--------------------------------------------------------------------------
-            | Volunteer application must be approved
-            |--------------------------------------------------------------------------
-            */
-
-            $volunteer = Volunteer::where('user_id', $volunteerId)
-                ->where('status', 'approved')
-                ->first();
-
-            if (!$volunteer) {
-                return response()->json([
-                    'message' => "{$volunteerUser->name} is not an approved SP volunteer.",
-                ], 422);
-            }
-
-            /*
-            |--------------------------------------------------------------------------
-            | Volunteer must currently be available
-            |--------------------------------------------------------------------------
-            */
-
-            if ($volunteer->availability !== 'available') {
-                return response()->json([
-                    'message' => "{$volunteerUser->name} is currently unavailable.",
-                ], 422);
-            }
-
-            /*
-            |--------------------------------------------------------------------------
-            | Volunteer must not already have an active assignment
-            |--------------------------------------------------------------------------
-            |
-            | "assigned" is included because an assignment immediately starts
-            | in the assigned state.
-            |
-            */
-
-            $hasActiveAssignment = HelpRequestAssignment::where(
-                'volunteer_id',
-                $volunteerId
-            )
-                ->whereIn('status', [
-                    'assigned',
-                    'pending',
-                    'accepted',
-                    'in_progress',
-                ])
-                ->exists();
-
-            if ($hasActiveAssignment) {
-                return response()->json([
-                    'message' => "{$volunteerUser->name} is currently unavailable.",
-                ], 422);
-            }
-
-            /*
-            |--------------------------------------------------------------------------
-            | Prevent duplicate assignment to the same help request
-            |--------------------------------------------------------------------------
-            */
-
-            $alreadyAssigned = HelpRequestAssignment::where(
-                'help_request_id',
-                $helpRequest->id
-            )
-                ->where('volunteer_id', $volunteerId)
-                ->exists();
-
-            if ($alreadyAssigned) {
-                return response()->json([
-                    'message' => "{$volunteerUser->name} is already assigned to this help request.",
-                ], 422);
-            }
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Prevent duplicate organization assignment
-        |--------------------------------------------------------------------------
-        */
-
-        if ($organizationId) {
-            $organizationAlreadyAssigned = HelpRequestAssignment::where(
-                'help_request_id',
-                $helpRequest->id
-            )
-                ->where('organization_id', $organizationId)
-                ->exists();
-
-            if ($organizationAlreadyAssigned) {
-                return response()->json([
-                    'message' => 'This organization is already assigned to the help request.',
-                ], 422);
-            }
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Create assignments
-        |--------------------------------------------------------------------------
-        */
-
-        $assignments = collect();
-
-        if ($organizationId) {
-            $assignments->push(
-                HelpRequestAssignment::create([
-                    'help_request_id' => $helpRequest->id,
-                    'organization_id' => $organizationId,
-                    'volunteer_id' => null,
-                    'assigned_by' => $user->id,
-                    'status' => 'assigned',
-                    'assignment_note' => $validated['assignment_note'] ?? null,
-                    'assigned_at' => now(),
-                ])
-            );
-        }
-
-        foreach ($volunteerIds as $volunteerId) {
-            $assignments->push(
-                HelpRequestAssignment::create([
-                    'help_request_id' => $helpRequest->id,
-                    'organization_id' => null,
-                    'volunteer_id' => $volunteerId,
-                    'assigned_by' => $user->id,
-                    'status' => 'assigned',
-                    'assignment_note' => $validated['assignment_note'] ?? null,
-                    'assigned_at' => now(),
-                ])
-            );
-
-            // Mark volunteer unavailable immediately after assignment.
-            Volunteer::where('user_id', $volunteerId)->update([
-                'availability' => 'unavailable',
-            ]);
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Move help request from verified → assigned
-        |--------------------------------------------------------------------------
-        */
-
-        $helpRequest->update([
-            'status' => 'assigned',
-        ]);
-
-        /*
-        |--------------------------------------------------------------------------
-        | Return assignments with relationships
-        |--------------------------------------------------------------------------
-        |
-        | $assignments is a normal Collection, so we must load each
-        | Eloquent model individually.
-        |
-        */
-
-        $assignments = $assignments->map(function ($assignment) {
-            return $assignment->fresh()->load([
-                'helpRequest',
-                'organization',
-                'volunteer',
-                'assignedBy',
-            ]);
-        });
-
-        return response()->json([
-            'message' => 'Help request assigned successfully.',
-
-            'assignments' => $assignments,
-        ], 201);
-    }
-
-    // ---------------------------------------------------------
-    // Help Requests - Verify / Reject
-    // ---------------------------------------------------------
-
-    public function updateHelpRequestVerification(
-        Request $request,
-        int $id
-    ) {
-        $user = $request->user();
-
-        if (!$user || $user->role !== 'admin') {
-            return response()->json([
-                'message' => 'Unauthorized.',
-            ], 403);
-        }
-
-        $helpRequest = HelpRequest::find($id);
-
-        if (!$helpRequest) {
-            return response()->json([
-                'message' => 'Help request not found.',
-            ], 404);
-        }
-
-        if ($helpRequest->status !== 'pending') {
-            return response()->json([
-                'message' => 'Only pending help requests can be reviewed.',
-            ], 422);
-        }
-
-        $validated = $request->validate([
-            'status' => [
-                'required',
-                'in:verified,rejected',
-            ],
-
-            'verification_note' => [
-                'nullable',
-                'string',
-                'max:2000',
-            ],
-        ]);
-
-        $helpRequest->update([
-            'status' => $validated['status'],
-            'verification_note' => $validated['verification_note'] ?? null,
-        ]);
-
-        return response()->json([
-            'message' => $validated['status'] === 'verified'
-                ? 'Help request verified successfully.'
-                : 'Help request rejected successfully.',
-
-            'help_request' => $helpRequest->fresh()->load('user'),
-        ]);
-    }
-
-    // ---------------------------------------------------------
-    // Organizations - View
-    // ---------------------------------------------------------
+    /*
+    |--------------------------------------------------------------------------
+    | Organizations - View
+    |--------------------------------------------------------------------------
+    */
 
     public function showOrganization(Request $request, int $id)
     {
-        $user = $request->user();
+        $user = $this->authorizeAdmin($request);
 
-        if (!$user || $user->role !== 'admin') {
-            return response()->json([
-                'message' => 'Unauthorized.',
-            ], 403);
+        if ($user instanceof \Illuminate\Http\JsonResponse) {
+            return $user;
         }
 
         $organization = Organization::with('user')->find($id);
@@ -940,18 +826,18 @@ class AdminController extends Controller
         ]);
     }
 
-    // ---------------------------------------------------------
-    // Organizations - Edit
-    // ---------------------------------------------------------
+    /*
+    |--------------------------------------------------------------------------
+    | Organizations - Edit
+    |--------------------------------------------------------------------------
+    */
 
     public function updateOrganization(Request $request, int $id)
     {
-        $user = $request->user();
+        $user = $this->authorizeAdmin($request);
 
-        if (!$user || $user->role !== 'admin') {
-            return response()->json([
-                'message' => 'Unauthorized.',
-            ], 403);
+        if ($user instanceof \Illuminate\Http\JsonResponse) {
+            return $user;
         }
 
         $organization = Organization::find($id);
@@ -1005,12 +891,10 @@ class AdminController extends Controller
 
             'focus_areas' => [
                 'nullable',
-                'string',
             ],
 
             'communities_served' => [
                 'nullable',
-                'string',
             ],
 
             'team_size' => [
@@ -1021,32 +905,46 @@ class AdminController extends Controller
 
             'primary_activities' => [
                 'nullable',
-                'string',
             ],
         ]);
 
         $organization->update($validated);
 
+        /*
+        |--------------------------------------------------------------------------
+        | Keep organization account name synchronized
+        |--------------------------------------------------------------------------
+        */
+
+        if ($organization->user) {
+            $organization->user->update([
+                'name' => $organization->name,
+            ]);
+        }
+
         return response()->json([
             'message' => 'Organization updated successfully.',
-            'organization' => $organization->fresh()->load('user'),
+
+            'organization' => $organization
+                ->fresh()
+                ->load('user'),
         ]);
     }
 
-    // ---------------------------------------------------------
-    // Organizations - Verification
-    // ---------------------------------------------------------
+    /*
+    |--------------------------------------------------------------------------
+    | Organizations - Verification
+    |--------------------------------------------------------------------------
+    */
 
     public function updateOrganizationVerification(
         Request $request,
         int $id
     ) {
-        $user = $request->user();
+        $user = $this->authorizeAdmin($request);
 
-        if (!$user || $user->role !== 'admin') {
-            return response()->json([
-                'message' => 'Unauthorized.',
-            ], 403);
+        if ($user instanceof \Illuminate\Http\JsonResponse) {
+            return $user;
         }
 
         $organization = Organization::find($id);
@@ -1070,25 +968,28 @@ class AdminController extends Controller
 
         return response()->json([
             'message' => 'Organization verification status updated successfully.',
-            'organization' => $organization->fresh()->load('user'),
+
+            'organization' => $organization
+                ->fresh()
+                ->load('user'),
         ]);
     }
 
-    // ---------------------------------------------------------
-    // Organizations - Delete
-    // ---------------------------------------------------------
+    /*
+    |--------------------------------------------------------------------------
+    | Organizations - Delete
+    |--------------------------------------------------------------------------
+    */
 
     public function destroyOrganization(Request $request, int $id)
     {
-        $user = $request->user();
+        $user = $this->authorizeAdmin($request);
 
-        if (!$user || $user->role !== 'admin') {
-            return response()->json([
-                'message' => 'Unauthorized.',
-            ], 403);
+        if ($user instanceof \Illuminate\Http\JsonResponse) {
+            return $user;
         }
 
-        $organization = Organization::find($id);
+        $organization = Organization::with('user')->find($id);
 
         if (!$organization) {
             return response()->json([
@@ -1096,25 +997,444 @@ class AdminController extends Controller
             ], 404);
         }
 
-        $organization->delete();
+        $organizationUser = $organization->user;
+
+        DB::transaction(function () use (
+            $organization,
+            $organizationUser
+        ) {
+
+            $organization->delete();
+
+            if ($organizationUser) {
+                $organizationUser->delete();
+            }
+        });
 
         return response()->json([
-            'message' => 'Organization deleted successfully.',
+            'message' => 'Organization and its user account deleted successfully.',
         ]);
     }
 
-    // ---------------------------------------------------------
-    // Donations
-    // ---------------------------------------------------------
+    /*
+    |--------------------------------------------------------------------------
+    | Help Requests - List
+    |--------------------------------------------------------------------------
+    */
+
+    public function helpRequests(Request $request)
+    {
+        $user = $this->authorizeAdmin($request);
+
+        if ($user instanceof \Illuminate\Http\JsonResponse) {
+            return $user;
+        }
+
+        $helpRequests = HelpRequest::with('user')
+            ->latest()
+            ->get();
+
+        return response()->json([
+            'helpRequests' => $helpRequests,
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Help Requests - Verify / Reject
+    |--------------------------------------------------------------------------
+    */
+
+    public function updateHelpRequestVerification(
+        Request $request,
+        int $id
+    ) {
+        $user = $this->authorizeAdmin($request);
+
+        if ($user instanceof \Illuminate\Http\JsonResponse) {
+            return $user;
+        }
+
+        $helpRequest = HelpRequest::find($id);
+
+        if (!$helpRequest) {
+            return response()->json([
+                'message' => 'Help request not found.',
+            ], 404);
+        }
+
+        if ($helpRequest->status !== 'pending') {
+            return response()->json([
+                'message' => 'Only pending help requests can be reviewed.',
+            ], 422);
+        }
+
+        $validated = $request->validate([
+            'status' => [
+                'required',
+                'in:verified,rejected',
+            ],
+
+            'verification_note' => [
+                'nullable',
+                'string',
+                'max:2000',
+            ],
+        ]);
+
+        $helpRequest->update([
+            'status' => $validated['status'],
+
+            'verification_note' =>
+            $validated['verification_note'] ?? null,
+        ]);
+
+        return response()->json([
+            'message' => $validated['status'] === 'verified'
+                ? 'Help request verified successfully.'
+                : 'Help request rejected successfully.',
+
+            'help_request' => $helpRequest
+                ->fresh()
+                ->load('user'),
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Help Requests - Assign Organization / Volunteer
+    |--------------------------------------------------------------------------
+    */
+
+    public function assignHelpRequest(
+        Request $request,
+        int $id
+    ) {
+        $user = $this->authorizeAdmin($request);
+
+        if ($user instanceof \Illuminate\Http\JsonResponse) {
+            return $user;
+        }
+
+        $helpRequest = HelpRequest::find($id);
+
+        if (!$helpRequest) {
+            return response()->json([
+                'message' => 'Help request not found.',
+            ], 404);
+        }
+
+        if (!in_array($helpRequest->status, ['verified', 'assigned'])) {
+            return response()->json([
+                'message' => 'Only verified help requests can be assigned.',
+            ], 422);
+        }
+
+        $validated = $request->validate([
+            'organization_id' => [
+                'nullable',
+                'integer',
+                'exists:organizations,id',
+            ],
+
+            'volunteer_ids' => [
+                'nullable',
+                'array',
+                'min:1',
+            ],
+
+            'volunteer_ids.*' => [
+                'integer',
+                'distinct',
+                'exists:users,id',
+            ],
+
+            'assignment_note' => [
+                'nullable',
+                'string',
+                'max:1000',
+            ],
+        ]);
+
+        $organizationId = $validated['organization_id'] ?? null;
+        $volunteerIds = $validated['volunteer_ids'] ?? [];
+
+        /*
+        |--------------------------------------------------------------------------
+        | At least one target required
+        |--------------------------------------------------------------------------
+        */
+
+        if (!$organizationId && empty($volunteerIds)) {
+            return response()->json([
+                'message' => 'Select an organization or at least one volunteer.',
+            ], 422);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Validate Organization
+        |--------------------------------------------------------------------------
+        */
+
+        if ($organizationId) {
+            $organization = Organization::find($organizationId);
+
+            if (
+                !$organization ||
+                $organization->verification_status !== 'verified'
+            ) {
+                return response()->json([
+                    'message' => 'The selected organization is not verified.',
+                ], 422);
+            }
+
+            $organizationAlreadyAssigned =
+                HelpRequestAssignment::where(
+                    'help_request_id',
+                    $helpRequest->id
+                )
+                ->where(
+                    'organization_id',
+                    $organizationId
+                )
+                ->exists();
+
+            if ($organizationAlreadyAssigned) {
+                return response()->json([
+                    'message' => 'This organization is already assigned to the help request.',
+                ], 422);
+            }
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Validate Volunteers
+        |--------------------------------------------------------------------------
+        */
+
+        foreach ($volunteerIds as $volunteerId) {
+
+            $volunteerUser = User::find($volunteerId);
+
+            if (!$volunteerUser) {
+                return response()->json([
+                    'message' => "Volunteer user #{$volunteerId} not found.",
+                ], 422);
+            }
+
+            if ($volunteerUser->role !== 'individual') {
+                return response()->json([
+                    'message' => "User #{$volunteerId} is not an individual user.",
+                ], 422);
+            }
+
+            if ($volunteerUser->status !== 'active') {
+                return response()->json([
+                    'message' => "Volunteer {$volunteerUser->name} is not active.",
+                ], 422);
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Approved Volunteer
+            |--------------------------------------------------------------------------
+            */
+
+            $volunteer = Volunteer::where(
+                'user_id',
+                $volunteerId
+            )
+                ->where('status', 'approved')
+                ->first();
+
+            if (!$volunteer) {
+                return response()->json([
+                    'message' =>
+                    "{$volunteerUser->name} is not an approved SP volunteer.",
+                ], 422);
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Volunteer Availability
+            |--------------------------------------------------------------------------
+            */
+
+            if ($volunteer->availability !== 'available') {
+                return response()->json([
+                    'message' =>
+                    "{$volunteerUser->name} is currently unavailable.",
+                ], 422);
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Existing Active Help Request Assignment
+            |--------------------------------------------------------------------------
+            */
+
+            $hasActiveAssignment =
+                HelpRequestAssignment::where(
+                    'volunteer_id',
+                    $volunteerId
+                )
+                ->whereIn('status', [
+                    'assigned',
+                    'pending',
+                    'accepted',
+                    'in_progress',
+                ])
+                ->exists();
+
+            if ($hasActiveAssignment) {
+                return response()->json([
+                    'message' =>
+                    "{$volunteerUser->name} is currently unavailable.",
+                ], 422);
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Duplicate Assignment
+            |--------------------------------------------------------------------------
+            */
+
+            $alreadyAssigned =
+                HelpRequestAssignment::where(
+                    'help_request_id',
+                    $helpRequest->id
+                )
+                ->where(
+                    'volunteer_id',
+                    $volunteerId
+                )
+                ->exists();
+
+            if ($alreadyAssigned) {
+                return response()->json([
+                    'message' =>
+                    "{$volunteerUser->name} is already assigned to this help request.",
+                ], 422);
+            }
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Create Assignments
+        |--------------------------------------------------------------------------
+        */
+
+        $assignments = DB::transaction(function () use (
+            $helpRequest,
+            $organizationId,
+            $volunteerIds,
+            $validated,
+            $user
+        ) {
+
+            $createdAssignments = collect();
+
+            /*
+            |--------------------------------------------------------------------------
+            | Organization Assignment
+            |--------------------------------------------------------------------------
+            */
+
+            if ($organizationId) {
+                $createdAssignments->push(
+                    HelpRequestAssignment::create([
+                        'help_request_id' => $helpRequest->id,
+                        'organization_id' => $organizationId,
+                        'volunteer_id' => null,
+                        'assigned_by' => $user->id,
+                        'status' => 'assigned',
+                        'assignment_note' =>
+                        $validated['assignment_note'] ?? null,
+                        'assigned_at' => now(),
+                    ])
+                );
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Volunteer Assignments
+            |--------------------------------------------------------------------------
+            */
+
+            foreach ($volunteerIds as $volunteerId) {
+
+                $createdAssignments->push(
+                    HelpRequestAssignment::create([
+                        'help_request_id' => $helpRequest->id,
+                        'organization_id' => null,
+                        'volunteer_id' => $volunteerId,
+                        'assigned_by' => $user->id,
+                        'status' => 'assigned',
+                        'assignment_note' =>
+                        $validated['assignment_note'] ?? null,
+                        'assigned_at' => now(),
+                    ])
+                );
+
+                Volunteer::where(
+                    'user_id',
+                    $volunteerId
+                )->update([
+                    'availability' => 'unavailable',
+                ]);
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Update Help Request Status
+            |--------------------------------------------------------------------------
+            */
+
+            $helpRequest->update([
+                'status' => 'assigned',
+            ]);
+
+            return $createdAssignments;
+        });
+
+        /*
+        |--------------------------------------------------------------------------
+        | Load Relationships
+        |--------------------------------------------------------------------------
+        */
+
+        $assignments = $assignments->map(function ($assignment) {
+
+            return $assignment
+                ->fresh()
+                ->load([
+                    'helpRequest',
+                    'organization',
+                    'volunteer',
+                    'assignedBy',
+                ]);
+        });
+
+        return response()->json([
+            'message' => 'Help request assigned successfully.',
+
+            'assignments' => $assignments,
+        ], 201);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Donations
+    |--------------------------------------------------------------------------
+    */
 
     public function donations(Request $request)
     {
-        $user = $request->user();
+        $user = $this->authorizeAdmin($request);
 
-        if (!$user || $user->role !== 'admin') {
-            return response()->json([
-                'message' => 'Unauthorized.',
-            ], 403);
+        if ($user instanceof \Illuminate\Http\JsonResponse) {
+            return $user;
         }
 
         $donations = Donation::with([
@@ -1129,18 +1449,18 @@ class AdminController extends Controller
         ]);
     }
 
-    // ---------------------------------------------------------
-    // Volunteers
-    // ---------------------------------------------------------
+    /*
+    |--------------------------------------------------------------------------
+    | Volunteers
+    |--------------------------------------------------------------------------
+    */
 
     public function volunteers(Request $request)
     {
-        $user = $request->user();
+        $user = $this->authorizeAdmin($request);
 
-        if (!$user || $user->role !== 'admin') {
-            return response()->json([
-                'message' => 'Unauthorized.',
-            ], 403);
+        if ($user instanceof \Illuminate\Http\JsonResponse) {
+            return $user;
         }
 
         $volunteers = Volunteer::with([
@@ -1155,18 +1475,18 @@ class AdminController extends Controller
         ]);
     }
 
-    // ---------------------------------------------------------
-    // Campaigns
-    // ---------------------------------------------------------
+    /*
+    |--------------------------------------------------------------------------
+    | Campaigns
+    |--------------------------------------------------------------------------
+    */
 
     public function campaigns(Request $request)
     {
-        $user = $request->user();
+        $user = $this->authorizeAdmin($request);
 
-        if (!$user || $user->role !== 'admin') {
-            return response()->json([
-                'message' => 'Unauthorized.',
-            ], 403);
+        if ($user instanceof \Illuminate\Http\JsonResponse) {
+            return $user;
         }
 
         $campaigns = Campaign::with([
@@ -1180,22 +1500,21 @@ class AdminController extends Controller
         ]);
     }
 
-    public function updateCampaignVerification(Request $request, int $id)
-    {
-        $user = $request->user();
+    /*
+    |--------------------------------------------------------------------------
+    | Campaigns - Verify / Reject
+    |--------------------------------------------------------------------------
+    */
 
-        if (!$user || $user->role !== 'admin') {
-            return response()->json([
-                'message' => 'Unauthorized.',
-            ], 403);
+    public function updateCampaignVerification(
+        Request $request,
+        int $id
+    ) {
+        $user = $this->authorizeAdmin($request);
+
+        if ($user instanceof \Illuminate\Http\JsonResponse) {
+            return $user;
         }
-
-        $validated = $request->validate([
-            'status' => [
-                'required',
-                'in:active,rejected',
-            ],
-        ]);
 
         $campaign = Campaign::find($id);
 
@@ -1211,6 +1530,13 @@ class AdminController extends Controller
             ], 422);
         }
 
+        $validated = $request->validate([
+            'status' => [
+                'required',
+                'in:active,rejected',
+            ],
+        ]);
+
         $campaign->update([
             'status' => $validated['status'],
         ]);
@@ -1220,21 +1546,29 @@ class AdminController extends Controller
                 ? 'Campaign approved successfully.'
                 : 'Campaign rejected successfully.',
 
-            'campaign' => $campaign->fresh()->load([
-                'organization:id,name',
-                'creator:id,name,email',
-            ]),
+            'campaign' => $campaign
+                ->fresh()
+                ->load([
+                    'organization:id,name',
+                    'creator:id,name,email',
+                ]),
         ]);
     }
 
-    public function assignCampaignVolunteer(Request $request, int $id)
-    {
-        $user = $request->user();
+    /*
+    |--------------------------------------------------------------------------
+    | Campaigns - Assign Volunteer
+    |--------------------------------------------------------------------------
+    */
 
-        if (!$user || $user->role !== 'admin') {
-            return response()->json([
-                'message' => 'Unauthorized.',
-            ], 403);
+    public function assignCampaignVolunteer(
+        Request $request,
+        int $id
+    ) {
+        $user = $this->authorizeAdmin($request);
+
+        if ($user instanceof \Illuminate\Http\JsonResponse) {
+            return $user;
         }
 
         $validated = $request->validate([
@@ -1260,24 +1594,27 @@ class AdminController extends Controller
         }
 
         /*
-    |--------------------------------------------------------------------------
-    | Campaign must be active
-    |--------------------------------------------------------------------------
-    */
+        |--------------------------------------------------------------------------
+        | Campaign must be active
+        |--------------------------------------------------------------------------
+        */
 
         if ($campaign->status !== 'active') {
             return response()->json([
-                'message' => 'Only active campaigns can have volunteers assigned.',
+                'message' =>
+                'Only active campaigns can have volunteers assigned.',
             ], 422);
         }
 
         /*
-    |--------------------------------------------------------------------------
-    | Validate volunteer user
-    |--------------------------------------------------------------------------
-    */
+        |--------------------------------------------------------------------------
+        | Validate Volunteer User
+        |--------------------------------------------------------------------------
+        */
 
-        $volunteerUser = User::find($validated['volunteer_id']);
+        $volunteerUser = User::find(
+            $validated['volunteer_id']
+        );
 
         if (!$volunteerUser) {
             return response()->json([
@@ -1287,58 +1624,62 @@ class AdminController extends Controller
 
         if ($volunteerUser->role !== 'individual') {
             return response()->json([
-                'message' => 'Only individual users can be assigned as volunteers.',
+                'message' =>
+                'Only individual users can be assigned as volunteers.',
             ], 422);
         }
 
         if ($volunteerUser->status !== 'active') {
             return response()->json([
-                'message' => "Volunteer {$volunteerUser->name} is not active.",
+                'message' =>
+                "Volunteer {$volunteerUser->name} is not active.",
             ], 422);
         }
 
         /*
-    |--------------------------------------------------------------------------
-    | User must be an approved SP volunteer
-    |--------------------------------------------------------------------------
-    */
+        |--------------------------------------------------------------------------
+        | Approved SP Volunteer
+        |--------------------------------------------------------------------------
+        */
 
-        $volunteer = Volunteer::where('user_id', $volunteerUser->id)
+        $volunteer = Volunteer::where(
+            'user_id',
+            $volunteerUser->id
+        )
             ->where('status', 'approved')
             ->first();
 
         if (!$volunteer) {
             return response()->json([
-                'message' => "{$volunteerUser->name} is not an approved SP volunteer.",
+                'message' =>
+                "{$volunteerUser->name} is not an approved SP volunteer.",
             ], 422);
         }
 
         /*
-    |--------------------------------------------------------------------------
-    | Volunteer must currently be available
-    |--------------------------------------------------------------------------
-    */
+        |--------------------------------------------------------------------------
+        | Volunteer Availability
+        |--------------------------------------------------------------------------
+        */
 
         if ($volunteer->availability !== 'available') {
             return response()->json([
-                'message' => "{$volunteerUser->name} is currently unavailable.",
+                'message' =>
+                "{$volunteerUser->name} is currently unavailable.",
             ], 422);
         }
 
         /*
-    |--------------------------------------------------------------------------
-    | Prevent duplicate active campaign assignment
-    |--------------------------------------------------------------------------
-    |
-    | Historical completed/rejected assignments are allowed.
-    |
-    */
+        |--------------------------------------------------------------------------
+        | Prevent Active Campaign Assignment
+        |--------------------------------------------------------------------------
+        */
 
-        $hasActiveAssignment = CampaignVolunteerAssignment::where(
-            'campaign_id',
-            $campaign->id
-        )
-            ->where('volunteer_id', $volunteerUser->id)
+        $hasActiveAssignment =
+            CampaignVolunteerAssignment::where(
+                'volunteer_id',
+                $volunteerUser->id
+            )
             ->whereIn('status', [
                 'assigned',
                 'accepted',
@@ -1348,52 +1689,99 @@ class AdminController extends Controller
 
         if ($hasActiveAssignment) {
             return response()->json([
-                'message' => "{$volunteerUser->name} already has an active assignment for this campaign.",
+                'message' =>
+                "{$volunteerUser->name} is currently unavailable.",
             ], 422);
         }
 
         /*
-    |--------------------------------------------------------------------------
-    | Create assignment
-    |--------------------------------------------------------------------------
-    */
+        |--------------------------------------------------------------------------
+        | Prevent Duplicate Assignment
+        |--------------------------------------------------------------------------
+        */
 
-        $assignment = CampaignVolunteerAssignment::create([
-            'campaign_id' => $campaign->id,
-            'volunteer_id' => $volunteerUser->id,
-            'assigned_by' => $user->id,
-            'status' => 'assigned',
-            'assignment_note' => $validated['assignment_note'] ?? null,
-            'assigned_at' => now(),
-        ]);
+        $duplicateAssignment =
+            CampaignVolunteerAssignment::where(
+                'campaign_id',
+                $campaign->id
+            )
+            ->where(
+                'volunteer_id',
+                $volunteerUser->id
+            )
+            ->whereIn('status', [
+                'assigned',
+                'accepted',
+                'in_progress',
+            ])
+            ->exists();
 
-        Volunteer::where('user_id', $volunteerUser->id)->update([
-            'availability' => 'unavailable',
-        ]);
+        if ($duplicateAssignment) {
+            return response()->json([
+                'message' =>
+                "{$volunteerUser->name} already has an active assignment for this campaign.",
+            ], 422);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Create Assignment
+        |--------------------------------------------------------------------------
+        */
+
+        $assignment = DB::transaction(function () use (
+            $campaign,
+            $volunteerUser,
+            $validated,
+            $user
+        ) {
+
+            $assignment = CampaignVolunteerAssignment::create([
+                'campaign_id' => $campaign->id,
+                'volunteer_id' => $volunteerUser->id,
+                'assigned_by' => $user->id,
+                'status' => 'assigned',
+                'assignment_note' =>
+                $validated['assignment_note'] ?? null,
+                'assigned_at' => now(),
+            ]);
+
+            Volunteer::where(
+                'user_id',
+                $volunteerUser->id
+            )->update([
+                'availability' => 'unavailable',
+            ]);
+
+            return $assignment;
+        });
 
         return response()->json([
-            'message' => 'Volunteer assigned to campaign successfully.',
+            'message' =>
+            'Volunteer assigned to campaign successfully.',
 
-            'assignment' => $assignment->fresh()->load([
-                'campaign:id,title',
-                'volunteer:id,name,email',
-                'assignedBy:id,name,email',
-            ]),
+            'assignment' => $assignment
+                ->fresh()
+                ->load([
+                    'campaign:id,title',
+                    'volunteer:id,name,email',
+                    'assignedBy:id,name,email',
+                ]),
         ], 201);
     }
 
-    // ---------------------------------------------------------
-    // Reports
-    // ---------------------------------------------------------
+    /*
+    |--------------------------------------------------------------------------
+    | Reports
+    |--------------------------------------------------------------------------
+    */
 
     public function reports(Request $request)
     {
-        $user = $request->user();
+        $user = $this->authorizeAdmin($request);
 
-        if (!$user || $user->role !== 'admin') {
-            return response()->json([
-                'message' => 'Unauthorized.',
-            ], 403);
+        if ($user instanceof \Illuminate\Http\JsonResponse) {
+            return $user;
         }
 
         return response()->json([

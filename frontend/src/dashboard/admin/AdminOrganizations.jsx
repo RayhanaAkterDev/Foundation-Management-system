@@ -20,6 +20,15 @@ import OrganizationTable from './organizations/OrganizationTable';
 import OrganizationPagination from './organizations/OrganizationPagination';
 import OrganizationSuccessToast from './organizations/OrganizationSuccessToast';
 
+import {
+    fetchOrganizations,
+    fetchOrganization,
+    createOrganization,
+    updateOrganization,
+    updateOrganizationVerification,
+    deleteOrganization,
+} from './organizations/organizationApi';
+
 const ORGANIZATIONS_PER_PAGE = 25;
 
 const AdminOrganizations = () => {
@@ -105,16 +114,6 @@ const AdminOrganizations = () => {
     };
 
     // --------------------------------
-    // Authentication
-    // --------------------------------
-    const getAuthToken = () => {
-        return (
-            localStorage.getItem('auth_token') ||
-            sessionStorage.getItem('auth_token')
-        );
-    };
-
-    // --------------------------------
     // Load organizations
     // --------------------------------
     const loadOrganizations = async () => {
@@ -122,29 +121,7 @@ const AdminOrganizations = () => {
             setLoading(true);
             setError('');
 
-            const token = getAuthToken();
-
-            if (!token) {
-                throw new Error('Authentication token not found.');
-            }
-
-            const response = await fetch(
-                'http://127.0.0.1:8000/api/admin/organizations',
-                {
-                    headers: {
-                        Accept: 'application/json',
-                        Authorization: `Bearer ${token}`,
-                    },
-                },
-            );
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    data.message || 'Unable to load organizations.',
-                );
-            }
+            const data = await fetchOrganizations();
 
             setOrganizations(data.organizations || []);
         } catch (err) {
@@ -162,29 +139,7 @@ const AdminOrganizations = () => {
 
         const loadInitialOrganizations = async () => {
             try {
-                const token = getAuthToken();
-
-                if (!token) {
-                    throw new Error('Authentication token not found.');
-                }
-
-                const response = await fetch(
-                    'http://127.0.0.1:8000/api/admin/organizations',
-                    {
-                        headers: {
-                            Accept: 'application/json',
-                            Authorization: `Bearer ${token}`,
-                        },
-                    },
-                );
-
-                const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(
-                        data.message || 'Unable to load organizations.',
-                    );
-                }
+                const data = await fetchOrganizations();
 
                 if (!cancelled) {
                     setOrganizations(data.organizations || []);
@@ -220,33 +175,11 @@ const AdminOrganizations = () => {
         setSelectedOrganization(null);
 
         try {
-            const token = getAuthToken();
-
-            if (!token) {
-                throw new Error('Authentication token not found.');
-            }
-
-            const response = await fetch(
-                `http://127.0.0.1:8000/api/admin/organizations/${organizationId}`,
-                {
-                    headers: {
-                        Accept: 'application/json',
-                        Authorization: `Bearer ${token}`,
-                    },
-                },
-            );
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    data.message || 'Unable to load organization.',
-                );
-            }
+            const data = await fetchOrganization(organizationId);
 
             setSelectedOrganization(data.organization);
         } catch (err) {
-            setViewError(err.message);
+            setViewError(err.message || 'Unable to load organization.');
         } finally {
             setViewLoading(false);
         }
@@ -283,35 +216,10 @@ const AdminOrganizations = () => {
         setReviewError('');
 
         try {
-            const token = getAuthToken();
-
-            if (!token) {
-                throw new Error('Authentication token not found.');
-            }
-
-            const response = await fetch(
-                `http://127.0.0.1:8000/api/admin/organizations/${selectedReviewOrganization.id}/verification`,
-                {
-                    method: 'PATCH',
-                    headers: {
-                        Accept: 'application/json',
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${token}`,
-                    },
-                    body: JSON.stringify({
-                        verification_status: status,
-                    }),
-                },
+            await updateOrganizationVerification(
+                selectedReviewOrganization.id,
+                status,
             );
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    data.message ||
-                        'Unable to update verification status.',
-                );
-            }
 
             setSelectedReviewOrganization(null);
 
@@ -326,8 +234,7 @@ const AdminOrganizations = () => {
             );
         } catch (err) {
             setReviewError(
-                err.message ||
-                    'Unable to update verification status.',
+                err.message || 'Unable to update verification status.',
             );
         } finally {
             setReviewLoading(false);
@@ -359,37 +266,7 @@ const AdminOrganizations = () => {
         setAddFieldErrors({});
 
         try {
-            const token = getAuthToken();
-
-            if (!token) {
-                throw new Error('Authentication token not found.');
-            }
-
-            const response = await fetch(
-                'http://127.0.0.1:8000/api/admin/organizations',
-                {
-                    method: 'POST',
-                    headers: {
-                        Accept: 'application/json',
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${token}`,
-                    },
-                    body: JSON.stringify(formData),
-                },
-            );
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                const validationError = new Error(
-                    data.message || 'Unable to create organization.',
-                );
-
-                validationError.status = response.status;
-                validationError.errors = data.errors;
-
-                throw validationError;
-            }
+            await createOrganization(formData);
 
             setShowAddModal(false);
 
@@ -403,7 +280,7 @@ const AdminOrganizations = () => {
                 setAddFieldErrors(err.errors);
             }
 
-            setAddError(err.message);
+            setAddError(err.message || 'Unable to create organization.');
         } finally {
             setAddLoading(false);
         }
@@ -419,33 +296,11 @@ const AdminOrganizations = () => {
         setSelectedEditOrganization(null);
 
         try {
-            const token = getAuthToken();
-
-            if (!token) {
-                throw new Error('Authentication token not found.');
-            }
-
-            const response = await fetch(
-                `http://127.0.0.1:8000/api/admin/organizations/${organizationId}`,
-                {
-                    headers: {
-                        Accept: 'application/json',
-                        Authorization: `Bearer ${token}`,
-                    },
-                },
-            );
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    data.message || 'Unable to load organization.',
-                );
-            }
+            const data = await fetchOrganization(organizationId);
 
             setSelectedEditOrganization(data.organization);
         } catch (err) {
-            setEditError(err.message);
+            setEditError(err.message || 'Unable to load organization.');
         } finally {
             setEditLoading(false);
         }
@@ -471,37 +326,7 @@ const AdminOrganizations = () => {
         setEditFieldErrors({});
 
         try {
-            const token = getAuthToken();
-
-            if (!token) {
-                throw new Error('Authentication token not found.');
-            }
-
-            const response = await fetch(
-                `http://127.0.0.1:8000/api/admin/organizations/${selectedEditOrganization.id}`,
-                {
-                    method: 'PUT',
-                    headers: {
-                        Accept: 'application/json',
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${token}`,
-                    },
-                    body: JSON.stringify(formData),
-                },
-            );
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                const validationError = new Error(
-                    data.message || 'Unable to update organization.',
-                );
-
-                validationError.status = response.status;
-                validationError.errors = data.errors;
-
-                throw validationError;
-            }
+            await updateOrganization(selectedEditOrganization.id, formData);
 
             setSelectedEditOrganization(null);
 
@@ -513,7 +338,7 @@ const AdminOrganizations = () => {
                 setEditFieldErrors(err.errors);
             }
 
-            setEditError(err.message);
+            setEditError(err.message || 'Unable to update organization.');
         } finally {
             setEditLoading(false);
         }
@@ -545,30 +370,7 @@ const AdminOrganizations = () => {
         setDeleteError('');
 
         try {
-            const token = getAuthToken();
-
-            if (!token) {
-                throw new Error('Authentication token not found.');
-            }
-
-            const response = await fetch(
-                `http://127.0.0.1:8000/api/admin/organizations/${selectedDeleteOrganization.id}`,
-                {
-                    method: 'DELETE',
-                    headers: {
-                        Accept: 'application/json',
-                        Authorization: `Bearer ${token}`,
-                    },
-                },
-            );
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    data.message || 'Unable to delete organization.',
-                );
-            }
+            await deleteOrganization(selectedDeleteOrganization.id);
 
             setSelectedDeleteOrganization(null);
 
@@ -576,7 +378,7 @@ const AdminOrganizations = () => {
 
             showSuccessToast('Organization deleted successfully.');
         } catch (err) {
-            setDeleteError(err.message);
+            setDeleteError(err.message || 'Unable to delete organization.');
         } finally {
             setDeleteLoading(false);
         }
@@ -650,8 +452,7 @@ const AdminOrganizations = () => {
 
         if (typeFilter !== 'all') {
             result = result.filter(
-                (organization) =>
-                    organization.organization_type === typeFilter,
+                (organization) => organization.organization_type === typeFilter,
             );
         }
 
@@ -668,9 +469,7 @@ const AdminOrganizations = () => {
             result = result.filter(
                 (organization) =>
                     organization.name?.toLowerCase().includes(search) ||
-                    organization.user?.email
-                        ?.toLowerCase()
-                        .includes(search) ||
+                    organization.user?.email?.toLowerCase().includes(search) ||
                     organization.registration_number
                         ?.toLowerCase()
                         .includes(search),
@@ -724,16 +523,13 @@ const AdminOrganizations = () => {
     // --------------------------------
     const totalPages = Math.max(
         1,
-        Math.ceil(
-            filteredOrganizations.length / ORGANIZATIONS_PER_PAGE,
-        ),
+        Math.ceil(filteredOrganizations.length / ORGANIZATIONS_PER_PAGE),
     );
 
     const safeCurrentPage = Math.min(currentPage, totalPages);
 
     const paginatedOrganizations = useMemo(() => {
-        const startIndex =
-            (safeCurrentPage - 1) * ORGANIZATIONS_PER_PAGE;
+        const startIndex = (safeCurrentPage - 1) * ORGANIZATIONS_PER_PAGE;
 
         return filteredOrganizations.slice(
             startIndex,
@@ -789,38 +585,18 @@ const AdminOrganizations = () => {
 
     const getSortIcon = (key) => {
         if (sortConfig.key !== key) {
-            return (
-                <ChevronsUpDown
-                    size={14}
-                    strokeWidth={1.8}
-                />
-            );
+            return <ChevronsUpDown size={14} strokeWidth={1.8} />;
         }
 
         if (sortConfig.direction === 'asc') {
-            return (
-                <ArrowUp
-                    size={14}
-                    strokeWidth={2}
-                />
-            );
+            return <ArrowUp size={14} strokeWidth={2} />;
         }
 
         if (sortConfig.direction === 'desc') {
-            return (
-                <ArrowDown
-                    size={14}
-                    strokeWidth={2}
-                />
-            );
+            return <ArrowDown size={14} strokeWidth={2} />;
         }
 
-        return (
-            <ChevronsUpDown
-                size={14}
-                strokeWidth={1.8}
-            />
-        );
+        return <ChevronsUpDown size={14} strokeWidth={1.8} />;
     };
 
     // --------------------------------
@@ -840,30 +616,23 @@ const AdminOrganizations = () => {
             'Registered',
         ];
 
-        const csvRows = filteredOrganizations.map(
-            (organization) => [
-                organization.name,
-                organization.organization_type,
-                organization.user?.email,
-                organization.registration_number,
-                organization.verification_status,
-                organization.created_at
-                    ? new Date(
-                          organization.created_at,
-                      ).toLocaleDateString()
-                    : '',
-            ],
-        );
+        const csvRows = filteredOrganizations.map((organization) => [
+            organization.name,
+            organization.organization_type,
+            organization.user?.email,
+            organization.registration_number,
+            organization.verification_status,
+            organization.created_at
+                ? new Date(organization.created_at).toLocaleDateString()
+                : '',
+        ]);
 
         const csvContent = [headers, ...csvRows]
             .map((row) =>
                 row
                     .map(
                         (value) =>
-                            `"${String(value ?? '').replace(
-                                /"/g,
-                                '""',
-                            )}"`,
+                            `"${String(value ?? '').replace(/"/g, '""')}"`,
                     )
                     .join(','),
             )
@@ -877,8 +646,7 @@ const AdminOrganizations = () => {
         const link = document.createElement('a');
 
         link.href = url;
-        link.download =
-            'stand-for-people-organizations.csv';
+        link.download = 'stand-for-people-organizations.csv';
 
         document.body.appendChild(link);
         link.click();
@@ -886,34 +654,24 @@ const AdminOrganizations = () => {
 
         URL.revokeObjectURL(url);
 
-        showSuccessToast(
-            'Organizations exported successfully.',
-        );
+        showSuccessToast('Organizations exported successfully.');
     };
 
     // --------------------------------
     // Table rows
     // --------------------------------
-    const rows = paginatedOrganizations.map(
-        (organization, index) => ({
-            ...organization,
+    const rows = paginatedOrganizations.map((organization, index) => ({
+        ...organization,
 
-            contactEmail:
-                organization.user?.email || '—',
+        contactEmail: organization.user?.email || '—',
 
-            registeredDate: organization.created_at
-                ? new Date(
-                      organization.created_at,
-                  ).toLocaleDateString()
-                : '—',
+        registeredDate: organization.created_at
+            ? new Date(organization.created_at).toLocaleDateString()
+            : '—',
 
-            serialNumber:
-                (safeCurrentPage - 1) *
-                    ORGANIZATIONS_PER_PAGE +
-                index +
-                1,
-        }),
-    );
+        serialNumber:
+            (safeCurrentPage - 1) * ORGANIZATIONS_PER_PAGE + index + 1,
+    }));
 
     // --------------------------------
     // Table columns
@@ -969,9 +727,7 @@ const AdminOrganizations = () => {
                     {row.verification_status === 'pending' && (
                         <button
                             type="button"
-                            onClick={() =>
-                                handleReviewOrganization(row)
-                            }
+                            onClick={() => handleReviewOrganization(row)}
                             className="text-xs font-semibold text-primary transition-colors hover:text-primary-hover"
                         >
                             Review
@@ -980,9 +736,7 @@ const AdminOrganizations = () => {
 
                     <button
                         type="button"
-                        onClick={() =>
-                            handleViewOrganization(row.id)
-                        }
+                        onClick={() => handleViewOrganization(row.id)}
                         className="text-xs font-semibold text-text-secondary transition-colors hover:text-primary"
                     >
                         View
@@ -990,9 +744,7 @@ const AdminOrganizations = () => {
 
                     <button
                         type="button"
-                        onClick={() =>
-                            openEditModal(row.id)
-                        }
+                        onClick={() => openEditModal(row.id)}
                         className="text-xs font-semibold text-text-secondary transition-colors hover:text-primary"
                     >
                         Edit
@@ -1000,9 +752,7 @@ const AdminOrganizations = () => {
 
                     <button
                         type="button"
-                        onClick={() =>
-                            openDeleteModal(row)
-                        }
+                        onClick={() => openDeleteModal(row)}
                         className="text-xs font-semibold text-red-600 transition-colors hover:text-red-700"
                     >
                         Delete
@@ -1032,8 +782,7 @@ const AdminOrganizations = () => {
                         </p>
 
                         <p className="mt-1 text-xs text-text-secondary">
-                            Please wait while we retrieve the
-                            organization list.
+                            Please wait while we retrieve the organization list.
                         </p>
                     </div>
                 </div>
@@ -1071,9 +820,7 @@ const AdminOrganizations = () => {
                             <button
                                 type="button"
                                 onClick={handleExportCSV}
-                                disabled={
-                                    filteredOrganizations.length === 0
-                                }
+                                disabled={filteredOrganizations.length === 0}
                                 className="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-white px-4 text-sm font-medium text-text-primary transition-colors hover:border-primary/30 hover:bg-background-alt disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 <Download size={16} />
@@ -1160,13 +907,9 @@ const AdminOrganizations = () => {
                             typeFilter={typeFilter}
                             statusFilter={statusFilter}
                             organizations={organizations}
-                            onSearchChange={
-                                handleSearchChange
-                            }
+                            onSearchChange={handleSearchChange}
                             onTypeChange={handleTypeChange}
-                            onStatusChange={
-                                handleStatusChange
-                            }
+                            onStatusChange={handleStatusChange}
                         />
                     </div>
 
@@ -1177,9 +920,7 @@ const AdminOrganizations = () => {
                             rows={rows}
                             onSort={handleSort}
                             getSortIcon={getSortIcon}
-                            resultCount={
-                                filteredOrganizations.length
-                            }
+                            resultCount={filteredOrganizations.length}
                         />
                     </div>
 
@@ -1188,12 +929,8 @@ const AdminOrganizations = () => {
                         <OrganizationPagination
                             currentPage={safeCurrentPage}
                             totalPages={totalPages}
-                            totalItems={
-                                filteredOrganizations.length
-                            }
-                            itemsPerPage={
-                                ORGANIZATIONS_PER_PAGE
-                            }
+                            totalItems={filteredOrganizations.length}
+                            itemsPerPage={ORGANIZATIONS_PER_PAGE}
                             onPageChange={setCurrentPage}
                         />
                     )}
@@ -1237,10 +974,7 @@ const AdminOrganizations = () => {
 
             {/* Edit */}
             <OrganizationFormModal
-                key={
-                    selectedEditOrganization?.id ||
-                    'edit-organization'
-                }
+                key={selectedEditOrganization?.id || 'edit-organization'}
                 mode="edit"
                 open={Boolean(selectedEditOrganization)}
                 loading={editLoading}

@@ -17,6 +17,17 @@ export const fetchOrganization = async (organizationId) => {
 };
 
 // --------------------------------
+// Organizations - Create
+// --------------------------------
+
+export const createOrganization = async (formData) => {
+    return apiRequest('/admin/organizations', {
+        method: 'POST',
+        body: JSON.stringify(formData),
+    });
+};
+
+// --------------------------------
 // Organizations - Update
 // --------------------------------
 

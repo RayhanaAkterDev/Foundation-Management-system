@@ -14,6 +14,14 @@ import HelpRequestPagination from './helpRequests/HelpRequestPagination';
 import HelpRequestSuccessToast from './helpRequests/HelpRequestSuccessToast';
 import UserViewModal from './helpRequests/UserViewModal';
 
+import {
+    fetchHelpRequests,
+    updateHelpRequestVerification,
+    assignHelpRequest,
+} from './helpRequests/helpRequestAPI';
+
+import { fetchUser } from './users/userApi';
+
 const HELP_REQUESTS_PER_PAGE = 25;
 
 const AdminHelpRequests = () => {
@@ -95,17 +103,6 @@ const AdminHelpRequests = () => {
     };
 
     // --------------------------------
-    // Authentication
-    // --------------------------------
-
-    const getAuthToken = () => {
-        return (
-            localStorage.getItem('auth_token') ||
-            sessionStorage.getItem('auth_token')
-        );
-    };
-
-    // --------------------------------
     // Load help requests
     // --------------------------------
 
@@ -113,29 +110,7 @@ const AdminHelpRequests = () => {
         try {
             setError('');
 
-            const token = getAuthToken();
-
-            if (!token) {
-                throw new Error('Authentication token not found.');
-            }
-
-            const response = await fetch(
-                'http://127.0.0.1:8000/api/admin/help-requests',
-                {
-                    headers: {
-                        Accept: 'application/json',
-                        Authorization: `Bearer ${token}`,
-                    },
-                },
-            );
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    data.message || 'Unable to load help requests.',
-                );
-            }
+            const data = await fetchHelpRequests();
 
             setHelpRequests(data.helpRequests || []);
         } catch (err) {
@@ -154,33 +129,10 @@ const AdminHelpRequests = () => {
                 setLoading(true);
                 setError('');
 
-                const token = getAuthToken();
-
-                if (!token) {
-                    throw new Error('Authentication token not found.');
-                }
-
-                const response = await fetch(
-                    'http://127.0.0.1:8000/api/admin/help-requests',
-                    {
-                        headers: {
-                            Accept: 'application/json',
-                            Authorization: `Bearer ${token}`,
-                        },
-                    },
-                );
-
-                const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(
-                        data.message || 'Unable to load help requests.',
-                    );
-                }
+                const data = await fetchHelpRequests();
 
                 if (!cancelled) {
                     setHelpRequests(data.helpRequests || []);
-                    setError('');
                 }
             } catch (err) {
                 if (!cancelled) {
@@ -207,9 +159,6 @@ const AdminHelpRequests = () => {
     // View help request
     // --------------------------------
 
-    // --------------------------------
-    // View help request
-    // --------------------------------
     const handleViewRequest = (request) => {
         setViewError('');
         setViewLoading(false);
@@ -237,27 +186,7 @@ const AdminHelpRequests = () => {
         setSelectedUser(null);
 
         try {
-            const token = getAuthToken();
-
-            if (!token) {
-                throw new Error('Authentication token not found.');
-            }
-
-            const response = await fetch(
-                `http://127.0.0.1:8000/api/admin/users/${userId}`,
-                {
-                    headers: {
-                        Accept: 'application/json',
-                        Authorization: `Bearer ${token}`,
-                    },
-                },
-            );
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || 'Unable to load user details.');
-            }
+            const data = await fetchUser(userId);
 
             setSelectedUser(data.user);
         } catch (err) {
@@ -299,34 +228,10 @@ const AdminHelpRequests = () => {
         setReviewError('');
 
         try {
-            const token = getAuthToken();
-
-            if (!token) {
-                throw new Error('Authentication token not found.');
-            }
-
-            const response = await fetch(
-                `http://127.0.0.1:8000/api/admin/help-requests/${selectedReviewRequest.id}/verification`,
-                {
-                    method: 'PATCH',
-                    headers: {
-                        Accept: 'application/json',
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${token}`,
-                    },
-                    body: JSON.stringify({
-                        status,
-                    }),
-                },
+            await updateHelpRequestVerification(
+                selectedReviewRequest.id,
+                status,
             );
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    data.message || 'Unable to update help request status.',
-                );
-            }
 
             setSelectedReviewRequest(null);
 
@@ -373,37 +278,10 @@ const AdminHelpRequests = () => {
         setAssignmentError('');
 
         try {
-            const token = getAuthToken();
-
-            if (!token) {
-                throw new Error('Authentication token not found.');
-            }
-
-            const response = await fetch(
-                `http://127.0.0.1:8000/api/admin/help-requests/${selectedAssignmentRequest.id}/assignment`,
-                {
-                    method: 'POST',
-                    headers: {
-                        Accept: 'application/json',
-                        'Content-Type': 'application/json',
-                        Authorization: `Bearer ${token}`,
-                    },
-                    body: JSON.stringify(assignmentData),
-                },
+            await assignHelpRequest(
+                selectedAssignmentRequest.id,
+                assignmentData,
             );
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                const assignmentErrorResponse = new Error(
-                    data.message || 'Unable to assign help request.',
-                );
-
-                assignmentErrorResponse.status = response.status;
-                assignmentErrorResponse.errors = data.errors;
-
-                throw assignmentErrorResponse;
-            }
 
             setSelectedAssignmentRequest(null);
 
@@ -690,15 +568,10 @@ const AdminHelpRequests = () => {
 
         const csvRows = filteredHelpRequests.map((request) => [
             request.user?.name || request.requester?.name || '',
-
             request.title || '',
-
             request.category || '',
-
             request.priority || request.urgency || '',
-
             request.status || '',
-
             request.created_at
                 ? new Date(request.created_at).toLocaleDateString()
                 : '',

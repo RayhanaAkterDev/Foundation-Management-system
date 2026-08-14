@@ -1,51 +1,11 @@
-const API_BASE_URL = 'http://127.0.0.1:8000/api';
-
-const getToken = () => {
-    return (
-        localStorage.getItem('auth_token') ||
-        sessionStorage.getItem('auth_token')
-    );
-};
-
-const request = async (url, options = {}) => {
-    const token = getToken();
-
-    if (!token) {
-        throw new Error('Authentication token not found.');
-    }
-
-    const response = await fetch(`${API_BASE_URL}${url}`, {
-        ...options,
-        headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-            ...(options.headers || {}),
-        },
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-        const error = new Error(
-            data.message || 'Something went wrong.',
-        );
-
-        error.status = response.status;
-        error.errors = data.errors || {};
-
-        throw error;
-    }
-
-    return data;
-};
+import { apiRequest } from '../../../api/client';
 
 // --------------------------------
 // Help Requests - List
 // --------------------------------
 
 export const fetchHelpRequests = async () => {
-    return request('/admin/help-requests');
+    return apiRequest('/admin/help-requests');
 };
 
 // --------------------------------
@@ -53,7 +13,7 @@ export const fetchHelpRequests = async () => {
 // --------------------------------
 
 export const fetchHelpRequest = async (helpRequestId) => {
-    return request(`/admin/help-requests/${helpRequestId}`);
+    return apiRequest(`/admin/help-requests/${helpRequestId}`);
 };
 
 // --------------------------------
@@ -65,7 +25,7 @@ export const updateHelpRequestVerification = async (
     status,
     verificationNote = null,
 ) => {
-    return request(
+    return apiRequest(
         `/admin/help-requests/${helpRequestId}/verification`,
         {
             method: 'PATCH',
@@ -85,10 +45,10 @@ export const assignHelpRequest = async (
     helpRequestId,
     assignmentData,
 ) => {
-    return request(
+    return apiRequest(
         `/admin/help-requests/${helpRequestId}/assignment`,
         {
-            method: 'POST',
+            method: 'PATCH',
             body: JSON.stringify(assignmentData),
         },
     );

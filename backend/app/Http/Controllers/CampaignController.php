@@ -24,7 +24,7 @@ class CampaignController extends Controller
         ]);
     }
 
-    public function show($id)
+    public function show(int $id)
     {
         $campaign = Campaign::with([
             'organization:id,name',
@@ -60,7 +60,7 @@ class CampaignController extends Controller
         // Organization must be verified.
         $organization = $user->organization;
 
-        if (!$organization || $organization->verification_status !== 'approved') {
+        if (!$organization || $organization->verification_status !== 'verified') {
             return response()->json([
                 'message' => 'Your organization must be verified before creating a campaign.'
             ], 403);

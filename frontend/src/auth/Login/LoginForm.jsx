@@ -1,14 +1,14 @@
-// src/pages/Auth/Login/LoginForm.jsx
-
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Eye, EyeOff, LockKeyhole, Mail } from 'lucide-react';
 import { useState } from 'react';
 
-const LoginForm = () => {
+const LoginForm = ({ loginRole = null }) => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
 
-    const role = searchParams.get('role');
+    // Public login gets its role from the URL.
+    // Admin login can pass the role directly as a prop.
+    const role = loginRole || searchParams.get('role');
 
     const [showPassword, setShowPassword] = useState(false);
 
@@ -53,7 +53,7 @@ const LoginForm = () => {
             storage.setItem('auth_token', data.token);
             storage.setItem('user', JSON.stringify(data.user));
 
-            // Redirect based on account role
+            // Redirect based on authenticated account role
             if (data.user.role === 'individual') {
                 navigate('/dashboard/individual');
             } else if (data.user.role === 'organization') {

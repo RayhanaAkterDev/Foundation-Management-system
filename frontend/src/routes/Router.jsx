@@ -28,6 +28,7 @@ import AuthLayout from '@/layouts/AuthLayout/AuthLayout';
 import AccountSelection from '@/auth/AccountSelection/AccountSelection';
 import Login from '@/auth/Login/Login';
 import Register from '@/auth/Register/Register';
+import AdminLogin from '@/auth/AdminLogin/AdminLogin';
 // import ForgotPassword from '@/auth/ForgotPassword/ForgotPassword';
 // import VerifyEmail from '@/auth/VerifyEmail/VerifyEmail';
 
@@ -100,6 +101,14 @@ const router = createBrowserRouter([
             // { path: 'forgot-password', element: <ForgotPassword /> },
             // { path: 'verify-email', element: <VerifyEmail /> },
         ],
+    },
+
+    // =========================
+    // ADMIN AUTHENTICATION
+    // =========================
+    {
+        path: '/admin/login',
+        element: <AdminLogin />,
     },
 
     // =========================

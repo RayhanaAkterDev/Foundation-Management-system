@@ -261,7 +261,10 @@ class AdminController extends Controller
             ], 403);
         }
 
-        $targetUser = User::find($id);
+        $targetUser = User::with([
+            'individualProfile',
+            'organization',
+        ])->find($id);
 
         if (!$targetUser) {
             return response()->json([
@@ -270,16 +273,7 @@ class AdminController extends Controller
         }
 
         return response()->json([
-            'user' => $targetUser->only([
-                'id',
-                'name',
-                'email',
-                'role',
-                'status',
-                'email_verified_at',
-                'created_at',
-                'updated_at',
-            ]),
+            'user' => $targetUser,
         ]);
     }
 

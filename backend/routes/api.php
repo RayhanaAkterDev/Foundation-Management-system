@@ -21,6 +21,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
 Route::middleware('auth:sanctum')->group(function () {
 
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/user', [AuthController::class, 'user']);
+
     // Help Requests - Individual/Public authenticated users
     Route::post('/help-requests', [HelpRequestController::class, 'store']);
     Route::get('/help-requests/{id}', [HelpRequestController::class, 'show']);

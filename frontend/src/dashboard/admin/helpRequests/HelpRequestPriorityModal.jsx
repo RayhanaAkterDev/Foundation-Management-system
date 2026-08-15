@@ -1,26 +1,73 @@
 import React, { useState } from 'react';
-import { X } from 'lucide-react';
+import {
+    X,
+    Check,
+    AlertOctagon,
+    ArrowUp,
+    Minus,
+    ArrowDown,
+} from 'lucide-react';
 
 const PRIORITIES = [
     {
         value: 'critical',
         label: 'Critical',
         description: 'Requires immediate attention and urgent coordination.',
+        icon: AlertOctagon,
+        color: {
+            soft: 'bg-red-50',
+            icon: 'bg-red-100 text-red-600',
+            selectedIcon: 'bg-red-600 text-white',
+            border: 'border-red-300',
+            ring: 'ring-red-100',
+            accent: 'bg-red-500',
+            text: 'text-red-600',
+        },
     },
     {
         value: 'high',
         label: 'High',
         description: 'Should be handled as soon as possible.',
+        icon: ArrowUp,
+        color: {
+            soft: 'bg-orange-50',
+            icon: 'bg-orange-100 text-orange-600',
+            selectedIcon: 'bg-orange-500 text-white',
+            border: 'border-orange-300',
+            ring: 'ring-orange-100',
+            accent: 'bg-orange-500',
+            text: 'text-orange-600',
+        },
     },
     {
         value: 'normal',
         label: 'Normal',
         description: 'Can be handled through the normal assistance workflow.',
+        icon: Minus,
+        color: {
+            soft: 'bg-teal-50',
+            icon: 'bg-teal-100 text-teal-600',
+            selectedIcon: 'bg-primary text-white',
+            border: 'border-teal-300',
+            ring: 'ring-teal-100',
+            accent: 'bg-primary',
+            text: 'text-primary',
+        },
     },
     {
         value: 'low',
         label: 'Low',
         description: 'Can be handled after higher-priority requests.',
+        icon: ArrowDown,
+        color: {
+            soft: 'bg-slate-50',
+            icon: 'bg-slate-100 text-slate-500',
+            selectedIcon: 'bg-slate-600 text-white',
+            border: 'border-slate-300',
+            ring: 'ring-slate-100',
+            accent: 'bg-slate-500',
+            text: 'text-slate-600',
+        },
     },
 ];
 
@@ -50,117 +97,183 @@ const HelpRequestPriorityModal = ({
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-            <div className="w-full max-w-lg rounded-2xl bg-white shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-[5px] sm:p-6">
+            <div
+                className="absolute inset-0"
+                onClick={!loading ? onClose : undefined}
+            />
+
+            <div className="relative z-10 flex max-h-[92vh] w-full max-w-[540px] flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_30px_100px_rgba(15,23,42,0.24)]">
                 {/* Header */}
-                <div className="flex items-start justify-between border-b border-border px-6 py-5">
-                    <div>
-                        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
-                            Help Request
-                        </p>
-
-                        <h2 className="mt-1 text-lg font-bold text-text-primary">
-                            Set Priority
-                        </h2>
-
-                        <p className="mt-1 text-sm text-text-secondary">
-                            Set the priority level for this verified help
-                            request.
-                        </p>
-                    </div>
+                <div className="relative shrink-0 px-6 pb-6 pt-6 sm:px-7 sm:pt-7">
+                    <div className="absolute inset-x-0 top-0 h-1 bg-primary" />
 
                     <button
                         type="button"
                         onClick={onClose}
                         disabled={loading}
-                        className="rounded-lg p-2 text-text-secondary transition-colors hover:bg-background-alt hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
+                        className="absolute right-5 top-5 flex h-9 w-9 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
                         aria-label="Close"
                     >
                         <X size={18} />
                     </button>
+
+                    <div className="pr-10">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
+                            Help Request
+                        </p>
+
+                        <h2 className="mt-1.5 text-xl font-bold tracking-tight text-slate-900">
+                            Set priority
+                        </h2>
+
+                        <p className="mt-1.5 max-w-md text-xs leading-5 text-slate-500">
+                            Choose how urgently this request should be handled
+                            within the assistance workflow.
+                        </p>
+                    </div>
+                </div>
+
+                {/* Request */}
+                <div className="mx-6 border-y border-slate-100 py-5 sm:mx-7">
+                    <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-400">
+                        Request being updated
+                    </p>
+
+                    <p className="mt-1.5 truncate text-sm font-semibold text-slate-900">
+                        {request.title || 'Untitled request'}
+                    </p>
                 </div>
 
                 {/* Body */}
-                <form onSubmit={handleSubmit}>
-                    <div className="space-y-5 px-6 py-6">
-                        {/* Request information */}
-                        <div className="rounded-lg bg-background-alt px-4 py-3">
-                            <p className="text-xs font-semibold text-text-secondary">
-                                Request
+                <form
+                    onSubmit={handleSubmit}
+                    className="min-h-0 flex-1 overflow-y-auto"
+                >
+                    <div className="bg-[#f4f8f8] px-5 py-6 sm:px-7">
+                        <div className="mb-4">
+                            <p className="text-xs font-bold text-slate-900">
+                                Choose priority
                             </p>
 
-                            <p className="mt-1 text-sm font-semibold text-text-primary">
-                                {request.title || 'Untitled request'}
+                            <p className="mt-1 text-xs text-slate-400">
+                                Select the level that best reflects the urgency
+                                of this request.
                             </p>
                         </div>
 
-                        {/* Priority options */}
-                        <div>
-                            <p className="mb-3 text-sm font-semibold text-text-primary">
-                                Select priority
-                            </p>
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                            {PRIORITIES.map((item) => {
+                                const selected = priority === item.value;
+                                const Icon = item.icon;
 
-                            <div className="space-y-2">
-                                {PRIORITIES.map((item) => {
-                                    const selected = priority === item.value;
+                                return (
+                                    <label
+                                        key={item.value}
+                                        className={`relative flex cursor-pointer flex-col overflow-hidden rounded-2xl border bg-white p-4 transition-all duration-200 ${
+                                            selected
+                                                ? `${item.color.border} ring-2 ${item.color.ring}`
+                                                : 'border-slate-200 hover:border-slate-300'
+                                        } ${
+                                            loading
+                                                ? 'cursor-not-allowed opacity-60'
+                                                : ''
+                                        }`}
+                                    >
+                                        <input
+                                            type="radio"
+                                            name="priority"
+                                            value={item.value}
+                                            checked={selected}
+                                            onChange={(event) =>
+                                                setPriority(event.target.value)
+                                            }
+                                            disabled={loading}
+                                            className="sr-only"
+                                        />
 
-                                    return (
-                                        <label
-                                            key={item.value}
-                                            className={`flex cursor-pointer items-start gap-3 rounded-xl border px-4 py-3 transition-colors ${
-                                                selected
-                                                    ? 'border-primary bg-primary/5'
-                                                    : 'border-border hover:bg-background-alt'
-                                            } ${
-                                                loading
-                                                    ? 'cursor-not-allowed opacity-70'
-                                                    : ''
-                                            }`}
-                                        >
-                                            <input
-                                                type="radio"
-                                                name="priority"
-                                                value={item.value}
-                                                checked={selected}
-                                                onChange={(event) =>
-                                                    setPriority(
-                                                        event.target.value,
-                                                    )
-                                                }
-                                                disabled={loading}
-                                                className="mt-1 accent-primary"
-                                            />
+                                        {/* Top */}
+                                        <div className="flex items-center justify-between">
+                                            <span
+                                                className={`flex h-10 w-10 items-center justify-center rounded-xl transition-all ${
+                                                    selected
+                                                        ? item.color
+                                                              .selectedIcon
+                                                        : item.color.icon
+                                                }`}
+                                            >
+                                                <Icon
+                                                    size={18}
+                                                    strokeWidth={2}
+                                                />
+                                            </span>
 
-                                            <span>
-                                                <span className="block text-sm font-semibold text-text-primary">
+                                            <span
+                                                className={`flex h-5 w-5 items-center justify-center rounded-full border transition-all ${
+                                                    selected
+                                                        ? `${item.color.border} ${item.color.selectedIcon}`
+                                                        : 'border-slate-300 bg-white'
+                                                }`}
+                                            >
+                                                {selected && (
+                                                    <Check
+                                                        size={12}
+                                                        strokeWidth={3}
+                                                        className="text-white"
+                                                    />
+                                                )}
+                                            </span>
+                                        </div>
+
+                                        {/* Text */}
+                                        <div className="mt-4">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-sm font-bold text-slate-900">
                                                     {item.label}
                                                 </span>
 
-                                                <span className="mt-0.5 block text-xs leading-5 text-text-secondary">
-                                                    {item.description}
-                                                </span>
+                                                <span
+                                                    className={`h-1.5 w-1.5 rounded-full ${item.color.accent}`}
+                                                />
+                                            </div>
+
+                                            <span className="mt-1.5 block text-[11px] leading-5 text-slate-500">
+                                                {item.description}
                                             </span>
-                                        </label>
-                                    );
-                                })}
-                            </div>
+                                        </div>
+
+                                        {/* Selected accent */}
+                                        <span
+                                            className={`absolute bottom-0 left-0 right-0 h-[3px] transition-opacity ${
+                                                item.color.accent
+                                            } ${
+                                                selected
+                                                    ? 'opacity-100'
+                                                    : 'opacity-0'
+                                            }`}
+                                        />
+                                    </label>
+                                );
+                            })}
                         </div>
 
                         {/* Error */}
                         {error && (
-                            <div className="border-l-4 border-red-500 bg-red-50 px-4 py-3 text-sm text-red-600">
-                                {error}
+                            <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+                                <p className="text-xs font-semibold leading-5 text-red-600">
+                                    {error}
+                                </p>
                             </div>
                         )}
                     </div>
 
                     {/* Footer */}
-                    <div className="flex justify-end gap-3 border-t border-border px-6 py-4">
+                    <div className="flex items-center justify-end gap-3 border-t border-slate-100 bg-white px-6 py-4 sm:px-7">
                         <button
                             type="button"
                             onClick={onClose}
                             disabled={loading}
-                            className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-text-secondary transition-colors hover:bg-background-alt disabled:cursor-not-allowed disabled:opacity-50"
+                            className="inline-flex h-10 items-center rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition-all hover:bg-slate-50 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             Cancel
                         </button>
@@ -168,7 +281,7 @@ const HelpRequestPriorityModal = ({
                         <button
                             type="submit"
                             disabled={loading || !priority}
-                            className="rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+                            className="inline-flex h-10 min-w-[108px] items-center justify-center rounded-xl bg-primary px-5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             {loading ? 'Saving...' : 'Set Priority'}
                         </button>

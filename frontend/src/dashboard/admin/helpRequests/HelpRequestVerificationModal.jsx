@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
     X,
     CircleCheck,
     CircleX,
-    Clock3,
     LoaderCircle,
+    ShieldCheck,
 } from 'lucide-react';
+
+import StatusBadge from '@/components/dashboard/StatusBadge';
 
 const HelpRequestVerificationModal = ({
     request,
@@ -14,6 +16,8 @@ const HelpRequestVerificationModal = ({
     onClose,
     onConfirm,
 }) => {
+    const [selectedStatus, setSelectedStatus] = useState(null);
+
     if (!request) {
         return null;
     }
@@ -25,9 +29,13 @@ const HelpRequestVerificationModal = ({
             description:
                 'Approve this request so it can move forward for assistance coordination.',
             icon: CircleCheck,
-            className:
-                'border-primary/20 bg-primary/5 hover:border-primary/40 hover:bg-primary/10',
-            iconClass: 'bg-primary/10 text-primary',
+            wrapper:
+                'border-emerald-200 bg-emerald-50/40 hover:border-emerald-300 hover:bg-emerald-50/70',
+            selectedWrapper:
+                'border-emerald-400 bg-emerald-50 ring-2 ring-emerald-100',
+            iconClass: 'bg-emerald-100 text-emerald-600',
+            selectedIconClass: 'bg-emerald-600 text-white',
+            accent: 'bg-emerald-500',
         },
         {
             status: 'rejected',
@@ -35,181 +43,214 @@ const HelpRequestVerificationModal = ({
             description:
                 'Reject this request if the submitted information does not meet platform requirements.',
             icon: CircleX,
-            className:
-                'border-red-200 bg-red-50/60 hover:border-red-300 hover:bg-red-50',
+            wrapper:
+                'border-red-200 bg-red-50/40 hover:border-red-300 hover:bg-red-50/70',
+            selectedWrapper: 'border-red-400 bg-red-50 ring-2 ring-red-100',
             iconClass: 'bg-red-100 text-red-600',
-        },
-        {
-            status: 'pending',
-            label: 'Keep pending',
-            description:
-                'Leave the request pending for further review or additional information.',
-            icon: Clock3,
-            className:
-                'border-amber-200 bg-amber-50/60 hover:border-amber-300 hover:bg-amber-50',
-            iconClass: 'bg-amber-100 text-amber-600',
+            selectedIconClass: 'bg-red-600 text-white',
+            accent: 'bg-red-500',
         },
     ];
 
+    const handleConfirm = (status) => {
+        if (loading) {
+            return;
+        }
+
+        setSelectedStatus(status);
+        onConfirm(status);
+    };
+
+    const handleClose = () => {
+        if (loading) {
+            return;
+        }
+
+        setSelectedStatus(null);
+        onClose();
+    };
+
+    const currentVerificationStatus =
+        request.verification_status || request.status;
+
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4">
-            <div className="w-full max-w-lg overflow-hidden rounded-xl bg-white shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-[5px] sm:p-6">
+            <div
+                className="absolute inset-0"
+                onClick={!loading ? handleClose : undefined}
+            />
+
+            <div className="relative z-10 w-full max-w-[540px] overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_30px_100px_rgba(15,23,42,0.24)]">
                 {/* Header */}
-                <div className="flex items-start justify-between border-b border-border px-6 py-5">
-                    <div>
-                        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
-                            Administration
-                        </p>
-
-                        <h2 className="mt-1 text-lg font-bold tracking-tight text-text-primary">
-                            Review help request
-                        </h2>
-
-                        <p className="mt-1 text-xs text-text-secondary">
-                            Review the request and select an appropriate
-                            verification status.
-                        </p>
-                    </div>
+                <div className="relative px-6 pb-6 pt-6 sm:px-7 sm:pt-7">
+                    <div className="absolute inset-x-0 top-0 h-1 bg-primary" />
 
                     <button
                         type="button"
-                        onClick={onClose}
+                        onClick={handleClose}
                         disabled={loading}
-                        className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-background-alt hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
+                        className="absolute right-5 top-5 flex h-9 w-9 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+                        aria-label="Close"
                     >
                         <X size={18} />
                     </button>
-                </div>
 
-                {/* Request summary */}
-                <div className="border-b border-border px-6 py-5">
-                    <div className="rounded-lg border border-border bg-surface-soft p-4">
-                        <div className="flex items-start justify-between gap-4">
-                            <div className="min-w-0">
-                                <p className="text-sm font-bold text-text-primary">
-                                    {request.title || 'Untitled request'}
-                                </p>
-
-                                <p className="mt-1 text-xs text-text-secondary">
-                                    {request.requester?.name ||
-                                        request.user?.name ||
-                                        request.requester?.email ||
-                                        request.user?.email ||
-                                        'Requester information unavailable'}
-                                </p>
-                            </div>
-
-                            <span className="shrink-0 rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-semibold capitalize text-amber-700">
-                                {request.verification_status ||
-                                    request.status ||
-                                    'pending'}
-                            </span>
+                    <div className="flex items-start gap-4 pr-10">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                            <ShieldCheck size={21} strokeWidth={1.8} />
                         </div>
 
-                        <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-3 border-t border-border pt-4">
-                            <div>
-                                <p className="text-[10px] font-bold uppercase tracking-wider text-text-secondary">
-                                    Category
-                                </p>
+                        <div>
+                            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
+                                Verification review
+                            </p>
 
-                                <p className="mt-1 text-xs font-semibold capitalize text-text-primary">
-                                    {request.category || '—'}
-                                </p>
-                            </div>
+                            <h2 className="mt-1.5 text-xl font-bold tracking-tight text-slate-900">
+                                Review this request
+                            </h2>
 
-                            <div>
-                                <p className="text-[10px] font-bold uppercase tracking-wider text-text-secondary">
-                                    Priority
-                                </p>
-
-                                <p className="mt-1 text-xs font-semibold capitalize text-text-primary">
-                                    {request.urgency || '—'}
-                                </p>
-                            </div>
-
-                            <div>
-                                <p className="text-[10px] font-bold uppercase tracking-wider text-text-secondary">
-                                    Location
-                                </p>
-
-                                <p className="mt-1 text-xs font-semibold text-text-primary">
-                                    {request.location || '—'}
-                                </p>
-                            </div>
-
-                            <div>
-                                <p className="text-[10px] font-bold uppercase tracking-wider text-text-secondary">
-                                    People affected
-                                </p>
-
-                                <p className="mt-1 text-xs font-semibold text-text-primary">
-                                    {request.people_affected ?? '—'}
-                                </p>
-                            </div>
+                            <p className="mt-1.5 text-xs leading-5 text-slate-500">
+                                Confirm whether the submitted request meets the
+                                requirements for assistance.
+                            </p>
                         </div>
                     </div>
                 </div>
 
-                {/* Error */}
-                {error && (
-                    <div className="mx-6 mt-5 border-l-4 border-red-500 bg-red-50 px-4 py-3 text-sm text-red-600">
-                        {error}
+                {/* Request */}
+                <div className="mx-6 border-y border-slate-100 py-5 sm:mx-7">
+                    <div className="flex items-end justify-between gap-4">
+                        <div className="min-w-0">
+                            <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-400">
+                                Request being reviewed
+                            </p>
+
+                            <h3 className="mt-1.5 truncate text-base font-semibold leading-6 text-slate-900">
+                                {request.title || 'Untitled request'}
+                            </h3>
+                        </div>
+
+                        {currentVerificationStatus && (
+                            <div className="shrink-0">
+                                <StatusBadge
+                                    status={currentVerificationStatus}
+                                />
+                            </div>
+                        )}
                     </div>
-                )}
+                </div>
 
-                {/* Verification options */}
-                <div className="space-y-2.5 px-6 py-5">
-                    <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
-                        Verification decision
-                    </p>
+                {/* Decision */}
+                <div className="px-6 py-6 sm:px-7 sm:py-7">
+                    <div className="mb-4">
+                        <p className="text-xs font-bold text-slate-900">
+                            What would you like to do?
+                        </p>
 
-                    {options.map((option) => {
-                        const Icon = option.icon;
+                        <p className="mt-1 text-xs text-slate-400">
+                            Select an option below to apply the decision.
+                        </p>
+                    </div>
 
-                        return (
-                            <button
-                                key={option.status}
-                                type="button"
-                                disabled={loading}
-                                onClick={() =>
-                                    onConfirm(option.status)
-                                }
-                                className={`flex w-full items-start gap-3 rounded-lg border p-3.5 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${option.className}`}
-                            >
-                                <span
-                                    className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${option.iconClass}`}
+                    {error && (
+                        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+                            <p className="text-xs font-semibold text-red-700">
+                                Verification failed
+                            </p>
+
+                            <p className="mt-1 text-xs leading-5 text-red-600">
+                                {error}
+                            </p>
+                        </div>
+                    )}
+
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        {options.map((option) => {
+                            const Icon = option.icon;
+
+                            const isSelected = selectedStatus === option.status;
+
+                            const isSubmitting = loading && isSelected;
+
+                            return (
+                                <button
+                                    key={option.status}
+                                    type="button"
+                                    disabled={loading}
+                                    onClick={() => handleConfirm(option.status)}
+                                    className={`relative overflow-hidden rounded-2xl border p-5 text-left transition-all duration-200 disabled:cursor-not-allowed ${
+                                        isSelected
+                                            ? option.selectedWrapper
+                                            : option.wrapper
+                                    } ${
+                                        loading && !isSelected
+                                            ? 'opacity-40'
+                                            : ''
+                                    }`}
                                 >
-                                    <Icon size={17} />
-                                </span>
+                                    <div className="flex items-center justify-between">
+                                        <span
+                                            className={`flex h-10 w-10 items-center justify-center rounded-xl ${
+                                                isSelected
+                                                    ? option.selectedIconClass
+                                                    : option.iconClass
+                                            }`}
+                                        >
+                                            {isSubmitting ? (
+                                                <LoaderCircle
+                                                    size={19}
+                                                    className="animate-spin"
+                                                />
+                                            ) : (
+                                                <Icon
+                                                    size={19}
+                                                    strokeWidth={1.9}
+                                                />
+                                            )}
+                                        </span>
 
-                                <span className="min-w-0 flex-1">
-                                    <span className="flex items-center gap-2 text-sm font-semibold text-text-primary">
+                                        <span
+                                            className={`h-5 w-5 rounded-full border-2 ${
+                                                isSelected
+                                                    ? option.status ===
+                                                      'verified'
+                                                        ? 'border-emerald-500 bg-emerald-500'
+                                                        : 'border-red-500 bg-red-500'
+                                                    : 'border-slate-300 bg-white'
+                                            }`}
+                                        >
+                                            {isSelected && (
+                                                <span className="mx-auto mt-[5px] block h-1.5 w-1.5 rounded-full bg-white" />
+                                            )}
+                                        </span>
+                                    </div>
+
+                                    <p className="mt-5 text-sm font-bold text-slate-900">
                                         {option.label}
+                                    </p>
 
-                                        {loading && (
-                                            <LoaderCircle
-                                                size={14}
-                                                className="animate-spin text-text-secondary"
-                                            />
-                                        )}
-                                    </span>
-
-                                    <span className="mt-0.5 block text-xs leading-5 text-text-secondary">
+                                    <p className="mt-1.5 text-[11px] leading-5 text-slate-500">
                                         {option.description}
-                                    </span>
-                                </span>
-                            </button>
-                        );
-                    })}
+                                    </p>
+
+                                    {isSubmitting && (
+                                        <p className="mt-3 text-[10px] font-semibold text-slate-400">
+                                            Processing...
+                                        </p>
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </div>
                 </div>
 
                 {/* Footer */}
-                <div className="flex items-center justify-end border-t border-border bg-surface-soft px-6 py-4">
+                <div className="flex items-center justify-end border-t border-slate-100 bg-slate-50/70 px-6 py-4 sm:px-7">
                     <button
                         type="button"
-                        onClick={onClose}
+                        onClick={handleClose}
                         disabled={loading}
-                        className="inline-flex h-10 items-center rounded-lg border border-border bg-white px-4 text-sm font-medium text-text-primary transition-colors hover:bg-background-alt disabled:cursor-not-allowed disabled:opacity-50"
+                        className="inline-flex h-10 items-center rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-50 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         Cancel
                     </button>

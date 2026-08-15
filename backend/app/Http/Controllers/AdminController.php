@@ -1075,6 +1075,11 @@ class AdminController extends Controller
                 'in:verified,rejected',
             ],
 
+            'urgency' => [
+                'required',
+                'in:low,normal,high,critical',
+            ],
+
             'verification_note' => [
                 'nullable',
                 'string',
@@ -1084,6 +1089,8 @@ class AdminController extends Controller
 
         $helpRequest->update([
             'status' => $validated['status'],
+
+            'urgency' => $validated['urgency'],
 
             'verification_note' =>
             $validated['verification_note'] ?? null,

@@ -1075,11 +1075,6 @@ class AdminController extends Controller
                 'in:verified,rejected',
             ],
 
-            'urgency' => [
-                'required',
-                'in:low,normal,high,critical',
-            ],
-
             'verification_note' => [
                 'nullable',
                 'string',
@@ -1090,8 +1085,6 @@ class AdminController extends Controller
         $helpRequest->update([
             'status' => $validated['status'],
 
-            'urgency' => $validated['urgency'],
-
             'verification_note' =>
             $validated['verification_note'] ?? null,
         ]);
@@ -1100,6 +1093,62 @@ class AdminController extends Controller
             'message' => $validated['status'] === 'verified'
                 ? 'Help request verified successfully.'
                 : 'Help request rejected successfully.',
+
+            'help_request' => $helpRequest
+                ->fresh()
+                ->load('user'),
+        ]);
+    }
+
+    /*
+|--------------------------------------------------------------------------
+| Help Requests - Set Priority
+|--------------------------------------------------------------------------
+*/
+
+    public function updateHelpRequestUrgency(
+        Request $request,
+        int $id
+    ) {
+        $user = $this->authorizeAdmin($request);
+
+        if ($user instanceof \Illuminate\Http\JsonResponse) {
+            return $user;
+        }
+
+        $helpRequest = HelpRequest::find($id);
+
+        if (!$helpRequest) {
+            return response()->json([
+                'message' => 'Help request not found.',
+            ], 404);
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Priority can only be set after verification
+    |--------------------------------------------------------------------------
+    */
+
+        if ($helpRequest->status !== 'verified') {
+            return response()->json([
+                'message' => 'Only verified help requests can have their priority set.',
+            ], 422);
+        }
+
+        $validated = $request->validate([
+            'urgency' => [
+                'required',
+                'in:low,normal,high,critical',
+            ],
+        ]);
+
+        $helpRequest->update([
+            'urgency' => $validated['urgency'],
+        ]);
+
+        return response()->json([
+            'message' => 'Help request priority updated successfully.',
 
             'help_request' => $helpRequest
                 ->fresh()
@@ -1147,7 +1196,6 @@ class AdminController extends Controller
             'volunteer_ids' => [
                 'nullable',
                 'array',
-                'min:1',
             ],
 
             'volunteer_ids.*' => [

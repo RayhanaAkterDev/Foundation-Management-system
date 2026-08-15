@@ -1,4 +1,4 @@
-import { apiRequest } from '../../../api/client';
+import { apiRequest } from '@/api/client';
 
 // --------------------------------
 // Help Requests - List
@@ -38,6 +38,25 @@ export const updateHelpRequestVerification = async (
 };
 
 // --------------------------------
+// Help Requests - Urgency
+// --------------------------------
+
+export const updateHelpRequestUrgency = async (
+    helpRequestId,
+    urgency,
+) => {
+    return apiRequest(
+        `/admin/help-requests/${helpRequestId}/urgency`,
+        {
+            method: 'PATCH',
+            body: JSON.stringify({
+                urgency,
+            }),
+        },
+    );
+};
+
+// --------------------------------
 // Help Requests - Assignment
 // --------------------------------
 
@@ -52,4 +71,20 @@ export const assignHelpRequest = async (
             body: JSON.stringify(assignmentData),
         },
     );
+};
+
+// --------------------------------
+// Organizations - Admin List
+// --------------------------------
+
+export const fetchOrganizations = async () => {
+    return apiRequest('/admin/organizations');
+};
+
+// --------------------------------
+// Volunteers - Admin List
+// --------------------------------
+
+export const fetchVolunteers = async () => {
+    return apiRequest('/admin/volunteers');
 };

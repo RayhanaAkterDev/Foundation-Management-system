@@ -175,6 +175,11 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     );
 
     Route::patch(
+        '/help-requests/{id}/urgency',
+        [AdminController::class, 'updateHelpRequestUrgency']
+    );
+
+    Route::patch(
         '/help-requests/{id}/assignment',
         [AdminController::class, 'assignHelpRequest']
     );

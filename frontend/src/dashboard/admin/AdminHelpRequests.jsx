@@ -5,6 +5,7 @@ import PageHeader from '@/components/dashboard/PageHeader';
 
 import HelpRequestViewModal from './helpRequests/HelpRequestViewModal';
 import HelpRequestVerificationModal from './helpRequests/HelpRequestVerificationModal';
+import HelpRequestPriorityModal from './helpRequests/HelpRequestPriorityModal';
 import HelpRequestAssignmentModal from './helpRequests/HelpRequestAssignmentModal';
 import HelpRequestStats from './helpRequests/HelpRequestStats';
 import HelpRequestCategoryTabs from './helpRequests/HelpRequestCategoryTabs';
@@ -17,7 +18,10 @@ import UserViewModal from './helpRequests/UserViewModal';
 import {
     fetchHelpRequests,
     updateHelpRequestVerification,
+    updateHelpRequestUrgency,
     assignHelpRequest,
+    fetchOrganizations,
+    fetchVolunteers,
 } from './helpRequests/helpRequestAPI';
 
 import { fetchUser } from './users/userApi';
@@ -28,6 +32,9 @@ const AdminHelpRequests = () => {
     const [helpRequests, setHelpRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+
+    const [organizations, setOrganizations] = useState([]);
+    const [volunteers, setVolunteers] = useState([]);
 
     // --------------------------------
     // Filters / Search / Sorting
@@ -67,8 +74,19 @@ const AdminHelpRequests = () => {
     // --------------------------------
 
     const [selectedReviewRequest, setSelectedReviewRequest] = useState(null);
+
     const [reviewLoading, setReviewLoading] = useState(false);
     const [reviewError, setReviewError] = useState('');
+
+    // --------------------------------
+    // Priority
+    // --------------------------------
+
+    const [selectedPriorityRequest, setSelectedPriorityRequest] =
+        useState(null);
+
+    const [priorityLoading, setPriorityLoading] = useState(false);
+    const [priorityError, setPriorityError] = useState('');
 
     // --------------------------------
     // Assignment
@@ -76,6 +94,7 @@ const AdminHelpRequests = () => {
 
     const [selectedAssignmentRequest, setSelectedAssignmentRequest] =
         useState(null);
+
     const [assignmentLoading, setAssignmentLoading] = useState(false);
     const [assignmentError, setAssignmentError] = useState('');
 
@@ -124,21 +143,38 @@ const AdminHelpRequests = () => {
     useEffect(() => {
         let cancelled = false;
 
-        const loadRequests = async () => {
+        const loadAdminData = async () => {
             try {
                 setLoading(true);
                 setError('');
 
-                const data = await fetchHelpRequests();
+                const [helpRequestData, organizationData, volunteerData] =
+                    await Promise.all([
+                        fetchHelpRequests(),
+                        fetchOrganizations(),
+                        fetchVolunteers(),
+                    ]);
 
-                if (!cancelled) {
-                    setHelpRequests(data.helpRequests || []);
+                if (cancelled) {
+                    return;
                 }
+
+                setHelpRequests(helpRequestData.helpRequests || []);
+
+                setOrganizations(
+                    organizationData.organizations ||
+                        organizationData.data ||
+                        [],
+                );
+
+                setVolunteers(
+                    volunteerData.volunteers || volunteerData.data || [],
+                );
             } catch (err) {
                 if (!cancelled) {
                     setError(
                         err.message ||
-                            'Something went wrong while loading help requests.',
+                            'Something went wrong while loading admin data.',
                     );
                 }
             } finally {
@@ -148,7 +184,7 @@ const AdminHelpRequests = () => {
             }
         };
 
-        loadRequests();
+        loadAdminData();
 
         return () => {
             cancelled = true;
@@ -202,7 +238,8 @@ const AdminHelpRequests = () => {
     };
 
     // --------------------------------
-    // Review help request
+    // STEP 1
+    // Admin Review / Verification
     // --------------------------------
 
     const handleReviewRequest = (request) => {
@@ -244,7 +281,8 @@ const AdminHelpRequests = () => {
             );
         } catch (err) {
             setReviewError(
-                err.message || 'Unable to update help request status.',
+                err.message ||
+                    'Unable to update help request verification status.',
             );
         } finally {
             setReviewLoading(false);
@@ -252,10 +290,80 @@ const AdminHelpRequests = () => {
     };
 
     // --------------------------------
-    // Assignment
+    // STEP 2
+    // Admin sets priority
+    // --------------------------------
+
+    const handleSetPriority = (request) => {
+        /*
+         * Priority can only be set or changed
+         * after the request has been verified.
+         */
+        if (request.status !== 'verified') {
+            return;
+        }
+
+        setPriorityError('');
+        setSelectedPriorityRequest(request);
+    };
+
+    const closePriorityModal = () => {
+        if (priorityLoading) {
+            return;
+        }
+
+        setSelectedPriorityRequest(null);
+        setPriorityError('');
+    };
+
+    const handlePrioritySubmit = async (urgency) => {
+        if (!selectedPriorityRequest) {
+            return;
+        }
+
+        setPriorityLoading(true);
+        setPriorityError('');
+
+        try {
+            await updateHelpRequestUrgency(selectedPriorityRequest.id, urgency);
+
+            setSelectedPriorityRequest(null);
+
+            await loadHelpRequests();
+
+            showSuccessToast('Help request priority set successfully.');
+        } catch (err) {
+            setPriorityError(
+                err.message || 'Unable to set help request priority.',
+            );
+        } finally {
+            setPriorityLoading(false);
+        }
+    };
+
+    // --------------------------------
+    // STEP 3
+    // Admin assigns organization /
+    // volunteer / both
     // --------------------------------
 
     const handleAssignRequest = (request) => {
+        /*
+         * Assignment is only allowed after:
+         * 1. Request is verified
+         * 2. Admin has explicitly set a priority
+         *
+         * The database default "normal" means
+         * priority has not yet been explicitly set.
+         */
+        if (
+            request.status !== 'verified' ||
+            !request.urgency ||
+            request.urgency.toLowerCase() === 'normal'
+        ) {
+            return;
+        }
+
         setAssignmentError('');
         setSelectedAssignmentRequest(request);
     };
@@ -338,7 +446,7 @@ const AdminHelpRequests = () => {
             },
             {
                 key: 'pending',
-                label: 'Pending',
+                label: 'Pending Review',
                 count: statistics.pending,
             },
             {
@@ -366,37 +474,41 @@ const AdminHelpRequests = () => {
     );
 
     // --------------------------------
-    // Filtering + sorting
+    // Filtering + Sorting
     // --------------------------------
 
     const filteredHelpRequests = useMemo(() => {
         let result = [...helpRequests];
 
+        // Category/status tab
         if (activeCategory !== 'all') {
             result = result.filter(
                 (request) => request.status === activeCategory,
             );
         }
 
+        // Category filter
         if (categoryFilter !== 'all') {
             result = result.filter(
                 (request) => request.category === categoryFilter,
             );
         }
 
+        // Priority filter
         if (priorityFilter !== 'all') {
             result = result.filter(
-                (request) =>
-                    (request.priority || request.urgency) === priorityFilter,
+                (request) => request.urgency === priorityFilter,
             );
         }
 
+        // Status filter
         if (statusFilter !== 'all') {
             result = result.filter(
                 (request) => request.status === statusFilter,
             );
         }
 
+        // Search
         const search = searchTerm.trim().toLowerCase();
 
         if (search) {
@@ -417,6 +529,7 @@ const AdminHelpRequests = () => {
             });
         }
 
+        // Sorting
         if (!sortConfig.key || !sortConfig.direction) {
             return result;
         }
@@ -428,6 +541,11 @@ const AdminHelpRequests = () => {
             if (sortConfig.key === 'created_at') {
                 first = new Date(first).getTime();
                 second = new Date(second).getTime();
+            }
+
+            if (sortConfig.key === 'priority') {
+                first = a.urgency || '';
+                second = b.urgency || '';
             }
 
             first = first ?? '';
@@ -494,7 +612,7 @@ const AdminHelpRequests = () => {
         setCurrentPage(1);
     };
 
-    const handlePriorityChange = (event) => {
+    const handlePriorityFilterChange = (event) => {
         setPriorityFilter(event.target.value);
         setCurrentPage(1);
     };
@@ -570,7 +688,7 @@ const AdminHelpRequests = () => {
             request.user?.name || request.requester?.name || '',
             request.title || '',
             request.category || '',
-            request.priority || request.urgency || '',
+            request.urgency || '',
             request.status || '',
             request.created_at
                 ? new Date(request.created_at).toLocaleDateString()
@@ -614,26 +732,31 @@ const AdminHelpRequests = () => {
     // Table rows
     // --------------------------------
 
-    const rows = paginatedHelpRequests.map((request, index) => ({
-        ...request,
+    const rows = paginatedHelpRequests.map((request, index) => {
+        console.log('HELP REQUEST ROW:', request);
 
-        requesterName: request.user?.name || request.requester?.name || '—',
+        return {
+            ...request,
 
-        requesterEmail: request.user?.email || request.requester?.email || '—',
+            requesterName: request.user?.name || request.requester?.name || '—',
 
-        requesterId:
-            request.user?.id ||
-            request.requester?.id ||
-            request.user_id ||
-            null,
+            requesterEmail:
+                request.user?.email || request.requester?.email || '—',
 
-        submittedDate: request.created_at
-            ? new Date(request.created_at).toLocaleDateString()
-            : '—',
+            requesterId:
+                request.user?.id ||
+                request.requester?.id ||
+                request.user_id ||
+                null,
 
-        serialNumber:
-            (safeCurrentPage - 1) * HELP_REQUESTS_PER_PAGE + index + 1,
-    }));
+            submittedDate: request.created_at
+                ? new Date(request.created_at).toLocaleDateString()
+                : '—',
+
+            serialNumber:
+                (safeCurrentPage - 1) * HELP_REQUESTS_PER_PAGE + index + 1,
+        };
+    });
 
     // --------------------------------
     // Table columns
@@ -671,8 +794,6 @@ const AdminHelpRequests = () => {
             header: 'Priority',
             sortable: true,
             sortKey: 'priority',
-
-            render: (value, row) => value || row.urgency || '—',
         },
 
         {
@@ -694,37 +815,63 @@ const AdminHelpRequests = () => {
             header: 'Actions',
             align: 'right',
 
-            render: (_, row) => (
-                <div className="flex items-center justify-end gap-4">
-                    {row.status === 'pending' && (
+            render: (_, row) => {
+                console.log('HELP REQUEST ROW:', row);
+
+                const urgency = row.urgency;
+                const hasExplicitPriority =
+                    urgency && urgency.toLowerCase() !== 'normal';
+
+                return (
+                    <div className="flex items-center justify-end gap-4">
+                        {/* STEP 1: Review */}
+
+                        {row.status === 'pending' && (
+                            <button
+                                type="button"
+                                onClick={() => handleReviewRequest(row)}
+                                className="text-xs font-semibold text-primary transition-colors hover:text-primary-hover"
+                            >
+                                Review
+                            </button>
+                        )}
+
+                        {/* STEP 2: Set Priority */}
+
+                        {row.status === 'verified' && !hasExplicitPriority && (
+                            <button
+                                type="button"
+                                onClick={() => handleSetPriority(row)}
+                                className="text-xs font-semibold text-primary transition-colors hover:text-primary-hover"
+                            >
+                                Set Priority
+                            </button>
+                        )}
+
+                        {/* STEP 3: Assign */}
+
+                        {row.status === 'verified' && hasExplicitPriority && (
+                            <button
+                                type="button"
+                                onClick={() => handleAssignRequest(row)}
+                                className="text-xs font-semibold text-primary transition-colors hover:text-primary-hover"
+                            >
+                                Assign
+                            </button>
+                        )}
+
+                        {/* View */}
+
                         <button
                             type="button"
-                            onClick={() => handleReviewRequest(row)}
-                            className="text-xs font-semibold text-primary transition-colors hover:text-primary-hover"
+                            onClick={() => handleViewRequest(row)}
+                            className="text-xs font-semibold text-text-secondary transition-colors hover:text-primary"
                         >
-                            Review
+                            View
                         </button>
-                    )}
-
-                    {row.status === 'verified' && (
-                        <button
-                            type="button"
-                            onClick={() => handleAssignRequest(row)}
-                            className="text-xs font-semibold text-primary transition-colors hover:text-primary-hover"
-                        >
-                            Assign
-                        </button>
-                    )}
-
-                    <button
-                        type="button"
-                        onClick={() => handleViewRequest(row)}
-                        className="text-xs font-semibold text-text-secondary transition-colors hover:text-primary"
-                    >
-                        View
-                    </button>
-                </div>
-            ),
+                    </div>
+                );
+            },
         },
     ];
 
@@ -737,7 +884,7 @@ const AdminHelpRequests = () => {
             <div className="space-y-8">
                 <PageHeader
                     title="Help Requests"
-                    subtitle="Review, verify, and coordinate help requests submitted through the Stand For People platform."
+                    subtitle="Review, verify, prioritize, and coordinate help requests submitted through the Stand For People platform."
                 />
 
                 <div className="flex min-h-70 items-center justify-center border-y border-border bg-white">
@@ -766,7 +913,7 @@ const AdminHelpRequests = () => {
             <div className="space-y-8">
                 <PageHeader
                     title="Help Requests"
-                    subtitle="Review, verify, and coordinate help requests submitted through the Stand For People platform."
+                    subtitle="Review, verify, prioritize, and coordinate help requests submitted through the Stand For People platform."
                 />
 
                 <div className="border-l-4 border-red-500 bg-red-50 px-5 py-4 text-sm text-red-600">
@@ -785,7 +932,7 @@ const AdminHelpRequests = () => {
             <div className="space-y-9">
                 <PageHeader
                     title="Help Requests"
-                    subtitle="Review, verify, and coordinate help requests submitted through the Stand For People platform."
+                    subtitle="Review, verify, prioritize, and coordinate help requests submitted through the Stand For People platform."
                     action={
                         <button
                             type="button"
@@ -799,7 +946,9 @@ const AdminHelpRequests = () => {
                     }
                 />
 
-                {/* Help Request Overview */}
+                {/* --------------------------------
+                    Help Request Overview
+                -------------------------------- */}
 
                 <section>
                     <div className="mb-4 flex items-end justify-between">
@@ -828,7 +977,9 @@ const AdminHelpRequests = () => {
                     />
                 </section>
 
-                {/* Help Request Management */}
+                {/* --------------------------------
+                    Help Request Management
+                -------------------------------- */}
 
                 <section className="border-t border-border pt-8">
                     <div className="mb-5">
@@ -872,7 +1023,7 @@ const AdminHelpRequests = () => {
                             helpRequests={helpRequests}
                             onSearchChange={handleSearchChange}
                             onCategoryChange={handleCategoryFilterChange}
-                            onPriorityChange={handlePriorityChange}
+                            onPriorityChange={handlePriorityFilterChange}
                             onStatusChange={handleStatusChange}
                         />
                     </div>
@@ -887,6 +1038,7 @@ const AdminHelpRequests = () => {
                             getSortIcon={getSortIcon}
                             resultCount={filteredHelpRequests.length}
                             onRequesterClick={handleViewUser}
+                            onSetPriority={handleSetPriority}
                         />
                     </div>
 
@@ -904,14 +1056,18 @@ const AdminHelpRequests = () => {
                 </section>
             </div>
 
-            {/* Toast */}
+            {/* --------------------------------
+                Success Toast
+            -------------------------------- */}
 
             <HelpRequestSuccessToast
                 show={toast.show}
                 message={toast.message}
             />
 
-            {/* View request */}
+            {/* --------------------------------
+                View Request
+            -------------------------------- */}
 
             <HelpRequestViewModal
                 request={selectedRequest}
@@ -920,7 +1076,9 @@ const AdminHelpRequests = () => {
                 onClose={closeViewModal}
             />
 
-            {/* View requester */}
+            {/* --------------------------------
+                View Requester
+            -------------------------------- */}
 
             <UserViewModal
                 user={selectedUser}
@@ -929,7 +1087,10 @@ const AdminHelpRequests = () => {
                 onClose={closeUserModal}
             />
 
-            {/* Review / Verification */}
+            {/* --------------------------------
+                STEP 1:
+                Review / Verification Modal
+            -------------------------------- */}
 
             <HelpRequestVerificationModal
                 request={selectedReviewRequest}
@@ -939,10 +1100,28 @@ const AdminHelpRequests = () => {
                 onConfirm={handleVerificationChange}
             />
 
-            {/* Assignment */}
+            {/* --------------------------------
+                STEP 2:
+                Priority Modal
+            -------------------------------- */}
+
+            <HelpRequestPriorityModal
+                request={selectedPriorityRequest}
+                loading={priorityLoading}
+                error={priorityError}
+                onClose={closePriorityModal}
+                onConfirm={handlePrioritySubmit}
+            />
+
+            {/* --------------------------------
+                STEP 3:
+                Assignment Modal
+            -------------------------------- */}
 
             <HelpRequestAssignmentModal
                 request={selectedAssignmentRequest}
+                organizations={organizations}
+                volunteers={volunteers}
                 loading={assignmentLoading}
                 error={assignmentError}
                 onClose={closeAssignmentModal}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { UserRound } from 'lucide-react';
+import { SlidersHorizontal, UserRound } from 'lucide-react';
 
 import DataTable from '@/components/dashboard/DataTable';
 import StatusBadge from '@/components/dashboard/StatusBadge';
@@ -11,6 +11,7 @@ const HelpRequestTable = ({
     getSortIcon,
     resultCount,
     onRequesterClick,
+    onSetPriority,
 }) => {
     const enhancedColumns = columns.map((column) => {
         // --------------------------------
@@ -82,7 +83,7 @@ const HelpRequestTable = ({
                     return (
                         <button
                             type="button"
-                            onClick={() => onRequesterClick(requesterId, row)}
+                            onClick={() => onRequesterClick?.(requesterId, row)}
                             className="group flex min-w-0 items-center gap-2.5 text-left"
                             title="View requester details"
                         >
@@ -91,10 +92,8 @@ const HelpRequestTable = ({
                             </span>
 
                             <span className="min-w-0">
-                                <span className="flex items-center gap-1.5">
-                                    <span className="truncate text-sm font-semibold text-primary transition-colors group-hover:text-primary-hover group-hover:underline">
-                                        {name}
-                                    </span>
+                                <span className="block truncate text-sm font-semibold text-primary transition-colors group-hover:text-primary-hover group-hover:underline">
+                                    {name}
                                 </span>
 
                                 {email && (
@@ -126,32 +125,72 @@ const HelpRequestTable = ({
         }
 
         // --------------------------------
-        // Urgency / Priority
+        // Priority
         // --------------------------------
 
-        if (column.key === 'urgency' || column.key === 'priority') {
+        if (column.key === 'priority' || column.key === 'urgency') {
             return {
                 ...column,
 
                 render: (value, row) => {
-                    const urgency = value || row.urgency || row.priority;
+                    const priority =
+                        value || row.priority || row.urgency || null;
 
-                    const urgencyStyles = {
+                    const normalizedPriority = priority?.toLowerCase();
+
+                    /*
+                     * The backend/database uses "normal"
+                     * as the default urgency value.
+                     *
+                     * In the admin workflow, "normal" means
+                     * the admin has not explicitly set a
+                     * priority yet.
+                     */
+                    const priorityNotSet =
+                        !priority || normalizedPriority === 'normal';
+
+                    const priorityStyles = {
+                        critical: 'bg-red-50 text-red-600',
+
                         urgent: 'bg-red-50 text-red-600',
+
                         high: 'bg-orange-50 text-orange-600',
+
                         normal: 'bg-background-alt text-text-secondary',
-                        low: 'bg-background-alt text-text-secondary',
+
+                        low: 'bg-blue-50 text-blue-600',
                     };
 
                     return (
-                        <span
-                            className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold capitalize ${
-                                urgencyStyles[urgency] ||
-                                'bg-background-alt text-text-secondary'
-                            }`}
-                        >
-                            {urgency || 'Normal'}
-                        </span>
+                        <div className="flex flex-col items-start gap-1.5">
+                            <span
+                                className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold capitalize ${
+                                    priorityStyles[normalizedPriority] ||
+                                    'bg-background-alt text-text-secondary'
+                                }`}
+                            >
+                                {priorityNotSet ? 'Not set' : priority}
+                            </span>
+
+                            {/*
+                                Priority can only be set or changed
+                                after admin verification.
+                            */}
+
+                            {row.status === 'verified' && onSetPriority && (
+                                <button
+                                    type="button"
+                                    onClick={() => onSetPriority(row)}
+                                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary transition-colors hover:text-primary-hover hover:underline"
+                                >
+                                    <SlidersHorizontal size={12} />
+
+                                    {priorityNotSet
+                                        ? 'Set priority'
+                                        : 'Change priority'}
+                                </button>
+                            )}
+                        </div>
                     );
                 },
             };

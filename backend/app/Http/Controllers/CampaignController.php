@@ -3,19 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Models\Campaign;
+use App\Services\Campaign\CampaignService;
 use Illuminate\Http\Request;
 
 class CampaignController extends Controller
 {
-    /**
-     * Get active campaigns for the public website.
-     */
     public function index()
     {
         $campaigns = Campaign::with([
             'organization:id,name',
         ])
-            ->where('status', 'active')
+            ->whereIn('status', [
+                Campaign::STATUS_PUBLISHED,
+                Campaign::STATUS_ACTIVE,
+                Campaign::STATUS_IN_PROGRESS,
+            ])
             ->latest()
             ->get();
 
@@ -29,7 +31,11 @@ class CampaignController extends Controller
         $campaign = Campaign::with([
             'organization:id,name',
         ])
-            ->where('status', 'active')
+            ->whereIn('status', [
+                Campaign::STATUS_PUBLISHED,
+                Campaign::STATUS_ACTIVE,
+                Campaign::STATUS_IN_PROGRESS,
+            ])
             ->find($id);
 
         if (!$campaign) {
@@ -43,26 +49,23 @@ class CampaignController extends Controller
         ]);
     }
 
-    /**
-     * Create a direct campaign by an organization.
-     */
-    public function store(Request $request)
-    {
+    public function store(
+        Request $request,
+        CampaignService $campaignService
+    ) {
         $user = $request->user();
 
-        // Only organization users can create direct campaigns.
         if (!$user || $user->role !== 'organization') {
             return response()->json([
-                'message' => 'Only organization users can create campaigns.'
+                'message' => 'Only organization users can propose campaigns.',
             ], 403);
         }
 
-        // Organization must be verified.
         $organization = $user->organization;
 
         if (!$organization || $organization->verification_status !== 'verified') {
             return response()->json([
-                'message' => 'Your organization must be verified before creating a campaign.'
+                'message' => 'Your organization must be verified before proposing a campaign.',
             ], 403);
         }
 
@@ -70,38 +73,24 @@ class CampaignController extends Controller
             'title' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string'],
             'category' => ['required', 'string', 'max:255'],
+            'scope' => ['nullable', 'string', 'max:255'],
             'district' => ['nullable', 'string', 'max:255'],
             'location' => ['nullable', 'string'],
-            'target_amount' => ['required', 'numeric', 'min:1'],
+            'affected_areas' => ['nullable', 'string'],
+            'target_amount' => ['nullable', 'numeric', 'min:1'],
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
             'cover_image' => ['nullable', 'string'],
         ]);
 
-        $campaign = Campaign::create([
+        $campaign = $campaignService->proposeOrganizationCampaign([
+            ...$validated,
             'organization_id' => $organization->id,
             'created_by' => $user->id,
-
-            // This campaign is not connected to a help request.
-            'help_request_id' => null,
-            'source_type' => 'direct',
-
-            'title' => $validated['title'],
-            'description' => $validated['description'],
-            'category' => $validated['category'],
-            'district' => $validated['district'] ?? null,
-            'location' => $validated['location'] ?? null,
-            'target_amount' => $validated['target_amount'],
-
-            'status' => 'pending',
-
-            'start_date' => $validated['start_date'] ?? null,
-            'end_date' => $validated['end_date'] ?? null,
-            'cover_image' => $validated['cover_image'] ?? null,
         ]);
 
         return response()->json([
-            'message' => 'Campaign submitted successfully and is waiting for admin verification.',
+            'message' => 'Campaign proposal submitted successfully and is waiting for admin review.',
             'campaign' => $campaign->load([
                 'organization',
                 'creator',

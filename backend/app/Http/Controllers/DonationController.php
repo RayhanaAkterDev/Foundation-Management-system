@@ -16,6 +16,8 @@ class DonationController extends Controller
             'amount' => ['required', 'numeric', 'min:1'],
             'payment_method' => ['required', 'string', 'max:255'],
             'transaction_id' => ['nullable', 'string', 'max:255'],
+            'donor_name' => ['nullable', 'string', 'max:255'],
+            'donor_email' => ['nullable', 'email', 'max:255'],
         ]);
 
         $campaign = Campaign::where('status', 'active')
@@ -29,7 +31,7 @@ class DonationController extends Controller
 
         $user = $request->user();
 
-        if (!$user || $user->role !== 'individual') {
+        if ($user && $user->role !== 'individual') {
             return response()->json([
                 'message' => 'Only individual users can make donations.',
             ], 403);
@@ -37,7 +39,9 @@ class DonationController extends Controller
 
         $donation = DB::transaction(function () use ($validated, $user, $campaign) {
             $donation = Donation::create([
-                'user_id' => $user->id,
+                'user_id' => $user?->id,
+                'donor_name' => $validated['donor_name'] ?? null,
+                'donor_email' => $validated['donor_email'] ?? null,
                 'campaign_id' => $campaign->id,
                 'amount' => $validated['amount'],
                 'status' => 'completed',

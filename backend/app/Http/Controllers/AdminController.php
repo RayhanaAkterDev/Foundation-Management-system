@@ -1531,10 +1531,10 @@ class AdminController extends Controller
     }
 
     /*
-    |--------------------------------------------------------------------------
-    | Campaigns
-    |--------------------------------------------------------------------------
-    */
+|--------------------------------------------------------------------------
+| Campaigns
+|--------------------------------------------------------------------------
+*/
 
     public function campaigns(Request $request)
     {
@@ -1546,6 +1546,9 @@ class AdminController extends Controller
 
         $campaigns = Campaign::with([
             'organization:id,name',
+            'creator:id,name,email',
+            'verifier:id,name,email',
+            'helpRequest:id,title,status',
         ])
             ->latest()
             ->get();
@@ -1556,10 +1559,16 @@ class AdminController extends Controller
     }
 
     /*
-    |--------------------------------------------------------------------------
-    | Campaigns - Verify / Reject
-    |--------------------------------------------------------------------------
-    */
+|--------------------------------------------------------------------------
+| Campaigns - Verify / Reject
+|--------------------------------------------------------------------------
+*/
+
+    /*
+|--------------------------------------------------------------------------
+| Campaigns - Verify / Reject
+|--------------------------------------------------------------------------
+*/
 
     public function updateCampaignVerification(
         Request $request,
@@ -1579,42 +1588,72 @@ class AdminController extends Controller
             ], 404);
         }
 
-        if ($campaign->status !== 'pending') {
-            return response()->json([
-                'message' => 'Only pending campaigns can be verified.',
-            ], 422);
-        }
-
         $validated = $request->validate([
             'status' => [
                 'required',
                 'in:active,rejected',
             ],
+
+            'verification_note' => [
+                'nullable',
+                'string',
+                'max:1000',
+            ],
         ]);
 
-        $campaign->update([
-            'status' => $validated['status'],
-        ]);
+        try {
+            $campaignService = app(
+                \App\Services\Campaign\CampaignService::class
+            );
 
-        return response()->json([
-            'message' => $validated['status'] === 'active'
-                ? 'Campaign approved successfully.'
-                : 'Campaign rejected successfully.',
+            if ($validated['status'] === 'active') {
+                $campaign = $campaignService->approveOrganizationProposal(
+                    $campaign,
+                    $user->id,
+                    $validated['verification_note'] ?? null
+                );
 
-            'campaign' => $campaign
-                ->fresh()
-                ->load([
-                    'organization:id,name',
-                    'creator:id,name,email',
-                ]),
-        ]);
+                return response()->json([
+                    'message' => 'Campaign approved successfully.',
+                    'campaign' => $campaign
+                        ->fresh()
+                        ->load([
+                            'organization:id,name',
+                            'creator:id,name,email',
+                            'verifier:id,name,email',
+                        ]),
+                ]);
+            }
+
+            $campaign = $campaignService->rejectOrganizationProposal(
+                $campaign,
+                $user->id,
+                $validated['verification_note'] ?? null
+            );
+
+            return response()->json([
+                'message' => 'Campaign rejected successfully.',
+                'campaign' => $campaign
+                    ->fresh()
+                    ->load([
+                        'organization:id,name',
+                        'creator:id,name,email',
+                        'verifier:id,name,email',
+                    ]),
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message' => 'Campaign verification failed.',
+                'errors' => $e->errors(),
+            ], 422);
+        }
     }
 
     /*
-    |--------------------------------------------------------------------------
-    | Campaigns - Assign Volunteer
-    |--------------------------------------------------------------------------
-    */
+|--------------------------------------------------------------------------
+| Campaigns - Assign Volunteer
+|--------------------------------------------------------------------------
+*/
 
     public function assignCampaignVolunteer(
         Request $request,
@@ -1649,23 +1688,26 @@ class AdminController extends Controller
         }
 
         /*
-        |--------------------------------------------------------------------------
-        | Campaign must be active
-        |--------------------------------------------------------------------------
-        */
+    |--------------------------------------------------------------------------
+    | Campaign must be Active or In Progress
+    |--------------------------------------------------------------------------
+    */
 
-        if ($campaign->status !== 'active') {
+        if (!in_array($campaign->status, [
+            Campaign::STATUS_ACTIVE,
+            Campaign::STATUS_IN_PROGRESS,
+        ], true)) {
             return response()->json([
                 'message' =>
-                'Only active campaigns can have volunteers assigned.',
+                'Only active or in-progress campaigns can have volunteers assigned.',
             ], 422);
         }
 
         /*
-        |--------------------------------------------------------------------------
-        | Validate Volunteer User
-        |--------------------------------------------------------------------------
-        */
+    |--------------------------------------------------------------------------
+    | Validate Volunteer User
+    |--------------------------------------------------------------------------
+    */
 
         $volunteerUser = User::find(
             $validated['volunteer_id']
@@ -1692,10 +1734,10 @@ class AdminController extends Controller
         }
 
         /*
-        |--------------------------------------------------------------------------
-        | Approved SP Volunteer
-        |--------------------------------------------------------------------------
-        */
+    |--------------------------------------------------------------------------
+    | Approved SP Volunteer
+    |--------------------------------------------------------------------------
+    */
 
         $volunteer = Volunteer::where(
             'user_id',
@@ -1712,10 +1754,10 @@ class AdminController extends Controller
         }
 
         /*
-        |--------------------------------------------------------------------------
-        | Volunteer Availability
-        |--------------------------------------------------------------------------
-        */
+    |--------------------------------------------------------------------------
+    | Volunteer Availability
+    |--------------------------------------------------------------------------
+    */
 
         if ($volunteer->availability !== 'available') {
             return response()->json([
@@ -1725,10 +1767,10 @@ class AdminController extends Controller
         }
 
         /*
-        |--------------------------------------------------------------------------
-        | Prevent Active Campaign Assignment
-        |--------------------------------------------------------------------------
-        */
+    |--------------------------------------------------------------------------
+    | Prevent Active Campaign Assignment
+    |--------------------------------------------------------------------------
+    */
 
         $hasActiveAssignment =
             CampaignVolunteerAssignment::where(
@@ -1750,10 +1792,10 @@ class AdminController extends Controller
         }
 
         /*
-        |--------------------------------------------------------------------------
-        | Prevent Duplicate Assignment
-        |--------------------------------------------------------------------------
-        */
+    |--------------------------------------------------------------------------
+    | Prevent Duplicate Assignment
+    |--------------------------------------------------------------------------
+    */
 
         $duplicateAssignment =
             CampaignVolunteerAssignment::where(
@@ -1779,10 +1821,10 @@ class AdminController extends Controller
         }
 
         /*
-        |--------------------------------------------------------------------------
-        | Create Assignment
-        |--------------------------------------------------------------------------
-        */
+    |--------------------------------------------------------------------------
+    | Create Assignment
+    |--------------------------------------------------------------------------
+    */
 
         $assignment = DB::transaction(function () use (
             $campaign,
@@ -1824,7 +1866,6 @@ class AdminController extends Controller
                 ]),
         ], 201);
     }
-
     /*
     |--------------------------------------------------------------------------
     | Reports

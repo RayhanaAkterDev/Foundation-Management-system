@@ -13,10 +13,7 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/campaigns', [CampaignController::class, 'index']);
 Route::get('/campaigns/{id}', [CampaignController::class, 'show']);
-
-Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/donations', [DonationController::class, 'store']);
-});
+Route::post('/donations', [DonationController::class, 'store']);
 
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -201,7 +198,7 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     );
 
     // ---------------------------------------------------------
-    // Other Admin Modules
+    // Campaigns Modules
     // ---------------------------------------------------------
 
     Route::get('/campaigns', [AdminController::class, 'campaigns']);
@@ -216,6 +213,9 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
         [AdminController::class, 'assignCampaignVolunteer']
     );
 
+    // ---------------------------------------------------------
+    // Other Admin Modules
+    // ---------------------------------------------------------
     Route::get('/donations', [AdminController::class, 'donations']);
     Route::get('/reports', [AdminController::class, 'reports']);
 });

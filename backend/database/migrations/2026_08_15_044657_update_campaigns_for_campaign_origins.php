@@ -13,12 +13,6 @@ return new class extends Migration
                 ->default('global_situation')
                 ->after('help_request_id');
 
-            $table->foreignId('created_by')
-                ->nullable()
-                ->after('organization_id')
-                ->constrained('users')
-                ->nullOnDelete();
-
             $table->foreignId('verified_by')
                 ->nullable()
                 ->after('created_by')
@@ -44,18 +38,22 @@ return new class extends Migration
             $table->date('proposal_date')
                 ->nullable()
                 ->after('end_date');
+
+            $table->dropColumn('source_type');
         });
     }
 
     public function down(): void
     {
         Schema::table('campaigns', function (Blueprint $table) {
+            $table->string('source_type')
+                ->default('direct')
+                ->after('help_request_id');
+
             $table->dropForeign(['verified_by']);
-            $table->dropForeign(['created_by']);
 
             $table->dropColumn([
                 'type',
-                'created_by',
                 'verified_by',
                 'verified_at',
                 'verification_note',

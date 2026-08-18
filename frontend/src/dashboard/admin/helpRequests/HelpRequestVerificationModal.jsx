@@ -80,7 +80,7 @@ const HelpRequestVerificationModal = ({
                 onClick={!loading ? handleClose : undefined}
             />
 
-            <div className="relative z-10 w-full max-w-[540px] overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_30px_100px_rgba(15,23,42,0.24)]">
+            <div className="relative z-10 w-full max-w-135 overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_30px_100px_rgba(15,23,42,0.24)]">
                 {/* Header */}
                 <div className="relative px-6 pb-6 pt-6 sm:px-7 sm:pt-7">
                     <div className="absolute inset-x-0 top-0 h-1 bg-primary" />
@@ -220,7 +220,7 @@ const HelpRequestVerificationModal = ({
                                             }`}
                                         >
                                             {isSelected && (
-                                                <span className="mx-auto mt-[5px] block h-1.5 w-1.5 rounded-full bg-white" />
+                                                <span className="mx-auto mt-1.25 block h-1.5 w-1.5 rounded-full bg-white" />
                                             )}
                                         </span>
                                     </div>

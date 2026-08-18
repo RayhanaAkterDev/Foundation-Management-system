@@ -116,7 +116,7 @@ const HelpRequestViewModal = ({ request, loading, error, onClose }) => {
                 {/* Header */}
                 <div className="relative shrink-0 overflow-hidden border-b border-border bg-white px-6 py-5 sm:px-7">
                     {/* Subtle accent */}
-                    <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary via-teal-400 to-primary/30" />
+                    <div className="absolute inset-x-0 top-0 h-1 bg-linear-to-r from-primary via-teal-400 to-primary/30" />
 
                     <button
                         type="button"
@@ -263,7 +263,7 @@ const HelpRequestViewModal = ({ request, loading, error, onClose }) => {
                                             </span>
                                         </div>
 
-                                        <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-50/70 px-5 py-5 shadow-sm sm:px-6 sm:py-6">
+                                        <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-linear-to-br from-white to-slate-50/70 px-5 py-5 shadow-sm sm:px-6 sm:py-6">
                                             <div className="absolute left-0 top-0 h-full w-1 bg-primary/70" />
 
                                             <p className="whitespace-pre-line text-[15px] leading-8 text-slate-700">
@@ -327,7 +327,7 @@ const HelpRequestViewModal = ({ request, loading, error, onClose }) => {
                                         />
 
                                         <div className="relative mt-5 pl-5">
-                                            <div className="absolute bottom-3 left-[4px] top-2 w-px bg-gradient-to-b from-primary/60 via-slate-200 to-transparent" />
+                                            <div className="absolute bottom-3 left-1 top-2 w-px bg-linear-to-b from-primary/60 via-slate-200 to-transparent" />
 
                                             <TimelineItem
                                                 label="Submitted"
@@ -388,8 +388,7 @@ const HelpRequestViewModal = ({ request, loading, error, onClose }) => {
 const MetaCard = ({ icon: Icon, label, value, accent, urgencyStyle }) => {
     const styles = {
         primary: {
-            wrapper:
-                'border-teal-100 bg-gradient-to-br from-teal-50/80 to-white',
+            wrapper: 'border-teal-100 bg-linear-to-br from-teal-50/80 to-white',
             icon: 'bg-teal-100 text-teal-700',
             label: 'text-teal-600',
             value: 'text-slate-800',
@@ -403,7 +402,7 @@ const MetaCard = ({ icon: Icon, label, value, accent, urgencyStyle }) => {
         },
 
         location: {
-            wrapper: 'border-sky-100 bg-gradient-to-br from-sky-50/70 to-white',
+            wrapper: 'border-sky-100 bg-linear-to-br from-sky-50/70 to-white',
             icon: 'bg-sky-100 text-sky-700',
             label: 'text-sky-600',
             value: 'text-slate-800',
@@ -432,7 +431,7 @@ const MetaCard = ({ icon: Icon, label, value, accent, urgencyStyle }) => {
 
                 <div className="min-w-0">
                     <p
-                        className={`text-[9px] font-bold uppercase tracking-[0.1em] ${style.label}`}
+                        className={`text-[9px] font-bold uppercase tracking-widest ${style.label}`}
                     >
                         {label}
                     </p>
@@ -499,7 +498,7 @@ const TimelineItem = ({ label, value, last = false, active = false }) => {
     return (
         <div className={`relative ${last ? '' : 'pb-6'}`}>
             <span
-                className={`absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full border-2 ${
+                className={`absolute -left-5.25 top-1.5 h-2.5 w-2.5 rounded-full border-2 ${
                     active
                         ? 'border-primary bg-primary shadow-[0_0_0_3px_rgba(15,118,110,0.12)]'
                         : 'border-slate-300 bg-[#f8faf9]'

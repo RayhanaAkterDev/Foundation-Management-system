@@ -1,18 +1,15 @@
 import React, { useMemo, useState } from 'react';
 import {
     X,
-    Building2,
     Users,
     ClipboardCheck,
     Check,
     UserRound,
-    ChevronDown,
     ArrowRight,
 } from 'lucide-react';
 
-const HelpRequestAssignmentModal = ({
-    request,
-    organizations = [],
+const CampaignAssignmentModal = ({
+    campaign,
     volunteers = [],
     loading = false,
     error = '',
@@ -20,125 +17,87 @@ const HelpRequestAssignmentModal = ({
     onConfirm,
 }) => {
     /*
-    |--------------------------------------------------------------------------|
-    | Existing assignment values
-    |--------------------------------------------------------------------------|
+    |--------------------------------------------------------------------------
+    | Existing campaign assignment
+    |--------------------------------------------------------------------------
+    |
+    | The backend assigns ONE volunteer per request.
+    | Therefore this modal also allows only one volunteer to be selected.
+    |
     */
 
-    const existingOrganizationId = useMemo(() => {
-        return (
-            request?.assignment?.organization_id ||
-            request?.organization_id ||
-            ''
-        );
-    }, [request]);
-
-    const existingVolunteerIds = useMemo(() => {
-        if (!request) {
-            return [];
+    const existingVolunteerId = useMemo(() => {
+        if (!campaign) {
+            return '';
         }
 
-        if (Array.isArray(request.assignment?.volunteer_ids)) {
-            return request.assignment.volunteer_ids.map(String);
+        if (campaign.assignment?.volunteer_id) {
+            return String(campaign.assignment.volunteer_id);
         }
 
-        if (Array.isArray(request.volunteer_ids)) {
-            return request.volunteer_ids.map(String);
+        if (campaign.volunteer_id) {
+            return String(campaign.volunteer_id);
         }
 
-        if (request.assignment?.volunteer_id) {
-            return [String(request.assignment.volunteer_id)];
+        if (campaign.assignment?.volunteer?.id) {
+            return String(campaign.assignment.volunteer.id);
         }
 
-        if (request.volunteer_id) {
-            return [String(request.volunteer_id)];
-        }
-
-        return [];
-    }, [request]);
+        return '';
+    }, [campaign]);
 
     /*
-    |--------------------------------------------------------------------------|
-    | Verified organizations only
-    |--------------------------------------------------------------------------|
-    */
-
-    const availableOrganizations = useMemo(() => {
-        return organizations.filter((organization) => {
-            const verificationStatus =
-                organization.verification_status ||
-                organization.status ||
-                organization.verificationStatus;
-
-            if (!verificationStatus) {
-                return true;
-            }
-
-            return verificationStatus === 'verified';
-        });
-    }, [organizations]);
-
-    /*
-    |--------------------------------------------------------------------------|
+    |--------------------------------------------------------------------------
     | Form state
-    |--------------------------------------------------------------------------|
+    |--------------------------------------------------------------------------
     */
 
-    const [selectedOrganization, setSelectedOrganization] = useState(
-        String(existingOrganizationId || ''),
-    );
-
-    const [selectedVolunteers, setSelectedVolunteers] =
-        useState(existingVolunteerIds);
+    const [selectedVolunteer, setSelectedVolunteer] =
+        useState(existingVolunteerId);
 
     const [assignmentNote, setAssignmentNote] = useState('');
 
     /*
-    |--------------------------------------------------------------------------|
+    |--------------------------------------------------------------------------
     | Volunteer selection
-    |--------------------------------------------------------------------------|
+    |--------------------------------------------------------------------------
     */
 
-    const handleVolunteerToggle = (volunteerId) => {
+    const handleVolunteerSelect = (volunteerId) => {
+        if (loading) {
+            return;
+        }
+
         const id = String(volunteerId);
 
-        setSelectedVolunteers((current) => {
-            if (current.includes(id)) {
-                return current.filter((item) => item !== id);
-            }
-
-            return [...current, id];
+        setSelectedVolunteer((current) => {
+            return current === id ? '' : id;
         });
     };
 
     /*
-    |--------------------------------------------------------------------------|
+    |--------------------------------------------------------------------------
     | Submit
-    |--------------------------------------------------------------------------|
+    |--------------------------------------------------------------------------
     */
 
     const handleSubmit = (event) => {
         event.preventDefault();
 
-        if (!selectedOrganization && selectedVolunteers.length === 0) {
+        if (!selectedVolunteer || loading) {
             return;
         }
 
         onConfirm({
-            organization_id: selectedOrganization
-                ? Number(selectedOrganization)
-                : null,
-
-            volunteer_ids: selectedVolunteers.map(Number),
-
+            volunteer_id: Number(selectedVolunteer),
             assignment_note: assignmentNote.trim() || null,
         });
     };
 
     /*
-    |--------------------------------------------------------------------------|
+    |--------------------------------------------------------------------------
     | Close
-    |--------------------------------------------------------------------------|
+    |--------------------------------------------------------------------------
     */
 
     const handleClose = () => {
@@ -149,12 +108,11 @@ const HelpRequestAssignmentModal = ({
         onClose();
     };
 
-    if (!request) {
+    if (!campaign) {
         return null;
     }
 
-    const hasAssignmentTarget =
-        Boolean(selectedOrganization) || selectedVolunteers.length > 0;
+    const hasSelectedVolunteer = Boolean(selectedVolunteer);
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/65 p-3 backdrop-blur-md sm:p-6">
@@ -193,43 +151,42 @@ const HelpRequestAssignmentModal = ({
                                     </p>
 
                                     <p className="mt-0.5 text-xs font-semibold text-white">
-                                        Assistance assignment
+                                        Campaign assignment
                                     </p>
                                 </div>
                             </div>
 
                             <div className="mt-12">
                                 <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-white/55">
-                                    Current request
+                                    Current campaign
                                 </p>
 
                                 <h2 className="mt-2 text-[22px] font-bold leading-tight tracking-tight text-white">
-                                    {request.title || 'Help request'}
+                                    {campaign.title || 'Campaign'}
                                 </h2>
 
-                                {request.category && (
+                                {campaign.category && (
                                     <span className="mt-4 inline-flex rounded-full bg-white/10 px-3 py-1.5 text-[10px] font-semibold capitalize text-white/85 ring-1 ring-white/10">
-                                        {request.category}
+                                        {campaign.category}
                                     </span>
                                 )}
                             </div>
                         </div>
 
-                        {/* Middle information */}
+                        {/* Campaign state */}
 
                         <div className="mt-auto">
-                            {(request.priority || request.urgency) && (
+                            {campaign.status && (
                                 <div className="mb-6 border-t border-white/10 pt-5">
                                     <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-white/50">
-                                        Priority
+                                        Campaign status
                                     </p>
 
                                     <div className="mt-2 flex items-center gap-2">
-                                        <span className="h-2 w-2 rounded-full bg-amber-300" />
+                                        <span className="h-2 w-2 rounded-full bg-emerald-300" />
 
                                         <span className="text-sm font-semibold capitalize text-white">
-                                            {request.priority ||
-                                                request.urgency}
+                                            {campaign.status.replace(/_/g, ' ')}
                                         </span>
                                     </div>
                                 </div>
@@ -242,46 +199,28 @@ const HelpRequestAssignmentModal = ({
                                     Assignment
                                 </p>
 
-                                <div className="mt-3 space-y-2.5">
-                                    <div className="flex items-center gap-2.5">
-                                        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/10">
-                                            <Building2 size={13} />
-                                        </div>
-
-                                        <span className="text-[11px] text-white/80">
-                                            Organization
-                                        </span>
-
-                                        {selectedOrganization && (
-                                            <Check
-                                                size={13}
-                                                className="ml-auto text-emerald-200"
-                                            />
-                                        )}
+                                <div className="mt-3 flex items-center gap-2.5">
+                                    <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/10">
+                                        <Users size={13} />
                                     </div>
 
-                                    <div className="flex items-center gap-2.5">
-                                        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/10">
-                                            <Users size={13} />
-                                        </div>
+                                    <span className="text-[11px] text-white/80">
+                                        SP volunteer
+                                    </span>
 
-                                        <span className="text-[11px] text-white/80">
-                                            Volunteers
-                                        </span>
-
-                                        {selectedVolunteers.length > 0 && (
-                                            <span className="ml-auto rounded-full bg-white/15 px-2 py-0.5 text-[9px] font-bold">
-                                                {selectedVolunteers.length}
-                                            </span>
-                                        )}
-                                    </div>
+                                    {hasSelectedVolunteer && (
+                                        <Check
+                                            size={13}
+                                            className="ml-auto text-emerald-200"
+                                        />
+                                    )}
                                 </div>
                             </div>
 
                             <p className="mt-5 text-[10px] leading-5 text-white/45">
-                                Assigning a request connects the verified
-                                assistance need with the people responsible for
-                                coordination.
+                                Assigning a volunteer gives an approved SP
+                                volunteer responsibility for supporting this
+                                campaign.
                             </p>
                         </div>
                     </div>
@@ -315,12 +254,12 @@ const HelpRequestAssignmentModal = ({
                             </div>
 
                             <h1 className="mt-2 text-xl font-bold tracking-tight text-slate-900">
-                                Assign assistance
+                                Assign volunteer
                             </h1>
 
                             <p className="mt-1 text-xs leading-5 text-slate-500">
-                                Choose who should take responsibility for this
-                                request.
+                                Select one approved and available SP volunteer
+                                for this campaign.
                             </p>
                         </div>
                     </div>
@@ -350,128 +289,24 @@ const HelpRequestAssignmentModal = ({
                                 )}
 
                                 {/* =================================================
-                                    ORGANIZATION
+                                    VOLUNTEER
                                 ================================================= */}
 
                                 <section>
                                     <div className="mb-3 flex items-end justify-between">
                                         <div>
                                             <p className="text-sm font-bold text-slate-900">
-                                                Organization
+                                                SP volunteer
                                             </p>
 
                                             <p className="mt-0.5 text-[10px] text-slate-400">
-                                                Optional coordination partner
+                                                Select one available volunteer
                                             </p>
                                         </div>
 
-                                        {selectedOrganization && (
-                                            <span className="text-[10px] font-semibold text-primary">
-                                                Selected
-                                            </span>
-                                        )}
-                                    </div>
-
-                                    <div
-                                        className={`relative overflow-hidden rounded-2xl border transition-all ${
-                                            selectedOrganization
-                                                ? 'border-primary/30 bg-primary/[0.035]'
-                                                : 'border-slate-200 bg-slate-50/70'
-                                        }`}
-                                    >
-                                        <div className="flex items-center gap-3 p-3.5">
-                                            <div
-                                                className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-colors ${
-                                                    selectedOrganization
-                                                        ? 'bg-primary text-white'
-                                                        : 'bg-white text-slate-400 ring-1 ring-slate-200'
-                                                }`}
-                                            >
-                                                <Building2 size={19} />
-                                            </div>
-
-                                            <div className="min-w-0 flex-1">
-                                                <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400">
-                                                    Assign to
-                                                </p>
-
-                                                <div className="relative mt-0.5">
-                                                    <select
-                                                        id="help-request-organization"
-                                                        value={
-                                                            selectedOrganization
-                                                        }
-                                                        onChange={(event) =>
-                                                            setSelectedOrganization(
-                                                                event.target
-                                                                    .value,
-                                                            )
-                                                        }
-                                                        disabled={loading}
-                                                        className="w-full appearance-none bg-transparent pr-7 text-sm font-bold text-slate-800 outline-none disabled:cursor-not-allowed"
-                                                    >
-                                                        <option value="">
-                                                            No organization
-                                                        </option>
-
-                                                        {availableOrganizations.map(
-                                                            (organization) => (
-                                                                <option
-                                                                    key={
-                                                                        organization.id
-                                                                    }
-                                                                    value={
-                                                                        organization.id
-                                                                    }
-                                                                >
-                                                                    {
-                                                                        organization.name
-                                                                    }
-                                                                </option>
-                                                            ),
-                                                        )}
-                                                    </select>
-
-                                                    <ChevronDown
-                                                        size={15}
-                                                        className="pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 text-slate-400"
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {availableOrganizations.length ===
-                                            0 && (
-                                            <div className="border-t border-slate-200/70 px-4 py-2.5">
-                                                <p className="text-[10px] text-slate-400">
-                                                    No verified organizations
-                                                    are currently available.
-                                                </p>
-                                            </div>
-                                        )}
-                                    </div>
-                                </section>
-
-                                {/* =================================================
-                                    VOLUNTEERS
-                                ================================================= */}
-
-                                <section>
-                                    <div className="mb-3 flex items-end justify-between">
-                                        <div>
-                                            <p className="text-sm font-bold text-slate-900">
-                                                SP volunteers
-                                            </p>
-
-                                            <p className="mt-0.5 text-[10px] text-slate-400">
-                                                Select one or more volunteers
-                                            </p>
-                                        </div>
-
-                                        {selectedVolunteers.length > 0 && (
+                                        {hasSelectedVolunteer && (
                                             <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[9px] font-bold text-primary">
-                                                {selectedVolunteers.length}{' '}
-                                                selected
+                                                1 selected
                                             </span>
                                         )}
                                     </div>
@@ -481,13 +316,22 @@ const HelpRequestAssignmentModal = ({
                                             {volunteers.map((volunteer) => {
                                                 const volunteerId = String(
                                                     volunteer.user_id ??
-                                                        volunteer.user?.id,
+                                                        volunteer.user?.id ??
+                                                        volunteer.id,
                                                 );
 
                                                 const checked =
-                                                    selectedVolunteers.includes(
-                                                        volunteerId,
-                                                    );
+                                                    selectedVolunteer ===
+                                                    volunteerId;
+
+                                                const volunteerName =
+                                                    volunteer.name ||
+                                                    volunteer.user?.name ||
+                                                    'SP Volunteer';
+
+                                                const volunteerEmail =
+                                                    volunteer.email ||
+                                                    volunteer.user?.email;
 
                                                 return (
                                                     <label
@@ -503,10 +347,12 @@ const HelpRequestAssignmentModal = ({
                                                         }`}
                                                     >
                                                         <input
-                                                            type="checkbox"
+                                                            type="radio"
+                                                            name="campaign-volunteer"
+                                                            value={volunteerId}
                                                             checked={checked}
                                                             onChange={() =>
-                                                                handleVolunteerToggle(
+                                                                handleVolunteerSelect(
                                                                     volunteerId,
                                                                 )
                                                             }
@@ -528,21 +374,22 @@ const HelpRequestAssignmentModal = ({
 
                                                         <div className="min-w-0 flex-1">
                                                             <p className="truncate text-xs font-bold text-slate-900">
-                                                                {volunteer.name ||
-                                                                    volunteer
-                                                                        .user
-                                                                        ?.name ||
-                                                                    'SP Volunteer'}
+                                                                {volunteerName}
                                                             </p>
 
-                                                            {(volunteer.email ||
-                                                                volunteer.user
-                                                                    ?.email) && (
+                                                            {volunteerEmail && (
                                                                 <p className="mt-0.5 truncate text-[10px] text-slate-400">
-                                                                    {volunteer.email ||
-                                                                        volunteer
-                                                                            .user
-                                                                            ?.email}
+                                                                    {
+                                                                        volunteerEmail
+                                                                    }
+                                                                </p>
+                                                            )}
+
+                                                            {volunteer.district && (
+                                                                <p className="mt-0.5 truncate text-[10px] text-slate-400">
+                                                                    {
+                                                                        volunteer.district
+                                                                    }
                                                                 </p>
                                                             )}
                                                         </div>
@@ -574,8 +421,10 @@ const HelpRequestAssignmentModal = ({
                                             </p>
 
                                             <p className="mx-auto mt-1 max-w-xs text-[10px] leading-5 text-slate-400">
-                                                Only approved and available
-                                                volunteers can be assigned.
+                                                Only active, approved and
+                                                available volunteers without an
+                                                active campaign assignment can
+                                                be assigned.
                                             </p>
                                         </div>
                                     )}
@@ -587,19 +436,19 @@ const HelpRequestAssignmentModal = ({
 
                                 <div
                                     className={`relative overflow-hidden rounded-2xl p-4 transition-all ${
-                                        hasAssignmentTarget
+                                        hasSelectedVolunteer
                                             ? 'bg-primary text-white'
                                             : 'bg-slate-100 text-slate-500'
                                     }`}
                                 >
-                                    {hasAssignmentTarget && (
+                                    {hasSelectedVolunteer && (
                                         <div className="absolute -right-10 -top-16 h-32 w-32 rounded-full bg-white/8" />
                                     )}
 
                                     <div className="relative flex items-center gap-3">
                                         <div
                                             className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
-                                                hasAssignmentTarget
+                                                hasSelectedVolunteer
                                                     ? 'bg-white/15 text-white'
                                                     : 'bg-white text-slate-400'
                                             }`}
@@ -610,7 +459,7 @@ const HelpRequestAssignmentModal = ({
                                         <div className="min-w-0 flex-1">
                                             <p
                                                 className={`text-[9px] font-bold uppercase tracking-[0.13em] ${
-                                                    hasAssignmentTarget
+                                                    hasSelectedVolunteer
                                                         ? 'text-white/55'
                                                         : 'text-slate-400'
                                                 }`}
@@ -619,25 +468,19 @@ const HelpRequestAssignmentModal = ({
                                             </p>
 
                                             <p
-                                                className={`mt-1 text-xs font-bold ${
-                                                    hasAssignmentTarget
+                                                className={`mt-1 truncate text-xs font-bold ${
+                                                    hasSelectedVolunteer
                                                         ? 'text-white'
                                                         : 'text-slate-600'
                                                 }`}
                                             >
-                                                {selectedOrganization &&
-                                                selectedVolunteers.length > 0
-                                                    ? 'Organization + volunteers'
-                                                    : selectedOrganization
-                                                      ? 'Organization only'
-                                                      : selectedVolunteers.length >
-                                                          0
-                                                        ? `${selectedVolunteers.length} volunteer${selectedVolunteers.length > 1 ? 's' : ''} selected`
-                                                        : 'Nothing selected yet'}
+                                                {hasSelectedVolunteer
+                                                    ? '1 SP volunteer selected'
+                                                    : 'No volunteer selected'}
                                             </p>
                                         </div>
 
-                                        {hasAssignmentTarget && (
+                                        {hasSelectedVolunteer && (
                                             <Check
                                                 size={18}
                                                 className="shrink-0 text-emerald-200"
@@ -654,7 +497,7 @@ const HelpRequestAssignmentModal = ({
                                     <div className="mb-2.5 flex items-end justify-between">
                                         <div>
                                             <label
-                                                htmlFor="assignment-note"
+                                                htmlFor="campaign-assignment-note"
                                                 className="text-sm font-bold text-slate-900"
                                             >
                                                 Assignment note
@@ -671,7 +514,7 @@ const HelpRequestAssignmentModal = ({
                                     </div>
 
                                     <textarea
-                                        id="assignment-note"
+                                        id="campaign-assignment-note"
                                         value={assignmentNote}
                                         onChange={(event) =>
                                             setAssignmentNote(
@@ -681,10 +524,39 @@ const HelpRequestAssignmentModal = ({
                                         disabled={loading}
                                         rows={3}
                                         maxLength={1000}
-                                        placeholder="Add anything the assigned team should know..."
+                                        placeholder="Add anything the volunteer should know about this campaign..."
                                         className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs leading-5 text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/10 disabled:cursor-not-allowed disabled:opacity-60"
                                     />
                                 </section>
+
+                                {/* =================================================
+                                    BACKEND RULES
+                                ================================================= */}
+
+                                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5">
+                                    <div className="flex items-start gap-3">
+                                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-primary ring-1 ring-slate-200">
+                                            <ClipboardCheck
+                                                size={14}
+                                                strokeWidth={1.8}
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                                                Assignment requirements
+                                            </p>
+
+                                            <p className="mt-1 text-[10px] leading-5 text-slate-400">
+                                                The volunteer must be an active
+                                                individual user with an approved
+                                                SP volunteer profile, currently
+                                                available and without an active
+                                                campaign assignment.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -704,7 +576,7 @@ const HelpRequestAssignmentModal = ({
 
                             <button
                                 type="submit"
-                                disabled={loading || !hasAssignmentTarget}
+                                disabled={loading || !hasSelectedVolunteer}
                                 className="inline-flex h-10 min-w-38.75 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-white shadow-sm shadow-primary/20 transition-all hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-45"
                             >
                                 {loading && (
@@ -723,4 +595,4 @@ const HelpRequestAssignmentModal = ({
     );
 };
 
-export default HelpRequestAssignmentModal;
+export default CampaignAssignmentModal;

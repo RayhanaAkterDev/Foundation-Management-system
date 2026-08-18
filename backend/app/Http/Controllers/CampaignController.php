@@ -13,11 +13,7 @@ class CampaignController extends Controller
         $campaigns = Campaign::with([
             'organization:id,name',
         ])
-            ->whereIn('status', [
-                Campaign::STATUS_PUBLISHED,
-                Campaign::STATUS_ACTIVE,
-                Campaign::STATUS_IN_PROGRESS,
-            ])
+            ->where('status', Campaign::STATUS_ACTIVE)
             ->latest()
             ->get();
 
@@ -31,11 +27,7 @@ class CampaignController extends Controller
         $campaign = Campaign::with([
             'organization:id,name',
         ])
-            ->whereIn('status', [
-                Campaign::STATUS_PUBLISHED,
-                Campaign::STATUS_ACTIVE,
-                Campaign::STATUS_IN_PROGRESS,
-            ])
+            ->where('status', Campaign::STATUS_ACTIVE)
             ->find($id);
 
         if (!$campaign) {

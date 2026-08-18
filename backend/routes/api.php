@@ -209,6 +209,11 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     );
 
     Route::patch(
+        '/campaigns/{id}/status',
+        [AdminController::class, 'updateCampaignStatus']
+    );
+
+    Route::patch(
         '/campaigns/{id}/assignment',
         [AdminController::class, 'assignCampaignVolunteer']
     );

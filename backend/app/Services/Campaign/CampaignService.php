@@ -7,6 +7,12 @@ use Illuminate\Validation\ValidationException;
 
 class CampaignService
 {
+    /*
+    |--------------------------------------------------------------------------
+    | Create Local Case Campaign
+    |--------------------------------------------------------------------------
+    */
+
     public function createLocalCaseCampaign(array $data): Campaign
     {
         $this->validateLocalCaseData($data);
@@ -14,9 +20,15 @@ class CampaignService
         return Campaign::create([
             ...$data,
             'type' => Campaign::TYPE_LOCAL_CASE,
-            'status' => Campaign::STATUS_ACTIVE,
+            'status' => Campaign::STATUS_UNVERIFIED,
         ]);
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Create Organization-Proposed Campaign
+    |--------------------------------------------------------------------------
+    */
 
     public function proposeOrganizationCampaign(array $data): Campaign
     {
@@ -25,30 +37,46 @@ class CampaignService
         return Campaign::create([
             ...$data,
             'type' => Campaign::TYPE_ORGANIZATION_PROPOSED,
-            'status' => Campaign::STATUS_PENDING_REVIEW,
+            'status' => Campaign::STATUS_UNVERIFIED,
             'proposal_date' => now()->toDateString(),
         ]);
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Create Global Situation Campaign
+    |--------------------------------------------------------------------------
+    */
 
     public function createGlobalCampaign(array $data): Campaign
     {
         return Campaign::create([
             ...$data,
             'type' => Campaign::TYPE_GLOBAL_SITUATION,
-            'status' => Campaign::STATUS_ACTIVE,
+            'status' => Campaign::STATUS_UNVERIFIED,
         ]);
     }
 
-    public function approveOrganizationProposal(
+    /*
+    |--------------------------------------------------------------------------
+    | Verify Campaign
+    |--------------------------------------------------------------------------
+    |
+    | Verification is available for EVERY campaign type.
+    |
+    | unverified → active
+    |
+    */
+
+    public function verifyCampaign(
         Campaign $campaign,
         int $adminId,
         ?string $verificationNote = null
     ): Campaign {
-        $this->ensureOrganizationProposal($campaign);
 
-        if ($campaign->status !== Campaign::STATUS_PENDING_REVIEW) {
+        if ($campaign->status !== Campaign::STATUS_UNVERIFIED) {
             throw ValidationException::withMessages([
-                'status' => 'Only pending organization proposals can be approved.',
+                'status' => 'Only unverified campaigns can be verified.',
             ]);
         }
 
@@ -62,16 +90,26 @@ class CampaignService
         return $campaign->fresh();
     }
 
-    public function rejectOrganizationProposal(
+    /*
+    |--------------------------------------------------------------------------
+    | Reject Campaign
+    |--------------------------------------------------------------------------
+    |
+    | Verification is available for EVERY campaign type.
+    |
+    | unverified → rejected
+    |
+    */
+
+    public function rejectCampaign(
         Campaign $campaign,
         int $adminId,
         ?string $verificationNote = null
     ): Campaign {
-        $this->ensureOrganizationProposal($campaign);
 
-        if ($campaign->status !== Campaign::STATUS_PENDING_REVIEW) {
+        if ($campaign->status !== Campaign::STATUS_UNVERIFIED) {
             throw ValidationException::withMessages([
-                'status' => 'Only pending organization proposals can be rejected.',
+                'status' => 'Only unverified campaigns can be rejected.',
             ]);
         }
 
@@ -85,81 +123,81 @@ class CampaignService
         return $campaign->fresh();
     }
 
-    public function startCampaign(Campaign $campaign): Campaign
-    {
-        if (!in_array($campaign->status, [
-            Campaign::STATUS_ACTIVE,
-            Campaign::STATUS_PUBLISHED,
-        ], true)) {
+    /*
+    |--------------------------------------------------------------------------
+    | Update Campaign Status
+    |--------------------------------------------------------------------------
+    |
+    | After verification, Admin can update the operational status:
+    |
+    | active → completed
+    | active → cancelled
+    |
+    | Rejected campaigns cannot be changed through this method.
+    |
+    */
+
+    public function updateStatus(
+        Campaign $campaign,
+        string $status
+    ): Campaign {
+
+        $allowedTransitions = [
+            Campaign::STATUS_ACTIVE => [
+                Campaign::STATUS_COMPLETED,
+                Campaign::STATUS_CANCELLED,
+            ],
+        ];
+
+        $currentStatus = $campaign->status;
+
+        if (!isset($allowedTransitions[$currentStatus])) {
             throw ValidationException::withMessages([
-                'status' => 'Only published or active campaigns can be started.',
+                'status' => "Campaign with status '{$currentStatus}' cannot be updated.",
+            ]);
+        }
+
+        if (!in_array($status, $allowedTransitions[$currentStatus], true)) {
+            throw ValidationException::withMessages([
+                'status' => "Campaign cannot be changed from '{$currentStatus}' to '{$status}'.",
             ]);
         }
 
         $campaign->update([
-            'status' => Campaign::STATUS_IN_PROGRESS,
+            'status' => $status,
         ]);
 
         return $campaign->fresh();
     }
 
-    public function completeCampaign(Campaign $campaign): Campaign
-    {
-        if ($campaign->status !== Campaign::STATUS_IN_PROGRESS) {
-            throw ValidationException::withMessages([
-                'status' => 'Only campaigns in progress can be completed.',
-            ]);
-        }
-
-        $campaign->update([
-            'status' => Campaign::STATUS_COMPLETED,
-        ]);
-
-        return $campaign->fresh();
-    }
-
-    public function cancelCampaign(Campaign $campaign): Campaign
-    {
-        if (in_array($campaign->status, [
-            Campaign::STATUS_COMPLETED,
-            Campaign::STATUS_REJECTED,
-            Campaign::STATUS_CANCELLED,
-        ], true)) {
-            throw ValidationException::withMessages([
-                'status' => 'This campaign cannot be cancelled.',
-            ]);
-        }
-
-        $campaign->update([
-            'status' => Campaign::STATUS_CANCELLED,
-        ]);
-
-        return $campaign->fresh();
-    }
+    /*
+    |--------------------------------------------------------------------------
+    | Validate Local Case Campaign
+    |--------------------------------------------------------------------------
+    */
 
     private function validateLocalCaseData(array $data): void
     {
         if (empty($data['help_request_id'])) {
             throw ValidationException::withMessages([
-                'help_request_id' => 'A local case campaign must be linked to a help request.',
+                'help_request_id' =>
+                'A local case campaign must be linked to a help request.',
             ]);
         }
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Validate Organization-Proposed Campaign
+    |--------------------------------------------------------------------------
+    */
 
     private function validateOrganizationProposalData(array $data): void
     {
         if (empty($data['organization_id'])) {
             throw ValidationException::withMessages([
-                'organization_id' => 'An organization-proposed campaign must belong to an organization.',
-            ]);
-        }
-    }
-
-    private function ensureOrganizationProposal(Campaign $campaign): void
-    {
-        if ($campaign->type !== Campaign::TYPE_ORGANIZATION_PROPOSED) {
-            throw ValidationException::withMessages([
-                'type' => 'This action is only available for organization-proposed campaigns.',
+                'organization_id' =>
+                'An organization-proposed campaign must belong to an organization.',
             ]);
         }
     }

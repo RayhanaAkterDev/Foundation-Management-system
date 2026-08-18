@@ -12,12 +12,10 @@ class Campaign extends Model
     public const TYPE_ORGANIZATION_PROPOSED = 'organization_proposed';
     public const TYPE_GLOBAL_SITUATION = 'global_situation';
 
-    public const STATUS_PENDING_REVIEW = 'pending_review';
-    public const STATUS_PUBLISHED = 'published';
+    public const STATUS_UNVERIFIED = 'unverified';
     public const STATUS_ACTIVE = 'active';
-    public const STATUS_IN_PROGRESS = 'in_progress';
-    public const STATUS_COMPLETED = 'completed';
     public const STATUS_REJECTED = 'rejected';
+    public const STATUS_COMPLETED = 'completed';
     public const STATUS_CANCELLED = 'cancelled';
 
     protected $fillable = [
@@ -95,12 +93,10 @@ class Campaign extends Model
     public static function statuses(): array
     {
         return [
-            self::STATUS_PENDING_REVIEW,
-            self::STATUS_PUBLISHED,
+            self::STATUS_UNVERIFIED,
             self::STATUS_ACTIVE,
-            self::STATUS_IN_PROGRESS,
-            self::STATUS_COMPLETED,
             self::STATUS_REJECTED,
+            self::STATUS_COMPLETED,
             self::STATUS_CANCELLED,
         ];
     }

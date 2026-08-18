@@ -1545,10 +1545,15 @@ class AdminController extends Controller
         }
 
         $campaigns = Campaign::with([
-            'organization:id,name',
+            'organization:id,user_id,name,organization_type,registration_number,phone,website,address,mission',
+            'organization.user:id,name,email',
+
             'creator:id,name,email',
+
             'verifier:id,name,email',
-            'helpRequest:id,title,status',
+
+            'helpRequest:id,user_id,title,description,category,urgency,status,location,created_at',
+            'helpRequest.user:id,name,email',
         ])
             ->latest()
             ->get();
@@ -1606,26 +1611,29 @@ class AdminController extends Controller
                 \App\Services\Campaign\CampaignService::class
             );
 
-            if ($validated['status'] === 'active') {
-                $campaign = $campaignService->approveOrganizationProposal(
+            if ($validated['status'] === Campaign::STATUS_ACTIVE) {
+
+                $campaign = $campaignService->verifyCampaign(
                     $campaign,
                     $user->id,
                     $validated['verification_note'] ?? null
                 );
 
                 return response()->json([
-                    'message' => 'Campaign approved successfully.',
+                    'message' => 'Campaign verified successfully.',
+
                     'campaign' => $campaign
                         ->fresh()
                         ->load([
                             'organization:id,name',
                             'creator:id,name,email',
                             'verifier:id,name,email',
+                            'helpRequest:id,title,status',
                         ]),
                 ]);
             }
 
-            $campaign = $campaignService->rejectOrganizationProposal(
+            $campaign = $campaignService->rejectCampaign(
                 $campaign,
                 $user->id,
                 $validated['verification_note'] ?? null
@@ -1633,17 +1641,81 @@ class AdminController extends Controller
 
             return response()->json([
                 'message' => 'Campaign rejected successfully.',
+
                 'campaign' => $campaign
                     ->fresh()
                     ->load([
                         'organization:id,name',
                         'creator:id,name,email',
                         'verifier:id,name,email',
+                        'helpRequest:id,title,status',
+                    ]),
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+
+            return response()->json([
+                'message' => 'Campaign verification failed.',
+                'errors' => $e->errors(),
+            ], 422);
+        }
+    }
+
+    /*
+|--------------------------------------------------------------------------
+| Campaigns - Update Status
+|--------------------------------------------------------------------------
+*/
+
+    public function updateCampaignStatus(
+        Request $request,
+        int $id
+    ) {
+        $user = $this->authorizeAdmin($request);
+
+        if ($user instanceof \Illuminate\Http\JsonResponse) {
+            return $user;
+        }
+
+        $campaign = Campaign::find($id);
+
+        if (!$campaign) {
+            return response()->json([
+                'message' => 'Campaign not found.',
+            ], 404);
+        }
+
+        $validated = $request->validate([
+            'status' => [
+                'required',
+                'in:completed,cancelled',
+            ],
+        ]);
+
+        try {
+            $campaignService = app(
+                \App\Services\Campaign\CampaignService::class
+            );
+
+            $campaign = $campaignService->updateStatus(
+                $campaign,
+                $validated['status']
+            );
+
+            return response()->json([
+                'message' => 'Campaign status updated successfully.',
+
+                'campaign' => $campaign
+                    ->fresh()
+                    ->load([
+                        'organization:id,name',
+                        'creator:id,name,email',
+                        'verifier:id,name,email',
+                        'helpRequest:id,title,status',
                     ]),
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
-                'message' => 'Campaign verification failed.',
+                'message' => 'Campaign status update failed.',
                 'errors' => $e->errors(),
             ], 422);
         }
@@ -1693,13 +1765,10 @@ class AdminController extends Controller
     |--------------------------------------------------------------------------
     */
 
-        if (!in_array($campaign->status, [
-            Campaign::STATUS_ACTIVE,
-            Campaign::STATUS_IN_PROGRESS,
-        ], true)) {
+        if ($campaign->status !== Campaign::STATUS_ACTIVE) {
             return response()->json([
                 'message' =>
-                'Only active or in-progress campaigns can have volunteers assigned.',
+                'Only active campaigns can have volunteers assigned.',
             ], 422);
         }
 

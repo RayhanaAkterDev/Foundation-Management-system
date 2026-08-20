@@ -18,15 +18,12 @@ const CampaignVerificationModal = ({
     onConfirm,
 }) => {
     const [selectedStatus, setSelectedStatus] = useState(null);
+
     const [verificationNote, setVerificationNote] = useState('');
 
     if (!campaign) {
         return null;
     }
-
-    // --------------------------------
-    // Campaign verification options
-    // --------------------------------
 
     const options = [
         {
@@ -42,6 +39,7 @@ const CampaignVerificationModal = ({
             iconClass: 'bg-emerald-100 text-emerald-600',
             selectedIconClass: 'bg-emerald-600 text-white',
         },
+
         {
             status: 'rejected',
             label: 'Reject campaign',
@@ -56,15 +54,11 @@ const CampaignVerificationModal = ({
         },
     ];
 
-    // --------------------------------
-    // Current campaign status
-    // --------------------------------
+    const currentStatus = campaign.status || 'pending_review';
 
-    const currentStatus = campaign.status || 'pending';
+    const isRejecting = selectedStatus === 'rejected';
 
-    // --------------------------------
-    // Select decision
-    // --------------------------------
+    const rejectionNoteMissing = isRejecting && !verificationNote.trim();
 
     const handleSelectStatus = (status) => {
         if (loading) {
@@ -74,10 +68,6 @@ const CampaignVerificationModal = ({
         setSelectedStatus(status);
     };
 
-    // --------------------------------
-    // Confirm decision
-    // --------------------------------
-
     const handleConfirm = () => {
         if (loading || !selectedStatus) {
             return;
@@ -85,7 +75,6 @@ const CampaignVerificationModal = ({
 
         const note = verificationNote.trim();
 
-        // Backend requires a verification note when rejecting.
         if (selectedStatus === 'rejected' && !note) {
             return;
         }
@@ -95,10 +84,6 @@ const CampaignVerificationModal = ({
             verification_note: note || null,
         });
     };
-
-    // --------------------------------
-    // Close modal
-    // --------------------------------
 
     const handleClose = () => {
         if (loading) {
@@ -111,31 +96,15 @@ const CampaignVerificationModal = ({
         onClose();
     };
 
-    // --------------------------------
-    // Note change
-    // --------------------------------
-
-    const handleNoteChange = (event) => {
-        setVerificationNote(event.target.value);
-    };
-
-    const isRejecting = selectedStatus === 'rejected';
-
-    const rejectionNoteMissing = isRejecting && !verificationNote.trim();
-
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-[5px] sm:p-6">
-            {/* Overlay */}
-
             <div
                 className="absolute inset-0"
                 onClick={!loading ? handleClose : undefined}
             />
 
             <div className="relative z-10 w-full max-w-140 overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_30px_100px_rgba(15,23,42,0.24)]">
-                {/* --------------------------------
-                    Header
-                -------------------------------- */}
+                {/* Header */}
 
                 <div className="relative px-6 pb-6 pt-6 sm:px-7 sm:pt-7">
                     <div className="absolute inset-x-0 top-0 h-1 bg-primary" />
@@ -172,9 +141,7 @@ const CampaignVerificationModal = ({
                     </div>
                 </div>
 
-                {/* --------------------------------
-                    Campaign
-                -------------------------------- */}
+                {/* Campaign */}
 
                 <div className="mx-6 border-y border-slate-100 py-5 sm:mx-7">
                     <div className="flex items-end justify-between gap-4">
@@ -194,9 +161,7 @@ const CampaignVerificationModal = ({
                     </div>
                 </div>
 
-                {/* --------------------------------
-                    Decision
-                -------------------------------- */}
+                {/* Decision */}
 
                 <div className="px-6 py-6 sm:px-7 sm:py-7">
                     <div className="mb-4">
@@ -210,8 +175,6 @@ const CampaignVerificationModal = ({
                         </p>
                     </div>
 
-                    {/* Error */}
-
                     {error && (
                         <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
                             <p className="text-xs font-semibold text-red-700">
@@ -223,8 +186,6 @@ const CampaignVerificationModal = ({
                             </p>
                         </div>
                     )}
-
-                    {/* Decision options */}
 
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                         {options.map((option) => {
@@ -262,7 +223,7 @@ const CampaignVerificationModal = ({
                                         </span>
 
                                         <span
-                                            className={`h-5 w-5 rounded-full border-2 ${
+                                            className={`flex h-5 w-5 items-center justify-center rounded-full border-2 ${
                                                 isSelected
                                                     ? option.status === 'active'
                                                         ? 'border-emerald-500 bg-emerald-500'
@@ -271,7 +232,7 @@ const CampaignVerificationModal = ({
                                             }`}
                                         >
                                             {isSelected && (
-                                                <span className="mx-auto mt-1.25 block h-1.5 w-1.5 rounded-full bg-white" />
+                                                <span className="block h-1.5 w-1.5 rounded-full bg-white" />
                                             )}
                                         </span>
                                     </div>
@@ -288,9 +249,7 @@ const CampaignVerificationModal = ({
                         })}
                     </div>
 
-                    {/* --------------------------------
-                        Verification note
-                    -------------------------------- */}
+                    {/* Note */}
 
                     <div className="mt-5">
                         <div className="mb-2 flex items-center gap-2">
@@ -316,7 +275,9 @@ const CampaignVerificationModal = ({
                         <textarea
                             id="verification-note"
                             value={verificationNote}
-                            onChange={handleNoteChange}
+                            onChange={(event) =>
+                                setVerificationNote(event.target.value)
+                            }
                             disabled={loading}
                             rows={3}
                             placeholder={
@@ -340,13 +301,11 @@ const CampaignVerificationModal = ({
                     </div>
                 </div>
 
-                {/* --------------------------------
-                    Footer
-                -------------------------------- */}
+                {/* Footer */}
 
                 <div className="flex items-center justify-between border-t border-slate-100 bg-slate-50/70 px-6 py-4 sm:px-7">
                     <p className="hidden text-[11px] text-slate-400 sm:block">
-                        {selectedStatus === 'rejected'
+                        {isRejecting
                             ? 'A rejection note is required.'
                             : 'Select a decision to continue.'}
                     </p>
@@ -370,7 +329,7 @@ const CampaignVerificationModal = ({
                             }
                             onClick={handleConfirm}
                             className={`inline-flex h-10 items-center gap-2 rounded-xl px-5 text-sm font-semibold text-white shadow-sm transition-all disabled:cursor-not-allowed disabled:opacity-50 ${
-                                selectedStatus === 'rejected'
+                                isRejecting
                                     ? 'bg-red-600 shadow-red-600/20 hover:bg-red-700'
                                     : 'bg-primary shadow-primary/20 hover:bg-primary-hover'
                             }`}
@@ -383,7 +342,7 @@ const CampaignVerificationModal = ({
                                     />
                                     Processing...
                                 </>
-                            ) : selectedStatus === 'rejected' ? (
+                            ) : isRejecting ? (
                                 <>
                                     <CircleX size={16} />
                                     Reject Campaign

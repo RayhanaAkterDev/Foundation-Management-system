@@ -1,86 +1,90 @@
-import { apiRequest } from '@/api/client';
+const API_BASE_URL =
+    import.meta.env.VITE_API_URL ||
+    'http://127.0.0.1:8000/api';
 
-// --------------------------------
-// Campaigns - Admin List
-// --------------------------------
+const getAuthHeaders = () => {
+    const token =
+    sessionStorage.getItem('auth_token');
 
-export const fetchCampaigns = async () => {
-    return apiRequest('/admin/campaigns');
+    return {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        ...(token
+            ? {
+                  Authorization: `Bearer ${token}`,
+              }
+            : {}),
+    };
 };
 
 // --------------------------------
-// Campaigns - View
+// Fetch campaigns
 // --------------------------------
 
-export const fetchCampaign = async (campaignId) => {
-    return apiRequest(`/admin/campaigns/${campaignId}`);
-};
+export const fetchCampaigns =
+    async () => {
+        const response = await fetch(
+            `${API_BASE_URL}/admin/campaigns`,
+            {
+                method: 'GET',
+                headers:
+                    getAuthHeaders(),
+            },
+        );
+
+        const data =
+            await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data?.message ||
+                    'Failed to fetch campaigns.',
+            );
+        }
+
+        return data;
+    };
 
 // --------------------------------
-// Campaigns - Verify / Reject
+// Verify campaign
 // --------------------------------
 
-export const updateCampaignVerification = async (
-    campaignId,
-    status,
-    verificationNote = null,
-) => {
-    return apiRequest(
-        `/admin/campaigns/${campaignId}/verification`,
-        {
-            method: 'PATCH',
-            body: JSON.stringify({
-                status,
-                verification_note: verificationNote,
-            }),
-        },
-    );
-};
+export const verifyCampaign =
+    async (
+        campaignId,
+        payload,
+    ) => {
+        const response = await fetch(
+            `${API_BASE_URL}/admin/campaigns/${campaignId}/verification`,
+            {
+                method: 'PATCH',
+                headers:
+                    getAuthHeaders(),
+                body: JSON.stringify(
+                    payload,
+                ),
+            },
+        );
 
-// --------------------------------
-// Campaigns - Volunteer Assignment
-// --------------------------------
+        const data =
+            await response.json();
 
-export const assignCampaignVolunteers = async (
-    campaignId,
-    volunteerIds,
-) => {
-    return apiRequest(
-        `/admin/campaigns/${campaignId}/volunteers`,
-        {
-            method: 'PATCH',
-            body: JSON.stringify({
-                volunteer_ids: volunteerIds,
-            }),
-        },
-    );
-};
+        if (!response.ok) {
+            const validationMessage =
+                data?.errors
+                    ? Object.values(
+                          data.errors,
+                      )
+                          .flat()
+                          .join(' ')
+                    : null;
 
-// --------------------------------
-// Campaigns - Complete
-// --------------------------------
+            throw new Error(
+                validationMessage ||
+                    data?.message ||
+                    'Campaign verification failed.',
+            );
+        }
 
-export const completeCampaign = async (campaignId) => {
-    return apiRequest(
-        `/admin/campaigns/${campaignId}/completion`,
-        {
-            method: 'PATCH',
-        },
-    );
-};
-
-// --------------------------------
-// Volunteers - Admin List
-// --------------------------------
-
-export const fetchVolunteers = async () => {
-    return apiRequest('/admin/volunteers');
-};
-
-// --------------------------------
-// Organizations - Admin List
-// --------------------------------
-
-export const fetchOrganizations = async () => {
-    return apiRequest('/admin/organizations');
-};
+        return data;
+    };

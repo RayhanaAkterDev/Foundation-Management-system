@@ -1552,7 +1552,7 @@ class AdminController extends Controller
 
             'verifier:id,name,email',
 
-            'helpRequest:id,user_id,title,description,category,urgency,status,location,created_at',
+            'helpRequest:id,user_id,title,description,category,urgency,status,district,address,created_at',
             'helpRequest.user:id,name,email',
         ])
             ->latest()

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ArrowDown, ArrowUp, ChevronsUpDown, Download } from 'lucide-react';
 
 import PageHeader from '@/components/dashboard/PageHeader';
@@ -9,38 +9,58 @@ import CampaignFilters from './campaigns/CampaignFilters';
 import CampaignTable from './campaigns/CampaignTable';
 import CampaignPagination from './campaigns/CampaignPagination';
 import CampaignViewModal from './campaigns/CampaignViewModal';
+import CampaignVerificationModal from './campaigns/CampaignVerificationModal';
 
-import { fetchCampaigns } from './campaigns/campaignsAPI';
+import { fetchCampaigns, verifyCampaign } from './campaigns/campaignsAPI';
 
 const CAMPAIGNS_PER_PAGE = 25;
 
 const AdminCampaigns = () => {
     const [campaigns, setCampaigns] = useState([]);
+
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
     // --------------------------------
-    // Selected campaign / View modal
+    // Selected campaign
     // --------------------------------
 
     const [selectedCampaign, setSelectedCampaign] = useState(null);
 
+    const [verificationCampaign, setVerificationCampaign] = useState(null);
+
+    const [verificationLoading, setVerificationLoading] = useState(false);
+
+    const [verificationError, setVerificationError] = useState('');
+
     // --------------------------------
-    // Filters / Search / Sorting
+    // Filters
     // --------------------------------
 
     const [activeCategory, setActiveCategory] = useState('all');
+
     const [searchTerm, setSearchTerm] = useState('');
 
     const [typeFilter, setTypeFilter] = useState('all');
+
     const [categoryFilter, setCategoryFilter] = useState('all');
+
     const [organizationFilter, setOrganizationFilter] = useState('all');
+
     const [statusFilter, setStatusFilter] = useState('all');
+
+    // --------------------------------
+    // Sorting
+    // --------------------------------
 
     const [sortConfig, setSortConfig] = useState({
         key: 'created_at',
         direction: 'desc',
     });
+
+    // --------------------------------
+    // Pagination
+    // --------------------------------
 
     const [currentPage, setCurrentPage] = useState(1);
 
@@ -48,10 +68,27 @@ const AdminCampaigns = () => {
     // Load campaigns
     // --------------------------------
 
+    const loadCampaigns = useCallback(async () => {
+        try {
+            setLoading(true);
+            setError('');
+
+            const data = await fetchCampaigns();
+
+            setCampaigns(data?.campaigns || data?.data || []);
+        } catch (err) {
+            setError(
+                err?.message || 'Something went wrong while loading campaigns.',
+            );
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
     useEffect(() => {
         let cancelled = false;
 
-        const loadAdminData = async () => {
+        const load = async () => {
             try {
                 setLoading(true);
                 setError('');
@@ -62,11 +99,11 @@ const AdminCampaigns = () => {
                     return;
                 }
 
-                setCampaigns(data.campaigns || data.data || []);
+                setCampaigns(data?.campaigns || data?.data || []);
             } catch (err) {
                 if (!cancelled) {
                     setError(
-                        err.message ||
+                        err?.message ||
                             'Something went wrong while loading campaigns.',
                     );
                 }
@@ -77,7 +114,7 @@ const AdminCampaigns = () => {
             }
         };
 
-        loadAdminData();
+        load();
 
         return () => {
             cancelled = true;
@@ -93,7 +130,9 @@ const AdminCampaigns = () => {
             total: campaigns.length,
 
             pending: campaigns.filter(
-                (campaign) => campaign.status === 'pending_review',
+                (campaign) =>
+                    campaign.status === 'pending_review' ||
+                    campaign.status === 'unverified',
             ).length,
 
             active: campaigns.filter(
@@ -148,7 +187,7 @@ const AdminCampaigns = () => {
     );
 
     // --------------------------------
-    // Filtering + Sorting
+    // Filtering + sorting
     // --------------------------------
 
     const filteredCampaigns = useMemo(() => {
@@ -159,7 +198,13 @@ const AdminCampaigns = () => {
         // --------------------------------
 
         if (activeCategory !== 'all') {
-            if (activeCategory === 'active') {
+            if (activeCategory === 'pending_review') {
+                result = result.filter(
+                    (campaign) =>
+                        campaign.status === 'pending_review' ||
+                        campaign.status === 'unverified',
+                );
+            } else if (activeCategory === 'active') {
                 result = result.filter(
                     (campaign) =>
                         campaign.status === 'active' ||
@@ -221,7 +266,9 @@ const AdminCampaigns = () => {
         if (search) {
             result = result.filter((campaign) => {
                 const title = campaign.title || '';
+
                 const description = campaign.description || '';
+
                 const category = campaign.category || '';
 
                 const organizationName = campaign.organization?.name || '';
@@ -248,25 +295,28 @@ const AdminCampaigns = () => {
 
         result.sort((a, b) => {
             let first = a[sortConfig.key];
+
             let second = b[sortConfig.key];
 
             // Dates
 
             if (
-                sortConfig.key === 'created_at' ||
-                sortConfig.key === 'start_date' ||
-                sortConfig.key === 'end_date' ||
-                sortConfig.key === 'proposal_date'
+                [
+                    'created_at',
+                    'start_date',
+                    'end_date',
+                    'proposal_date',
+                ].includes(sortConfig.key)
             ) {
                 first = first ? new Date(first).getTime() : 0;
+
                 second = second ? new Date(second).getTime() : 0;
             }
 
-            // Numeric values
+            // Numbers
 
             if (
-                sortConfig.key === 'target_amount' ||
-                sortConfig.key === 'collected_amount'
+                ['target_amount', 'collected_amount'].includes(sortConfig.key)
             ) {
                 first = Number(first || 0);
                 second = Number(second || 0);
@@ -277,6 +327,7 @@ const AdminCampaigns = () => {
 
             if (typeof first === 'string') {
                 first = first.toLowerCase();
+
                 second = String(second).toLowerCase();
             }
 
@@ -393,15 +444,51 @@ const AdminCampaigns = () => {
             return <ArrowUp size={14} strokeWidth={2} />;
         }
 
-        if (sortConfig.direction === 'desc') {
-            return <ArrowDown size={14} strokeWidth={2} />;
-        }
-
-        return <ChevronsUpDown size={14} strokeWidth={1.8} />;
+        return <ArrowDown size={14} strokeWidth={2} />;
     };
 
     // --------------------------------
-    // CSV Export
+    // Open verification modal
+    // --------------------------------
+
+    const handleReview = (campaign) => {
+        setVerificationError('');
+        setVerificationCampaign(campaign);
+    };
+
+    // --------------------------------
+    // Verify campaign
+    // --------------------------------
+
+    const handleVerificationConfirm = async ({ status, verification_note }) => {
+        if (!verificationCampaign) {
+            return;
+        }
+
+        try {
+            setVerificationLoading(true);
+
+            setVerificationError('');
+
+            await verifyCampaign(verificationCampaign.id, {
+                status,
+                verification_note,
+            });
+
+            setVerificationCampaign(null);
+
+            await loadCampaigns();
+        } catch (err) {
+            setVerificationError(
+                err?.message || 'Campaign verification failed.',
+            );
+        } finally {
+            setVerificationLoading(false);
+        }
+    };
+
+    // --------------------------------
+    // CSV export
     // --------------------------------
 
     const handleExportCSV = () => {
@@ -423,16 +510,24 @@ const AdminCampaigns = () => {
 
         const csvRows = filteredCampaigns.map((campaign) => [
             campaign.title || '',
+
             campaign.type || '',
+
             campaign.organization?.name ||
                 (campaign.type === 'global_situation'
                     ? 'Stand For People'
                     : ''),
+
             campaign.category || '',
+
             campaign.location || campaign.district || '',
+
             campaign.target_amount ?? '',
+
             campaign.collected_amount ?? 0,
+
             campaign.status || '',
+
             campaign.start_date
                 ? new Date(campaign.start_date).toLocaleDateString()
                 : '',
@@ -468,225 +563,6 @@ const AdminCampaigns = () => {
 
         URL.revokeObjectURL(url);
     };
-
-    // --------------------------------
-    // Table rows
-    // --------------------------------
-
-    const rows = paginatedCampaigns.map((campaign, index) => ({
-        ...campaign,
-
-        serialNumber: (safeCurrentPage - 1) * CAMPAIGNS_PER_PAGE + index + 1,
-
-        organizationName:
-            campaign.organization?.name ||
-            (campaign.type === 'global_situation' ? 'Stand For People' : '—'),
-
-        campaignType:
-            campaign.type === 'global_situation'
-                ? 'Global Situation'
-                : campaign.type === 'organization_proposed'
-                  ? 'Organization Proposed'
-                  : campaign.type === 'local_case'
-                    ? 'Local Case'
-                    : campaign.type || '—',
-
-        locationName:
-            campaign.location || campaign.district || 'Location not specified',
-
-        target:
-            campaign.target_amount !== null &&
-            campaign.target_amount !== undefined
-                ? `৳${Number(campaign.target_amount).toLocaleString()}`
-                : '—',
-
-        collected: `৳${Number(
-            campaign.collected_amount || 0,
-        ).toLocaleString()}`,
-    }));
-
-    // --------------------------------
-    // Table columns
-    // --------------------------------
-
-    const columns = [
-        {
-            key: 'serialNumber',
-            header: '#',
-            align: 'center',
-            width: '60px',
-        },
-
-        // --------------------------------
-        // Campaign
-        // --------------------------------
-
-        {
-            key: 'title',
-            header: 'Campaign',
-            sortable: true,
-            sortKey: 'title',
-
-            render: (value, row) => (
-                <div className="min-w-0 max-w-90">
-                    <p className="truncate font-semibold text-text-primary">
-                        {value || 'Untitled campaign'}
-                    </p>
-
-                    {row.description && (
-                        <p className="mt-1 line-clamp-2 text-xs leading-5 text-text-secondary">
-                            {row.description}
-                        </p>
-                    )}
-
-                    <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1">
-                        {row.category && (
-                            <span className="inline-flex items-center rounded-full bg-background-alt px-2 py-0.5 text-[10px] font-semibold capitalize text-text-secondary">
-                                {row.category}
-                            </span>
-                        )}
-
-                        {row.locationName &&
-                            row.locationName !== 'Location not specified' && (
-                                <>
-                                    <span className="text-[10px] text-slate-300">
-                                        •
-                                    </span>
-
-                                    <span className="truncate text-[10px] font-medium text-text-secondary">
-                                        {row.locationName}
-                                    </span>
-                                </>
-                            )}
-                    </div>
-                </div>
-            ),
-        },
-
-        // --------------------------------
-        // Type
-        // --------------------------------
-
-        {
-            key: 'campaignType',
-            header: 'Type',
-            sortable: true,
-            sortKey: 'type',
-
-            render: (value) => (
-                <span className="text-sm font-medium text-text-primary">
-                    {value}
-                </span>
-            ),
-        },
-
-        // --------------------------------
-        // Organization
-        // --------------------------------
-
-        {
-            key: 'organizationName',
-            header: 'Organization',
-
-            render: (value) => (
-                <span className="font-medium text-text-primary">{value}</span>
-            ),
-        },
-
-        // --------------------------------
-        // Target Amount
-        // --------------------------------
-
-        {
-            key: 'target',
-            header: 'Target Amount',
-            align: 'right',
-            sortable: true,
-            sortKey: 'target_amount',
-
-            render: (value) => (
-                <span className="whitespace-nowrap font-semibold text-text-primary">
-                    {value}
-                </span>
-            ),
-        },
-
-        // --------------------------------
-        // Collected
-        // --------------------------------
-
-        {
-            key: 'collected',
-            header: 'Collected',
-            align: 'right',
-            sortable: true,
-            sortKey: 'collected_amount',
-
-            render: (value) => (
-                <span className="whitespace-nowrap font-semibold text-text-primary">
-                    {value}
-                </span>
-            ),
-        },
-
-        // --------------------------------
-        // Status
-        // --------------------------------
-
-        {
-            key: 'status',
-            header: 'Status',
-            sortable: true,
-            sortKey: 'status',
-        },
-
-        // --------------------------------
-        // Actions
-        // --------------------------------
-
-        {
-            key: 'id',
-            header: 'Actions',
-            align: 'right',
-
-            render: (_, row) => (
-                <div className="flex items-center justify-end gap-4">
-                    {/* View */}
-
-                    <button
-                        type="button"
-                        onClick={() => setSelectedCampaign(row)}
-                        className="text-xs font-semibold text-text-secondary transition-colors hover:text-primary"
-                    >
-                        View
-                    </button>
-
-                    {/* Review */}
-
-                    {row.status === 'pending_review' && (
-                        <button
-                            type="button"
-                            className="text-xs font-semibold text-primary transition-colors hover:text-primary-hover"
-                        >
-                            Review
-                        </button>
-                    )}
-
-                    {/* Monitor */}
-
-                    {(row.status === 'active' ||
-                        row.status === 'in_progress') && (
-                        <button
-                            type="button"
-                            className="text-xs font-semibold text-text-secondary transition-colors hover:text-primary"
-                        >
-                            Monitor
-                        </button>
-                    )}
-                </div>
-            ),
-        },
-    ];
 
     // --------------------------------
     // Loading
@@ -737,8 +613,191 @@ const AdminCampaigns = () => {
     }
 
     // --------------------------------
-    // Render
+    // Table rows
     // --------------------------------
+
+    const rows = paginatedCampaigns.map((campaign, index) => ({
+        ...campaign,
+
+        serialNumber: (safeCurrentPage - 1) * CAMPAIGNS_PER_PAGE + index + 1,
+
+        organizationName:
+            campaign.organization?.name ||
+            (campaign.type === 'global_situation' ? 'Stand For People' : '—'),
+
+        campaignType:
+            campaign.type === 'global_situation'
+                ? 'Global Situation'
+                : campaign.type === 'organization_proposed'
+                  ? 'Organization Proposed'
+                  : campaign.type === 'local_case'
+                    ? 'Local Case'
+                    : campaign.type || '—',
+
+        locationName:
+            campaign.location || campaign.district || 'Location not specified',
+
+        target:
+            campaign.target_amount !== null &&
+            campaign.target_amount !== undefined
+                ? `৳${Number(campaign.target_amount).toLocaleString()}`
+                : '—',
+
+        collected: `৳${Number(
+            campaign.collected_amount || 0,
+        ).toLocaleString()}`,
+    }));
+
+    // --------------------------------
+    // Columns
+    // --------------------------------
+
+    const columns = [
+        {
+            key: 'serialNumber',
+            header: '#',
+            align: 'center',
+            width: '60px',
+        },
+
+        {
+            key: 'title',
+            header: 'Campaign',
+            sortable: true,
+            sortKey: 'title',
+
+            render: (value, row) => (
+                <div className="min-w-0 max-w-90">
+                    <p className="truncate font-semibold text-text-primary">
+                        {value || 'Untitled campaign'}
+                    </p>
+
+                    {row.description && (
+                        <p className="mt-1 line-clamp-2 text-xs leading-5 text-text-secondary">
+                            {row.description}
+                        </p>
+                    )}
+
+                    <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1">
+                        {row.category && (
+                            <span className="inline-flex items-center rounded-full bg-background-alt px-2 py-0.5 text-[10px] font-semibold capitalize text-text-secondary">
+                                {row.category}
+                            </span>
+                        )}
+
+                        {row.locationName &&
+                            row.locationName !== 'Location not specified' && (
+                                <>
+                                    <span className="text-[10px] text-slate-300">
+                                        •
+                                    </span>
+
+                                    <span className="truncate text-[10px] font-medium text-text-secondary">
+                                        {row.locationName}
+                                    </span>
+                                </>
+                            )}
+                    </div>
+                </div>
+            ),
+        },
+
+        {
+            key: 'campaignType',
+            header: 'Type',
+            sortable: true,
+            sortKey: 'type',
+
+            render: (value) => (
+                <span className="text-sm font-medium text-text-primary">
+                    {value}
+                </span>
+            ),
+        },
+
+        {
+            key: 'organizationName',
+            header: 'Organization',
+
+            render: (value) => (
+                <span className="font-medium text-text-primary">{value}</span>
+            ),
+        },
+
+        {
+            key: 'target',
+            header: 'Target Amount',
+            align: 'right',
+            sortable: true,
+            sortKey: 'target_amount',
+
+            render: (value) => (
+                <span className="whitespace-nowrap font-semibold text-text-primary">
+                    {value}
+                </span>
+            ),
+        },
+
+        {
+            key: 'collected',
+            header: 'Collected',
+            align: 'right',
+            sortable: true,
+            sortKey: 'collected_amount',
+
+            render: (value) => (
+                <span className="whitespace-nowrap font-semibold text-text-primary">
+                    {value}
+                </span>
+            ),
+        },
+
+        {
+            key: 'status',
+            header: 'Status',
+            sortable: true,
+            sortKey: 'status',
+        },
+
+        {
+            key: 'id',
+            header: 'Actions',
+            align: 'right',
+
+            render: (_, row) => (
+                <div className="flex items-center justify-end gap-4">
+                    <button
+                        type="button"
+                        onClick={() => setSelectedCampaign(row)}
+                        className="text-xs font-semibold text-text-secondary transition-colors hover:text-primary"
+                    >
+                        View
+                    </button>
+
+                    {(row.status === 'pending_review' ||
+                        row.status === 'unverified') && (
+                        <button
+                            type="button"
+                            onClick={() => handleReview(row)}
+                            className="text-xs font-semibold text-primary transition-colors hover:text-primary-hover"
+                        >
+                            Review
+                        </button>
+                    )}
+
+                    {(row.status === 'active' ||
+                        row.status === 'in_progress') && (
+                        <button
+                            type="button"
+                            className="text-xs font-semibold text-text-secondary transition-colors hover:text-primary"
+                        >
+                            Monitor
+                        </button>
+                    )}
+                </div>
+            ),
+        },
+    ];
 
     return (
         <div className="space-y-9">
@@ -757,10 +816,6 @@ const AdminCampaigns = () => {
                     </button>
                 }
             />
-
-            {/* --------------------------------
-                Campaign Overview
-            -------------------------------- */}
 
             <section>
                 <div className="mb-4 flex items-end justify-between">
@@ -788,10 +843,6 @@ const AdminCampaigns = () => {
                 />
             </section>
 
-            {/* --------------------------------
-                Campaign Management
-            -------------------------------- */}
-
             <section className="border-t border-border pt-8">
                 <div className="mb-5">
                     <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
@@ -799,11 +850,9 @@ const AdminCampaigns = () => {
                     </p>
 
                     <div className="mt-1 flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
-                        <div>
-                            <h2 className="text-lg font-bold tracking-tight text-text-primary">
-                                Campaign management
-                            </h2>
-                        </div>
+                        <h2 className="text-lg font-bold tracking-tight text-text-primary">
+                            Campaign management
+                        </h2>
 
                         <p className="text-xs font-medium text-text-secondary">
                             {filteredCampaigns.length}{' '}
@@ -815,15 +864,11 @@ const AdminCampaigns = () => {
                     </div>
                 </div>
 
-                {/* Status Tabs */}
-
                 <CampaignCategoryTabs
                     tabs={categoryTabs}
                     activeCategory={activeCategory}
                     onChange={handleCategoryChange}
                 />
-
-                {/* Filters */}
 
                 <div className="mt-4">
                     <CampaignFilters
@@ -841,18 +886,15 @@ const AdminCampaigns = () => {
                     />
                 </div>
 
-                {/* Table */}
-
                 <div className="mt-5">
                     <CampaignTable
                         columns={columns}
                         rows={rows}
                         onSort={handleSort}
                         getSortIcon={getSortIcon}
+                        resultCount={filteredCampaigns.length}
                     />
                 </div>
-
-                {/* Pagination */}
 
                 {filteredCampaigns.length > 0 && (
                     <CampaignPagination
@@ -865,14 +907,26 @@ const AdminCampaigns = () => {
                 )}
             </section>
 
-            {/* --------------------------------
-                Campaign View Modal
-            -------------------------------- */}
-
             {selectedCampaign && (
                 <CampaignViewModal
                     campaign={selectedCampaign}
                     onClose={() => setSelectedCampaign(null)}
+                />
+            )}
+
+            {verificationCampaign && (
+                <CampaignVerificationModal
+                    campaign={verificationCampaign}
+                    loading={verificationLoading}
+                    error={verificationError}
+                    onClose={() => {
+                        if (!verificationLoading) {
+                            setVerificationCampaign(null);
+
+                            setVerificationError('');
+                        }
+                    }}
+                    onConfirm={handleVerificationConfirm}
                 />
             )}
         </div>

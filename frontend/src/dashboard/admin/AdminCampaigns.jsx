@@ -14,6 +14,7 @@ import CampaignVerificationModal from './campaigns/CampaignVerificationModal';
 import CampaignStatusUpdateModal from './campaigns/CampaignStatusUpdateModal';
 import CampaignEditModal from './campaigns/CampaignEditModal';
 import CampaignSuccessToast from './campaigns/CampaignSuccessToast';
+import CampaignRelatedDetailsModal from './campaigns/CampaignRelatedDetailsModal';
 
 import {
     fetchCampaigns,
@@ -79,6 +80,28 @@ const normalizeCampaigns = (campaigns) => {
     return campaigns.map(normalizeCampaign);
 };
 
+/*
+|--------------------------------------------------------------------------
+| Campaign type label
+|--------------------------------------------------------------------------
+*/
+
+const getCampaignTypeLabel = (type) => {
+    switch (type) {
+        case 'local_case':
+            return 'Local Case';
+
+        case 'organization_proposed':
+            return 'Organization Proposed';
+
+        case 'global_situation':
+            return 'Global Situation';
+
+        default:
+            return type || '—';
+    }
+};
+
 const AdminCampaigns = () => {
     // =========================================================
     // Campaign data
@@ -97,9 +120,6 @@ const AdminCampaigns = () => {
         message: '',
     });
 
-    /*
-     * Show success toast.
-     */
     const showSuccessToast = (message) => {
         setSuccessToast({
             show: true,
@@ -107,9 +127,6 @@ const AdminCampaigns = () => {
         });
     };
 
-    /*
-     * Automatically hide success toast after 4 seconds.
-     */
     useEffect(() => {
         if (!successToast.show) {
             return;
@@ -132,6 +149,12 @@ const AdminCampaigns = () => {
     // =========================================================
 
     const [selectedCampaign, setSelectedCampaign] = useState(null);
+
+    // =========================================================
+    // Related campaign details modal
+    // =========================================================
+
+    const [relatedCampaign, setRelatedCampaign] = useState(null);
 
     // =========================================================
     // Verification modal
@@ -385,6 +408,7 @@ const AdminCampaigns = () => {
                 ].includes(sortConfig.key)
             ) {
                 first = first ? new Date(first).getTime() : 0;
+
                 second = second ? new Date(second).getTime() : 0;
             }
 
@@ -528,6 +552,18 @@ const AdminCampaigns = () => {
     };
 
     // =========================================================
+    // Campaign type / related information
+    // =========================================================
+
+    const handleCampaignTypeClick = (campaign) => {
+        if (!campaign) {
+            return;
+        }
+
+        setRelatedCampaign(campaign);
+    };
+
+    // =========================================================
     // Edit
     // =========================================================
 
@@ -640,10 +676,6 @@ const AdminCampaigns = () => {
             setVerificationCampaign(null);
             setVerificationError('');
 
-            /*
-             * Show success message immediately after
-             * successful backend verification.
-             */
             showSuccessToast(
                 status === 'active'
                     ? 'Campaign verified successfully.'
@@ -861,14 +893,7 @@ const AdminCampaigns = () => {
 
         serialNumber: (safeCurrentPage - 1) * CAMPAIGNS_PER_PAGE + index + 1,
 
-        campaignType:
-            campaign.type === 'global_situation'
-                ? 'Global Situation'
-                : campaign.type === 'organization_proposed'
-                  ? 'Organization Proposed'
-                  : campaign.type === 'local_case'
-                    ? 'Local Case'
-                    : campaign.type || '—',
+        campaignType: getCampaignTypeLabel(campaign.type),
 
         target:
             campaign.target_amount !== null &&
@@ -953,16 +978,31 @@ const AdminCampaigns = () => {
             ),
         },
 
+        // =====================================================
+        // CAMPAIGN TYPE
+        // =====================================================
+
         {
             key: 'campaignType',
             header: 'Campaign Type',
             sortable: true,
             sortKey: 'type',
 
-            render: (value) => (
-                <span className="text-sm font-medium text-text-primary">
+            render: (value, row) => (
+                <button
+                    type="button"
+                    onClick={() => handleCampaignTypeClick(row)}
+                    className="text-left text-sm font-semibold text-primary underline decoration-primary/30 underline-offset-4 transition-colors hover:text-primary-hover hover:decoration-primary"
+                    title={
+                        row.type === 'local_case'
+                            ? 'View connected help request'
+                            : row.type === 'organization_proposed'
+                              ? 'View connected organization'
+                              : 'View global campaign details'
+                    }
+                >
                     {value}
-                </span>
+                </button>
             ),
         },
 
@@ -1214,7 +1254,9 @@ const AdminCampaigns = () => {
                 )}
             </section>
 
-            {/* View Modal */}
+            {/* =====================================================
+                View Modal
+            ===================================================== */}
 
             {selectedCampaign && (
                 <CampaignViewModal
@@ -1223,7 +1265,20 @@ const AdminCampaigns = () => {
                 />
             )}
 
-            {/* Verification Modal */}
+            {/* =====================================================
+                Related Campaign Details
+            ===================================================== */}
+
+            {relatedCampaign && (
+                <CampaignRelatedDetailsModal
+                    campaign={relatedCampaign}
+                    onClose={() => setRelatedCampaign(null)}
+                />
+            )}
+
+            {/* =====================================================
+                Verification Modal
+            ===================================================== */}
 
             {verificationCampaign && (
                 <CampaignVerificationModal
@@ -1240,7 +1295,9 @@ const AdminCampaigns = () => {
                 />
             )}
 
-            {/* Status Update Modal */}
+            {/* =====================================================
+                Status Update Modal
+            ===================================================== */}
 
             {statusCampaign && (
                 <CampaignStatusUpdateModal
@@ -1260,7 +1317,9 @@ const AdminCampaigns = () => {
                 />
             )}
 
-            {/* Edit Modal */}
+            {/* =====================================================
+                Edit Modal
+            ===================================================== */}
 
             {editCampaign && (
                 <CampaignEditModal

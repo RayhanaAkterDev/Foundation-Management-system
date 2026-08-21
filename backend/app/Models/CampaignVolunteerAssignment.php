@@ -22,15 +22,39 @@ class CampaignVolunteerAssignment extends Model
         'completed_at' => 'datetime',
     ];
 
+    /*
+    |--------------------------------------------------------------------------
+    | Campaign
+    |--------------------------------------------------------------------------
+    */
+
     public function campaign(): BelongsTo
     {
         return $this->belongsTo(Campaign::class);
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Volunteer
+    |--------------------------------------------------------------------------
+    |
+    | volunteer_id points to users.id.
+    |
+    */
+
     public function volunteer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'volunteer_id');
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Assigned By
+    |--------------------------------------------------------------------------
+    |
+    | assigned_by points to users.id.
+    |
+    */
 
     public function assignedBy(): BelongsTo
     {

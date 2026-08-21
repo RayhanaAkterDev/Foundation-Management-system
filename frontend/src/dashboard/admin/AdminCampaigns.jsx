@@ -13,6 +13,7 @@ import CampaignViewModal from './campaigns/CampaignViewModal';
 import CampaignVerificationModal from './campaigns/CampaignVerificationModal';
 import CampaignStatusUpdateModal from './campaigns/CampaignStatusUpdateModal';
 import CampaignEditModal from './campaigns/CampaignEditModal';
+import CampaignSuccessToast from './campaigns/CampaignSuccessToast';
 
 import {
     fetchCampaigns,
@@ -57,12 +58,6 @@ const STATUS_CHANGEABLE_STATUSES = ['active'];
 |--------------------------------------------------------------------------
 | Normalize campaign
 |--------------------------------------------------------------------------
-|
-| IMPORTANT:
-| We DO NOT transform any status.
-|
-| Backend status is displayed exactly as received.
-|
 */
 
 const normalizeCampaign = (campaign) => {
@@ -92,6 +87,45 @@ const AdminCampaigns = () => {
     const [campaigns, setCampaigns] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+
+    // =========================================================
+    // Success toast
+    // =========================================================
+
+    const [successToast, setSuccessToast] = useState({
+        show: false,
+        message: '',
+    });
+
+    /*
+     * Show success toast.
+     */
+    const showSuccessToast = (message) => {
+        setSuccessToast({
+            show: true,
+            message,
+        });
+    };
+
+    /*
+     * Automatically hide success toast after 4 seconds.
+     */
+    useEffect(() => {
+        if (!successToast.show) {
+            return;
+        }
+
+        const timer = setTimeout(() => {
+            setSuccessToast({
+                show: false,
+                message: '',
+            });
+        }, 4000);
+
+        return () => {
+            clearTimeout(timer);
+        };
+    }, [successToast.show, successToast.message]);
 
     // =========================================================
     // View modal
@@ -151,19 +185,6 @@ const AdminCampaigns = () => {
 
     // =========================================================
     // Load campaigns
-    // =========================================================
-    //
-    // IMPORTANT:
-    //
-    // Do NOT create a separate loadCampaigns callback and then
-    // call it synchronously inside useEffect.
-    //
-    // React's newer hooks lint rule flags that pattern because
-    // loadCampaigns itself performs setState.
-    //
-    // The async operation is therefore contained directly inside
-    // the effect.
-    //
     // =========================================================
 
     useEffect(() => {
@@ -280,38 +301,26 @@ const AdminCampaigns = () => {
     const filteredCampaigns = useMemo(() => {
         let result = [...campaigns];
 
-        // -----------------------------------------------------
         // Status tab
-        // -----------------------------------------------------
-
         if (activeCategory !== 'all') {
             result = result.filter(
                 (campaign) => campaign.status === activeCategory,
             );
         }
 
-        // -----------------------------------------------------
         // Campaign type
-        // -----------------------------------------------------
-
         if (typeFilter !== 'all') {
             result = result.filter((campaign) => campaign.type === typeFilter);
         }
 
-        // -----------------------------------------------------
         // Category
-        // -----------------------------------------------------
-
         if (categoryFilter !== 'all') {
             result = result.filter(
                 (campaign) => campaign.category === categoryFilter,
             );
         }
 
-        // -----------------------------------------------------
         // Organization
-        // -----------------------------------------------------
-
         if (organizationFilter !== 'all') {
             result = result.filter(
                 (campaign) =>
@@ -320,20 +329,14 @@ const AdminCampaigns = () => {
             );
         }
 
-        // -----------------------------------------------------
         // Status filter
-        // -----------------------------------------------------
-
         if (statusFilter !== 'all') {
             result = result.filter(
                 (campaign) => campaign.status === statusFilter,
             );
         }
 
-        // -----------------------------------------------------
         // Search
-        // -----------------------------------------------------
-
         const search = searchTerm.trim().toLowerCase();
 
         if (search) {
@@ -364,10 +367,7 @@ const AdminCampaigns = () => {
             });
         }
 
-        // -----------------------------------------------------
         // Sorting
-        // -----------------------------------------------------
-
         if (!sortConfig.key || !sortConfig.direction) {
             return result;
         }
@@ -385,7 +385,6 @@ const AdminCampaigns = () => {
                 ].includes(sortConfig.key)
             ) {
                 first = first ? new Date(first).getTime() : 0;
-
                 second = second ? new Date(second).getTime() : 0;
             }
 
@@ -569,6 +568,8 @@ const AdminCampaigns = () => {
             );
 
             setEditCampaign(null);
+
+            showSuccessToast('Campaign information updated successfully.');
         } catch (err) {
             setEditError(err?.message || 'Campaign information update failed.');
         } finally {
@@ -579,13 +580,15 @@ const AdminCampaigns = () => {
     // =========================================================
     // Verification
     // =========================================================
-    //
-    // ONLY:
-    //
-    // unverified → active
-    // unverified → rejected
-    //
-    // =========================================================
+
+    /*
+     * Backend workflow:
+     *
+     * unverified → active
+     * unverified → rejected
+     *
+     * NO pending_review.
+     */
 
     const handleReview = (campaign) => {
         if (campaign.status !== 'unverified') {
@@ -601,13 +604,11 @@ const AdminCampaigns = () => {
             return;
         }
 
-        // Only final verification statuses are allowed.
         if (status !== 'active' && status !== 'rejected') {
             setVerificationError('Invalid verification decision.');
             return;
         }
 
-        // Campaign must still be unverified.
         if (verificationCampaign.status !== 'unverified') {
             setVerificationError(
                 'Only unverified campaigns can be verified or rejected.',
@@ -624,11 +625,6 @@ const AdminCampaigns = () => {
                 verification_note: verification_note || null,
             });
 
-            /*
-             * Update the campaign locally first.
-             * This keeps the UI immediately consistent
-             * with the new backend workflow.
-             */
             setCampaigns((current) =>
                 current.map((campaign) =>
                     campaign.id === verificationCampaign.id
@@ -645,9 +641,16 @@ const AdminCampaigns = () => {
             setVerificationError('');
 
             /*
-             * Reload from backend so the UI receives
-             * the authoritative campaign record.
+             * Show success message immediately after
+             * successful backend verification.
              */
+            showSuccessToast(
+                status === 'active'
+                    ? 'Campaign verified successfully.'
+                    : 'Campaign rejected successfully.',
+            );
+
+            // Refresh authoritative backend data.
             try {
                 const data = await fetchCampaigns();
 
@@ -655,10 +658,7 @@ const AdminCampaigns = () => {
 
                 setCampaigns(normalizeCampaigns(fetchedCampaigns));
             } catch {
-                /*
-                 * Local state is already updated.
-                 * Ignore reload failure here.
-                 */
+                // Local state is already updated.
             }
         } catch (err) {
             setVerificationError(
@@ -672,13 +672,13 @@ const AdminCampaigns = () => {
     // =========================================================
     // Change Status
     // =========================================================
-    //
-    // Only ACTIVE campaigns can move forward:
-    //
-    // active → completed
-    // active → cancelled
-    //
-    // =========================================================
+
+    /*
+     * Backend workflow:
+     *
+     * active → completed
+     * active → cancelled
+     */
 
     const handleStatusUpdate = (campaign) => {
         if (!STATUS_CHANGEABLE_STATUSES.includes(campaign.status)) {
@@ -689,7 +689,7 @@ const AdminCampaigns = () => {
         setStatusCampaign(campaign);
     };
 
-    const handleStatusConfirm = async (newStatus) => {
+    const handleStatusConfirm = async ({ status: newStatus, status_note }) => {
         if (!statusCampaign) {
             return;
         }
@@ -708,6 +708,7 @@ const AdminCampaigns = () => {
 
             const data = await updateCampaignStatus(statusCampaign.id, {
                 status: newStatus,
+                status_note: status_note || null,
             });
 
             const updatedCampaign = normalizeCampaign(
@@ -715,6 +716,7 @@ const AdminCampaigns = () => {
                     data?.data || {
                         ...statusCampaign,
                         status: newStatus,
+                        status_note: status_note || null,
                     },
             );
 
@@ -727,6 +729,12 @@ const AdminCampaigns = () => {
             );
 
             setStatusCampaign(null);
+
+            showSuccessToast(
+                newStatus === 'completed'
+                    ? 'Campaign marked as completed successfully.'
+                    : 'Campaign cancelled successfully.',
+            );
         } catch (err) {
             setStatusError(err?.message || 'Campaign status update failed.');
         } finally {
@@ -758,15 +766,12 @@ const AdminCampaigns = () => {
             campaign.type || '',
             campaign.target_amount ?? '',
             campaign.collected_amount ?? 0,
-
             campaign.start_date
                 ? new Date(campaign.start_date).toLocaleDateString()
                 : '',
-
             campaign.end_date
                 ? new Date(campaign.end_date).toLocaleDateString()
                 : '',
-
             campaign.status || '',
         ]);
 
@@ -1039,7 +1044,6 @@ const AdminCampaigns = () => {
                 return (
                     <div className="flex items-center justify-end gap-4">
                         {/* VIEW */}
-
                         <button
                             type="button"
                             onClick={() => handleView(row)}
@@ -1049,7 +1053,6 @@ const AdminCampaigns = () => {
                         </button>
 
                         {/* EDIT */}
-
                         {canEdit && (
                             <button
                                 type="button"
@@ -1061,7 +1064,6 @@ const AdminCampaigns = () => {
                         )}
 
                         {/* VERIFY */}
-
                         {canVerify && (
                             <button
                                 type="button"
@@ -1073,7 +1075,6 @@ const AdminCampaigns = () => {
                         )}
 
                         {/* CHANGE STATUS */}
-
                         {canChangeStatus && (
                             <button
                                 type="button"
@@ -1095,6 +1096,13 @@ const AdminCampaigns = () => {
 
     return (
         <div className="space-y-9">
+            {/* SUCCESS TOAST */}
+
+            <CampaignSuccessToast
+                show={successToast.show}
+                message={successToast.message}
+            />
+
             <PageHeader
                 title="Campaigns"
                 subtitle="Review, verify, and manage fundraising campaigns across the Stand For People platform."
@@ -1111,9 +1119,7 @@ const AdminCampaigns = () => {
                 }
             />
 
-            {/* =================================================
-                Statistics
-            ================================================= */}
+            {/* Statistics */}
 
             <section>
                 <div className="mb-4 flex items-end justify-between">
@@ -1134,16 +1140,15 @@ const AdminCampaigns = () => {
 
                 <CampaignStats
                     total={statistics.total}
-                    pending={statistics.unverified}
+                    unverified={statistics.unverified}
                     active={statistics.active}
                     completed={statistics.completed}
                     rejected={statistics.rejected}
+                    cancelled={statistics.cancelled}
                 />
             </section>
 
-            {/* =================================================
-                Campaign management
-            ================================================= */}
+            {/* Campaign management */}
 
             <section className="border-t border-border pt-8">
                 <div className="mb-5">
@@ -1209,9 +1214,7 @@ const AdminCampaigns = () => {
                 )}
             </section>
 
-            {/* =================================================
-                View Modal
-            ================================================= */}
+            {/* View Modal */}
 
             {selectedCampaign && (
                 <CampaignViewModal
@@ -1220,9 +1223,7 @@ const AdminCampaigns = () => {
                 />
             )}
 
-            {/* =================================================
-                Verification Modal
-            ================================================= */}
+            {/* Verification Modal */}
 
             {verificationCampaign && (
                 <CampaignVerificationModal
@@ -1232,7 +1233,6 @@ const AdminCampaigns = () => {
                     onClose={() => {
                         if (!verificationLoading) {
                             setVerificationCampaign(null);
-
                             setVerificationError('');
                         }
                     }}
@@ -1240,9 +1240,7 @@ const AdminCampaigns = () => {
                 />
             )}
 
-            {/* =================================================
-                Status Update Modal
-            ================================================= */}
+            {/* Status Update Modal */}
 
             {statusCampaign && (
                 <CampaignStatusUpdateModal
@@ -1255,7 +1253,6 @@ const AdminCampaigns = () => {
                     onClose={() => {
                         if (!statusLoading) {
                             setStatusCampaign(null);
-
                             setStatusError('');
                         }
                     }}
@@ -1263,9 +1260,7 @@ const AdminCampaigns = () => {
                 />
             )}
 
-            {/* =================================================
-                Edit Modal
-            ================================================= */}
+            {/* Edit Modal */}
 
             {editCampaign && (
                 <CampaignEditModal
@@ -1275,7 +1270,6 @@ const AdminCampaigns = () => {
                     onClose={() => {
                         if (!editLoading) {
                             setEditCampaign(null);
-
                             setEditError('');
                         }
                     }}

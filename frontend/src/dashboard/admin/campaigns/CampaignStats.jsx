@@ -1,20 +1,21 @@
 import React from 'react';
+
 import {
     Megaphone,
-    BadgeCheck,
     Clock3,
     PlayCircle,
     CircleCheck,
     XCircle,
+    Ban,
 } from 'lucide-react';
 
 const CampaignStats = ({
     total,
-    verified,
-    pending,
+    unverified,
     active,
     completed,
     rejected,
+    cancelled,
 }) => {
     return (
         <section className="overflow-hidden rounded-2xl border border-primary/15 bg-white shadow-sm">
@@ -53,27 +54,32 @@ const CampaignStats = ({
 
                 {/* Supporting metrics */}
                 <div className="grid grid-cols-1 divide-y divide-border sm:grid-cols-2 sm:divide-x sm:divide-y-0">
-                    <StatItem label="Pending" value={pending} icon={Clock3} />
-
+                    {/* Unverified */}
                     <StatItem
-                        label="Verified"
-                        value={verified}
-                        icon={BadgeCheck}
+                        label="Unverified"
+                        value={unverified}
+                        icon={Clock3}
                     />
 
+                    {/* Active */}
                     <StatItem label="Active" value={active} icon={PlayCircle} />
 
+                    {/* Completed */}
                     <StatItem
                         label="Completed"
                         value={completed}
                         icon={CircleCheck}
                     />
 
+                    {/* Rejected */}
                     <StatItem
                         label="Rejected"
                         value={rejected}
                         icon={XCircle}
                     />
+
+                    {/* Cancelled */}
+                    <StatItem label="Cancelled" value={cancelled} icon={Ban} />
 
                     {/* Empty balancing cell */}
                     <div className="hidden sm:block" />

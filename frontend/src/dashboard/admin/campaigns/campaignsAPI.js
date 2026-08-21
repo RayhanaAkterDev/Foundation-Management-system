@@ -1,184 +1,234 @@
-const API_BASE_URL =
-    import.meta.env.VITE_API_URL ||
-    'http://127.0.0.1:8000/api';
+const API_BASE_URL = 'http://127.0.0.1:8000/api';
 
-// =========================================================
-// Auth headers
-// =========================================================
+/*
+|--------------------------------------------------------------------------
+| Authentication
+|--------------------------------------------------------------------------
+*/
 
-const getAuthHeaders = () => {
-    const token = sessionStorage.getItem('auth_token');
+const getAuthToken = () => {
+    return (
+        localStorage.getItem('auth_token') ||
+        sessionStorage.getItem('auth_token')
+    );
+};
+
+/*
+|--------------------------------------------------------------------------
+| Request headers
+|--------------------------------------------------------------------------
+*/
+
+const getHeaders = ({ json = false } = {}) => {
+    const token = getAuthToken();
+
+    if (!token) {
+        throw new Error('Authentication token not found.');
+    }
 
     return {
         Accept: 'application/json',
-        'Content-Type': 'application/json',
-
-        ...(token
+        Authorization: `Bearer ${token}`,
+        ...(json
             ? {
-                  Authorization: `Bearer ${token}`,
+                  'Content-Type': 'application/json',
               }
             : {}),
     };
 };
 
-// =========================================================
-// Fetch campaigns
-// =========================================================
+/*
+|--------------------------------------------------------------------------
+| Parse API response
+|--------------------------------------------------------------------------
+*/
+
+const parseResponse = async (response) => {
+    let data = null;
+
+    try {
+        data = await response.json();
+    } catch {
+        data = null;
+    }
+
+    if (!response.ok) {
+        const message =
+            data?.message ||
+            data?.error ||
+            'Campaign request failed.';
+
+        const error = new Error(message);
+
+        error.status = response.status;
+        error.errors = data?.errors || null;
+
+        throw error;
+    }
+
+    return data;
+};
+
+/*
+|--------------------------------------------------------------------------
+| Fetch campaigns
+|--------------------------------------------------------------------------
+|
+| GET /api/admin/campaigns
+|
+*/
 
 export const fetchCampaigns = async () => {
     const response = await fetch(`${API_BASE_URL}/admin/campaigns`, {
         method: 'GET',
-        headers: getAuthHeaders(),
+        headers: getHeaders(),
     });
 
-    const data = await response.json();
+    return parseResponse(response);
+};
 
-    if (!response.ok) {
+/*
+|--------------------------------------------------------------------------
+| Verify / Reject Campaign
+|--------------------------------------------------------------------------
+|
+| Workflow:
+|
+| unverified → active
+| unverified → rejected
+|
+| The frontend sends ONLY:
+|
+| active
+| rejected
+|
+| It does NOT send:
+|
+| pending_review
+| verified
+| unverified
+| published
+|
+| Backend endpoint:
+|
+| PATCH /api/admin/campaigns/{id}/verification
+|
+*/
+
+export const verifyCampaign = async (campaignId, payload) => {
+    if (!campaignId) {
+        throw new Error('Campaign ID is required.');
+    }
+
+    const status = payload?.status;
+
+    if (status !== 'active' && status !== 'rejected') {
         throw new Error(
-            data?.message ||
-                'Failed to fetch campaigns.',
+            'Invalid campaign verification status. Use "active" or "rejected".',
         );
     }
 
-    return data;
-};
+    const body = {
+        status,
+        verification_note: payload?.verification_note ?? null,
+    };
 
-// =========================================================
-// Verify campaign
-// =========================================================
-
-export const verifyCampaign = async (
-    campaignId,
-    payload,
-) => {
     const response = await fetch(
         `${API_BASE_URL}/admin/campaigns/${campaignId}/verification`,
         {
             method: 'PATCH',
-            headers: getAuthHeaders(),
-            body: JSON.stringify(payload),
+            headers: getHeaders({
+                json: true,
+            }),
+            body: JSON.stringify(body),
         },
     );
 
-    const data = await response.json();
+    return parseResponse(response);
+};
 
-    if (!response.ok) {
-        const validationMessage = data?.errors
-            ? Object.values(data.errors)
-                  .flat()
-                  .join(' ')
-            : null;
+/*
+|--------------------------------------------------------------------------
+| Update Campaign Operational Status
+|--------------------------------------------------------------------------
+|
+| Workflow:
+|
+| active → completed
+| active → cancelled
+|
+| Backend endpoint:
+|
+| PATCH /api/admin/campaigns/{id}/status
+|
+*/
 
+export const updateCampaignStatus = async (campaignId, payload) => {
+    if (!campaignId) {
+        throw new Error('Campaign ID is required.');
+    }
+
+    const status = payload?.status;
+
+    if (status !== 'completed' && status !== 'cancelled') {
         throw new Error(
-            validationMessage ||
-                data?.message ||
-                'Campaign verification failed.',
+            'Invalid campaign status. Use "completed" or "cancelled".',
         );
     }
 
-    return data;
-};
-
-// =========================================================
-// Edit campaign information
-// =========================================================
-//
-// Used by:
-// Pending Review  -> Edit
-// Active          -> Edit
-//
-// This is for modifying campaign INFORMATION,
-// NOT campaign STATUS.
-//
-// Example fields:
-// title
-// description
-// category
-// scope
-// district
-// location
-// affected_areas
-// target_amount
-// start_date
-// end_date
-// cover_image
-//
-// =========================================================
-
-export const updateCampaign = async (
-    campaignId,
-    payload,
-) => {
-    const response = await fetch(
-        `${API_BASE_URL}/admin/campaigns/${campaignId}`,
-        {
-            method: 'PATCH',
-            headers: getAuthHeaders(),
-            body: JSON.stringify(payload),
-        },
-    );
-
-    const data = await response.json();
-
-    if (!response.ok) {
-        const validationMessage = data?.errors
-            ? Object.values(data.errors)
-                  .flat()
-                  .join(' ')
-            : null;
-
-        throw new Error(
-            validationMessage ||
-                data?.message ||
-                'Failed to update campaign information.',
-        );
-    }
-
-    return data;
-};
-
-// =========================================================
-// Update campaign STATUS
-// =========================================================
-//
-// Active campaign can move to:
-//
-// active -> completed
-// active -> cancelled
-//
-// No "in_progress" because ACTIVE already means
-// the campaign is currently ongoing.
-//
-// =========================================================
-
-export const updateCampaignStatus = async (
-    campaignId,
-    payload,
-) => {
     const response = await fetch(
         `${API_BASE_URL}/admin/campaigns/${campaignId}/status`,
         {
             method: 'PATCH',
-            headers: getAuthHeaders(),
+            headers: getHeaders({
+                json: true,
+            }),
+            body: JSON.stringify({
+                status,
+            }),
+        },
+    );
+
+    return parseResponse(response);
+};
+
+/*
+|--------------------------------------------------------------------------
+| Update Campaign Information
+|--------------------------------------------------------------------------
+|
+| This is NOT a status transition.
+|
+| Allowed by the frontend only for:
+|
+| unverified
+| active
+|
+| Backend endpoint:
+|
+| PUT /api/admin/campaigns/{id}
+|
+*/
+
+export const updateCampaign = async (campaignId, payload) => {
+    if (!campaignId) {
+        throw new Error('Campaign ID is required.');
+    }
+
+    if (!payload || typeof payload !== 'object') {
+        throw new Error('Campaign update data is required.');
+    }
+
+    const response = await fetch(
+        `${API_BASE_URL}/admin/campaigns/${campaignId}`,
+        {
+            method: 'PUT',
+            headers: getHeaders({
+                json: true,
+            }),
             body: JSON.stringify(payload),
         },
     );
 
-    const data = await response.json();
-
-    if (!response.ok) {
-        const validationMessage = data?.errors
-            ? Object.values(data.errors)
-                  .flat()
-                  .join(' ')
-            : null;
-
-        throw new Error(
-            validationMessage ||
-                data?.message ||
-                'Failed to update campaign status.',
-        );
-    }
-
-    return data;
+    return parseResponse(response);
 };

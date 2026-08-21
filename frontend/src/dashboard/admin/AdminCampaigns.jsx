@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+
 import { ArrowDown, ArrowUp, ChevronsUpDown, Download } from 'lucide-react';
 
 import PageHeader from '@/components/dashboard/PageHeader';
@@ -8,7 +9,6 @@ import CampaignCategoryTabs from './campaigns/CampaignCategoryTabs';
 import CampaignFilters from './campaigns/CampaignFilters';
 import CampaignTable from './campaigns/CampaignTable';
 import CampaignPagination from './campaigns/CampaignPagination';
-
 import CampaignViewModal from './campaigns/CampaignViewModal';
 import CampaignVerificationModal from './campaigns/CampaignVerificationModal';
 import CampaignStatusUpdateModal from './campaigns/CampaignStatusUpdateModal';
@@ -25,27 +25,64 @@ const CAMPAIGNS_PER_PAGE = 25;
 
 /*
 |--------------------------------------------------------------------------
-| Campaign status transitions
+| CAMPAIGN STATUS WORKFLOW
 |--------------------------------------------------------------------------
 |
-| pending_review → verified → active → completed
-|                         ↘
-|                          cancelled
+| unverified → active
+| unverified → rejected
+|
+| active → completed
+| active → cancelled
+|
+| rejected / completed / cancelled → no further transition
+|
+| IMPORTANT:
+| There is NO pending_review status.
 |
 */
 
 const CAMPAIGN_STATUS_TRANSITIONS = {
-    pending_review: ['verified', 'rejected'],
-    verified: ['active'],
+    unverified: ['active', 'rejected'],
     active: ['completed', 'cancelled'],
-    completed: [],
     rejected: [],
+    completed: [],
     cancelled: [],
 };
 
-const EDITABLE_STATUSES = ['pending_review', 'verified', 'active'];
+const EDITABLE_STATUSES = ['unverified', 'active'];
 
-const STATUS_CHANGEABLE_STATUSES = ['verified', 'active'];
+const STATUS_CHANGEABLE_STATUSES = ['active'];
+
+/*
+|--------------------------------------------------------------------------
+| Normalize campaign
+|--------------------------------------------------------------------------
+|
+| IMPORTANT:
+| We DO NOT transform any status.
+|
+| Backend status is displayed exactly as received.
+|
+*/
+
+const normalizeCampaign = (campaign) => {
+    if (!campaign) {
+        return campaign;
+    }
+
+    return {
+        ...campaign,
+        status: campaign.status || '',
+    };
+};
+
+const normalizeCampaigns = (campaigns) => {
+    if (!Array.isArray(campaigns)) {
+        return [];
+    }
+
+    return campaigns.map(normalizeCampaign);
+};
 
 const AdminCampaigns = () => {
     // =========================================================
@@ -53,7 +90,6 @@ const AdminCampaigns = () => {
     // =========================================================
 
     const [campaigns, setCampaigns] = useState([]);
-
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
@@ -68,9 +104,7 @@ const AdminCampaigns = () => {
     // =========================================================
 
     const [verificationCampaign, setVerificationCampaign] = useState(null);
-
     const [verificationLoading, setVerificationLoading] = useState(false);
-
     const [verificationError, setVerificationError] = useState('');
 
     // =========================================================
@@ -78,9 +112,7 @@ const AdminCampaigns = () => {
     // =========================================================
 
     const [statusCampaign, setStatusCampaign] = useState(null);
-
     const [statusLoading, setStatusLoading] = useState(false);
-
     const [statusError, setStatusError] = useState('');
 
     // =========================================================
@@ -88,9 +120,7 @@ const AdminCampaigns = () => {
     // =========================================================
 
     const [editCampaign, setEditCampaign] = useState(null);
-
     const [editLoading, setEditLoading] = useState(false);
-
     const [editError, setEditError] = useState('');
 
     // =========================================================
@@ -98,15 +128,10 @@ const AdminCampaigns = () => {
     // =========================================================
 
     const [activeCategory, setActiveCategory] = useState('all');
-
     const [searchTerm, setSearchTerm] = useState('');
-
     const [typeFilter, setTypeFilter] = useState('all');
-
     const [categoryFilter, setCategoryFilter] = useState('all');
-
     const [organizationFilter, setOrganizationFilter] = useState('all');
-
     const [statusFilter, setStatusFilter] = useState('all');
 
     // =========================================================
@@ -127,30 +152,20 @@ const AdminCampaigns = () => {
     // =========================================================
     // Load campaigns
     // =========================================================
+    //
+    // IMPORTANT:
+    //
+    // Do NOT create a separate loadCampaigns callback and then
+    // call it synchronously inside useEffect.
+    //
+    // React's newer hooks lint rule flags that pattern because
+    // loadCampaigns itself performs setState.
+    //
+    // The async operation is therefore contained directly inside
+    // the effect.
+    //
+    // =========================================================
 
-    const loadCampaigns = useCallback(async () => {
-        try {
-            setLoading(true);
-            setError('');
-
-            const data = await fetchCampaigns();
-
-            setCampaigns(data?.campaigns || data?.data || []);
-        } catch (err) {
-            setError(
-                err?.message || 'Something went wrong while loading campaigns.',
-            );
-        } finally {
-            setLoading(false);
-        }
-    }, []);
-
-    /*
-     * Do not call loadCampaigns() directly inside useEffect.
-     *
-     * This avoids the React hooks/set-state-in-effect warning
-     * that you were getting.
-     */
     useEffect(() => {
         let cancelled = false;
 
@@ -165,7 +180,9 @@ const AdminCampaigns = () => {
                     return;
                 }
 
-                setCampaigns(data?.campaigns || data?.data || []);
+                const fetchedCampaigns = data?.campaigns || data?.data || [];
+
+                setCampaigns(normalizeCampaigns(fetchedCampaigns));
             } catch (err) {
                 if (!cancelled) {
                     setError(
@@ -195,12 +212,8 @@ const AdminCampaigns = () => {
         return {
             total: campaigns.length,
 
-            pending: campaigns.filter(
-                (campaign) => campaign.status === 'pending_review',
-            ).length,
-
-            verified: campaigns.filter(
-                (campaign) => campaign.status === 'verified',
+            unverified: campaigns.filter(
+                (campaign) => campaign.status === 'unverified',
             ).length,
 
             active: campaigns.filter((campaign) => campaign.status === 'active')
@@ -232,14 +245,9 @@ const AdminCampaigns = () => {
                 count: statistics.total,
             },
             {
-                key: 'pending_review',
-                label: 'Pending Review',
-                count: statistics.pending,
-            },
-            {
-                key: 'verified',
-                label: 'Verified',
-                count: statistics.verified,
+                key: 'unverified',
+                label: 'Unverified',
+                count: statistics.unverified,
             },
             {
                 key: 'active',
@@ -377,6 +385,7 @@ const AdminCampaigns = () => {
                 ].includes(sortConfig.key)
             ) {
                 first = first ? new Date(first).getTime() : 0;
+
                 second = second ? new Date(second).getTime() : 0;
             }
 
@@ -543,11 +552,13 @@ const AdminCampaigns = () => {
 
             const data = await updateCampaign(editCampaign.id, payload);
 
-            const updatedCampaign = data?.campaign ||
-                data?.data || {
-                    ...editCampaign,
-                    ...payload,
-                };
+            const updatedCampaign = normalizeCampaign(
+                data?.campaign ||
+                    data?.data || {
+                        ...editCampaign,
+                        ...payload,
+                    },
+            );
 
             setCampaigns((current) =>
                 current.map((campaign) =>
@@ -568,9 +579,16 @@ const AdminCampaigns = () => {
     // =========================================================
     // Verification
     // =========================================================
+    //
+    // ONLY:
+    //
+    // unverified → active
+    // unverified → rejected
+    //
+    // =========================================================
 
     const handleReview = (campaign) => {
-        if (campaign.status !== 'pending_review') {
+        if (campaign.status !== 'unverified') {
             return;
         }
 
@@ -583,18 +601,65 @@ const AdminCampaigns = () => {
             return;
         }
 
+        // Only final verification statuses are allowed.
+        if (status !== 'active' && status !== 'rejected') {
+            setVerificationError('Invalid verification decision.');
+            return;
+        }
+
+        // Campaign must still be unverified.
+        if (verificationCampaign.status !== 'unverified') {
+            setVerificationError(
+                'Only unverified campaigns can be verified or rejected.',
+            );
+            return;
+        }
+
         try {
             setVerificationLoading(true);
             setVerificationError('');
 
             await verifyCampaign(verificationCampaign.id, {
                 status,
-                verification_note,
+                verification_note: verification_note || null,
             });
 
-            setVerificationCampaign(null);
+            /*
+             * Update the campaign locally first.
+             * This keeps the UI immediately consistent
+             * with the new backend workflow.
+             */
+            setCampaigns((current) =>
+                current.map((campaign) =>
+                    campaign.id === verificationCampaign.id
+                        ? {
+                              ...campaign,
+                              status,
+                              verification_note: verification_note || null,
+                          }
+                        : campaign,
+                ),
+            );
 
-            await loadCampaigns();
+            setVerificationCampaign(null);
+            setVerificationError('');
+
+            /*
+             * Reload from backend so the UI receives
+             * the authoritative campaign record.
+             */
+            try {
+                const data = await fetchCampaigns();
+
+                const fetchedCampaigns = data?.campaigns || data?.data || [];
+
+                setCampaigns(normalizeCampaigns(fetchedCampaigns));
+            } catch {
+                /*
+                 * Local state is already updated.
+                 * Ignore reload failure here.
+                 */
+            }
         } catch (err) {
             setVerificationError(
                 err?.message || 'Campaign verification failed.',
@@ -606,6 +671,13 @@ const AdminCampaigns = () => {
 
     // =========================================================
     // Change Status
+    // =========================================================
+    //
+    // Only ACTIVE campaigns can move forward:
+    //
+    // active → completed
+    // active → cancelled
+    //
     // =========================================================
 
     const handleStatusUpdate = (campaign) => {
@@ -638,11 +710,13 @@ const AdminCampaigns = () => {
                 status: newStatus,
             });
 
-            const updatedCampaign = data?.campaign ||
-                data?.data || {
-                    ...statusCampaign,
-                    status: newStatus,
-                };
+            const updatedCampaign = normalizeCampaign(
+                data?.campaign ||
+                    data?.data || {
+                        ...statusCampaign,
+                        status: newStatus,
+                    },
+            );
 
             setCampaigns((current) =>
                 current.map((campaign) =>
@@ -719,9 +793,7 @@ const AdminCampaigns = () => {
         link.download = 'stand-for-people-campaigns.csv';
 
         document.body.appendChild(link);
-
         link.click();
-
         document.body.removeChild(link);
 
         URL.revokeObjectURL(url);
@@ -950,10 +1022,6 @@ const AdminCampaigns = () => {
             sortKey: 'status',
         },
 
-        // =====================================================
-        // Actions
-        // =====================================================
-
         {
             key: 'actions',
             header: 'Actions',
@@ -962,7 +1030,7 @@ const AdminCampaigns = () => {
             render: (_, row) => {
                 const canEdit = EDITABLE_STATUSES.includes(row.status);
 
-                const canVerify = row.status === 'pending_review';
+                const canVerify = row.status === 'unverified';
 
                 const canChangeStatus = STATUS_CHANGEABLE_STATUSES.includes(
                     row.status,
@@ -970,7 +1038,8 @@ const AdminCampaigns = () => {
 
                 return (
                     <div className="flex items-center justify-end gap-4">
-                        {/* VIEW - always available */}
+                        {/* VIEW */}
+
                         <button
                             type="button"
                             onClick={() => handleView(row)}
@@ -979,7 +1048,8 @@ const AdminCampaigns = () => {
                             View
                         </button>
 
-                        {/* EDIT - only non-terminal campaigns */}
+                        {/* EDIT */}
+
                         {canEdit && (
                             <button
                                 type="button"
@@ -990,7 +1060,8 @@ const AdminCampaigns = () => {
                             </button>
                         )}
 
-                        {/* VERIFY - pending review only */}
+                        {/* VERIFY */}
+
                         {canVerify && (
                             <button
                                 type="button"
@@ -1001,7 +1072,8 @@ const AdminCampaigns = () => {
                             </button>
                         )}
 
-                        {/* CHANGE STATUS - verified/active only */}
+                        {/* CHANGE STATUS */}
+
                         {canChangeStatus && (
                             <button
                                 type="button"
@@ -1062,7 +1134,7 @@ const AdminCampaigns = () => {
 
                 <CampaignStats
                     total={statistics.total}
-                    pending={statistics.pending}
+                    pending={statistics.unverified}
                     active={statistics.active}
                     completed={statistics.completed}
                     rejected={statistics.rejected}
@@ -1183,6 +1255,7 @@ const AdminCampaigns = () => {
                     onClose={() => {
                         if (!statusLoading) {
                             setStatusCampaign(null);
+
                             setStatusError('');
                         }
                     }}
@@ -1202,6 +1275,7 @@ const AdminCampaigns = () => {
                     onClose={() => {
                         if (!editLoading) {
                             setEditCampaign(null);
+
                             setEditError('');
                         }
                     }}

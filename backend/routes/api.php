@@ -21,10 +21,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
 
-    // Help Requests - Individual/Public authenticated users
+    // Help Requests - Individual
+    Route::get('/help-requests', [HelpRequestController::class, 'myRequests']);
     Route::post('/help-requests', [HelpRequestController::class, 'store']);
     Route::get('/help-requests/{id}', [HelpRequestController::class, 'show']);
-
+    Route::patch('/help-requests/{id}', [HelpRequestController::class, 'update']);
+    Route::delete('/help-requests/{id}', [HelpRequestController::class, 'destroy']);
 
     // ---------------------------------------------------------
     // Campaigns - Organization

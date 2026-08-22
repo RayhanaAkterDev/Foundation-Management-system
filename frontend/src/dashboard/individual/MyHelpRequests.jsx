@@ -1,116 +1,1000 @@
-import React, { useState } from 'react';
-import { HeartHandshake, Plus } from 'lucide-react';
-import PageHeader from '@/components/dashboard/PageHeader';
-import DataTable from '@/components/dashboard/DataTable';
-import StatusBadge from '@/components/dashboard/StatusBadge';
-import EmptyState from '@/components/dashboard/EmptyState';
-import { mockHelpRequests } from '@/data/mockIndividual';
+import React, { useEffect, useMemo, useState } from 'react';
 
-const columns = [
-  { key: 'title',         header: 'Title' },
-  { key: 'category',      header: 'Category' },
-  { key: 'submittedDate', header: 'Submitted' },
-  {
-    key: 'status',
-    header: 'Status',
-    render: (val) => <StatusBadge status={val} />,
-  },
-  {
-    key: 'notes',
-    header: 'Notes',
-    render: (val) => <span className="text-[#6b7280] italic">{val || '—'}</span>,
-  },
-];
+import { ArrowDown, ArrowUp, ChevronsUpDown, Download } from 'lucide-react';
+
+import PageHeader from '@/components/dashboard/PageHeader';
+
+import HelpRequestStats from './myHelpRequests/HelpRequestStats';
+import HelpRequestCategoryTabs from './myHelpRequests/HelpRequestCategoryTabs';
+import HelpRequestFilters from './myHelpRequests/HelpRequestFilters';
+import HelpRequestTable from './myHelpRequests/HelpRequestTable';
+import HelpRequestPagination from './myHelpRequests/HelpRequestPagination';
+import HelpRequestDetailsModal from './myHelpRequests/HelpRequestDetailsModal';
+import HelpRequestDeleteModal from './myHelpRequests/HelpRequestDeleteModal';
+import HelpRequestSuccessToast from './myHelpRequests/HelpRequestSuccessToast';
+
+import {
+    fetchMyHelpRequests,
+    deleteHelpRequest,
+} from './myHelpRequests/helpRequestAPI';
+
+const HELP_REQUESTS_PER_PAGE = 25;
+
+// =========================================================
+// Helpers
+// =========================================================
+
+const normalizeHelpRequest = (request) => {
+    if (!request) {
+        return request;
+    }
+
+    return {
+        ...request,
+        status: request.status || '',
+        urgency: request.urgency || 'normal',
+    };
+};
+
+const normalizeHelpRequests = (requests) => {
+    if (!Array.isArray(requests)) {
+        return [];
+    }
+
+    return requests.map(normalizeHelpRequest);
+};
+
+const getStatusLabel = (status) => {
+    switch (status) {
+        case 'pending':
+            return 'Pending';
+
+        case 'verified':
+            return 'Verified';
+
+        case 'assigned':
+            return 'Assigned';
+
+        case 'in_progress':
+            return 'In Progress';
+
+        case 'completed':
+            return 'Completed';
+
+        case 'rejected':
+            return 'Rejected';
+
+        default:
+            return status || '—';
+    }
+};
+
+const getUrgencyLabel = (urgency) => {
+    switch (urgency) {
+        case 'critical':
+            return 'Critical';
+
+        case 'urgent':
+            return 'Urgent';
+
+        case 'high':
+            return 'High';
+
+        case 'normal':
+            return 'Normal';
+
+        case 'low':
+            return 'Low';
+
+        default:
+            return urgency || 'Normal';
+    }
+};
+
+// =========================================================
+// Component
+// =========================================================
 
 const MyHelpRequests = () => {
-  const [showForm, setShowForm] = useState(false);
+    // =========================================================
+    // Help request data
+    // =========================================================
 
-  return (
-    <div className="space-y-6">
-      <PageHeader
-        title="My Help Requests"
-        subtitle="Track requests you've submitted to Stand For People."
-        action={
-          <button
-            type="button"
-            onClick={() => setShowForm(true)}
-            className="inline-flex h-10 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-medium text-white hover:bg-primary-hover transition-colors"
-          >
-            <Plus className="h-4 w-4" />
-            New Request
-          </button>
+    const [helpRequests, setHelpRequests] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+
+    // =========================================================
+    // Success toast
+    // =========================================================
+
+    const [successToast, setSuccessToast] = useState({
+        show: false,
+        message: '',
+    });
+
+    const showSuccessToast = (message) => {
+        setSuccessToast({
+            show: true,
+            message,
+        });
+    };
+
+    useEffect(() => {
+        if (!successToast.show) {
+            return undefined;
         }
-      />
 
-      {/* New request notice */}
-      {showForm && (
-        <div className="rounded-2xl border border-[#e5e7eb] bg-white p-6 shadow-sm">
-          <p className="text-sm font-medium text-text-primary mb-1">Submit a Help Request</p>
-          <p className="text-sm text-[#6b7280] mb-4">
-            Describe the assistance you need. SP Admin will review and coordinate a response.
-          </p>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-text-primary">Request Title <span className="text-red-500">*</span></label>
-              <input
-                type="text"
-                placeholder="e.g. School supplies for my children"
-                className="h-11 w-full rounded-xl border border-[#e5e7eb] px-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-              />
+        const timer = setTimeout(() => {
+            setSuccessToast({
+                show: false,
+                message: '',
+            });
+        }, 4000);
+
+        return () => {
+            clearTimeout(timer);
+        };
+    }, [successToast.show]);
+
+    // =========================================================
+    // View modal
+    // =========================================================
+
+    const [selectedRequest, setSelectedRequest] = useState(null);
+
+    // =========================================================
+    // Delete modal
+    // =========================================================
+
+    const [deleteRequestItem, setDeleteRequestItem] = useState(null);
+    const [deleteLoading, setDeleteLoading] = useState(false);
+    const [deleteError, setDeleteError] = useState('');
+
+    // =========================================================
+    // Filters
+    // =========================================================
+
+    const [activeCategory, setActiveCategory] = useState('all');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [categoryFilter, setCategoryFilter] = useState('all');
+    const [priorityFilter, setPriorityFilter] = useState('all');
+    const [statusFilter, setStatusFilter] = useState('all');
+
+    // =========================================================
+    // Sorting
+    // =========================================================
+
+    const [sortConfig, setSortConfig] = useState({
+        key: 'created_at',
+        direction: 'desc',
+    });
+
+    // =========================================================
+    // Pagination
+    // =========================================================
+
+    const [currentPage, setCurrentPage] = useState(1);
+
+    // =========================================================
+    // Load help requests
+    // =========================================================
+
+    useEffect(() => {
+        let cancelled = false;
+
+        const loadInitialData = async () => {
+            try {
+                setLoading(true);
+                setError('');
+
+                const data = await fetchMyHelpRequests();
+
+                if (cancelled) {
+                    return;
+                }
+
+                const fetchedRequests =
+                    data?.help_requests ||
+                    data?.helpRequests ||
+                    data?.data ||
+                    [];
+
+                setHelpRequests(normalizeHelpRequests(fetchedRequests));
+            } catch (err) {
+                if (!cancelled) {
+                    setError(
+                        err?.message ||
+                            'Something went wrong while loading your help requests.',
+                    );
+                }
+            } finally {
+                if (!cancelled) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        loadInitialData();
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
+    // =========================================================
+    // Statistics
+    // =========================================================
+
+    const statistics = useMemo(() => {
+        return {
+            total: helpRequests.length,
+
+            pending: helpRequests.filter(
+                (request) => request.status === 'pending',
+            ).length,
+
+            verified: helpRequests.filter(
+                (request) => request.status === 'verified',
+            ).length,
+
+            assigned: helpRequests.filter(
+                (request) => request.status === 'assigned',
+            ).length,
+
+            completed: helpRequests.filter(
+                (request) => request.status === 'completed',
+            ).length,
+
+            rejected: helpRequests.filter(
+                (request) => request.status === 'rejected',
+            ).length,
+        };
+    }, [helpRequests]);
+
+    // =========================================================
+    // Status tabs
+    // =========================================================
+
+    const categoryTabs = useMemo(
+        () => [
+            {
+                key: 'all',
+                label: 'All Requests',
+                count: statistics.total,
+            },
+            {
+                key: 'pending',
+                label: 'Pending',
+                count: statistics.pending,
+            },
+            {
+                key: 'verified',
+                label: 'Verified',
+                count: statistics.verified,
+            },
+            {
+                key: 'assigned',
+                label: 'Assigned',
+                count: statistics.assigned,
+            },
+            {
+                key: 'completed',
+                label: 'Completed',
+                count: statistics.completed,
+            },
+            {
+                key: 'rejected',
+                label: 'Rejected',
+                count: statistics.rejected,
+            },
+        ],
+        [statistics],
+    );
+
+    // =========================================================
+    // Filtering + sorting
+    // =========================================================
+
+    const filteredHelpRequests = useMemo(() => {
+        let result = [...helpRequests];
+
+        // -----------------------------------------------------
+        // Status tab
+        // -----------------------------------------------------
+
+        if (activeCategory !== 'all') {
+            result = result.filter(
+                (request) => request.status === activeCategory,
+            );
+        }
+
+        // -----------------------------------------------------
+        // Category
+        // -----------------------------------------------------
+
+        if (categoryFilter !== 'all') {
+            result = result.filter(
+                (request) => request.category === categoryFilter,
+            );
+        }
+
+        // -----------------------------------------------------
+        // Priority / urgency
+        // -----------------------------------------------------
+
+        if (priorityFilter !== 'all') {
+            result = result.filter(
+                (request) => request.urgency === priorityFilter,
+            );
+        }
+
+        // -----------------------------------------------------
+        // Status filter
+        // -----------------------------------------------------
+
+        if (statusFilter !== 'all') {
+            result = result.filter(
+                (request) => request.status === statusFilter,
+            );
+        }
+
+        // -----------------------------------------------------
+        // Search
+        // -----------------------------------------------------
+
+        const search = searchTerm.trim().toLowerCase();
+
+        if (search) {
+            result = result.filter((request) => {
+                const title = String(request.title || '').toLowerCase();
+
+                const description = String(
+                    request.description || '',
+                ).toLowerCase();
+
+                const category = String(request.category || '').toLowerCase();
+
+                const district = String(request.district || '').toLowerCase();
+
+                const address = String(request.address || '').toLowerCase();
+
+                return (
+                    title.includes(search) ||
+                    description.includes(search) ||
+                    category.includes(search) ||
+                    district.includes(search) ||
+                    address.includes(search)
+                );
+            });
+        }
+
+        // -----------------------------------------------------
+        // Sorting
+        // -----------------------------------------------------
+
+        if (!sortConfig.key || !sortConfig.direction) {
+            return result;
+        }
+
+        result.sort((a, b) => {
+            let first = a[sortConfig.key];
+            let second = b[sortConfig.key];
+
+            if (['created_at', 'updated_at'].includes(sortConfig.key)) {
+                first = first ? new Date(first).getTime() : 0;
+
+                second = second ? new Date(second).getTime() : 0;
+            }
+
+            first = first ?? '';
+            second = second ?? '';
+
+            if (typeof first === 'string') {
+                first = first.toLowerCase();
+                second = String(second).toLowerCase();
+            }
+
+            if (first < second) {
+                return sortConfig.direction === 'asc' ? -1 : 1;
+            }
+
+            if (first > second) {
+                return sortConfig.direction === 'asc' ? 1 : -1;
+            }
+
+            return 0;
+        });
+
+        return result;
+    }, [
+        helpRequests,
+        activeCategory,
+        categoryFilter,
+        priorityFilter,
+        statusFilter,
+        searchTerm,
+        sortConfig,
+    ]);
+
+    // =========================================================
+    // Pagination
+    // =========================================================
+
+    const totalPages = Math.max(
+        1,
+        Math.ceil(filteredHelpRequests.length / HELP_REQUESTS_PER_PAGE),
+    );
+
+    /*
+     * IMPORTANT:
+     *
+     * Do NOT use useEffect + setCurrentPage() here.
+     *
+     * ESLint's react-hooks/set-state-in-effect rule correctly
+     * warns against synchronously changing state from an effect.
+     *
+     * Instead, derive the safe page directly.
+     */
+
+    const safeCurrentPage = Math.min(currentPage, totalPages);
+
+    const paginatedHelpRequests = useMemo(() => {
+        const startIndex = (safeCurrentPage - 1) * HELP_REQUESTS_PER_PAGE;
+
+        return filteredHelpRequests.slice(
+            startIndex,
+            startIndex + HELP_REQUESTS_PER_PAGE,
+        );
+    }, [filteredHelpRequests, safeCurrentPage]);
+
+    // =========================================================
+    // Filter controls
+    // =========================================================
+
+    const handleCategoryChange = (category) => {
+        setActiveCategory(category);
+        setCurrentPage(1);
+    };
+
+    const handleSearchChange = (event) => {
+        setSearchTerm(event.target.value);
+        setCurrentPage(1);
+    };
+
+    const handleCategoryFilterChange = (event) => {
+        setCategoryFilter(event.target.value);
+        setCurrentPage(1);
+    };
+
+    const handlePriorityChange = (event) => {
+        setPriorityFilter(event.target.value);
+        setCurrentPage(1);
+    };
+
+    const handleStatusChange = (event) => {
+        setStatusFilter(event.target.value);
+        setCurrentPage(1);
+    };
+
+    // =========================================================
+    // Sorting
+    // =========================================================
+
+    const handleSort = (key) => {
+        setSortConfig((current) => {
+            if (current.key !== key) {
+                return {
+                    key,
+                    direction: 'asc',
+                };
+            }
+
+            if (current.direction === 'asc') {
+                return {
+                    key,
+                    direction: 'desc',
+                };
+            }
+
+            return {
+                key: null,
+                direction: null,
+            };
+        });
+    };
+
+    const getSortIcon = (key) => {
+        if (sortConfig.key !== key) {
+            return <ChevronsUpDown size={14} strokeWidth={1.8} />;
+        }
+
+        if (sortConfig.direction === 'asc') {
+            return <ArrowUp size={14} strokeWidth={2} />;
+        }
+
+        return <ArrowDown size={14} strokeWidth={2} />;
+    };
+
+    // =========================================================
+    // View
+    // =========================================================
+
+    const handleView = (request) => {
+        setSelectedRequest(request);
+    };
+
+    // =========================================================
+    // Delete
+    // =========================================================
+
+    const handleDelete = (request) => {
+        if (!request) {
+            return;
+        }
+
+        setDeleteError('');
+        setDeleteRequestItem(request);
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (!deleteRequestItem) {
+            return;
+        }
+
+        try {
+            setDeleteLoading(true);
+            setDeleteError('');
+
+            await deleteHelpRequest(deleteRequestItem.id);
+
+            setHelpRequests((current) =>
+                current.filter(
+                    (request) => request.id !== deleteRequestItem.id,
+                ),
+            );
+
+            setDeleteRequestItem(null);
+
+            showSuccessToast('Help request deleted successfully.');
+        } catch (err) {
+            setDeleteError(err?.message || 'Unable to delete help request.');
+        } finally {
+            setDeleteLoading(false);
+        }
+    };
+
+    // =========================================================
+    // CSV export
+    // =========================================================
+
+    const handleExportCSV = () => {
+        if (filteredHelpRequests.length === 0) {
+            return;
+        }
+
+        const headers = [
+            'Help Request',
+            'Category',
+            'District',
+            'Urgency',
+            'Status',
+            'Created Date',
+        ];
+
+        const csvRows = filteredHelpRequests.map((request) => [
+            request.title || '',
+            request.category || '',
+            request.district || '',
+            request.urgency || '',
+            request.status || '',
+            request.created_at
+                ? new Date(request.created_at).toLocaleDateString()
+                : '',
+        ]);
+
+        const csvContent = [headers, ...csvRows]
+            .map((row) =>
+                row
+                    .map(
+                        (value) =>
+                            `"${String(value ?? '').replace(/"/g, '""')}"`,
+                    )
+                    .join(','),
+            )
+            .join('\n');
+
+        const blob = new Blob([csvContent], {
+            type: 'text/csv;charset=utf-8;',
+        });
+
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement('a');
+
+        link.href = url;
+        link.download = 'stand-for-people-my-help-requests.csv';
+
+        document.body.appendChild(link);
+
+        link.click();
+
+        document.body.removeChild(link);
+
+        URL.revokeObjectURL(url);
+    };
+
+    // =========================================================
+    // Loading
+    // =========================================================
+
+    if (loading) {
+        return (
+            <div className="space-y-8">
+                <PageHeader
+                    title="My Help Requests"
+                    subtitle="Track and manage the help requests you have submitted through the Stand For People platform."
+                />
+
+                <div className="flex min-h-70 items-center justify-center border-y border-border bg-white">
+                    <div className="text-center">
+                        <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-border border-t-primary" />
+
+                        <p className="text-sm font-semibold text-text-primary">
+                            Loading help requests...
+                        </p>
+
+                        <p className="mt-1 text-xs text-text-secondary">
+                            Please wait while we retrieve your requests.
+                        </p>
+                    </div>
+                </div>
             </div>
-            <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-text-primary">Category <span className="text-red-500">*</span></label>
-              <select className="h-11 w-full rounded-xl border border-[#e5e7eb] px-3 text-sm outline-none appearance-none focus:border-primary focus:ring-2 focus:ring-primary/20">
-                <option value="">Select category</option>
-                <option>Education</option>
-                <option>Healthcare</option>
-                <option>Food Assistance</option>
-                <option>Shelter</option>
-                <option>Livelihood</option>
-                <option>Disaster Relief</option>
-                <option>Other</option>
-              </select>
+        );
+    }
+
+    // =========================================================
+    // Error
+    // =========================================================
+
+    if (error) {
+        return (
+            <div className="space-y-8">
+                <PageHeader
+                    title="My Help Requests"
+                    subtitle="Track and manage the help requests you have submitted through the Stand For People platform."
+                />
+
+                <div className="border-l-4 border-red-500 bg-red-50 px-5 py-4 text-sm text-red-600">
+                    {error}
+                </div>
             </div>
-            <div className="space-y-1.5 md:col-span-2">
-              <label className="block text-sm font-medium text-text-primary">Description <span className="text-red-500">*</span></label>
-              <textarea
-                rows={4}
-                placeholder="Please describe the situation and what kind of help you need…"
-                className="w-full rounded-xl border border-[#e5e7eb] px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 resize-none"
-              />
-            </div>
-          </div>
-          <div className="mt-4 flex gap-3">
-            <button
-              type="button"
-              className="inline-flex h-10 items-center rounded-xl bg-primary px-5 text-sm font-medium text-white hover:bg-primary-hover transition-colors"
-            >
-              Submit Request
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowForm(false)}
-              className="inline-flex h-10 items-center rounded-xl border border-[#e5e7eb] px-5 text-sm font-medium text-[#6b7280] hover:bg-[#eef3f6] transition-colors"
-            >
-              Cancel
-            </button>
-          </div>
+        );
+    }
+
+    // =========================================================
+    // Prepare table rows
+    // =========================================================
+
+    const rows = paginatedHelpRequests.map((request, index) => ({
+        ...request,
+
+        serialNumber:
+            (safeCurrentPage - 1) * HELP_REQUESTS_PER_PAGE + index + 1,
+
+        statusLabel: getStatusLabel(request.status),
+
+        urgencyLabel: getUrgencyLabel(request.urgency),
+
+        formattedCreatedDate: request.created_at
+            ? new Date(request.created_at).toLocaleDateString('en-GB', {
+                  day: '2-digit',
+                  month: 'short',
+                  year: 'numeric',
+              })
+            : '—',
+
+        locationName:
+            request.district || request.address || 'Location not specified',
+    }));
+
+    // =========================================================
+    // Table columns
+    // =========================================================
+
+    const columns = [
+        {
+            key: 'serialNumber',
+            header: '#',
+            align: 'center',
+            width: '60px',
+        },
+
+        {
+            key: 'title',
+            header: 'Help Request',
+            sortable: true,
+            sortKey: 'title',
+
+            render: (value, row) => (
+                <div className="min-w-0 max-w-90">
+                    <p className="truncate font-semibold text-text-primary">
+                        {value || 'Untitled help request'}
+                    </p>
+
+                    {row.description && (
+                        <p className="mt-1 line-clamp-2 text-xs leading-5 text-text-secondary">
+                            {row.description}
+                        </p>
+                    )}
+
+                    <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1">
+                        {row.category && (
+                            <span className="inline-flex items-center rounded-full bg-background-alt px-2 py-0.5 text-[10px] font-semibold capitalize text-text-secondary">
+                                {row.category}
+                            </span>
+                        )}
+
+                        {row.locationName !== 'Location not specified' && (
+                            <>
+                                <span className="text-[10px] text-slate-300">
+                                    •
+                                </span>
+
+                                <span className="truncate text-[10px] font-medium text-text-secondary">
+                                    {row.locationName}
+                                </span>
+                            </>
+                        )}
+                    </div>
+                </div>
+            ),
+        },
+
+        {
+            key: 'urgencyLabel',
+            header: 'Priority',
+            sortable: true,
+            sortKey: 'urgency',
+
+            render: (value) => (
+                <span className="whitespace-nowrap text-sm font-semibold text-text-primary">
+                    {value}
+                </span>
+            ),
+        },
+
+        {
+            key: 'formattedCreatedDate',
+            header: 'Submitted',
+            sortable: true,
+            sortKey: 'created_at',
+
+            render: (value) => (
+                <span className="whitespace-nowrap text-sm font-medium text-text-primary">
+                    {value}
+                </span>
+            ),
+        },
+
+        {
+            key: 'statusLabel',
+            header: 'Status',
+            sortable: true,
+            sortKey: 'status',
+
+            render: (value, row) => (
+                <span
+                    className={`inline-flex rounded-full px-2.5 py-1 text-[10px] font-bold ${
+                        row.status === 'completed'
+                            ? 'bg-emerald-50 text-emerald-700'
+                            : row.status === 'rejected'
+                              ? 'bg-red-50 text-red-700'
+                              : row.status === 'pending'
+                                ? 'bg-amber-50 text-amber-700'
+                                : 'bg-primary/10 text-primary'
+                    }`}
+                >
+                    {value}
+                </span>
+            ),
+        },
+
+        {
+            key: 'actions',
+            header: 'Actions',
+            align: 'right',
+
+            render: (_, row) => {
+                /*
+                 * A request should only be deletable while
+                 * it is still pending.
+                 */
+
+                const canDelete = row.status === 'pending';
+
+                return (
+                    <div className="flex items-center justify-end gap-4">
+                        <button
+                            type="button"
+                            onClick={() => handleView(row)}
+                            className="text-xs font-semibold text-text-secondary transition-colors hover:text-primary"
+                        >
+                            View
+                        </button>
+
+                        {canDelete && (
+                            <button
+                                type="button"
+                                onClick={() => handleDelete(row)}
+                                className="text-xs font-semibold text-red-500 transition-colors hover:text-red-600"
+                            >
+                                Delete
+                            </button>
+                        )}
+                    </div>
+                );
+            },
+        },
+    ];
+
+    // =========================================================
+    // Render
+    // =========================================================
+
+    return (
+        <div className="space-y-9">
+            {/* SUCCESS TOAST */}
+
+            <HelpRequestSuccessToast
+                show={successToast.show}
+                message={successToast.message}
+            />
+
+            <PageHeader
+                title="My Help Requests"
+                subtitle="Track and manage the help requests you have submitted through the Stand For People platform."
+                action={
+                    <button
+                        type="button"
+                        onClick={handleExportCSV}
+                        disabled={filteredHelpRequests.length === 0}
+                        className="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-white px-4 text-sm font-medium text-text-primary transition-colors hover:border-primary/30 hover:bg-background-alt disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        <Download size={16} />
+                        Export
+                    </button>
+                }
+            />
+
+            {/* =====================================================
+                Statistics
+            ===================================================== */}
+
+            <section>
+                <div className="mb-4 flex items-end justify-between">
+                    <div>
+                        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
+                            Overview
+                        </p>
+
+                        <h2 className="mt-1 text-lg font-bold tracking-tight text-text-primary">
+                            Request base
+                        </h2>
+                    </div>
+
+                    <p className="hidden text-xs text-text-secondary sm:block">
+                        Current request distribution
+                    </p>
+                </div>
+
+                <HelpRequestStats
+                    total={statistics.total}
+                    pending={statistics.pending}
+                    verified={statistics.verified}
+                    assigned={statistics.assigned}
+                    completed={statistics.completed}
+                    rejected={statistics.rejected}
+                />
+            </section>
+
+            {/* =====================================================
+                Management
+            ===================================================== */}
+
+            <section className="border-t border-border pt-8">
+                <div className="mb-5">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
+                        Requests
+                    </p>
+
+                    <div className="mt-1 flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
+                        <h2 className="text-lg font-bold tracking-tight text-text-primary">
+                            My help requests
+                        </h2>
+
+                        <p className="text-xs font-medium text-text-secondary">
+                            {filteredHelpRequests.length}{' '}
+                            {filteredHelpRequests.length === 1
+                                ? 'request'
+                                : 'requests'}{' '}
+                            shown
+                        </p>
+                    </div>
+                </div>
+
+                <HelpRequestCategoryTabs
+                    tabs={categoryTabs}
+                    activeCategory={activeCategory}
+                    onChange={handleCategoryChange}
+                />
+
+                <div className="mt-4">
+                    <HelpRequestFilters
+                        searchTerm={searchTerm}
+                        categoryFilter={categoryFilter}
+                        priorityFilter={priorityFilter}
+                        statusFilter={statusFilter}
+                        helpRequests={helpRequests}
+                        onSearchChange={handleSearchChange}
+                        onCategoryChange={handleCategoryFilterChange}
+                        onPriorityChange={handlePriorityChange}
+                        onStatusChange={handleStatusChange}
+                    />
+                </div>
+
+                <div className="mt-5">
+                    <HelpRequestTable
+                        columns={columns}
+                        rows={rows}
+                        onSort={handleSort}
+                        getSortIcon={getSortIcon}
+                        resultCount={filteredHelpRequests.length}
+                    />
+                </div>
+
+                {filteredHelpRequests.length > 0 && (
+                    <HelpRequestPagination
+                        currentPage={safeCurrentPage}
+                        totalPages={totalPages}
+                        totalItems={filteredHelpRequests.length}
+                        itemsPerPage={HELP_REQUESTS_PER_PAGE}
+                        onPageChange={setCurrentPage}
+                    />
+                )}
+            </section>
+
+            {/* =====================================================
+                View Modal
+            ===================================================== */}
+
+            {selectedRequest && (
+                <HelpRequestDetailsModal
+                    request={selectedRequest}
+                    onClose={() => setSelectedRequest(null)}
+                />
+            )}
+
+            {/* =====================================================
+                Delete Modal
+            ===================================================== */}
+
+            {deleteRequestItem && (
+                <HelpRequestDeleteModal
+                    request={deleteRequestItem}
+                    loading={deleteLoading}
+                    error={deleteError}
+                    onClose={() => {
+                        if (!deleteLoading) {
+                            setDeleteRequestItem(null);
+                            setDeleteError('');
+                        }
+                    }}
+                    onConfirm={handleDeleteConfirm}
+                />
+            )}
         </div>
-      )}
-
-      <DataTable
-        title="All Help Requests"
-        columns={columns}
-        rows={mockHelpRequests}
-        empty={{
-          icon: HeartHandshake,
-          title: 'No help requests yet',
-          message: 'Submit your first help request and SP will coordinate a response.',
-          action: { label: 'Submit a Request', onClick: () => setShowForm(true) },
-        }}
-      />
-    </div>
-  );
+    );
 };
 
 export default MyHelpRequests;

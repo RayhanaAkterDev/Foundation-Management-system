@@ -48,6 +48,15 @@ import AdminCampaigns from '@/dashboard/admin/AdminCampaigns';
 import AdminReports from '@/dashboard/admin/AdminReports';
 import AdminSettings from '@/dashboard/admin/AdminSettings';
 
+// Individual dashboard routes
+import IndividualCampaigns from '@/dashboard/individual/IndividualCampaigns';
+import IndividualNotifications from '@/dashboard/individual/IndividualNotifications';
+import IndividualProfile from '@/dashboard/individual/IndividualProfile';
+import IndividualSettings from '@/dashboard/individual/IndividualSettings';
+import MyDonations from '@/dashboard/individual/MyDonations';
+import MyHelpRequests from '@/dashboard/individual/MyHelpRequests';
+import MyVolunteerActivities from '@/dashboard/individual/MyVolunteerActivities';
+
 const router = createBrowserRouter([
     // =========================
     // PUBLIC ROUTES
@@ -133,6 +142,34 @@ const router = createBrowserRouter([
                     {
                         path: 'individual',
                         element: <IndividualDashboard />,
+                    },
+                    {
+                        path: 'individual/help-requests',
+                        element: <MyHelpRequests />,
+                    },
+                    {
+                        path: 'individual/donations',
+                        element: <MyDonations />,
+                    },
+                    {
+                        path: 'individual/volunteer',
+                        element: <MyVolunteerActivities />,
+                    },
+                    {
+                        path: 'individual/campaigns',
+                        element: <IndividualCampaigns />,
+                    },
+                    {
+                        path: 'individual/notifications',
+                        element: <IndividualNotifications />,
+                    },
+                    {
+                        path: 'individual/profile',
+                        element: <IndividualProfile />,
+                    },
+                    {
+                        path: 'individual/settings',
+                        element: <IndividualSettings />,
                     },
                 ],
             },

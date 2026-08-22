@@ -1,6 +1,14 @@
 import React, { useEffect, useMemo, useState } from 'react';
 
-import { ArrowDown, ArrowUp, ChevronsUpDown, Download } from 'lucide-react';
+import {
+    ArrowDown,
+    ArrowUp,
+    ChevronsUpDown,
+    Download,
+    Pencil,
+    Plus,
+    Trash2,
+} from 'lucide-react';
 
 import PageHeader from '@/components/dashboard/PageHeader';
 
@@ -9,12 +17,15 @@ import HelpRequestCategoryTabs from './myHelpRequests/HelpRequestCategoryTabs';
 import HelpRequestFilters from './myHelpRequests/HelpRequestFilters';
 import HelpRequestTable from './myHelpRequests/HelpRequestTable';
 import HelpRequestPagination from './myHelpRequests/HelpRequestPagination';
+
 import HelpRequestDetailsModal from './myHelpRequests/HelpRequestDetailsModal';
+import HelpRequestEditModal from './myHelpRequests/HelpRequestEditModal';
+import HelpRequestModal from './myHelpRequests/HelpRequestModal';
 import HelpRequestDeleteModal from './myHelpRequests/HelpRequestDeleteModal';
 import HelpRequestSuccessToast from './myHelpRequests/HelpRequestSuccessToast';
 
 import {
-    fetchMyHelpRequests,
+    getMyHelpRequests,
     deleteHelpRequest,
 } from './myHelpRequests/helpRequestAPI';
 
@@ -31,8 +42,25 @@ const normalizeHelpRequest = (request) => {
 
     return {
         ...request,
-        status: request.status || '',
+
+        id: request.id,
+        title: request.title || '',
+        description: request.description || '',
+        category: request.category || '',
         urgency: request.urgency || 'normal',
+        district: request.district || '',
+        address: request.address || '',
+
+        status: request.status || '',
+
+        verification_note: request.verification_note || '',
+        verificationNote: request.verification_note || '',
+
+        notes: request.verification_note || '',
+
+        assignments: Array.isArray(request.assignments)
+            ? request.assignments
+            : [],
     };
 };
 
@@ -103,6 +131,19 @@ const MyHelpRequests = () => {
     const [helpRequests, setHelpRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+
+    // =========================================================
+    // Create modal
+    // =========================================================
+
+    const [showModal, setShowModal] = useState(false);
+
+    // =========================================================
+    // Edit modal
+    // =========================================================
+
+    const [editingRequest, setEditingRequest] = useState(null);
+    const [showEditModal, setShowEditModal] = useState(false);
 
     // =========================================================
     // Success toast
@@ -188,7 +229,8 @@ const MyHelpRequests = () => {
                 setLoading(true);
                 setError('');
 
-                const data = await fetchMyHelpRequests();
+                // Use the working API function from the previous version.
+                const data = await getMyHelpRequests();
 
                 if (cancelled) {
                     return;
@@ -221,6 +263,177 @@ const MyHelpRequests = () => {
             cancelled = true;
         };
     }, []);
+
+    // =========================================================
+    // CREATE
+    // =========================================================
+
+    const handleOpenModal = () => {
+        setShowModal(true);
+    };
+
+    const handleCloseModal = () => {
+        setShowModal(false);
+    };
+
+    const handleRequestCreated = (createdRequest) => {
+        if (createdRequest) {
+            const formattedRequest = normalizeHelpRequest(createdRequest);
+
+            setHelpRequests((previousRequests) => [
+                formattedRequest,
+                ...previousRequests,
+            ]);
+
+            // New request should appear on first page.
+            setCurrentPage(1);
+        }
+
+        setShowModal(false);
+
+        showSuccessToast('Your help request was submitted successfully.');
+    };
+
+    // =========================================================
+    // VIEW
+    // =========================================================
+
+    const handleView = (request) => {
+        setSelectedRequest(request);
+    };
+
+    const handleCloseDetails = () => {
+        setSelectedRequest(null);
+    };
+
+    // =========================================================
+    // EDIT
+    //
+    // Only pending requests can be edited.
+    // =========================================================
+
+    const handleEdit = (request) => {
+        if (!request || request.status !== 'pending') {
+            return;
+        }
+
+        setEditingRequest(request);
+        setShowEditModal(true);
+    };
+
+    const handleCloseEditModal = () => {
+        if (deleteLoading) {
+            return;
+        }
+
+        setShowEditModal(false);
+        setEditingRequest(null);
+    };
+
+    const handleRequestUpdated = (updatedRequest) => {
+        if (!updatedRequest) {
+            handleCloseEditModal();
+            return;
+        }
+
+        const formattedRequest = normalizeHelpRequest(updatedRequest);
+
+        setHelpRequests((previousRequests) =>
+            previousRequests.map((request) =>
+                request.id === formattedRequest.id ? formattedRequest : request,
+            ),
+        );
+
+        setShowEditModal(false);
+        setEditingRequest(null);
+
+        // If details modal is open for this request,
+        // update the displayed request as well.
+        setSelectedRequest((currentRequest) => {
+            if (!currentRequest) {
+                return null;
+            }
+
+            return currentRequest.id === formattedRequest.id
+                ? formattedRequest
+                : currentRequest;
+        });
+
+        showSuccessToast('Your help request was updated successfully.');
+    };
+
+    // =========================================================
+    // DELETE
+    //
+    // Only pending requests can be deleted.
+    // =========================================================
+
+    const handleDelete = (request) => {
+        if (!request || request.status !== 'pending') {
+            return;
+        }
+
+        if (deleteLoading) {
+            return;
+        }
+
+        setDeleteError('');
+        setDeleteRequestItem(request);
+    };
+
+    const handleCloseDeleteModal = () => {
+        if (deleteLoading) {
+            return;
+        }
+
+        setDeleteRequestItem(null);
+        setDeleteError('');
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (!deleteRequestItem) {
+            return;
+        }
+
+        if (deleteLoading) {
+            return;
+        }
+
+        try {
+            setDeleteLoading(true);
+            setDeleteError('');
+
+            await deleteHelpRequest(deleteRequestItem.id);
+
+            const deletedId = deleteRequestItem.id;
+
+            // Remove from table.
+            setHelpRequests((currentRequests) =>
+                currentRequests.filter((request) => request.id !== deletedId),
+            );
+
+            // Close details modal if it happens to be open.
+            setSelectedRequest((currentRequest) =>
+                currentRequest?.id === deletedId ? null : currentRequest,
+            );
+
+            // Close edit modal if it happens to be open.
+            if (editingRequest?.id === deletedId) {
+                setShowEditModal(false);
+                setEditingRequest(null);
+            }
+
+            // Close delete modal.
+            setDeleteRequestItem(null);
+
+            // Show success toast.
+            showSuccessToast('Your help request was deleted successfully.');
+        } catch (err) {
+            setDeleteError(err?.message || 'Unable to delete help request.');
+        } finally {
+            setDeleteLoading(false);
+        }
+    };
 
     // =========================================================
     // Statistics
@@ -426,17 +639,6 @@ const MyHelpRequests = () => {
         Math.ceil(filteredHelpRequests.length / HELP_REQUESTS_PER_PAGE),
     );
 
-    /*
-     * IMPORTANT:
-     *
-     * Do NOT use useEffect + setCurrentPage() here.
-     *
-     * ESLint's react-hooks/set-state-in-effect rule correctly
-     * warns against synchronously changing state from an effect.
-     *
-     * Instead, derive the safe page directly.
-     */
-
     const safeCurrentPage = Math.min(currentPage, totalPages);
 
     const paginatedHelpRequests = useMemo(() => {
@@ -517,54 +719,6 @@ const MyHelpRequests = () => {
     };
 
     // =========================================================
-    // View
-    // =========================================================
-
-    const handleView = (request) => {
-        setSelectedRequest(request);
-    };
-
-    // =========================================================
-    // Delete
-    // =========================================================
-
-    const handleDelete = (request) => {
-        if (!request) {
-            return;
-        }
-
-        setDeleteError('');
-        setDeleteRequestItem(request);
-    };
-
-    const handleDeleteConfirm = async () => {
-        if (!deleteRequestItem) {
-            return;
-        }
-
-        try {
-            setDeleteLoading(true);
-            setDeleteError('');
-
-            await deleteHelpRequest(deleteRequestItem.id);
-
-            setHelpRequests((current) =>
-                current.filter(
-                    (request) => request.id !== deleteRequestItem.id,
-                ),
-            );
-
-            setDeleteRequestItem(null);
-
-            showSuccessToast('Help request deleted successfully.');
-        } catch (err) {
-            setDeleteError(err?.message || 'Unable to delete help request.');
-        } finally {
-            setDeleteLoading(false);
-        }
-    };
-
-    // =========================================================
     // CSV export
     // =========================================================
 
@@ -613,6 +767,7 @@ const MyHelpRequests = () => {
         const link = document.createElement('a');
 
         link.href = url;
+
         link.download = 'stand-for-people-my-help-requests.csv';
 
         document.body.appendChild(link);
@@ -806,10 +961,7 @@ const MyHelpRequests = () => {
             align: 'right',
 
             render: (_, row) => {
-                /*
-                 * A request should only be deletable while
-                 * it is still pending.
-                 */
+                const canEdit = row.status === 'pending';
 
                 const canDelete = row.status === 'pending';
 
@@ -823,12 +975,26 @@ const MyHelpRequests = () => {
                             View
                         </button>
 
+                        {canEdit && (
+                            <button
+                                type="button"
+                                onClick={() => handleEdit(row)}
+                                disabled={deleteLoading}
+                                className="inline-flex items-center gap-1 text-xs font-semibold text-text-secondary transition-colors hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                <Pencil size={13} strokeWidth={1.8} />
+                                Edit
+                            </button>
+                        )}
+
                         {canDelete && (
                             <button
                                 type="button"
                                 onClick={() => handleDelete(row)}
-                                className="text-xs font-semibold text-red-500 transition-colors hover:text-red-600"
+                                disabled={deleteLoading}
+                                className="inline-flex items-center gap-1 text-xs font-semibold text-red-500 transition-colors hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
                             >
+                                <Trash2 size={13} strokeWidth={1.8} />
                                 Delete
                             </button>
                         )}
@@ -855,15 +1021,30 @@ const MyHelpRequests = () => {
                 title="My Help Requests"
                 subtitle="Track and manage the help requests you have submitted through the Stand For People platform."
                 action={
-                    <button
-                        type="button"
-                        onClick={handleExportCSV}
-                        disabled={filteredHelpRequests.length === 0}
-                        className="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-white px-4 text-sm font-medium text-text-primary transition-colors hover:border-primary/30 hover:bg-background-alt disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                        <Download size={16} />
-                        Export
-                    </button>
+                    <div className="flex items-center gap-2">
+                        {/* NEW REQUEST */}
+
+                        <button
+                            type="button"
+                            onClick={handleOpenModal}
+                            className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-white transition-colors hover:bg-primary-hover"
+                        >
+                            <Plus size={16} />
+                            New Request
+                        </button>
+
+                        {/* EXPORT */}
+
+                        <button
+                            type="button"
+                            onClick={handleExportCSV}
+                            disabled={filteredHelpRequests.length === 0}
+                            className="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-white px-4 text-sm font-medium text-text-primary transition-colors hover:border-primary/30 hover:bg-background-alt disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            <Download size={16} />
+                            Export
+                        </button>
+                    </div>
                 }
             />
 
@@ -965,31 +1146,51 @@ const MyHelpRequests = () => {
             </section>
 
             {/* =====================================================
-                View Modal
+                CREATE HELP REQUEST MODAL
+            ===================================================== */}
+
+            <HelpRequestModal
+                isOpen={showModal}
+                onClose={handleCloseModal}
+                onSuccess={handleRequestCreated}
+            />
+
+            {/* =====================================================
+                VIEW DETAILS MODAL
             ===================================================== */}
 
             {selectedRequest && (
                 <HelpRequestDetailsModal
+                    isOpen={Boolean(selectedRequest)}
                     request={selectedRequest}
-                    onClose={() => setSelectedRequest(null)}
+                    onClose={handleCloseDetails}
                 />
             )}
 
             {/* =====================================================
-                Delete Modal
+                EDIT HELP REQUEST MODAL
+            ===================================================== */}
+
+            <HelpRequestEditModal
+                key={editingRequest?.id || 'edit-help-request'}
+                isOpen={showEditModal}
+                request={editingRequest}
+                onClose={handleCloseEditModal}
+                onSuccess={handleRequestUpdated}
+            />
+
+            {/* =====================================================
+                DELETE HELP REQUEST MODAL
             ===================================================== */}
 
             {deleteRequestItem && (
                 <HelpRequestDeleteModal
+                    isOpen={Boolean(deleteRequestItem)}
                     request={deleteRequestItem}
                     loading={deleteLoading}
+                    deleting={deleteLoading}
                     error={deleteError}
-                    onClose={() => {
-                        if (!deleteLoading) {
-                            setDeleteRequestItem(null);
-                            setDeleteError('');
-                        }
-                    }}
+                    onClose={handleCloseDeleteModal}
                     onConfirm={handleDeleteConfirm}
                 />
             )}

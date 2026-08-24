@@ -7,61 +7,141 @@ use Illuminate\Http\Request;
 
 class HelpRequestController extends Controller
 {
-    /**
-     * Submit a new help request.
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | Submit Help Request
+    |--------------------------------------------------------------------------
+    |
+    | Only authenticated individual users can submit Help Requests.
+    |
+    | New Help Request:
+    |
+    | pending
+    |
+    */
+
     public function store(Request $request)
     {
         $user = $request->user();
 
         if (!$user || $user->role !== 'individual') {
             return response()->json([
-                'message' => 'Only individual users can submit help requests.',
+                'message' =>
+                'Only individual users can submit help requests.',
             ], 403);
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Validate Request
+        |--------------------------------------------------------------------------
+        */
+
         $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'category' => 'required|string|max:100',
-            'district' => 'required|string|max:100',
-            'address' => 'nullable|string|max:1000',
-            'urgency' => 'nullable|in:low,normal,high,critical',
+            'title' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'description' => [
+                'required',
+                'string',
+            ],
+
+            'category' => [
+                'required',
+                'string',
+                'max:100',
+            ],
+
+            'district' => [
+                'required',
+                'string',
+                'max:100',
+            ],
+
+            'address' => [
+                'nullable',
+                'string',
+                'max:1000',
+            ],
+
+            'urgency' => [
+                'nullable',
+                'in:low,normal,high,critical',
+            ],
         ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Create Help Request
+        |--------------------------------------------------------------------------
+        |
+        | Status is always pending when a requester submits
+        | a new Help Request.
+        |
+        */
 
         $helpRequest = HelpRequest::create([
             'user_id' => $user->id,
+
             'title' => $validated['title'],
+
             'description' => $validated['description'],
+
             'category' => $validated['category'],
+
             'district' => $validated['district'],
+
             'address' => $validated['address'] ?? null,
+
             'urgency' => $validated['urgency'] ?? 'normal',
-            'status' => 'pending',
+
+            'status' => HelpRequest::STATUS_PENDING,
+
+            'verification_note' => null,
         ]);
 
         return response()->json([
-            'message' => 'Help request submitted successfully.',
-            'help_request' => $helpRequest->load('user'),
+            'message' =>
+            'Help request submitted successfully.',
+
+            'help_request' => $helpRequest
+                ->fresh()
+                ->load([
+                    'user',
+                    'assignments.organization',
+                    'assignments.volunteer',
+                    'assignments.assignedBy',
+                ]),
         ], 201);
     }
 
-    /**
-     * Get all help requests belonging to the authenticated individual.
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | My Help Requests
+    |--------------------------------------------------------------------------
+    |
+    | An individual can see only their own Help Requests.
+    |
+    */
+
     public function myRequests(Request $request)
     {
         $user = $request->user();
 
         if (!$user || $user->role !== 'individual') {
             return response()->json([
-                'message' => 'Only individual users can view their help requests.',
+                'message' =>
+                'Only individual users can view their help requests.',
             ], 403);
         }
 
         $helpRequests = HelpRequest::with([
             'assignments.organization',
-            'assignments.volunteer.user',
+            'assignments.volunteer',
+            'assignments.assignedBy',
         ])
             ->where('user_id', $user->id)
             ->latest()
@@ -72,15 +152,31 @@ class HelpRequestController extends Controller
         ], 200);
     }
 
-    /**
-     * Show a specific help request.
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | Show Specific Help Request
+    |--------------------------------------------------------------------------
+    |
+    | The requester can view only their own Help Request.
+    |
+    */
+
     public function show(Request $request, int $id)
     {
+        $user = $request->user();
+
+        if (!$user || $user->role !== 'individual') {
+            return response()->json([
+                'message' =>
+                'Only individual users can view help requests.',
+            ], 403);
+        }
+
         $helpRequest = HelpRequest::with([
             'user',
             'assignments.organization',
-            'assignments.volunteer.user',
+            'assignments.volunteer',
+            'assignments.assignedBy',
         ])->find($id);
 
         if (!$helpRequest) {
@@ -89,9 +185,16 @@ class HelpRequestController extends Controller
             ], 404);
         }
 
-        if ($helpRequest->user_id !== $request->user()->id) {
+        /*
+        |--------------------------------------------------------------------------
+        | Ownership Check
+        |--------------------------------------------------------------------------
+        */
+
+        if ($helpRequest->user_id !== $user->id) {
             return response()->json([
-                'message' => 'You are not authorized to view this help request.',
+                'message' =>
+                'You are not authorized to view this help request.',
             ], 403);
         }
 
@@ -100,20 +203,38 @@ class HelpRequestController extends Controller
         ], 200);
     }
 
-    /**
-     * Update a help request.
-     *
-     * Only the owner of a pending request can edit it.
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | Update Help Request
+    |--------------------------------------------------------------------------
+    |
+    | Only the owner of a pending Help Request can edit it.
+    |
+    | Once admin reviews it:
+    |
+    | pending -> verified
+    | pending -> rejected
+    |
+    | the requester can no longer edit it.
+    |
+    */
+
     public function update(Request $request, int $id)
     {
         $user = $request->user();
 
         if (!$user || $user->role !== 'individual') {
             return response()->json([
-                'message' => 'Only individual users can update help requests.',
+                'message' =>
+                'Only individual users can update help requests.',
             ], 403);
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Find Request Owned By Current User
+        |--------------------------------------------------------------------------
+        */
 
         $helpRequest = HelpRequest::where('id', $id)
             ->where('user_id', $user->id)
@@ -126,61 +247,121 @@ class HelpRequestController extends Controller
         }
 
         /*
-     * Only pending requests can be edited.
-     */
-        if ($helpRequest->status !== 'pending') {
+        |--------------------------------------------------------------------------
+        | Only Pending Requests Can Be Edited
+        |--------------------------------------------------------------------------
+        */
+
+        if ($helpRequest->status !== HelpRequest::STATUS_PENDING) {
             return response()->json([
-                'message' => 'Only pending help requests can be edited.',
+                'message' =>
+                'Only pending help requests can be edited.',
             ], 422);
         }
 
         /*
-     * PATCH request:
-     * Every field is optional because the frontend
-     * sends only the fields that were changed.
-     */
+        |--------------------------------------------------------------------------
+        | Validate PATCH Data
+        |--------------------------------------------------------------------------
+        |
+        | "sometimes" means the frontend can send only the
+        | fields that were changed.
+        |
+        */
+
         $validated = $request->validate([
-            'title' => 'sometimes|required|string|max:255',
-            'description' => 'sometimes|required|string',
-            'category' => 'sometimes|required|string|max:100',
-            'district' => 'sometimes|required|string|max:100',
-            'address' => 'sometimes|nullable|string|max:1000',
-            'urgency' => 'sometimes|required|in:low,normal,high,critical',
+            'title' => [
+                'sometimes',
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'description' => [
+                'sometimes',
+                'required',
+                'string',
+            ],
+
+            'category' => [
+                'sometimes',
+                'required',
+                'string',
+                'max:100',
+            ],
+
+            'district' => [
+                'sometimes',
+                'required',
+                'string',
+                'max:100',
+            ],
+
+            'address' => [
+                'sometimes',
+                'nullable',
+                'string',
+                'max:1000',
+            ],
+
+            'urgency' => [
+                'sometimes',
+                'required',
+                'in:low,normal,high,critical',
+            ],
         ]);
 
         /*
-     * Update only the fields actually sent
-     * by the frontend.
-     */
+        |--------------------------------------------------------------------------
+        | Update Only Submitted Fields
+        |--------------------------------------------------------------------------
+        */
+
         $helpRequest->update($validated);
 
-        /*
-     * Return the updated request.
-     */
         return response()->json([
-            'message' => 'Help request updated successfully.',
-            'help_request' => $helpRequest->fresh()->load([
-                'user',
-                'assignments.organization',
-                'assignments.volunteer.user',
-            ]),
+            'message' =>
+            'Help request updated successfully.',
+
+            'help_request' => $helpRequest
+                ->fresh()
+                ->load([
+                    'user',
+                    'assignments.organization',
+                    'assignments.volunteer',
+                    'assignments.assignedBy',
+                ]),
         ], 200);
     }
 
-    /**
-     * Delete a help request.
-     *
-     * Only the owner of a pending request can delete it.
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | Delete Help Request
+    |--------------------------------------------------------------------------
+    |
+    | Only the owner of a pending Help Request can delete it.
+    |
+    | Once the request has been reviewed, it becomes immutable
+    | from the requester's side.
+    |
+    */
+
     public function destroy(Request $request, int $id)
     {
         $user = $request->user();
 
         if (!$user || $user->role !== 'individual') {
             return response()->json([
-                'message' => 'Only individual users can delete help requests.',
+                'message' =>
+                'Only individual users can delete help requests.',
             ], 403);
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Find Request
+        |--------------------------------------------------------------------------
+        */
 
         $helpRequest = HelpRequest::find($id);
 
@@ -190,26 +371,50 @@ class HelpRequestController extends Controller
             ], 404);
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Ownership Check
+        |--------------------------------------------------------------------------
+        */
+
         if ($helpRequest->user_id !== $user->id) {
             return response()->json([
-                'message' => 'You are not authorized to delete this help request.',
+                'message' =>
+                'You are not authorized to delete this help request.',
             ], 403);
         }
 
         /*
-         * Once admin has reviewed the request, it becomes
-         * immutable from the individual's side.
-         */
-        if ($helpRequest->status !== 'pending') {
+        |--------------------------------------------------------------------------
+        | Only Pending Requests Can Be Deleted
+        |--------------------------------------------------------------------------
+        */
+
+        if ($helpRequest->status !== HelpRequest::STATUS_PENDING) {
             return response()->json([
-                'message' => 'This help request can no longer be deleted because it has already been reviewed.',
+                'message' =>
+                'This help request can no longer be deleted because it has already been reviewed.',
             ], 422);
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Delete
+        |--------------------------------------------------------------------------
+        |
+        | The database relationship uses cascadeOnDelete() for
+        | help_request_assignments.
+        |
+        | Normally a pending request should not have assignments,
+        | but the database remains responsible for cleanup.
+        |
+        */
 
         $helpRequest->delete();
 
         return response()->json([
-            'message' => 'Help request deleted successfully.',
+            'message' =>
+            'Help request deleted successfully.',
         ], 200);
     }
 }

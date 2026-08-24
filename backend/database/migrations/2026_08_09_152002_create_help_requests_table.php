@@ -29,7 +29,8 @@ return new class extends Migration
             $table->string('urgency')
                 ->default('normal');
 
-            // pending, verified, assigned, in_progress, completed, rejected
+            // Help Request status:
+            // pending, verified, rejected, completed
             $table->string('status')
                 ->default('pending');
 

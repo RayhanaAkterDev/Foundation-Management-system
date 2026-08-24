@@ -114,18 +114,15 @@ class VolunteerController extends Controller
                 'string',
                 'max:50',
             ],
-
             'district' => [
                 'nullable',
                 'string',
                 'max:100',
             ],
-
             'address' => [
                 'nullable',
                 'string',
             ],
-
             'skills' => [
                 'nullable',
                 'string',
@@ -250,10 +247,8 @@ class VolunteerController extends Controller
 
         $this->syncVolunteerAvailability($user->id);
 
-        $assignment->helpRequest->syncStatusFromAssignments();
-
         return response()->json([
-            'message' => 'Help request accepted successfully.',
+            'message' => 'Help request assignment accepted successfully.',
             'assignment' => $assignment->fresh()->load([
                 'helpRequest',
                 'organization:id,name',
@@ -298,10 +293,8 @@ class VolunteerController extends Controller
 
         $this->syncVolunteerAvailability($user->id);
 
-        $assignment->helpRequest->syncStatusFromAssignments();
-
         return response()->json([
-            'message' => 'Help request rejected successfully.',
+            'message' => 'Help request assignment rejected successfully.',
             'assignment' => $assignment->fresh()->load([
                 'helpRequest',
                 'organization:id,name',
@@ -346,10 +339,8 @@ class VolunteerController extends Controller
 
         $this->syncVolunteerAvailability($user->id);
 
-        $assignment->helpRequest->syncStatusFromAssignments();
-
         return response()->json([
-            'message' => 'Help request marked as in progress.',
+            'message' => 'Help request assignment marked as in progress.',
             'assignment' => $assignment->fresh()->load([
                 'helpRequest',
                 'organization:id,name',
@@ -395,10 +386,8 @@ class VolunteerController extends Controller
 
         $this->syncVolunteerAvailability($user->id);
 
-        $assignment->helpRequest->syncStatusFromAssignments();
-
         return response()->json([
-            'message' => 'Help request completed successfully.',
+            'message' => 'Help request assignment completed successfully.',
             'assignment' => $assignment->fresh()->load([
                 'helpRequest',
                 'organization:id,name',
@@ -659,7 +648,6 @@ class VolunteerController extends Controller
             'message' => $validated['status'] === 'approved'
                 ? 'Volunteer approved successfully.'
                 : 'Volunteer marked as inactive successfully.',
-
             'volunteer' => $volunteer->fresh()->load([
                 'user:id,name,email,status',
                 'organization:id,name',

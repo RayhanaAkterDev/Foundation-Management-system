@@ -29,16 +29,21 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
 
     const user = useMemo(() => {
         try {
-            const storedUser = localStorage.getItem('user');
+            const storedUser =
+                localStorage.getItem('user') || sessionStorage.getItem('user');
 
             if (!storedUser) {
                 return null;
             }
 
-            return JSON.parse(storedUser);
+            const parsedUser = JSON.parse(storedUser);
+
+            // Supports both:
+            // { name, role, ... }
+            // and { user: { name, role, ... } }
+            return parsedUser?.user || parsedUser;
         } catch (error) {
             console.error('Failed to read logged-in user:', error);
-
             return null;
         }
     }, []);
@@ -64,7 +69,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
 
     const userRole = user?.role || role || 'individual';
 
-    const roleLabel = ROLE_LABELS[userRole] || 'User';
+    const roleLabel = ROLE_LABELS[userRole] || userRole;
 
     // ========================================================
     // INITIALS

@@ -22,8 +22,8 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy Composer files first for Docker layer caching
-COPY composer.json composer.lock ./
+# Copy application source
+COPY . .
 
 # Install production PHP dependencies
 RUN composer install \
@@ -31,9 +31,6 @@ RUN composer install \
     --no-interaction \
     --prefer-dist \
     --optimize-autoloader
-
-# Copy application source
-COPY . .
 
 # Ensure Laravel runtime directories exist
 RUN mkdir -p \

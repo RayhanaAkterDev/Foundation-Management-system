@@ -1,7 +1,9 @@
 import React from 'react';
+
 import { SlidersHorizontal, UserRound } from 'lucide-react';
 
 import DataTable from '@/components/dashboard/DataTable';
+
 import StatusBadge from '@/components/dashboard/StatusBadge';
 
 const HelpRequestTable = ({
@@ -17,22 +19,39 @@ const HelpRequestTable = ({
         // --------------------------------
         // Help Request
         // --------------------------------
-
         if (column.key === 'title') {
             return {
                 ...column,
 
                 render: (value, row) => (
                     <div className="min-w-0 max-w-80">
+                        {/* Title */}
                         <p className="truncate font-semibold text-text-primary">
                             {value || 'Untitled request'}
                         </p>
 
+                        {/* Description */}
                         {row.description && (
                             <p className="mt-1 line-clamp-2 text-xs leading-5 text-text-secondary">
                                 {row.description}
                             </p>
                         )}
+
+                        {/* Category */}
+                        <p className="mt-1 text-xs font-medium text-text-secondary">
+                            <span className="font-semibold text-text-primary">
+                                Category:
+                            </span>{' '}
+                            {row.category || 'Not specified'}
+                        </p>
+
+                        {/* District */}
+                        <p className="mt-0.5 text-xs font-medium text-text-secondary">
+                            <span className="font-semibold text-text-primary">
+                                District:
+                            </span>{' '}
+                            {row.district || 'Not specified'}
+                        </p>
                     </div>
                 ),
             };
@@ -41,7 +60,6 @@ const HelpRequestTable = ({
         // --------------------------------
         // Requester
         // --------------------------------
-
         if (column.key === 'requester' || column.key === 'requesterName') {
             return {
                 ...column,
@@ -111,7 +129,6 @@ const HelpRequestTable = ({
         // --------------------------------
         // Category
         // --------------------------------
-
         if (column.key === 'category') {
             return {
                 ...column,
@@ -127,7 +144,6 @@ const HelpRequestTable = ({
         // --------------------------------
         // Priority
         // --------------------------------
-
         if (column.key === 'priority' || column.key === 'urgency') {
             return {
                 ...column,
@@ -151,13 +167,9 @@ const HelpRequestTable = ({
 
                     const priorityStyles = {
                         critical: 'bg-red-50 text-red-600',
-
                         urgent: 'bg-red-50 text-red-600',
-
                         high: 'bg-orange-50 text-orange-600',
-
                         normal: 'bg-background-alt text-text-secondary',
-
                         low: 'bg-blue-50 text-blue-600',
                     };
 
@@ -171,11 +183,6 @@ const HelpRequestTable = ({
                             >
                                 {priorityNotSet ? 'Not set' : priority}
                             </span>
-
-                            {/*
-                                Priority can only be set or changed
-                                after admin verification.
-                            */}
 
                             {row.status === 'verified' && onSetPriority && (
                                 <button
@@ -199,7 +206,6 @@ const HelpRequestTable = ({
         // --------------------------------
         // Status
         // --------------------------------
-
         if (column.key === 'status') {
             return {
                 ...column,
@@ -211,7 +217,6 @@ const HelpRequestTable = ({
         // --------------------------------
         // Submitted date
         // --------------------------------
-
         if (column.key === 'submittedDate') {
             return {
                 ...column,

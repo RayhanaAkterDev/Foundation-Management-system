@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+
 import {
     X,
     Building2,
@@ -20,15 +21,15 @@ const HelpRequestAssignmentModal = ({
     onConfirm,
 }) => {
     /*
-    |--------------------------------------------------------------------------|
+    |--------------------------------------------------------------------------
     | Existing assignment values
-    |--------------------------------------------------------------------------|
+    |--------------------------------------------------------------------------
     */
 
     const existingOrganizationId = useMemo(() => {
         return (
-            request?.assignment?.organization_id ||
-            request?.organization_id ||
+            request?.assignment?.organization_id ??
+            request?.organization_id ??
             ''
         );
     }, [request]);
@@ -58,45 +59,102 @@ const HelpRequestAssignmentModal = ({
     }, [request]);
 
     /*
-    |--------------------------------------------------------------------------|
-    | Verified organizations only
-    |--------------------------------------------------------------------------|
+    |--------------------------------------------------------------------------
+    | Verified organizations
+    |
+    | IMPORTANT:
+    | We intentionally DO NOT check whether the organization already has
+    | assignments on other help requests.
+    |
+    | A verified organization can receive multiple assignment requests.
+    |--------------------------------------------------------------------------
     */
 
     const availableOrganizations = useMemo(() => {
         return organizations.filter((organization) => {
             const verificationStatus =
-                organization.verification_status ||
-                organization.status ||
-                organization.verificationStatus;
+                organization.verification_status ??
+                organization.verificationStatus ??
+                organization.status;
 
+            /*
+             * If the API does not provide a verification field,
+             * keep the organization visible rather than hiding it.
+             */
             if (!verificationStatus) {
                 return true;
             }
 
-            return verificationStatus === 'verified';
+            return String(verificationStatus).toLowerCase() === 'verified';
         });
     }, [organizations]);
 
     /*
-    |--------------------------------------------------------------------------|
-    | Form state
-    |--------------------------------------------------------------------------|
+    |--------------------------------------------------------------------------
+    | Initial form values
+    |
+    | No useEffect is used here.
+    |--------------------------------------------------------------------------
     */
 
-    const [selectedOrganization, setSelectedOrganization] = useState(
-        String(existingOrganizationId || ''),
+    const initialOrganization = String(existingOrganizationId || '');
+
+    const initialVolunteers = existingVolunteerIds;
+
+    /*
+    |--------------------------------------------------------------------------
+    | Form state
+    |
+    | The key is tied to the request ID so React creates fresh state when
+    | the modal is opened for another request.
+    |--------------------------------------------------------------------------
+    */
+
+    return (
+        <AssignmentForm
+            key={request?.id ?? 'new-request'}
+            request={request}
+            availableOrganizations={availableOrganizations}
+            volunteers={volunteers}
+            initialOrganization={initialOrganization}
+            initialVolunteers={initialVolunteers}
+            loading={loading}
+            error={error}
+            onClose={onClose}
+            onConfirm={onConfirm}
+        />
     );
+};
+
+/*
+|--------------------------------------------------------------------------
+| Internal form component
+|--------------------------------------------------------------------------
+*/
+
+const AssignmentForm = ({
+    request,
+    availableOrganizations,
+    volunteers,
+    initialOrganization,
+    initialVolunteers,
+    loading,
+    error,
+    onClose,
+    onConfirm,
+}) => {
+    const [selectedOrganization, setSelectedOrganization] =
+        useState(initialOrganization);
 
     const [selectedVolunteers, setSelectedVolunteers] =
-        useState(existingVolunteerIds);
+        useState(initialVolunteers);
 
     const [assignmentNote, setAssignmentNote] = useState('');
 
     /*
-    |--------------------------------------------------------------------------|
+    |--------------------------------------------------------------------------
     | Volunteer selection
-    |--------------------------------------------------------------------------|
+    |--------------------------------------------------------------------------
     */
 
     const handleVolunteerToggle = (volunteerId) => {
@@ -112,9 +170,9 @@ const HelpRequestAssignmentModal = ({
     };
 
     /*
-    |--------------------------------------------------------------------------|
+    |--------------------------------------------------------------------------
     | Submit
-    |--------------------------------------------------------------------------|
+    |--------------------------------------------------------------------------
     */
 
     const handleSubmit = (event) => {
@@ -136,9 +194,9 @@ const HelpRequestAssignmentModal = ({
     };
 
     /*
-    |--------------------------------------------------------------------------|
+    |--------------------------------------------------------------------------
     | Close
-    |--------------------------------------------------------------------------|
+    |--------------------------------------------------------------------------
     */
 
     const handleClose = () => {
@@ -169,15 +227,11 @@ const HelpRequestAssignmentModal = ({
                 ========================================================= */}
 
                 <aside className="relative hidden w-72.5 shrink-0 overflow-hidden bg-primary text-white lg:flex lg:flex-col">
-                    {/* Decorative shapes */}
-
                     <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full bg-white/[0.07]" />
 
                     <div className="absolute -bottom-28 -left-28 h-72 w-72 rounded-full bg-black/[0.07]" />
 
                     <div className="relative flex h-full flex-col p-7">
-                        {/* Top */}
-
                         <div>
                             <div className="flex items-center gap-2.5">
                                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/20">
@@ -215,8 +269,6 @@ const HelpRequestAssignmentModal = ({
                             </div>
                         </div>
 
-                        {/* Middle information */}
-
                         <div className="mt-auto">
                             {(request.priority || request.urgency) && (
                                 <div className="mb-6 border-t border-white/10 pt-5">
@@ -234,8 +286,6 @@ const HelpRequestAssignmentModal = ({
                                     </div>
                                 </div>
                             )}
-
-                            {/* Assignment visual */}
 
                             <div className="rounded-2xl bg-black/12 p-4 ring-1 ring-white/8">
                                 <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-white/50">
@@ -266,7 +316,7 @@ const HelpRequestAssignmentModal = ({
                                         </div>
 
                                         <span className="text-[11px] text-white/80">
-                                            Volunteers
+                                            SP Volunteers
                                         </span>
 
                                         {selectedVolunteers.length > 0 && (
@@ -279,9 +329,9 @@ const HelpRequestAssignmentModal = ({
                             </div>
 
                             <p className="mt-5 text-[10px] leading-5 text-white/45">
-                                Assigning a request connects the verified
-                                assistance need with the people responsible for
-                                coordination.
+                                Organizations receive the assignment as a
+                                coordination request. They can accept or reject
+                                it after reviewing the case.
                             </p>
                         </div>
                     </div>
@@ -319,8 +369,8 @@ const HelpRequestAssignmentModal = ({
                             </h1>
 
                             <p className="mt-1 text-xs leading-5 text-slate-500">
-                                Choose who should take responsibility for this
-                                request.
+                                Select an organization or SP volunteer to
+                                receive an assignment request.
                             </p>
                         </div>
                     </div>
@@ -361,7 +411,8 @@ const HelpRequestAssignmentModal = ({
                                             </p>
 
                                             <p className="mt-0.5 text-[10px] text-slate-400">
-                                                Optional coordination partner
+                                                Send an assignment request to a
+                                                verified organization
                                             </p>
                                         </div>
 
@@ -424,9 +475,9 @@ const HelpRequestAssignmentModal = ({
                                                                         organization.id
                                                                     }
                                                                 >
-                                                                    {
-                                                                        organization.name
-                                                                    }
+                                                                    {organization.name ||
+                                                                        organization.organization_name ||
+                                                                        `Organization #${organization.id}`}
                                                                 </option>
                                                             ),
                                                         )}
@@ -442,10 +493,18 @@ const HelpRequestAssignmentModal = ({
 
                                         {availableOrganizations.length ===
                                             0 && (
-                                            <div className="border-t border-slate-200/70 px-4 py-2.5">
-                                                <p className="text-[10px] text-slate-400">
+                                            <div className="border-t border-slate-200/70 px-4 py-3">
+                                                <p className="text-[10px] text-slate-500">
                                                     No verified organizations
-                                                    are currently available.
+                                                    were returned by the server.
+                                                </p>
+
+                                                <p className="mt-1 text-[10px] leading-5 text-slate-400">
+                                                    Organizations with existing
+                                                    assignments are still
+                                                    allowed. The organization
+                                                    list should contain every
+                                                    verified organization.
                                                 </p>
                                             </div>
                                         )}
@@ -481,7 +540,8 @@ const HelpRequestAssignmentModal = ({
                                             {volunteers.map((volunteer) => {
                                                 const volunteerId = String(
                                                     volunteer.user_id ??
-                                                        volunteer.user?.id,
+                                                        volunteer.user?.id ??
+                                                        volunteer.id,
                                                 );
 
                                                 const checked =
@@ -615,7 +675,7 @@ const HelpRequestAssignmentModal = ({
                                                         : 'text-slate-400'
                                                 }`}
                                             >
-                                                Assignment target
+                                                Assignment request
                                             </p>
 
                                             <p
@@ -632,7 +692,12 @@ const HelpRequestAssignmentModal = ({
                                                       ? 'Organization only'
                                                       : selectedVolunteers.length >
                                                           0
-                                                        ? `${selectedVolunteers.length} volunteer${selectedVolunteers.length > 1 ? 's' : ''} selected`
+                                                        ? `${selectedVolunteers.length} volunteer${
+                                                              selectedVolunteers.length >
+                                                              1
+                                                                  ? 's'
+                                                                  : ''
+                                                          } selected`
                                                         : 'Nothing selected yet'}
                                             </p>
                                         </div>
@@ -661,7 +726,8 @@ const HelpRequestAssignmentModal = ({
                                             </label>
 
                                             <p className="mt-0.5 text-[10px] text-slate-400">
-                                                Optional instructions or context
+                                                Optional instructions or case
+                                                context
                                             </p>
                                         </div>
 
@@ -681,7 +747,7 @@ const HelpRequestAssignmentModal = ({
                                         disabled={loading}
                                         rows={3}
                                         maxLength={1000}
-                                        placeholder="Add anything the assigned team should know..."
+                                        placeholder="Add anything the assigned organization or volunteer should know..."
                                         className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs leading-5 text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/10 disabled:cursor-not-allowed disabled:opacity-60"
                                     />
                                 </section>
@@ -712,8 +778,8 @@ const HelpRequestAssignmentModal = ({
                                 )}
 
                                 {loading
-                                    ? 'Assigning...'
-                                    : 'Confirm assignment'}
+                                    ? 'Sending...'
+                                    : 'Send assignment request'}
                             </button>
                         </div>
                     </form>

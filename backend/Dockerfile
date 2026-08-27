@@ -49,4 +49,4 @@ ENV APP_DEBUG=false
 EXPOSE 10000
 
 # Start Laravel
-CMD ["sh", "-c", "php artisan serve --host=0.0.0.0 --port=${PORT:-10000}"]
+CMD ["sh", "-c", "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=${PORT:-10000}"]

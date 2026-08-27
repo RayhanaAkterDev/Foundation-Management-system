@@ -8,20 +8,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('help_request_assignments', function (Blueprint $table) {
-            $table->foreignId('assigned_by')
-                ->nullable()
-                ->after('volunteer_id')
-                ->constrained('users')
-                ->nullOnDelete();
-        });
+        // assigned_by already exists in the original table migration.
     }
 
     public function down(): void
     {
-        Schema::table('help_request_assignments', function (Blueprint $table) {
-            $table->dropForeign(['assigned_by']);
-            $table->dropColumn('assigned_by');
-        });
+        // Nothing to reverse.
     }
 };

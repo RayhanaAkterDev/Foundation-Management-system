@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
+
 import { NavLink, useNavigate } from 'react-router-dom';
+
 import {
     Menu,
     Bell,
@@ -13,27 +15,6 @@ import {
 import { ROLE_LABELS } from '@/routes/dashboardNav';
 
 // ============================================================
-// MOCK USERS
-// ============================================================
-
-const MOCK_USERS = {
-    individual: {
-        name: 'Maria Santos',
-        avatar: null,
-    },
-
-    organization: {
-        name: 'Bayanihan Foundation',
-        avatar: null,
-    },
-
-    admin: {
-        name: 'SP Admin',
-        avatar: null,
-    },
-};
-
-// ============================================================
 // TOPBAR
 // ============================================================
 
@@ -42,12 +23,57 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
 
     const [userMenuOpen, setUserMenuOpen] = useState(false);
 
-    const user = MOCK_USERS[role] || MOCK_USERS.individual;
+    // ========================================================
+    // LOGGED-IN USER
+    // ========================================================
 
-    const roleLabel = ROLE_LABELS[role] || 'User';
+    const user = useMemo(() => {
+        try {
+            const storedUser = localStorage.getItem('user');
 
-    const initials = user.name
-        .split(' ')
+            if (!storedUser) {
+                return null;
+            }
+
+            return JSON.parse(storedUser);
+        } catch (error) {
+            console.error('Failed to read logged-in user:', error);
+
+            return null;
+        }
+    }, []);
+
+    // ========================================================
+    // USER INFORMATION
+    // ========================================================
+
+    const userName =
+        user?.name ||
+        user?.username ||
+        user?.full_name ||
+        user?.fullName ||
+        user?.email?.split('@')[0] ||
+        'User';
+
+    const userAvatar =
+        user?.avatar ||
+        user?.avatar_url ||
+        user?.profile_image ||
+        user?.profileImage ||
+        null;
+
+    const userRole = user?.role || role || 'individual';
+
+    const roleLabel = ROLE_LABELS[userRole] || 'User';
+
+    // ========================================================
+    // INITIALS
+    // ========================================================
+
+    const initials = userName
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean)
         .slice(0, 2)
         .map((word) => word.charAt(0))
         .join('')
@@ -58,12 +84,20 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
     // ========================================================
 
     const handleSignOut = () => {
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('user');
+
+        // In case your application also uses these keys
+        localStorage.removeItem('token');
+        localStorage.removeItem('authToken');
+
         setUserMenuOpen(false);
+
         navigate('/');
     };
 
     // ========================================================
-    // NAVIGATE ACCOUNT
+    // RENDER
     // ========================================================
 
     return (
@@ -139,7 +173,15 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                         </h1>
                     </div>
 
-                    <div className="mt-1 hidden items-center gap-2 sm:flex">
+                    <div
+                        className="
+                            mt-1
+                            hidden
+                            items-center
+                            gap-2
+                            sm:flex
+                        "
+                    >
                         <span
                             className="
                                 h-1.5
@@ -156,7 +198,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                 text-text-secondary
                             "
                         >
-                            Stand For People
+                            Stand For People 💚
                         </span>
                     </div>
                 </div>
@@ -199,8 +241,6 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                             "
                             strokeWidth={1.8}
                         />
-
-                        {/* Notification indicator */}
 
                         <span
                             className="
@@ -248,7 +288,6 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                 py-1.5
                                 transition-all
                                 duration-200
-
                                 ${
                                     userMenuOpen
                                         ? 'bg-surface-soft'
@@ -276,10 +315,10 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                     text-primary
                                 "
                             >
-                                {user.avatar ? (
+                                {userAvatar ? (
                                     <img
-                                        src={user.avatar}
-                                        alt={user.name}
+                                        src={userAvatar}
+                                        alt={userName}
                                         className="
                                             h-full
                                             w-full
@@ -291,9 +330,15 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                 )}
                             </span>
 
-                            {/* User info */}
+                            {/* User information */}
 
-                            <span className="hidden text-left sm:block">
+                            <span
+                                className="
+                                    hidden
+                                    text-left
+                                    sm:block
+                                "
+                            >
                                 <span
                                     className="
                                         block
@@ -305,7 +350,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                         text-text-primary
                                     "
                                 >
-                                    {user.name}
+                                    {userName}
                                 </span>
 
                                 <span
@@ -321,6 +366,8 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                 </span>
                             </span>
 
+                            {/* Chevron */}
+
                             <ChevronDown
                                 className={`
                                     hidden
@@ -330,7 +377,6 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                     transition-transform
                                     duration-200
                                     sm:block
-
                                     ${userMenuOpen ? 'rotate-180' : ''}
                                 `}
                                 strokeWidth={1.8}
@@ -383,7 +429,15 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                             py-4
                                         "
                                     >
-                                        <div className="flex items-center gap-3">
+                                        <div
+                                            className="
+                                                flex
+                                                items-center
+                                                gap-3
+                                            "
+                                        >
+                                            {/* Avatar */}
+
                                             <div
                                                 className="
                                                     flex
@@ -392,6 +446,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                                     shrink-0
                                                     items-center
                                                     justify-center
+                                                    overflow-hidden
                                                     rounded-full
                                                     bg-primary/10
                                                     text-[11px]
@@ -399,8 +454,22 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                                     text-primary
                                                 "
                                             >
-                                                {initials}
+                                                {userAvatar ? (
+                                                    <img
+                                                        src={userAvatar}
+                                                        alt={userName}
+                                                        className="
+                                                            h-full
+                                                            w-full
+                                                            object-cover
+                                                        "
+                                                    />
+                                                ) : (
+                                                    initials
+                                                )}
                                             </div>
+
+                                            {/* User information */}
 
                                             <div className="min-w-0">
                                                 <p
@@ -411,7 +480,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                                         text-text-primary
                                                     "
                                                 >
-                                                    {user.name}
+                                                    {userName} 💚
                                                 </p>
 
                                                 <p
@@ -438,7 +507,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                         {/* Profile */}
 
                                         <NavLink
-                                            to={`/dashboard/${role}/profile`}
+                                            to={`/dashboard/${userRole}/profile`}
                                             onClick={() =>
                                                 setUserMenuOpen(false)
                                             }
@@ -495,10 +564,10 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                             />
                                         </NavLink>
 
-                                        {/* Settings */}
+                                        {/* Account Settings */}
 
                                         <NavLink
-                                            to={`/dashboard/${role}/settings`}
+                                            to={`/dashboard/${userRole}/settings`}
                                             onClick={() =>
                                                 setUserMenuOpen(false)
                                             }
@@ -615,9 +684,11 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                             />
                                         </NavLink>
 
+                                        {/* Divider */}
+
                                         <div className="my-2 h-px bg-border" />
 
-                                        {/* Sign out */}
+                                        {/* Sign Out */}
 
                                         <button
                                             type="button"

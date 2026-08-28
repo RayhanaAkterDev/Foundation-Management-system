@@ -543,12 +543,12 @@ class AdminController extends Controller
             ],
         ]);
 
-        if ($validated['role'] !== $targetUser->role) {
-            return response()->json([
-                'message' =>
-                'User role cannot be changed after account creation.',
-            ], 422);
-        }
+        // if ($validated['role'] !== $targetUser->role) {
+        //     return response()->json([
+        //         'message' =>
+        //         'User role cannot be changed after account creation.',
+        //     ], 422);
+        // }
 
         if (
             $targetUser->id === $user->id &&
@@ -561,6 +561,7 @@ class AdminController extends Controller
 
         $targetUser->name = $validated['name'];
         $targetUser->email = $validated['email'];
+        $targetUser->role = $validated['role'];
         $targetUser->status = $validated['status'];
 
 

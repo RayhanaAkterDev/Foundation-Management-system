@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+
 import {
     X,
     Building2,
@@ -7,6 +8,10 @@ import {
     MapPin,
     FileText,
     Mail,
+    ArrowRight,
+    Plus,
+    PencilLine,
+    ChevronDown,
 } from 'lucide-react';
 
 const getInitialForm = (mode, organization) => {
@@ -45,35 +50,81 @@ const FormField = ({
     disabled,
     error,
 }) => {
-    const inputClass = `
-        h-10 w-full rounded-lg border bg-white px-3.5 text-sm
-        text-text-primary outline-none transition-colors
-        placeholder:text-text-secondary/60
-        ${
-            error
-                ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/8'
-                : 'border-border focus:border-primary/40 focus:ring-4 focus:ring-primary/8'
-        }
-    `;
+    const hasError = Boolean(error);
 
     return (
-        <div>
+        <div className="group">
+            {/* Label */}
             <label
                 htmlFor={name}
-                className="mb-1.5 block text-xs font-semibold text-text-primary"
+                className="
+                    mb-2 flex items-center gap-1.5
+                    text-[12px]
+                    font-semibold
+                    tracking-[-0.005em]
+                    text-slate-700
+                "
             >
                 {label}
 
-                {required && <span className="ml-1 text-red-500">*</span>}
+                {required && <span className="text-primary">*</span>}
             </label>
 
-            <div className="relative">
-                <Icon
-                    size={16}
-                    strokeWidth={1.8}
-                    className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary"
-                />
+            {/* Input */}
+            <div
+                className={`
+                    relative flex h-13 items-center
+                    overflow-hidden
+                    rounded-xl
+                    border
+                    bg-white
+                    transition-all duration-200
 
+                    ${
+                        hasError
+                            ? `
+                                border-red-300
+                                bg-red-50/25
+                                focus-within:border-red-400
+                                focus-within:ring-4
+                                focus-within:ring-red-500/8
+                            `
+                            : `
+                                border-slate-200
+                                hover:border-slate-300
+                                focus-within:border-primary
+                                focus-within:ring-4
+                                focus-within:ring-primary/8
+                            `
+                    }
+
+                    ${disabled ? 'cursor-not-allowed bg-slate-50' : ''}
+                `}
+            >
+                {/* Icon */}
+                <div
+                    className={`
+                        flex h-full w-11.5 shrink-0
+                        items-center justify-center
+                        border-r
+                        transition-colors duration-200
+
+                        ${
+                            hasError
+                                ? 'border-red-100 text-red-400'
+                                : `
+                                    border-slate-100
+                                    text-slate-400
+                                    group-focus-within:border-primary/10
+                                    group-focus-within:text-primary
+                                `
+                        }
+                    `}
+                >
+                    <Icon size={18} strokeWidth={1.7} />
+                </div>
+
+                {/* Input */}
                 <input
                     id={name}
                     name={name}
@@ -82,11 +133,34 @@ const FormField = ({
                     onChange={onChange}
                     placeholder={placeholder}
                     disabled={disabled}
-                    className={`${inputClass} pl-10`}
+                    className="
+                        h-full
+                        min-w-0
+                        flex-1
+                        bg-transparent
+                        px-4
+                        text-[14px]
+                        font-medium
+                        tracking-[-0.005em]
+                        text-slate-800
+                        outline-none
+
+                        placeholder:text-slate-400
+                        placeholder:font-normal
+
+                        disabled:cursor-not-allowed
+                        disabled:text-slate-400
+                    "
                 />
             </div>
 
-            {error && <p className="mt-1.5 text-xs text-red-600">{error}</p>}
+            {/* Error */}
+            {error && (
+                <p className="mt-1.5 flex items-center gap-1.5 text-[11px] font-medium text-red-600">
+                    <span className="h-1 w-1 rounded-full bg-red-500" />
+                    {error}
+                </p>
+            )}
         </div>
     );
 };
@@ -141,305 +215,741 @@ const OrganizationFormModal = ({
         return value || '';
     };
 
-    const inputClass = (field) => `
-        h-10 w-full rounded-lg border bg-white px-3.5 text-sm
-        text-text-primary outline-none transition-colors
-        placeholder:text-text-secondary/60
+    const fieldShell = (field) => `
+        relative flex h-13 items-center
+        overflow-hidden
+        rounded-xl
+        border
+        bg-white
+        transition-all duration-200
+
         ${
             getFieldError(field)
-                ? 'border-red-300 focus:border-red-500 focus:ring-4 focus:ring-red-500/8'
-                : 'border-border focus:border-primary/40 focus:ring-4 focus:ring-primary/8'
+                ? `
+                    border-red-300
+                    bg-red-50/[0.25]
+                    focus-within:border-red-400
+                    focus-within:ring-4
+                    focus-within:ring-red-500/[0.08]
+                `
+                : `
+                    border-slate-200
+                    hover:border-slate-300
+                    focus-within:border-primary
+                    focus-within:ring-4
+                    focus-within:ring-primary/[0.08]
+                `
+        }
+
+        ${loading ? 'cursor-not-allowed bg-slate-50' : ''}
+    `;
+
+    const fieldIcon = (field) => `
+        flex h-full w-11.5 shrink-0
+        items-center justify-center
+        border-r
+        transition-colors duration-200
+
+        ${
+            getFieldError(field)
+                ? `
+                    border-red-100
+                    text-red-400
+                `
+                : `
+                    border-slate-100
+                    text-slate-400
+                    group-focus-within:border-primary/10
+                    group-focus-within:text-primary
+                `
         }
     `;
 
+    const inputClass = `
+        h-full
+        min-w-0
+        flex-1
+        bg-transparent
+        px-4
+        text-[14px]
+        font-medium
+        tracking-[-0.005em]
+        text-slate-800
+        outline-none
+
+        placeholder:text-slate-400
+        placeholder:font-normal
+
+        disabled:cursor-not-allowed
+        disabled:text-slate-400
+    `;
+
+    const labelClass = `
+        mb-2 flex items-center gap-1.5
+        text-[12px]
+        font-semibold
+        tracking-[-0.005em]
+        text-slate-700
+    `;
+
+    const errorMessage = (field) => {
+        const error = getFieldError(field);
+
+        if (!error) {
+            return null;
+        }
+
+        return (
+            <p className="mt-1.5 flex items-center gap-1.5 text-[11px] font-medium text-red-600">
+                <span className="h-1 w-1 rounded-full bg-red-500" />
+                {error}
+            </p>
+        );
+    };
+
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-[3px]">
-            <div className="w-full max-w-2xl overflow-hidden rounded-2xl border border-border bg-white shadow-2xl shadow-slate-900/10">
-                {/* Header */}
-                <div className="relative border-b border-border px-6 pb-5 pt-6">
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        disabled={loading}
-                        className="absolute right-5 top-5 flex h-9 w-9 items-center justify-center rounded-lg text-text-secondary transition-all hover:bg-background-alt hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
-                        aria-label="Close"
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-3 backdrop-blur-sm sm:p-6">
+            <div
+                className={`
+                    relative flex max-h-[94vh] w-full overflow-hidden
+                    rounded-2xl bg-white
+                    shadow-[0_30px_100px_-25px_rgba(15,23,42,0.45)]
+                    ring-1 ring-black/6
+                    ${isEdit ? 'max-w-225' : 'max-w-270'}
+                `}
+            >
+                {/* =====================================================
+                    ADD — LEFT INTRODUCTION
+                ====================================================== */}
+
+                {!isEdit && (
+                    <aside className="relative hidden w-82.5 shrink-0 overflow-hidden bg-primary lg:flex">
+                        <div className="absolute inset-0 overflow-hidden">
+                            <div className="absolute -right-36 -top-36 h-115 w-115 rounded-full border-65 border-white/4.5" />
+
+                            <div className="absolute -bottom-44 -left-44 h-125 w-125 rounded-full border-70 border-white/[0.035]" />
+
+                            <div className="absolute left-12 top-[42%] h-24 w-24 rounded-full border border-white/6" />
+                        </div>
+
+                        <div className="relative flex h-full flex-col px-10 py-10 text-white">
+                            <div className="flex items-center gap-3">
+                                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-primary shadow-sm">
+                                    <Building2 size={22} strokeWidth={1.6} />
+                                </div>
+
+                                <div>
+                                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/40">
+                                        Management
+                                    </p>
+
+                                    <p className="mt-0.5 text-[13px] font-semibold text-white/85">
+                                        Organizations
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="mt-auto">
+                                <div className="mb-4 flex items-center gap-2">
+                                    <span className="h-px w-7 bg-white/20" />
+
+                                    <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/40">
+                                        New organization
+                                    </span>
+                                </div>
+
+                                <h2 className="max-w-61.25 text-[36px] font-semibold leading-[1.04] tracking-[-0.045em]">
+                                    Create a place for their work.
+                                </h2>
+
+                                <p className="mt-6 max-w-62.5 text-[14px] leading-7 text-white/50">
+                                    Add the organization’s core information. You
+                                    can build out the rest of its profile later.
+                                </p>
+
+                                <div className="mt-10 flex items-center gap-3">
+                                    <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/4">
+                                        <ArrowRight
+                                            size={14}
+                                            strokeWidth={1.7}
+                                        />
+                                    </span>
+
+                                    <span className="text-[12px] font-medium text-white/45">
+                                        Basic information first
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+                )}
+
+                {/* =====================================================
+                    MAIN
+                ====================================================== */}
+
+                <div className="flex min-w-0 flex-1 flex-col">
+                    {/* HEADER */}
+
+                    <header
+                        className={`
+                            relative shrink-0
+                            ${
+                                isEdit
+                                    ? 'px-8 pb-8 pt-9 sm:px-11 sm:pb-9 sm:pt-10'
+                                    : 'px-7 pb-8 pt-8 lg:px-10'
+                            }
+                        `}
                     >
-                        <X size={18} />
-                    </button>
-
-                    <p className="text-xs font-semibold uppercase tracking-[0.08em] text-primary">
-                        Organization management
-                    </p>
-
-                    <h2 className="mt-1.5 pr-12 text-xl font-semibold tracking-tight text-text-primary">
-                        {isEdit ? 'Edit Organization' : 'Add Organization'}
-                    </h2>
-
-                    <p className="mt-1.5 max-w-lg text-sm text-text-secondary">
-                        {isEdit
-                            ? 'Update the organization’s basic information below.'
-                            : 'Add the organization’s basic information. Verification will remain pending until the organization completes its profile.'}
-                    </p>
-                </div>
-
-                {/* Form */}
-                <form onSubmit={handleSubmit}>
-                    <div className="max-h-[70vh] overflow-y-auto px-6 py-6">
-                        {/* Organization Information */}
-                        <section>
-                            <div className="mb-4 flex items-center gap-3">
-                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                                    <Building2 size={18} strokeWidth={1.8} />
-                                </div>
-
-                                <div>
-                                    <h3 className="text-sm font-semibold text-text-primary">
-                                        Organization information
-                                    </h3>
-
-                                    <p className="mt-0.5 text-xs text-text-secondary">
-                                        Enter the organization’s basic details.
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="space-y-5 rounded-xl border border-border p-5">
-                                {/* Organization Name */}
-                                <div>
-                                    <label
-                                        htmlFor="name"
-                                        className="mb-1.5 block text-xs font-semibold text-text-primary"
-                                    >
-                                        Organization name
-                                        <span className="ml-1 text-red-500">
-                                            *
-                                        </span>
-                                    </label>
-
-                                    <div className="relative">
-                                        <Building2
-                                            size={16}
-                                            strokeWidth={1.8}
-                                            className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary"
-                                        />
-
-                                        <input
-                                            id="name"
-                                            name="name"
-                                            type="text"
-                                            value={form.name}
-                                            onChange={handleChange}
-                                            placeholder="Enter organization name"
-                                            disabled={loading}
-                                            className={`${inputClass(
-                                                'name',
-                                            )} pl-10`}
-                                        />
-                                    </div>
-
-                                    {getFieldError('name') && (
-                                        <p className="mt-1.5 text-xs text-red-600">
-                                            {getFieldError('name')}
-                                        </p>
-                                    )}
-                                </div>
-
-                                {/* Email */}
-                                <FormField
-                                    label="Email address"
-                                    name="email"
-                                    type="email"
-                                    placeholder="organization@example.org"
-                                    icon={Mail}
-                                    required
-                                    value={form.email}
-                                    onChange={handleChange}
-                                    disabled={loading}
-                                    error={getFieldError('email')}
-                                />
-
-                                {/* Organization Type + Registration Number */}
-                                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                                    <div>
-                                        <label
-                                            htmlFor="organization_type"
-                                            className="mb-1.5 block text-xs font-semibold text-text-primary"
-                                        >
-                                            Organization type
-                                        </label>
-
-                                        <select
-                                            id="organization_type"
-                                            name="organization_type"
-                                            value={form.organization_type}
-                                            onChange={handleChange}
-                                            disabled={loading}
-                                            className={`${inputClass(
-                                                'organization_type',
-                                            )} appearance-none`}
-                                        >
-                                            <option value="">
-                                                Select organization type
-                                            </option>
-
-                                            <option value="NGO">NGO</option>
-
-                                            <option value="Non-profit">
-                                                Non-profit
-                                            </option>
-
-                                            <option value="Charity">
-                                                Charity
-                                            </option>
-
-                                            <option value="Foundation">
-                                                Foundation
-                                            </option>
-
-                                            <option value="Community Organization">
-                                                Community Organization
-                                            </option>
-
-                                            <option value="Other">Other</option>
-                                        </select>
-
-                                        {getFieldError('organization_type') && (
-                                            <p className="mt-1.5 text-xs text-red-600">
-                                                {getFieldError(
-                                                    'organization_type',
-                                                )}
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    <FormField
-                                        label="Registration number"
-                                        name="registration_number"
-                                        placeholder="Registration number"
-                                        icon={FileText}
-                                        value={form.registration_number}
-                                        onChange={handleChange}
-                                        disabled={loading}
-                                        error={getFieldError(
-                                            'registration_number',
-                                        )}
-                                    />
-                                </div>
-
-                                {/* Phone + Website */}
-                                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                                    <FormField
-                                        label="Phone number"
-                                        name="phone"
-                                        type="tel"
-                                        placeholder="Phone number"
-                                        icon={Phone}
-                                        value={form.phone}
-                                        onChange={handleChange}
-                                        disabled={loading}
-                                        error={getFieldError('phone')}
-                                    />
-
-                                    <FormField
-                                        label="Website"
-                                        name="website"
-                                        type="url"
-                                        placeholder="https://example.org"
-                                        icon={Globe}
-                                        value={form.website}
-                                        onChange={handleChange}
-                                        disabled={loading}
-                                        error={getFieldError('website')}
-                                    />
-                                </div>
-
-                                {/* Address */}
-                                <div>
-                                    <label
-                                        htmlFor="address"
-                                        className="mb-1.5 block text-xs font-semibold text-text-primary"
-                                    >
-                                        Address
-                                    </label>
-
-                                    <div className="relative">
-                                        <MapPin
-                                            size={16}
-                                            strokeWidth={1.8}
-                                            className="pointer-events-none absolute left-3.5 top-3 text-text-secondary"
-                                        />
-
-                                        <textarea
-                                            id="address"
-                                            name="address"
-                                            value={form.address}
-                                            onChange={handleChange}
-                                            placeholder="Enter organization address"
-                                            disabled={loading}
-                                            rows={3}
-                                            className={`${inputClass(
-                                                'address',
-                                            )} h-auto min-h-20 resize-none py-2.5 pl-10`}
-                                        />
-                                    </div>
-
-                                    {getFieldError('address') && (
-                                        <p className="mt-1.5 text-xs text-red-600">
-                                            {getFieldError('address')}
-                                        </p>
-                                    )}
-                                </div>
-                            </div>
-                        </section>
-
-                        {/* Verification Note */}
-                        {!isEdit && (
-                            <div className="mt-5 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3.5">
-                                <div className="mt-0.5 shrink-0 text-amber-600">
-                                    <FileText size={17} strokeWidth={1.8} />
-                                </div>
-
-                                <div>
-                                    <p className="text-xs font-semibold text-amber-900">
-                                        Verification will remain pending
-                                    </p>
-
-                                    <p className="mt-1 text-xs leading-5 text-amber-800">
-                                        The organization must complete its
-                                        additional profile information before an
-                                        administrator can verify it.
-                                    </p>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Footer */}
-                    <div className="flex justify-end gap-3 border-t border-border px-6 py-4">
                         <button
                             type="button"
                             onClick={onClose}
                             disabled={loading}
-                            className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-text-primary transition-colors hover:bg-background-alt disabled:cursor-not-allowed disabled:opacity-50"
+                            className="
+                                absolute right-5 top-5
+                                flex h-9 w-9 items-center justify-center
+                                rounded-lg
+                                text-text-secondary/60
+                                transition-all duration-200
+                                hover:bg-background-alt
+                                hover:text-text-primary
+                                disabled:opacity-50
+                            "
+                            aria-label="Close"
                         >
-                            Cancel
+                            <X size={19} strokeWidth={1.8} />
                         </button>
 
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="inline-flex min-w-32 items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                            {loading
-                                ? isEdit
-                                    ? 'Saving...'
-                                    : 'Adding...'
-                                : isEdit
-                                  ? 'Save Changes'
-                                  : 'Add Organization'}
-                        </button>
-                    </div>
-                </form>
+                        <div className="pr-12">
+                            <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary">
+                                    {isEdit
+                                        ? 'Organization profile'
+                                        : 'Organization management'}
+                                </span>
+
+                                {isEdit && (
+                                    <>
+                                        <span className="h-1 w-1 rounded-full bg-border" />
+
+                                        <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-text-secondary">
+                                            Edit
+                                        </span>
+                                    </>
+                                )}
+                            </div>
+
+                            <h2 className="mt-2.5 text-[28px] font-semibold tracking-[-0.045em] text-text-primary">
+                                {isEdit
+                                    ? 'Update organization'
+                                    : 'Add organization'}
+                            </h2>
+
+                            <p className="mt-2 max-w-155 text-[14px] leading-6 text-text-secondary">
+                                {isEdit
+                                    ? 'Update the information below to keep this organization’s profile accurate.'
+                                    : 'Enter the organization’s essential information to create its profile.'}
+                            </p>
+                        </div>
+                    </header>
+
+                    {/* FORM */}
+
+                    <form
+                        onSubmit={handleSubmit}
+                        className="flex min-h-0 flex-1 flex-col"
+                    >
+                        <div className="min-h-0 flex-1 overflow-y-auto">
+                            <div
+                                className={`
+                                    ${
+                                        isEdit
+                                            ? 'px-8 pb-10 sm:px-11'
+                                            : 'px-7 pb-10 lg:px-10'
+                                    }
+                                `}
+                            >
+                                {/* =================================================
+                                    BASIC INFORMATION
+                                ================================================== */}
+
+                                <section>
+                                    <div className="mb-7 flex items-center gap-4">
+                                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary text-white shadow-sm shadow-primary/20">
+                                            {isEdit ? (
+                                                <PencilLine
+                                                    size={19}
+                                                    strokeWidth={1.7}
+                                                />
+                                            ) : (
+                                                <Plus
+                                                    size={20}
+                                                    strokeWidth={1.8}
+                                                />
+                                            )}
+                                        </div>
+
+                                        <div className="min-w-0 flex-1">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-[10px] font-bold tracking-[0.08em] text-primary">
+                                                    01
+                                                </span>
+
+                                                <span className="h-px w-5 bg-primary/20" />
+                                            </div>
+
+                                            <h3 className="mt-1 text-[17px] font-semibold tracking-tight text-text-primary">
+                                                Basic information
+                                            </h3>
+
+                                            <p className="mt-0.5 text-[12px] text-text-secondary">
+                                                The essential identity of this
+                                                organization.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 gap-x-8 gap-y-7 sm:grid-cols-2">
+                                        {/* NAME */}
+
+                                        <div className="group">
+                                            <label
+                                                htmlFor="name"
+                                                className={labelClass}
+                                            >
+                                                Organization name
+                                                {!isEdit && (
+                                                    <span className="text-primary">
+                                                        *
+                                                    </span>
+                                                )}
+                                            </label>
+
+                                            <div className={fieldShell('name')}>
+                                                <div
+                                                    className={fieldIcon(
+                                                        'name',
+                                                    )}
+                                                >
+                                                    <Building2
+                                                        size={18}
+                                                        strokeWidth={1.7}
+                                                    />
+                                                </div>
+
+                                                <input
+                                                    id="name"
+                                                    name="name"
+                                                    type="text"
+                                                    value={form.name}
+                                                    onChange={handleChange}
+                                                    placeholder="Enter organization name"
+                                                    disabled={loading}
+                                                    className={inputClass}
+                                                />
+                                            </div>
+
+                                            {errorMessage('name')}
+                                        </div>
+
+                                        {/* EMAIL */}
+
+                                        <FormField
+                                            label="Email address"
+                                            name="email"
+                                            type="email"
+                                            placeholder="organization@example.org"
+                                            icon={Mail}
+                                            required={!isEdit}
+                                            value={form.email}
+                                            onChange={handleChange}
+                                            disabled={loading}
+                                            error={getFieldError('email')}
+                                        />
+
+                                        {/* TYPE */}
+
+                                        <div className="group">
+                                            <label
+                                                htmlFor="organization_type"
+                                                className={labelClass}
+                                            >
+                                                Organization type
+                                            </label>
+
+                                            <div
+                                                className={fieldShell(
+                                                    'organization_type',
+                                                )}
+                                            >
+                                                <div
+                                                    className={fieldIcon(
+                                                        'organization_type',
+                                                    )}
+                                                >
+                                                    <Building2
+                                                        size={18}
+                                                        strokeWidth={1.7}
+                                                    />
+                                                </div>
+
+                                                <select
+                                                    id="organization_type"
+                                                    name="organization_type"
+                                                    value={
+                                                        form.organization_type
+                                                    }
+                                                    onChange={handleChange}
+                                                    disabled={loading}
+                                                    className="
+                                                        h-full
+                                                        min-w-0
+                                                        flex-1
+                                                        appearance-none
+                                                        bg-transparent
+                                                        px-4
+                                                        pr-10
+                                                        text-[14px]
+                                                        font-medium
+                                                        tracking-[-0.005em]
+                                                        text-slate-800
+                                                        outline-none
+                                                        disabled:cursor-not-allowed
+                                                        disabled:text-slate-400
+                                                    "
+                                                >
+                                                    <option value="">
+                                                        Select organization type
+                                                    </option>
+
+                                                    <option value="NGO">
+                                                        NGO
+                                                    </option>
+
+                                                    <option value="Non-profit">
+                                                        Non-profit
+                                                    </option>
+
+                                                    <option value="Charity">
+                                                        Charity
+                                                    </option>
+
+                                                    <option value="Foundation">
+                                                        Foundation
+                                                    </option>
+
+                                                    <option value="Community Organization">
+                                                        Community Organization
+                                                    </option>
+
+                                                    <option value="Other">
+                                                        Other
+                                                    </option>
+                                                </select>
+
+                                                <ChevronDown
+                                                    size={17}
+                                                    strokeWidth={1.7}
+                                                    className="
+                                                        pointer-events-none
+                                                        absolute right-4
+                                                        text-slate-400
+                                                        transition-colors
+                                                        duration-200
+                                                        group-focus-within:text-primary
+                                                    "
+                                                />
+                                            </div>
+
+                                            {errorMessage('organization_type')}
+                                        </div>
+
+                                        {/* REGISTRATION */}
+
+                                        <FormField
+                                            label="Registration number"
+                                            name="registration_number"
+                                            placeholder="Registration number"
+                                            icon={FileText}
+                                            value={form.registration_number}
+                                            onChange={handleChange}
+                                            disabled={loading}
+                                            error={getFieldError(
+                                                'registration_number',
+                                            )}
+                                        />
+                                    </div>
+                                </section>
+
+                                {/* =================================================
+                                    CONTACT
+                                ================================================== */}
+
+                                <section className="mt-12 border-t border-border pt-9">
+                                    <div className="mb-7 flex items-center gap-4">
+                                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
+                                            <Mail size={19} strokeWidth={1.7} />
+                                        </div>
+
+                                        <div className="min-w-0 flex-1">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-[10px] font-bold tracking-[0.08em] text-text-secondary">
+                                                    02
+                                                </span>
+
+                                                <span className="h-px w-5 bg-border" />
+                                            </div>
+
+                                            <h3 className="mt-1 text-[17px] font-semibold tracking-tight text-text-primary">
+                                                Contact details
+                                            </h3>
+
+                                            <p className="mt-0.5 text-[12px] text-text-secondary">
+                                                Ways to reach the organization.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 gap-x-8 gap-y-7 sm:grid-cols-2">
+                                        {/* PHONE */}
+
+                                        <FormField
+                                            label="Phone number"
+                                            name="phone"
+                                            type="tel"
+                                            placeholder="Phone number"
+                                            icon={Phone}
+                                            value={form.phone}
+                                            onChange={handleChange}
+                                            disabled={loading}
+                                            error={getFieldError('phone')}
+                                        />
+
+                                        {/* WEBSITE */}
+
+                                        <FormField
+                                            label="Website"
+                                            name="website"
+                                            type="url"
+                                            placeholder="https://example.org"
+                                            icon={Globe}
+                                            value={form.website}
+                                            onChange={handleChange}
+                                            disabled={loading}
+                                            error={getFieldError('website')}
+                                        />
+
+                                        {/* ADDRESS */}
+
+                                        <div className="group sm:col-span-2">
+                                            <label
+                                                htmlFor="address"
+                                                className={labelClass}
+                                            >
+                                                Address
+                                            </label>
+
+                                            <div
+                                                className={`
+                                                    relative flex items-start
+                                                    overflow-hidden
+                                                    rounded-xl
+                                                    border
+                                                    bg-white
+                                                    transition-all duration-200
+
+                                                    ${
+                                                        getFieldError('address')
+                                                            ? `
+                                                                border-red-300
+                                                                bg-red-50/25
+                                                                focus-within:border-red-400
+                                                                focus-within:ring-4
+                                                                focus-within:ring-red-500/8
+                                                            `
+                                                            : `
+                                                                border-slate-200
+                                                                hover:border-slate-300
+                                                                focus-within:border-primary
+                                                                focus-within:ring-4
+                                                                focus-within:ring-primary/8
+                                                            `
+                                                    }
+
+                                                    ${
+                                                        loading
+                                                            ? 'cursor-not-allowed bg-slate-50'
+                                                            : ''
+                                                    }
+                                                `}
+                                            >
+                                                <div
+                                                    className={`
+                                                        flex w-11.5
+                                                        shrink-0
+                                                        items-start
+                                                        justify-center
+                                                        border-r
+                                                        pt-4
+                                                        transition-colors
+                                                        duration-200
+
+                                                        ${
+                                                            getFieldError(
+                                                                'address',
+                                                            )
+                                                                ? `
+                                                                    border-red-100
+                                                                    text-red-400
+                                                                `
+                                                                : `
+                                                                    border-slate-100
+                                                                    text-slate-400
+                                                                    group-focus-within:border-primary/10
+                                                                    group-focus-within:text-primary
+                                                                `
+                                                        }
+                                                    `}
+                                                >
+                                                    <MapPin
+                                                        size={18}
+                                                        strokeWidth={1.7}
+                                                    />
+                                                </div>
+
+                                                <textarea
+                                                    id="address"
+                                                    name="address"
+                                                    value={form.address}
+                                                    onChange={handleChange}
+                                                    placeholder="Enter organization address"
+                                                    disabled={loading}
+                                                    rows={4}
+                                                    className="
+                                                        min-h-29
+                                                        min-w-0
+                                                        flex-1
+                                                        resize-none
+                                                        bg-transparent
+                                                        px-4
+                                                        py-3.5
+                                                        text-[14px]
+                                                        font-medium
+                                                        leading-6
+                                                        tracking-[-0.005em]
+                                                        text-slate-800
+                                                        outline-none
+
+                                                        placeholder:text-slate-400
+                                                        placeholder:font-normal
+
+                                                        disabled:cursor-not-allowed
+                                                        disabled:text-slate-400
+                                                    "
+                                                />
+                                            </div>
+
+                                            {errorMessage('address')}
+                                        </div>
+                                    </div>
+                                </section>
+
+                                {/* =================================================
+                                    ADD NOTE
+                                ================================================== */}
+
+                                {!isEdit && (
+                                    <section className="mt-10 border-t border-border pt-8">
+                                        <div className="flex items-start gap-4 rounded-xl border border-amber-200/70 bg-amber-50/50 px-4 py-4">
+                                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-600">
+                                                <FileText
+                                                    size={17}
+                                                    strokeWidth={1.7}
+                                                />
+                                            </div>
+
+                                            <div className="max-w-155">
+                                                <p className="text-[12px] font-semibold text-text-primary">
+                                                    Verification will remain
+                                                    pending
+                                                </p>
+
+                                                <p className="mt-1.5 text-[12px] leading-5 text-text-secondary">
+                                                    The organization must
+                                                    complete its additional
+                                                    profile information before
+                                                    an administrator can verify
+                                                    it.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </section>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* =====================================================
+                            FOOTER
+                        ====================================================== */}
+
+                        <footer className="flex shrink-0 items-center justify-between border-t border-border bg-white px-7 py-5 sm:px-10">
+                            <p className="hidden text-[12px] leading-5 text-text-secondary sm:block">
+                                {isEdit
+                                    ? 'Changes will be reflected on the organization profile.'
+                                    : 'You can complete the remaining profile information later.'}
+                            </p>
+
+                            <div className="ml-auto flex items-center gap-3">
+                                <button
+                                    type="button"
+                                    onClick={onClose}
+                                    disabled={loading}
+                                    className="
+                                        rounded-lg px-4 py-2.5
+                                        text-[13px] font-semibold
+                                        text-text-secondary
+                                        transition-all duration-200
+                                        hover:bg-background-alt
+                                        hover:text-text-primary
+                                        disabled:opacity-50
+                                    "
+                                >
+                                    Cancel
+                                </button>
+
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    className="
+                                        inline-flex min-w-37.5
+                                        items-center justify-center
+                                        gap-2
+                                        rounded-lg
+                                        bg-primary
+                                        px-6 py-3
+                                        text-[13px]
+                                        font-semibold
+                                        text-white
+                                        shadow-sm
+                                        transition-all duration-200
+                                        hover:bg-primary-hover
+                                        hover:shadow-md
+                                        disabled:cursor-not-allowed
+                                        disabled:opacity-60
+                                    "
+                                >
+                                    {loading
+                                        ? isEdit
+                                            ? 'Saving...'
+                                            : 'Adding...'
+                                        : isEdit
+                                          ? 'Save changes'
+                                          : 'Add organization'}
+                                </button>
+                            </div>
+                        </footer>
+                    </form>
+                </div>
             </div>
         </div>
     );

@@ -730,7 +730,7 @@ const AdminOrganizations = () => {
                             onClick={() => handleReviewOrganization(row)}
                             className="text-xs font-semibold text-primary transition-colors hover:text-primary-hover"
                         >
-                            Review
+                            Verify
                         </button>
                     )}
 

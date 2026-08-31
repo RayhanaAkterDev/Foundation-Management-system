@@ -50,9 +50,7 @@ async function submitRegistration(payload) {
                   },
                   details: {
                       ...payload.details,
-                      teamSize: payload.details.teamSize
-                          ? Number(payload.details.teamSize)
-                          : null,
+                      teamSize: payload.details.teamSize || null,
                   },
               }),
     };

@@ -909,7 +909,7 @@ class AdminController extends Controller
             return $user;
         }
 
-        $organization = Organization::with('user')->find($id);
+        $organization = Organization::find($id);
 
         if (!$organization) {
             return response()->json([
@@ -925,44 +925,30 @@ class AdminController extends Controller
         ]);
 
         DB::transaction(function () use ($organization, $validated) {
-
             $verificationStatus = $validated['verification_status'];
 
-            /*
-        |--------------------------------------------------------------------------
-        | Update Organization Verification Status
-        |--------------------------------------------------------------------------
-        */
-
+            // Update organization verification status.
             $organization->update([
                 'verification_status' => $verificationStatus,
             ]);
 
-            /*
-        |--------------------------------------------------------------------------
-        | Update Organization Account Status
-        |--------------------------------------------------------------------------
-        |
-        | Rejected organization -> inactive account
-        | Verified organization -> active account
-        | Pending organization -> active account
-        |
-        */
+            // Update the linked organization owner's account status.
+            $accountStatus = $verificationStatus === 'rejected'
+                ? 'inactive'
+                : 'active';
 
-            if ($organization->user) {
-                $organization->user->update([
-                    'status' => $verificationStatus === 'rejected'
-                        ? 'inactive'
-                        : 'active',
-                ]);
-            }
+            User::where('id', $organization->user_id)->update([
+                'status' => $accountStatus,
+            ]);
         });
+
+        $organization = $organization
+            ->fresh()
+            ->load('user');
 
         return response()->json([
             'message' => 'Organization verification status updated successfully.',
-            'organization' => $organization
-                ->fresh()
-                ->load('user'),
+            'organization' => $organization,
         ]);
     }
 

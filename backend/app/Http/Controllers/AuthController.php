@@ -49,7 +49,7 @@ class AuthController extends Controller
 
             'details.communitiesServed' => 'nullable|array',
 
-            'details.teamSize' => 'nullable|integer|min:1',
+            'details.teamSize' => 'nullable|string|max:20',
 
             'details.primaryActivities' => 'nullable|array',
 

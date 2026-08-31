@@ -1,5 +1,8 @@
 import React from 'react';
+
 import { Search, SlidersHorizontal, ChevronDown } from 'lucide-react';
+
+import { ORGANIZATION_TYPES } from './organizationTypes';
 
 const OrganizationFilters = ({
     searchTerm,
@@ -23,7 +26,24 @@ const OrganizationFilters = ({
                     value={searchTerm}
                     onChange={onSearchChange}
                     placeholder="Search organizations by name, email or registration number..."
-                    className="h-10 w-full rounded-lg border border-border bg-white pl-10 pr-4 text-sm text-text-primary outline-none transition-colors placeholder:text-text-secondary/65 focus:border-primary/40 focus:ring-4 focus:ring-primary/8"
+                    className="
+                        h-10
+                        w-full
+                        rounded-lg
+                        border
+                        border-border
+                        bg-white
+                        pl-10
+                        pr-4
+                        text-sm
+                        text-text-primary
+                        outline-none
+                        transition-colors
+                        placeholder:text-text-secondary/65
+                        focus:border-primary/40
+                        focus:ring-4
+                        focus:ring-primary/8
+                    "
                 />
             </div>
 
@@ -41,19 +61,48 @@ const OrganizationFilters = ({
                 <select
                     value={typeFilter}
                     onChange={onTypeChange}
-                    className="h-10 w-full min-w-36 appearance-none rounded-lg border border-border bg-white px-3.5 pr-9 text-sm font-medium text-text-primary outline-none transition-colors hover:border-primary/30 focus:border-primary focus:ring-4 focus:ring-primary/8 sm:w-auto"
+                    className="
+                        h-10
+                        w-full
+                        min-w-36
+                        appearance-none
+                        rounded-lg
+                        border
+                        border-border
+                        bg-white
+                        px-3.5
+                        pr-9
+                        text-sm
+                        font-medium
+                        text-text-primary
+                        outline-none
+                        transition-colors
+                        hover:border-primary/30
+                        focus:border-primary
+                        focus:ring-4
+                        focus:ring-primary/8
+                        sm:w-auto
+                    "
                 >
                     <option value="all">All types</option>
-                    <option value="ngo">NGO</option>
-                    <option value="non_profit">Non-Profit</option>
-                    <option value="community">Community</option>
-                    <option value="charity">Charity</option>
-                    <option value="other">Other</option>
+
+                    {ORGANIZATION_TYPES.map((type) => (
+                        <option key={type} value={type}>
+                            {type}
+                        </option>
+                    ))}
                 </select>
 
                 <ChevronDown
                     size={14}
-                    className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary"
+                    className="
+                        pointer-events-none
+                        absolute
+                        right-3
+                        top-1/2
+                        -translate-y-1/2
+                        text-text-secondary
+                    "
                 />
             </div>
 
@@ -62,17 +111,48 @@ const OrganizationFilters = ({
                 <select
                     value={statusFilter}
                     onChange={onStatusChange}
-                    className="h-10 w-full min-w-36 appearance-none rounded-lg border border-border bg-white px-3.5 pr-9 text-sm font-medium text-text-primary outline-none transition-colors hover:border-primary/30 focus:border-primary focus:ring-4 focus:ring-primary/8 sm:w-auto"
+                    className="
+                        h-10
+                        w-full
+                        min-w-36
+                        appearance-none
+                        rounded-lg
+                        border
+                        border-border
+                        bg-white
+                        px-3.5
+                        pr-9
+                        text-sm
+                        font-medium
+                        text-text-primary
+                        outline-none
+                        transition-colors
+                        hover:border-primary/30
+                        focus:border-primary
+                        focus:ring-4
+                        focus:ring-primary/8
+                        sm:w-auto
+                    "
                 >
                     <option value="all">All status</option>
+
                     <option value="verified">Verified</option>
+
                     <option value="pending">Pending</option>
+
                     <option value="rejected">Rejected</option>
                 </select>
 
                 <ChevronDown
                     size={14}
-                    className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary"
+                    className="
+                        pointer-events-none
+                        absolute
+                        right-3
+                        top-1/2
+                        -translate-y-1/2
+                        text-text-secondary
+                    "
                 />
             </div>
         </div>

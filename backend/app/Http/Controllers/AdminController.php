@@ -909,7 +909,7 @@ class AdminController extends Controller
             return $user;
         }
 
-        $organization = Organization::find($id);
+        $organization = Organization::with('user')->find($id);
 
         if (!$organization) {
             return response()->json([
@@ -924,15 +924,42 @@ class AdminController extends Controller
             ],
         ]);
 
-        $organization->update([
-            'verification_status' =>
-            $validated['verification_status'],
-        ]);
+        DB::transaction(function () use ($organization, $validated) {
+
+            $verificationStatus = $validated['verification_status'];
+
+            /*
+        |--------------------------------------------------------------------------
+        | Update Organization Verification Status
+        |--------------------------------------------------------------------------
+        */
+
+            $organization->update([
+                'verification_status' => $verificationStatus,
+            ]);
+
+            /*
+        |--------------------------------------------------------------------------
+        | Update Organization Account Status
+        |--------------------------------------------------------------------------
+        |
+        | Rejected organization -> inactive account
+        | Verified organization -> active account
+        | Pending organization -> active account
+        |
+        */
+
+            if ($organization->user) {
+                $organization->user->update([
+                    'status' => $verificationStatus === 'rejected'
+                        ? 'inactive'
+                        : 'active',
+                ]);
+            }
+        });
 
         return response()->json([
-            'message' =>
-            'Organization verification status updated successfully.',
-
+            'message' => 'Organization verification status updated successfully.',
             'organization' => $organization
                 ->fresh()
                 ->load('user'),

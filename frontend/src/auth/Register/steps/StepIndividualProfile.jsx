@@ -3,7 +3,7 @@ import { Phone, MapPin, Calendar, Upload, UserCircle } from 'lucide-react';
 
 const FieldWrapper = ({ label, htmlFor, error, required, children }) => (
   <div className="space-y-1.5">
-    <label htmlFor={htmlFor} className="block text-sm font-medium text-[#0f172a]">
+    <label htmlFor={htmlFor} className="block text-sm font-medium text-text-primary">
       {label}
       {required && <span className="ml-0.5 text-red-500">*</span>}
       {!required && <span className="ml-1 text-xs font-normal text-[#6b7280]">(optional)</span>}
@@ -20,7 +20,7 @@ const InputIcon = ({ icon: Icon, top }) => (
 );
 
 const inputBase =
-  'h-12 w-full rounded-xl border border-[#e5e7eb] bg-white pl-10 pr-4 text-sm text-[#0f172a] placeholder-[#6b7280] outline-none transition focus:border-[#0f766e] focus:ring-2 focus:ring-[#0f766e]/20';
+  'h-12 w-full rounded-xl border border-[#e5e7eb] bg-white pl-10 pr-4 text-sm text-text-primary placeholder-[#6b7280] outline-none transition focus:border-[#0f766e] focus:ring-2 focus:ring-[#0f766e]/20';
 const inputError = 'border-red-400 focus:border-red-500 focus:ring-red-200';
 
 const StepIndividualProfile = ({ formData, onChange, errors }) => {
@@ -37,7 +37,7 @@ const StepIndividualProfile = ({ formData, onChange, errors }) => {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h2 className="font-['Fraunces'] text-2xl font-semibold text-[#0f172a] md:text-3xl">
+        <h2 className="font-['Fraunces'] text-2xl font-semibold text-text-primary md:text-3xl">
           Tell us about yourself
         </h2>
         <p className="text-base text-[#6b7280]">
@@ -92,7 +92,7 @@ const StepIndividualProfile = ({ formData, onChange, errors }) => {
                 placeholder="Your full address"
                 value={formData.address || ''}
                 onChange={(e) => onChange('address', e.target.value)}
-                className={`w-full rounded-xl border border-[#e5e7eb] bg-white pl-10 pr-4 pt-2.5 pb-2.5 text-sm text-[#0f172a] placeholder-[#6b7280] outline-none transition focus:border-[#0f766e] focus:ring-2 focus:ring-[#0f766e]/20 resize-none ${
+                className={`w-full rounded-xl border border-[#e5e7eb] bg-white pl-10 pr-4 pt-2.5 pb-2.5 text-sm text-text-primary placeholder-[#6b7280] outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 resize-none ${
                   errors.address ? inputError : ''
                 }`}
               />
@@ -136,7 +136,7 @@ const StepIndividualProfile = ({ formData, onChange, errors }) => {
                 </span>
               )}
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-[#0f172a]">
+                <p className="truncate text-sm font-medium text-text-primary">
                   {formData.profilePhoto?.name || 'Upload a photo'}
                 </p>
                 <p className="text-xs text-[#6b7280]">

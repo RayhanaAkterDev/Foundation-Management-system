@@ -21,7 +21,7 @@ const RegisterNavigation = ({
         type="button"
         onClick={onBack}
         disabled={isFirstStep || isSubmitting}
-        className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#e5e7eb] bg-white px-6 text-sm font-medium text-[#0f766e] transition-colors hover:bg-[#eef3f6] disabled:cursor-not-allowed disabled:opacity-40 md:w-auto"
+        className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#e5e7eb] bg-white px-6 text-sm font-medium text-primary transition-colors hover:bg-[#eef3f6] disabled:cursor-not-allowed disabled:opacity-40 md:w-auto"
       >
         <ArrowLeft className="h-4 w-4" />
         Back
@@ -46,7 +46,7 @@ const RegisterNavigation = ({
           type="button"
           onClick={onContinue}
           disabled={!canContinue || isSubmitting}
-          className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#0f766e] px-6 text-sm font-medium text-white transition-colors hover:bg-[#115e59] disabled:cursor-not-allowed disabled:opacity-50 md:w-auto"
+          className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 text-sm font-medium text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50 md:w-auto"
         >
           {isSubmitting ? (
             <>

@@ -3,7 +3,7 @@ import { User, Building2, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 
 const FieldWrapper = ({ label, htmlFor, error, children }) => (
   <div className="space-y-1.5">
-    <label htmlFor={htmlFor} className="block text-sm font-medium text-[#0f172a]">
+    <label htmlFor={htmlFor} className="block text-sm font-medium text-text-primary">
       {label} <span className="text-red-500">*</span>
     </label>
     {children}
@@ -21,13 +21,13 @@ const StepCredentials = ({ accountType, formData, onChange, errors }) => {
 
   const isOrganization = accountType === 'organization';
   const inputBase =
-    'h-12 w-full rounded-xl border border-[#e5e7eb] bg-white pl-10 pr-4 text-sm text-[#0f172a] placeholder-[#6b7280] outline-none transition focus:border-[#0f766e] focus:ring-2 focus:ring-[#0f766e]/20';
+    'h-12 w-full rounded-xl border border-[#e5e7eb] bg-white pl-10 pr-4 text-sm text-text-primary placeholder-[#6b7280] outline-none transition focus:border-[#0f766e] focus:ring-2 focus:ring-[#0f766e]/20';
   const inputError = 'border-red-400 focus:border-red-500 focus:ring-red-200';
 
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h2 className="font-['Fraunces'] text-2xl font-semibold text-[#0f172a] md:text-3xl">
+        <h2 className="font-['Fraunces'] text-2xl font-semibold text-text-primary md:text-3xl">
           {isOrganization ? 'Create your organization account' : 'Create your account'}
         </h2>
         <p className="text-base text-[#6b7280]">
@@ -99,7 +99,7 @@ const StepCredentials = ({ accountType, formData, onChange, errors }) => {
               <button
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6b7280] hover:text-[#0f172a]"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6b7280] hover:text-text-primary"
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -125,7 +125,7 @@ const StepCredentials = ({ accountType, formData, onChange, errors }) => {
               <button
                 type="button"
                 onClick={() => setShowConfirm((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6b7280] hover:text-[#0f172a]"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6b7280] hover:text-text-primary"
                 aria-label={showConfirm ? 'Hide password' : 'Show password'}
               >
                 {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}

@@ -23,10 +23,10 @@ const Chip = ({ label, selected, onClick }) => (
   <button
     type="button"
     onClick={onClick}
-    className={`inline-flex min-h-[44px] items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors duration-150 ${
+    className={`inline-flex min-h-11 items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors duration-150 ${
       selected
-        ? 'border-[#0f766e] bg-[#0f766e]/10 text-[#0f766e]'
-        : 'border-[#e5e7eb] bg-white text-[#0f172a] hover:border-[#0f766e]/40 hover:bg-[#eef3f6]'
+        ? 'border-primary bg-primary/10 text-primary'
+        : 'border-[#e5e7eb] bg-white text-text-primary hover:border-primary/40 hover:bg-[#eef3f6]'
     }`}
   >
     {selected && <Check className="h-3.5 w-3.5 shrink-0" />}
@@ -46,7 +46,7 @@ const StepIndividualPreferences = ({ formData, onChange }) => {
   return (
     <div className="space-y-8">
       <div className="space-y-2">
-        <h2 className="font-['Fraunces'] text-2xl font-semibold text-[#0f172a] md:text-3xl">
+        <h2 className="font-['Fraunces'] text-2xl font-semibold text-text-primary md:text-3xl">
           What matters to you?
         </h2>
         <p className="text-base text-[#6b7280]">
@@ -56,7 +56,7 @@ const StepIndividualPreferences = ({ formData, onChange }) => {
 
       {/* Participation types */}
       <div className="space-y-3">
-        <p className="text-sm font-semibold text-[#0f172a]">How would you like to participate?</p>
+        <p className="text-sm font-semibold text-text-primary">How would you like to participate?</p>
         <div className="flex flex-wrap gap-3">
           {participationOptions.map(({ value, label }) => (
             <Chip
@@ -71,7 +71,7 @@ const StepIndividualPreferences = ({ formData, onChange }) => {
 
       {/* Causes */}
       <div className="space-y-3">
-        <p className="text-sm font-semibold text-[#0f172a]">Causes you care about</p>
+        <p className="text-sm font-semibold text-text-primary">Causes you care about</p>
         <div className="flex flex-wrap gap-3">
           {causeOptions.map(({ value, label }) => (
             <Chip

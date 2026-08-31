@@ -30,9 +30,9 @@ const RegisterProgress = ({ currentStep, accountType }) => {
                 <span
                   className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition-colors md:h-10 md:w-10 ${
                     isActive
-                      ? 'bg-[#0f766e] text-white'
+                      ? 'bg-primary text-white'
                       : isCompleted
-                        ? 'bg-[#0f766e]/10 text-[#0f766e]'
+                        ? 'bg-primary/10 text-primary'
                         : 'bg-[#eef3f6] text-[#6b7280]'
                   }`}
                 >
@@ -45,9 +45,9 @@ const RegisterProgress = ({ currentStep, accountType }) => {
                 <span
                   className={`mt-1 hidden truncate text-sm font-medium md:mt-0 md:block ${
                     isActive
-                      ? 'text-[#0f766e]'
+                      ? 'text-primary'
                       : isCompleted
-                        ? 'text-[#0f766e]'
+                        ? 'text-primary'
                         : 'text-[#6b7280]'
                   }`}
                 >
@@ -56,9 +56,9 @@ const RegisterProgress = ({ currentStep, accountType }) => {
                 <span
                   className={`mt-1 block text-xs font-medium md:hidden ${
                     isActive
-                      ? 'text-[#0f766e]'
+                      ? 'text-primary'
                       : isCompleted
-                        ? 'text-[#0f766e]'
+                        ? 'text-primary'
                         : 'text-[#6b7280]'
                   }`}
                 >
@@ -66,7 +66,7 @@ const RegisterProgress = ({ currentStep, accountType }) => {
                 </span>
               </div>
               {!isLast && (
-                <div className="mx-1 h-px flex-1 max-w-[40px] bg-[#e5e7eb] md:mx-2 md:w-12 md:max-w-none md:flex-none" />
+                <div className="mx-1 h-px flex-1 max-w-10 bg-[#e5e7eb] md:mx-2 md:w-12 md:max-w-none md:flex-none" />
               )}
             </React.Fragment>
           );

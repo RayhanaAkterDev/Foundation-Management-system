@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+
 import {
     Plus,
     Download,
@@ -39,6 +40,7 @@ const AdminOrganizations = () => {
     // --------------------------------
     // Filters / Search / Sorting
     // --------------------------------
+
     const [activeCategory, setActiveCategory] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
     const [typeFilter, setTypeFilter] = useState('all');
@@ -54,6 +56,7 @@ const AdminOrganizations = () => {
     // --------------------------------
     // View organization
     // --------------------------------
+
     const [selectedOrganization, setSelectedOrganization] = useState(null);
     const [viewLoading, setViewLoading] = useState(false);
     const [viewError, setViewError] = useState('');
@@ -61,14 +64,17 @@ const AdminOrganizations = () => {
     // --------------------------------
     // Review / Verification organization
     // --------------------------------
+
     const [selectedReviewOrganization, setSelectedReviewOrganization] =
         useState(null);
+
     const [reviewLoading, setReviewLoading] = useState(false);
     const [reviewError, setReviewError] = useState('');
 
     // --------------------------------
     // Add organization
     // --------------------------------
+
     const [showAddModal, setShowAddModal] = useState(false);
     const [addLoading, setAddLoading] = useState(false);
     const [addError, setAddError] = useState('');
@@ -77,8 +83,10 @@ const AdminOrganizations = () => {
     // --------------------------------
     // Edit organization
     // --------------------------------
+
     const [selectedEditOrganization, setSelectedEditOrganization] =
         useState(null);
+
     const [editLoading, setEditLoading] = useState(false);
     const [editError, setEditError] = useState('');
     const [editFieldErrors, setEditFieldErrors] = useState({});
@@ -86,14 +94,17 @@ const AdminOrganizations = () => {
     // --------------------------------
     // Delete organization
     // --------------------------------
+
     const [selectedDeleteOrganization, setSelectedDeleteOrganization] =
         useState(null);
+
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [deleteError, setDeleteError] = useState('');
 
     // --------------------------------
     // Success toast
     // --------------------------------
+
     const [toast, setToast] = useState({
         show: false,
         message: '',
@@ -116,6 +127,7 @@ const AdminOrganizations = () => {
     // --------------------------------
     // Load organizations
     // --------------------------------
+
     const loadOrganizations = async () => {
         try {
             setLoading(true);
@@ -169,6 +181,7 @@ const AdminOrganizations = () => {
     // --------------------------------
     // View organization
     // --------------------------------
+
     const handleViewOrganization = async (organizationId) => {
         setViewLoading(true);
         setViewError('');
@@ -193,6 +206,7 @@ const AdminOrganizations = () => {
     // --------------------------------
     // Review organization
     // --------------------------------
+
     const handleReviewOrganization = (organization) => {
         setReviewError('');
         setSelectedReviewOrganization(organization);
@@ -244,6 +258,7 @@ const AdminOrganizations = () => {
     // --------------------------------
     // Add organization
     // --------------------------------
+
     const openAddModal = () => {
         setAddError('');
         setAddFieldErrors({});
@@ -289,6 +304,7 @@ const AdminOrganizations = () => {
     // --------------------------------
     // Edit organization
     // --------------------------------
+
     const openEditModal = async (organizationId) => {
         setEditLoading(true);
         setEditError('');
@@ -297,8 +313,15 @@ const AdminOrganizations = () => {
 
         try {
             const data = await fetchOrganization(organizationId);
+            const organization = data.organization;
 
-            setSelectedEditOrganization(data.organization);
+            // Rejected organizations cannot be edited.
+            if (organization?.verification_status === 'rejected') {
+                setEditError('Rejected organizations cannot be edited.');
+                return;
+            }
+
+            setSelectedEditOrganization(organization);
         } catch (err) {
             setEditError(err.message || 'Unable to load organization.');
         } finally {
@@ -318,6 +341,13 @@ const AdminOrganizations = () => {
 
     const handleEditOrganization = async (formData) => {
         if (!selectedEditOrganization) {
+            return;
+        }
+
+        // Additional safety check.
+        if (selectedEditOrganization.verification_status === 'rejected') {
+            setEditError('Rejected organizations cannot be edited.');
+
             return;
         }
 
@@ -347,6 +377,7 @@ const AdminOrganizations = () => {
     // --------------------------------
     // Delete organization
     // --------------------------------
+
     const openDeleteModal = (organization) => {
         setDeleteError('');
         setSelectedDeleteOrganization(organization);
@@ -387,6 +418,7 @@ const AdminOrganizations = () => {
     // --------------------------------
     // Statistics
     // --------------------------------
+
     const statistics = useMemo(() => {
         return {
             total: organizations.length,
@@ -411,6 +443,7 @@ const AdminOrganizations = () => {
     // --------------------------------
     // Category tabs
     // --------------------------------
+
     const categoryTabs = useMemo(
         () => [
             {
@@ -440,6 +473,7 @@ const AdminOrganizations = () => {
     // --------------------------------
     // Filtering + sorting
     // --------------------------------
+
     const filteredOrganizations = useMemo(() => {
         let result = [...organizations];
 
@@ -521,6 +555,7 @@ const AdminOrganizations = () => {
     // --------------------------------
     // Pagination
     // --------------------------------
+
     const totalPages = Math.max(
         1,
         Math.ceil(filteredOrganizations.length / ORGANIZATIONS_PER_PAGE),
@@ -540,6 +575,7 @@ const AdminOrganizations = () => {
     // --------------------------------
     // Controls
     // --------------------------------
+
     const handleCategoryChange = (category) => {
         setActiveCategory(category);
         setCurrentPage(1);
@@ -602,6 +638,7 @@ const AdminOrganizations = () => {
     // --------------------------------
     // CSV Export
     // --------------------------------
+
     const handleExportCSV = () => {
         if (filteredOrganizations.length === 0) {
             return;
@@ -660,6 +697,7 @@ const AdminOrganizations = () => {
     // --------------------------------
     // Table rows
     // --------------------------------
+
     const rows = paginatedOrganizations.map((organization, index) => ({
         ...organization,
 
@@ -676,6 +714,7 @@ const AdminOrganizations = () => {
     // --------------------------------
     // Table columns
     // --------------------------------
+
     const columns = [
         {
             key: 'serialNumber',
@@ -724,6 +763,7 @@ const AdminOrganizations = () => {
 
             render: (_, row) => (
                 <div className="flex items-center justify-end gap-4">
+                    {/* Verify - Pending only */}
                     {row.verification_status === 'pending' && (
                         <button
                             type="button"
@@ -734,6 +774,7 @@ const AdminOrganizations = () => {
                         </button>
                     )}
 
+                    {/* View - Always available */}
                     <button
                         type="button"
                         onClick={() => handleViewOrganization(row.id)}
@@ -742,14 +783,18 @@ const AdminOrganizations = () => {
                         View
                     </button>
 
-                    <button
-                        type="button"
-                        onClick={() => openEditModal(row.id)}
-                        className="text-xs font-semibold text-text-secondary transition-colors hover:text-primary"
-                    >
-                        Edit
-                    </button>
+                    {/* Edit - Available except for rejected organizations */}
+                    {row.verification_status !== 'rejected' && (
+                        <button
+                            type="button"
+                            onClick={() => openEditModal(row.id)}
+                            className="text-xs font-semibold text-text-secondary transition-colors hover:text-primary"
+                        >
+                            Edit
+                        </button>
+                    )}
 
+                    {/* Delete - Always available */}
                     <button
                         type="button"
                         onClick={() => openDeleteModal(row)}
@@ -765,6 +810,7 @@ const AdminOrganizations = () => {
     // --------------------------------
     // Loading
     // --------------------------------
+
     if (loading) {
         return (
             <div className="space-y-8">
@@ -793,6 +839,7 @@ const AdminOrganizations = () => {
     // --------------------------------
     // Error
     // --------------------------------
+
     if (error) {
         return (
             <div className="space-y-8">
@@ -842,6 +889,7 @@ const AdminOrganizations = () => {
                 {/* --------------------------------
                     ORGANIZATION OVERVIEW
                 -------------------------------- */}
+
                 <section>
                     <div className="mb-4 flex items-end justify-between">
                         <div>
@@ -870,6 +918,7 @@ const AdminOrganizations = () => {
                 {/* --------------------------------
                     ORGANIZATION MANAGEMENT
                 -------------------------------- */}
+
                 <section className="border-t border-border pt-8">
                     <div className="mb-5">
                         <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
@@ -985,6 +1034,7 @@ const AdminOrganizations = () => {
                 onSubmit={handleEditOrganization}
             />
 
+            {/* Edit loading */}
             {editLoading && !selectedEditOrganization && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
                     <div className="rounded-xl bg-white px-6 py-5 shadow-xl">

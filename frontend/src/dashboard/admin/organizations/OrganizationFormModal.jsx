@@ -13,6 +13,7 @@ import {
     PencilLine,
     ChevronDown,
 } from 'lucide-react';
+import { ORGANIZATION_TYPES } from './organizationTypes';
 
 const getInitialForm = (mode, organization) => {
     if (mode === 'edit' && organization) {
@@ -622,29 +623,16 @@ const OrganizationFormModal = ({
                                                         Select organization type
                                                     </option>
 
-                                                    <option value="NGO">
-                                                        NGO
-                                                    </option>
-
-                                                    <option value="Non-profit">
-                                                        Non-profit
-                                                    </option>
-
-                                                    <option value="Charity">
-                                                        Charity
-                                                    </option>
-
-                                                    <option value="Foundation">
-                                                        Foundation
-                                                    </option>
-
-                                                    <option value="Community Organization">
-                                                        Community Organization
-                                                    </option>
-
-                                                    <option value="Other">
-                                                        Other
-                                                    </option>
+                                                    {ORGANIZATION_TYPES.map(
+                                                        (type) => (
+                                                            <option
+                                                                key={type}
+                                                                value={type}
+                                                            >
+                                                                {type}
+                                                            </option>
+                                                        ),
+                                                    )}
                                                 </select>
 
                                                 <ChevronDown

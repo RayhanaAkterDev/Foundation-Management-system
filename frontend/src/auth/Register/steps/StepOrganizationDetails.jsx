@@ -45,10 +45,10 @@ const Chip = ({ label, selected, onClick }) => (
   <button
     type="button"
     onClick={onClick}
-    className={`inline-flex min-h-[44px] items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors duration-150 ${
+    className={`inline-flex min-h-11 items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors duration-150 ${
       selected
-        ? 'border-[#0f766e] bg-[#0f766e]/10 text-[#0f766e]'
-        : 'border-[#e5e7eb] bg-white text-[#0f172a] hover:border-[#0f766e]/40 hover:bg-[#eef3f6]'
+        ? 'border-primary bg-primary/10 text-primary'
+        : 'border-[#e5e7eb] bg-white text-text-primary hover:border-primary/40 hover:bg-[#eef3f6]'
     }`}
   >
     {selected && <Check className="h-3.5 w-3.5 shrink-0" />}
@@ -58,7 +58,7 @@ const Chip = ({ label, selected, onClick }) => (
 
 const FieldWrapper = ({ label, error, required, children }) => (
   <div className="space-y-2">
-    <p className="text-sm font-semibold text-[#0f172a]">
+    <p className="text-sm font-semibold text-text-primary">
       {label}
       {required && <span className="ml-0.5 text-red-500">*</span>}
       {!required && <span className="ml-1 text-xs font-normal text-[#6b7280]">(optional)</span>}
@@ -78,13 +78,13 @@ const StepOrganizationDetails = ({ formData, onChange, errors }) => {
   };
 
   const inputBase =
-    'w-full rounded-xl border border-[#e5e7eb] bg-white px-4 py-3 text-sm text-[#0f172a] placeholder-[#6b7280] outline-none transition focus:border-[#0f766e] focus:ring-2 focus:ring-[#0f766e]/20';
+    'w-full rounded-xl border border-[#e5e7eb] bg-white px-4 py-3 text-sm text-text-primary placeholder-[#6b7280] outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20';
   const inputError = 'border-red-400 focus:border-red-500 focus:ring-red-200';
 
   return (
     <div className="space-y-8">
       <div className="space-y-2">
-        <h2 className="font-['Fraunces'] text-2xl font-semibold text-[#0f172a] md:text-3xl">
+        <h2 className="font-['Fraunces'] text-2xl font-semibold text-text-primary md:text-3xl">
           Tell us about your work
         </h2>
         <p className="text-base text-[#6b7280]">
@@ -94,7 +94,7 @@ const StepOrganizationDetails = ({ formData, onChange, errors }) => {
 
       {/* Mission */}
       <div className="space-y-1.5">
-        <label htmlFor="mission" className="block text-sm font-semibold text-[#0f172a]">
+        <label htmlFor="mission" className="block text-sm font-semibold text-text-primary">
           Mission <span className="text-red-500">*</span>
         </label>
         <textarea

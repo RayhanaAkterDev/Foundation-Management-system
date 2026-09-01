@@ -109,7 +109,7 @@ const IndividualDashboard = () => {
     if (loading) {
         return (
             <div className="min-h-full bg-[#f8f8f5] text-[#17211e]">
-                <div className="mx-auto max-w-[1440px] px-5 py-10 sm:px-8 lg:px-10">
+                <div className="mx-auto max-w-360 px-5 py-10 sm:px-8 lg:px-10">
                     <p className="text-sm text-slate-400">
                         Loading your dashboard...
                     </p>
@@ -121,7 +121,7 @@ const IndividualDashboard = () => {
     if (error) {
         return (
             <div className="min-h-full bg-[#f8f8f5] text-[#17211e]">
-                <div className="mx-auto max-w-[1440px] px-5 py-10 sm:px-8 lg:px-10">
+                <div className="mx-auto max-w-360 px-5 py-10 sm:px-8 lg:px-10">
                     <p className="text-sm font-semibold text-red-600">
                         {error}
                     </p>
@@ -161,7 +161,7 @@ const IndividualDashboard = () => {
 
     return (
         <div className="min-h-full bg-[#f8f8f5] text-[#17211e]">
-            <div className="mx-auto max-w-[1440px] px-5 py-6 sm:px-8 lg:px-10 lg:py-8">
+            <div className="mx-auto max-w-360 px-5 py-6 sm:px-8 lg:px-10 lg:py-8">
                 {/* ============================================================
                     HEADER
                 ============================================================ */}
@@ -172,7 +172,7 @@ const IndividualDashboard = () => {
                         onClick={() => navigate('/dashboard/individual')}
                         className="group flex items-center gap-3"
                     >
-                        <div className="flex h-9 w-9 items-center justify-center bg-[#0f766e] transition duration-200 group-hover:bg-[#115e59]">
+                        <div className="flex h-9 w-9 items-center justify-center bg-primary transition duration-200 group-hover:bg-primary-hover">
                             <Heart className="h-4 w-4 fill-white text-white" />
                         </div>
 
@@ -204,7 +204,7 @@ const IndividualDashboard = () => {
                             </p>
                         </div>
 
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-[#c9dfd9] bg-[#e4f0ec] font-['Fraunces'] text-sm font-semibold text-[#0f766e] transition duration-200 group-hover:scale-105">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full border border-[#c9dfd9] bg-[#e4f0ec] font-['Fraunces'] text-sm font-semibold text-primary transition duration-200 group-hover:scale-105">
                             {firstName.charAt(0).toUpperCase()}
                         </div>
                     </button>
@@ -215,12 +215,12 @@ const IndividualDashboard = () => {
                 ============================================================ */}
 
                 <section className="relative mt-8 border-y border-slate-200">
-                    <div className="grid min-h-[430px] lg:grid-cols-[1.08fr_0.92fr]">
+                    <div className="grid min-h-107.5 lg:grid-cols-[1.08fr_0.92fr]">
                         <div className="flex flex-col justify-center py-12 lg:pr-16 lg:py-16">
                             <div className="flex items-center gap-3">
-                                <span className="h-px w-8 bg-[#0f766e]" />
+                                <span className="h-px w-8 bg-primary" />
 
-                                <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#0f766e]">
+                                <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-primary">
                                     {getGreeting()}, {firstName}
                                 </span>
                             </div>
@@ -228,7 +228,7 @@ const IndividualDashboard = () => {
                             <h1 className="mt-6 max-w-3xl font-['Fraunces'] text-[48px] font-semibold leading-[0.98] tracking-[-0.045em] text-[#17211e] sm:text-[62px] lg:text-[72px]">
                                 Show up for
                                 <br />
-                                <span className="text-[#0f766e]">
+                                <span className="text-primary">
                                     something bigger.
                                 </span>
                             </h1>
@@ -248,7 +248,7 @@ const IndividualDashboard = () => {
                                             '/dashboard/individual/help-requests',
                                         )
                                     }
-                                    className="group inline-flex items-center gap-2.5 bg-[#0f766e] px-5 py-3 text-xs font-bold text-white transition duration-200 hover:bg-[#115e59]"
+                                    className="group inline-flex items-center gap-2.5 bg-primary px-5 py-3 text-xs font-bold text-white transition duration-200 hover:bg-primary-hover"
                                 >
                                     <HeartHandshake className="h-4 w-4" />
                                     Request support
@@ -262,7 +262,7 @@ const IndividualDashboard = () => {
                                             '/dashboard/individual/campaigns',
                                         )
                                     }
-                                    className="group inline-flex items-center gap-2 text-xs font-bold text-slate-600 transition duration-200 hover:text-[#0f766e]"
+                                    className="group inline-flex items-center gap-2 text-xs font-bold text-slate-600 transition duration-200 hover:text-primary"
                                 >
                                     Explore causes
                                     <ArrowUpRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -276,27 +276,27 @@ const IndividualDashboard = () => {
                             <div className="absolute inset-0">
                                 <div className="absolute bottom-0 left-[14%] top-0 w-px bg-slate-200/70" />
 
-                                <div className="absolute left-[18%] top-[13%] h-52 w-52 rounded-full border border-[#0f766e]/20" />
+                                <div className="absolute left-[18%] top-[13%] h-52 w-52 rounded-full border border-primary/20" />
 
-                                <div className="absolute -right-10 top-10 h-48 w-48 rounded-full bg-[#0f766e]/8" />
+                                <div className="absolute -right-10 top-10 h-48 w-48 rounded-full bg-primary/8" />
 
-                                <div className="absolute bottom-[-90px] left-[8%] h-72 w-72 rounded-full border-[38px] border-amber-400/10" />
+                                <div className="absolute -bottom-22.5 left-[8%] h-72 w-72 rounded-full border-38 border-amber-400/10" />
 
-                                <div className="absolute bottom-[18%] right-[16%] h-24 w-24 rounded-full bg-[#0f766e]/10" />
+                                <div className="absolute bottom-[18%] right-[16%] h-24 w-24 rounded-full bg-primary/10" />
 
-                                <div className="absolute left-[48%] top-[41%] h-20 w-20 rounded-full border border-[#0f766e]/15" />
+                                <div className="absolute left-[48%] top-[41%] h-20 w-20 rounded-full border border-primary/15" />
                             </div>
 
                             <div className="absolute left-1/2 top-[38%] flex h-40 w-40 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#edf4f1]">
-                                <div className="flex h-28 w-28 items-center justify-center rounded-full bg-[#0f766e] shadow-[0_20px_60px_rgba(15,118,110,0.15)]">
+                                <div className="flex h-28 w-28 items-center justify-center rounded-full bg-primary shadow-[0_20px_60px_rgba(15,118,110,0.15)]">
                                     <Heart className="h-10 w-10 fill-white text-white" />
                                 </div>
                             </div>
 
-                            <div className="absolute bottom-10 left-10 max-w-[310px]">
-                                <span className="block h-px w-8 bg-[#0f766e]" />
+                            <div className="absolute bottom-10 left-10 max-w-77.5">
+                                <span className="block h-px w-8 bg-primary" />
 
-                                <p className="mt-4 font-['Fraunces'] text-[29px] font-semibold leading-[1.1] tracking-[-0.025em] text-[#17211e]">
+                                <p className="mt-4 font-['Fraunces'] text-[29px] font-semibold leading-[1.1] tracking-tight text-[#17211e]">
                                     Communities become stronger when people
                                     choose to care.
                                 </p>
@@ -319,7 +319,7 @@ const IndividualDashboard = () => {
                         <div className="lg:pr-14">
                             <Eyebrow>Your contribution</Eyebrow>
 
-                            <h2 className="mt-3 font-['Fraunces'] text-[28px] font-semibold leading-tight tracking-[-0.025em] text-[#17211e]">
+                            <h2 className="mt-3 font-['Fraunces'] text-[28px] font-semibold leading-tight tracking-tight text-[#17211e]">
                                 The ways you've
                                 <br className="hidden lg:block" />
                                 shown up.
@@ -382,7 +382,7 @@ const IndividualDashboard = () => {
 
                             {currentRequest ? (
                                 <div className="relative mt-9">
-                                    <div className="absolute bottom-0 left-0 top-0 w-[3px] bg-[#0f766e]" />
+                                    <div className="absolute bottom-0 left-0 top-0 w-0.75 bg-primary" />
 
                                     <div className="grid lg:grid-cols-[minmax(0,1fr)_230px]">
                                         {/* Request content */}
@@ -413,7 +413,7 @@ const IndividualDashboard = () => {
                                                 )}
                                             </p>
 
-                                            <h3 className="mt-2.5 max-w-2xl font-['Fraunces'] text-[29px] font-semibold leading-[1.15] tracking-[-0.025em] text-[#17211e]">
+                                            <h3 className="mt-2.5 max-w-2xl font-['Fraunces'] text-[29px] font-semibold leading-[1.15] tracking-tight text-[#17211e]">
                                                 {currentRequest.title}
                                             </h3>
 
@@ -442,7 +442,7 @@ const IndividualDashboard = () => {
                                                     />
                                                 </div>
 
-                                                <p className="mt-5 max-w-[180px] text-[11px] leading-5 text-slate-500">
+                                                <p className="mt-5 max-w-45 text-[11px] leading-5 text-slate-500">
                                                     We'll keep you updated as
                                                     your request moves forward.
                                                 </p>
@@ -455,7 +455,7 @@ const IndividualDashboard = () => {
                                                         '/dashboard/individual/help-requests',
                                                     )
                                                 }
-                                                className="group mt-8 inline-flex w-fit items-center gap-2 text-xs font-bold text-[#0f766e]"
+                                                className="group mt-8 inline-flex w-fit items-center gap-2 text-xs font-bold text-primary"
                                             >
                                                 View request
                                                 <ArrowUpRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -464,7 +464,7 @@ const IndividualDashboard = () => {
                                     </div>
                                 </div>
                             ) : (
-                                <div className="mt-9 border-l-[3px] border-[#0f766e] py-4 pl-6">
+                                <div className="mt-9 border-l-[3px] border-primary py-4 pl-6">
                                     <h3 className="font-['Fraunces'] text-xl font-semibold text-[#17211e]">
                                         Nothing here yet.
                                     </h3>
@@ -481,7 +481,7 @@ const IndividualDashboard = () => {
                                                 '/dashboard/individual/help-requests',
                                             )
                                         }
-                                        className="group mt-5 inline-flex items-center gap-2 text-xs font-bold text-[#0f766e]"
+                                        className="group mt-5 inline-flex items-center gap-2 text-xs font-bold text-primary"
                                     >
                                         Submit a request
                                         <ArrowUpRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -510,12 +510,12 @@ const IndividualDashboard = () => {
                                 <article className="mt-9 grid overflow-hidden lg:grid-cols-[0.82fr_1.18fr]">
                                     {/* Editorial visual */}
 
-                                    <div className="relative min-h-[390px] overflow-hidden bg-[#e8f0ed] p-8 sm:p-10">
-                                        <div className="absolute -left-16 -top-16 h-56 w-56 rounded-full border-[28px] border-[#0f766e]/10" />
+                                    <div className="relative min-h-97.5 overflow-hidden bg-[#e8f0ed] p-8 sm:p-10">
+                                        <div className="absolute -left-16 -top-16 h-56 w-56 rounded-full border-28 border-primary/10" />
 
-                                        <div className="absolute -bottom-24 -right-20 h-72 w-72 rounded-full border-[46px] border-amber-400/10" />
+                                        <div className="absolute -bottom-24 -right-20 h-72 w-72 rounded-full border-46 border-amber-400/10" />
 
-                                        <div className="absolute right-[14%] top-[18%] h-20 w-20 rounded-full bg-[#0f766e]/10" />
+                                        <div className="absolute right-[14%] top-[18%] h-20 w-20 rounded-full bg-primary/10" />
 
                                         <div className="relative flex h-full flex-col justify-between">
                                             <span
@@ -547,7 +547,7 @@ const IndividualDashboard = () => {
 
                                     {/* Campaign */}
 
-                                    <div className="flex min-h-[390px] flex-col justify-between bg-[#17211e] px-8 py-9 text-white sm:px-10 sm:py-11">
+                                    <div className="flex min-h-97.5 flex-col justify-between bg-[#17211e] px-8 py-9 text-white sm:px-10 sm:py-11">
                                         <div>
                                             <Eyebrow light>
                                                 Active campaign
@@ -585,7 +585,7 @@ const IndividualDashboard = () => {
                                                 </p>
                                             </div>
 
-                                            <div className="mt-5 h-[3px] overflow-hidden bg-white/10">
+                                            <div className="mt-5 h-0.75 overflow-hidden bg-white/10">
                                                 <div
                                                     className="h-full bg-[#79c2b7]"
                                                     style={{
@@ -634,7 +634,7 @@ const IndividualDashboard = () => {
                                                 }
                                                 className="group grid grid-cols-[34px_minmax(0,1fr)_auto] gap-5 border-b border-slate-200 py-5 first:border-t"
                                             >
-                                                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#edf4f1] text-[#0f766e]">
+                                                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#edf4f1] text-primary">
                                                     <Check className="h-3.5 w-3.5" />
                                                 </div>
 
@@ -656,7 +656,7 @@ const IndividualDashboard = () => {
                                                     )}
                                                 </div>
 
-                                                <ChevronRight className="mt-1 h-4 w-4 text-slate-300 transition-transform duration-200 group-hover:translate-x-1 group-hover:text-[#0f766e]" />
+                                                <ChevronRight className="mt-1 h-4 w-4 text-slate-300 transition-transform duration-200 group-hover:translate-x-1 group-hover:text-primary" />
                                             </div>
                                         ))
                                 ) : (
@@ -678,7 +678,7 @@ const IndividualDashboard = () => {
                         <section>
                             <Eyebrow>Take action</Eyebrow>
 
-                            <h2 className="mt-3 font-['Fraunces'] text-[28px] font-semibold tracking-[-0.025em] text-[#17211e]">
+                            <h2 className="mt-3 font-['Fraunces'] text-[28px] font-semibold tracking-tight text-[#17211e]">
                                 What can you do?
                             </h2>
 
@@ -687,7 +687,7 @@ const IndividualDashboard = () => {
                                     icon={HeartHandshake}
                                     title="Request help"
                                     description="Tell us what support you need"
-                                    iconClass="text-[#0f766e]"
+                                    iconClass="text-primary"
                                     onClick={() =>
                                         navigate(
                                             '/dashboard/individual/help-requests',
@@ -699,7 +699,7 @@ const IndividualDashboard = () => {
                                     icon={HandCoins}
                                     title="Give support"
                                     description="Support a person or cause"
-                                    iconClass="text-[#0f766e]"
+                                    iconClass="text-primary"
                                     onClick={() =>
                                         navigate(
                                             '/dashboard/individual/donations',
@@ -711,7 +711,7 @@ const IndividualDashboard = () => {
                                     icon={Users}
                                     title="Give your time"
                                     description="Find volunteer opportunities"
-                                    iconClass="text-[#0f766e]"
+                                    iconClass="text-primary"
                                     onClick={() =>
                                         navigate(
                                             '/dashboard/individual/volunteer',
@@ -739,7 +739,7 @@ const IndividualDashboard = () => {
                             <Eyebrow muted>Your profile</Eyebrow>
 
                             <div className="mt-5 flex items-center gap-4">
-                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#dcebe6] font-['Fraunces'] text-lg font-semibold text-[#0f766e]">
+                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#dcebe6] font-['Fraunces'] text-lg font-semibold text-primary">
                                     {firstName.charAt(0).toUpperCase()}
                                 </div>
 
@@ -778,7 +778,7 @@ const IndividualDashboard = () => {
                                 onClick={() =>
                                     navigate('/dashboard/individual/profile')
                                 }
-                                className="group mt-7 inline-flex items-center gap-2 text-xs font-bold text-[#0f766e] transition hover:text-[#115e59]"
+                                className="group mt-7 inline-flex items-center gap-2 text-xs font-bold text-primary transition hover:text-primary-hover"
                             >
                                 View profile
                                 <ArrowUpRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -810,7 +810,7 @@ const IndividualDashboard = () => {
                 <footer className="mt-20 border-t border-slate-200 py-7">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-center gap-2">
-                            <Heart className="h-3.5 w-3.5 fill-[#0f766e] text-[#0f766e]" />
+                            <Heart className="h-3.5 w-3.5 fill-primary text-primary" />
 
                             <span className="text-[10px] font-semibold text-slate-400">
                                 Stand For People
@@ -838,7 +838,7 @@ const Eyebrow = ({ children, light = false, muted = false }) => (
                 ? 'text-[#8fcac1]'
                 : muted
                   ? 'text-slate-400'
-                  : 'text-[#0f766e]'
+                  : 'text-primary'
         }`}
     >
         {children}
@@ -850,7 +850,7 @@ const SectionHeader = ({ eyebrow, title, action, onClick }) => (
         <div>
             <Eyebrow>{eyebrow}</Eyebrow>
 
-            <h2 className="mt-3 font-['Fraunces'] text-[30px] font-semibold leading-tight tracking-[-0.025em] text-[#17211e]">
+            <h2 className="mt-3 font-['Fraunces'] text-[30px] font-semibold leading-tight tracking-tight text-[#17211e]">
                 {title}
             </h2>
         </div>
@@ -859,7 +859,7 @@ const SectionHeader = ({ eyebrow, title, action, onClick }) => (
             <button
                 type="button"
                 onClick={onClick}
-                className="group hidden items-center gap-2 text-xs font-bold text-slate-500 transition hover:text-[#0f766e] sm:inline-flex"
+                className="group hidden items-center gap-2 text-xs font-bold text-slate-500 transition hover:text-primary sm:inline-flex"
             >
                 {action}
 
@@ -884,13 +884,13 @@ const ImpactStat = ({ value, label }) => (
 const RequestProgress = () => (
     <div className="mt-9 max-w-xl">
         <div className="flex items-center">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0f766e] text-white">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white">
                 <Check className="h-3.5 w-3.5" />
             </div>
 
-            <div className="h-px flex-1 bg-[#0f766e]" />
+            <div className="h-px flex-1 bg-primary" />
 
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#0f766e] text-white">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white">
                 <Check className="h-3.5 w-3.5" />
             </div>
 
@@ -928,7 +928,7 @@ const SidebarActionRow = ({
         </span>
 
         <span className="min-w-0 flex-1">
-            <span className="block text-[13px] font-bold text-[#17211e] transition-colors duration-200 group-hover:text-[#0f766e]">
+            <span className="block text-[13px] font-bold text-[#17211e] transition-colors duration-200 group-hover:text-primary">
                 {title}
             </span>
 
@@ -937,13 +937,13 @@ const SidebarActionRow = ({
             </span>
         </span>
 
-        <ArrowUpRight className="h-4 w-4 shrink-0 text-slate-300 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[#0f766e]" />
+        <ArrowUpRight className="h-4 w-4 shrink-0 text-slate-300 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-primary" />
     </button>
 );
 
 const SidebarProfileDetail = ({ icon: Icon, label, value }) => (
     <div className="flex gap-3.5">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center bg-[#edf4f1] text-[#0f766e]">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center bg-[#edf4f1] text-primary">
             <Icon className="h-3.5 w-3.5" />
         </div>
 

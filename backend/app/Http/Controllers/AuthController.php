@@ -218,4 +218,74 @@ class AuthController extends Controller
             ]),
         ]);
     }
+
+    public function updateProfile(Request $request)
+    {
+        $user = $request->user();
+
+        if (!$user || $user->role !== 'individual') {
+            return response()->json([
+                'message' => 'Only individual accounts can update this profile.',
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'email' => [
+                'required',
+                'email',
+                'max:255',
+                'unique:users,email,' . $user->id,
+            ],
+
+            'phone' => [
+                'nullable',
+                'string',
+                'max:30',
+            ],
+
+            'district' => [
+                'nullable',
+                'string',
+                'max:100',
+            ],
+
+            'address' => [
+                'nullable',
+                'string',
+            ],
+        ]);
+
+        $user->update([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+        ]);
+
+        $profile = $user->individualProfile()->firstOrCreate(
+            ['user_id' => $user->id],
+            []
+        );
+
+        $profile->update([
+            'phone' => $validated['phone'] ?? null,
+            'district' => $validated['district'] ?? null,
+            'address' => $validated['address'] ?? null,
+        ]);
+
+        $user->load([
+            'individualProfile',
+            'organization',
+            'volunteer',
+        ]);
+
+        return response()->json([
+            'message' => 'Profile updated successfully.',
+            'user' => $user,
+        ]);
+    }
 }

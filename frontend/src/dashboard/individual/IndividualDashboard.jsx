@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-
 import { useNavigate } from 'react-router-dom';
 
 import {
@@ -18,7 +17,6 @@ import {
 } from 'lucide-react';
 
 import { getIndividualDashboard } from './individualDashboardApi';
-
 import StatusBadge from '@/components/dashboard/StatusBadge';
 
 const CATEGORY = {
@@ -158,6 +156,42 @@ const IndividualDashboard = () => {
     const campaignProgress = featuredCampaign
         ? Math.min(featuredCampaign.progress || 0, 100)
         : 0;
+
+    /*
+     * ------------------------------------------------------------
+     * TEMPORARY STATIC DATA
+     * ------------------------------------------------------------
+     * These are intentionally kept static for the UI phase.
+     * We will replace these values with actual API data later.
+     */
+
+    const helpRequestSummary = {
+        total: 3,
+        underReview: 1,
+        inProgress: 1,
+        completed: 1,
+    };
+
+    const recentUpdates = [
+        {
+            id: 1,
+            title: 'Your help request was reviewed',
+            description: 'Your request has moved to the next stage.',
+            date: '2 hours ago',
+        },
+        {
+            id: 2,
+            title: 'Donation received successfully',
+            description: 'Your recent contribution has been recorded.',
+            date: 'Yesterday',
+        },
+        {
+            id: 3,
+            title: 'Campaign update available',
+            description: 'A campaign you supported has made progress.',
+            date: '3 days ago',
+        },
+    ];
 
     return (
         <div className="min-h-full bg-[#f8f8f5] text-[#17211e]">
@@ -310,13 +344,11 @@ const IndividualDashboard = () => {
                     </div>
                 </section>
 
-                {/* ============================================================
-                    IMPACT
-                ============================================================ */}
+                {/* CONTRIBUTION */}
 
-                <section className="mt-16 border-b border-slate-200 pb-16">
+                <section className="mt-10 border-y border-slate-200 bg-[#f2f5f1]">
                     <div className="grid lg:grid-cols-[0.9fr_2.1fr]">
-                        <div className="lg:pr-14">
+                        <div className="px-6 py-8 sm:px-8 lg:px-9 lg:py-9">
                             <Eyebrow>Your contribution</Eyebrow>
 
                             <h2 className="mt-3 font-['Fraunces'] text-[28px] font-semibold leading-tight tracking-tight text-[#17211e]">
@@ -331,7 +363,7 @@ const IndividualDashboard = () => {
                             </p>
                         </div>
 
-                        <div className="mt-10 grid sm:grid-cols-3 lg:mt-0">
+                        <div className="grid sm:grid-cols-3 items-center">
                             <ImpactStat
                                 value={
                                     <>
@@ -365,10 +397,49 @@ const IndividualDashboard = () => {
                 <div className="mt-20 grid gap-16 xl:grid-cols-[minmax(0,1fr)_340px] xl:gap-16">
                     <main className="min-w-0">
                         {/* ====================================================
+                            HELP REQUEST SUMMARY
+                        ==================================================== */}
+
+                        <section className="border-b border-slate-200 pb-16">
+                            <SectionHeader
+                                eyebrow="Your support"
+                                title="Request overview"
+                                action="View all requests"
+                                onClick={() =>
+                                    navigate(
+                                        '/dashboard/individual/help-requests',
+                                    )
+                                }
+                            />
+
+                            <div className="mt-9 grid border-y border-slate-200 sm:grid-cols-4">
+                                <HelpRequestStat
+                                    value={helpRequestSummary.total}
+                                    label="Total requests"
+                                />
+
+                                <HelpRequestStat
+                                    value={helpRequestSummary.underReview}
+                                    label="Under review"
+                                />
+
+                                <HelpRequestStat
+                                    value={helpRequestSummary.inProgress}
+                                    label="In progress"
+                                />
+
+                                <HelpRequestStat
+                                    value={helpRequestSummary.completed}
+                                    label="Completed"
+                                />
+                            </div>
+                        </section>
+
+                        {/* ====================================================
                             CURRENT REQUEST
                         ==================================================== */}
 
-                        <section className="border-b border-slate-200 pb-20">
+                        <section className="mt-20 border-b border-slate-200 pb-20">
                             <SectionHeader
                                 eyebrow="Your support"
                                 title="Current request"
@@ -672,7 +743,7 @@ const IndividualDashboard = () => {
                         SIDEBAR
                     ======================================================== */}
 
-                    <aside className="bg-[#E1EBE7] border-t border-[#d4e2dd] p-8 pt-12">
+                    <aside className="border-t border-[#d4e2dd] bg-[#E1EBE7] p-8 pt-12">
                         {/* ACTIONS */}
 
                         <section>
@@ -785,9 +856,64 @@ const IndividualDashboard = () => {
                             </button>
                         </section>
 
+                        {/* ====================================================
+                            RECENT UPDATES / NOTIFICATIONS
+                        ==================================================== */}
+
+                        <section className="mt-12 border-t border-slate-300 pt-10">
+                            <div className="flex items-start justify-between gap-4">
+                                <div>
+                                    <Eyebrow>Stay informed</Eyebrow>
+
+                                    <h2 className="mt-3 font-['Fraunces'] text-[25px] font-semibold tracking-tight text-[#17211e]">
+                                        Recent updates
+                                    </h2>
+                                </div>
+
+                                <div className="mt-1 flex h-7 w-7 items-center justify-center rounded-full bg-[#edf4f1] text-primary">
+                                    <Sparkles className="h-3.5 w-3.5" />
+                                </div>
+                            </div>
+
+                            <div className="mt-6">
+                                {recentUpdates.map((update) => (
+                                    <div
+                                        key={update.id}
+                                        className="border-b border-slate-300 py-5 first:border-t"
+                                    >
+                                        <div className="flex gap-3">
+                                            <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+
+                                            <div className="min-w-0">
+                                                <p className="text-[12px] font-bold leading-5 text-[#33443f]">
+                                                    {update.title}
+                                                </p>
+
+                                                <p className="mt-1.5 text-[10px] leading-4 text-slate-500">
+                                                    {update.description}
+                                                </p>
+
+                                                <p className="mt-2 text-[9px] font-semibold uppercase tracking-[0.12em] text-slate-400">
+                                                    {update.date}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <button
+                                type="button"
+                                className="group mt-6 inline-flex items-center gap-2 text-xs font-bold text-primary transition hover:text-primary-hover"
+                            >
+                                View all updates
+                                <ArrowUpRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                            </button>
+                        </section>
+
                         {/* MESSAGE */}
 
-                        <section className="mt-12 border-t border-slate-200">
+                        <section className="mt-12 border-t border-slate-300 pt-10">
                             <Sparkles className="h-4 w-4 text-[#d89400]" />
 
                             <p className="mt-4 font-['Fraunces'] text-[24px] font-semibold leading-[1.18] tracking-[-0.02em] text-[#17211e]">
@@ -834,11 +960,7 @@ const IndividualDashboard = () => {
 const Eyebrow = ({ children, light = false, muted = false }) => (
     <p
         className={`text-[10px] font-bold uppercase tracking-[0.22em] ${
-            light
-                ? 'text-[#8fcac1]'
-                : muted
-                  ? 'text-slate-400'
-                  : 'text-primary'
+            light ? 'text-[#8fcac1]' : muted ? 'text-slate-400' : 'text-primary'
         }`}
     >
         {children}
@@ -870,12 +992,24 @@ const SectionHeader = ({ eyebrow, title, action, onClick }) => (
 );
 
 const ImpactStat = ({ value, label }) => (
-    <div className="border-l border-slate-200 px-0 py-5 first:border-l-0 sm:px-7 sm:first:pl-0">
+    <div className="border-l border-slate-200 px-0 py-5 sm:px-7 sm:first:pl-0 flex flex-col items-center justify-center bg-[#F8F8F5] m-4">
         <p className="font-['Fraunces'] text-[38px] font-semibold leading-none tracking-[-0.035em] text-[#17211e]">
             {value}
         </p>
 
         <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
+            {label}
+        </p>
+    </div>
+);
+
+const HelpRequestStat = ({ value, label }) => (
+    <div className="border-l border-slate-200 px-5 py-6 first:border-l-0 sm:px-6 lg:px-7">
+        <p className="font-['Fraunces'] text-[30px] font-semibold leading-none tracking-[-0.03em] text-[#17211e]">
+            {value}
+        </p>
+
+        <p className="mt-2.5 text-[9px] font-bold uppercase tracking-[0.14em] text-slate-400">
             {label}
         </p>
     </div>
@@ -903,7 +1037,9 @@ const RequestProgress = () => (
 
         <div className="mt-3 grid grid-cols-3 text-[9px] font-bold uppercase tracking-[0.12em] text-slate-400">
             <span>Submitted</span>
+
             <span className="text-center">Reviewed</span>
+
             <span className="text-right">Update</span>
         </div>
     </div>

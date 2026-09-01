@@ -28,7 +28,7 @@ const communityOptions = [
   'Indigenous Groups',
 ];
 
-const teamSizeOptions = ['1–10', '11–50', '51–200', '201–500', '500+'];
+const teamSizeOptions = ['1-10', '11-50', '51-200', '201-500', '500+'];
 
 const activityOptions = [
   'Direct Aid Distribution',

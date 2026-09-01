@@ -336,15 +336,15 @@ const IndividualProfile = () => {
                     <div className="min-w-0">
                         {/* HEADER */}
                         <div className="relative overflow-hidden border-b border-[#e3e9e6] bg-[#fcfdfc] px-6 py-6 sm:px-8">
-                            <div className="pointer-events-none absolute right-0 top-0 h-full w-40 bg-gradient-to-l from-[#f0f6f3] to-transparent opacity-70" />
+                            <div className="pointer-events-none absolute right-0 top-0 h-full w-40 bg-linear-to-l from-[#f0f6f3] to-transparent opacity-70" />
 
                             <div className="relative flex items-start gap-4">
                                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#dce8e3] bg-[#edf5f1]">
-                                    <UserRound className="h-[18px] w-[18px] text-primary" />
+                                    <UserRound className="h-4.5 w-4.5 text-primary" />
                                 </div>
 
                                 <div className="min-w-0 pt-0.5">
-                                    <h2 className="font-['Fraunces'] text-[25px] font-semibold leading-none tracking-[-0.025em] text-[#17211e]">
+                                    <h2 className="font-['Fraunces'] text-[25px] font-semibold leading-none tracking-tight text-[#17211e]">
                                         Personal information
                                     </h2>
 
@@ -388,7 +388,7 @@ const IndividualProfile = () => {
                                             </h3>
                                         </div>
 
-                                        <div className="mb-[5px] h-px flex-1 bg-[#e6ece9]" />
+                                        <div className="mb-1.25 h-px flex-1 bg-[#e6ece9]" />
                                     </div>
 
                                     <div className="space-y-5">
@@ -483,7 +483,7 @@ const IndividualProfile = () => {
                                             </h3>
                                         </div>
 
-                                        <div className="mb-[5px] h-px flex-1 bg-[#e6ece9]" />
+                                        <div className="mb-1.25 h-px flex-1 bg-[#e6ece9]" />
                                     </div>
 
                                     {/* ADDRESS PANEL */}
@@ -524,7 +524,7 @@ const IndividualProfile = () => {
                         {/* ACTION BAR */}
                         <div className="flex flex-col-reverse gap-4 border-t border-[#e1e8e4] bg-[#f6f9f7] px-6 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-8">
                             <div className="flex items-start gap-2.5">
-                                <div className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-[#9aa8a2]" />
+                                <div className="mt-1.25 h-1.5 w-1.5 shrink-0 rounded-full bg-[#9aa8a2]" />
 
                                 <p className="max-w-md text-[12px] leading-5 text-[#7c8883]">
                                     Your information is used to keep your SP
@@ -536,7 +536,7 @@ const IndividualProfile = () => {
                                 type="button"
                                 onClick={handleSave}
                                 disabled={saving}
-                                className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-[8px] bg-primary px-6 text-[13px] font-semibold text-white shadow-[0_2px_5px_rgba(18,102,94,0.15)] transition-all duration-200 hover:bg-primary-hover hover:shadow-[0_4px_12px_rgba(18,102,94,0.16)] disabled:cursor-not-allowed disabled:opacity-60"
+                                className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-primary px-6 text-[13px] font-semibold text-white shadow-[0_2px_5px_rgba(18,102,94,0.15)] transition-all duration-200 hover:bg-primary-hover hover:shadow-[0_4px_12px_rgba(18,102,94,0.16)] disabled:cursor-not-allowed disabled:opacity-60"
                             >
                                 <Save className="h-4 w-4" />
 

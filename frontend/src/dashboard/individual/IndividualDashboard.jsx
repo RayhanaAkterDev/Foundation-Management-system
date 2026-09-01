@@ -1,5 +1,7 @@
 import React from 'react';
+
 import { useNavigate } from 'react-router-dom';
+
 import {
     ArrowUpRight,
     CalendarDays,
@@ -28,23 +30,23 @@ import StatusBadge from '@/components/dashboard/StatusBadge';
 
 const CATEGORY = {
     Education: {
-        accent: '#3b82f6',
+        accent: '#0f766e',
         soft: 'bg-blue-50 text-blue-700',
     },
     'Food Assistance': {
-        accent: '#f59e0b',
+        accent: '#0f766e',
         soft: 'bg-amber-50 text-amber-700',
     },
     'Disaster Relief': {
-        accent: '#f97316',
+        accent: '#0f766e',
         soft: 'bg-orange-50 text-orange-700',
     },
     Healthcare: {
-        accent: '#10b981',
+        accent: '#0f766e',
         soft: 'bg-emerald-50 text-emerald-700',
     },
     Livelihood: {
-        accent: '#8b5cf6',
+        accent: '#0f766e',
         soft: 'bg-purple-50 text-purple-700',
     },
 };
@@ -151,8 +153,6 @@ const IndividualDashboard = () => {
 
                 <section className="relative mt-8 border-y border-slate-200">
                     <div className="grid min-h-[430px] lg:grid-cols-[1.08fr_0.92fr]">
-                        {/* Hero content */}
-
                         <div className="flex flex-col justify-center py-12 lg:pr-16 lg:py-16">
                             <div className="flex items-center gap-3">
                                 <span className="h-px w-8 bg-[#0f766e]" />
@@ -212,19 +212,14 @@ const IndividualDashboard = () => {
                         <div className="relative hidden overflow-hidden border-l border-slate-200 lg:block">
                             <div className="absolute inset-0">
                                 <div className="absolute left-[18%] top-[13%] h-52 w-52 rounded-full border border-[#0f766e]/20" />
-
                                 <div className="absolute -right-10 top-10 h-48 w-48 rounded-full bg-[#0f766e]/8" />
-
                                 <div className="absolute bottom-[-90px] left-[8%] h-72 w-72 rounded-full border-[38px] border-amber-400/10" />
-
                                 <div className="absolute bottom-[18%] right-[16%] h-24 w-24 rounded-full bg-[#0f766e]/10" />
-
                                 <div className="absolute left-[48%] top-[41%] h-20 w-20 rounded-full border border-[#0f766e]/15" />
-
-                                <div className="absolute bottom-0 left-[14%] top-0 w-px bg-slate-200/70" />
+                                <div className="absolute bottom-0 left-[14%] top-0 w-px bg-slate-200/60" />
                             </div>
 
-                            <div className="absolute left-1/2 top-[38%] flex h-40 w-40 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-[#0f766e]/10 bg-[#edf4f1]">
+                            <div className="absolute left-1/2 top-[38%] flex h-40 w-40 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#edf4f1]">
                                 <div className="flex h-28 w-28 items-center justify-center rounded-full bg-[#0f766e] shadow-[0_20px_60px_rgba(15,118,110,0.15)]">
                                     <Heart className="h-10 w-10 fill-white text-white" />
                                 </div>
@@ -251,43 +246,47 @@ const IndividualDashboard = () => {
                     IMPACT STRIP
                 ============================================================ */}
 
-                <section className="grid border-b border-slate-200 py-10 lg:grid-cols-[0.9fr_2.1fr] lg:py-11">
-                    <div className="lg:pr-14">
-                        <Eyebrow>Your contribution</Eyebrow>
+                <section className="mt-16 border-b border-slate-200 pb-16">
+                    <div className="grid lg:grid-cols-[0.9fr_2.1fr]">
+                        <div className="lg:pr-14">
+                            <Eyebrow>Your contribution</Eyebrow>
 
-                        <h2 className="mt-3 font-['Fraunces'] text-[28px] font-semibold leading-tight tracking-[-0.025em] text-[#17211e]">
-                            The ways you've
-                            <br className="hidden lg:block" /> shown up.
-                        </h2>
+                            <h2 className="mt-3 font-['Fraunces'] text-[28px] font-semibold leading-tight tracking-[-0.025em] text-[#17211e]">
+                                The ways you've
+                                <br className="hidden lg:block" />
+                                shown up.
+                            </h2>
 
-                        <p className="mt-3 max-w-xs text-xs leading-5 text-slate-400">
-                            Every contribution becomes part of a larger story.
-                        </p>
-                    </div>
+                            <p className="mt-3 max-w-xs text-xs leading-5 text-slate-400">
+                                Every contribution becomes part of a larger
+                                story.
+                            </p>
+                        </div>
 
-                    <div className="mt-9 grid grid-cols-1 sm:grid-cols-3 lg:mt-0">
-                        <ImpactStat
-                            value={
-                                <>
-                                    ৳
-                                    {mockDonationSummary.totalDonated.toLocaleString()}
-                                </>
-                            }
-                            label="Total contributed"
-                        />
+                        <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-3 lg:mt-0">
+                            <ImpactStat
+                                value={
+                                    <>
+                                        ৳
+                                        {mockDonationSummary.totalDonated.toLocaleString()}
+                                    </>
+                                }
+                                label="Total contributed"
+                            />
 
-                        <ImpactStat
-                            value={mockVolunteerSummary.totalHours}
-                            label="Hours volunteered"
-                        />
+                            <ImpactStat
+                                value={mockVolunteerSummary.totalHours}
+                                label="Hours volunteered"
+                            />
 
-                        <ImpactStat
-                            value={
-                                mockDonationSummary.donationCount +
-                                mockVolunteerSummary.activitiesCount
-                            }
-                            label="Acts of support"
-                        />
+                            <ImpactStat
+                                value={
+                                    mockDonationSummary.donationCount +
+                                    mockVolunteerSummary.activitiesCount
+                                }
+                                label="Acts of support"
+                            />
+                        </div>
                     </div>
                 </section>
 
@@ -295,13 +294,17 @@ const IndividualDashboard = () => {
                     MAIN CONTENT
                 ============================================================ */}
 
-                <div className="grid gap-14 py-12 xl:grid-cols-[minmax(0,1fr)_330px] xl:gap-16">
+                <div className="mt-20 grid gap-16 xl:grid-cols-[minmax(0,1fr)_340px] xl:gap-16">
+                    {/* ========================================================
+                        MAIN
+                    ======================================================== */}
+
                     <main className="min-w-0">
                         {/* ====================================================
                             CURRENT REQUEST
                         ==================================================== */}
 
-                        <section className="border-b border-slate-200 pb-12">
+                        <section className="border-b border-slate-200 pb-20">
                             <SectionHeader
                                 eyebrow="Your support"
                                 title="Current request"
@@ -314,11 +317,11 @@ const IndividualDashboard = () => {
                             />
 
                             {currentRequest ? (
-                                <div className="mt-7">
-                                    <div className="grid border-y border-[#d6e5df] lg:grid-cols-[minmax(0,1fr)_220px]">
+                                <div className="mt-9">
+                                    <div className="grid overflow-hidden bg-white shadow-[0_8px_30px_rgba(23,33,30,0.045)] lg:grid-cols-[minmax(0,1fr)_230px]">
                                         {/* Main request */}
 
-                                        <div className="relative py-7 lg:pr-10">
+                                        <div className="relative py-8 lg:pr-10">
                                             <span
                                                 className="absolute bottom-0 left-0 top-0 w-[3px]"
                                                 style={{
@@ -329,7 +332,7 @@ const IndividualDashboard = () => {
                                                 }}
                                             />
 
-                                            <div className="pl-6">
+                                            <div className="pl-7">
                                                 <div className="flex flex-wrap items-center gap-2.5">
                                                     <span
                                                         className={`inline-flex px-2.5 py-1 text-[10px] font-bold ${getCategory(currentRequest.category).soft}`}
@@ -367,9 +370,9 @@ const IndividualDashboard = () => {
                                             </div>
                                         </div>
 
-                                        {/* Request side */}
+                                        {/* Request status */}
 
-                                        <div className="flex flex-col justify-between border-t border-[#d6e5df] bg-[#f1f6f3] px-6 py-7 lg:border-l lg:border-t-0">
+                                        <div className="flex flex-col justify-between bg-[#e4efea] px-7 py-8">
                                             <div>
                                                 <Eyebrow muted>
                                                     Request status
@@ -383,7 +386,7 @@ const IndividualDashboard = () => {
                                                     />
                                                 </div>
 
-                                                <p className="mt-5 text-[11px] leading-5 text-slate-400">
+                                                <p className="mt-5 max-w-[180px] text-[11px] leading-5 text-slate-500">
                                                     We'll keep you updated as
                                                     your request moves forward.
                                                 </p>
@@ -405,28 +408,31 @@ const IndividualDashboard = () => {
                                     </div>
                                 </div>
                             ) : (
-                                <div className="mt-7 border-l-2 border-[#0f766e] py-2 pl-6">
-                                    <h3 className="font-['Fraunces'] text-xl font-semibold">
-                                        Nothing here yet.
-                                    </h3>
+                                <div className="mt-9 bg-white px-7 py-8 shadow-[0_8px_30px_rgba(23,33,30,0.04)]">
+                                    <div className="border-l-2 border-[#0f766e] pl-5">
+                                        <h3 className="font-['Fraunces'] text-xl font-semibold">
+                                            Nothing here yet.
+                                        </h3>
 
-                                    <p className="mt-2 max-w-lg text-xs leading-6 text-slate-400">
-                                        If you need support, submit a request
-                                        and our team will review it with care.
-                                    </p>
+                                        <p className="mt-2 max-w-lg text-xs leading-6 text-slate-400">
+                                            If you need support, submit a
+                                            request and our team will review it
+                                            with care.
+                                        </p>
 
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            navigate(
-                                                '/dashboard/individual/help-requests',
-                                            )
-                                        }
-                                        className="group mt-5 inline-flex items-center gap-2 text-xs font-bold text-[#0f766e]"
-                                    >
-                                        Submit a request
-                                        <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                                    </button>
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                navigate(
+                                                    '/dashboard/individual/help-requests',
+                                                )
+                                            }
+                                            className="group mt-5 inline-flex items-center gap-2 text-xs font-bold text-[#0f766e]"
+                                        >
+                                            Submit a request
+                                            <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                                        </button>
+                                    </div>
                                 </div>
                             )}
                         </section>
@@ -436,7 +442,7 @@ const IndividualDashboard = () => {
                         ==================================================== */}
 
                         {featuredCampaign && (
-                            <section className="border-b border-slate-200 py-12">
+                            <section className="mt-20 border-b border-slate-200 pb-20">
                                 <SectionHeader
                                     eyebrow="Discover a cause"
                                     title="Worth standing behind"
@@ -448,7 +454,7 @@ const IndividualDashboard = () => {
                                     }
                                 />
 
-                                <article className="mt-7 grid lg:grid-cols-[0.82fr_1.18fr]">
+                                <article className="mt-9 grid overflow-hidden lg:grid-cols-[0.82fr_1.18fr]">
                                     {/* Editorial visual */}
 
                                     <div className="relative min-h-[390px] overflow-hidden bg-[#e8f0ed] p-8 sm:p-10">
@@ -538,7 +544,7 @@ const IndividualDashboard = () => {
                                                         '/dashboard/individual/campaigns',
                                                     )
                                                 }
-                                                className="group mt-7 inline-flex items-center gap-3 border-b border-[#79c2b7] pb-2 text-xs font-bold text-white transition hover:text-[#79c2b7]"
+                                                className="group mt-7 inline-flex items-center gap-3 pb-2 text-xs font-bold text-white transition hover:text-[#79c2b7]"
                                             >
                                                 Support this cause
                                                 <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -553,13 +559,13 @@ const IndividualDashboard = () => {
                             ACTIVITY
                         ==================================================== */}
 
-                        <section className="pt-12">
+                        <section className="mt-20">
                             <SectionHeader
                                 eyebrow="Your journey"
                                 title="Recent activity"
                             />
 
-                            <div className="mt-7">
+                            <div className="mt-9">
                                 {mockIndividualActivity?.length ? (
                                     mockIndividualActivity
                                         .slice(0, 6)
@@ -569,7 +575,7 @@ const IndividualDashboard = () => {
                                                     activity.id ||
                                                     `activity-${index}`
                                                 }
-                                                className="group grid grid-cols-[34px_minmax(0,1fr)_auto] gap-5 border-b border-slate-200 py-5 first:border-t"
+                                                className="group grid grid-cols-[34px_minmax(0,1fr)_auto] gap-5 py-5 border-b border-primary/10"
                                             >
                                                 <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#edf4f1] text-[#0f766e]">
                                                     <Check className="h-3.5 w-3.5" />
@@ -597,7 +603,7 @@ const IndividualDashboard = () => {
                                             </div>
                                         ))
                                 ) : (
-                                    <p className="border-y border-slate-200 py-8 text-xs text-slate-400">
+                                    <p className="py-8 text-xs text-slate-400">
                                         Your SP activity will appear here.
                                     </p>
                                 )}
@@ -606,12 +612,10 @@ const IndividualDashboard = () => {
                     </main>
 
                     {/* ========================================================
-                        SIDEBAR
-                    ======================================================== */}
-
-                    <aside className="xl:border-l xl:border-slate-200 xl:pl-10">
+    SIDEBAR
+======================================================== */}
+                    <aside className="rounded-[2px] bg-[#E1EBE7] px-7 py-8 text-[#17211e] xl:px-8 xl:py-9">
                         {/* ACTIONS */}
-
                         <section>
                             <Eyebrow>Take action</Eyebrow>
 
@@ -619,12 +623,12 @@ const IndividualDashboard = () => {
                                 What can you do?
                             </h2>
 
-                            <div className="mt-6 border-t border-slate-200">
-                                <ActionRow
+                            <div className="mt-7">
+                                <SidebarActionRow
                                     icon={HeartHandshake}
                                     title="Request help"
                                     description="Tell us what support you need"
-                                    iconClass="bg-[#e3f0ec] text-[#0f766e]"
+                                    iconClass="bg-[#0f766e]/10 text-[#0f766e]"
                                     onClick={() =>
                                         navigate(
                                             '/dashboard/individual/help-requests',
@@ -632,11 +636,11 @@ const IndividualDashboard = () => {
                                     }
                                 />
 
-                                <ActionRow
+                                <SidebarActionRow
                                     icon={HandCoins}
                                     title="Give support"
                                     description="Support a person or cause"
-                                    iconClass="bg-emerald-50 text-emerald-600"
+                                    iconClass="bg-[#0f766e]/10 text-[#0f766e]"
                                     onClick={() =>
                                         navigate(
                                             '/dashboard/individual/donations',
@@ -644,11 +648,11 @@ const IndividualDashboard = () => {
                                     }
                                 />
 
-                                <ActionRow
+                                <SidebarActionRow
                                     icon={Users}
                                     title="Give your time"
                                     description="Find volunteer opportunities"
-                                    iconClass="bg-blue-50 text-blue-600"
+                                    iconClass="bg-[#0f766e]/10 text-[#0f766e]"
                                     onClick={() =>
                                         navigate(
                                             '/dashboard/individual/volunteer',
@@ -656,11 +660,11 @@ const IndividualDashboard = () => {
                                     }
                                 />
 
-                                <ActionRow
+                                <SidebarActionRow
                                     icon={Megaphone}
                                     title="Discover causes"
                                     description="See what needs support now"
-                                    iconClass="bg-amber-50 text-amber-600"
+                                    iconClass="bg-[#f59e0b]/15 text-[#b77900]"
                                     onClick={() =>
                                         navigate(
                                             '/dashboard/individual/campaigns',
@@ -671,34 +675,33 @@ const IndividualDashboard = () => {
                         </section>
 
                         {/* PROFILE */}
-
-                        <section className="mt-12 border-t border-slate-200 pt-8">
-                            <Eyebrow muted>Your profile</Eyebrow>
+                        <section className="mt-16 bg-white/55 px-5 py-6">
+                            <Eyebrow>Your profile</Eyebrow>
 
                             <div className="mt-5 flex items-center gap-4">
-                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#0f766e] font-['Fraunces'] text-lg font-semibold text-white">
+                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#cfe3dd] font-['Fraunces'] text-lg font-semibold text-[#0f766e]">
                                     {firstName.charAt(0).toUpperCase()}
                                 </div>
 
                                 <div>
-                                    <p className="text-sm font-bold text-slate-800">
+                                    <p className="text-sm font-bold text-[#17211e]">
                                         {mockIndividualUser.name}
                                     </p>
 
-                                    <p className="mt-1 text-[10px] text-slate-400">
+                                    <p className="mt-1 text-[10px] text-slate-500">
                                         Community member
                                     </p>
                                 </div>
                             </div>
 
                             <div className="mt-7 space-y-5">
-                                <ProfileDetail
+                                <SidebarProfileDetail
                                     icon={MapPin}
                                     label="Location"
                                     value={mockIndividualUser.district}
                                 />
 
-                                <ProfileDetail
+                                <SidebarProfileDetail
                                     icon={CalendarDays}
                                     label="Member since"
                                     value={formatDate(
@@ -712,7 +715,7 @@ const IndividualDashboard = () => {
                                 onClick={() =>
                                     navigate('/dashboard/individual/profile')
                                 }
-                                className="group mt-7 inline-flex items-center gap-2 text-xs font-bold text-[#0f766e]"
+                                className="group mt-7 inline-flex items-center gap-2 text-xs font-bold text-[#0f766e] transition hover:text-[#115e59]"
                             >
                                 View profile
                                 <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -720,15 +723,14 @@ const IndividualDashboard = () => {
                         </section>
 
                         {/* MESSAGE */}
-
-                        <section className="mt-12 border-t border-slate-200 pt-8">
-                            <Sparkles className="h-4 w-4 text-amber-500" />
+                        <section className="mt-16">
+                            <Sparkles className="h-4 w-4 text-[#d89400]" />
 
                             <p className="mt-4 font-['Fraunces'] text-[24px] font-semibold leading-[1.18] tracking-[-0.02em] text-[#17211e]">
                                 A little care can travel further than you think.
                             </p>
 
-                            <p className="mt-3 text-[11px] leading-6 text-slate-400">
+                            <p className="mt-3 text-[11px] leading-6 text-slate-500">
                                 A donation, an hour of your time, or simply
                                 asking for help — every action strengthens the
                                 people around us.
@@ -741,7 +743,7 @@ const IndividualDashboard = () => {
                     FOOTER
                 ============================================================ */}
 
-                <footer className="mt-2 border-t border-slate-200 py-7">
+                <footer className="mt-20 border-t border-slate-200 py-7">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-center gap-2">
                             <Heart className="h-3.5 w-3.5 fill-[#0f766e] text-[#0f766e]" />
@@ -769,7 +771,7 @@ const Eyebrow = ({ children, light = false, muted = false }) => (
     <p
         className={`text-[10px] font-bold uppercase tracking-[0.22em] ${
             light
-                ? 'text-[#79c2b7]'
+                ? 'text-[#8fcac1]'
                 : muted
                   ? 'text-slate-400'
                   : 'text-[#0f766e]'
@@ -804,7 +806,7 @@ const SectionHeader = ({ eyebrow, title, action, onClick }) => (
 );
 
 const ImpactStat = ({ value, label }) => (
-    <div className="border-b border-slate-200 py-6 sm:border-b-0 sm:border-l sm:border-t-0 sm:px-7 sm:py-2 first:sm:border-l-0 lg:px-9">
+    <div className="bg-white px-6 py-6 sm:px-7 sm:py-5">
         <p className="font-['Fraunces'] text-[38px] font-semibold leading-none tracking-[-0.035em] text-[#17211e]">
             {value}
         </p>
@@ -837,43 +839,47 @@ const RequestProgress = () => (
 
         <div className="mt-3 grid grid-cols-3 text-[9px] font-bold uppercase tracking-[0.12em] text-slate-400">
             <span>Submitted</span>
-
             <span className="text-center">Reviewed</span>
-
             <span className="text-right">Update</span>
         </div>
     </div>
 );
 
-const ActionRow = ({ icon: Icon, title, description, iconClass, onClick }) => (
+const SidebarActionRow = ({
+    icon: Icon,
+    title,
+    description,
+    iconClass,
+    onClick,
+}) => (
     <button
         type="button"
         onClick={onClick}
-        className="group flex w-full items-center gap-4 border-b border-slate-200 py-5 text-left transition"
+        className="group flex w-full items-center gap-4 py-5 text-left"
     >
         <span
-            className={`flex h-10 w-10 shrink-0 items-center justify-center ${iconClass}`}
+            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-[2px] ${iconClass}`}
         >
             <Icon className="h-4 w-4" />
         </span>
 
         <span className="min-w-0 flex-1">
-            <span className="block text-[13px] font-bold text-slate-700 transition-colors group-hover:text-[#0f766e]">
+            <span className="block text-[13px] font-bold text-[#17211e] transition-colors group-hover:text-[#0f766e]">
                 {title}
             </span>
 
-            <span className="mt-1 block text-[10px] leading-4 text-slate-400">
+            <span className="mt-1 block text-[10px] leading-4 text-slate-500">
                 {description}
             </span>
         </span>
 
-        <ArrowUpRight className="h-4 w-4 shrink-0 text-slate-300 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[#0f766e]" />
+        <ArrowUpRight className="h-4 w-4 shrink-0 text-slate-400 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[#0f766e]" />
     </button>
 );
 
-const ProfileDetail = ({ icon: Icon, label, value }) => (
+const SidebarProfileDetail = ({ icon: Icon, label, value }) => (
     <div className="flex gap-3.5">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center bg-[#edf4f1] text-[#0f766e]">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center bg-[#0f766e]/10 text-[#0f766e]">
             <Icon className="h-3.5 w-3.5" />
         </div>
 
@@ -882,7 +888,7 @@ const ProfileDetail = ({ icon: Icon, label, value }) => (
                 {label}
             </p>
 
-            <p className="mt-1.5 text-xs font-semibold text-slate-700">
+            <p className="mt-1.5 text-xs font-semibold text-[#33443f]">
                 {value}
             </p>
         </div>

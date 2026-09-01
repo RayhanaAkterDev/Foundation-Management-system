@@ -223,60 +223,33 @@ class AuthController extends Controller
     {
         $user = $request->user();
 
-        if (!$user || $user->role !== 'individual') {
-            return response()->json([
-                'message' => 'Only individual accounts can update this profile.',
-            ], 403);
-        }
-
         $validated = $request->validate([
-            'name' => [
-                'required',
-                'string',
-                'max:255',
-            ],
-
-            'email' => [
-                'required',
-                'email',
-                'max:255',
-                'unique:users,email,' . $user->id,
-            ],
-
-            'phone' => [
-                'nullable',
-                'string',
-                'max:30',
-            ],
-
-            'district' => [
-                'nullable',
-                'string',
-                'max:100',
-            ],
-
-            'address' => [
-                'nullable',
-                'string',
-            ],
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email,' . $user->id,
+            'phone' => 'nullable|string|max:20',
+            'district' => 'nullable|string|max:255',
+            'address' => 'nullable|string',
+            'date_of_birth' => 'nullable|date',
         ]);
 
+        // Update user account information
         $user->update([
             'name' => $validated['name'],
             'email' => $validated['email'],
         ]);
 
-        $profile = $user->individualProfile()->firstOrCreate(
+        // Update individual profile information
+        $user->individualProfile()->updateOrCreate(
             ['user_id' => $user->id],
-            []
+            [
+                'phone' => $validated['phone'] ?? null,
+                'district' => $validated['district'] ?? null,
+                'address' => $validated['address'] ?? null,
+                'date_of_birth' => $validated['date_of_birth'] ?? null,
+            ]
         );
 
-        $profile->update([
-            'phone' => $validated['phone'] ?? null,
-            'district' => $validated['district'] ?? null,
-            'address' => $validated['address'] ?? null,
-        ]);
-
+        // Reload relationships so the frontend receives fresh data
         $user->load([
             'individualProfile',
             'organization',

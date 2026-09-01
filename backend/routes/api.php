@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\IndividualDashboardController;
 use App\Http\Controllers\HelpRequestController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\VolunteerController;
@@ -9,24 +10,53 @@ use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\DonationController;
 use Illuminate\Support\Facades\Route;
 
+// =============================================================
+// PUBLIC
+// =============================================================
+
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+
 Route::get('/campaigns', [CampaignController::class, 'index']);
 Route::get('/campaigns/{id}', [CampaignController::class, 'show']);
+
 Route::post('/donations', [DonationController::class, 'store']);
 
 
+// =============================================================
+// AUTHENTICATED USERS
+// =============================================================
+
 Route::middleware('auth:sanctum')->group(function () {
+
+    // ---------------------------------------------------------
+    // Authentication
+    // ---------------------------------------------------------
 
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
 
+
+    // ---------------------------------------------------------
+    // Individual Dashboard
+    // ---------------------------------------------------------
+
+    Route::get(
+        '/individual/dashboard',
+        [IndividualDashboardController::class, 'index']
+    );
+
+
+    // ---------------------------------------------------------
     // Help Requests - Individual
+    // ---------------------------------------------------------
+
     Route::get('/help-requests', [HelpRequestController::class, 'myRequests']);
     Route::post('/help-requests', [HelpRequestController::class, 'store']);
     Route::get('/help-requests/{id}', [HelpRequestController::class, 'show']);
     Route::patch('/help-requests/{id}', [HelpRequestController::class, 'update']);
     Route::delete('/help-requests/{id}', [HelpRequestController::class, 'destroy']);
+
 
     // ---------------------------------------------------------
     // Campaigns - Organization
@@ -34,11 +64,13 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/campaigns', [CampaignController::class, 'store']);
 
+
     // ---------------------------------------------------------
     // Volunteer - Individual
     // ---------------------------------------------------------
 
     Route::post('/volunteer', [VolunteerController::class, 'store']);
+
     Route::get('/volunteer', [VolunteerController::class, 'show']);
 
     Route::get(
@@ -66,6 +98,7 @@ Route::middleware('auth:sanctum')->group(function () {
         [VolunteerController::class, 'completeAssignment']
     );
 
+
     // ---------------------------------------------------------
     // Campaign Volunteer Assignments - Individual
     // ---------------------------------------------------------
@@ -89,6 +122,7 @@ Route::middleware('auth:sanctum')->group(function () {
         '/volunteer/campaign-assignments/{id}/complete',
         [VolunteerController::class, 'completeCampaignAssignment']
     );
+
 
     // ---------------------------------------------------------
     // Organization
@@ -125,104 +159,156 @@ Route::middleware('auth:sanctum')->group(function () {
 // ADMIN
 // =============================================================
 
-Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
+Route::middleware('auth:sanctum')
+    ->prefix('admin')
+    ->group(function () {
 
-    Route::get('/dashboard', [AdminController::class, 'dashboard']);
+        Route::get('/dashboard', [AdminController::class, 'dashboard']);
 
-    // ---------------------------------------------------------
-    // Users
-    // ---------------------------------------------------------
 
-    Route::get('/users', [AdminController::class, 'users']);
-    Route::get('/users/{id}', [AdminController::class, 'showUser']);
-    Route::post('/users', [AdminController::class, 'storeUser']);
-    Route::put('/users/{id}', [AdminController::class, 'updateUser']);
-    Route::delete('/users/{id}', [AdminController::class, 'destroyUser']);
+        // ---------------------------------------------------------
+        // Users
+        // ---------------------------------------------------------
 
-    // ---------------------------------------------------------
-    // Organizations
-    // ---------------------------------------------------------
+        Route::get('/users', [AdminController::class, 'users']);
 
-    Route::get('/organizations', [AdminController::class, 'organizations']);
-    Route::post('/organizations', [AdminController::class, 'storeOrganization']);
-    Route::get('/organizations/{id}', [AdminController::class, 'showOrganization']);
+        Route::get(
+            '/users/{id}',
+            [AdminController::class, 'showUser']
+        );
 
-    Route::put(
-        '/organizations/{id}',
-        [AdminController::class, 'updateOrganization']
-    );
+        Route::post(
+            '/users',
+            [AdminController::class, 'storeUser']
+        );
 
-    Route::patch(
-        '/organizations/{id}/verification',
-        [AdminController::class, 'updateOrganizationVerification']
-    );
+        Route::put(
+            '/users/{id}',
+            [AdminController::class, 'updateUser']
+        );
 
-    Route::delete(
-        '/organizations/{id}',
-        [AdminController::class, 'destroyOrganization']
-    );
+        Route::delete(
+            '/users/{id}',
+            [AdminController::class, 'destroyUser']
+        );
 
-    // ---------------------------------------------------------
-    // Help Requests
-    // ---------------------------------------------------------
 
-    Route::get('/help-requests', [AdminController::class, 'helpRequests']);
+        // ---------------------------------------------------------
+        // Organizations
+        // ---------------------------------------------------------
 
-    Route::patch(
-        '/help-requests/{id}/verification',
-        [AdminController::class, 'updateHelpRequestVerification']
-    );
+        Route::get(
+            '/organizations',
+            [AdminController::class, 'organizations']
+        );
 
-    Route::patch(
-        '/help-requests/{id}/urgency',
-        [AdminController::class, 'updateHelpRequestUrgency']
-    );
+        Route::post(
+            '/organizations',
+            [AdminController::class, 'storeOrganization']
+        );
 
-    Route::patch(
-        '/help-requests/{id}/assignment',
-        [AdminController::class, 'assignHelpRequest']
-    );
+        Route::get(
+            '/organizations/{id}',
+            [AdminController::class, 'showOrganization']
+        );
 
-    // ---------------------------------------------------------
-    // Volunteers - Admin
-    // ---------------------------------------------------------
+        Route::put(
+            '/organizations/{id}',
+            [AdminController::class, 'updateOrganization']
+        );
 
-    Route::get('/volunteers', [VolunteerController::class, 'index']);
+        Route::patch(
+            '/organizations/{id}/verification',
+            [AdminController::class, 'updateOrganizationVerification']
+        );
 
-    Route::get(
-        '/volunteers/{id}',
-        [VolunteerController::class, 'adminShow']
-    );
+        Route::delete(
+            '/organizations/{id}',
+            [AdminController::class, 'destroyOrganization']
+        );
 
-    Route::patch(
-        '/volunteers/{id}/status',
-        [VolunteerController::class, 'updateStatus']
-    );
 
-    // ---------------------------------------------------------
-    // Campaigns Modules
-    // ---------------------------------------------------------
+        // ---------------------------------------------------------
+        // Help Requests
+        // ---------------------------------------------------------
 
-    Route::get('/campaigns', [AdminController::class, 'campaigns']);
+        Route::get(
+            '/help-requests',
+            [AdminController::class, 'helpRequests']
+        );
 
-    Route::patch(
-        '/campaigns/{id}/verification',
-        [AdminController::class, 'updateCampaignVerification']
-    );
+        Route::patch(
+            '/help-requests/{id}/verification',
+            [AdminController::class, 'updateHelpRequestVerification']
+        );
 
-    Route::patch(
-        '/campaigns/{id}/status',
-        [AdminController::class, 'updateCampaignStatus']
-    );
+        Route::patch(
+            '/help-requests/{id}/urgency',
+            [AdminController::class, 'updateHelpRequestUrgency']
+        );
 
-    Route::patch(
-        '/campaigns/{id}/assignment',
-        [AdminController::class, 'assignCampaignVolunteer']
-    );
+        Route::patch(
+            '/help-requests/{id}/assignment',
+            [AdminController::class, 'assignHelpRequest']
+        );
 
-    // ---------------------------------------------------------
-    // Other Admin Modules
-    // ---------------------------------------------------------
-    Route::get('/donations', [AdminController::class, 'donations']);
-    Route::get('/reports', [AdminController::class, 'reports']);
-});
+
+        // ---------------------------------------------------------
+        // Volunteers - Admin
+        // ---------------------------------------------------------
+
+        Route::get(
+            '/volunteers',
+            [VolunteerController::class, 'index']
+        );
+
+        Route::get(
+            '/volunteers/{id}',
+            [VolunteerController::class, 'adminShow']
+        );
+
+        Route::patch(
+            '/volunteers/{id}/status',
+            [VolunteerController::class, 'updateStatus']
+        );
+
+
+        // ---------------------------------------------------------
+        // Campaigns Modules
+        // ---------------------------------------------------------
+
+        Route::get(
+            '/campaigns',
+            [AdminController::class, 'campaigns']
+        );
+
+        Route::patch(
+            '/campaigns/{id}/verification',
+            [AdminController::class, 'updateCampaignVerification']
+        );
+
+        Route::patch(
+            '/campaigns/{id}/status',
+            [AdminController::class, 'updateCampaignStatus']
+        );
+
+        Route::patch(
+            '/campaigns/{id}/assignment',
+            [AdminController::class, 'assignCampaignVolunteer']
+        );
+
+
+        // ---------------------------------------------------------
+        // Other Admin Modules
+        // ---------------------------------------------------------
+
+        Route::get(
+            '/donations',
+            [AdminController::class, 'donations']
+        );
+
+        Route::get(
+            '/reports',
+            [AdminController::class, 'reports']
+        );
+    });

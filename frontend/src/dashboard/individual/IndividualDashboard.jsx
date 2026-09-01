@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { useNavigate } from 'react-router-dom';
 
@@ -17,14 +17,7 @@ import {
     Users,
 } from 'lucide-react';
 
-import {
-    mockIndividualUser,
-    mockDonationSummary,
-    mockVolunteerSummary,
-    mockActiveCampaigns,
-    mockIndividualActivity,
-    mockHelpRequests,
-} from '@/data/mockIndividual';
+import { getIndividualDashboard } from './individualDashboardApi';
 
 import StatusBadge from '@/components/dashboard/StatusBadge';
 
@@ -88,9 +81,79 @@ const getDaysLeft = (deadline) => {
 const IndividualDashboard = () => {
     const navigate = useNavigate();
 
-    const firstName = mockIndividualUser.name.split(' ')[0];
-    const currentRequest = mockHelpRequests?.[0];
-    const featuredCampaign = mockActiveCampaigns?.[0];
+    const [dashboard, setDashboard] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+
+    useEffect(() => {
+        const loadDashboard = async () => {
+            try {
+                setLoading(true);
+                setError('');
+
+                const data = await getIndividualDashboard();
+
+                setDashboard(data);
+            } catch (err) {
+                console.error('Individual dashboard error:', err);
+
+                setError(err.message || 'Unable to load your dashboard.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadDashboard();
+    }, []);
+
+    if (loading) {
+        return (
+            <div className="min-h-full bg-[#f8f8f5] text-[#17211e]">
+                <div className="mx-auto max-w-[1440px] px-5 py-10 sm:px-8 lg:px-10">
+                    <p className="text-sm text-slate-400">
+                        Loading your dashboard...
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="min-h-full bg-[#f8f8f5] text-[#17211e]">
+                <div className="mx-auto max-w-[1440px] px-5 py-10 sm:px-8 lg:px-10">
+                    <p className="text-sm font-semibold text-red-600">
+                        {error}
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
+    const individualUser = dashboard?.user || {
+        name: 'User',
+        district: null,
+        memberSince: null,
+    };
+
+    const donationSummary = dashboard?.donationSummary || {
+        totalDonated: 0,
+        donationCount: 0,
+    };
+
+    const volunteerSummary = dashboard?.volunteerSummary || {
+        totalHours: 0,
+        activitiesCount: 0,
+    };
+
+    const helpRequests = dashboard?.helpRequests || [];
+    const activeCampaigns = dashboard?.activeCampaigns || [];
+    const individualActivity = dashboard?.activity || [];
+
+    const firstName = individualUser.name?.split(' ')[0] || 'User';
+
+    const currentRequest = helpRequests[0] || null;
+    const featuredCampaign = activeCampaigns[0] || null;
 
     const campaignProgress = featuredCampaign
         ? Math.min(featuredCampaign.progress || 0, 100)
@@ -133,7 +196,7 @@ const IndividualDashboard = () => {
                     >
                         <div className="hidden text-right sm:block">
                             <p className="text-xs font-semibold text-slate-700">
-                                {mockIndividualUser.name}
+                                {individualUser.name}
                             </p>
 
                             <p className="mt-0.5 text-[10px] text-slate-400">
@@ -273,21 +336,21 @@ const IndividualDashboard = () => {
                                 value={
                                     <>
                                         ৳
-                                        {mockDonationSummary.totalDonated.toLocaleString()}
+                                        {donationSummary.totalDonated.toLocaleString()}
                                     </>
                                 }
                                 label="Total contributed"
                             />
 
                             <ImpactStat
-                                value={mockVolunteerSummary.totalHours}
+                                value={volunteerSummary.totalHours}
                                 label="Hours volunteered"
                             />
 
                             <ImpactStat
                                 value={
-                                    mockDonationSummary.donationCount +
-                                    mockVolunteerSummary.activitiesCount
+                                    donationSummary.donationCount +
+                                    volunteerSummary.activitiesCount
                                 }
                                 label="Acts of support"
                             />
@@ -327,7 +390,11 @@ const IndividualDashboard = () => {
                                         <div className="border-y border-r-0 border-slate-200 bg-transparent py-9 pl-7 pr-0 lg:border-r lg:py-10 lg:pr-10">
                                             <div className="flex flex-wrap items-center gap-2.5">
                                                 <span
-                                                    className={`inline-flex px-2.5 py-1 text-[10px] font-bold ${getCategory(currentRequest.category).soft}`}
+                                                    className={`inline-flex px-2.5 py-1 text-[10px] font-bold ${
+                                                        getCategory(
+                                                            currentRequest.category,
+                                                        ).soft
+                                                    }`}
                                                 >
                                                     {currentRequest.category}
                                                 </span>
@@ -452,7 +519,11 @@ const IndividualDashboard = () => {
 
                                         <div className="relative flex h-full flex-col justify-between">
                                             <span
-                                                className={`w-fit px-3 py-1.5 text-[10px] font-bold ${getCategory(featuredCampaign.category).soft}`}
+                                                className={`w-fit px-3 py-1.5 text-[10px] font-bold ${
+                                                    getCategory(
+                                                        featuredCampaign.category,
+                                                    ).soft
+                                                }`}
                                             >
                                                 {featuredCampaign.category}
                                             </span>
@@ -552,8 +623,8 @@ const IndividualDashboard = () => {
                             />
 
                             <div className="mt-9">
-                                {mockIndividualActivity?.length ? (
-                                    mockIndividualActivity
+                                {individualActivity?.length ? (
+                                    individualActivity
                                         .slice(0, 6)
                                         .map((activity, index) => (
                                             <div
@@ -674,7 +745,7 @@ const IndividualDashboard = () => {
 
                                 <div>
                                     <p className="text-sm font-bold text-[#17211e]">
-                                        {mockIndividualUser.name}
+                                        {individualUser.name}
                                     </p>
 
                                     <p className="mt-1 text-[10px] text-slate-400">
@@ -687,14 +758,17 @@ const IndividualDashboard = () => {
                                 <SidebarProfileDetail
                                     icon={MapPin}
                                     label="Location"
-                                    value={mockIndividualUser.district}
+                                    value={
+                                        individualUser.district ||
+                                        'Not provided'
+                                    }
                                 />
 
                                 <SidebarProfileDetail
                                     icon={CalendarDays}
                                     label="Member since"
                                     value={formatDate(
-                                        mockIndividualUser.memberSince,
+                                        individualUser.memberSince,
                                     )}
                                 />
                             </div>

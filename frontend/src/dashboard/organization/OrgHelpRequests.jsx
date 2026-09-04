@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
     Activity,
     ArrowRight,
@@ -23,143 +23,369 @@ import {
 } from 'lucide-react';
 
 /* =========================================================
-   DATA
+   API / DATA NORMALIZATION
 ========================================================= */
 
-const REQUESTS = [
-    {
-        id: 1,
-        title: 'Medical treatment support for rani',
-        description:
-            'Rahim needs financial assistance for urgent medical treatment.',
-        category: 'Medical',
-        district: 'Dhaka',
-        peopleAffected: 1,
-        amountNeeded: 25000,
-        urgency: 'High',
-        status: 'pending',
-        submitted: 'Sep 2, 2026',
-        submittedTime: '10:42 AM',
-        assignmentAge: '2 hours ago',
-        individual: 'Rahim udine',
-        location: 'Mirpur, Dhaka',
+const API_ROOT = (
+    import.meta.env.VITE_API_URL ||
+    import.meta.env.VITE_API_BASE_URL ||
+    'http://localhost:8000/api'
+).replace(/\/$/, '');
+
+const API_BASE_URL = API_ROOT.endsWith('/api') ? API_ROOT : `${API_ROOT}/api`;
+
+const getAuthToken = () =>
+    localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
+
+const apiRequest = async (path, options = {}) => {
+    const token = getAuthToken();
+
+    const response = await fetch(`${API_BASE_URL}${path}`, {
+        ...options,
+        headers: {
+            Accept: 'application/json',
+            ...(options.body
+                ? {
+                      'Content-Type': 'application/json',
+                  }
+                : {}),
+            ...(token
+                ? {
+                      Authorization: `Bearer ${token}`,
+                  }
+                : {}),
+            ...(options.headers || {}),
+        },
+    });
+
+    let data = null;
+
+    try {
+        data = await response.json();
+    } catch {
+        data = null;
+    }
+
+    if (!response.ok) {
+        throw new Error(
+            data?.message ||
+                data?.error ||
+                `Request failed with status ${response.status}.`,
+        );
+    }
+
+    return data;
+};
+
+/* =========================================================
+   DATA FORMATTERS
+========================================================= */
+
+const formatDate = (value) => {
+    if (!value) {
+        return 'Not available';
+    }
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+        return String(value);
+    }
+
+    return date.toLocaleDateString('en-BD', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+    });
+};
+
+const formatTime = (value) => {
+    if (!value) {
+        return '';
+    }
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+        return '';
+    }
+
+    return date.toLocaleTimeString('en-BD', {
+        hour: 'numeric',
+        minute: '2-digit',
+    });
+};
+
+const formatAge = (value) => {
+    if (!value) {
+        return 'Not available';
+    }
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+        return 'Not available';
+    }
+
+    const diffMs = Math.max(0, Date.now() - date.getTime());
+    const minutes = Math.floor(diffMs / 60000);
+
+    if (minutes < 1) {
+        return 'just now';
+    }
+
+    if (minutes < 60) {
+        return `${minutes} minute${minutes === 1 ? '' : 's'} ago`;
+    }
+
+    const hours = Math.floor(minutes / 60);
+
+    if (hours < 24) {
+        return `${hours} hour${hours === 1 ? '' : 's'} ago`;
+    }
+
+    const days = Math.floor(hours / 24);
+
+    return `${days} day${days === 1 ? '' : 's'} ago`;
+};
+
+const formatUrgency = (urgency) => {
+    const value = String(urgency || '').toLowerCase();
+
+    if (value === 'critical') {
+        return 'Critical';
+    }
+
+    if (value === 'high') {
+        return 'High';
+    }
+
+    if (value === 'normal' || value === 'medium') {
+        return 'Medium';
+    }
+
+    if (value === 'low') {
+        return 'Low';
+    }
+
+    return 'Normal';
+};
+
+const formatCurrency = (amount) => {
+    if (amount === null || amount === undefined || amount === '') {
+        return 'Not provided';
+    }
+
+    const numericAmount = Number(amount);
+
+    if (Number.isNaN(numericAmount)) {
+        return String(amount);
+    }
+
+    return `৳${numericAmount.toLocaleString('en-BD')}`;
+};
+
+/* =========================================================
+   ASSIGNMENT STATUS
+========================================================= */
+
+const mapAssignmentStatus = (status) => {
+    switch (String(status || '').toLowerCase()) {
+        case 'pending':
+            return 'pending';
+
+        case 'accepted':
+            return 'assigned';
+
+        case 'in_progress':
+        case 'in-progress':
+            return 'active';
+
+        case 'completed':
+            return 'completed';
+
+        case 'rejected':
+            return 'rejected';
+
+        /*
+         * Keep support for the legacy volunteer-style
+         * assignment status if it ever appears here.
+         */
+        case 'assigned':
+            return 'assigned';
+
+        default:
+            return 'pending';
+    }
+};
+
+/* =========================================================
+   BACKEND ASSIGNMENT -> UI REQUEST
+========================================================= */
+
+const normalizeAssignment = (assignment) => {
+    /*
+     * Laravel serializes the HelpRequest relationship as
+     * "help_request" because the relationship method is
+     * called helpRequest().
+     *
+     * Support both names to make this component resilient.
+     */
+    const helpRequest =
+        assignment?.help_request || assignment?.helpRequest || {};
+
+    const requester =
+        helpRequest?.user ||
+        helpRequest?.requester ||
+        assignment?.requester ||
+        null;
+
+    const createdAt = helpRequest?.created_at || helpRequest?.createdAt;
+
+    const assignedAt = assignment?.assigned_at || assignment?.assignedAt;
+
+    const status = mapAssignmentStatus(assignment?.status);
+
+    /*
+     * OrganizationController currently loads:
+     *
+     * 'helpRequest'
+     *
+     * but does NOT currently load:
+     *
+     * 'helpRequest.user'
+     *
+     * Therefore, for now we use user_id as a truthful
+     * fallback instead of showing fake requester data.
+     */
+    const requesterName =
+        requester?.name ||
+        (helpRequest?.user_id
+            ? `Requester #${helpRequest.user_id}`
+            : 'Requester unavailable');
+
+    const location =
+        helpRequest?.address || helpRequest?.district || 'Location unavailable';
+
+    return {
+        /*
+         * Assignment ID is the ID that must be sent to
+         * /organization/assignments/{id}/accept|reject
+         */
+        id: assignment?.id,
+        assignmentId: assignment?.id,
+
+        /*
+         * Actual Help Request ID
+         */
+        helpRequestId: helpRequest?.id || assignment?.help_request_id,
+
+        /*
+         * Help Request data
+         */
+        title: helpRequest?.title || 'No title provided',
+
+        description: helpRequest?.description || 'No description provided.',
+
+        category: helpRequest?.category || 'Not specified',
+
+        district: helpRequest?.district || 'Not specified',
+
+        /*
+         * These fields are not currently present in the
+         * HelpRequest model, so they remain null instead
+         * of using mock values.
+         */
+        peopleAffected:
+            helpRequest?.people_affected ?? helpRequest?.peopleAffected ?? null,
+
+        amountNeeded:
+            helpRequest?.amount_needed ?? helpRequest?.amountNeeded ?? null,
+
+        urgency: formatUrgency(helpRequest?.urgency),
+
+        /*
+         * Assignment status is mapped to the original UI's
+         * status names.
+         */
+        status,
+
+        /*
+         * Dates
+         */
+        submitted: formatDate(createdAt),
+
+        submittedTime: formatTime(createdAt),
+
+        assignmentAge: formatAge(assignedAt),
+
+        /*
+         * Requester
+         */
+        individual: requesterName,
+
+        requesterId: helpRequest?.user_id || requester?.id || null,
+
+        /*
+         * Location
+         */
+        location,
+
+        address: helpRequest?.address || null,
+
+        /*
+         * Assignment information
+         */
         assignmentNote:
-            'Please review the case and confirm whether your organization can provide the required medical support.',
-        supportType: 'Medical treatment',
-        progress: null,
-        lastUpdate: null,
-    },
-    {
-        id: 2,
-        title: 'Education support for Ayesha',
-        description:
-            'Support is needed to continue Ayesha’s education and school expenses.',
-        category: 'Education',
-        district: 'Chattogram',
-        peopleAffected: 1,
-        amountNeeded: 18000,
-        urgency: 'Medium',
-        status: 'assigned',
-        submitted: 'Sep 1, 2026',
-        submittedTime: '3:15 PM',
-        assignmentAge: '1 day ago',
-        individual: 'Ayesha Rahman',
-        location: 'Pahartali, Chattogram',
-        assignmentNote:
-            'The organization has accepted responsibility for supporting Ayesha’s education expenses.',
-        supportType: 'Education expenses',
-        progress: 15,
-        lastUpdate: 'Accepted assignment yesterday',
-    },
-    {
-        id: 3,
-        title: 'Emergency food assistance for a family',
-        description:
-            'A family affected by recent flooding needs immediate food assistance.',
-        category: 'Food',
-        district: 'Sylhet',
-        peopleAffected: 5,
-        amountNeeded: 12000,
-        urgency: 'High',
-        status: 'active',
-        submitted: 'Aug 30, 2026',
-        submittedTime: '11:20 AM',
-        assignmentAge: '4 days ago',
-        individual: 'Jamal Ahmed',
-        location: 'Companiganj, Sylhet',
-        assignmentNote:
-            'Immediate food support was requested following the recent flooding.',
-        supportType: 'Emergency food',
-        progress: 62,
-        lastUpdate: 'Food package delivered · Sep 2',
-    },
-    {
-        id: 4,
-        title: 'Housing support after fire incident',
-        description:
-            'Temporary housing and essential household support are needed.',
-        category: 'Housing',
-        district: 'Narayanganj',
-        peopleAffected: 4,
-        amountNeeded: 40000,
-        urgency: 'High',
-        status: 'completed',
-        submitted: 'Aug 24, 2026',
-        submittedTime: '9:05 AM',
-        assignmentAge: '10 days ago',
-        individual: 'Hasan Ali',
-        location: 'Fatullah, Narayanganj',
-        assignmentNote:
-            'Temporary housing and essential household items were required after the incident.',
-        supportType: 'Housing support',
-        progress: 100,
-        lastUpdate: 'Assistance completed · Aug 31',
-    },
-    {
-        id: 5,
-        title: 'Mobility support for elderly person',
-        description:
-            'Assistance is needed to arrange mobility equipment and related care.',
-        category: 'Disability Support',
-        district: 'Gazipur',
-        peopleAffected: 1,
-        amountNeeded: 15000,
-        urgency: 'Medium',
-        status: 'rejected',
-        submitted: 'Aug 22, 2026',
-        submittedTime: '2:40 PM',
-        assignmentAge: '12 days ago',
-        individual: 'Abdul Karim',
-        location: 'Tongi, Gazipur',
-        assignmentNote:
-            'The organization declined the assignment because the required support falls outside its current capacity.',
-        supportType: 'Mobility equipment',
-        progress: null,
-        lastUpdate: 'Assignment declined · Aug 23',
-    },
-    {
-        id: 6,
-        title: 'Emergency shelter assistance',
-        description:
-            'The assigned organization requested withdrawal from this case.',
-        category: 'Emergency',
-        district: 'Kurigram',
-        peopleAffected: 3,
-        amountNeeded: 22000,
-        urgency: 'High',
-        status: 'withdrawal',
-        submitted: 'Aug 20, 2026',
-        submittedTime: '8:50 AM',
-        assignmentAge: '14 days ago',
-        individual: 'Mina Begum',
-        location: 'Ulipur, Kurigram',
-        assignmentNote:
-            'The organization requested withdrawal because it can no longer provide the required assistance.',
-        supportType: 'Emergency shelter',
-        progress: 35,
-        lastUpdate: 'Withdrawal requested · Sep 2',
-    },
-];
+            assignment?.assignment_note ||
+            assignment?.assignmentNote ||
+            'No assignment note was provided.',
+
+        /*
+         * The current backend does not have a dedicated
+         * support_type field, so category is the truthful
+         * fallback.
+         */
+        supportType:
+            helpRequest?.support_type ||
+            helpRequest?.supportType ||
+            helpRequest?.category ||
+            'Not specified',
+
+        /*
+         * There is currently no progress field in the
+         * HelpRequest model, so don't invent progress.
+         */
+        progress: helpRequest?.progress ?? assignment?.progress ?? null,
+
+        lastUpdate: assignment?.updated_at
+            ? `Assignment updated · ${formatDate(assignment.updated_at)}`
+            : null,
+
+        /*
+         * Keep the original backend objects available
+         * for future actions/debugging.
+         */
+        rawAssignment: assignment,
+        rawHelpRequest: helpRequest,
+    };
+};
+
+/* =========================================================
+   API ACTIONS
+========================================================= */
+
+const fetchAssignments = () => apiRequest('/organization/assignments');
+
+const acceptAssignment = (id) =>
+    apiRequest(`/organization/assignments/${id}/accept`, {
+        method: 'PATCH',
+    });
+
+const rejectAssignment = (id) =>
+    apiRequest(`/organization/assignments/${id}/reject`, {
+        method: 'PATCH',
+    });
 
 /* =========================================================
    CONFIG
@@ -171,26 +397,31 @@ const STATUS_CONFIG = {
         short: 'Needs response',
         icon: Clock3,
     },
+
     assigned: {
         label: 'Assigned',
         short: 'Assigned',
         icon: CheckCircle2,
     },
+
     active: {
         label: 'In progress',
         short: 'In progress',
         icon: Activity,
     },
+
     completed: {
         label: 'Completed',
         short: 'Completed',
         icon: CheckCircle2,
     },
+
     rejected: {
         label: 'Declined',
         short: 'Declined',
         icon: XCircle,
     },
+
     withdrawal: {
         label: 'Withdrawal requested',
         short: 'Withdrawal',
@@ -199,13 +430,40 @@ const STATUS_CONFIG = {
 };
 
 const FILTERS = [
-    { key: 'all', label: 'All cases' },
-    { key: 'pending', label: 'Needs response' },
-    { key: 'assigned', label: 'Assigned' },
-    { key: 'active', label: 'In progress' },
-    { key: 'completed', label: 'Completed' },
-    { key: 'withdrawal', label: 'Withdrawal' },
-    { key: 'rejected', label: 'Declined' },
+    {
+        key: 'all',
+        label: 'All cases',
+    },
+
+    {
+        key: 'pending',
+        label: 'Needs response',
+    },
+
+    {
+        key: 'assigned',
+        label: 'Assigned',
+    },
+
+    {
+        key: 'active',
+        label: 'In progress',
+    },
+
+    {
+        key: 'completed',
+        label: 'Completed',
+    },
+
+    {
+        key: 'withdrawal',
+        label: 'Withdrawal',
+    },
+
+    {
+        key: 'rejected',
+        label: 'Declined',
+    },
 ];
 
 /* =========================================================
@@ -214,27 +472,103 @@ const FILTERS = [
 
 const OrgHelpRequests = () => {
     const [activeFilter, setActiveFilter] = useState('all');
+
     const [search, setSearch] = useState('');
+
     const [selectedRequest, setSelectedRequest] = useState(null);
+
+    const [assignments, setAssignments] = useState([]);
+
+    const [loading, setLoading] = useState(true);
+
+    const [error, setError] = useState('');
+
+    const [actionLoading, setActionLoading] = useState(false);
+
+    /*
+     * Load real organization assignments.
+     *
+     * IMPORTANT:
+     * We intentionally do not call a state-updating
+     * function directly from useEffect.
+     *
+     * This avoids the React warning:
+     *
+     * "Calling setState synchronously within an effect..."
+     */
+    useEffect(() => {
+        let cancelled = false;
+
+        fetchAssignments()
+            .then((data) => {
+                if (cancelled) {
+                    return;
+                }
+
+                const rawAssignments = Array.isArray(data?.assignments)
+                    ? data.assignments
+                    : [];
+
+                setAssignments(rawAssignments.map(normalizeAssignment));
+
+                setError('');
+            })
+            .catch((err) => {
+                if (cancelled) {
+                    return;
+                }
+
+                setAssignments([]);
+
+                setError(
+                    err.message ||
+                        'Something went wrong while loading your help requests.',
+                );
+            })
+            .finally(() => {
+                if (!cancelled) {
+                    setLoading(false);
+                }
+            });
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
+    /* =====================================================
+       COUNTS
+    ===================================================== */
 
     const counts = useMemo(
         () => ({
-            all: REQUESTS.length,
-            pending: REQUESTS.filter((r) => r.status === 'pending').length,
-            assigned: REQUESTS.filter((r) => r.status === 'assigned').length,
-            active: REQUESTS.filter((r) => r.status === 'active').length,
-            completed: REQUESTS.filter((r) => r.status === 'completed').length,
-            rejected: REQUESTS.filter((r) => r.status === 'rejected').length,
-            withdrawal: REQUESTS.filter((r) => r.status === 'withdrawal')
+            all: assignments.length,
+
+            pending: assignments.filter((r) => r.status === 'pending').length,
+
+            assigned: assignments.filter((r) => r.status === 'assigned').length,
+
+            active: assignments.filter((r) => r.status === 'active').length,
+
+            completed: assignments.filter((r) => r.status === 'completed')
+                .length,
+
+            rejected: assignments.filter((r) => r.status === 'rejected').length,
+
+            withdrawal: assignments.filter((r) => r.status === 'withdrawal')
                 .length,
         }),
-        [],
+        [assignments],
     );
+
+    /* =====================================================
+       FILTERING
+    ===================================================== */
 
     const filteredRequests = useMemo(() => {
         const q = search.trim().toLowerCase();
 
-        return REQUESTS.filter((request) => {
+        return assignments.filter((request) => {
             const filterMatch =
                 activeFilter === 'all' || request.status === activeFilter;
 
@@ -248,19 +582,87 @@ const OrgHelpRequests = () => {
                     request.individual,
                     request.location,
                 ]
+                    .filter(Boolean)
                     .join(' ')
                     .toLowerCase()
                     .includes(q);
 
             return filterMatch && searchMatch;
         });
-    }, [activeFilter, search]);
+    }, [activeFilter, search, assignments]);
 
-    const pending = REQUESTS.find((request) => request.status === 'pending');
+    /* =====================================================
+       PRIORITY REQUEST
+    ===================================================== */
+
+    const pending = assignments.find((request) => request.status === 'pending');
+
+    /* =====================================================
+       CLEAR FILTERS
+    ===================================================== */
 
     const clearFilters = () => {
         setActiveFilter('all');
         setSearch('');
+    };
+
+    /* =====================================================
+       ACCEPT / DECLINE
+    ===================================================== */
+
+    const handleAssignmentAction = async (request, action) => {
+        if (!request?.assignmentId || actionLoading) {
+            return;
+        }
+
+        try {
+            setActionLoading(true);
+            setError('');
+
+            if (action === 'accept') {
+                await acceptAssignment(request.assignmentId);
+            } else {
+                await rejectAssignment(request.assignmentId);
+            }
+
+            /*
+             * Reload actual backend data after the action.
+             */
+            const data = await fetchAssignments();
+
+            const rawAssignments = Array.isArray(data?.assignments)
+                ? data.assignments
+                : [];
+
+            const normalized = rawAssignments.map(normalizeAssignment);
+
+            setAssignments(normalized);
+
+            /*
+             * Keep the drawer open if the assignment
+             * still exists.
+             *
+             * After accept:
+             * pending -> assigned
+             *
+             * After reject:
+             * pending -> rejected
+             */
+            const updated = normalized.find(
+                (item) => item.assignmentId === request.assignmentId,
+            );
+
+            setSelectedRequest(updated || null);
+        } catch (err) {
+            setError(
+                err.message ||
+                    `Unable to ${
+                        action === 'accept' ? 'accept' : 'decline'
+                    } this assignment.`,
+            );
+        } finally {
+            setActionLoading(false);
+        }
     };
 
     return (
@@ -273,9 +675,13 @@ const OrgHelpRequests = () => {
                 <header className="relative overflow-hidden bg-primary shadow-[0_24px_65px_rgba(15,118,110,0.14)]">
                     <div className="pointer-events-none absolute inset-0 overflow-hidden">
                         <div className="absolute -right-37.5 -top-52.5 h-130 w-130 rounded-full border-78 border-white/[0.035]" />
+
                         <div className="absolute right-[10%] top-[18%] h-75 w-75 rounded-full border border-white/4.5" />
+
                         <div className="absolute -bottom-47.5 left-[35%] h-90 w-90 rounded-full border border-white/[0.035]" />
+
                         <div className="absolute left-0 top-0 h-full w-[34%] bg-linear-to-r from-black/5 to-transparent" />
+
                         <div className="absolute bottom-0 left-0 h-px w-[55%] bg-white/13" />
                     </div>
 
@@ -337,6 +743,7 @@ const OrgHelpRequests = () => {
                                             <div className="flex items-center gap-2.5">
                                                 <span className="relative flex h-2 w-2">
                                                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent/40" />
+
                                                     <span className="relative h-2 w-2 rounded-full bg-accent" />
                                                 </span>
 
@@ -456,6 +863,7 @@ const OrgHelpRequests = () => {
                             <div className="hidden items-center gap-2 sm:flex">
                                 <span className="relative flex h-2 w-2">
                                     <span className="absolute h-full w-full animate-ping rounded-full bg-[#70b3a9]/35" />
+
                                     <span className="relative h-2 w-2 rounded-full bg-[#70b3a9]" />
                                 </span>
 
@@ -684,7 +1092,7 @@ const OrgHelpRequests = () => {
 
                                 <span className="text-[10px] font-medium text-[#9aa5a9]">
                                     {filteredRequests.length} of{' '}
-                                    {REQUESTS.length}
+                                    {assignments.length}
                                 </span>
                             </div>
                         </div>
@@ -724,7 +1132,7 @@ const OrgHelpRequests = () => {
                                 </p>
 
                                 <span className="text-[9px] font-semibold text-[#a0aaae]">
-                                    {REQUESTS.length}
+                                    {assignments.length}
                                 </span>
                             </div>
 
@@ -783,12 +1191,35 @@ const OrgHelpRequests = () => {
                         {/* CASE LIST */}
 
                         <main className="min-w-0">
-                            {filteredRequests.length > 0 ? (
+                            {loading ? (
+                                <div className="flex min-h-115 flex-col items-center justify-center border border-[#d8e3e6] bg-white px-6 text-center shadow-[0_10px_30px_rgba(24,53,61,0.035)]">
+                                    <div className="relative flex h-14 w-14 items-center justify-center bg-[#edf4f3] text-primary">
+                                        <RefreshCcw
+                                            className="h-5 w-5 animate-spin"
+                                            strokeWidth={1.5}
+                                        />
+
+                                        <span className="absolute bottom-1 right-1 h-1.5 w-1.5 rounded-full bg-accent" />
+                                    </div>
+
+                                    <h3 className="mt-6 text-[19px] font-semibold tracking-tight text-[#263940]">
+                                        Loading cases
+                                    </h3>
+
+                                    <p className="mt-3 max-w-sm text-[12px] leading-6 text-[#89969b]">
+                                        Retrieving your assigned help requests
+                                        from the server.
+                                    </p>
+                                </div>
+                            ) : filteredRequests.length > 0 ? (
                                 <div className="overflow-hidden border border-[#d1dfe2] bg-white shadow-[0_14px_38px_rgba(24,53,61,0.045)]">
                                     <div className="hidden border-b border-[#d8e3e5] bg-[#f7f9fa] px-6 py-4 lg:grid lg:grid-cols-[minmax(0,1fr)_145px_145px_145px] lg:gap-7">
                                         <ListHeader>Case</ListHeader>
+
                                         <ListHeader>Requester</ListHeader>
+
                                         <ListHeader>Activity</ListHeader>
+
                                         <ListHeader align="right">
                                             Status
                                         </ListHeader>
@@ -796,7 +1227,7 @@ const OrgHelpRequests = () => {
 
                                     {filteredRequests.map((request) => (
                                         <CaseRow
-                                            key={request.id}
+                                            key={request.assignmentId}
                                             request={request}
                                             onOpen={() =>
                                                 setSelectedRequest(request)
@@ -817,7 +1248,10 @@ const OrgHelpRequests = () => {
                                     </div>
                                 </div>
                             ) : (
-                                <EmptyState onClear={clearFilters} />
+                                <EmptyState
+                                    onClear={clearFilters}
+                                    hasData={assignments.length > 0}
+                                />
                             )}
                         </main>
                     </div>
@@ -832,6 +1266,8 @@ const OrgHelpRequests = () => {
                 <CaseReview
                     request={selectedRequest}
                     onClose={() => setSelectedRequest(null)}
+                    onAction={handleAssignmentAction}
+                    actionLoading={actionLoading}
                 />
             )}
         </div>
@@ -913,12 +1349,14 @@ const PriorityQueueItem = ({ number, label, description, tone }) => {
             rail: 'bg-[#f0cf83]',
             hover: 'hover:bg-[#fffdf8]',
         },
+
         teal: {
             number: 'text-primary',
             dot: 'bg-[#65aaa0]',
             rail: 'bg-[#9bcac4]',
             hover: 'hover:bg-[#f7fbfa]',
         },
+
         red: {
             number: 'text-[#ae5d52]',
             dot: 'bg-[#cb8278]',
@@ -988,7 +1426,8 @@ const ListHeader = ({ children, align = 'left' }) => (
 ========================================================= */
 
 const CaseRow = ({ request, onOpen }) => {
-    const config = STATUS_CONFIG[request.status];
+    const config = STATUS_CONFIG[request.status] || STATUS_CONFIG.pending;
+
     const StatusIcon = config.icon;
 
     const styles = {
@@ -997,26 +1436,31 @@ const CaseRow = ({ request, onOpen }) => {
             bg: 'bg-[#fff2d1]',
             dot: 'bg-[#e6b63e]',
         },
+
         assigned: {
             text: 'text-[#60788b]',
             bg: 'bg-[#edf2f5]',
             dot: 'bg-[#8299aa]',
         },
+
         active: {
             text: 'text-primary',
             bg: 'bg-[#e5f3f0]',
             dot: 'bg-[#63a99f]',
         },
+
         completed: {
             text: 'text-[#66767b]',
             bg: 'bg-[#eef1f1]',
             dot: 'bg-[#9aa5a8]',
         },
+
         rejected: {
             text: 'text-[#a9574e]',
             bg: 'bg-[#f9ecea]',
             dot: 'bg-[#c98178]',
         },
+
         withdrawal: {
             text: 'text-[#a56545]',
             bg: 'bg-[#f7eee9]',
@@ -1024,7 +1468,7 @@ const CaseRow = ({ request, onOpen }) => {
         },
     };
 
-    const status = styles[request.status];
+    const status = styles[request.status] || styles.pending;
 
     const priority =
         request.status === 'pending' || request.status === 'withdrawal';
@@ -1091,39 +1535,43 @@ const CaseRow = ({ request, onOpen }) => {
 
                                 <span className="flex items-center gap-1">
                                     <MapPin className="h-3 w-3" />
+
                                     {request.district}
                                 </span>
 
                                 <span>
-                                    {request.peopleAffected}{' '}
+                                    {request.peopleAffected ?? '—'}{' '}
                                     {request.peopleAffected === 1
                                         ? 'person'
-                                        : 'people'}
+                                        : request.peopleAffected
+                                          ? 'people'
+                                          : ''}
                                 </span>
                             </div>
 
-                            {request.status === 'active' && (
-                                <div className="mt-5 max-w-md">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-[8px] font-bold uppercase tracking-widest text-[#919da1]">
-                                            Assistance progress
-                                        </span>
+                            {request.status === 'active' &&
+                                request.progress !== null && (
+                                    <div className="mt-5 max-w-md">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-[8px] font-bold uppercase tracking-widest text-[#919da1]">
+                                                Assistance progress
+                                            </span>
 
-                                        <span className="text-[9px] font-bold text-primary">
-                                            {request.progress}%
-                                        </span>
-                                    </div>
+                                            <span className="text-[9px] font-bold text-primary">
+                                                {request.progress}%
+                                            </span>
+                                        </div>
 
-                                    <div className="mt-2 h-1.25 overflow-hidden bg-[#e2eaec]">
-                                        <div
-                                            className="h-full bg-primary"
-                                            style={{
-                                                width: `${request.progress}%`,
-                                            }}
-                                        />
+                                        <div className="mt-2 h-1.25 overflow-hidden bg-[#e2eaec]">
+                                            <div
+                                                className="h-full bg-primary"
+                                                style={{
+                                                    width: `${request.progress}%`,
+                                                }}
+                                            />
+                                        </div>
                                     </div>
-                                </div>
-                            )}
+                                )}
                         </div>
                     </div>
                 </div>
@@ -1153,7 +1601,7 @@ const CaseRow = ({ request, onOpen }) => {
 
                     <p className="mt-1.5 text-[11px] font-semibold leading-4 text-[#42545b] lg:mt-0">
                         {request.status === 'active'
-                            ? request.lastUpdate
+                            ? request.lastUpdate || 'In progress'
                             : request.submitted}
                     </p>
 
@@ -1199,7 +1647,7 @@ const CaseRow = ({ request, onOpen }) => {
    EMPTY
 ========================================================= */
 
-const EmptyState = ({ onClear }) => (
+const EmptyState = ({ onClear, hasData = false }) => (
     <div className="flex min-h-115 flex-col items-center justify-center border border-[#d8e3e6] bg-white px-6 text-center shadow-[0_10px_30px_rgba(24,53,61,0.035)]">
         <div className="relative flex h-14 w-14 items-center justify-center bg-[#edf4f3] text-primary">
             <Search className="h-5 w-5" strokeWidth={1.5} />
@@ -1208,11 +1656,13 @@ const EmptyState = ({ onClear }) => (
         </div>
 
         <h3 className="mt-6 text-[19px] font-semibold tracking-tight text-[#263940]">
-            No matching cases
+            {hasData ? 'No matching cases' : 'No assigned cases'}
         </h3>
 
         <p className="mt-3 max-w-sm text-[12px] leading-6 text-[#89969b]">
-            Nothing matches your current search or status filter.
+            {hasData
+                ? 'Nothing matches your current search or status filter.'
+                : 'There are no help request assignments for your organization yet.'}
         </p>
 
         <button
@@ -1230,8 +1680,8 @@ const EmptyState = ({ onClear }) => (
    CASE REVIEW
 ========================================================= */
 
-const CaseReview = ({ request, onClose }) => {
-    const config = STATUS_CONFIG[request.status];
+const CaseReview = ({ request, onClose, onAction, actionLoading }) => {
+    const config = STATUS_CONFIG[request.status] || STATUS_CONFIG.pending;
 
     return (
         <div className="fixed inset-0 z-50">
@@ -1248,6 +1698,7 @@ const CaseReview = ({ request, onClose }) => {
                 <header className="relative shrink-0 overflow-hidden bg-primary px-6 py-7 text-white sm:px-9 sm:py-8">
                     <div className="pointer-events-none absolute inset-0">
                         <div className="absolute -right-14 -top-20 h-60 w-60 rounded-full border-42 border-white/4.5" />
+
                         <div className="absolute bottom-0 right-[28%] h-px w-45 bg-white/10" />
                     </div>
 
@@ -1256,7 +1707,9 @@ const CaseReview = ({ request, onClose }) => {
                             <div className="flex flex-wrap items-center gap-2.5 text-[9px] font-bold uppercase tracking-[0.14em] text-white/50">
                                 <span>
                                     CASE HR-
-                                    {String(request.id).padStart(4, '0')}
+                                    {String(
+                                        request.helpRequestId || request.id,
+                                    ).padStart(4, '0')}
                                 </span>
 
                                 <span className="h-1 w-1 rounded-full bg-white/30" />
@@ -1317,15 +1770,26 @@ const CaseReview = ({ request, onClose }) => {
                                     <div className="mt-5 flex flex-wrap gap-2.5">
                                         <button
                                             type="button"
-                                            className="inline-flex items-center gap-2 bg-primary px-4 py-2.5 text-[10px] font-bold text-white"
+                                            disabled={actionLoading}
+                                            onClick={() =>
+                                                onAction(request, 'accept')
+                                            }
+                                            className="inline-flex items-center gap-2 bg-primary px-4 py-2.5 text-[10px] font-bold text-white disabled:cursor-not-allowed disabled:opacity-60"
                                         >
                                             <Check className="h-3.5 w-3.5" />
-                                            Accept assignment
+
+                                            {actionLoading
+                                                ? 'Processing...'
+                                                : 'Accept assignment'}
                                         </button>
 
                                         <button
                                             type="button"
-                                            className="inline-flex items-center gap-2 border border-[#e4d7b9] bg-white px-4 py-2.5 text-[10px] font-bold text-[#705e36]"
+                                            disabled={actionLoading}
+                                            onClick={() =>
+                                                onAction(request, 'reject')
+                                            }
+                                            className="inline-flex items-center gap-2 border border-[#e4d7b9] bg-white px-4 py-2.5 text-[10px] font-bold text-[#705e36] disabled:cursor-not-allowed disabled:opacity-60"
                                         >
                                             <X className="h-3.5 w-3.5" />
                                             Decline
@@ -1371,7 +1835,7 @@ const CaseReview = ({ request, onClose }) => {
 
                             <DrawerValue
                                 label="People affected"
-                                value={request.peopleAffected}
+                                value={request.peopleAffected ?? 'Not provided'}
                             />
 
                             <DrawerValue
@@ -1427,6 +1891,7 @@ const CaseReview = ({ request, onClose }) => {
 
                                 <p className="mt-1.5 flex items-center gap-1.5 text-[10px] text-[#89969b]">
                                     <MapPin className="h-3.5 w-3.5" />
+
                                     {request.location}
                                 </p>
                             </div>
@@ -1471,7 +1936,7 @@ const CaseReview = ({ request, onClose }) => {
                                         </p>
 
                                         <p className="mt-2 text-[39px] font-semibold tracking-[-0.055em] text-[#203d39]">
-                                            {request.progress || 0}
+                                            {request.progress ?? 0}
 
                                             <span className="ml-1 text-4 text-[#91a19f]">
                                                 %
@@ -1480,8 +1945,7 @@ const CaseReview = ({ request, onClose }) => {
                                     </div>
 
                                     <p className="max-w-52.5 text-right text-[10px] leading-5 text-[#8c989d]">
-                                        {request.lastUpdate ||
-                                            'No progress update yet'}
+                                        {request.lastUpdate}
                                     </p>
                                 </div>
 
@@ -1489,7 +1953,7 @@ const CaseReview = ({ request, onClose }) => {
                                     <div
                                         className="h-full bg-primary"
                                         style={{
-                                            width: `${request.progress || 0}%`,
+                                            width: `${request.progress ?? 0}%`,
                                         }}
                                     />
                                 </div>
@@ -1524,7 +1988,12 @@ const CaseReview = ({ request, onClose }) => {
                 {/* FOOTER */}
 
                 <footer className="shrink-0 border-t border-[#d8e2e5] bg-white px-5 py-5 shadow-[0_-5px_18px_rgba(25,52,60,0.025)] sm:px-8">
-                    <DrawerFooter request={request} onClose={onClose} />
+                    <DrawerFooter
+                        request={request}
+                        onClose={onClose}
+                        onAction={onAction}
+                        actionLoading={actionLoading}
+                    />
                 </footer>
             </aside>
         </div>
@@ -1627,7 +2096,7 @@ const ManagementAction = ({
    DRAWER FOOTER
 ========================================================= */
 
-const DrawerFooter = ({ request, onClose }) => {
+const DrawerFooter = ({ request, onClose, onAction, actionLoading }) => {
     if (request.status === 'pending') {
         return (
             <div className="flex items-center justify-between gap-3">
@@ -1642,16 +2111,21 @@ const DrawerFooter = ({ request, onClose }) => {
                 <div className="flex gap-2.5">
                     <button
                         type="button"
-                        className="border border-[#d8e1e4] bg-white px-4 py-2.5 text-[10px] font-bold text-[#64747a] transition hover:bg-[#f8fafb]"
+                        disabled={actionLoading}
+                        onClick={() => onAction(request, 'reject')}
+                        className="border border-[#d8e1e4] bg-white px-4 py-2.5 text-[10px] font-bold text-[#64747a] transition hover:bg-[#f8fafb] disabled:cursor-not-allowed disabled:opacity-60"
                     >
                         Decline
                     </button>
 
                     <button
                         type="button"
-                        className="inline-flex items-center gap-2 bg-primary px-5 py-2.5 text-[10px] font-bold text-white shadow-[0_5px_14px_rgba(15,118,110,0.12)] transition hover:bg-primary-hover"
+                        disabled={actionLoading}
+                        onClick={() => onAction(request, 'accept')}
+                        className="inline-flex items-center gap-2 bg-primary px-5 py-2.5 text-[10px] font-bold text-white shadow-[0_5px_14px_rgba(15,118,110,0.12)] transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                        Accept assignment
+                        {actionLoading ? 'Processing...' : 'Accept assignment'}
+
                         <Check className="h-3.5 w-3.5" />
                     </button>
                 </div>
@@ -1734,18 +2208,24 @@ const UrgencyBadge = ({ urgency, dark = false }) => {
         High: 'bg-[#fff0ed] text-[#ad5145]',
         Medium: 'bg-[#fff3d4] text-[#9a6908]',
         Low: 'bg-[#edf1f1] text-[#637379]',
+        Critical: 'bg-[#fff0ed] text-[#ad5145]',
+        Normal: 'bg-[#fff3d4] text-[#9a6908]',
     };
 
     const darkStyles = {
         High: 'bg-[#ffffff]/10 text-[#ffd3c9]',
         Medium: 'bg-[#ffffff]/10 text-[#ffe0a0]',
         Low: 'bg-[#ffffff]/10 text-white/65',
+        Critical: 'bg-[#ffffff]/10 text-[#ffd3c9]',
+        Normal: 'bg-[#ffffff]/10 text-[#ffe0a0]',
     };
 
     return (
         <span
             className={`inline-flex items-center gap-2 px-2.5 py-1.5 text-[9px] font-bold ${
-                dark ? darkStyles[urgency] : lightStyles[urgency]
+                dark
+                    ? darkStyles[urgency] || darkStyles.Normal
+                    : lightStyles[urgency] || lightStyles.Normal
             }`}
         >
             <span className="h-1.5 w-1.5 rounded-full bg-current" />
@@ -1753,11 +2233,5 @@ const UrgencyBadge = ({ urgency, dark = false }) => {
         </span>
     );
 };
-
-/* =========================================================
-   FORMAT
-========================================================= */
-
-const formatCurrency = (amount) => `৳${amount.toLocaleString('en-BD')}`;
 
 export default OrgHelpRequests;

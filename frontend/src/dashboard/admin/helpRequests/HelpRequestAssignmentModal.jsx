@@ -71,7 +71,37 @@ const HelpRequestAssignmentModal = ({
     */
 
     const availableOrganizations = useMemo(() => {
+        const requestAssignments = Array.isArray(request?.assignments)
+            ? request.assignments
+            : request?.assignment
+              ? [request.assignment]
+              : [];
+
+        const rejectedOrganizationIds = new Set(
+            requestAssignments
+                .filter(
+                    (assignment) =>
+                        String(assignment?.status || '')
+                            .trim()
+                            .toLowerCase() === 'rejected' &&
+                        assignment?.organization_id,
+                )
+                .map((assignment) => String(assignment.organization_id)),
+        );
+
         return organizations.filter((organization) => {
+            const organizationId = String(
+                organization?.id ?? organization?.organization_id ?? '',
+            );
+
+            /*
+             * An organization that already rejected this help request
+             * must never be shown as available for reassignment.
+             */
+            if (organizationId && rejectedOrganizationIds.has(organizationId)) {
+                return false;
+            }
+
             const verificationStatus =
                 organization.verification_status ??
                 organization.verificationStatus ??
@@ -87,7 +117,7 @@ const HelpRequestAssignmentModal = ({
 
             return String(verificationStatus).toLowerCase() === 'verified';
         });
-    }, [organizations]);
+    }, [organizations, request]);
 
     /*
     |--------------------------------------------------------------------------

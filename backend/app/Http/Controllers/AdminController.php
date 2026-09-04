@@ -1279,18 +1279,46 @@ class AdminController extends Controller
 
             /*
         |--------------------------------------------------------------------------
-        | Prevent Duplicate Organization Assignment
+        | Prevent Invalid Organization Reassignment
         |--------------------------------------------------------------------------
         |
-        | IMPORTANT:
+        | Once an organization rejects a help request, that same
+        | organization must never receive the same help request again.
         |
-        | pending is included here.
+        | The rejected assignment remains in the database as history.
         |
-        | This means Admin cannot send another assignment to the
-        | same organization while the first assignment is waiting
-        | for acceptance.
+        */
+
+            $organizationPreviouslyRejected =
+                HelpRequestAssignment::where(
+                    'help_request_id',
+                    $helpRequest->id
+                )
+                ->where(
+                    'organization_id',
+                    $organizationId
+                )
+                ->where(
+                    'status',
+                    HelpRequestAssignment::STATUS_REJECTED
+                )
+                ->exists();
+
+            if ($organizationPreviouslyRejected) {
+                return response()->json([
+                    'message' =>
+                    'This organization has already rejected this help request and cannot be assigned to it again.',
+                ], 422);
+            }
+
+            /*
+        |--------------------------------------------------------------------------
+        | Prevent Duplicate Active Assignment
+        |--------------------------------------------------------------------------
         |
-        | rejected assignments can be recreated.
+        | pending is included here so Admin cannot send another
+        | assignment while the existing assignment is waiting
+        | for organization response.
         |
         */
 

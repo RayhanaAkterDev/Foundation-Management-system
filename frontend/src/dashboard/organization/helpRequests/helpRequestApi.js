@@ -21,3 +21,11 @@ export const updateAssignment = (id, fields) =>
         method: 'PATCH',
         body: JSON.stringify(fields),
     });
+
+export const requestWithdrawal = (id, withdrawalReason) =>
+    apiRequest(`/organization/assignments/${id}/withdraw`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+            withdrawal_reason: withdrawalReason,
+        }),
+    });

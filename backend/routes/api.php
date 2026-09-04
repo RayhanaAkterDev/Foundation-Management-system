@@ -158,6 +158,11 @@ Route::middleware('auth:sanctum')->group(function () {
         '/organization/assignments/{id}',
         [OrganizationController::class, 'updateAssignment']
     );
+
+    Route::patch(
+        '/organization/assignments/{id}/withdraw',
+        [OrganizationController::class, 'requestWithdrawal']
+    );
 });
 
 
@@ -256,6 +261,21 @@ Route::middleware('auth:sanctum')
         Route::patch(
             '/help-requests/{id}/assignment',
             [AdminController::class, 'assignHelpRequest']
+        );
+
+        Route::get(
+            '/help-requests/withdrawal-requests',
+            [AdminController::class, 'withdrawalRequests']
+        );
+
+        Route::patch(
+            '/help-requests/assignments/{id}/withdrawal',
+            [AdminController::class, 'reviewWithdrawal']
+        );
+
+        Route::post(
+            '/help-requests/{id}/reassign',
+            [AdminController::class, 'reassignHelpRequest']
         );
 
 

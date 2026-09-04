@@ -14,6 +14,7 @@ import {
     acceptAssignment,
     fetchAssignments,
     rejectAssignment,
+    requestWithdrawal,
     updateAssignment,
 } from './helpRequests/helpRequestApi';
 
@@ -26,6 +27,7 @@ import PriorityQueue from './helpRequests/PriorityQueue';
 import CaseRegister from './helpRequests/CaseRegister';
 import CaseReviewDrawer from './helpRequests/CaseReviewDrawer';
 import RejectionModal from './helpRequests/RejectionModal';
+import WithdrawalModal from './helpRequests/WithdrawalModal';
 
 const STATUS_CONFIG = {
     pending: {
@@ -140,6 +142,11 @@ const OrgHelpRequests = () => {
     const [actionLoading, setActionLoading] = useState(false);
 
     const [selectedRequest, setSelectedRequest] = useState(null);
+
+    const [withdrawalRequest, setWithdrawalRequest] = useState(null);
+    const [withdrawalReason, setWithdrawalReason] = useState('');
+    const [withdrawalError, setWithdrawalError] = useState('');
+    const [withdrawalLoading, setWithdrawalLoading] = useState(false);
 
     const [rejectionRequest, setRejectionRequest] = useState(null);
     const [rejectionNote, setRejectionNote] = useState('');
@@ -458,6 +465,70 @@ const OrgHelpRequests = () => {
         }
     };
 
+    const handleSubmitWithdrawal = async () => {
+        if (!withdrawalRequest?.assignmentId || withdrawalLoading) {
+            return;
+        }
+
+        const reason = withdrawalReason.trim();
+
+        if (reason.length < 10) {
+            setWithdrawalError(
+                'Please provide at least 10 characters explaining why your organization needs to withdraw.',
+            );
+
+            return;
+        }
+
+        try {
+            setWithdrawalLoading(true);
+            setWithdrawalError('');
+            setError('');
+
+            const response = await requestWithdrawal(
+                withdrawalRequest.assignmentId,
+                reason,
+            );
+
+            const updatedAssignment = response?.assignment;
+
+            if (!updatedAssignment) {
+                throw new Error(
+                    'Withdrawal request was submitted, but updated assignment data was not returned.',
+                );
+            }
+
+            const updated = normalizeAssignment(updatedAssignment);
+
+            setAssignments((currentAssignments) =>
+                currentAssignments.map((item) =>
+                    String(item.assignmentId) ===
+                    String(withdrawalRequest.assignmentId)
+                        ? updated
+                        : item,
+                ),
+            );
+
+            setSelectedRequest((currentRequest) =>
+                currentRequest &&
+                String(currentRequest.assignmentId) ===
+                    String(withdrawalRequest.assignmentId)
+                    ? updated
+                    : currentRequest,
+            );
+
+            setWithdrawalRequest(null);
+            setWithdrawalReason('');
+            setWithdrawalError('');
+        } catch (err) {
+            setWithdrawalError(
+                err?.message || 'Unable to submit the withdrawal request.',
+            );
+        } finally {
+            setWithdrawalLoading(false);
+        }
+    };
+
     return (
         <div className="min-h-full bg-[#eef3f6] text-text-primary">
             <div className="mx-auto max-w-375">
@@ -646,6 +717,30 @@ const OrgHelpRequests = () => {
                     onAccept={handleAssignmentAction}
                     onReject={handleAssignmentAction}
                     onUpdateAssignment={handleUpdateAssignment}
+                    onRequestWithdrawal={(request) => {
+                        setWithdrawalRequest(request);
+                        setWithdrawalReason('');
+                        setWithdrawalError('');
+                    }}
+                    actionLoading={actionLoading}
+                />
+
+                <WithdrawalModal
+                    request={withdrawalRequest}
+                    reason={withdrawalReason}
+                    setReason={setWithdrawalReason}
+                    loading={withdrawalLoading}
+                    error={withdrawalError}
+                    onClose={() => {
+                        if (withdrawalLoading) {
+                            return;
+                        }
+
+                        setWithdrawalRequest(null);
+                        setWithdrawalReason('');
+                        setWithdrawalError('');
+                    }}
+                    onSubmit={handleSubmitWithdrawal}
                 />
 
                 {/* =====================================================

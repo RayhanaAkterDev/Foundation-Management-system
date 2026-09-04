@@ -20,11 +20,24 @@ class HelpRequestAssignment extends Model
     | pending -> accepted -> in_progress -> completed
     | pending -> rejected
     |
+    | Withdrawal:
+    |
+    | accepted/in_progress
+    |        ↓
+    | withdrawal_status = pending
+    |        ↓
+    | Admin approves
+    |        ↓
+    | status = withdrawn
+    |
     | "pending" means Admin has sent the assignment to the
     | organization but the organization has not accepted it yet.
     |
     | "accepted" means the organization has accepted the assignment
     | and is therefore considered assigned.
+    |
+    | "withdrawn" means Admin has approved the organization's
+    | withdrawal request and this assignment is no longer active.
     |
     */
 
@@ -40,6 +53,26 @@ class HelpRequestAssignment extends Model
 
     public const STATUS_COMPLETED = 'completed';
 
+    public const STATUS_WITHDRAWN = 'withdrawn';
+
+    /*
+    |--------------------------------------------------------------------------
+    | Withdrawal Statuses
+    |--------------------------------------------------------------------------
+    |
+    | null     -> no withdrawal request
+    | pending  -> organization requested withdrawal
+    | approved -> admin approved withdrawal
+    | rejected -> admin rejected withdrawal
+    |
+    */
+
+    public const WITHDRAWAL_PENDING = 'pending';
+
+    public const WITHDRAWAL_APPROVED = 'approved';
+
+    public const WITHDRAWAL_REJECTED = 'rejected';
+
     /**
      * Return all valid assignment statuses.
      */
@@ -52,6 +85,7 @@ class HelpRequestAssignment extends Model
             self::STATUS_REJECTED,
             self::STATUS_IN_PROGRESS,
             self::STATUS_COMPLETED,
+            self::STATUS_WITHDRAWN,
         ];
     }
 
@@ -71,7 +105,15 @@ class HelpRequestAssignment extends Model
         'rejection_note',
         'assigned_at',
         'completed_at',
+
+        // Withdrawal fields
+        'withdrawal_status',
+        'withdrawal_reason',
+        'withdrawal_requested_at',
+        'withdrawal_reviewed_at',
+        'withdrawal_reviewed_by',
     ];
+
     /*
     |--------------------------------------------------------------------------
     | Attribute Casting
@@ -81,6 +123,8 @@ class HelpRequestAssignment extends Model
     protected $casts = [
         'assigned_at' => 'datetime',
         'completed_at' => 'datetime',
+        'withdrawal_requested_at' => 'datetime',
+        'withdrawal_reviewed_at' => 'datetime',
     ];
 
     /*
@@ -135,6 +179,19 @@ class HelpRequestAssignment extends Model
         return $this->belongsTo(
             User::class,
             'assigned_by'
+        );
+    }
+
+    /**
+     * Admin who reviewed the withdrawal request.
+     *
+     * withdrawal_reviewed_by stores users.id.
+     */
+    public function withdrawalReviewedBy(): BelongsTo
+    {
+        return $this->belongsTo(
+            User::class,
+            'withdrawal_reviewed_by'
         );
     }
 }

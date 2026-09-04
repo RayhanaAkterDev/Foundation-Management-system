@@ -366,6 +366,167 @@ class OrganizationController extends Controller
     }
 
     /**
+     * Organization: Request withdrawal from an accepted/in-progress assignment.
+     *
+     * accepted/in_progress
+     *        ↓
+     * withdrawal_status = pending
+     *
+     * The assignment itself remains active until Admin approves
+     * the withdrawal request.
+     */
+    public function requestWithdrawal(
+        Request $request,
+        int $id
+    ) {
+        $user = $request->user();
+
+        /*
+    |--------------------------------------------------------------------------
+    | Authorization
+    |--------------------------------------------------------------------------
+    */
+
+        if (!$user || $user->role !== 'organization') {
+            return response()->json([
+                'message' => 'Unauthorized.',
+            ], 403);
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Find Organization
+    |--------------------------------------------------------------------------
+    */
+
+        $organization = Organization::where(
+            'user_id',
+            $user->id
+        )->first();
+
+        if (!$organization) {
+            return response()->json([
+                'message' => 'Organization profile not found.',
+            ], 404);
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Find Assignment Belonging To This Organization
+    |--------------------------------------------------------------------------
+    */
+
+        $assignment = HelpRequestAssignment::where(
+            'id',
+            $id
+        )
+            ->where(
+                'organization_id',
+                $organization->id
+            )
+            ->with('helpRequest')
+            ->first();
+
+        if (!$assignment) {
+            return response()->json([
+                'message' => 'Assignment not found.',
+            ], 404);
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Assignment Must Be Active
+    |--------------------------------------------------------------------------
+    |
+    | Organization can request withdrawal only after accepting
+    | the assignment and before completing it.
+    |
+    */
+
+        if (!in_array($assignment->status, [
+            HelpRequestAssignment::STATUS_ACCEPTED,
+            HelpRequestAssignment::STATUS_IN_PROGRESS,
+        ], true)) {
+            return response()->json([
+                'message' =>
+                'Only accepted or in-progress assignments can be withdrawn.',
+            ], 422);
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Prevent Duplicate Pending Request
+    |--------------------------------------------------------------------------
+    */
+
+        if (
+            $assignment->withdrawal_status ===
+            HelpRequestAssignment::WITHDRAWAL_PENDING
+        ) {
+            return response()->json([
+                'message' =>
+                'A withdrawal request is already pending for this assignment.',
+            ], 422);
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Validate Withdrawal Reason
+    |--------------------------------------------------------------------------
+    */
+
+        $validated = $request->validate([
+            'withdrawal_reason' => [
+                'required',
+                'string',
+                'min:10',
+                'max:2000',
+            ],
+        ]);
+
+        /*
+    |--------------------------------------------------------------------------
+    | Create Withdrawal Request
+    |--------------------------------------------------------------------------
+    |
+    | IMPORTANT:
+    |
+    | We DO NOT change assignment status here.
+    |
+    | The organization is still the current organization until
+    | Admin approves the withdrawal.
+    |
+    */
+
+        $assignment->update([
+            'withdrawal_status' =>
+            HelpRequestAssignment::WITHDRAWAL_PENDING,
+
+            'withdrawal_reason' =>
+            trim($validated['withdrawal_reason']),
+
+            'withdrawal_requested_at' => now(),
+
+            'withdrawal_reviewed_at' => null,
+
+            'withdrawal_reviewed_by' => null,
+        ]);
+
+        return response()->json([
+            'message' =>
+            'Withdrawal request submitted successfully.',
+
+            'assignment' => $assignment
+                ->fresh()
+                ->load([
+                    'helpRequest',
+                    'organization',
+                    'assignedBy:id,name,email',
+                ]),
+        ]);
+    }
+
+    /**
      * Organization: Update selected fields of an assigned help request.
      *
      * Organizations can only modify:

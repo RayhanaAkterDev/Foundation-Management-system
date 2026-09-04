@@ -1628,6 +1628,433 @@ class AdminController extends Controller
 
         ], 201);
     }
+
+/*
+|--------------------------------------------------------------------------
+| Help Requests - Withdrawal Requests
+|--------------------------------------------------------------------------
+*/
+
+    /**
+     * Get all pending organization withdrawal requests.
+     *
+     * Admin uses this to see organizations that have requested
+     * to withdraw from their current help request.
+     */
+    public function withdrawalRequests(Request $request)
+    {
+        $user = $this->authorizeAdmin($request);
+
+        if ($user instanceof \Illuminate\Http\JsonResponse) {
+            return $user;
+        }
+
+        $assignments = HelpRequestAssignment::with([
+            'helpRequest.user',
+            'organization.user',
+            'assignedBy',
+        ])
+            ->where(
+                'withdrawal_status',
+                HelpRequestAssignment::WITHDRAWAL_PENDING
+            )
+            ->whereNotNull('organization_id')
+            ->latest('withdrawal_requested_at')
+            ->get();
+
+        return response()->json([
+            'withdrawalRequests' => $assignments,
+        ]);
+    }
+
+
+    /**
+     * Approve or reject an organization's withdrawal request.
+     *
+     * APPROVE:
+     *
+     * assignment.status
+     *     accepted/in_progress
+     *          ↓
+     *     withdrawn
+     *
+     * assignment.withdrawal_status
+     *     pending
+     *          ↓
+     *     approved
+     *
+     *
+     * REJECT:
+     *
+     * assignment.status
+     *     remains accepted/in_progress
+     *
+     * assignment.withdrawal_status
+     *     pending
+     *          ↓
+     *     rejected
+     *
+     * The organization remains assigned when the withdrawal
+     * request is rejected.
+     */
+    public function reviewWithdrawal(
+        Request $request,
+        int $id
+    ) {
+        $user = $this->authorizeAdmin($request);
+
+        if ($user instanceof \Illuminate\Http\JsonResponse) {
+            return $user;
+        }
+
+        $assignment = HelpRequestAssignment::with([
+            'helpRequest.user',
+            'organization.user',
+            'assignedBy',
+        ])->find($id);
+
+        if (!$assignment) {
+            return response()->json([
+                'message' => 'Assignment not found.',
+            ], 404);
+        }
+
+        if (!$assignment->organization_id) {
+            return response()->json([
+                'message' =>
+                'This assignment does not belong to an organization.',
+            ], 422);
+        }
+
+        if (
+            $assignment->withdrawal_status !==
+            HelpRequestAssignment::WITHDRAWAL_PENDING
+        ) {
+            return response()->json([
+                'message' =>
+                'This assignment does not have a pending withdrawal request.',
+            ], 422);
+        }
+
+        $validated = $request->validate([
+            'decision' => [
+                'required',
+                'in:approved,rejected',
+            ],
+        ]);
+
+        $decision = $validated['decision'];
+
+        if ($decision === HelpRequestAssignment::WITHDRAWAL_APPROVED) {
+            /*
+        |--------------------------------------------------------------------------
+        | Approve Withdrawal
+        |--------------------------------------------------------------------------
+        |
+        | Preserve the assignment as history.
+        |
+        | Do NOT delete it.
+        |
+        */
+
+            $assignment->update([
+                'status' =>
+                HelpRequestAssignment::STATUS_WITHDRAWN,
+
+                'withdrawal_status' =>
+                HelpRequestAssignment::WITHDRAWAL_APPROVED,
+
+                'withdrawal_reviewed_at' => now(),
+
+                'withdrawal_reviewed_by' => $user->id,
+            ]);
+
+            return response()->json([
+                'message' =>
+                'Organization withdrawal approved successfully.',
+
+                'assignment' => $assignment
+                    ->fresh()
+                    ->load([
+                        'helpRequest.user',
+                        'organization.user',
+                        'assignedBy',
+                        'withdrawalReviewedBy',
+                    ]),
+            ]);
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Reject Withdrawal
+    |--------------------------------------------------------------------------
+    |
+    | Keep the assignment active.
+    |
+    */
+
+        $assignment->update([
+            'withdrawal_status' =>
+            HelpRequestAssignment::WITHDRAWAL_REJECTED,
+
+            'withdrawal_reviewed_at' => now(),
+
+            'withdrawal_reviewed_by' => $user->id,
+        ]);
+
+        return response()->json([
+            'message' =>
+            'Organization withdrawal rejected successfully.',
+
+            'assignment' => $assignment
+                ->fresh()
+                ->load([
+                    'helpRequest.user',
+                    'organization.user',
+                    'assignedBy',
+                    'withdrawalReviewedBy',
+                ]),
+        ]);
+    }
+
+
+    /**
+     * Reassign a help request to another organization after
+     * the previous organization's withdrawal has been approved.
+     *
+     * IMPORTANT:
+     *
+     * The old assignment is NEVER deleted.
+     *
+     * Example:
+     *
+     * Assignment #10
+     * Organization A
+     * status = withdrawn
+     *
+     * Assignment #11
+     * Organization B
+     * status = pending
+     */
+    public function reassignHelpRequest(
+        Request $request,
+        int $id
+    ) {
+        $user = $this->authorizeAdmin($request);
+
+        if ($user instanceof \Illuminate\Http\JsonResponse) {
+            return $user;
+        }
+
+        $helpRequest = HelpRequest::find($id);
+
+        if (!$helpRequest) {
+            return response()->json([
+                'message' => 'Help request not found.',
+            ], 404);
+        }
+
+        if ($helpRequest->status !== HelpRequest::STATUS_VERIFIED) {
+            return response()->json([
+                'message' =>
+                'Only verified help requests can be reassigned.',
+            ], 422);
+        }
+
+        $validated = $request->validate([
+            'organization_id' => [
+                'required',
+                'integer',
+                'exists:organizations,id',
+            ],
+
+            'assignment_note' => [
+                'nullable',
+                'string',
+                'max:1000',
+            ],
+        ]);
+
+        $organizationId = $validated['organization_id'];
+
+        /*
+    |--------------------------------------------------------------------------
+    | Validate Selected Organization
+    |--------------------------------------------------------------------------
+    */
+
+        $organization = Organization::find($organizationId);
+
+        if (!$organization) {
+            return response()->json([
+                'message' => 'Organization not found.',
+            ], 404);
+        }
+
+        if ($organization->verification_status !== 'verified') {
+            return response()->json([
+                'message' =>
+                'The selected organization is not verified.',
+            ], 422);
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Find Current Assignment
+    |--------------------------------------------------------------------------
+    |
+    | There must be an organization whose withdrawal was approved.
+    |
+    */
+
+        $withdrawnAssignment = HelpRequestAssignment::where(
+            'help_request_id',
+            $helpRequest->id
+        )
+            ->whereNotNull('organization_id')
+            ->where(
+                'status',
+                HelpRequestAssignment::STATUS_WITHDRAWN
+            )
+            ->where(
+                'withdrawal_status',
+                HelpRequestAssignment::WITHDRAWAL_APPROVED
+            )
+            ->latest('withdrawal_reviewed_at')
+            ->first();
+
+        if (!$withdrawnAssignment) {
+            return response()->json([
+                'message' =>
+                'No approved organization withdrawal was found for this help request.',
+            ], 422);
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Prevent Reassigning To The Same Organization
+    |--------------------------------------------------------------------------
+    |
+    | This is the important backend protection.
+    |
+    | The organization that previously handled this help request
+    | cannot be selected again.
+    |
+    */
+
+        $organizationPreviouslyUsed =
+            HelpRequestAssignment::where(
+                'help_request_id',
+                $helpRequest->id
+            )
+            ->where(
+                'organization_id',
+                $organizationId
+            )
+            ->exists();
+
+        if ($organizationPreviouslyUsed) {
+            return response()->json([
+                'message' =>
+                'This organization has already been assigned to this help request and cannot be selected again.',
+            ], 422);
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Prevent Another Pending Organization Assignment
+    |--------------------------------------------------------------------------
+    */
+
+        $pendingAssignmentExists =
+            HelpRequestAssignment::where(
+                'help_request_id',
+                $helpRequest->id
+            )
+            ->where(
+                'status',
+                HelpRequestAssignment::STATUS_PENDING
+            )
+            ->whereNotNull('organization_id')
+            ->exists();
+
+        if ($pendingAssignmentExists) {
+            return response()->json([
+                'message' =>
+                'This help request already has a pending organization assignment.',
+            ], 422);
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Create New Assignment
+    |--------------------------------------------------------------------------
+    |
+    | IMPORTANT:
+    |
+    | The new organization starts as PENDING.
+    |
+    | Admin has assigned the request to the organization,
+    | but the organization has not accepted it yet.
+    |
+    */
+
+        $newAssignment = DB::transaction(function () use (
+            $helpRequest,
+            $organizationId,
+            $validated,
+            $user
+        ) {
+            return HelpRequestAssignment::create([
+                'help_request_id' => $helpRequest->id,
+
+                'organization_id' => $organizationId,
+
+                'volunteer_id' => null,
+
+                'assigned_by' => $user->id,
+
+                'status' =>
+                HelpRequestAssignment::STATUS_PENDING,
+
+                'assignment_note' =>
+                $validated['assignment_note'] ?? null,
+
+                'assigned_at' => now(),
+
+                'withdrawal_status' => null,
+
+                'withdrawal_reason' => null,
+
+                'withdrawal_requested_at' => null,
+
+                'withdrawal_reviewed_at' => null,
+
+                'withdrawal_reviewed_by' => null,
+            ]);
+        });
+
+        /*
+    |--------------------------------------------------------------------------
+    | Return New Assignment
+    |--------------------------------------------------------------------------
+    */
+
+        return response()->json([
+            'message' =>
+            'Help request reassigned successfully.',
+
+            'assignment' => $newAssignment
+                ->fresh()
+                ->load([
+                    'helpRequest.user',
+                    'organization.user',
+                    'assignedBy',
+                ]),
+        ], 201);
+    }
+
+
     /*
     |--------------------------------------------------------------------------
     | Help Requests - Complete

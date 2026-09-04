@@ -426,6 +426,7 @@ const CaseReviewDrawer = ({
     actionLoading,
     statusConfig,
     onUpdateAssignment,
+    onRequestWithdrawal,
 }) => {
     const [isEditing, setIsEditing] = useState(false);
 
@@ -803,6 +804,10 @@ const CaseReviewDrawer = ({
                                     title="Request withdrawal"
                                     description="Use when your organization can no longer continue this case."
                                     danger
+                                    onClick={() =>
+                                        onRequestWithdrawal?.(request)
+                                    }
+                                    disabled={actionLoading}
                                 />
                             </div>
                         </DrawerSection>

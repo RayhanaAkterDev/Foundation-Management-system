@@ -153,6 +153,11 @@ Route::middleware('auth:sanctum')->group(function () {
         '/organization/assignments/{id}/complete',
         [OrganizationController::class, 'completeAssignment']
     );
+
+    Route::patch(
+        '/organization/assignments/{id}',
+        [OrganizationController::class, 'updateAssignment']
+    );
 });
 
 

@@ -231,7 +231,7 @@ export const normalizeAssignment = (assignment) => {
             helpRequest?.amountNeeded ??
             null,
 
-        urgency: formatUrgency(helpRequest?.urgency),
+        urgency: String(helpRequest?.urgency || '').toLowerCase() || 'normal',
 
         /*
          * Assignment status is mapped to the original UI's

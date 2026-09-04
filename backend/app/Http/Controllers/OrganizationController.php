@@ -175,10 +175,10 @@ class OrganizationController extends Controller
         }
 
         /*
-    |--------------------------------------------------------------------------
-    | Validate rejection reason
-    |--------------------------------------------------------------------------
-    */
+        |--------------------------------------------------------------------------
+        | Validate rejection reason
+        |--------------------------------------------------------------------------
+        */
 
         $validated = $request->validate([
             'rejection_note' => [
@@ -189,14 +189,14 @@ class OrganizationController extends Controller
         ]);
 
         /*
-    |--------------------------------------------------------------------------
-    | Reject assignment
-    |--------------------------------------------------------------------------
-    |
-    | Keep organization_id so Admin can see which organization
-    | rejected the assignment and the reason.
-    |
-    */
+        |--------------------------------------------------------------------------
+        | Reject assignment
+        |--------------------------------------------------------------------------
+        |
+        | Keep organization_id so Admin can see which organization
+        | rejected the assignment and the reason.
+        |
+        */
 
         $assignment->update([
             'status' =>
@@ -348,12 +348,190 @@ class OrganizationController extends Controller
         $assignment->update([
             'status' =>
             HelpRequestAssignment::STATUS_COMPLETED,
+
             'completed_at' => now(),
         ]);
 
         return response()->json([
             'message' =>
             'Help request assignment completed successfully.',
+
+            'assignment' => $assignment
+                ->fresh()
+                ->load([
+                    'helpRequest',
+                    'assignedBy:id,name,email',
+                ]),
+        ]);
+    }
+
+    /**
+     * Organization: Update selected fields of an assigned help request.
+     *
+     * Organizations can only modify:
+     * - category
+     * - urgency / priority
+     *
+     * Protected:
+     * - title
+     * - description
+     * - requester
+     * - district
+     * - address
+     * - people affected
+     * - amount needed
+     * - assignment information
+     * - verification information
+     */
+    public function updateAssignment(
+        Request $request,
+        int $id
+    ) {
+        $user = $request->user();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Authorization
+        |--------------------------------------------------------------------------
+        */
+
+        if (!$user || $user->role !== 'organization') {
+            return response()->json([
+                'message' => 'Unauthorized.',
+            ], 403);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Find Organization Profile
+        |--------------------------------------------------------------------------
+        */
+
+        $organization = Organization::where(
+            'user_id',
+            $user->id
+        )->first();
+
+        if (!$organization) {
+            return response()->json([
+                'message' => 'Organization profile not found.',
+            ], 404);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Find Assignment Belonging To This Organization
+        |--------------------------------------------------------------------------
+        */
+
+        $assignment = HelpRequestAssignment::where(
+            'id',
+            $id
+        )
+            ->where(
+                'organization_id',
+                $organization->id
+            )
+            ->with('helpRequest')
+            ->first();
+
+        if (!$assignment) {
+            return response()->json([
+                'message' => 'Assignment not found.',
+            ], 404);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Only Accepted / In-Progress Assignments Can Be Edited
+        |--------------------------------------------------------------------------
+        */
+
+        if (!in_array($assignment->status, [
+            HelpRequestAssignment::STATUS_ACCEPTED,
+            HelpRequestAssignment::STATUS_IN_PROGRESS,
+        ], true)) {
+            return response()->json([
+                'message' =>
+                'Only accepted or in-progress assignments can be edited.',
+            ], 422);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Make Sure Help Request Exists
+        |--------------------------------------------------------------------------
+        */
+
+        $helpRequest = $assignment->helpRequest;
+
+        if (!$helpRequest) {
+            return response()->json([
+                'message' =>
+                'Help request not found for this assignment.',
+            ], 404);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Validate Only Organization-Editable Fields
+        |--------------------------------------------------------------------------
+        |
+        | IMPORTANT:
+        |
+        | The application's valid priority values are:
+        | low, normal, high, critical
+        |
+        | "medium" is NOT a valid urgency value.
+        |
+        */
+
+        $validated = $request->validate([
+            'category' => [
+                'sometimes',
+                'required',
+                'string',
+                'max:100',
+            ],
+
+            'urgency' => [
+                'sometimes',
+                'required',
+                'string',
+                'in:low,normal,high,critical',
+            ],
+        ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Make Sure At Least One Editable Field Was Sent
+        |--------------------------------------------------------------------------
+        */
+
+        if (empty($validated)) {
+            return response()->json([
+                'message' =>
+                'No changes were provided.',
+            ], 422);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Update Help Request
+        |--------------------------------------------------------------------------
+        */
+
+        $helpRequest->update($validated);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Return Fresh Database Data
+        |--------------------------------------------------------------------------
+        */
+
+        return response()->json([
+            'message' =>
+            'Help request updated successfully.',
 
             'assignment' => $assignment
                 ->fresh()

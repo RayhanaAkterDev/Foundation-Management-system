@@ -14,7 +14,6 @@ import {
     acceptAssignment,
     fetchAssignments,
     rejectAssignment,
-    updateAssignment,
 } from './helpRequests/helpRequestApi';
 
 import {
@@ -102,7 +101,12 @@ const FILTERS = [
     },
 ];
 
-const CommandMetric = ({ value, label, active = false, last = false }) => (
+const CommandMetric = ({
+    value,
+    label,
+    active = false,
+    last = false,
+}) => (
     <div
         className={`relative px-6 py-5.5 sm:px-7 ${
             !last ? 'border-r border-white/10' : ''
@@ -164,7 +168,9 @@ const OrgHelpRequests = () => {
 
             setAssignments(normalized);
         } catch (err) {
-            setError(err.message || 'Unable to load assigned help requests.');
+            setError(
+                err.message || 'Unable to load assigned help requests.',
+            );
         } finally {
             setLoading(false);
         }
@@ -190,7 +196,8 @@ const OrgHelpRequests = () => {
             } catch (err) {
                 if (!cancelled) {
                     setError(
-                        err.message || 'Unable to load assigned help requests.',
+                        err.message ||
+                            'Unable to load assigned help requests.',
                     );
                 }
             } finally {
@@ -219,8 +226,9 @@ const OrgHelpRequests = () => {
                 (request) => request.status === 'assigned',
             ).length,
 
-            active: assignments.filter((request) => request.status === 'active')
-                .length,
+            active: assignments.filter(
+                (request) => request.status === 'active',
+            ).length,
 
             completed: assignments.filter(
                 (request) => request.status === 'completed',
@@ -242,7 +250,8 @@ const OrgHelpRequests = () => {
 
         return assignments.filter((request) => {
             const filterMatch =
-                activeFilter === 'all' || request.status === activeFilter;
+                activeFilter === 'all' ||
+                request.status === activeFilter;
 
             const searchMatch =
                 !query ||
@@ -264,7 +273,10 @@ const OrgHelpRequests = () => {
     }, [activeFilter, search, assignments]);
 
     const pending = useMemo(
-        () => assignments.find((request) => request.status === 'pending'),
+        () =>
+            assignments.find(
+                (request) => request.status === 'pending',
+            ),
         [assignments],
     );
 
@@ -303,96 +315,15 @@ const OrgHelpRequests = () => {
             setAssignments(normalized);
 
             const updated = normalized.find(
-                (item) => item.assignmentId === request.assignmentId,
+                (item) =>
+                    item.assignmentId === request.assignmentId,
             );
 
             setSelectedRequest(updated || null);
         } catch (err) {
-            setError(err.message || 'Unable to accept this assignment.');
-        } finally {
-            setActionLoading(false);
-        }
-    };
-
-    const handleUpdateAssignment = async (assignmentId, fields) => {
-        if (!assignmentId || !fields || typeof fields !== 'object') {
-            console.error('Update assignment stopped: invalid data', {
-                assignmentId,
-                fields,
-            });
-
             setError(
-                'Assignment information is missing. Please refresh the page and try again.',
+                err.message || 'Unable to accept this assignment.',
             );
-
-            return false;
-        }
-
-        try {
-            setActionLoading(true);
-            setError('');
-
-            console.log('Sending organization assignment update:', {
-                assignmentId,
-                fields,
-            });
-
-            const updateResponse = await updateAssignment(assignmentId, fields);
-
-            console.log(
-                'Organization assignment update response:',
-                updateResponse,
-            );
-
-            const data = await fetchAssignments();
-
-            const rawAssignments = Array.isArray(data?.assignments)
-                ? data.assignments
-                : [];
-
-            const normalized = rawAssignments.map(normalizeAssignment);
-
-            setAssignments(normalized);
-
-            const updated = normalized.find(
-                (item) => String(item.assignmentId) === String(assignmentId),
-            );
-
-            if (updated) {
-                setSelectedRequest(updated);
-
-                console.log('Updated assignment after refetch:', {
-                    assignmentId: updated.assignmentId,
-                    status: updated.status,
-                    category: updated.category,
-                    urgency: updated.urgency,
-                    rawAssignment: updated.rawAssignment,
-                    rawHelpRequest: updated.rawHelpRequest,
-                });
-            } else {
-                console.warn(
-                    'Updated assignment was not found after refetch:',
-                    {
-                        assignmentId,
-                        assignments: normalized,
-                    },
-                );
-            }
-
-            return true;
-        } catch (err) {
-            console.error('FAILED: organization assignment update', {
-                error: err,
-                message: err?.message,
-                status: err?.status,
-                errors: err?.errors,
-                assignmentId,
-                fields,
-            });
-
-            setError(err?.message || 'Failed to update the help request.');
-
-            return false;
         } finally {
             setActionLoading(false);
         }
@@ -418,7 +349,10 @@ const OrgHelpRequests = () => {
             setRejectionError('');
             setError('');
 
-            await rejectAssignment(rejectionRequest.assignmentId, note);
+            await rejectAssignment(
+                rejectionRequest.assignmentId,
+                note,
+            );
 
             setRejectionRequest(null);
             setRejectionNote('');
@@ -434,7 +368,9 @@ const OrgHelpRequests = () => {
             setAssignments(normalized);
 
             const updated = normalized.find(
-                (item) => item.assignmentId === rejectionRequest.assignmentId,
+                (item) =>
+                    item.assignmentId ===
+                    rejectionRequest.assignmentId,
             );
 
             setSelectedRequest(updated || null);
@@ -529,6 +465,7 @@ const OrgHelpRequests = () => {
 
                                                     <span className="relative h-2 w-2 rounded-full bg-[#73b7ad]" />
                                                 </span>
+
                                                 Live
                                             </span>
                                         </div>
@@ -588,7 +525,9 @@ const OrgHelpRequests = () => {
                             >
                                 <RefreshCcw
                                     className={`h-3.5 w-3.5 ${
-                                        loading ? 'animate-spin' : ''
+                                        loading
+                                            ? 'animate-spin'
+                                            : ''
                                     }`}
                                 />
                                 Retry
@@ -605,7 +544,9 @@ const OrgHelpRequests = () => {
                         onViewCase={() =>
                             pending && setSelectedRequest(pending)
                         }
-                        onRespond={() => pending && setSelectedRequest(pending)}
+                        onRespond={() =>
+                            pending && setSelectedRequest(pending)
+                        }
                     />
 
                     <CaseRegister
@@ -630,11 +571,10 @@ const OrgHelpRequests = () => {
 
                 <CaseReviewDrawer
                     request={selectedRequest}
-                    statusConfig={STATUS_CONFIG}
                     onClose={() => setSelectedRequest(null)}
-                    onAccept={handleAssignmentAction}
-                    onReject={handleAssignmentAction}
-                    onUpdateAssignment={handleUpdateAssignment}
+                    onAction={handleAssignmentAction}
+                    actionLoading={actionLoading}
+                    statusConfig={STATUS_CONFIG}
                 />
 
                 {/* =====================================================

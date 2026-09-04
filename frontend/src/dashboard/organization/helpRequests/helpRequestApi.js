@@ -15,3 +15,9 @@ export const rejectAssignment = (id, rejectionNote) =>
             rejection_note: rejectionNote,
         }),
     });
+
+export const updateAssignment = (id, fields) =>
+    apiRequest(`/organization/assignments/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(fields),
+    });

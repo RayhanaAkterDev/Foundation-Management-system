@@ -68,10 +68,10 @@ class HelpRequestAssignment extends Model
         'assigned_by',
         'status',
         'assignment_note',
+        'rejection_note',
         'assigned_at',
         'completed_at',
     ];
-
     /*
     |--------------------------------------------------------------------------
     | Attribute Casting

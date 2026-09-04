@@ -175,19 +175,35 @@ class OrganizationController extends Controller
         }
 
         /*
-        |--------------------------------------------------------------------------
-        | Keep organization_id
-        |--------------------------------------------------------------------------
-        |
-        | The rejected assignment remains in the database so Admin can see
-        | which organization rejected the request and can assign the
-        | request to another organization.
-        |
-        */
+    |--------------------------------------------------------------------------
+    | Validate rejection reason
+    |--------------------------------------------------------------------------
+    */
+
+        $validated = $request->validate([
+            'rejection_note' => [
+                'required',
+                'string',
+                'max:2000',
+            ],
+        ]);
+
+        /*
+    |--------------------------------------------------------------------------
+    | Reject assignment
+    |--------------------------------------------------------------------------
+    |
+    | Keep organization_id so Admin can see which organization
+    | rejected the assignment and the reason.
+    |
+    */
 
         $assignment->update([
             'status' =>
             HelpRequestAssignment::STATUS_REJECTED,
+
+            'rejection_note' =>
+            trim($validated['rejection_note']),
         ]);
 
         return response()->json([

@@ -344,40 +344,51 @@ const OrgHelpRequests = () => {
                 updateResponse,
             );
 
-            const data = await fetchAssignments();
+            /*
+             * Do NOT immediately refetch here.
+             *
+             * The PATCH response already contains the updated assignment.
+             * Refetching immediately can return stale data from the API/cache
+             * and overwrite the successfully updated category/urgency.
+             */
+            const updatedAssignment = updateResponse?.assignment;
 
-            const rawAssignments = Array.isArray(data?.assignments)
-                ? data.assignments
-                : [];
+            if (!updatedAssignment) {
+                console.error(
+                    'Update succeeded but no assignment was returned:',
+                    updateResponse,
+                );
 
-            const normalized = rawAssignments.map(normalizeAssignment);
-
-            setAssignments(normalized);
-
-            const updated = normalized.find(
-                (item) => String(item.assignmentId) === String(assignmentId),
-            );
-
-            if (updated) {
-                setSelectedRequest(updated);
-
-                console.log('Updated assignment after refetch:', {
-                    assignmentId: updated.assignmentId,
-                    status: updated.status,
-                    category: updated.category,
-                    urgency: updated.urgency,
-                    rawAssignment: updated.rawAssignment,
-                    rawHelpRequest: updated.rawHelpRequest,
-                });
-            } else {
-                console.warn(
-                    'Updated assignment was not found after refetch:',
-                    {
-                        assignmentId,
-                        assignments: normalized,
-                    },
+                throw new Error(
+                    'The case was updated, but the updated case data was not returned.',
                 );
             }
+
+            const updated = normalizeAssignment(updatedAssignment);
+
+            setAssignments((currentAssignments) =>
+                currentAssignments.map((item) =>
+                    String(item.assignmentId) === String(assignmentId)
+                        ? updated
+                        : item,
+                ),
+            );
+
+            setSelectedRequest((currentRequest) =>
+                currentRequest &&
+                String(currentRequest.assignmentId) === String(assignmentId)
+                    ? updated
+                    : currentRequest,
+            );
+
+            console.log('Updated assignment applied to UI:', {
+                assignmentId: updated.assignmentId,
+                status: updated.status,
+                category: updated.category,
+                urgency: updated.urgency,
+                rawAssignment: updated.rawAssignment,
+                rawHelpRequest: updated.rawHelpRequest,
+            });
 
             return true;
         } catch (err) {

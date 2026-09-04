@@ -1046,6 +1046,12 @@ const AdminHelpRequests = () => {
             render: (_, row) => {
                 const hasAssignment = hasExistingAssignment(row);
 
+                const hasPendingOrganization =
+                    hasPendingOrganizationAssignment(row);
+
+                const hasActiveOrganization =
+                    hasActiveOrganizationAssignment(row);
+
                 return (
                     <div className="flex min-w-max items-center justify-end gap-4 whitespace-nowrap">
                         {/* VIEW */}
@@ -1077,19 +1083,44 @@ const AdminHelpRequests = () => {
                             </button>
                         )}
 
-                        {/* INITIAL ASSIGNMENT */}
-                        {row.status === 'verified' && !hasAssignment && (
-                            <button
-                                type="button"
-                                onClick={() => handleAssignRequest(row)}
-                                className="shrink-0 text-xs font-semibold text-primary transition-colors hover:text-primary-hover"
-                            >
-                                Assign
-                            </button>
-                        )}
+                        {/*
+                         * INITIAL ASSIGNMENT
+                         *
+                         * Show Assign when:
+                         * - request is verified
+                         * - there is no active assignment
+                         * - there is no pending organization assignment
+                         *
+                         * Therefore:
+                         *
+                         * rejected -> Assign
+                         * never assigned -> Assign
+                         * pending -> no Assign
+                         * accepted -> no Assign
+                         */}
+                        {row.status === 'verified' &&
+                            !hasAssignment &&
+                            !hasPendingOrganization && (
+                                <button
+                                    type="button"
+                                    onClick={() => handleAssignRequest(row)}
+                                    className="shrink-0 text-xs font-semibold text-primary transition-colors hover:text-primary-hover"
+                                >
+                                    Assign
+                                </button>
+                            )}
 
-                        {/* REASSIGN */}
-                        {row.status === 'verified' && hasAssignment && (
+                        {/*
+                         * REASSIGN
+                         *
+                         * Only show this when there is an actual active
+                         * organization assignment.
+                         *
+                         * pending -> no Reassign
+                         * rejected -> no Reassign
+                         * accepted/in_progress/completed -> Reassign
+                         */}
+                        {row.status === 'verified' && hasActiveOrganization && (
                             <button
                                 type="button"
                                 onClick={() => handleReassignRequest(row)}
@@ -1099,8 +1130,13 @@ const AdminHelpRequests = () => {
                             </button>
                         )}
 
-                        {/* ADD SUPPORT */}
-                        {row.status === 'verified' && hasAssignment && (
+                        {/*
+                         * ADD SUPPORT
+                         *
+                         * Keep this available only when an actual
+                         * organization assignment exists.
+                         */}
+                        {row.status === 'verified' && hasActiveOrganization && (
                             <button
                                 type="button"
                                 onClick={() => handleAddSupportRequest(row)}
@@ -1449,16 +1485,111 @@ const AdminHelpRequests = () => {
 
 /*
 |--------------------------------------------------------------------------
-| Assignment detection
+| Assignment status helpers
 |--------------------------------------------------------------------------
 |
-| This only answers:
+| Organization workflow:
 |
-| "Does this request currently have an assignment?"
+| pending
+|     ↓
+| accepted
+|     ↓
+| in_progress
+|     ↓
+| completed
 |
-| It does NOT decide whether Reassign or Add Support
-| should be allowed.
+| OR
 |
+| pending
+|     ↓
+| rejected
+|
+| IMPORTANT:
+| "pending" is NOT an actual assigned organization.
+| "rejected" is NOT an actual assigned organization.
+|--------------------------------------------------------------------------
+*/
+
+const normalizeAssignmentStatus = (status) => {
+    return String(status || '')
+        .trim()
+        .toLowerCase();
+};
+
+const isPendingOrganizationAssignment = (assignment) => {
+    if (!assignment?.organization_id && !assignment?.organization) {
+        return false;
+    }
+
+    return normalizeAssignmentStatus(assignment.status) === 'pending';
+};
+
+const isActiveOrganizationAssignment = (assignment) => {
+    if (!assignment?.organization_id && !assignment?.organization) {
+        return false;
+    }
+
+    return ['assigned', 'accepted', 'in_progress', 'completed'].includes(
+        normalizeAssignmentStatus(assignment.status),
+    );
+};
+
+const getOrganizationAssignments = (request) => {
+    if (!request) {
+        return [];
+    }
+
+    const assignments = [];
+
+    /*
+     * Main API shape:
+     * request.assignments[]
+     */
+    if (Array.isArray(request.assignments)) {
+        assignments.push(...request.assignments);
+    }
+
+    /*
+     * Support the alternate singular assignment shape
+     * used by some existing API responses.
+     */
+    if (request.assignment) {
+        assignments.push(request.assignment);
+    }
+
+    /*
+     * Avoid relying on assigned_organization alone for status.
+     *
+     * If the backend gives us an explicit assignment object,
+     * that object is the source of truth.
+     */
+    return assignments.filter((assignment, index, array) => {
+        const assignmentId = assignment?.id;
+
+        if (!assignmentId) {
+            return index === array.indexOf(assignment);
+        }
+
+        return index === array.findIndex((item) => item?.id === assignmentId);
+    });
+};
+
+/*
+|--------------------------------------------------------------------------
+| Does this request currently have an actual assignment?
+|--------------------------------------------------------------------------
+|
+| Pending organization assignment:
+|     NOT counted as assigned.
+|
+| Rejected organization assignment:
+|     NOT counted as assigned.
+|
+| Accepted / in_progress / completed organization assignment:
+|     counted as assigned.
+|
+| Volunteer assignments keep their existing behavior.
+|--------------------------------------------------------------------------
 */
 
 const hasExistingAssignment = (request) => {
@@ -1466,21 +1597,19 @@ const hasExistingAssignment = (request) => {
         return false;
     }
 
-    if (Array.isArray(request.assignments) && request.assignments.length > 0) {
+    const organizationAssignments = getOrganizationAssignments(request);
+
+    const hasActiveOrganization = organizationAssignments.some(
+        isActiveOrganizationAssignment,
+    );
+
+    if (hasActiveOrganization) {
         return true;
     }
 
-    if (request.assigned_organization || request.assigned_organization_id) {
-        return true;
-    }
-
-    if (
-        request.assignment?.organization ||
-        request.assignment?.organization_id
-    ) {
-        return true;
-    }
-
+    /*
+     * Keep the existing volunteer assignment behavior.
+     */
     if (
         Array.isArray(request.assigned_volunteers) &&
         request.assigned_volunteers.length > 0
@@ -1493,6 +1622,30 @@ const hasExistingAssignment = (request) => {
     }
 
     return false;
+};
+
+/*
+|--------------------------------------------------------------------------
+| Pending organization assignment
+|--------------------------------------------------------------------------
+*/
+
+const hasPendingOrganizationAssignment = (request) => {
+    return getOrganizationAssignments(request).some(
+        isPendingOrganizationAssignment,
+    );
+};
+
+/*
+|--------------------------------------------------------------------------
+| Active organization assignment
+|--------------------------------------------------------------------------
+*/
+
+const hasActiveOrganizationAssignment = (request) => {
+    return getOrganizationAssignments(request).some(
+        isActiveOrganizationAssignment,
+    );
 };
 
 /*
@@ -1643,6 +1796,15 @@ const hasAdditionalSupportRequest = (request) => {
 |--------------------------------------------------------------------------
 | Assigned organization name
 |--------------------------------------------------------------------------
+|
+| IMPORTANT:
+|
+| pending  -> Assignment Pending
+| rejected -> Not assigned
+| accepted -> Organization name
+| in_progress -> Organization name
+| completed -> Organization name
+|--------------------------------------------------------------------------
 */
 
 const getAssignedOrganizationName = (request) => {
@@ -1650,39 +1812,77 @@ const getAssignedOrganizationName = (request) => {
         return 'Not assigned';
     }
 
-    if (request.assigned_organization?.name) {
+    const organizationAssignments = getOrganizationAssignments(request);
+
+    /*
+     * A pending assignment means Admin has sent the request
+     * to the organization, but the organization has NOT
+     * accepted it yet.
+     */
+    const pendingAssignment = organizationAssignments.find(
+        isPendingOrganizationAssignment,
+    );
+
+    if (pendingAssignment) {
+        return 'Assignment Pending';
+    }
+
+    /*
+     * Only accepted/active organization assignments can
+     * display the organization as actually assigned.
+     */
+    const activeAssignment = organizationAssignments.find(
+        isActiveOrganizationAssignment,
+    );
+
+    if (activeAssignment?.organization?.name) {
+        return activeAssignment.organization.name;
+    }
+
+    if (activeAssignment?.organization?.user?.name) {
+        return activeAssignment.organization.user.name;
+    }
+
+    /*
+     * Support existing top-level API shapes ONLY when there
+     * is no assignment collection available.
+     *
+     * These are legacy/fallback shapes.
+     */
+    if (
+        organizationAssignments.length === 0 &&
+        request.assigned_organization?.name
+    ) {
         return request.assigned_organization.name;
     }
 
-    if (typeof request.assigned_organization === 'string') {
+    if (
+        organizationAssignments.length === 0 &&
+        typeof request.assigned_organization === 'string'
+    ) {
         return request.assigned_organization;
     }
 
-    if (request.assignment?.organization?.name) {
-        return request.assignment.organization.name;
-    }
-
-    if (Array.isArray(request.assignments)) {
-        const organizationAssignment = request.assignments.find(
-            (assignment) =>
-                assignment?.organization || assignment?.organization_id,
-        );
-
-        if (organizationAssignment?.organization?.name) {
-            return organizationAssignment.organization.name;
-        }
-
-        if (organizationAssignment?.organization?.user?.name) {
-            return organizationAssignment.organization.user.name;
-        }
-    }
-
+    /*
+     * Rejected assignment remains in the database for history,
+     * but it is no longer the currently assigned organization.
+     */
     return 'Not assigned';
 };
 
 /*
 |--------------------------------------------------------------------------
 | Assigned organization ID
+|--------------------------------------------------------------------------
+|
+| Only return an organization ID when the organization is
+| actually assigned.
+|
+| pending  -> null
+| rejected -> null
+| accepted -> organization ID
+| in_progress -> organization ID
+| completed -> organization ID
 |--------------------------------------------------------------------------
 */
 
@@ -1691,34 +1891,33 @@ const getAssignedOrganizationId = (request) => {
         return null;
     }
 
-    if (request.assigned_organization?.id) {
-        return request.assigned_organization.id;
+    const organizationAssignments = getOrganizationAssignments(request);
+
+    const activeAssignment = organizationAssignments.find(
+        isActiveOrganizationAssignment,
+    );
+
+    if (activeAssignment?.organization?.id) {
+        return activeAssignment.organization.id;
     }
 
-    if (request.assigned_organization_id) {
-        return request.assigned_organization_id;
+    if (activeAssignment?.organization_id) {
+        return activeAssignment.organization_id;
     }
 
-    if (request.assignment?.organization?.id) {
-        return request.assignment.organization.id;
-    }
-
-    if (request.assignment?.organization_id) {
-        return request.assignment.organization_id;
-    }
-
-    if (Array.isArray(request.assignments)) {
-        const organizationAssignment = request.assignments.find(
-            (assignment) =>
-                assignment?.organization || assignment?.organization_id,
-        );
-
-        if (organizationAssignment?.organization?.id) {
-            return organizationAssignment.organization.id;
+    /*
+     * Legacy fallback.
+     *
+     * Only use these when there is no explicit assignment
+     * collection to inspect.
+     */
+    if (organizationAssignments.length === 0) {
+        if (request.assigned_organization?.id) {
+            return request.assigned_organization.id;
         }
 
-        if (organizationAssignment?.organization_id) {
-            return organizationAssignment.organization_id;
+        if (request.assigned_organization_id) {
+            return request.assigned_organization_id;
         }
     }
 

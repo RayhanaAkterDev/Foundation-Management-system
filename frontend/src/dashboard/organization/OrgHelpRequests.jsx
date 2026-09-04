@@ -1,20 +1,17 @@
 import React, { useMemo, useState } from 'react';
-
 import {
     Activity,
-    AlertCircle,
     ArrowRight,
     ArrowUpRight,
     BriefcaseBusiness,
     Check,
     CheckCircle2,
-    ChevronDown,
+    ChevronRight,
     Clock3,
     FileText,
     HeartHandshake,
     MapPin,
     MessageSquareText,
-    MoreHorizontal,
     RefreshCcw,
     RotateCcw,
     Search,
@@ -32,7 +29,7 @@ import {
 const REQUESTS = [
     {
         id: 1,
-        title: 'Medical treatment support for Rahim',
+        title: 'Medical treatment support for rani',
         description:
             'Rahim needs financial assistance for urgent medical treatment.',
         category: 'Medical',
@@ -44,7 +41,7 @@ const REQUESTS = [
         submitted: 'Sep 2, 2026',
         submittedTime: '10:42 AM',
         assignmentAge: '2 hours ago',
-        individual: 'Rahim Uddin',
+        individual: 'Rahim udine',
         location: 'Mirpur, Dhaka',
         assignmentNote:
             'Please review the case and confirm whether your organization can provide the required medical support.',
@@ -170,51 +167,45 @@ const REQUESTS = [
 
 const STATUS_CONFIG = {
     pending: {
-        label: 'Pending',
-        description: 'Awaiting your response',
+        label: 'Needs response',
+        short: 'Needs response',
         icon: Clock3,
-        tone: 'amber',
     },
     assigned: {
         label: 'Assigned',
-        description: 'Ready to start',
+        short: 'Assigned',
         icon: CheckCircle2,
-        tone: 'blue',
     },
     active: {
-        label: 'Active',
-        description: 'Assistance in progress',
+        label: 'In progress',
+        short: 'In progress',
         icon: Activity,
-        tone: 'teal',
     },
     completed: {
         label: 'Completed',
-        description: 'Assistance finished',
+        short: 'Completed',
         icon: CheckCircle2,
-        tone: 'slate',
     },
     rejected: {
-        label: 'Rejected',
-        description: 'Assignment declined',
+        label: 'Declined',
+        short: 'Declined',
         icon: XCircle,
-        tone: 'red',
     },
     withdrawal: {
-        label: 'Withdrawal',
-        description: 'Admin review required',
+        label: 'Withdrawal requested',
+        short: 'Withdrawal',
         icon: RotateCcw,
-        tone: 'orange',
     },
 };
 
 const FILTERS = [
-    { key: 'all', label: 'All' },
-    { key: 'pending', label: 'Pending' },
+    { key: 'all', label: 'All cases' },
+    { key: 'pending', label: 'Needs response' },
     { key: 'assigned', label: 'Assigned' },
-    { key: 'active', label: 'Active' },
+    { key: 'active', label: 'In progress' },
     { key: 'completed', label: 'Completed' },
-    { key: 'rejected', label: 'Rejected' },
     { key: 'withdrawal', label: 'Withdrawal' },
+    { key: 'rejected', label: 'Declined' },
 ];
 
 /* =========================================================
@@ -225,7 +216,6 @@ const OrgHelpRequests = () => {
     const [activeFilter, setActiveFilter] = useState('all');
     const [search, setSearch] = useState('');
     const [selectedRequest, setSelectedRequest] = useState(null);
-    const [showFilters, setShowFilters] = useState(false);
 
     const counts = useMemo(
         () => ({
@@ -242,400 +232,596 @@ const OrgHelpRequests = () => {
     );
 
     const filteredRequests = useMemo(() => {
-        const query = search.trim().toLowerCase();
+        const q = search.trim().toLowerCase();
 
         return REQUESTS.filter((request) => {
-            const matchesFilter =
+            const filterMatch =
                 activeFilter === 'all' || request.status === activeFilter;
 
-            const matchesSearch =
-                !query ||
-                request.title.toLowerCase().includes(query) ||
-                request.category.toLowerCase().includes(query) ||
-                request.district.toLowerCase().includes(query) ||
-                request.individual.toLowerCase().includes(query);
+            const searchMatch =
+                !q ||
+                [
+                    request.title,
+                    request.description,
+                    request.category,
+                    request.district,
+                    request.individual,
+                    request.location,
+                ]
+                    .join(' ')
+                    .toLowerCase()
+                    .includes(q);
 
-            return matchesFilter && matchesSearch;
+            return filterMatch && searchMatch;
         });
     }, [activeFilter, search]);
 
-    const pendingRequests = REQUESTS.filter(
-        (request) => request.status === 'pending',
-    );
-
-    const activeRequests = REQUESTS.filter(
-        (request) => request.status === 'active',
-    );
+    const pending = REQUESTS.find((request) => request.status === 'pending');
 
     const clearFilters = () => {
-        setSearch('');
         setActiveFilter('all');
+        setSearch('');
     };
 
     return (
-        <div className="min-h-full bg-[#f7f9f8] text-slate-900">
-            <div className="mx-auto max-w-[1540px] px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
+        <div className="min-h-full bg-[#eef3f6] text-text-primary">
+            <div className="mx-auto max-w-375">
                 {/* =====================================================
-                    HERO
+                    HEADER
                 ===================================================== */}
 
-                <header className="relative mb-6 overflow-hidden rounded-[28px] border border-[#dce8e3] bg-[#edf5f1]">
-                    <div className="absolute -right-24 -top-32 h-[360px] w-[360px] rounded-full bg-[#d7eae3] blur-3xl" />
+                <header className="relative overflow-hidden bg-primary shadow-[0_24px_65px_rgba(15,118,110,0.14)]">
+                    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+                        <div className="absolute -right-37.5 -top-52.5 h-130 w-130 rounded-full border-78 border-white/[0.035]" />
+                        <div className="absolute right-[10%] top-[18%] h-75 w-75 rounded-full border border-white/4.5" />
+                        <div className="absolute -bottom-47.5 left-[35%] h-90 w-90 rounded-full border border-white/[0.035]" />
+                        <div className="absolute left-0 top-0 h-full w-[34%] bg-linear-to-r from-black/5 to-transparent" />
+                        <div className="absolute bottom-0 left-0 h-px w-[55%] bg-white/13" />
+                    </div>
 
-                    <div className="absolute -bottom-32 left-[40%] h-[260px] w-[260px] rounded-full bg-white/70 blur-3xl" />
+                    <div className="relative">
+                        <div className="px-6 pb-12 pt-9 sm:px-9 lg:px-11 lg:pb-14 lg:pt-11">
+                            <div className="grid gap-14 lg:grid-cols-[minmax(0,1fr)_410px] lg:items-end">
+                                {/* LEFT */}
 
-                    <div className="relative grid lg:grid-cols-[1fr_360px]">
-                        <div className="px-6 py-7 sm:px-8 lg:px-10 lg:py-9">
-                            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#d3e4de] bg-white/70 px-2.5 py-1.5">
-                                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#0f766e] text-white">
-                                    <HeartHandshake
-                                        className="h-3 w-3"
-                                        strokeWidth={1.8}
-                                    />
-                                </span>
+                                <div>
+                                    <div className="flex items-center gap-3">
+                                        <div className="relative flex h-10 w-10 items-center justify-center border border-white/15 bg-white/8 shadow-[0_8px_25px_rgba(0,0,0,0.06)]">
+                                            <HeartHandshake
+                                                className="h-4.5 w-4.5 text-white/65"
+                                                strokeWidth={1.6}
+                                            />
 
-                                <span className="text-[8px] font-bold uppercase tracking-[0.18em] text-[#52736b]">
-                                    Organization · Case Management
-                                </span>
-                            </div>
+                                            <span className="absolute bottom-0 right-0 h-1.5 w-1.5 bg-accent" />
+                                        </div>
 
-                            <h1 className="font-fraunces text-[32px] font-semibold tracking-[-0.045em] text-[#17332e] sm:text-[40px]">
-                                Help Requests
-                            </h1>
-
-                            <p className="mt-2 max-w-[590px] text-[11px] leading-6 text-[#62766f]">
-                                Manage assigned cases, respond to new requests,
-                                and keep every assistance journey moving
-                                forward.
-                            </p>
-
-                            <div className="mt-6 flex flex-wrap gap-2">
-                                <HeroStat
-                                    dot="bg-amber-500"
-                                    value={counts.pending}
-                                    label="Awaiting response"
-                                />
-
-                                <HeroStat
-                                    dot="bg-[#0f766e]"
-                                    value={counts.active}
-                                    label="Active case"
-                                />
-
-                                <HeroStat
-                                    dot="bg-slate-400"
-                                    value={counts.completed}
-                                    label="Completed"
-                                />
-                            </div>
-                        </div>
-
-                        {/* HERO WORKLOAD */}
-                        <div className="hidden items-center justify-center p-7 lg:flex">
-                            <div className="w-full rounded-[22px] border border-white/80 bg-white/80 p-5 shadow-[0_20px_50px_rgba(26,67,57,0.08)] backdrop-blur-md">
-                                <div className="flex items-start justify-between">
-                                    <div>
-                                        <p className="text-[8px] font-bold uppercase tracking-[0.17em] text-slate-400">
-                                            Organization workload
-                                        </p>
-
-                                        <div className="mt-1 flex items-end gap-2">
-                                            <span className="text-[28px] font-semibold tracking-[-0.05em] text-[#17332e]">
-                                                {counts.assigned +
-                                                    counts.active}
+                                        <div className="flex items-center gap-2.5">
+                                            <span className="text-[9px] font-bold uppercase tracking-[0.21em] text-white/55">
+                                                StandFor People
                                             </span>
 
-                                            <span className="pb-1 text-[9px] font-medium text-slate-400">
-                                                active responsibilities
+                                            <span className="h-1 w-1 rounded-full bg-accent" />
+
+                                            <span className="text-[9px] font-semibold uppercase tracking-[0.16em] text-white/35">
+                                                Organization
                                             </span>
                                         </div>
                                     </div>
 
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#e6f2ed] text-[#0f766e]">
-                                        <BriefcaseBusiness
-                                            className="h-4 w-4"
-                                            strokeWidth={1.8}
-                                        />
+                                    <div className="mt-11">
+                                        <div className="flex items-center gap-3">
+                                            <span className="h-0.5 w-9 bg-accent" />
+
+                                            <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/45">
+                                                Assistance management
+                                            </span>
+                                        </div>
+
+                                        <h1 className="mt-4 text-[45px] font-semibold leading-[0.9] tracking-[-0.065em] text-white sm:text-[58px]">
+                                            Help requests
+                                        </h1>
+
+                                        <p className="mt-7 max-w-155 text-[12px] leading-7 text-white/55">
+                                            Review assigned cases, respond to
+                                            requests, and keep assistance moving
+                                            to the people who need it.
+                                        </p>
                                     </div>
                                 </div>
 
-                                <div className="mt-5 h-2 overflow-hidden rounded-full bg-[#e6eeeb]">
-                                    <div
-                                        className="h-full rounded-full bg-[#0f766e] transition-all"
-                                        style={{
-                                            width: `${Math.max(
-                                                10,
-                                                ((counts.assigned +
-                                                    counts.active) /
-                                                    counts.all) *
-                                                    100,
-                                            )}%`,
-                                        }}
-                                    />
-                                </div>
+                                {/* ATTENTION PANEL */}
 
-                                <div className="mt-2 flex justify-between text-[8px] font-medium text-slate-400">
-                                    <span>Assigned + active</span>
-                                    <span>{counts.all} total cases</span>
+                                <div className="relative">
+                                    <div className="border-l border-white/13 pl-7">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2.5">
+                                                <span className="relative flex h-2 w-2">
+                                                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent/40" />
+                                                    <span className="relative h-2 w-2 rounded-full bg-accent" />
+                                                </span>
+
+                                                <span className="text-[9px] font-bold uppercase tracking-[0.17em] text-white/50">
+                                                    Needs your attention
+                                                </span>
+                                            </div>
+
+                                            <span className="text-[9px] font-medium text-white/30">
+                                                Live queue
+                                            </span>
+                                        </div>
+
+                                        <div className="mt-7 flex items-end gap-6">
+                                            <span className="text-[78px] font-semibold leading-[0.72] tracking-[-0.09em] text-[#ffd477]">
+                                                {counts.pending}
+                                            </span>
+
+                                            <div className="pb-1">
+                                                <p className="text-[14px] font-semibold leading-5 text-white/90">
+                                                    {counts.pending === 1
+                                                        ? 'case is waiting'
+                                                        : 'cases are waiting'}
+                                                    <br />
+                                                    for your decision
+                                                </p>
+
+                                                <p className="mt-3 text-[9px] leading-5 text-white/35">
+                                                    Review promptly to avoid
+                                                    unnecessary delays.
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-9 flex items-center gap-3">
+                                            <div className="h-1 flex-1 overflow-hidden bg-white/9">
+                                                <div
+                                                    className="h-full bg-accent shadow-[0_0_12px_rgba(245,158,11,0.25)]"
+                                                    style={{
+                                                        width: `${Math.min(
+                                                            100,
+                                                            Math.max(
+                                                                18,
+                                                                counts.pending *
+                                                                    32,
+                                                            ),
+                                                        )}%`,
+                                                    }}
+                                                />
+                                            </div>
+
+                                            <span className="text-[8px] font-bold uppercase tracking-[0.14em] text-white/25">
+                                                priority
+                                            </span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
+                        </div>
+
+                        {/* METRIC STRIP */}
+
+                        <div className="grid border-t border-white/10 sm:grid-cols-4">
+                            <CommandMetric
+                                value={counts.all}
+                                label="Total cases"
+                            />
+
+                            <CommandMetric
+                                value={counts.pending}
+                                label="Needs response"
+                                active
+                            />
+
+                            <CommandMetric
+                                value={counts.active}
+                                label="In progress"
+                            />
+
+                            <CommandMetric
+                                value={counts.completed}
+                                label="Completed"
+                                last
+                            />
                         </div>
                     </div>
                 </header>
 
                 {/* =====================================================
-                    PRIORITY ALERT
+                    PRIORITY QUEUE
                 ===================================================== */}
 
-                {pendingRequests.length > 0 && (
-                    <section className="mb-6 rounded-[20px] border border-[#eadfc9] bg-[#fffaf1] shadow-[0_6px_25px_rgba(120,80,20,0.025)]">
-                        <div className="flex flex-col gap-4 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-                            <div className="flex items-start gap-3">
-                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#f9ecd0] text-[#a16207]">
-                                    <AlertCircle
-                                        className="h-[17px] w-[17px]"
-                                        strokeWidth={1.8}
-                                    />
+                {pending && (
+                    <section className="mt-16 sm:mt-20">
+                        <div className="mb-7 flex items-end justify-between">
+                            <div>
+                                <div className="flex items-center gap-2.5">
+                                    <span className="h-1.25 w-1.25 bg-accent" />
+
+                                    <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#7f8c91]">
+                                        Priority queue
+                                    </span>
                                 </div>
 
-                                <div>
-                                    <div className="flex flex-wrap items-center gap-2">
-                                        <p className="text-[11px] font-bold text-[#713f12]">
-                                            {pendingRequests.length} assignment
-                                            {pendingRequests.length !== 1
-                                                ? 's'
-                                                : ''}{' '}
-                                            need your attention
-                                        </p>
+                                <div className="mt-3 flex flex-wrap items-baseline gap-x-4 gap-y-1">
+                                    <h2 className="text-[27px] font-semibold tracking-tighter text-[#182c33]">
+                                        Requires attention
+                                    </h2>
 
-                                        <span className="rounded-full bg-[#f8e8c7] px-2 py-0.5 text-[7px] font-bold uppercase tracking-wide text-[#93610b]">
-                                            Action required
-                                        </span>
-                                    </div>
-
-                                    <p className="mt-1 text-[9px] leading-5 text-[#92734b]">
-                                        Review the assigned case before
-                                        accepting or declining responsibility.
-                                    </p>
+                                    <span className="text-[10px] font-medium text-[#9ba5a9]">
+                                        {counts.pending + counts.withdrawal}{' '}
+                                        open actions
+                                    </span>
                                 </div>
                             </div>
 
-                            <button
-                                type="button"
-                                onClick={() => setActiveFilter('pending')}
-                                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#8a5b16] px-4 py-2.5 text-[9px] font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#70490f]"
-                            >
-                                Review pending
-                                <ArrowRight
-                                    className="h-3 w-3"
-                                    strokeWidth={2}
-                                />
-                            </button>
+                            <div className="hidden items-center gap-2 sm:flex">
+                                <span className="relative flex h-2 w-2">
+                                    <span className="absolute h-full w-full animate-ping rounded-full bg-[#70b3a9]/35" />
+                                    <span className="relative h-2 w-2 rounded-full bg-[#70b3a9]" />
+                                </span>
+
+                                <span className="text-[9px] font-semibold text-[#87959a]">
+                                    Live queue
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="grid overflow-hidden border border-[#d0dde0] bg-white shadow-[0_20px_55px_rgba(24,53,61,0.06)] xl:grid-cols-[minmax(0,1fr)_315px]">
+                            {/* PRIMARY CASE */}
+
+                            <article className="relative overflow-hidden">
+                                <div className="absolute inset-x-0 top-0 h-0.75 bg-accent" />
+
+                                <div className="absolute bottom-0 left-0 top-0 w-1 bg-accent" />
+
+                                <div className="absolute right-0 top-0 h-full w-[25%] bg-linear-to-l from-[#fffaf0] to-transparent opacity-70" />
+
+                                <div className="relative px-7 py-9 sm:px-10 sm:py-10">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-3.5">
+                                            <span className="font-mono text-[10px] font-bold tracking-[0.18em] text-[#b18a39]">
+                                                QUEUE 01
+                                            </span>
+
+                                            <span className="h-px w-9 bg-[#e7d7aa]" />
+
+                                            <span className="text-[8px] font-bold uppercase tracking-[0.17em] text-[#9a875f]">
+                                                Immediate response
+                                            </span>
+                                        </div>
+
+                                        <span className="hidden text-[9px] font-semibold text-[#a0aaae] sm:block">
+                                            Waiting {pending.assignmentAge}
+                                        </span>
+                                    </div>
+
+                                    <div className="mt-9 max-w-200">
+                                        <div className="flex flex-wrap items-center gap-2.5">
+                                            <UrgencyBadge
+                                                urgency={pending.urgency}
+                                            />
+
+                                            <span className="text-[9px] font-medium text-[#9ba5a9]">
+                                                {pending.category}
+                                            </span>
+                                        </div>
+
+                                        <h3 className="mt-4 max-w-190 text-[31px] font-semibold leading-[1.08] tracking-[-0.052em] text-[#182d34] sm:text-[37px]">
+                                            {pending.title}
+                                        </h3>
+
+                                        <p className="mt-5 max-w-172.5 text-[12px] leading-7 text-[#718087]">
+                                            {pending.description}
+                                        </p>
+                                    </div>
+
+                                    <div className="mt-10 grid border-y border-[#e4eaec] sm:grid-cols-4">
+                                        <PriorityDetail
+                                            label="Requester"
+                                            value={pending.individual}
+                                        />
+
+                                        <PriorityDetail
+                                            label="Location"
+                                            value={pending.location}
+                                            icon={MapPin}
+                                        />
+
+                                        <PriorityDetail
+                                            label="Support needed"
+                                            value={pending.supportType}
+                                        />
+
+                                        <PriorityDetail
+                                            label="Amount needed"
+                                            value={formatCurrency(
+                                                pending.amountNeeded,
+                                            )}
+                                            accent
+                                        />
+                                    </div>
+
+                                    <div className="mt-8 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+                                        <div className="flex items-center gap-4">
+                                            <div className="relative flex h-10 w-10 shrink-0 items-center justify-center bg-[#fff3d5] text-[#aa7204]">
+                                                <Clock3 className="h-4 w-4" />
+
+                                                <span className="absolute -right-0.5 -top-0.5 h-1.5 w-1.5 rounded-full bg-accent" />
+                                            </div>
+
+                                            <div>
+                                                <p className="text-[10px] font-bold text-[#52646a]">
+                                                    Decision required
+                                                </p>
+
+                                                <p className="mt-1 text-[9px] leading-5 text-[#98a3a7]">
+                                                    Accepting this case starts
+                                                    your organization's support.
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex gap-2.5">
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setSelectedRequest(pending)
+                                                }
+                                                className="border border-[#d5dfe1] bg-white px-5 py-3.5 text-[10px] font-bold text-[#64747a] transition-all duration-200 hover:border-[#b9cdca] hover:bg-[#f8fbfa] hover:text-primary"
+                                            >
+                                                View case
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setSelectedRequest(pending)
+                                                }
+                                                className="group flex items-center gap-6 bg-primary px-6 py-3.5 text-white shadow-[0_9px_22px_rgba(15,118,110,0.16)] transition-all duration-200 hover:-translate-y-px hover:bg-primary-hover"
+                                            >
+                                                <span className="text-left">
+                                                    <span className="block text-[11px] font-bold">
+                                                        Respond to case
+                                                    </span>
+
+                                                    <span className="mt-1 block text-[8px] text-white/45">
+                                                        Accept or decline
+                                                    </span>
+                                                </span>
+
+                                                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </article>
+
+                            {/* WORK QUEUE */}
+
+                            <aside className="border-t border-[#dce5e8] bg-[#f7fafb] xl:border-l xl:border-t-0">
+                                <div className="border-b border-[#dce5e8] px-6 py-6">
+                                    <div className="flex items-start justify-between">
+                                        <div>
+                                            <p className="text-[8px] font-bold uppercase tracking-[0.18em] text-[#96a1a5]">
+                                                Organization queue
+                                            </p>
+
+                                            <h3 className="mt-2 text-4.5 font-semibold tracking-[-0.03em] text-[#263a41]">
+                                                What needs action
+                                            </h3>
+                                        </div>
+
+                                        <div className="flex h-9 w-9 items-center justify-center bg-white text-[#74868b] shadow-[0_3px_10px_rgba(25,52,60,0.04)]">
+                                            <Activity
+                                                className="h-4 w-4"
+                                                strokeWidth={1.6}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <PriorityQueueItem
+                                        number={counts.pending}
+                                        label="New decision"
+                                        description="Cases waiting for your response"
+                                        tone="amber"
+                                    />
+
+                                    <PriorityQueueItem
+                                        number={counts.active}
+                                        label="Active support"
+                                        description="Cases currently receiving assistance"
+                                        tone="teal"
+                                    />
+
+                                    <PriorityQueueItem
+                                        number={counts.withdrawal}
+                                        label="Admin review"
+                                        description="Withdrawal requests needing attention"
+                                        tone="red"
+                                    />
+                                </div>
+
+                                <div className="border-t border-[#dce5e8] px-6 py-6">
+                                    <div className="flex gap-3.5">
+                                        <div className="flex h-8 w-8 shrink-0 items-center justify-center bg-white text-[#78918d]">
+                                            <ShieldCheck
+                                                className="h-3.5 w-3.5"
+                                                strokeWidth={1.6}
+                                            />
+                                        </div>
+
+                                        <p className="text-[9px] leading-5 text-[#8a979c]">
+                                            Priority is determined by urgency,
+                                            waiting time, and assistance need.
+                                        </p>
+                                    </div>
+                                </div>
+                            </aside>
                         </div>
                     </section>
                 )}
 
                 {/* =====================================================
-                    TOOLBAR
+                    CASE REGISTER
                 ===================================================== */}
 
-                <section className="mb-4 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-                    <div>
-                        <div className="flex items-center gap-2">
-                            <div className="h-1.5 w-1.5 rounded-full bg-[#0f766e]" />
+                <section className="mt-20 pb-16 sm:mt-24 lg:mt-28">
+                    <div className="flex flex-col gap-7 border-b border-[#c9d5d8] pb-7 lg:flex-row lg:items-end lg:justify-between">
+                        <div>
+                            <div className="flex items-center gap-2.5">
+                                <span className="h-1.25 w-1.25 rounded-full bg-primary" />
 
-                            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
-                                Case queue
-                            </p>
+                                <span className="text-[9px] font-bold uppercase tracking-[0.19em] text-[#7d8b90]">
+                                    Case register
+                                </span>
+                            </div>
+
+                            <div className="mt-3 flex flex-wrap items-baseline gap-x-4 gap-y-1">
+                                <h2 className="text-[31px] font-semibold tracking-[-0.055em] text-[#10232a]">
+                                    Your cases
+                                </h2>
+
+                                <span className="text-[10px] font-medium text-[#9aa5a9]">
+                                    {filteredRequests.length} of{' '}
+                                    {REQUESTS.length}
+                                </span>
+                            </div>
                         </div>
 
-                        <p className="mt-1 text-[10px] text-slate-400">
-                            {filteredRequests.length} request
-                            {filteredRequests.length !== 1 ? 's' : ''} shown
-                        </p>
-                    </div>
-
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                        <div className="relative w-full sm:w-[310px]">
-                            <Search
-                                className="absolute left-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400"
-                                strokeWidth={1.8}
-                            />
+                        <div className="relative w-full lg:w-100">
+                            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#849399]" />
 
                             <input
-                                type="text"
                                 value={search}
                                 onChange={(event) =>
                                     setSearch(event.target.value)
                                 }
                                 placeholder="Search cases, people, locations..."
-                                className="h-10 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-9 text-[10px] font-medium text-slate-700 shadow-[0_4px_18px_rgba(15,23,42,0.025)] outline-none transition placeholder:text-slate-400 focus:border-[#0f766e]/30 focus:ring-4 focus:ring-[#0f766e]/5"
+                                className="h-12 w-full border border-[#cbd8db] bg-white pl-11 pr-10 text-[11px] font-medium text-[#33464d] shadow-[0_4px_14px_rgba(25,52,60,0.025)] outline-none transition-all duration-200 placeholder:text-[#9ba6aa] focus:border-primary focus:ring-4 focus:ring-primary/10"
                             />
 
                             {search && (
                                 <button
                                     type="button"
                                     onClick={() => setSearch('')}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-slate-700"
+                                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#8c989c] transition hover:text-[#31444a]"
+                                    aria-label="Clear search"
                                 >
-                                    <X className="h-3.5 w-3.5" />
+                                    <X className="h-4 w-4" />
                                 </button>
                             )}
                         </div>
-
-                        <button
-                            type="button"
-                            onClick={() => setShowFilters(!showFilters)}
-                            className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-[9px] font-bold text-slate-600 shadow-sm xl:hidden"
-                        >
-                            Filters
-                            <ChevronDown
-                                className={`h-3 w-3 transition-transform ${
-                                    showFilters ? 'rotate-180' : ''
-                                }`}
-                            />
-                        </button>
                     </div>
-                </section>
 
-                {/* =====================================================
-                    FILTERS
-                ===================================================== */}
+                    <div className="mt-9 grid gap-9 xl:grid-cols-[215px_minmax(0,1fr)]">
+                        {/* FILTER */}
 
-                <div
-                    className={`mb-5 overflow-x-auto ${
-                        showFilters ? 'block' : ''
-                    }`}
-                >
-                    <div className="inline-flex min-w-max rounded-xl border border-slate-200 bg-white p-1 shadow-[0_4px_18px_rgba(15,23,42,0.025)]">
-                        {FILTERS.map((filter) => {
-                            const isActive = activeFilter === filter.key;
+                        <nav className="self-start xl:sticky xl:top-6">
+                            <div className="mb-4 flex items-center justify-between">
+                                <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-[#879398]">
+                                    Case status
+                                </p>
 
-                            return (
-                                <button
-                                    key={filter.key}
-                                    type="button"
-                                    onClick={() => setActiveFilter(filter.key)}
-                                    className={`group relative rounded-lg px-3.5 py-2 text-[9px] font-bold transition ${
-                                        isActive
-                                            ? 'bg-[#173f38] text-white shadow-sm'
-                                            : 'text-slate-500 hover:bg-slate-50 hover:text-slate-800'
-                                    }`}
-                                >
-                                    {filter.label}
-
-                                    <span
-                                        className={`ml-1.5 ${
-                                            isActive
-                                                ? 'text-white/60'
-                                                : 'text-slate-400'
-                                        }`}
-                                    >
-                                        {counts[filter.key]}
-                                    </span>
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-
-                {/* =====================================================
-                    MAIN CONTENT
-                ===================================================== */}
-
-                <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_310px]">
-                    {/* REQUEST TABLE */}
-                    <section className="min-w-0 overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-[0_10px_35px_rgba(15,23,42,0.035)]">
-                        <div className="border-b border-slate-100 px-5 py-4 sm:px-6">
-                            <div className="flex items-center justify-between gap-4">
-                                <div>
-                                    <h2 className="text-[13px] font-bold tracking-[-0.01em] text-slate-800">
-                                        Help request queue
-                                    </h2>
-
-                                    <p className="mt-1 text-[9px] text-slate-400">
-                                        Review and manage cases assigned to your
-                                        organization.
-                                    </p>
-                                </div>
-
-                                <div className="hidden items-center gap-2 rounded-full bg-[#f3f7f5] px-3 py-1.5 sm:flex">
-                                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#0f766e]" />
-
-                                    <span className="text-[8px] font-bold text-[#52736b]">
-                                        Live status
-                                    </span>
-                                </div>
+                                <span className="text-[9px] font-semibold text-[#a0aaae]">
+                                    {REQUESTS.length}
+                                </span>
                             </div>
-                        </div>
 
-                        {filteredRequests.length > 0 ? (
-                            <div className="divide-y divide-slate-100">
-                                {filteredRequests.map((request) => (
-                                    <RequestRow
-                                        key={request.id}
-                                        request={request}
-                                        onReview={() =>
-                                            setSelectedRequest(request)
-                                        }
-                                    />
-                                ))}
+                            <div className="overflow-hidden border-y border-[#d2dee1]">
+                                {FILTERS.map((filter) => {
+                                    const selected =
+                                        activeFilter === filter.key;
+
+                                    return (
+                                        <button
+                                            key={filter.key}
+                                            type="button"
+                                            onClick={() =>
+                                                setActiveFilter(filter.key)
+                                            }
+                                            className={`group relative flex w-full items-center justify-between border-b border-[#e0e7e9] py-4 text-left transition-all duration-200 last:border-b-0 ${
+                                                selected
+                                                    ? 'bg-white px-3.5 text-[#1c3037] shadow-[0_3px_12px_rgba(20,48,56,0.035)]'
+                                                    : 'px-1 text-[#738187] hover:bg-white/60 hover:px-2 hover:text-primary'
+                                            }`}
+                                        >
+                                            {selected && (
+                                                <span className="absolute bottom-0 left-0 top-0 w-0.75 bg-primary" />
+                                            )}
+
+                                            <span className="text-[11px] font-semibold">
+                                                {filter.label}
+                                            </span>
+
+                                            <span
+                                                className={`min-w-6 text-right text-[11px] font-bold ${
+                                                    selected
+                                                        ? 'text-primary'
+                                                        : 'text-[#a0aaae]'
+                                                }`}
+                                            >
+                                                {counts[filter.key]}
+                                            </span>
+                                        </button>
+                                    );
+                                })}
                             </div>
-                        ) : (
-                            <EmptyState onClear={clearFilters} />
-                        )}
-
-                        <div className="flex flex-col gap-2 border-t border-slate-100 bg-slate-50/50 px-5 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-                            <p className="text-[8px] font-medium text-slate-400">
-                                Showing {filteredRequests.length} of{' '}
-                                {REQUESTS.length} requests
-                            </p>
 
                             {(search || activeFilter !== 'all') && (
                                 <button
                                     type="button"
                                     onClick={clearFilters}
-                                    className="text-[8px] font-bold text-[#0f766e] hover:underline"
+                                    className="mt-6 flex items-center gap-2 text-[10px] font-bold text-primary transition hover:text-primary-hover"
                                 >
-                                    Clear search & filters
+                                    <RefreshCcw className="h-3.5 w-3.5" />
+                                    Reset filters
                                 </button>
                             )}
-                        </div>
-                    </section>
+                        </nav>
 
-                    {/* SIDEBAR */}
-                    <aside className="space-y-4">
-                        <WorkloadPanel
-                            counts={counts}
-                            activeRequests={activeRequests}
-                        />
+                        {/* CASE LIST */}
 
-                        <WorkflowPanel />
+                        <main className="min-w-0">
+                            {filteredRequests.length > 0 ? (
+                                <div className="overflow-hidden border border-[#d1dfe2] bg-white shadow-[0_14px_38px_rgba(24,53,61,0.045)]">
+                                    <div className="hidden border-b border-[#d8e3e5] bg-[#f7f9fa] px-6 py-4 lg:grid lg:grid-cols-[minmax(0,1fr)_145px_145px_145px] lg:gap-7">
+                                        <ListHeader>Case</ListHeader>
+                                        <ListHeader>Requester</ListHeader>
+                                        <ListHeader>Activity</ListHeader>
+                                        <ListHeader align="right">
+                                            Status
+                                        </ListHeader>
+                                    </div>
 
-                        <div className="rounded-[20px] border border-[#dce7e3] bg-gradient-to-br from-[#edf6f2] to-[#f7faf8] p-4">
-                            <div className="flex gap-3">
-                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-[#0f766e] shadow-sm">
-                                    <ShieldCheck
-                                        className="h-4 w-4"
-                                        strokeWidth={1.8}
-                                    />
+                                    {filteredRequests.map((request) => (
+                                        <CaseRow
+                                            key={request.id}
+                                            request={request}
+                                            onOpen={() =>
+                                                setSelectedRequest(request)
+                                            }
+                                        />
+                                    ))}
+
+                                    <div className="flex items-center justify-between border-t border-[#d9e3e6] bg-[#fafbfb] px-6 py-4">
+                                        <p className="text-[10px] font-medium text-[#8c989d]">
+                                            Showing {filteredRequests.length}{' '}
+                                            cases
+                                        </p>
+
+                                        <span className="flex items-center gap-2 text-[9px] font-semibold text-[#9da7ab]">
+                                            <span className="h-1.5 w-1.5 rounded-full bg-[#76b3aa]" />
+                                            Data updated today
+                                        </span>
+                                    </div>
                                 </div>
-
-                                <div>
-                                    <p className="text-[10px] font-bold text-[#23443d]">
-                                        Responsible case management
-                                    </p>
-
-                                    <p className="mt-1 text-[8px] leading-5 text-[#668079]">
-                                        Accept assignments only when your
-                                        organization has the capacity to provide
-                                        the required support.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </aside>
-                </div>
+                            ) : (
+                                <EmptyState onClear={clearFilters} />
+                            )}
+                        </main>
+                    </div>
+                </section>
             </div>
 
             {/* =====================================================
@@ -653,170 +839,356 @@ const OrgHelpRequests = () => {
 };
 
 /* =========================================================
-   HERO STAT
+   HEADER METRIC
 ========================================================= */
 
-const HeroStat = ({ dot, value, label }) => (
-    <div className="flex items-center gap-2 rounded-full border border-[#d6e4df] bg-white/75 px-3 py-2">
-        <span className={`h-1.5 w-1.5 rounded-full ${dot}`} />
+const CommandMetric = ({ value, label, active = false, last = false }) => (
+    <div
+        className={`relative px-6 py-5.5 sm:px-7 ${
+            !last ? 'border-r border-white/10' : ''
+        } ${active ? 'bg-white/5.5' : ''}`}
+    >
+        {active && (
+            <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent shadow-[0_0_10px_rgba(245,158,11,0.22)]" />
+        )}
 
-        <span className="text-[9px] font-bold text-[#46645d]">
-            {value} {label}
-        </span>
+        <div className="flex items-baseline gap-2">
+            <span
+                className={`text-7.5 font-semibold leading-none tracking-[-0.055em] ${
+                    active ? 'text-[#ffd477]' : 'text-white'
+                }`}
+            >
+                {value}
+            </span>
+
+            <span className="text-[8px] font-medium uppercase tracking-[0.08em] text-white/25">
+                cases
+            </span>
+        </div>
+
+        <p className="mt-2 text-[8px] font-bold uppercase tracking-[0.15em] text-white/38">
+            {label}
+        </p>
     </div>
 );
 
 /* =========================================================
-   REQUEST ROW
+   PRIORITY DETAIL
 ========================================================= */
 
-const RequestRow = ({ request, onReview }) => {
-    const statusConfig = STATUS_CONFIG[request.status];
+const PriorityDetail = ({ label, value, icon: Icon, accent = false }) => (
+    <div className="border-r border-[#e4eaec] py-5 pr-4 last:border-r-0 sm:px-4 sm:first:pl-0">
+        <p className="text-[8px] font-bold uppercase tracking-[0.13em] text-[#9aa5a9]">
+            {label}
+        </p>
 
-    const colors = {
+        <div className="mt-2 flex min-w-0 items-center gap-1.5">
+            {Icon && (
+                <Icon
+                    className="h-3 w-3 shrink-0 text-[#89979b]"
+                    strokeWidth={1.7}
+                />
+            )}
+
+            <p
+                className={`truncate text-[11px] font-semibold ${
+                    accent ? 'text-primary' : 'text-[#45575e]'
+                }`}
+            >
+                {value}
+            </p>
+        </div>
+    </div>
+);
+
+/* =========================================================
+   PRIORITY QUEUE ITEM
+========================================================= */
+
+const PriorityQueueItem = ({ number, label, description, tone }) => {
+    const config = {
         amber: {
-            badge: 'bg-[#fff7e6] text-[#9a6700] ring-[#eed9a8]',
-            icon: 'bg-[#fff4dc] text-[#a16207]',
-        },
-        blue: {
-            badge: 'bg-[#eef5ff] text-[#3567a8] ring-[#cbdcf2]',
-            icon: 'bg-[#edf4fc] text-[#3970b4]',
+            number: 'text-[#a97008]',
+            dot: 'bg-[#e6b63d]',
+            rail: 'bg-[#f0cf83]',
+            hover: 'hover:bg-[#fffdf8]',
         },
         teal: {
-            badge: 'bg-[#eaf7f3] text-[#0f766e] ring-[#c6e4dc]',
-            icon: 'bg-[#e6f3ef] text-[#0f766e]',
-        },
-        slate: {
-            badge: 'bg-[#f2f4f5] text-[#59636b] ring-[#dce1e4]',
-            icon: 'bg-[#eef1f2] text-[#59636b]',
+            number: 'text-primary',
+            dot: 'bg-[#65aaa0]',
+            rail: 'bg-[#9bcac4]',
+            hover: 'hover:bg-[#f7fbfa]',
         },
         red: {
-            badge: 'bg-[#fff0f0] text-[#b33a3a] ring-[#efcccc]',
-            icon: 'bg-[#fff0f0] text-[#b33a3a]',
+            number: 'text-[#ae5d52]',
+            dot: 'bg-[#cb8278]',
+            rail: 'bg-[#e3b0a9]',
+            hover: 'hover:bg-[#fffafa]',
         },
-        orange: {
-            badge: 'bg-[#fff3e9] text-[#a95d20] ring-[#efd2b9]',
-            icon: 'bg-[#fff1e6] text-[#a95d20]',
+    }[tone];
+
+    return (
+        <div
+            className={`group relative overflow-hidden border-b border-[#dfe7e9] px-6 py-6.5 transition-all duration-200 ${config.hover}`}
+        >
+            <span
+                className={`absolute bottom-0 left-0 top-0 w-0.5 opacity-70 ${config.rail}`}
+            />
+
+            <div className="flex items-start gap-4.5">
+                <div className="min-w-7.5 pt-0.5">
+                    <span
+                        className={`text-[29px] font-semibold leading-none tracking-[-0.06em] ${config.number}`}
+                    >
+                        {number}
+                    </span>
+                </div>
+
+                <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2.5">
+                        <span
+                            className={`h-1.5 w-1.5 rounded-full ${config.dot}`}
+                        />
+
+                        <p className="text-[11px] font-bold text-[#41535a]">
+                            {label}
+                        </p>
+                    </div>
+
+                    <p className="mt-2 text-[9px] leading-5 text-[#8b989d]">
+                        {description}
+                    </p>
+                </div>
+
+                <ChevronRight
+                    className="mt-1 h-3.5 w-3.5 text-[#a6b0b4] transition-transform group-hover:translate-x-0.5 group-hover:text-primary"
+                    strokeWidth={1.7}
+                />
+            </div>
+        </div>
+    );
+};
+
+/* =========================================================
+   LIST HEADER
+========================================================= */
+
+const ListHeader = ({ children, align = 'left' }) => (
+    <div
+        className={`text-[8px] font-bold uppercase tracking-[0.14em] text-[#89969b] ${
+            align === 'right' ? 'text-right' : ''
+        }`}
+    >
+        {children}
+    </div>
+);
+
+/* =========================================================
+   CASE ROW
+========================================================= */
+
+const CaseRow = ({ request, onOpen }) => {
+    const config = STATUS_CONFIG[request.status];
+    const StatusIcon = config.icon;
+
+    const styles = {
+        pending: {
+            text: 'text-[#9e6b08]',
+            bg: 'bg-[#fff2d1]',
+            dot: 'bg-[#e6b63e]',
         },
-    }[statusConfig.tone];
+        assigned: {
+            text: 'text-[#60788b]',
+            bg: 'bg-[#edf2f5]',
+            dot: 'bg-[#8299aa]',
+        },
+        active: {
+            text: 'text-primary',
+            bg: 'bg-[#e5f3f0]',
+            dot: 'bg-[#63a99f]',
+        },
+        completed: {
+            text: 'text-[#66767b]',
+            bg: 'bg-[#eef1f1]',
+            dot: 'bg-[#9aa5a8]',
+        },
+        rejected: {
+            text: 'text-[#a9574e]',
+            bg: 'bg-[#f9ecea]',
+            dot: 'bg-[#c98178]',
+        },
+        withdrawal: {
+            text: 'text-[#a56545]',
+            bg: 'bg-[#f7eee9]',
+            dot: 'bg-[#ce8968]',
+        },
+    };
+
+    const status = styles[request.status];
+
+    const priority =
+        request.status === 'pending' || request.status === 'withdrawal';
 
     return (
         <article
-            className={`group relative px-5 py-5 transition-all duration-200 hover:bg-[#fbfdfc] sm:px-6 ${
-                request.status === 'pending' ? 'bg-[#fffdf8]/60' : ''
-            }`}
+            className={`group relative border-b border-[#e1e8ea] px-6 py-7 transition-all duration-200 last:border-b-0 ${
+                priority ? 'bg-[#fffdfa]' : 'bg-white'
+            } hover:bg-[#fbfcfc]`}
         >
             {request.status === 'pending' && (
-                <div className="absolute left-0 top-0 h-full w-[3px] bg-[#d59b2b]" />
+                <span className="absolute bottom-0 left-0 top-0 w-0.75 bg-accent" />
             )}
 
-            <div className="flex flex-col gap-4 xl:flex-row xl:items-center">
+            {request.status === 'withdrawal' && (
+                <span className="absolute bottom-0 left-0 top-0 w-0.75 bg-[#c97d59]" />
+            )}
+
+            <div className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_145px_145px_145px] lg:items-center lg:gap-7">
                 {/* CASE */}
-                <div className="min-w-0 flex-1">
-                    <div className="flex gap-3.5">
+
+                <div className="min-w-0">
+                    <div className="flex items-start gap-4">
                         <div
-                            className={`mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${colors.icon}`}
+                            className={`hidden h-11 w-11 shrink-0 items-center justify-center border border-transparent transition-all duration-200 sm:flex ${
+                                priority
+                                    ? 'bg-[#fff2d3] text-[#ae770b]'
+                                    : 'bg-[#f1f5f6] text-[#728188] group-hover:border-[#d7e6e3] group-hover:bg-[#e8f3f1] group-hover:text-primary'
+                            }`}
                         >
                             <FileText
-                                className="h-[17px] w-[17px]"
-                                strokeWidth={1.7}
+                                className="h-4.25 w-4.25"
+                                strokeWidth={1.6}
                             />
                         </div>
 
-                        <div className="min-w-0 flex-1">
-                            <div className="flex flex-wrap items-center gap-2">
-                                <h3 className="truncate text-[12px] font-bold tracking-[-0.01em] text-slate-800 sm:text-[13px]">
+                        <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-2.5">
+                                <button
+                                    type="button"
+                                    onClick={onOpen}
+                                    className="text-left text-[14px] font-bold leading-5 tracking-[-0.018em] text-[#23373e] transition-colors hover:text-primary"
+                                >
                                     {request.title}
-                                </h3>
+                                </button>
 
-                                {request.status === 'pending' &&
-                                    request.urgency === 'High' && (
-                                        <span className="rounded-full bg-[#fff0e6] px-2 py-0.5 text-[7px] font-bold uppercase tracking-wide text-[#b45c20]">
-                                            Needs response
-                                        </span>
-                                    )}
+                                {request.status === 'pending' && (
+                                    <span className="bg-[#fff0c7] px-2 py-1 text-[8px] font-bold uppercase tracking-[0.08em] text-[#956500]">
+                                        Action needed
+                                    </span>
+                                )}
                             </div>
 
-                            <p className="mt-1 line-clamp-1 max-w-[680px] text-[9px] leading-5 text-slate-400">
+                            <p className="mt-2 max-w-2xl text-[11px] leading-6 text-[#7c898e]">
                                 {request.description}
                             </p>
 
-                            <div className="mt-2.5 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-[8px] text-slate-400">
-                                <span className="font-bold text-slate-500">
-                                    {request.category}
+                            <div className="mt-3.5 flex flex-wrap items-center gap-x-4.5 gap-y-2 text-[10px] text-[#89969b]">
+                                <span className="font-semibold text-[#52646a]">
+                                    {formatCurrency(request.amountNeeded)}
                                 </span>
 
-                                <span className="text-slate-300">•</span>
+                                <span>{request.category}</span>
 
-                                <span className="inline-flex items-center gap-1">
-                                    <MapPin
-                                        className="h-2.5 w-2.5"
-                                        strokeWidth={1.7}
-                                    />
+                                <span className="flex items-center gap-1">
+                                    <MapPin className="h-3 w-3" />
                                     {request.district}
                                 </span>
-
-                                <span className="text-slate-300">•</span>
 
                                 <span>
                                     {request.peopleAffected}{' '}
                                     {request.peopleAffected === 1
                                         ? 'person'
-                                        : 'people'}{' '}
-                                    affected
-                                </span>
-
-                                <span className="text-slate-300">•</span>
-
-                                <span className="font-bold text-slate-500">
-                                    {formatCurrency(request.amountNeeded)}
+                                        : 'people'}
                                 </span>
                             </div>
+
+                            {request.status === 'active' && (
+                                <div className="mt-5 max-w-md">
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[8px] font-bold uppercase tracking-widest text-[#919da1]">
+                                            Assistance progress
+                                        </span>
+
+                                        <span className="text-[9px] font-bold text-primary">
+                                            {request.progress}%
+                                        </span>
+                                    </div>
+
+                                    <div className="mt-2 h-1.25 overflow-hidden bg-[#e2eaec]">
+                                        <div
+                                            className="h-full bg-primary"
+                                            style={{
+                                                width: `${request.progress}%`,
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
 
-                {/* SUBMITTED */}
-                <div className="hidden w-[100px] shrink-0 xl:block">
-                    <p className="text-[7px] font-bold uppercase tracking-[0.14em] text-slate-400">
-                        Submitted
+                {/* REQUESTER */}
+
+                <div>
+                    <p className="text-[8px] font-bold uppercase tracking-[0.12em] text-[#a0aaae] lg:hidden">
+                        Requester
                     </p>
 
-                    <p className="mt-1.5 text-[9px] font-bold text-slate-600">
-                        {request.submitted}
+                    <p className="mt-1.5 text-[11px] font-semibold text-[#42545b] lg:mt-0">
+                        {request.individual}
                     </p>
 
-                    <p className="mt-0.5 text-[8px] text-slate-400">
-                        {request.submittedTime}
+                    <p className="mt-1.5 text-[10px] leading-4 text-[#919da2]">
+                        {request.location}
                     </p>
                 </div>
 
-                {/* URGENCY */}
-                <div className="w-[70px] shrink-0">
-                    <p className="mb-1.5 text-[7px] font-bold uppercase tracking-[0.14em] text-slate-400 xl:hidden">
-                        Urgency
+                {/* ACTIVITY */}
+
+                <div>
+                    <p className="text-[8px] font-bold uppercase tracking-[0.12em] text-[#a0aaae] lg:hidden">
+                        Activity
                     </p>
 
-                    <UrgencyBadge urgency={request.urgency} />
+                    <p className="mt-1.5 text-[11px] font-semibold leading-4 text-[#42545b] lg:mt-0">
+                        {request.status === 'active'
+                            ? request.lastUpdate
+                            : request.submitted}
+                    </p>
+
+                    <p className="mt-1.5 text-[10px] text-[#919da2]">
+                        {request.status === 'active'
+                            ? ''
+                            : request.submittedTime}
+                    </p>
                 </div>
 
                 {/* STATUS */}
-                <div className="w-[96px] shrink-0">
-                    <p className="mb-1.5 text-[7px] font-bold uppercase tracking-[0.14em] text-slate-400 xl:hidden">
-                        Status
-                    </p>
 
-                    <span
-                        className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[7px] font-bold ring-1 ring-inset ${colors.badge}`}
+                <div className="flex items-center justify-between gap-4 lg:justify-end">
+                    <div
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 ${status.bg} ${status.text}`}
                     >
-                        <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" />
-                        {statusConfig.label}
-                    </span>
-                </div>
+                        <span
+                            className={`h-1.5 w-1.5 rounded-full ${status.dot}`}
+                        />
 
-                {/* ACTION */}
-                <div className="shrink-0">
-                    <RequestActions request={request} onReview={onReview} />
+                        <StatusIcon className="h-3 w-3" strokeWidth={1.8} />
+
+                        <span className="text-[9px] font-bold">
+                            {config.short}
+                        </span>
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={onOpen}
+                        className="flex h-8 w-8 items-center justify-center text-[#9aa5a9] transition-all hover:bg-[#edf3f4] hover:text-primary lg:opacity-0 lg:group-hover:opacity-100"
+                        aria-label={`Open ${request.title}`}
+                    >
+                        <ArrowUpRight className="h-4 w-4" strokeWidth={1.7} />
+                    </button>
                 </div>
             </div>
         </article>
@@ -824,385 +1196,88 @@ const RequestRow = ({ request, onReview }) => {
 };
 
 /* =========================================================
-   ACTIONS
-========================================================= */
-
-const RequestActions = ({ request, onReview }) => {
-    if (request.status === 'pending') {
-        return (
-            <div className="flex items-center gap-1.5">
-                <button
-                    type="button"
-                    onClick={onReview}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-[#d8e2df] bg-white px-3 py-2 text-[8px] font-bold text-[#31564e] shadow-sm transition hover:border-[#9ebcb4] hover:bg-[#f4f9f7]"
-                >
-                    Review
-                    <ArrowUpRight className="h-3 w-3" />
-                </button>
-
-                <button
-                    type="button"
-                    onClick={onReview}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#0f766e] text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#115e59]"
-                    title="Accept assignment"
-                >
-                    <Check className="h-3.5 w-3.5" strokeWidth={2} />
-                </button>
-
-                <button
-                    type="button"
-                    onClick={onReview}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
-                    title="Reject assignment"
-                >
-                    <X className="h-3.5 w-3.5" />
-                </button>
-            </div>
-        );
-    }
-
-    if (request.status === 'assigned') {
-        return (
-            <div className="flex items-center gap-1.5">
-                <button
-                    type="button"
-                    onClick={onReview}
-                    className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-[8px] font-bold text-slate-600 shadow-sm transition hover:border-[#b8d0ca] hover:bg-[#f4f9f7] hover:text-[#0f766e]"
-                >
-                    View
-                </button>
-
-                <button
-                    type="button"
-                    onClick={onReview}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-[#0f766e] px-3 py-2 text-[8px] font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#115e59]"
-                >
-                    Start
-                    <ArrowRight className="h-3 w-3" />
-                </button>
-            </div>
-        );
-    }
-
-    if (request.status === 'active') {
-        return (
-            <div className="flex items-center gap-1.5">
-                <button
-                    type="button"
-                    onClick={onReview}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-[#0f766e] px-3 py-2 text-[8px] font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#115e59]"
-                >
-                    Continue
-                    <ArrowUpRight className="h-3 w-3" />
-                </button>
-
-                <button
-                    type="button"
-                    onClick={onReview}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:border-[#b8d0ca] hover:bg-[#f4f9f7] hover:text-[#0f766e]"
-                    title="More case actions"
-                >
-                    <MoreHorizontal className="h-4 w-4" />
-                </button>
-            </div>
-        );
-    }
-
-    return (
-        <button
-            type="button"
-            onClick={onReview}
-            className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[8px] font-bold text-slate-500 shadow-sm transition hover:border-slate-300 hover:text-slate-800"
-        >
-            View
-            <ArrowUpRight className="h-3 w-3" />
-        </button>
-    );
-};
-
-/* =========================================================
-   WORKLOAD PANEL
-========================================================= */
-
-const WorkloadPanel = ({ counts, activeRequests }) => {
-    const averageProgress = activeRequests.length
-        ? Math.round(
-              activeRequests.reduce(
-                  (sum, request) => sum + (request.progress || 0),
-                  0,
-              ) / activeRequests.length,
-          )
-        : 0;
-
-    return (
-        <section className="overflow-hidden rounded-[20px] border border-slate-200 bg-white shadow-[0_8px_28px_rgba(15,23,42,0.03)]">
-            <div className="border-b border-slate-100 px-5 py-4">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <p className="text-[8px] font-bold uppercase tracking-[0.16em] text-slate-400">
-                            My workload
-                        </p>
-
-                        <h2 className="mt-1 text-[13px] font-bold text-slate-800">
-                            Current cases
-                        </h2>
-                    </div>
-
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#edf5f2] text-[#0f766e]">
-                        <Users className="h-4 w-4" strokeWidth={1.7} />
-                    </div>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-2 divide-x divide-slate-100">
-                <Metric label="Assigned" value={counts.assigned} tone="blue" />
-
-                <Metric label="Active" value={counts.active} tone="teal" />
-            </div>
-
-            <div className="border-t border-slate-100 px-5 py-4">
-                <div className="mb-2.5 flex items-center justify-between">
-                    <span className="text-[8px] font-bold text-slate-500">
-                        Active progress
-                    </span>
-
-                    <span className="text-[8px] font-bold text-[#0f766e]">
-                        {averageProgress}%
-                    </span>
-                </div>
-
-                <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
-                    <div
-                        className="h-full rounded-full bg-[#0f766e] transition-all"
-                        style={{
-                            width: `${averageProgress}%`,
-                        }}
-                    />
-                </div>
-
-                {activeRequests.length > 0 && (
-                    <div className="mt-4 space-y-2.5">
-                        {activeRequests.slice(0, 2).map((request) => (
-                            <div
-                                key={request.id}
-                                className="flex items-center justify-between gap-3"
-                            >
-                                <div className="min-w-0">
-                                    <p className="truncate text-[8px] font-bold text-slate-600">
-                                        {request.title}
-                                    </p>
-
-                                    <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-slate-100">
-                                        <div
-                                            className="h-full rounded-full bg-[#9bc9bd]"
-                                            style={{
-                                                width: `${request.progress}%`,
-                                            }}
-                                        />
-                                    </div>
-                                </div>
-
-                                <span className="shrink-0 text-[8px] font-bold text-slate-400">
-                                    {request.progress}%
-                                </span>
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </div>
-        </section>
-    );
-};
-
-/* =========================================================
-   WORKFLOW PANEL
-========================================================= */
-
-const WorkflowPanel = () => {
-    const steps = [
-        {
-            label: 'Pending',
-            text: 'Review assignment',
-            active: true,
-        },
-        {
-            label: 'Assigned',
-            text: 'Accept & prepare',
-        },
-        {
-            label: 'Active',
-            text: 'Provide assistance',
-        },
-        {
-            label: 'Completed',
-            text: 'Close the case',
-        },
-    ];
-
-    return (
-        <section className="rounded-[20px] border border-slate-200 bg-white p-5 shadow-[0_8px_28px_rgba(15,23,42,0.02)]">
-            <div className="mb-5">
-                <p className="text-[8px] font-bold uppercase tracking-[0.16em] text-slate-400">
-                    Case lifecycle
-                </p>
-
-                <h2 className="mt-1 text-[12px] font-bold text-slate-800">
-                    How an assignment moves
-                </h2>
-            </div>
-
-            <div className="space-y-4">
-                {steps.map((step, index) => (
-                    <div
-                        key={step.label}
-                        className="relative flex items-start gap-3"
-                    >
-                        {index !== steps.length - 1 && (
-                            <span className="absolute left-[9px] top-[21px] h-[27px] w-px bg-slate-200" />
-                        )}
-
-                        <span
-                            className={`relative z-10 flex h-[19px] w-[19px] shrink-0 items-center justify-center rounded-full text-[7px] font-bold ${
-                                step.active
-                                    ? 'bg-[#0f766e] text-white shadow-[0_0_0_4px_#eaf5f1]'
-                                    : 'bg-slate-100 text-slate-400'
-                            }`}
-                        >
-                            {index + 1}
-                        </span>
-
-                        <div>
-                            <p
-                                className={`text-[8px] font-bold ${
-                                    step.active
-                                        ? 'text-[#0f766e]'
-                                        : 'text-slate-600'
-                                }`}
-                            >
-                                {step.label}
-                            </p>
-
-                            <p className="mt-0.5 text-[7px] text-slate-400">
-                                {step.text}
-                            </p>
-                        </div>
-                    </div>
-                ))}
-            </div>
-
-            <div className="mt-5 rounded-xl border border-slate-100 bg-[#f7f9f8] px-3 py-2.5">
-                <p className="text-[7px] leading-4 text-slate-400">
-                    Withdrawal and additional support can be requested from an
-                    active case when genuinely needed.
-                </p>
-            </div>
-        </section>
-    );
-};
-
-/* =========================================================
-   METRIC
-========================================================= */
-
-const Metric = ({ label, value, tone }) => {
-    const styles = {
-        blue: 'text-[#3970b4]',
-        teal: 'text-[#0f766e]',
-    };
-
-    return (
-        <div className="px-5 py-4">
-            <p className="text-[7px] font-bold uppercase tracking-[0.12em] text-slate-400">
-                {label}
-            </p>
-
-            <p
-                className={`mt-1.5 text-[24px] font-semibold tracking-[-0.04em] ${styles[tone]}`}
-            >
-                {value}
-            </p>
-        </div>
-    );
-};
-
-/* =========================================================
-   EMPTY STATE
+   EMPTY
 ========================================================= */
 
 const EmptyState = ({ onClear }) => (
-    <div className="flex min-h-[340px] flex-col items-center justify-center px-6 text-center">
-        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#eef3f1] text-[#719089]">
-            <Search className="h-6 w-6" strokeWidth={1.5} />
+    <div className="flex min-h-115 flex-col items-center justify-center border border-[#d8e3e6] bg-white px-6 text-center shadow-[0_10px_30px_rgba(24,53,61,0.035)]">
+        <div className="relative flex h-14 w-14 items-center justify-center bg-[#edf4f3] text-primary">
+            <Search className="h-5 w-5" strokeWidth={1.5} />
+
+            <span className="absolute bottom-1 right-1 h-1.5 w-1.5 rounded-full bg-accent" />
         </div>
 
-        <h3 className="text-[13px] font-bold text-slate-700">
-            No matching requests
+        <h3 className="mt-6 text-[19px] font-semibold tracking-tight text-[#263940]">
+            No matching cases
         </h3>
 
-        <p className="mt-1.5 max-w-sm text-[9px] leading-5 text-slate-400">
-            No cases match your current search or status filter.
+        <p className="mt-3 max-w-sm text-[12px] leading-6 text-[#89969b]">
+            Nothing matches your current search or status filter.
         </p>
 
         <button
             type="button"
             onClick={onClear}
-            className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-[#edf5f2] px-3 py-2 text-[8px] font-bold text-[#0f766e] transition hover:bg-[#e3efeb]"
+            className="mt-6 inline-flex items-center gap-2 bg-primary px-4 py-2.5 text-[10px] font-bold text-white shadow-[0_6px_15px_rgba(15,118,110,0.12)] transition hover:bg-primary-hover"
         >
-            <RefreshCcw className="h-3 w-3" strokeWidth={1.8} />
+            <RefreshCcw className="h-3.5 w-3.5" />
             Reset view
         </button>
     </div>
 );
 
 /* =========================================================
-   CASE REVIEW DRAWER
+   CASE REVIEW
 ========================================================= */
 
 const CaseReview = ({ request, onClose }) => {
-    const statusConfig = STATUS_CONFIG[request.status];
+    const config = STATUS_CONFIG[request.status];
 
     return (
-        <div className="fixed inset-0 z-50 flex justify-end">
+        <div className="fixed inset-0 z-50">
             <button
                 type="button"
                 aria-label="Close case review"
                 onClick={onClose}
-                className="absolute inset-0 cursor-default bg-slate-950/25 backdrop-blur-[3px]"
+                className="absolute inset-0 bg-text-primary/55 backdrop-blur-0.75"
             />
 
-            <aside className="relative z-10 flex h-full w-full max-w-[650px] flex-col bg-[#f8faf9] shadow-[-24px_0_70px_rgba(15,23,42,0.16)]">
+            <aside className="absolute right-0 top-0 flex h-full w-full max-w-175 flex-col bg-[#eef3f6] shadow-[-30px_0_85px_rgba(15,23,42,0.21)]">
                 {/* DRAWER HEADER */}
 
-                <div className="shrink-0 border-b border-[#dfe7e4] bg-white px-6 py-5 sm:px-7">
-                    <div className="flex items-start justify-between gap-5">
+                <header className="relative shrink-0 overflow-hidden bg-primary px-6 py-7 text-white sm:px-9 sm:py-8">
+                    <div className="pointer-events-none absolute inset-0">
+                        <div className="absolute -right-14 -top-20 h-60 w-60 rounded-full border-42 border-white/4.5" />
+                        <div className="absolute bottom-0 right-[28%] h-px w-45 bg-white/10" />
+                    </div>
+
+                    <div className="relative flex items-start justify-between gap-6">
                         <div className="min-w-0">
-                            <div className="mb-3 flex items-center gap-2">
-                                <span className="rounded-full bg-[#f1f4f3] px-2 py-1 text-[7px] font-bold uppercase tracking-[0.17em] text-slate-400">
-                                    Case review
+                            <div className="flex flex-wrap items-center gap-2.5 text-[9px] font-bold uppercase tracking-[0.14em] text-white/50">
+                                <span>
+                                    CASE HR-
+                                    {String(request.id).padStart(4, '0')}
                                 </span>
 
-                                <span className="text-slate-300">/</span>
+                                <span className="h-1 w-1 rounded-full bg-white/30" />
 
-                                <span className="text-[8px] font-bold text-[#0f766e]">
-                                    HR-
-                                    {String(request.id).padStart(4, '0')}
+                                <span className="text-white/80">
+                                    {config.label}
                                 </span>
                             </div>
 
-                            <h2 className="font-fraunces text-[23px] font-semibold leading-tight tracking-[-0.035em] text-[#18352f]">
+                            <h2 className="mt-4 max-w-xl text-[27px] font-semibold leading-[1.13] tracking-[-0.045em] sm:text-[32px]">
                                 {request.title}
                             </h2>
 
-                            <div className="mt-3 flex flex-wrap items-center gap-2">
-                                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#edf5f2] px-2.5 py-1.5 text-[7px] font-bold text-[#0f766e]">
-                                    <span className="h-1.5 w-1.5 rounded-full bg-current" />
-                                    {statusConfig.label}
-                                </span>
+                            <div className="mt-5 flex flex-wrap items-center gap-3">
+                                <UrgencyBadge urgency={request.urgency} dark />
 
-                                <UrgencyBadge urgency={request.urgency} />
-
-                                <span className="text-[8px] text-slate-400">
-                                    Submitted {request.submitted}
+                                <span className="text-[10px] text-white/45">
+                                    Submitted{' '}
+                                    <span className="text-white/75">
+                                        {request.submitted}
+                                    </span>
                                 </span>
                             </div>
                         </div>
@@ -1210,388 +1285,397 @@ const CaseReview = ({ request, onClose }) => {
                         <button
                             type="button"
                             onClick={onClose}
-                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-400 transition hover:bg-slate-50 hover:text-slate-700"
+                            className="flex h-9 w-9 shrink-0 items-center justify-center border border-white/[0.14] bg-white/3 text-white/60 transition hover:bg-white/10 hover:text-white"
+                            aria-label="Close"
                         >
                             <X className="h-4 w-4" />
                         </button>
                     </div>
-                </div>
+                </header>
 
                 {/* CONTENT */}
 
-                <div className="min-h-0 flex-1 overflow-y-auto px-6 py-6 sm:px-7">
-                    <CaseActionPanel request={request} />
+                <div className="min-h-0 flex-1 overflow-y-auto px-5 py-9 sm:px-8 sm:py-10">
+                    {request.status === 'pending' && (
+                        <section className="mb-11 border border-[#ead08b] bg-[#fffaf0]">
+                            <div className="flex items-start gap-5 border-l-4 border-accent px-6 py-6">
+                                <div className="flex h-11 w-11 shrink-0 items-center justify-center bg-[#fff0c7] text-[#ad7508]">
+                                    <Clock3 className="h-4 w-4" />
+                                </div>
 
-                    <ReviewSection
-                        eyebrow="Request"
-                        title="Case information"
+                                <div>
+                                    <h3 className="text-[14px] font-bold text-[#513e19]">
+                                        Your decision is required
+                                    </h3>
+
+                                    <p className="mt-2 text-[11px] leading-6 text-[#7e6e50]">
+                                        Accepting this assignment makes your
+                                        organization responsible for providing
+                                        the requested support.
+                                    </p>
+
+                                    <div className="mt-5 flex flex-wrap gap-2.5">
+                                        <button
+                                            type="button"
+                                            className="inline-flex items-center gap-2 bg-primary px-4 py-2.5 text-[10px] font-bold text-white"
+                                        >
+                                            <Check className="h-3.5 w-3.5" />
+                                            Accept assignment
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            className="inline-flex items-center gap-2 border border-[#e4d7b9] bg-white px-4 py-2.5 text-[10px] font-bold text-[#705e36]"
+                                        >
+                                            <X className="h-3.5 w-3.5" />
+                                            Decline
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    )}
+
+                    {request.status === 'active' && (
+                        <section className="mb-11 border border-[#cce4df] bg-white">
+                            <div className="flex items-start gap-5 border-l-4 border-primary px-6 py-6">
+                                <div className="flex h-11 w-11 shrink-0 items-center justify-center bg-[#e5f3f0] text-primary">
+                                    <Activity className="h-4 w-4" />
+                                </div>
+
+                                <div>
+                                    <h3 className="text-[14px] font-bold text-[#155b55]">
+                                        Assistance is in progress
+                                    </h3>
+
+                                    <p className="mt-2 text-[11px] leading-6 text-[#5f7e78]">
+                                        Continue recording meaningful updates
+                                        until support has been completed.
+                                    </p>
+                                </div>
+                            </div>
+                        </section>
+                    )}
+
+                    <DrawerSection
+                        eyebrow="Case overview"
+                        title="Key information"
                         icon={FileText}
                     >
-                        <div className="grid gap-px overflow-hidden rounded-xl border border-slate-200 bg-slate-200 sm:grid-cols-2">
-                            <InfoCell
+                        <div className="grid overflow-hidden border border-[#dce5e8] bg-white shadow-[0_5px_18px_rgba(25,52,60,0.025)] sm:grid-cols-2">
+                            <DrawerValue
+                                label="Amount needed"
+                                value={formatCurrency(request.amountNeeded)}
+                                accent
+                            />
+
+                            <DrawerValue
+                                label="People affected"
+                                value={request.peopleAffected}
+                            />
+
+                            <DrawerValue
                                 label="Category"
                                 value={request.category}
                             />
 
-                            <InfoCell
-                                label="People affected"
-                                value={`${request.peopleAffected} ${
-                                    request.peopleAffected === 1
-                                        ? 'person'
-                                        : 'people'
-                                }`}
-                            />
-
-                            <InfoCell
-                                label="Amount needed"
-                                value={formatCurrency(request.amountNeeded)}
-                                emphasis
-                            />
-
-                            <InfoCell
-                                label="Support needed"
+                            <DrawerValue
+                                label="Support"
                                 value={request.supportType}
                             />
 
-                            <InfoCell
-                                label="Location"
-                                value={request.location}
-                            />
-
-                            <InfoCell
+                            <DrawerValue
                                 label="District"
                                 value={request.district}
                             />
+
+                            <DrawerValue
+                                label="Received"
+                                value={request.assignmentAge}
+                            />
                         </div>
+                    </DrawerSection>
 
-                        <div className="mt-3 rounded-xl border border-slate-200 bg-white p-4">
-                            <p className="text-[7px] font-bold uppercase tracking-[0.14em] text-slate-400">
-                                Description
-                            </p>
-
-                            <p className="mt-2 text-[9px] leading-5 text-slate-600">
+                    <DrawerSection
+                        eyebrow="Request"
+                        title="Why support is needed"
+                        icon={MessageSquareText}
+                    >
+                        <div className="border border-[#dce5e8] border-l-4 border-l-primary bg-white px-6 py-6 shadow-[0_5px_18px_rgba(25,52,60,0.025)]">
+                            <p className="text-[12px] leading-7 text-[#52636a]">
                                 {request.description}
                             </p>
                         </div>
-                    </ReviewSection>
+                    </DrawerSection>
 
-                    <ReviewSection
+                    <DrawerSection
                         eyebrow="Requester"
-                        title="Individual information"
+                        title="Person receiving support"
                         icon={UserRound}
                     >
-                        <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-4">
-                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#eaf3f0] text-[#0f766e]">
-                                <UserRound
-                                    className="h-4 w-4"
-                                    strokeWidth={1.7}
-                                />
+                        <div className="flex items-center gap-5 border border-[#dce5e8] bg-white px-6 py-6 shadow-[0_5px_18px_rgba(25,52,60,0.025)]">
+                            <div className="relative flex h-13 w-13 shrink-0 items-center justify-center bg-[#e5f3f0] text-primary">
+                                <UserRound className="h-5 w-5" />
+
+                                <span className="absolute bottom-0 right-0 h-2 w-2 rounded-full border-2 border-white bg-[#75bdb2]" />
                             </div>
 
-                            <div className="min-w-0">
-                                <p className="text-[10px] font-bold text-slate-700">
+                            <div>
+                                <p className="text-[13px] font-bold text-[#33464c]">
                                     {request.individual}
                                 </p>
 
-                                <div className="mt-1 flex items-center gap-2 text-[8px] text-slate-400">
-                                    <MapPin className="h-3 w-3" />
+                                <p className="mt-1.5 flex items-center gap-1.5 text-[10px] text-[#89969b]">
+                                    <MapPin className="h-3.5 w-3.5" />
                                     {request.location}
-                                </div>
+                                </p>
                             </div>
                         </div>
-                    </ReviewSection>
+                    </DrawerSection>
 
-                    <ReviewSection
-                        eyebrow="Assignment"
-                        title="Admin's assignment"
+                    <DrawerSection
+                        eyebrow="Administration"
+                        title="Assignment context"
                         icon={BriefcaseBusiness}
                     >
-                        <div className="rounded-xl border border-[#d9e6e2] bg-[#f2f7f5] p-4">
-                            <div className="flex items-start gap-3">
-                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-[#0f766e] shadow-sm">
-                                    <MessageSquareText
-                                        className="h-4 w-4"
-                                        strokeWidth={1.7}
-                                    />
-                                </div>
+                        <div className="border border-[#cfe1dd] bg-[#f5faf9] px-6 py-6">
+                            <div className="flex items-start gap-3.5">
+                                <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[#6d9189]" />
 
                                 <div>
-                                    <p className="text-[7px] font-bold uppercase tracking-[0.13em] text-[#668078]">
+                                    <p className="text-[9px] font-bold uppercase tracking-[0.13em] text-[#71857f]">
                                         Assignment note
                                     </p>
 
-                                    <p className="mt-2 text-[9px] leading-5 text-[#46625b]">
+                                    <p className="mt-2.5 text-[12px] leading-7 text-[#4d635c]">
                                         {request.assignmentNote}
                                     </p>
                                 </div>
                             </div>
                         </div>
+                    </DrawerSection>
 
-                        <div className="mt-3 grid grid-cols-2 gap-3">
-                            <SmallInfo
-                                label="Received"
-                                value={request.assignmentAge}
-                            />
-
-                            <SmallInfo
-                                label="Current responsibility"
-                                value={
-                                    request.status === 'pending'
-                                        ? 'Awaiting decision'
-                                        : 'Organization'
-                                }
-                            />
-                        </div>
-                    </ReviewSection>
-
-                    {(request.status === 'active' ||
-                        request.status === 'assigned' ||
-                        request.status === 'completed' ||
-                        request.status === 'withdrawal') && (
-                        <ReviewSection
-                            eyebrow="Assistance"
-                            title="Case progress"
+                    {['active', 'assigned', 'completed', 'withdrawal'].includes(
+                        request.status,
+                    ) && (
+                        <DrawerSection
+                            eyebrow="Progress"
+                            title="Assistance journey"
                             icon={Activity}
                         >
-                            <div className="rounded-xl border border-slate-200 bg-white p-4">
-                                <div className="flex items-end justify-between gap-4">
+                            <div className="border border-[#dce5e8] bg-white px-6 py-6 shadow-[0_5px_18px_rgba(25,52,60,0.025)]">
+                                <div className="flex items-end justify-between gap-5">
                                     <div>
-                                        <p className="text-[8px] font-bold text-slate-500">
-                                            Assistance progress
+                                        <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-[#8c989d]">
+                                            Completion
                                         </p>
 
-                                        <p className="mt-1 text-[22px] font-semibold tracking-tight text-[#173d36]">
-                                            {request.progress || 0}%
+                                        <p className="mt-2 text-[39px] font-semibold tracking-[-0.055em] text-[#203d39]">
+                                            {request.progress || 0}
+
+                                            <span className="ml-1 text-4 text-[#91a19f]">
+                                                %
+                                            </span>
                                         </p>
                                     </div>
 
-                                    <span className="text-right text-[7px] leading-4 text-slate-400">
+                                    <p className="max-w-52.5 text-right text-[10px] leading-5 text-[#8c989d]">
                                         {request.lastUpdate ||
                                             'No progress update yet'}
-                                    </span>
+                                    </p>
                                 </div>
 
-                                <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100">
+                                <div className="mt-6 h-2 overflow-hidden bg-[#e3eaec]">
                                     <div
-                                        className="h-full rounded-full bg-[#0f766e] transition-all"
+                                        className="h-full bg-primary"
                                         style={{
                                             width: `${request.progress || 0}%`,
                                         }}
                                     />
                                 </div>
-
-                                {request.status === 'active' && (
-                                    <div className="mt-4 flex items-center gap-2 rounded-lg bg-[#f6f8f7] px-3 py-2.5">
-                                        <Activity className="h-3.5 w-3.5 text-[#0f766e]" />
-
-                                        <p className="text-[7px] leading-4 text-slate-500">
-                                            Continue recording meaningful
-                                            assistance updates as the case
-                                            progresses.
-                                        </p>
-                                    </div>
-                                )}
                             </div>
-                        </ReviewSection>
+                        </DrawerSection>
                     )}
 
                     {request.status === 'active' && (
-                        <ReviewSection
-                            eyebrow="Case options"
-                            title="Need administrative help?"
+                        <DrawerSection
+                            eyebrow="Case management"
+                            title="Manage this case"
                             icon={ShieldCheck}
                         >
-                            <div className="grid gap-3 sm:grid-cols-2">
-                                <CaseOption
+                            <div className="divide-y divide-[#dce5e8] border border-[#dce5e8] bg-white shadow-[0_5px_18px_rgba(25,52,60,0.025)]">
+                                <ManagementAction
                                     icon={Users}
                                     title="Request additional support"
-                                    description="Ask Admin for volunteers, resources, or organizational support."
+                                    description="Ask administration for volunteers or additional resources."
                                 />
 
-                                <CaseOption
+                                <ManagementAction
                                     icon={RotateCcw}
                                     title="Request withdrawal"
-                                    description="Use only when your organization can no longer continue the case."
+                                    description="Use when your organization can no longer continue this case."
                                     danger
                                 />
                             </div>
-                        </ReviewSection>
+                        </DrawerSection>
                     )}
                 </div>
 
                 {/* FOOTER */}
 
-                <div className="shrink-0 border-t border-[#dfe7e4] bg-white px-6 py-4 sm:px-7">
+                <footer className="shrink-0 border-t border-[#d8e2e5] bg-white px-5 py-5 shadow-[0_-5px_18px_rgba(25,52,60,0.025)] sm:px-8">
                     <DrawerFooter request={request} onClose={onClose} />
-                </div>
+                </footer>
             </aside>
         </div>
     );
 };
 
 /* =========================================================
-   CASE OPTION
+   DRAWER SECTION
 ========================================================= */
 
-const CaseOption = ({ icon: Icon, title, description, danger = false }) => (
-    <button
-        type="button"
-        className={`group rounded-xl border bg-white p-4 text-left transition ${
-            danger
-                ? 'border-slate-200 hover:border-[#e7caca] hover:bg-[#fffafa]'
-                : 'border-slate-200 hover:border-[#bfd7d0] hover:bg-[#f6faf8]'
-        }`}
-    >
-        <div className="flex items-center justify-between">
-            <div
-                className={`flex h-8 w-8 items-center justify-center rounded-lg ${
-                    danger
-                        ? 'bg-[#fff0f0] text-[#b33a3a]'
-                        : 'bg-[#edf5f2] text-[#0f766e]'
-                }`}
-            >
-                <Icon className="h-4 w-4" strokeWidth={1.7} />
+const DrawerSection = ({ eyebrow, title, icon: Icon, children }) => (
+    <section className="mb-11">
+        <div className="mb-5 flex items-center gap-3.5">
+            <div className="flex h-9 w-9 items-center justify-center bg-[#e5f3f0] text-primary">
+                <Icon className="h-3.5 w-3.5" strokeWidth={1.7} />
             </div>
 
-            <ArrowUpRight
-                className={`h-3.5 w-3.5 text-slate-300 transition ${
-                    danger
-                        ? 'group-hover:text-[#b33a3a]'
-                        : 'group-hover:text-[#0f766e]'
-                }`}
-            />
+            <div>
+                <p className="text-[8px] font-bold uppercase tracking-[0.16em] text-[#8d999e]">
+                    {eyebrow}
+                </p>
+
+                <h3 className="mt-1 text-[14px] font-bold tracking-[-0.015em] text-[#3a4c52]">
+                    {title}
+                </h3>
+            </div>
         </div>
 
-        <p className="mt-3 text-[9px] font-bold text-slate-700">{title}</p>
-
-        <p className="mt-1 text-[7px] leading-4 text-slate-400">
-            {description}
-        </p>
-    </button>
+        {children}
+    </section>
 );
 
 /* =========================================================
-   CASE ACTION PANEL
+   DRAWER VALUE
 ========================================================= */
 
-const CaseActionPanel = ({ request }) => {
-    if (request.status === 'pending') {
-        return (
-            <div className="mb-7 overflow-hidden rounded-2xl border border-[#eadfc9] bg-[#fffaf0]">
-                <div className="h-1 bg-[#d59b2b]" />
+const DrawerValue = ({ label, value, accent = false }) => (
+    <div className="border-b border-r border-[#e3e9eb] px-6 py-5 transition hover:bg-[#fbfcfc]">
+        <p className="text-[8px] font-bold uppercase tracking-[0.12em] text-[#929da2]">
+            {label}
+        </p>
 
-                <div className="p-4">
-                    <div className="flex items-start gap-3">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#f9ecd0] text-[#9a6700]">
-                            <Clock3 className="h-4 w-4" />
-                        </div>
+        <p
+            className={`mt-2 text-[13px] font-semibold ${
+                accent ? 'text-primary' : 'text-[#46585e]'
+            }`}
+        >
+            {value}
+        </p>
+    </div>
+);
 
-                        <div className="min-w-0 flex-1">
-                            <p className="text-[10px] font-bold text-[#713f12]">
-                                Assignment awaiting your decision
-                            </p>
+/* =========================================================
+   MANAGEMENT ACTION
+========================================================= */
 
-                            <p className="mt-1 text-[8px] leading-5 text-[#92734b]">
-                                Review the request carefully. Accepting will
-                                make your organization officially responsible
-                                for this case.
-                            </p>
+const ManagementAction = ({
+    icon: Icon,
+    title,
+    description,
+    danger = false,
+}) => (
+    <button
+        type="button"
+        className="group flex w-full items-center gap-5 px-6 py-5 text-left transition hover:bg-[#f8fafb]"
+    >
+        <div
+            className={`flex h-11 w-11 shrink-0 items-center justify-center ${
+                danger
+                    ? 'bg-[#f9ecea] text-[#ad554b]'
+                    : 'bg-[#e5f3f0] text-primary'
+            }`}
+        >
+            <Icon className="h-4 w-4" strokeWidth={1.7} />
+        </div>
 
-                            <div className="mt-4 flex flex-wrap gap-2">
-                                <button
-                                    type="button"
-                                    className="inline-flex items-center gap-1.5 rounded-lg bg-[#0f766e] px-3.5 py-2 text-[8px] font-bold text-white shadow-sm transition hover:bg-[#115e59]"
-                                >
-                                    <Check className="h-3 w-3" />
-                                    Accept assignment
-                                </button>
+        <div className="min-w-0 flex-1">
+            <p
+                className={`text-[12px] font-bold ${
+                    danger ? 'text-[#955149]' : 'text-[#40535a]'
+                }`}
+            >
+                {title}
+            </p>
 
-                                <button
-                                    type="button"
-                                    className="inline-flex items-center gap-1.5 rounded-lg border border-[#e6d6ba] bg-white px-3.5 py-2 text-[8px] font-bold text-[#8a5b16] hover:bg-[#fffdf8]"
-                                >
-                                    <X className="h-3 w-3" />
-                                    Decline
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    }
+            <p className="mt-1.5 text-[10px] leading-5 text-[#8a969b]">
+                {description}
+            </p>
+        </div>
 
-    if (request.status === 'assigned') {
-        return (
-            <div className="mb-7 rounded-2xl border border-[#d6e2ef] bg-[#f3f7fc] p-4">
-                <div className="flex items-start gap-3">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-[#3970b4] shadow-sm">
-                        <CheckCircle2 className="h-4 w-4" />
-                    </div>
-
-                    <div>
-                        <p className="text-[10px] font-bold text-[#315a8e]">
-                            You are officially assigned
-                        </p>
-
-                        <p className="mt-1 text-[8px] leading-5 text-[#66809f]">
-                            Start assistance when your organization is ready to
-                            begin handling the case.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    if (request.status === 'active') {
-        return (
-            <div className="mb-7 rounded-2xl border border-[#cfe3dd] bg-[#edf7f4] p-4">
-                <div className="flex items-start gap-3">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-[#0f766e] shadow-sm">
-                        <Activity className="h-4 w-4" />
-                    </div>
-
-                    <div>
-                        <p className="text-[10px] font-bold text-[#0f625b]">
-                            Assistance is in progress
-                        </p>
-
-                        <p className="mt-1 text-[8px] leading-5 text-[#62827b]">
-                            Keep the case updated and record the assistance
-                            provided before completing it.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    return null;
-};
+        <ChevronRight
+            className={`h-4 w-4 shrink-0 transition-transform group-hover:translate-x-0.5 ${
+                danger ? 'text-[#c49b94]' : 'text-[#a0aaae]'
+            }`}
+        />
+    </button>
+);
 
 /* =========================================================
    DRAWER FOOTER
 ========================================================= */
 
 const DrawerFooter = ({ request, onClose }) => {
+    if (request.status === 'pending') {
+        return (
+            <div className="flex items-center justify-between gap-3">
+                <button
+                    type="button"
+                    onClick={onClose}
+                    className="text-[10px] font-bold text-[#7d898e] transition hover:text-[#31444a]"
+                >
+                    Close
+                </button>
+
+                <div className="flex gap-2.5">
+                    <button
+                        type="button"
+                        className="border border-[#d8e1e4] bg-white px-4 py-2.5 text-[10px] font-bold text-[#64747a] transition hover:bg-[#f8fafb]"
+                    >
+                        Decline
+                    </button>
+
+                    <button
+                        type="button"
+                        className="inline-flex items-center gap-2 bg-primary px-5 py-2.5 text-[10px] font-bold text-white shadow-[0_5px_14px_rgba(15,118,110,0.12)] transition hover:bg-primary-hover"
+                    >
+                        Accept assignment
+                        <Check className="h-3.5 w-3.5" />
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
     if (request.status === 'assigned') {
         return (
             <div className="flex items-center justify-between gap-3">
                 <button
                     type="button"
                     onClick={onClose}
-                    className="text-[8px] font-bold text-slate-500 hover:text-slate-800"
+                    className="text-[10px] font-bold text-[#7d898e] transition hover:text-[#31444a]"
                 >
                     Close
                 </button>
 
                 <button
                     type="button"
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-[#0f766e] px-4 py-2.5 text-[8px] font-bold text-white shadow-sm hover:bg-[#115e59]"
+                    className="inline-flex items-center gap-2 bg-primary px-5 py-2.5 text-[10px] font-bold text-white shadow-[0_5px_14px_rgba(15,118,110,0.12)] transition hover:bg-primary-hover"
                 >
                     Start assistance
-                    <ArrowRight className="h-3 w-3" />
+                    <ArrowRight className="h-3.5 w-3.5" />
                 </button>
             </div>
         );
@@ -1603,25 +1687,25 @@ const DrawerFooter = ({ request, onClose }) => {
                 <button
                     type="button"
                     onClick={onClose}
-                    className="text-[8px] font-bold text-slate-500 hover:text-slate-800"
+                    className="text-[10px] font-bold text-[#7d898e] transition hover:text-[#31444a]"
                 >
                     Close
                 </button>
 
-                <div className="flex gap-2">
+                <div className="flex gap-2.5">
                     <button
                         type="button"
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-[8px] font-bold text-slate-600 hover:bg-slate-50"
+                        className="border border-[#d8e1e4] bg-white px-4 py-2.5 text-[10px] font-bold text-[#64747a] transition hover:bg-[#f8fafb]"
                     >
                         Add update
                     </button>
 
                     <button
                         type="button"
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-[#0f766e] px-4 py-2.5 text-[8px] font-bold text-white hover:bg-[#115e59]"
+                        className="inline-flex items-center gap-2 bg-primary px-5 py-2.5 text-[10px] font-bold text-white shadow-[0_5px_14px_rgba(15,118,110,0.12)] transition hover:bg-primary-hover"
                     >
                         Complete case
-                        <Check className="h-3 w-3" />
+                        <Check className="h-3.5 w-3.5" />
                     </button>
                 </div>
             </div>
@@ -1633,7 +1717,7 @@ const DrawerFooter = ({ request, onClose }) => {
             <button
                 type="button"
                 onClick={onClose}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-[8px] font-bold text-slate-600 hover:bg-slate-50"
+                className="border border-[#d8e1e4] bg-white px-5 py-2.5 text-[10px] font-bold text-[#64747a] transition hover:bg-[#f8fafb]"
             >
                 Close review
             </button>
@@ -1642,91 +1726,36 @@ const DrawerFooter = ({ request, onClose }) => {
 };
 
 /* =========================================================
-   REVIEW SECTION
+   URGENCY
 ========================================================= */
 
-const ReviewSection = ({ eyebrow, title, icon: Icon, children }) => (
-    <section className="mb-7">
-        <div className="mb-3 flex items-center gap-2.5">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#edf4f1] text-[#0f766e]">
-                <Icon className="h-3.5 w-3.5" strokeWidth={1.7} />
-            </div>
+const UrgencyBadge = ({ urgency, dark = false }) => {
+    const lightStyles = {
+        High: 'bg-[#fff0ed] text-[#ad5145]',
+        Medium: 'bg-[#fff3d4] text-[#9a6908]',
+        Low: 'bg-[#edf1f1] text-[#637379]',
+    };
 
-            <div>
-                <p className="text-[7px] font-bold uppercase tracking-[0.15em] text-slate-400">
-                    {eyebrow}
-                </p>
-
-                <h3 className="mt-0.5 text-[10px] font-bold text-slate-700">
-                    {title}
-                </h3>
-            </div>
-        </div>
-
-        {children}
-    </section>
-);
-
-/* =========================================================
-   INFO CELL
-========================================================= */
-
-const InfoCell = ({ label, value, emphasis = false }) => (
-    <div className="bg-white px-4 py-3.5">
-        <p className="text-[7px] font-bold uppercase tracking-[0.12em] text-slate-400">
-            {label}
-        </p>
-
-        <p
-            className={`mt-1.5 text-[9px] ${
-                emphasis
-                    ? 'font-bold text-[#0f766e]'
-                    : 'font-semibold text-slate-600'
-            }`}
-        >
-            {value}
-        </p>
-    </div>
-);
-
-/* =========================================================
-   SMALL INFO
-========================================================= */
-
-const SmallInfo = ({ label, value }) => (
-    <div className="rounded-xl border border-slate-200 bg-white px-3.5 py-3">
-        <p className="text-[7px] font-bold uppercase tracking-[0.11em] text-slate-400">
-            {label}
-        </p>
-
-        <p className="mt-1.5 text-[8px] font-bold text-slate-600">{value}</p>
-    </div>
-);
-
-/* =========================================================
-   URGENCY BADGE
-========================================================= */
-
-const UrgencyBadge = ({ urgency }) => {
-    const config = {
-        High: 'bg-[#fff0ed] text-[#b54b38] ring-[#efccc5]',
-        Medium: 'bg-[#fff7e7] text-[#9a6700] ring-[#ecd7a8]',
-        Low: 'bg-[#f1f3f4] text-[#687178] ring-[#dce0e2]',
+    const darkStyles = {
+        High: 'bg-[#ffffff]/10 text-[#ffd3c9]',
+        Medium: 'bg-[#ffffff]/10 text-[#ffe0a0]',
+        Low: 'bg-[#ffffff]/10 text-white/65',
     };
 
     return (
         <span
-            className={`inline-flex rounded-full px-2.5 py-1.5 text-[7px] font-bold ring-1 ring-inset ${
-                config[urgency] || config.Low
+            className={`inline-flex items-center gap-2 px-2.5 py-1.5 text-[9px] font-bold ${
+                dark ? darkStyles[urgency] : lightStyles[urgency]
             }`}
         >
-            {urgency}
+            <span className="h-1.5 w-1.5 rounded-full bg-current" />
+            {urgency} priority
         </span>
     );
 };
 
 /* =========================================================
-   HELPERS
+   FORMAT
 ========================================================= */
 
 const formatCurrency = (amount) => `৳${amount.toLocaleString('en-BD')}`;

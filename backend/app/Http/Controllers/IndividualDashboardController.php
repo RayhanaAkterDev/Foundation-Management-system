@@ -46,7 +46,10 @@ class IndividualDashboardController extends Controller
         //
         // latest() means the newest request is returned first.
         //
-        $helpRequests = HelpRequest::where('user_id', $user->id)
+        $helpRequests = HelpRequest::with([
+            'assignments',
+        ])
+            ->where('user_id', $user->id)
             ->latest('created_at')
             ->get()
             ->map(function ($request) {
@@ -59,9 +62,25 @@ class IndividualDashboardController extends Controller
                     'district' => $request->district,
                     'address' => $request->address,
                     'urgency' => $request->urgency,
+
                     'submittedDate' => $request->created_at,
                     'created_at' => $request->created_at,
                     'updated_at' => $request->updated_at,
+
+                    // Assignment information is separate
+                    // from HelpRequest.status.
+                    'assignments' => $request->assignments
+                        ->map(function ($assignment) {
+                            return [
+                                'id' => $assignment->id,
+                                'status' => $assignment->status,
+                                'organization_id' => $assignment->organization_id,
+                                'volunteer_id' => $assignment->volunteer_id,
+                                'assigned_at' => $assignment->assigned_at,
+                                'completed_at' => $assignment->completed_at,
+                            ];
+                        })
+                        ->values(),
                 ];
             })
             ->values();

@@ -48,6 +48,16 @@ import AdminCampaigns from '@/dashboard/admin/AdminCampaigns';
 import AdminReports from '@/dashboard/admin/AdminReports';
 import AdminSettings from '@/dashboard/admin/AdminSettings';
 
+// Organization dashboard routes
+import OrgDashboard from '@/dashboard/organization/OrgDashboard';
+import OrganizationHelpRequests from '@/dashboard/organization/OrgHelpRequests';
+import OrganizationCampaigns from '@/dashboard/organization/OrgCampaigns';
+import OrganizationVolunteers from '@/dashboard/organization/OrgVolunteers';
+import OrganizationReports from '@/dashboard/organization/OrgReports';
+import OrganizationProfile from '@/dashboard/organization/OrgProfile';
+import OrganizationNotifications from '@/dashboard/organization/OrgNotifications';
+import OrganizationSettings from '@/dashboard/organization/OrgSettings';
+
 // Individual dashboard routes
 import IndividualCampaigns from '@/dashboard/individual/IndividualCampaigns';
 import IndividualNotifications from '@/dashboard/individual/IndividualNotifications';
@@ -180,7 +190,35 @@ const router = createBrowserRouter([
                 children: [
                     {
                         path: 'organization',
-                        element: <OrganizationDashboard />,
+                        element: <OrgDashboard />,
+                    },
+                    {
+                        path: 'organization/help-requests',
+                        element: <OrganizationHelpRequests />,
+                    },
+                    {
+                        path: 'organization/campaigns',
+                        element: <OrganizationCampaigns />,
+                    },
+                    {
+                        path: 'organization/volunteers',
+                        element: <OrganizationVolunteers />,
+                    },
+                    {
+                        path: 'organization/reports',
+                        element: <OrganizationReports />,
+                    },
+                    {
+                        path: 'organization/profile',
+                        element: <OrganizationProfile />,
+                    },
+                    {
+                        path: 'organization/notifications',
+                        element: <OrganizationNotifications />,
+                    },
+                    {
+                        path: 'organization/settings',
+                        element: <OrganizationSettings />,
                     },
                 ],
             },

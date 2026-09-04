@@ -1,9 +1,7 @@
 import React from 'react';
-
-import { SlidersHorizontal, UserRound } from 'lucide-react';
+import { Building2, SlidersHorizontal, UserRound } from 'lucide-react';
 
 import DataTable from '@/components/dashboard/DataTable';
-
 import StatusBadge from '@/components/dashboard/StatusBadge';
 
 const HelpRequestTable = ({
@@ -13,131 +11,184 @@ const HelpRequestTable = ({
     getSortIcon,
     resultCount,
     onRequesterClick,
+    onOrganizationClick,
     onSetPriority,
 }) => {
     const enhancedColumns = columns.map((column) => {
         // --------------------------------
-        // Help Request
+        // Help Request Details
         // --------------------------------
         if (column.key === 'title') {
             return {
                 ...column,
-
-                render: (value, row) => (
-                    <div className="min-w-0 max-w-80">
-                        {/* Title */}
-                        <p className="truncate font-semibold text-text-primary">
-                            {value || 'Untitled request'}
-                        </p>
-
-                        {/* Description */}
-                        {row.description && (
-                            <p className="mt-1 line-clamp-2 text-xs leading-5 text-text-secondary">
-                                {row.description}
-                            </p>
-                        )}
-
-                        {/* Category */}
-                        <p className="mt-1 text-xs font-medium text-text-secondary">
-                            <span className="font-semibold text-text-primary">
-                                Category:
-                            </span>{' '}
-                            {row.category || 'Not specified'}
-                        </p>
-
-                        {/* District */}
-                        <p className="mt-0.5 text-xs font-medium text-text-secondary">
-                            <span className="font-semibold text-text-primary">
-                                District:
-                            </span>{' '}
-                            {row.district || 'Not specified'}
-                        </p>
-                    </div>
-                ),
-            };
-        }
-
-        // --------------------------------
-        // Requester
-        // --------------------------------
-        if (column.key === 'requester' || column.key === 'requesterName') {
-            return {
-                ...column,
-
                 render: (value, row) => {
                     const requester = row.user || row.requester;
 
-                    if (!requester && !row.requesterId) {
-                        return <span className="text-text-secondary">—</span>;
-                    }
-
-                    const name =
+                    const requesterName =
                         requester?.name ||
                         requester?.full_name ||
-                        value ||
+                        row.requesterName ||
                         'Unknown user';
 
-                    const email = requester?.email || row.requesterEmail;
+                    const requesterEmail =
+                        requester?.email || row.requesterEmail || '';
 
                     const requesterId =
-                        requester?.id || row.requesterId || row.user_id;
-
-                    if (!requesterId) {
-                        return (
-                            <div className="min-w-0">
-                                <p className="truncate text-sm font-semibold text-text-primary">
-                                    {name}
-                                </p>
-
-                                {email && (
-                                    <p className="mt-0.5 max-w-52 truncate text-xs text-text-secondary">
-                                        {email}
-                                    </p>
-                                )}
-                            </div>
-                        );
-                    }
+                        requester?.id || row.requesterId || row.user_id || null;
 
                     return (
-                        <button
-                            type="button"
-                            onClick={() => onRequesterClick?.(requesterId, row)}
-                            className="group flex min-w-0 items-center gap-2.5 text-left"
-                            title="View requester details"
-                        >
-                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-white">
-                                <UserRound size={15} strokeWidth={1.8} />
-                            </span>
+                        <div className="w-105 min-w-95 max-w-105">
+                            {/* Title */}
+                            <p className="truncate text-sm font-semibold text-text-primary">
+                                {value || 'Untitled request'}
+                            </p>
 
-                            <span className="min-w-0">
-                                <span className="block truncate text-sm font-semibold text-primary transition-colors group-hover:text-primary-hover group-hover:underline">
-                                    {name}
+                            {/* Description */}
+                            {row.description && (
+                                <p className="mt-1 line-clamp-2 text-xs leading-5 text-text-secondary">
+                                    {row.description}
+                                </p>
+                            )}
+
+                            {/* Category + District */}
+                            <div className="mt-2 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium text-text-secondary">
+                                <span>
+                                    <span className="font-semibold text-text-primary">
+                                        Category:
+                                    </span>{' '}
+                                    {row.category || 'Not specified'}
                                 </span>
 
-                                {email && (
-                                    <span className="mt-0.5 block max-w-52 truncate text-xs text-text-secondary">
-                                        {email}
-                                    </span>
+                                <span className="text-border">•</span>
+
+                                <span>
+                                    <span className="font-semibold text-text-primary">
+                                        District:
+                                    </span>{' '}
+                                    {row.district || 'Not specified'}
+                                </span>
+                            </div>
+
+                            {/* Requester */}
+                            <div className="mt-2">
+                                {!requesterId ? (
+                                    <div className="flex min-w-0 items-center gap-2">
+                                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                                            <UserRound
+                                                size={13}
+                                                strokeWidth={1.8}
+                                            />
+                                        </span>
+
+                                        <div className="min-w-0">
+                                            <p className="truncate text-xs font-semibold text-text-primary">
+                                                {requesterName}
+                                            </p>
+
+                                            {requesterEmail && (
+                                                <p className="truncate text-[11px] text-text-secondary">
+                                                    {requesterEmail}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            onRequesterClick?.(requesterId, row)
+                                        }
+                                        className="group flex min-w-0 items-center gap-2 text-left"
+                                        title="View requester details"
+                                    >
+                                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-white">
+                                            <UserRound
+                                                size={13}
+                                                strokeWidth={1.8}
+                                            />
+                                        </span>
+
+                                        <span className="min-w-0">
+                                            <span className="block truncate text-xs font-semibold text-primary transition-colors group-hover:text-primary-hover group-hover:underline">
+                                                {requesterName}
+                                            </span>
+
+                                            {requesterEmail && (
+                                                <span className="block truncate text-[11px] text-text-secondary">
+                                                    {requesterEmail}
+                                                </span>
+                                            )}
+                                        </span>
+                                    </button>
                                 )}
-                            </span>
-                        </button>
+                            </div>
+                        </div>
                     );
                 },
             };
         }
 
         // --------------------------------
-        // Category
+        // Assigned Organization
         // --------------------------------
-        if (column.key === 'category') {
+        if (column.key === 'assignedOrganization') {
             return {
                 ...column,
+                render: (value, row) => {
+                    const organization =
+                        row.assignedOrganization ||
+                        row.assigned_organization ||
+                        null;
 
-                render: (value) => (
-                    <span className="inline-flex items-center rounded-full bg-background-alt px-2.5 py-1 text-[11px] font-semibold capitalize text-text-secondary">
-                        {value || 'Not specified'}
-                    </span>
-                ),
+                    const name =
+                        typeof organization === 'string'
+                            ? organization
+                            : organization?.name || value;
+
+                    const organizationId =
+                        row.assignedOrganizationId ||
+                        row.assigned_organization_id ||
+                        (typeof organization === 'object'
+                            ? organization?.id
+                            : null);
+
+                    if (!name || name === 'Not assigned') {
+                        return (
+                            <span className="whitespace-nowrap text-xs text-text-secondary">
+                                Not assigned
+                            </span>
+                        );
+                    }
+
+                    if (!organizationId) {
+                        return (
+                            <span className="block min-w-42.5 max-w-55 truncate text-sm font-semibold text-text-primary">
+                                {name}
+                            </span>
+                        );
+                    }
+
+                    return (
+                        <button
+                            type="button"
+                            onClick={() =>
+                                onOrganizationClick?.(organizationId, row)
+                            }
+                            className="group flex min-w-0 items-center gap-2.5 text-left"
+                            title="View organization details"
+                        >
+                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-white">
+                                <Building2 size={15} strokeWidth={1.8} />
+                            </span>
+
+                            <span className="min-w-0 max-w-47.5">
+                                <span className="block truncate text-sm font-semibold text-primary transition-colors group-hover:text-primary-hover group-hover:underline">
+                                    {name}
+                                </span>
+                            </span>
+                        </button>
+                    );
+                },
             };
         }
 
@@ -147,21 +198,12 @@ const HelpRequestTable = ({
         if (column.key === 'priority' || column.key === 'urgency') {
             return {
                 ...column,
-
                 render: (value, row) => {
                     const priority =
                         value || row.priority || row.urgency || null;
 
                     const normalizedPriority = priority?.toLowerCase();
 
-                    /*
-                     * The backend/database uses "normal"
-                     * as the default urgency value.
-                     *
-                     * In the admin workflow, "normal" means
-                     * the admin has not explicitly set a
-                     * priority yet.
-                     */
                     const priorityNotSet =
                         !priority || normalizedPriority === 'normal';
 
@@ -174,9 +216,9 @@ const HelpRequestTable = ({
                     };
 
                     return (
-                        <div className="flex flex-col items-start gap-1.5">
+                        <div className="flex min-w-25 flex-col items-start gap-1.5">
                             <span
-                                className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold capitalize ${
+                                className={`inline-flex items-center whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-semibold capitalize ${
                                     priorityStyles[normalizedPriority] ||
                                     'bg-background-alt text-text-secondary'
                                 }`}
@@ -188,7 +230,7 @@ const HelpRequestTable = ({
                                 <button
                                     type="button"
                                     onClick={() => onSetPriority(row)}
-                                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary transition-colors hover:text-primary-hover hover:underline"
+                                    className="inline-flex whitespace-nowrap items-center gap-1 text-[11px] font-semibold text-primary transition-colors hover:text-primary-hover hover:underline"
                                 >
                                     <SlidersHorizontal size={12} />
 
@@ -209,23 +251,36 @@ const HelpRequestTable = ({
         if (column.key === 'status') {
             return {
                 ...column,
-
-                render: (value) => <StatusBadge status={value} />,
+                render: (value) => (
+                    <div className="whitespace-nowrap">
+                        <StatusBadge status={value} />
+                    </div>
+                ),
             };
         }
 
         // --------------------------------
-        // Submitted date
+        // Submitted Date
         // --------------------------------
         if (column.key === 'submittedDate') {
             return {
                 ...column,
-
                 render: (value) => (
-                    <span className="whitespace-nowrap text-text-secondary">
+                    <span className="whitespace-nowrap text-xs text-text-secondary">
                         {value || '—'}
                     </span>
                 ),
+            };
+        }
+
+        // --------------------------------
+        // Actions
+        // --------------------------------
+        if (column.key === 'id') {
+            return {
+                ...column,
+                render: (value, row) =>
+                    column.render ? column.render(value, row) : null,
             };
         }
 

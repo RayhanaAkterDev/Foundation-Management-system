@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\HelpRequestAssignment;
+use App\Models\Organization;
 use Illuminate\Http\Request;
 
 class OrganizationController extends Controller
@@ -16,11 +17,14 @@ class OrganizationController extends Controller
 
         if (!$user || $user->role !== 'organization') {
             return response()->json([
-                'message' => 'Only organization users can view assignments.',
+                'message' => 'Unauthorized.',
             ], 403);
         }
 
-        $organization = $user->organization;
+        $organization = Organization::where(
+            'user_id',
+            $user->id
+        )->first();
 
         if (!$organization) {
             return response()->json([
@@ -32,7 +36,10 @@ class OrganizationController extends Controller
             'helpRequest',
             'assignedBy:id,name,email',
         ])
-            ->where('organization_id', $organization->id)
+            ->where(
+                'organization_id',
+                $organization->id
+            )
             ->latest()
             ->get();
 
@@ -42,19 +49,26 @@ class OrganizationController extends Controller
     }
 
     /**
-     * Organization: Accept an assigned help request.
+     * Organization: Accept a pending help request assignment.
+     *
+     * pending -> accepted
      */
-    public function acceptAssignment(Request $request, int $id)
-    {
+    public function acceptAssignment(
+        Request $request,
+        int $id
+    ) {
         $user = $request->user();
 
         if (!$user || $user->role !== 'organization') {
             return response()->json([
-                'message' => 'Only organization users can accept assignments.',
+                'message' => 'Unauthorized.',
             ], 403);
         }
 
-        $organization = $user->organization;
+        $organization = Organization::where(
+            'user_id',
+            $user->id
+        )->first();
 
         if (!$organization) {
             return response()->json([
@@ -62,9 +76,14 @@ class OrganizationController extends Controller
             ], 404);
         }
 
-        $assignment = HelpRequestAssignment::with('helpRequest')
-            ->where('id', $id)
-            ->where('organization_id', $organization->id)
+        $assignment = HelpRequestAssignment::where(
+            'id',
+            $id
+        )
+            ->where(
+                'organization_id',
+                $organization->id
+            )
             ->first();
 
         if (!$assignment) {
@@ -73,39 +92,55 @@ class OrganizationController extends Controller
             ], 404);
         }
 
-        if ($assignment->status !== 'assigned') {
+        if (
+            $assignment->status !==
+            HelpRequestAssignment::STATUS_PENDING
+        ) {
             return response()->json([
-                'message' => 'Only assigned requests can be accepted.',
+                'message' =>
+                'Only pending assignments can be accepted.',
             ], 422);
         }
 
         $assignment->update([
-            'status' => 'accepted',
+            'status' =>
+            HelpRequestAssignment::STATUS_ACCEPTED,
         ]);
 
         return response()->json([
-            'message' => 'Help request accepted successfully.',
-            'assignment' => $assignment->fresh()->load([
-                'helpRequest',
-                'assignedBy:id,name,email',
-            ]),
+            'message' =>
+            'Help request assignment accepted successfully.',
+
+            'assignment' => $assignment
+                ->fresh()
+                ->load([
+                    'helpRequest',
+                    'assignedBy:id,name,email',
+                ]),
         ]);
     }
 
     /**
-     * Organization: Reject an assigned help request.
+     * Organization: Reject a pending help request assignment.
+     *
+     * pending -> rejected
      */
-    public function rejectAssignment(Request $request, int $id)
-    {
+    public function rejectAssignment(
+        Request $request,
+        int $id
+    ) {
         $user = $request->user();
 
         if (!$user || $user->role !== 'organization') {
             return response()->json([
-                'message' => 'Only organization users can reject assignments.',
+                'message' => 'Unauthorized.',
             ], 403);
         }
 
-        $organization = $user->organization;
+        $organization = Organization::where(
+            'user_id',
+            $user->id
+        )->first();
 
         if (!$organization) {
             return response()->json([
@@ -113,9 +148,14 @@ class OrganizationController extends Controller
             ], 404);
         }
 
-        $assignment = HelpRequestAssignment::with('helpRequest')
-            ->where('id', $id)
-            ->where('organization_id', $organization->id)
+        $assignment = HelpRequestAssignment::where(
+            'id',
+            $id
+        )
+            ->where(
+                'organization_id',
+                $organization->id
+            )
             ->first();
 
         if (!$assignment) {
@@ -124,39 +164,66 @@ class OrganizationController extends Controller
             ], 404);
         }
 
-        if ($assignment->status !== 'assigned') {
+        if (
+            $assignment->status !==
+            HelpRequestAssignment::STATUS_PENDING
+        ) {
             return response()->json([
-                'message' => 'Only assigned requests can be rejected.',
+                'message' =>
+                'Only pending assignments can be rejected.',
             ], 422);
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Keep organization_id
+        |--------------------------------------------------------------------------
+        |
+        | The rejected assignment remains in the database so Admin can see
+        | which organization rejected the request and can assign the
+        | request to another organization.
+        |
+        */
+
         $assignment->update([
-            'status' => 'rejected',
+            'status' =>
+            HelpRequestAssignment::STATUS_REJECTED,
         ]);
 
         return response()->json([
-            'message' => 'Help request assignment rejected successfully.',
-            'assignment' => $assignment->fresh()->load([
-                'helpRequest',
-                'assignedBy:id,name,email',
-            ]),
+            'message' =>
+            'Help request assignment rejected successfully.',
+
+            'assignment' => $assignment
+                ->fresh()
+                ->load([
+                    'helpRequest',
+                    'assignedBy:id,name,email',
+                ]),
         ]);
     }
 
     /**
      * Organization: Start working on an accepted assignment.
+     *
+     * accepted -> in_progress
      */
-    public function startAssignment(Request $request, int $id)
-    {
+    public function startAssignment(
+        Request $request,
+        int $id
+    ) {
         $user = $request->user();
 
         if (!$user || $user->role !== 'organization') {
             return response()->json([
-                'message' => 'Only organization users can start assignments.',
+                'message' => 'Unauthorized.',
             ], 403);
         }
 
-        $organization = $user->organization;
+        $organization = Organization::where(
+            'user_id',
+            $user->id
+        )->first();
 
         if (!$organization) {
             return response()->json([
@@ -164,9 +231,14 @@ class OrganizationController extends Controller
             ], 404);
         }
 
-        $assignment = HelpRequestAssignment::with('helpRequest')
-            ->where('id', $id)
-            ->where('organization_id', $organization->id)
+        $assignment = HelpRequestAssignment::where(
+            'id',
+            $id
+        )
+            ->where(
+                'organization_id',
+                $organization->id
+            )
             ->first();
 
         if (!$assignment) {
@@ -175,39 +247,55 @@ class OrganizationController extends Controller
             ], 404);
         }
 
-        if ($assignment->status !== 'accepted') {
+        if (
+            $assignment->status !==
+            HelpRequestAssignment::STATUS_ACCEPTED
+        ) {
             return response()->json([
-                'message' => 'Only accepted assignments can be started.',
+                'message' =>
+                'Only accepted assignments can be started.',
             ], 422);
         }
 
         $assignment->update([
-            'status' => 'in_progress',
+            'status' =>
+            HelpRequestAssignment::STATUS_IN_PROGRESS,
         ]);
 
         return response()->json([
-            'message' => 'Help request assignment marked as in progress.',
-            'assignment' => $assignment->fresh()->load([
-                'helpRequest',
-                'assignedBy:id,name,email',
-            ]),
+            'message' =>
+            'Help request assignment started successfully.',
+
+            'assignment' => $assignment
+                ->fresh()
+                ->load([
+                    'helpRequest',
+                    'assignedBy:id,name,email',
+                ]),
         ]);
     }
 
     /**
      * Organization: Complete an in-progress assignment.
+     *
+     * in_progress -> completed
      */
-    public function completeAssignment(Request $request, int $id)
-    {
+    public function completeAssignment(
+        Request $request,
+        int $id
+    ) {
         $user = $request->user();
 
         if (!$user || $user->role !== 'organization') {
             return response()->json([
-                'message' => 'Only organization users can complete assignments.',
+                'message' => 'Unauthorized.',
             ], 403);
         }
 
-        $organization = $user->organization;
+        $organization = Organization::where(
+            'user_id',
+            $user->id
+        )->first();
 
         if (!$organization) {
             return response()->json([
@@ -215,9 +303,14 @@ class OrganizationController extends Controller
             ], 404);
         }
 
-        $assignment = HelpRequestAssignment::with('helpRequest')
-            ->where('id', $id)
-            ->where('organization_id', $organization->id)
+        $assignment = HelpRequestAssignment::where(
+            'id',
+            $id
+        )
+            ->where(
+                'organization_id',
+                $organization->id
+            )
             ->first();
 
         if (!$assignment) {
@@ -226,23 +319,32 @@ class OrganizationController extends Controller
             ], 404);
         }
 
-        if ($assignment->status !== 'in_progress') {
+        if (
+            $assignment->status !==
+            HelpRequestAssignment::STATUS_IN_PROGRESS
+        ) {
             return response()->json([
-                'message' => 'Only in-progress assignments can be completed.',
+                'message' =>
+                'Only in-progress assignments can be completed.',
             ], 422);
         }
 
         $assignment->update([
-            'status' => 'completed',
+            'status' =>
+            HelpRequestAssignment::STATUS_COMPLETED,
             'completed_at' => now(),
         ]);
 
         return response()->json([
-            'message' => 'Help request assignment completed successfully.',
-            'assignment' => $assignment->fresh()->load([
-                'helpRequest',
-                'assignedBy:id,name,email',
-            ]),
+            'message' =>
+            'Help request assignment completed successfully.',
+
+            'assignment' => $assignment
+                ->fresh()
+                ->load([
+                    'helpRequest',
+                    'assignedBy:id,name,email',
+                ]),
         ]);
     }
 }

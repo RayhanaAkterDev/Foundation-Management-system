@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+
 import { useNavigate } from 'react-router-dom';
 
 import {
@@ -76,6 +77,54 @@ const getDaysLeft = (deadline) => {
     );
 };
 
+/*
+|--------------------------------------------------------------------------
+| Help Request Status
+|--------------------------------------------------------------------------
+|
+| These are the ONLY HelpRequest statuses used by the backend:
+|
+| pending
+| verified
+| rejected
+| completed
+|
+| Assignment statuses such as assigned, accepted and in_progress
+| belong to HelpRequestAssignment, NOT HelpRequest.
+|
+*/
+
+const getRequestProgress = (status) => {
+    switch (status) {
+        case 'pending':
+            return 0;
+
+        case 'verified':
+            return 1;
+
+        case 'completed':
+            return 2;
+
+        default:
+            return 0;
+    }
+};
+
+const REQUEST_STAGES = [
+    {
+        key: 'submitted',
+        label: 'Submitted',
+    },
+    {
+        key: 'reviewed',
+        label: 'Reviewed',
+    },
+    {
+        key: 'update',
+        label: 'Update',
+    },
+];
+
 const IndividualDashboard = () => {
     const navigate = useNavigate();
 
@@ -145,12 +194,32 @@ const IndividualDashboard = () => {
     };
 
     const helpRequests = dashboard?.helpRequests || [];
+
     const activeCampaigns = dashboard?.activeCampaigns || [];
+
     const individualActivity = dashboard?.activity || [];
 
     const firstName = individualUser.name?.split(' ')[0] || 'User';
 
+    /*
+    |--------------------------------------------------------------------------
+    | Current Request
+    |--------------------------------------------------------------------------
+    |
+    | Backend explicitly guarantees:
+    |
+    | Index 0 = newest help request.
+    |
+    | Do NOT filter by fake statuses such as assigned,
+    | accepted or in_progress.
+    |
+    | We also intentionally include completed/rejected requests
+    | so their final status can still be displayed on the dashboard.
+    |
+    */
+
     const currentRequest = helpRequests[0] || null;
+
     const featuredCampaign = activeCampaigns[0] || null;
 
     const campaignProgress = featuredCampaign
@@ -158,40 +227,63 @@ const IndividualDashboard = () => {
         : 0;
 
     /*
-     * ------------------------------------------------------------
-     * TEMPORARY STATIC DATA
-     * ------------------------------------------------------------
-     * These are intentionally kept static for the UI phase.
-     * We will replace these values with actual API data later.
-     */
+    |--------------------------------------------------------------------------
+    | Help Request Summary
+    |--------------------------------------------------------------------------
+    |
+    | These counts use actual HelpRequest statuses.
+    |
+    | "Active" currently means verified requests because the
+    | HelpRequest itself does not have an in_progress status.
+    |
+    | Assignment-level progress is intentionally NOT treated as
+    | HelpRequest.status.
+    |
+    */
 
     const helpRequestSummary = {
-        total: 3,
-        underReview: 1,
-        inProgress: 1,
-        completed: 1,
+        total: helpRequests.length,
+
+        underReview: helpRequests.filter(
+            (request) => request.status?.toLowerCase() === 'pending',
+        ).length,
+
+        inProgress: helpRequests.filter(
+            (request) => request.status?.toLowerCase() === 'verified',
+        ).length,
+
+        completed: helpRequests.filter(
+            (request) => request.status?.toLowerCase() === 'completed',
+        ).length,
     };
 
-    const recentUpdates = [
-        {
-            id: 1,
-            title: 'Your help request was reviewed',
-            description: 'Your request has moved to the next stage.',
-            date: '2 hours ago',
-        },
-        {
-            id: 2,
-            title: 'Donation received successfully',
-            description: 'Your recent contribution has been recorded.',
-            date: 'Yesterday',
-        },
-        {
-            id: 3,
-            title: 'Campaign update available',
-            description: 'A campaign you supported has made progress.',
-            date: '3 days ago',
-        },
-    ];
+    /*
+    |--------------------------------------------------------------------------
+    | Recent Updates
+    |--------------------------------------------------------------------------
+    |
+    | Previously this section contained hard-coded fake updates.
+    |
+    | The IndividualDashboardController already returns real
+    | activity data, so use that instead.
+    |
+    */
+
+    const recentUpdates = individualActivity
+        .slice(0, 3)
+        .map((activity, index) => ({
+            id: activity.id || `update-${index}`,
+            title:
+                activity.title ||
+                activity.description ||
+                activity.action ||
+                'Activity update',
+            description:
+                activity.description ||
+                activity.action ||
+                'There is a new update on your SP activity.',
+            date: activity.date ? formatDate(activity.date) : '',
+        }));
 
     return (
         <div className="min-h-full bg-[#f8f8f5] text-[#17211e]">
@@ -363,7 +455,7 @@ const IndividualDashboard = () => {
                             </p>
                         </div>
 
-                        <div className="grid sm:grid-cols-3 items-center">
+                        <div className="grid items-center sm:grid-cols-3">
                             <ImpactStat
                                 value={
                                     <>
@@ -425,7 +517,7 @@ const IndividualDashboard = () => {
 
                                 <HelpRequestStat
                                     value={helpRequestSummary.inProgress}
-                                    label="In progress"
+                                    label="Active"
                                 />
 
                                 <HelpRequestStat
@@ -494,7 +586,9 @@ const IndividualDashboard = () => {
                                                 </p>
                                             )}
 
-                                            <RequestProgress />
+                                            <RequestProgress
+                                                status={currentRequest.status}
+                                            />
                                         </div>
 
                                         {/* Request status */}
@@ -876,30 +970,36 @@ const IndividualDashboard = () => {
                             </div>
 
                             <div className="mt-6">
-                                {recentUpdates.map((update) => (
-                                    <div
-                                        key={update.id}
-                                        className="border-b border-slate-300 py-5 first:border-t"
-                                    >
-                                        <div className="flex gap-3">
-                                            <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                                {recentUpdates.length ? (
+                                    recentUpdates.map((update) => (
+                                        <div
+                                            key={update.id}
+                                            className="border-b border-slate-300 py-5 first:border-t"
+                                        >
+                                            <div className="flex gap-3">
+                                                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
 
-                                            <div className="min-w-0">
-                                                <p className="text-[12px] font-bold leading-5 text-[#33443f]">
-                                                    {update.title}
-                                                </p>
+                                                <div className="min-w-0">
+                                                    <p className="text-[12px] font-bold leading-5 text-[#33443f]">
+                                                        {update.title}
+                                                    </p>
 
-                                                <p className="mt-1.5 text-[10px] leading-4 text-slate-500">
-                                                    {update.description}
-                                                </p>
+                                                    <p className="mt-1.5 text-[10px] leading-4 text-slate-500">
+                                                        {update.description}
+                                                    </p>
 
-                                                <p className="mt-2 text-[9px] font-semibold uppercase tracking-[0.12em] text-slate-400">
-                                                    {update.date}
-                                                </p>
+                                                    <p className="mt-2 text-[9px] font-semibold uppercase tracking-[0.12em] text-slate-400">
+                                                        {update.date}
+                                                    </p>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    ))
+                                ) : (
+                                    <p className="border-y border-slate-300 py-5 text-xs text-slate-400">
+                                        No recent updates yet.
+                                    </p>
+                                )}
                             </div>
 
                             <button
@@ -992,7 +1092,7 @@ const SectionHeader = ({ eyebrow, title, action, onClick }) => (
 );
 
 const ImpactStat = ({ value, label }) => (
-    <div className="border-l border-slate-200 px-0 py-5 sm:px-7 sm:first:pl-0 flex flex-col items-center justify-center bg-[#F8F8F5] m-4">
+    <div className="m-4 flex flex-col items-center justify-center border-l border-slate-200 bg-[#F8F8F5] px-0 py-5 sm:px-7 sm:first:pl-0">
         <p className="font-['Fraunces'] text-[38px] font-semibold leading-none tracking-[-0.035em] text-[#17211e]">
             {value}
         </p>
@@ -1015,35 +1115,124 @@ const HelpRequestStat = ({ value, label }) => (
     </div>
 );
 
-const RequestProgress = () => (
-    <div className="mt-9 max-w-xl">
-        <div className="flex items-center">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white">
-                <Check className="h-3.5 w-3.5" />
+/*
+|--------------------------------------------------------------------------
+| Dynamic Request Progress
+|--------------------------------------------------------------------------
+|
+| UI structure/styling is kept the same.
+|
+| Actual HelpRequest statuses:
+|
+| pending   -> Submitted is current
+| verified  -> Reviewed is current
+| completed -> Update is current/final
+| rejected  -> special rejected UI
+|
+*/
+
+const RequestProgress = ({ status }) => {
+    const normalizedStatus = status?.toLowerCase();
+
+    const progressIndex = getRequestProgress(normalizedStatus);
+
+    const isRejected = normalizedStatus === 'rejected';
+
+    if (isRejected) {
+        return (
+            <div className="mt-9 max-w-xl">
+                <div className="flex items-center">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-red-500 text-white">
+                        <span className="text-xs font-bold">!</span>
+                    </div>
+
+                    <div className="h-px flex-1 bg-red-200" />
+
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full border border-red-200 bg-red-50 text-red-500">
+                        <span className="text-xs font-bold">×</span>
+                    </div>
+                </div>
+
+                <div className="mt-3 grid grid-cols-2 text-[9px] font-bold uppercase tracking-[0.12em]">
+                    <span className="text-slate-400">Submitted</span>
+
+                    <span className="text-right text-red-500">Rejected</span>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="mt-9 max-w-xl">
+            <div className="flex items-center">
+                {REQUEST_STAGES.map((stage, index) => {
+                    const isCompleted = index <= progressIndex;
+
+                    return (
+                        <React.Fragment key={stage.key}>
+                            <div
+                                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors duration-300 ${
+                                    isCompleted
+                                        ? 'bg-primary text-white'
+                                        : 'border border-slate-300 bg-[#f8f8f5] text-slate-300'
+                                }`}
+                            >
+                                {isCompleted ? (
+                                    <Check className="h-3.5 w-3.5" />
+                                ) : (
+                                    <Clock3 className="h-3.5 w-3.5" />
+                                )}
+                            </div>
+
+                            {index < REQUEST_STAGES.length - 1 && (
+                                <div
+                                    className={`h-px flex-1 transition-colors duration-300 ${
+                                        index < progressIndex
+                                            ? 'bg-primary'
+                                            : 'bg-slate-300'
+                                    }`}
+                                />
+                            )}
+                        </React.Fragment>
+                    );
+                })}
             </div>
 
-            <div className="h-px flex-1 bg-primary" />
+            <div className="mt-3 grid grid-cols-3 text-[9px] font-bold uppercase tracking-[0.12em]">
+                {REQUEST_STAGES.map((stage, index) => {
+                    const isCurrent = index === progressIndex;
 
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white">
-                <Check className="h-3.5 w-3.5" />
-            </div>
+                    const isCompleted = index < progressIndex;
 
-            <div className="h-px flex-1 bg-slate-300" />
-
-            <div className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-300 bg-[#f8f8f5] text-slate-300">
-                <Clock3 className="h-3.5 w-3.5" />
+                    return (
+                        <span
+                            key={stage.key}
+                            className={
+                                index === 0
+                                    ? 'text-left'
+                                    : index === REQUEST_STAGES.length - 1
+                                      ? 'text-right'
+                                      : 'text-center'
+                            }
+                        >
+                            <span
+                                className={
+                                    isCurrent
+                                        ? 'text-primary'
+                                        : isCompleted
+                                          ? 'text-slate-500'
+                                          : 'text-slate-400'
+                                }
+                            >
+                                {stage.label}
+                            </span>
+                        </span>
+                    );
+                })}
             </div>
         </div>
-
-        <div className="mt-3 grid grid-cols-3 text-[9px] font-bold uppercase tracking-[0.12em] text-slate-400">
-            <span>Submitted</span>
-
-            <span className="text-center">Reviewed</span>
-
-            <span className="text-right">Update</span>
-        </div>
-    </div>
-);
+    );
+};
 
 const SidebarActionRow = ({
     icon: Icon,

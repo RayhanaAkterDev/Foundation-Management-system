@@ -32,15 +32,57 @@ export const NAV_CONFIG = {
   ],
 
   organization: [
-    { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard/organization' },
-    { key: 'profile', label: 'Organization Profile', icon: Building2, path: '/dashboard/organization/profile' },
-    { key: 'campaigns', label: 'Campaigns', icon: Megaphone, path: '/dashboard/organization/campaigns' },
-    { key: 'responses', label: 'Assistance & Responses', icon: HeartHandshake, path: '/dashboard/organization/responses' },
-    { key: 'volunteers', label: 'Volunteers', icon: Users, path: '/dashboard/organization/volunteers' },
-    { key: 'reports', label: 'Reports & Impact', icon: BarChart3, path: '/dashboard/organization/reports' },
+    {
+        key: 'dashboard',
+        label: 'Dashboard',
+        icon: LayoutDashboard,
+        path: '/dashboard/organization',
+    },
+    {
+        key: 'help-requests',
+        label: 'Help Requests',
+        icon: ClipboardList,
+        path: '/dashboard/organization/help-requests',
+    },
+    {
+        key: 'campaigns',
+        label: 'Campaigns',
+        icon: Megaphone,
+        path: '/dashboard/organization/campaigns',
+    },
+    {
+        key: 'volunteers',
+        label: 'Volunteers',
+        icon: Users,
+        path: '/dashboard/organization/volunteers',
+    },
+    {
+        key: 'reports',
+        label: 'Impact & Reports',
+        icon: BarChart3,
+        path: '/dashboard/organization/reports',
+    },
+
     { type: 'divider' },
-    { key: 'notifications', label: 'Notifications', icon: Bell, path: '/dashboard/organization/notifications' },
-    { key: 'settings', label: 'Settings', icon: Settings, path: '/dashboard/organization/settings' },
+
+    {
+        key: 'profile',
+        label: 'Organization Profile',
+        icon: Building2,
+        path: '/dashboard/organization/profile',
+    },
+    {
+        key: 'notifications',
+        label: 'Notifications',
+        icon: Bell,
+        path: '/dashboard/organization/notifications',
+    },
+    {
+        key: 'settings',
+        label: 'Settings',
+        icon: Settings,
+        path: '/dashboard/organization/settings',
+    },
   ],
 
   admin: [

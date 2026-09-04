@@ -8,7 +8,6 @@ import HelpRequestViewModal from './helpRequests/HelpRequestViewModal';
 import HelpRequestVerificationModal from './helpRequests/HelpRequestVerificationModal';
 import HelpRequestAssignmentModal from './helpRequests/HelpRequestAssignmentModal';
 import HelpRequestReassignmentModal from './helpRequests/HelpRequestReassignmentModal';
-
 import HelpRequestStats from './helpRequests/HelpRequestStats';
 import HelpRequestCategoryTabs from './helpRequests/HelpRequestCategoryTabs';
 import HelpRequestFilters from './helpRequests/HelpRequestFilters';
@@ -16,14 +15,18 @@ import HelpRequestTable from './helpRequests/HelpRequestTable';
 import HelpRequestPagination from './helpRequests/HelpRequestPagination';
 import HelpRequestSuccessToast from './helpRequests/HelpRequestSuccessToast';
 import UserViewModal from './helpRequests/UserViewModal';
+import OrganizationViewModal from './helpRequests/OrganizationViewModal';
 
 import {
     fetchHelpRequests,
     updateHelpRequestVerification,
     assignHelpRequest,
+    fetchOrganizations,
+    fetchVolunteers,
 } from './helpRequests/helpRequestAPI';
 
 import { fetchUser } from './users/userApi';
+import { fetchOrganization } from './organizations/organizationApi';
 
 const HELP_REQUESTS_PER_PAGE = 25;
 
@@ -66,6 +69,14 @@ const AdminHelpRequests = () => {
     const [userError, setUserError] = useState('');
 
     // --------------------------------
+    // View organization
+    // --------------------------------
+
+    const [selectedOrganization, setSelectedOrganization] = useState(null);
+    const [organizationLoading, setOrganizationLoading] = useState(false);
+    const [organizationError, setOrganizationError] = useState('');
+
+    // --------------------------------
     // Verification
     // --------------------------------
 
@@ -76,7 +87,10 @@ const AdminHelpRequests = () => {
     const [verificationError, setVerificationError] = useState('');
 
     // --------------------------------
-    // Assignment
+    // Initial Assignment
+    //
+    // verified + no organization
+    // -> Assign
     // --------------------------------
 
     const [selectedAssignmentRequest, setSelectedAssignmentRequest] =
@@ -86,7 +100,43 @@ const AdminHelpRequests = () => {
     const [assignmentError, setAssignmentError] = useState('');
 
     // --------------------------------
+    // Assignment / Support data
+    // --------------------------------
+
+    const [organizations, setOrganizations] = useState([]);
+    const [volunteers, setVolunteers] = useState([]);
+    const [assignmentDataLoading, setAssignmentDataLoading] = useState(false);
+
+    // --------------------------------
+    // Add Support
+    //
+    // verified + assigned
+    // -> Add Support action is visible
+    //
+    // If organization has NOT requested
+    // additional support:
+    // -> show message
+    //
+    // If organization HAS requested:
+    // -> open support workflow
+    // --------------------------------
+
+    const [selectedSupportRequest, setSelectedSupportRequest] = useState(null);
+
+    const [supportError, setSupportError] = useState('');
+
+    // --------------------------------
     // Reassignment
+    //
+    // verified + assigned
+    // -> Reassign action is visible
+    //
+    // If organization has NOT requested
+    // withdrawal:
+    // -> show message
+    //
+    // If organization HAS requested:
+    // -> open reassignment modal
     // --------------------------------
 
     const [selectedReassignmentRequest, setSelectedReassignmentRequest] =
@@ -94,6 +144,16 @@ const AdminHelpRequests = () => {
 
     const [reassignmentLoading, setReassignmentLoading] = useState(false);
     const [reassignmentError, setReassignmentError] = useState('');
+
+    // --------------------------------
+    // Action message
+    // --------------------------------
+
+    const [actionMessage, setActionMessage] = useState({
+        show: false,
+        title: '',
+        message: '',
+    });
 
     // --------------------------------
     // Success toast
@@ -116,6 +176,26 @@ const AdminHelpRequests = () => {
                 message: '',
             });
         }, 3000);
+    };
+
+    // --------------------------------
+    // Action message helpers
+    // --------------------------------
+
+    const showActionMessage = (title, message) => {
+        setActionMessage({
+            show: true,
+            title,
+            message,
+        });
+    };
+
+    const closeActionMessage = () => {
+        setActionMessage({
+            show: false,
+            title: '',
+            message: '',
+        });
     };
 
     // --------------------------------
@@ -172,6 +252,29 @@ const AdminHelpRequests = () => {
     }, []);
 
     // --------------------------------
+    // Edit
+    //
+    // The edit modal/API is not included
+    // in the supplied files yet.
+    //
+    // Keep this handler ready so the action
+    // is part of the correct workflow.
+    // --------------------------------
+
+    const handleEditRequest = (request) => {
+        /*
+         * Connect the dedicated HelpRequestEditModal
+         * here once its component/API is connected.
+         *
+         * Editable fields:
+         * - priority
+         * - category
+         */
+
+        console.log('Edit help request:', request);
+    };
+
+    // --------------------------------
     // View help request
     // --------------------------------
 
@@ -215,6 +318,41 @@ const AdminHelpRequests = () => {
     const closeUserModal = () => {
         setSelectedUser(null);
         setUserError('');
+    };
+
+    // --------------------------------
+    // View organization
+    // --------------------------------
+
+    const handleViewOrganization = async (organizationId) => {
+        if (!organizationId) {
+            setOrganizationError('Organization information is unavailable.');
+
+            setSelectedOrganization(null);
+
+            return;
+        }
+
+        setOrganizationLoading(true);
+        setOrganizationError('');
+        setSelectedOrganization(null);
+
+        try {
+            const data = await fetchOrganization(organizationId);
+
+            setSelectedOrganization(data.organization);
+        } catch (err) {
+            setOrganizationError(
+                err.message || 'Unable to load organization details.',
+            );
+        } finally {
+            setOrganizationLoading(false);
+        }
+    };
+
+    const closeOrganizationModal = () => {
+        setSelectedOrganization(null);
+        setOrganizationError('');
     };
 
     // --------------------------------
@@ -271,23 +409,48 @@ const AdminHelpRequests = () => {
     };
 
     // --------------------------------
-    // Assignment
+    // Initial Assignment
     //
-    // verified + no assignment -> Assign
+    // verified + no assignment
+    // -> Assign
     // --------------------------------
 
-    const handleAssignRequest = (request) => {
+    const handleAssignRequest = async (request) => {
         setAssignmentError('');
         setSelectedAssignmentRequest(request);
+        setAssignmentDataLoading(true);
+
+        try {
+            const [organizationData, volunteerData] = await Promise.all([
+                fetchOrganizations(),
+                fetchVolunteers(),
+            ]);
+
+            setOrganizations(organizationData.organizations || []);
+
+            setVolunteers(volunteerData.volunteers || []);
+        } catch (err) {
+            setOrganizations([]);
+            setVolunteers([]);
+
+            setAssignmentError(
+                err.message ||
+                    'Unable to load organizations and volunteers for assignment.',
+            );
+        } finally {
+            setAssignmentDataLoading(false);
+        }
     };
 
     const closeAssignmentModal = () => {
-        if (assignmentLoading) {
+        if (assignmentLoading || assignmentDataLoading) {
             return;
         }
 
         setSelectedAssignmentRequest(null);
         setAssignmentError('');
+        setOrganizations([]);
+        setVolunteers([]);
     };
 
     const handleAssignment = async (assignmentData) => {
@@ -305,6 +468,8 @@ const AdminHelpRequests = () => {
             );
 
             setSelectedAssignmentRequest(null);
+            setOrganizations([]);
+            setVolunteers([]);
 
             await loadHelpRequests();
 
@@ -317,23 +482,126 @@ const AdminHelpRequests = () => {
     };
 
     // --------------------------------
-    // Reassignment
-    //
-    // verified + existing assignment -> Reassign
+    // Add Support
     // --------------------------------
 
-    const handleReassignRequest = (request) => {
+    const handleAddSupportRequest = async (request) => {
+        const additionalSupportRequested = hasAdditionalSupportRequest(request);
+
+        /*
+         * Organization has NOT requested additional help.
+         */
+        if (!additionalSupportRequested) {
+            showActionMessage(
+                'Additional Support Not Requested',
+                'The assigned organization has not requested additional support for this help request.',
+            );
+
+            return;
+        }
+
+        /*
+         * Organization HAS requested additional support.
+         *
+         * Load eligible organizations and volunteers
+         * before opening the support workflow.
+         */
+        setSupportError('');
+        setSelectedSupportRequest(request);
+        setAssignmentDataLoading(true);
+
+        try {
+            const [organizationData, volunteerData] = await Promise.all([
+                fetchOrganizations(),
+                fetchVolunteers(),
+            ]);
+
+            setOrganizations(organizationData.organizations || []);
+
+            setVolunteers(volunteerData.volunteers || []);
+        } catch (err) {
+            setOrganizations([]);
+            setVolunteers([]);
+
+            setSupportError(
+                err.message ||
+                    'Unable to load organizations and volunteers for additional support.',
+            );
+        } finally {
+            setAssignmentDataLoading(false);
+        }
+    };
+
+    const closeSupportModal = () => {
+        if (assignmentDataLoading) {
+            return;
+        }
+
+        setSelectedSupportRequest(null);
+        setSupportError('');
+        setOrganizations([]);
+        setVolunteers([]);
+    };
+
+    // --------------------------------
+    // Reassignment
+    // --------------------------------
+
+    const handleReassignRequest = async (request) => {
+        const withdrawalRequested = hasOrganizationRequestedWithdrawal(request);
+
+        /*
+         * Organization has NOT requested withdrawal.
+         */
+        if (!withdrawalRequested) {
+            showActionMessage(
+                'Reassignment Not Requested',
+                'The assigned organization has not requested withdrawal, so this help request cannot be reassigned yet.',
+            );
+
+            return;
+        }
+
+        /*
+         * Organization HAS requested withdrawal.
+         *
+         * Now open the actual reassignment workflow.
+         */
         setReassignmentError('');
         setSelectedReassignmentRequest(request);
+        setAssignmentDataLoading(true);
+
+        try {
+            const [organizationData, volunteerData] = await Promise.all([
+                fetchOrganizations(),
+                fetchVolunteers(),
+            ]);
+
+            setOrganizations(organizationData.organizations || []);
+
+            setVolunteers(volunteerData.volunteers || []);
+        } catch (err) {
+            setOrganizations([]);
+            setVolunteers([]);
+
+            setReassignmentError(
+                err.message ||
+                    'Unable to load organizations and volunteers for reassignment.',
+            );
+        } finally {
+            setAssignmentDataLoading(false);
+        }
     };
 
     const closeReassignmentModal = () => {
-        if (reassignmentLoading) {
+        if (reassignmentLoading || assignmentDataLoading) {
             return;
         }
 
         setSelectedReassignmentRequest(null);
         setReassignmentError('');
+        setOrganizations([]);
+        setVolunteers([]);
     };
 
     const handleReassignment = async (reassignmentData) => {
@@ -346,29 +614,23 @@ const AdminHelpRequests = () => {
 
         try {
             /*
-             * IMPORTANT:
+             * Dedicated reassignment API should be connected here.
              *
-             * Connect your backend reassignment API here.
+             * DO NOT use assignHelpRequest().
              *
-             * Example:
+             * Reassignment should:
              *
-             * await reassignHelpRequest(
-             *     selectedReassignmentRequest.id,
-             *     reassignmentData,
-             * );
-             *
-             * Do NOT use assignHelpRequest() here.
-             * Reassignment is a separate action.
+             * 1. Keep the old assignment in history.
+             * 2. Mark the old organization assignment as withdrawn.
+             * 3. Create the replacement assignment.
+             * 4. Keep the help request itself active.
              */
 
             console.log('Reassignment payload:', reassignmentData);
 
-            /*
-             * Temporary frontend completion until the
-             * reassignment API helper is connected.
-             */
-
             setSelectedReassignmentRequest(null);
+            setOrganizations([]);
+            setVolunteers([]);
 
             await loadHelpRequests();
 
@@ -642,6 +904,7 @@ const AdminHelpRequests = () => {
             'Request',
             'Category',
             'Priority',
+            'Assigned',
             'Status',
             'Submitted',
         ];
@@ -654,6 +917,8 @@ const AdminHelpRequests = () => {
             request.category || '',
 
             request.priority || request.urgency || '',
+
+            getAssignedOrganizationName(request),
 
             request.status || '',
 
@@ -682,6 +947,7 @@ const AdminHelpRequests = () => {
         const link = document.createElement('a');
 
         link.href = url;
+
         link.download = 'stand-for-people-help-requests.csv';
 
         document.body.appendChild(link);
@@ -712,6 +978,10 @@ const AdminHelpRequests = () => {
             request.user_id ||
             null,
 
+        assignedOrganization: getAssignedOrganizationName(request),
+
+        assignedOrganizationId: getAssignedOrganizationId(request),
+
         submittedDate: request.created_at
             ? new Date(request.created_at).toLocaleDateString()
             : '—',
@@ -726,37 +996,11 @@ const AdminHelpRequests = () => {
 
     const columns = [
         {
-            key: 'serialNumber',
-            header: '#',
-            align: 'center',
-            width: '60px',
-        },
-
-        {
             key: 'title',
-            header: 'Help Request',
+            header: 'Help Request Details',
             sortable: true,
             sortKey: 'title',
-        },
-
-        {
-            key: 'requester',
-            header: 'Requester',
-        },
-
-        {
-            key: 'category',
-            header: 'Category',
-            sortable: true,
-            sortKey: 'category',
-        },
-
-        {
-            key: 'priority',
-            header: 'Priority',
-            sortable: true,
-            sortKey: 'priority',
-            render: (value, row) => value || row.urgency || '—',
+            width: '420px',
         },
 
         {
@@ -764,6 +1008,25 @@ const AdminHelpRequests = () => {
             header: 'Submitted',
             sortable: true,
             sortKey: 'created_at',
+            width: '120px',
+        },
+
+        {
+            key: 'priority',
+            header: 'Priority',
+            sortable: true,
+            sortKey: 'priority',
+            width: '120px',
+
+            render: (value, row) => value || row.urgency || '—',
+        },
+
+        {
+            key: 'assignedOrganization',
+            header: 'Assigned',
+            width: '220px',
+
+            render: (value) => value || 'Not assigned',
         },
 
         {
@@ -771,75 +1034,81 @@ const AdminHelpRequests = () => {
             header: 'Status',
             sortable: true,
             sortKey: 'status',
+            width: '120px',
         },
 
         {
             key: 'id',
             header: 'Actions',
             align: 'right',
+            width: '390px',
 
             render: (_, row) => {
                 const hasAssignment = hasExistingAssignment(row);
 
                 return (
-                    <div className="flex items-center justify-end gap-4">
-                        {/* --------------------------------
-                            VERIFY
-                            pending -> verify/reject
-                           -------------------------------- */}
+                    <div className="flex min-w-max items-center justify-end gap-4 whitespace-nowrap">
+                        {/* VIEW */}
+                        <button
+                            type="button"
+                            onClick={() => handleViewRequest(row)}
+                            className="shrink-0 text-xs font-semibold text-text-secondary transition-colors hover:text-primary"
+                        >
+                            View
+                        </button>
 
+                        {/* EDIT */}
+                        <button
+                            type="button"
+                            onClick={() => handleEditRequest(row)}
+                            className="shrink-0 text-xs font-semibold text-primary transition-colors hover:text-primary-hover"
+                        >
+                            Edit
+                        </button>
+
+                        {/* VERIFY */}
                         {row.status === 'pending' && (
                             <button
                                 type="button"
                                 onClick={() => handleVerifyRequest(row)}
-                                className="text-xs font-semibold text-primary transition-colors hover:text-primary-hover"
+                                className="shrink-0 text-xs font-semibold text-primary transition-colors hover:text-primary-hover"
                             >
                                 Verify
                             </button>
                         )}
 
-                        {/* --------------------------------
-                            ASSIGN
-                            verified + no assignment
-                           -------------------------------- */}
-
+                        {/* INITIAL ASSIGNMENT */}
                         {row.status === 'verified' && !hasAssignment && (
                             <button
                                 type="button"
                                 onClick={() => handleAssignRequest(row)}
-                                className="text-xs font-semibold text-primary transition-colors hover:text-primary-hover"
+                                className="shrink-0 text-xs font-semibold text-primary transition-colors hover:text-primary-hover"
                             >
                                 Assign
                             </button>
                         )}
 
-                        {/* --------------------------------
-                            REASSIGN
-                            verified + existing assignment
-                           -------------------------------- */}
-
+                        {/* REASSIGN */}
                         {row.status === 'verified' && hasAssignment && (
                             <button
                                 type="button"
                                 onClick={() => handleReassignRequest(row)}
-                                className="text-xs font-semibold text-amber-600 transition-colors hover:text-amber-700"
+                                className="shrink-0 text-xs font-semibold text-amber-600 transition-colors hover:text-amber-700"
                             >
                                 Reassign
                             </button>
                         )}
 
-                        {/* --------------------------------
-                            VIEW
-                            Always available
-                           -------------------------------- */}
-
-                        <button
-                            type="button"
-                            onClick={() => handleViewRequest(row)}
-                            className="text-xs font-semibold text-text-secondary transition-colors hover:text-primary"
-                        >
-                            View
-                        </button>
+                        {/* ADD SUPPORT */}
+                        {row.status === 'verified' && hasAssignment && (
+                            <button
+                                type="button"
+                                onClick={() => handleAddSupportRequest(row)}
+                                className="shrink-0 text-xs font-semibold text-primary transition-colors hover:text-primary-hover"
+                            >
+                                Add Support
+                            </button>
+                        )}
                     </div>
                 );
             },
@@ -1004,6 +1273,7 @@ const AdminHelpRequests = () => {
                             getSortIcon={getSortIcon}
                             resultCount={filteredHelpRequests.length}
                             onRequesterClick={handleViewUser}
+                            onOrganizationClick={handleViewOrganization}
                         />
                     </div>
 
@@ -1020,6 +1290,34 @@ const AdminHelpRequests = () => {
                     )}
                 </section>
             </div>
+
+            {/* --------------------------------
+                Action message
+               -------------------------------- */}
+
+            {actionMessage.show && (
+                <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/30 p-4">
+                    <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+                        <h3 className="text-base font-bold text-text-primary">
+                            {actionMessage.title}
+                        </h3>
+
+                        <p className="mt-2 text-sm leading-6 text-text-secondary">
+                            {actionMessage.message}
+                        </p>
+
+                        <div className="mt-6 flex justify-end">
+                            <button
+                                type="button"
+                                onClick={closeActionMessage}
+                                className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-hover"
+                            >
+                                Okay
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* --------------------------------
                 Toast
@@ -1053,6 +1351,17 @@ const AdminHelpRequests = () => {
             />
 
             {/* --------------------------------
+                View organization
+               -------------------------------- */}
+
+            <OrganizationViewModal
+                organization={selectedOrganization}
+                loading={organizationLoading}
+                error={organizationError}
+                onClose={closeOrganizationModal}
+            />
+
+            {/* --------------------------------
                 Verification
                -------------------------------- */}
 
@@ -1065,42 +1374,92 @@ const AdminHelpRequests = () => {
             />
 
             {/* --------------------------------
-                Normal Assignment
+                Initial Assignment
                -------------------------------- */}
 
             <HelpRequestAssignmentModal
                 request={selectedAssignmentRequest}
-                loading={assignmentLoading}
+                organizations={organizations}
+                volunteers={volunteers}
+                loading={assignmentLoading || assignmentDataLoading}
                 error={assignmentError}
                 onClose={closeAssignmentModal}
                 onConfirm={handleAssignment}
             />
 
             {/* --------------------------------
+                Add Support
+
+                The state is intentionally kept
+                separate from Initial Assignment.
+
+                A dedicated AddSupportModal should
+                be connected here because Add
+                Support must ADD another organization,
+                not replace the existing assignment.
+               -------------------------------- */}
+
+            {selectedSupportRequest && (
+                <HelpRequestAssignmentModal
+                    key={`support-${selectedSupportRequest.id}`}
+                    request={selectedSupportRequest}
+                    organizations={organizations}
+                    volunteers={volunteers}
+                    loading={assignmentDataLoading}
+                    error={supportError}
+                    onClose={closeSupportModal}
+                    onConfirm={(supportData) => {
+                        /*
+                         * DO NOT use assignHelpRequest()
+                         * here.
+                         *
+                         * Add Support needs its own
+                         * backend operation so the
+                         * existing organization remains
+                         * assigned.
+                         */
+
+                        console.log('Add Support payload:', supportData);
+                    }}
+                />
+            )}
+
+            {/* --------------------------------
                 Reassignment
+
+                This modal can ONLY be reached
+                after a withdrawal request exists.
                -------------------------------- */}
 
             <HelpRequestReassignmentModal
                 key={selectedReassignmentRequest?.id || 'reassignment-modal'}
                 request={selectedReassignmentRequest}
                 open={Boolean(selectedReassignmentRequest)}
-                loading={reassignmentLoading}
+                loading={reassignmentLoading || assignmentDataLoading}
                 error={reassignmentError}
-                organizations={[]}
-                volunteers={[]}
+                organizations={organizations}
+                volunteers={volunteers}
                 onClose={closeReassignmentModal}
                 onSubmit={handleReassignment}
+                onOrganizationClick={handleViewOrganization}
             />
         </>
     );
 };
 
 /*
- * Determines whether the request already has
- * at least one assignment.
- *
- * Supports several possible API response shapes.
- */
+|--------------------------------------------------------------------------
+| Assignment detection
+|--------------------------------------------------------------------------
+|
+| This only answers:
+|
+| "Does this request currently have an assignment?"
+|
+| It does NOT decide whether Reassign or Add Support
+| should be allowed.
+|
+*/
 
 const hasExistingAssignment = (request) => {
     if (!request) {
@@ -1116,6 +1475,13 @@ const hasExistingAssignment = (request) => {
     }
 
     if (
+        request.assignment?.organization ||
+        request.assignment?.organization_id
+    ) {
+        return true;
+    }
+
+    if (
         Array.isArray(request.assigned_volunteers) &&
         request.assigned_volunteers.length > 0
     ) {
@@ -1127,6 +1493,236 @@ const hasExistingAssignment = (request) => {
     }
 
     return false;
+};
+
+/*
+|--------------------------------------------------------------------------
+| Organization withdrawal request detection
+|--------------------------------------------------------------------------
+|
+| Reassign is available as an admin action whenever an
+| organization is assigned.
+|
+| But the reassignment workflow only opens when the
+| CURRENT organization has actually requested withdrawal.
+|
+*/
+
+const hasOrganizationRequestedWithdrawal = (request) => {
+    if (!request) {
+        return false;
+    }
+
+    if (request.organization_withdrawal_requested === true) {
+        return true;
+    }
+
+    if (request.withdrawal_requested === true) {
+        return true;
+    }
+
+    if (request.assignment?.withdrawal_requested === true) {
+        return true;
+    }
+
+    if (request.assigned_organization?.withdrawal_requested === true) {
+        return true;
+    }
+
+    if (request.assignment?.withdrawal_status === 'requested') {
+        return true;
+    }
+
+    if (
+        request.organization_withdrawal_status === 'requested' ||
+        request.organization_withdrawal_status === 'pending'
+    ) {
+        return true;
+    }
+
+    if (Array.isArray(request.assignments)) {
+        return request.assignments.some((assignment) => {
+            if (!assignment?.organization_id) {
+                return false;
+            }
+
+            return (
+                assignment.withdrawal_requested === true ||
+                assignment.withdrawal_status === 'requested' ||
+                assignment.withdrawal_status === 'pending' ||
+                assignment.status === 'withdrawal_requested' ||
+                assignment.status === 'withdrawal_pending'
+            );
+        });
+    }
+
+    return false;
+};
+
+/*
+|--------------------------------------------------------------------------
+| Additional support request detection
+|--------------------------------------------------------------------------
+|
+| Add Support is available as an admin action whenever
+| an organization is assigned.
+|
+| But the support workflow only opens when the current
+| organization has actually requested additional help.
+|
+*/
+
+const hasAdditionalSupportRequest = (request) => {
+    if (!request) {
+        return false;
+    }
+
+    if (request.additional_support_requested === true) {
+        return true;
+    }
+
+    if (request.support_requested === true) {
+        return true;
+    }
+
+    if (request.need_additional_support === true) {
+        return true;
+    }
+
+    if (request.additional_help_requested === true) {
+        return true;
+    }
+
+    if (request.assignment?.additional_support_requested === true) {
+        return true;
+    }
+
+    if (request.assignment?.support_requested === true) {
+        return true;
+    }
+
+    if (request.assigned_organization?.additional_support_requested === true) {
+        return true;
+    }
+
+    if (request.assigned_organization?.support_requested === true) {
+        return true;
+    }
+
+    if (
+        request.additional_support_status === 'requested' ||
+        request.additional_support_status === 'pending'
+    ) {
+        return true;
+    }
+
+    if (
+        request.support_request_status === 'requested' ||
+        request.support_request_status === 'pending'
+    ) {
+        return true;
+    }
+
+    if (Array.isArray(request.assignments)) {
+        return request.assignments.some(
+            (assignment) =>
+                assignment?.additional_support_requested === true ||
+                assignment?.support_requested === true ||
+                assignment?.additional_support_status === 'requested' ||
+                assignment?.additional_support_status === 'pending' ||
+                assignment?.support_request_status === 'requested' ||
+                assignment?.support_request_status === 'pending' ||
+                assignment?.status === 'support_requested',
+        );
+    }
+
+    return false;
+};
+
+/*
+|--------------------------------------------------------------------------
+| Assigned organization name
+|--------------------------------------------------------------------------
+*/
+
+const getAssignedOrganizationName = (request) => {
+    if (!request) {
+        return 'Not assigned';
+    }
+
+    if (request.assigned_organization?.name) {
+        return request.assigned_organization.name;
+    }
+
+    if (typeof request.assigned_organization === 'string') {
+        return request.assigned_organization;
+    }
+
+    if (request.assignment?.organization?.name) {
+        return request.assignment.organization.name;
+    }
+
+    if (Array.isArray(request.assignments)) {
+        const organizationAssignment = request.assignments.find(
+            (assignment) =>
+                assignment?.organization || assignment?.organization_id,
+        );
+
+        if (organizationAssignment?.organization?.name) {
+            return organizationAssignment.organization.name;
+        }
+
+        if (organizationAssignment?.organization?.user?.name) {
+            return organizationAssignment.organization.user.name;
+        }
+    }
+
+    return 'Not assigned';
+};
+
+/*
+|--------------------------------------------------------------------------
+| Assigned organization ID
+|--------------------------------------------------------------------------
+*/
+
+const getAssignedOrganizationId = (request) => {
+    if (!request) {
+        return null;
+    }
+
+    if (request.assigned_organization?.id) {
+        return request.assigned_organization.id;
+    }
+
+    if (request.assigned_organization_id) {
+        return request.assigned_organization_id;
+    }
+
+    if (request.assignment?.organization?.id) {
+        return request.assignment.organization.id;
+    }
+
+    if (request.assignment?.organization_id) {
+        return request.assignment.organization_id;
+    }
+
+    if (Array.isArray(request.assignments)) {
+        const organizationAssignment = request.assignments.find(
+            (assignment) =>
+                assignment?.organization || assignment?.organization_id,
+        );
+
+        if (organizationAssignment?.organization?.id) {
+            return organizationAssignment.organization.id;
+        }
+
+        if (organizationAssignment?.organization_id) {
+            return organizationAssignment.organization_id;
+        }
+    }
+
+    return null;
 };
 
 export default AdminHelpRequests;

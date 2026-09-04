@@ -1197,10 +1197,10 @@ class AdminController extends Controller
         }
 
         /*
-        |--------------------------------------------------------------------------
-        | Only Verified Help Requests Can Be Assigned
-        |--------------------------------------------------------------------------
-        */
+    |--------------------------------------------------------------------------
+    | Only Verified Help Requests Can Be Assigned
+    |--------------------------------------------------------------------------
+    */
 
         if ($helpRequest->status !== HelpRequest::STATUS_VERIFIED) {
             return response()->json([
@@ -1208,6 +1208,12 @@ class AdminController extends Controller
                 'Only verified help requests can be assigned.',
             ], 422);
         }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Validate Request
+    |--------------------------------------------------------------------------
+    */
 
         $validated = $request->validate([
             'organization_id' => [
@@ -1235,13 +1241,14 @@ class AdminController extends Controller
         ]);
 
         $organizationId = $validated['organization_id'] ?? null;
+
         $volunteerIds = $validated['volunteer_ids'] ?? [];
 
         /*
-        |--------------------------------------------------------------------------
-        | At Least One Assignment Target Required
-        |--------------------------------------------------------------------------
-        */
+    |--------------------------------------------------------------------------
+    | At Least One Assignment Target Required
+    |--------------------------------------------------------------------------
+    */
 
         if (!$organizationId && empty($volunteerIds)) {
             return response()->json([
@@ -1251,12 +1258,13 @@ class AdminController extends Controller
         }
 
         /*
-        |--------------------------------------------------------------------------
-        | Validate Organization
-        |--------------------------------------------------------------------------
-        */
+    |--------------------------------------------------------------------------
+    | Validate Organization
+    |--------------------------------------------------------------------------
+    */
 
         if ($organizationId) {
+
             $organization = Organization::find($organizationId);
 
             if (
@@ -1270,16 +1278,21 @@ class AdminController extends Controller
             }
 
             /*
-            |--------------------------------------------------------------------------
-            | Prevent Duplicate Organization Assignment
-            |--------------------------------------------------------------------------
-            |
-            | Rejected assignments are allowed to be recreated.
-            | Active/completed assignments still count as existing
-            | assignment history, so we prevent assigning the same
-            | organization again to the same Help Request.
-            |
-            */
+        |--------------------------------------------------------------------------
+        | Prevent Duplicate Organization Assignment
+        |--------------------------------------------------------------------------
+        |
+        | IMPORTANT:
+        |
+        | pending is included here.
+        |
+        | This means Admin cannot send another assignment to the
+        | same organization while the first assignment is waiting
+        | for acceptance.
+        |
+        | rejected assignments can be recreated.
+        |
+        */
 
             $organizationAlreadyAssigned =
                 HelpRequestAssignment::where(
@@ -1291,6 +1304,7 @@ class AdminController extends Controller
                     $organizationId
                 )
                 ->whereIn('status', [
+                    HelpRequestAssignment::STATUS_PENDING,
                     HelpRequestAssignment::STATUS_ASSIGNED,
                     HelpRequestAssignment::STATUS_ACCEPTED,
                     HelpRequestAssignment::STATUS_IN_PROGRESS,
@@ -1301,27 +1315,28 @@ class AdminController extends Controller
             if ($organizationAlreadyAssigned) {
                 return response()->json([
                     'message' =>
-                    'This organization is already assigned to the help request.',
+                    'This organization already has an active assignment for this help request.',
                 ], 422);
             }
         }
 
         /*
-        |--------------------------------------------------------------------------
-        | Validate Volunteers
-        |--------------------------------------------------------------------------
-        */
+    |--------------------------------------------------------------------------
+    | Validate Volunteers
+    |--------------------------------------------------------------------------
+    */
 
         foreach ($volunteerIds as $volunteerId) {
+
             /*
-            |--------------------------------------------------------------------------
-            | IMPORTANT
-            |--------------------------------------------------------------------------
-            |
-            | volunteer_id in help_request_assignments references
-            | users.id, NOT volunteers.id.
-            |
-            */
+        |--------------------------------------------------------------------------
+        | IMPORTANT
+        |--------------------------------------------------------------------------
+        |
+        | volunteer_id in help_request_assignments references
+        | users.id, NOT volunteers.id.
+        |
+        */
 
             $volunteerUser = User::find($volunteerId);
 
@@ -1347,10 +1362,10 @@ class AdminController extends Controller
             }
 
             /*
-            |--------------------------------------------------------------------------
-            | Approved SP Volunteer Profile
-            |--------------------------------------------------------------------------
-            */
+        |--------------------------------------------------------------------------
+        | Approved SP Volunteer Profile
+        |--------------------------------------------------------------------------
+        */
 
             $volunteer = Volunteer::where(
                 'user_id',
@@ -1367,10 +1382,10 @@ class AdminController extends Controller
             }
 
             /*
-            |--------------------------------------------------------------------------
-            | Volunteer Availability
-            |--------------------------------------------------------------------------
-            */
+        |--------------------------------------------------------------------------
+        | Volunteer Availability
+        |--------------------------------------------------------------------------
+        */
 
             if ($volunteer->availability !== 'available') {
                 return response()->json([
@@ -1380,10 +1395,10 @@ class AdminController extends Controller
             }
 
             /*
-            |--------------------------------------------------------------------------
-            | Existing Active Help Request Assignment
-            |--------------------------------------------------------------------------
-            */
+        |--------------------------------------------------------------------------
+        | Existing Active Assignment
+        |--------------------------------------------------------------------------
+        */
 
             $hasActiveAssignment =
                 HelpRequestAssignment::where(
@@ -1405,13 +1420,13 @@ class AdminController extends Controller
             }
 
             /*
-            |--------------------------------------------------------------------------
-            | Duplicate Assignment For This Help Request
-            |--------------------------------------------------------------------------
-            |
-            | Rejected assignments can be recreated.
-            |
-            */
+        |--------------------------------------------------------------------------
+        | Duplicate Assignment For This Help Request
+        |--------------------------------------------------------------------------
+        |
+        | Rejected assignments can be recreated.
+        |
+        */
 
             $alreadyAssigned =
                 HelpRequestAssignment::where(
@@ -1439,10 +1454,10 @@ class AdminController extends Controller
         }
 
         /*
-        |--------------------------------------------------------------------------
-        | Create Assignments
-        |--------------------------------------------------------------------------
-        */
+    |--------------------------------------------------------------------------
+    | Create Assignments
+    |--------------------------------------------------------------------------
+    */
 
         $assignments = DB::transaction(function () use (
             $helpRequest,
@@ -1451,15 +1466,25 @@ class AdminController extends Controller
             $validated,
             $user
         ) {
+
             $createdAssignments = collect();
 
             /*
-            |--------------------------------------------------------------------------
-            | Organization Assignment
-            |--------------------------------------------------------------------------
-            */
+        |--------------------------------------------------------------------------
+        | Organization Assignment
+        |--------------------------------------------------------------------------
+        |
+        | IMPORTANT:
+        |
+        | Organization assignments start as PENDING.
+        |
+        | The organization must accept the assignment before it becomes
+        | an accepted/active assignment.
+        |
+        */
 
             if ($organizationId) {
+
                 $createdAssignments->push(
                     HelpRequestAssignment::create([
                         'help_request_id' => $helpRequest->id,
@@ -1471,7 +1496,7 @@ class AdminController extends Controller
                         'assigned_by' => $user->id,
 
                         'status' =>
-                        HelpRequestAssignment::STATUS_ASSIGNED,
+                        HelpRequestAssignment::STATUS_PENDING,
 
                         'assignment_note' =>
                         $validated['assignment_note'] ?? null,
@@ -1482,12 +1507,16 @@ class AdminController extends Controller
             }
 
             /*
-            |--------------------------------------------------------------------------
-            | Volunteer Assignments
-            |--------------------------------------------------------------------------
-            */
+        |--------------------------------------------------------------------------
+        | Volunteer Assignments
+        |--------------------------------------------------------------------------
+        |
+        | Volunteer workflow remains unchanged.
+        |
+        */
 
             foreach ($volunteerIds as $volunteerId) {
+
                 $createdAssignments->push(
                     HelpRequestAssignment::create([
                         'help_request_id' => $helpRequest->id,
@@ -1495,12 +1524,13 @@ class AdminController extends Controller
                         'organization_id' => null,
 
                         /*
-                        |--------------------------------------------------------------------------
-                        | IMPORTANT:
-                        |
-                        | This is users.id.
-                        |--------------------------------------------------------------------------
-                        */
+                    |--------------------------------------------------------------------------
+                    | IMPORTANT:
+                    |--------------------------------------------------------------------------
+                    |
+                    | This is users.id.
+                    |
+                    */
 
                         'volunteer_id' => $volunteerId,
 
@@ -1517,10 +1547,10 @@ class AdminController extends Controller
                 );
 
                 /*
-                |--------------------------------------------------------------------------
-                | Volunteer becomes unavailable while assignment is active.
-                |--------------------------------------------------------------------------
-                */
+            |--------------------------------------------------------------------------
+            | Volunteer becomes unavailable while assignment is active.
+            |--------------------------------------------------------------------------
+            */
 
                 Volunteer::where(
                     'user_id',
@@ -1531,29 +1561,27 @@ class AdminController extends Controller
             }
 
             /*
-            |--------------------------------------------------------------------------
-            | IMPORTANT:
-            |
-            | Do NOT update HelpRequest.status here.
-            |
-            | It remains "verified".
-            |--------------------------------------------------------------------------
-            */
+        |--------------------------------------------------------------------------
+        | IMPORTANT:
+        |--------------------------------------------------------------------------
+        |
+        | Do NOT update HelpRequest.status here.
+        |
+        | It remains "verified".
+        |
+        */
 
             return $createdAssignments;
         });
 
         /*
-        |--------------------------------------------------------------------------
-        | Load Relationships
-        |--------------------------------------------------------------------------
-        |
-        | volunteer() on HelpRequestAssignment returns User because
-        | volunteer_id references users.id.
-        |
-        */
+    |--------------------------------------------------------------------------
+    | Load Relationships
+    |--------------------------------------------------------------------------
+    */
 
         $assignments = $assignments->map(function ($assignment) {
+
             return $assignment
                 ->fresh()
                 ->load([
@@ -1566,12 +1594,12 @@ class AdminController extends Controller
 
         return response()->json([
             'message' =>
-            'Help request assigned successfully.',
+            'Help request assignment created successfully.',
 
             'assignments' => $assignments,
+
         ], 201);
     }
-
     /*
     |--------------------------------------------------------------------------
     | Help Requests - Complete

@@ -341,6 +341,9 @@ const normalizeAssignment = (assignment) => {
             assignment?.assignmentNote ||
             'No assignment note was provided.',
 
+        rejectionNote:
+            assignment?.rejection_note || assignment?.rejectionNote || null,
+
         /*
          * The current backend does not have a dedicated
          * support_type field, so category is the truthful
@@ -382,9 +385,12 @@ const acceptAssignment = (id) =>
         method: 'PATCH',
     });
 
-const rejectAssignment = (id) =>
+const rejectAssignment = (id, rejectionNote) =>
     apiRequest(`/organization/assignments/${id}/reject`, {
         method: 'PATCH',
+        body: JSON.stringify({
+            rejection_note: rejectionNote,
+        }),
     });
 
 /* =========================================================
@@ -472,18 +478,17 @@ const FILTERS = [
 
 const OrgHelpRequests = () => {
     const [activeFilter, setActiveFilter] = useState('all');
-
     const [search, setSearch] = useState('');
-
     const [selectedRequest, setSelectedRequest] = useState(null);
 
     const [assignments, setAssignments] = useState([]);
-
     const [loading, setLoading] = useState(true);
-
-    const [error, setError] = useState('');
-
+    const [, setError] = useState('');
     const [actionLoading, setActionLoading] = useState(false);
+    const [rejectionRequest, setRejectionRequest] = useState(null);
+    const [rejectionNote, setRejectionNote] = useState('');
+    const [rejectionError, setRejectionError] = useState('');
+    const [rejectionLoading, setRejectionLoading] = useState(false);
 
     /*
      * Load real organization assignments.
@@ -615,18 +620,27 @@ const OrgHelpRequests = () => {
             return;
         }
 
+        /*
+         * Organization must provide a reason before rejection.
+         *
+         * Do not call the API yet.
+         * Open the rejection modal instead.
+         */
+        if (action === 'reject') {
+            setRejectionRequest(request);
+            setRejectionNote('');
+            setRejectionError('');
+            return;
+        }
+
         try {
             setActionLoading(true);
             setError('');
 
-            if (action === 'accept') {
-                await acceptAssignment(request.assignmentId);
-            } else {
-                await rejectAssignment(request.assignmentId);
-            }
+            await acceptAssignment(request.assignmentId);
 
             /*
-             * Reload actual backend data after the action.
+             * Reload actual backend data after accepting.
              */
             const data = await fetchAssignments();
 
@@ -639,14 +653,7 @@ const OrgHelpRequests = () => {
             setAssignments(normalized);
 
             /*
-             * Keep the drawer open if the assignment
-             * still exists.
-             *
-             * After accept:
-             * pending -> assigned
-             *
-             * After reject:
-             * pending -> rejected
+             * Keep the drawer open with the updated assignment.
              */
             const updated = normalized.find(
                 (item) => item.assignmentId === request.assignmentId,
@@ -654,14 +661,67 @@ const OrgHelpRequests = () => {
 
             setSelectedRequest(updated || null);
         } catch (err) {
-            setError(
-                err.message ||
-                    `Unable to ${
-                        action === 'accept' ? 'accept' : 'decline'
-                    } this assignment.`,
-            );
+            setError(err.message || 'Unable to accept this assignment.');
         } finally {
             setActionLoading(false);
+        }
+    };
+
+    const handleSubmitRejection = async () => {
+        if (!rejectionRequest?.assignmentId || rejectionLoading) {
+            return;
+        }
+
+        const note = rejectionNote.trim();
+
+        if (!note) {
+            setRejectionError(
+                'Please provide a reason for rejecting this assignment.',
+            );
+            return;
+        }
+
+        try {
+            setRejectionLoading(true);
+            setRejectionError('');
+            setError('');
+
+            await rejectAssignment(rejectionRequest.assignmentId, note);
+
+            /*
+             * Close rejection modal.
+             */
+            setRejectionRequest(null);
+            setRejectionNote('');
+
+            /*
+             * Reload actual backend data.
+             */
+            const data = await fetchAssignments();
+
+            const rawAssignments = Array.isArray(data?.assignments)
+                ? data.assignments
+                : [];
+
+            const normalized = rawAssignments.map(normalizeAssignment);
+
+            setAssignments(normalized);
+
+            /*
+             * Keep the rejected assignment open in the drawer
+             * so the organization can see the final status.
+             */
+            const updated = normalized.find(
+                (item) => item.assignmentId === rejectionRequest.assignmentId,
+            );
+
+            setSelectedRequest(updated || null);
+        } catch (err) {
+            setRejectionError(
+                err.message || 'Unable to reject this assignment.',
+            );
+        } finally {
+            setRejectionLoading(false);
         }
     };
 
@@ -1268,6 +1328,27 @@ const OrgHelpRequests = () => {
                     onClose={() => setSelectedRequest(null)}
                     onAction={handleAssignmentAction}
                     actionLoading={actionLoading}
+                />
+            )}
+
+            {rejectionRequest && (
+                <RejectionModal
+                    request={rejectionRequest}
+                    note={rejectionNote}
+                    setNote={setRejectionNote}
+                    error={rejectionError}
+                    setError={setRejectionError}
+                    loading={rejectionLoading}
+                    onClose={() => {
+                        if (rejectionLoading) {
+                            return;
+                        }
+
+                        setRejectionRequest(null);
+                        setRejectionNote('');
+                        setRejectionError('');
+                    }}
+                    onSubmit={handleSubmitRejection}
                 />
             )}
         </div>
@@ -1996,6 +2077,136 @@ const CaseReview = ({ request, onClose, onAction, actionLoading }) => {
                     />
                 </footer>
             </aside>
+        </div>
+    );
+};
+
+const RejectionModal = ({
+    request,
+    note,
+    setNote,
+    error,
+    setError,
+    loading,
+    onClose,
+    onSubmit,
+}) => {
+    if (!request) {
+        return null;
+    }
+
+    return (
+        <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/45 p-4 backdrop-blur-[2px]">
+            <div className="w-full max-w-lg overflow-hidden bg-white shadow-2xl">
+                <div className="border-b border-[#e1e8ea] bg-[#f7f9fa] px-6 py-5">
+                    <div className="flex items-start justify-between gap-4">
+                        <div>
+                            <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-[#9aa6aa]">
+                                Reject assignment
+                            </p>
+
+                            <h3 className="mt-2 text-[20px] font-semibold tracking-tight text-[#263940]">
+                                Why can’t your organization take this case?
+                            </h3>
+
+                            <p className="mt-2 text-[12px] leading-5 text-[#7d8b90]">
+                                Please provide a reason. This message will be
+                                sent to the admin who assigned this case.
+                            </p>
+                        </div>
+
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            disabled={loading}
+                            className="flex h-8 w-8 shrink-0 items-center justify-center text-[#8c999d] transition hover:bg-[#eaf0f1] hover:text-[#263940] disabled:cursor-not-allowed disabled:opacity-50"
+                            aria-label="Close rejection modal"
+                        >
+                            <X className="h-4 w-4" />
+                        </button>
+                    </div>
+                </div>
+
+                <div className="px-6 py-6">
+                    <div className="mb-4 border border-[#e1e8ea] bg-[#fafcfc] px-4 py-3">
+                        <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-[#9aa6aa]">
+                            Help request
+                        </p>
+
+                        <p className="mt-1 text-[13px] font-semibold text-[#34484f]">
+                            {request.title}
+                        </p>
+                    </div>
+
+                    <label
+                        htmlFor="rejection-note"
+                        className="block text-[10px] font-bold uppercase tracking-[0.12em] text-[#66777d]"
+                    >
+                        Rejection reason
+                    </label>
+
+                    <textarea
+                        id="rejection-note"
+                        value={note}
+                        onChange={(event) => {
+                            setNote(event.target.value);
+
+                            if (error) {
+                                setError('');
+                            }
+                        }}
+                        disabled={loading}
+                        rows={6}
+                        maxLength={2000}
+                        placeholder="Explain why your organization cannot take this help request..."
+                        className="mt-2 w-full resize-none border border-[#d5e0e3] bg-white px-4 py-3 text-[13px] leading-6 text-[#34484f] outline-none transition placeholder:text-[#a4afb3] focus:border-primary focus:ring-2 focus:ring-primary/10 disabled:bg-[#f5f7f7]"
+                    />
+
+                    <div className="mt-2 flex items-center justify-between">
+                        {error ? (
+                            <p className="text-[11px] font-medium text-red-600">
+                                {error}
+                            </p>
+                        ) : (
+                            <span />
+                        )}
+
+                        <span className="text-[10px] text-[#9aa6aa]">
+                            {note.length}/2000
+                        </span>
+                    </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-3 border-t border-[#e1e8ea] bg-[#fafbfb] px-6 py-4">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        disabled={loading}
+                        className="border border-[#d5e0e3] px-4 py-2.5 text-[10px] font-bold uppercase tracking-[0.08em] text-[#66777d] transition hover:bg-[#eef3f4] disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        Cancel
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={onSubmit}
+                        disabled={loading}
+                        className="inline-flex items-center gap-2 bg-[#b43d3d] px-4 py-2.5 text-[10px] font-bold uppercase tracking-[0.08em] text-white transition hover:bg-[#983333] disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                        {loading ? (
+                            <>
+                                <RefreshCcw className="h-3.5 w-3.5 animate-spin" />
+                                Rejecting...
+                            </>
+                        ) : (
+                            <>
+                                <X className="h-3.5 w-3.5" />
+                                Reject assignment
+                            </>
+                        )}
+                    </button>
+                </div>
+            </div>
         </div>
     );
 };

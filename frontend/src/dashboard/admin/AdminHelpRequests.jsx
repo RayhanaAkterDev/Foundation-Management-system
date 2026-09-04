@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import { Download, ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react';
 
@@ -155,6 +155,8 @@ const AdminHelpRequests = () => {
         message: '',
     });
 
+    const seenRejectedAssignmentsRef = useRef(new Set());
+
     // --------------------------------
     // Success toast
     // --------------------------------
@@ -220,23 +222,115 @@ const AdminHelpRequests = () => {
     useEffect(() => {
         let cancelled = false;
 
-        const loadRequests = async () => {
+        const checkForUpdates = async (isInitialLoad = false) => {
+            try {
+                const data = await fetchHelpRequests();
+
+                if (cancelled) {
+                    return;
+                }
+
+                const requests = data.helpRequests || [];
+
+                /*
+                 * On the first load, only remember existing rejected
+                 * assignments. Do not show notifications for old data.
+                 */
+                if (isInitialLoad) {
+                    const existingRejectedIds = new Set();
+
+                    requests.forEach((request) => {
+                        const assignments = Array.isArray(request?.assignments)
+                            ? request.assignments
+                            : [];
+
+                        assignments.forEach((assignment) => {
+                            if (
+                                assignment?.organization_id &&
+                                String(assignment?.status)
+                                    .trim()
+                                    .toLowerCase() === 'rejected'
+                            ) {
+                                existingRejectedIds.add(assignment.id);
+                            }
+                        });
+                    });
+
+                    seenRejectedAssignmentsRef.current = existingRejectedIds;
+
+                    setHelpRequests(requests);
+                    return;
+                }
+
+                /*
+                 * Background check:
+                 * detect a newly rejected organization assignment.
+                 */
+                requests.forEach((request) => {
+                    const assignments = Array.isArray(request?.assignments)
+                        ? request.assignments
+                        : [];
+
+                    assignments.forEach((assignment) => {
+                        const isRejected =
+                            assignment?.organization_id &&
+                            String(assignment?.status).trim().toLowerCase() ===
+                                'rejected';
+
+                        if (
+                            !isRejected ||
+                            seenRejectedAssignmentsRef.current.has(
+                                assignment.id,
+                            )
+                        ) {
+                            return;
+                        }
+
+                        seenRejectedAssignmentsRef.current.add(assignment.id);
+
+                        const organizationName =
+                            assignment?.organization?.name ||
+                            'The assigned organization';
+
+                        const requestTitle =
+                            request?.title ||
+                            assignment?.help_request?.title ||
+                            'this help request';
+
+                        const rejectionReason =
+                            assignment?.rejection_note ||
+                            'No rejection reason was provided.';
+
+                        showActionMessage(
+                            'Organization rejected assignment',
+                            `${organizationName} rejected "${requestTitle}". Reason: ${rejectionReason}`,
+                        );
+                    });
+                });
+
+                setHelpRequests(requests);
+            } catch (err) {
+                /*
+                 * Do not replace existing dashboard data just because
+                 * a background polling request failed.
+                 */
+                if (!isInitialLoad || cancelled) {
+                    return;
+                }
+
+                setError(
+                    err.message ||
+                        'Something went wrong while loading help requests.',
+                );
+            }
+        };
+
+        const loadInitialRequests = async () => {
             try {
                 setLoading(true);
                 setError('');
 
-                const data = await fetchHelpRequests();
-
-                if (!cancelled) {
-                    setHelpRequests(data.helpRequests || []);
-                }
-            } catch (err) {
-                if (!cancelled) {
-                    setError(
-                        err.message ||
-                            'Something went wrong while loading help requests.',
-                    );
-                }
+                await checkForUpdates(true);
             } finally {
                 if (!cancelled) {
                     setLoading(false);
@@ -244,10 +338,15 @@ const AdminHelpRequests = () => {
             }
         };
 
-        loadRequests();
+        loadInitialRequests();
+
+        const intervalId = window.setInterval(() => {
+            checkForUpdates(false);
+        }, 10000);
 
         return () => {
             cancelled = true;
+            window.clearInterval(intervalId);
         };
     }, []);
 

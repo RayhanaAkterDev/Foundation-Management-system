@@ -123,9 +123,7 @@ const EditCasePanel = ({
     onCancel,
 }) => {
     const [category, setCategory] = useState(request.category || '');
-
     const [urgency, setUrgency] = useState(request.urgency || 'normal');
-
     const [error, setError] = useState('');
 
     const handleSave = async () => {
@@ -200,7 +198,10 @@ const EditCasePanel = ({
                 <div>
                     <div className="flex items-center gap-2">
                         <div className="flex h-8 w-8 items-center justify-center bg-[#e5f3f0] text-primary">
-                            <Pencil className="h-3.5 w-3.5" strokeWidth={1.8} />
+                            <Pencil
+                                className="h-3.5 w-3.5"
+                                strokeWidth={1.8}
+                            />
                         </div>
 
                         <div>
@@ -243,7 +244,9 @@ const EditCasePanel = ({
                     <select
                         id="case-category"
                         value={category}
-                        onChange={(event) => setCategory(event.target.value)}
+                        onChange={(event) =>
+                            setCategory(event.target.value)
+                        }
                         disabled={actionLoading}
                         className="w-full border border-[#d7e2df] bg-white px-4 py-3 text-[11px] font-medium text-[#435650] outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10 disabled:cursor-not-allowed disabled:bg-[#f3f6f5]"
                     >
@@ -268,16 +271,15 @@ const EditCasePanel = ({
                     <select
                         id="case-priority"
                         value={urgency}
-                        onChange={(event) => setUrgency(event.target.value)}
+                        onChange={(event) =>
+                            setUrgency(event.target.value)
+                        }
                         disabled={actionLoading}
                         className="w-full border border-[#d7e2df] bg-white px-4 py-3 text-[11px] font-medium text-[#435650] outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10 disabled:cursor-not-allowed disabled:bg-[#f3f6f5]"
                     >
                         <option value="low">Low</option>
-
                         <option value="normal">Normal</option>
-
                         <option value="high">High</option>
-
                         <option value="critical">Critical</option>
                     </select>
                 </div>
@@ -316,7 +318,12 @@ const EditCasePanel = ({
     );
 };
 
-const DrawerFooter = ({ request, onClose, onAction, actionLoading }) => {
+const DrawerFooter = ({
+    request,
+    onClose,
+    onAction,
+    actionLoading,
+}) => {
     if (request.status === 'pending') {
         return (
             <div className="flex items-center justify-between gap-3">
@@ -344,7 +351,9 @@ const DrawerFooter = ({ request, onClose, onAction, actionLoading }) => {
                         onClick={() => onAction(request, 'accept')}
                         className="inline-flex items-center gap-2 bg-primary px-5 py-2.5 text-[10px] font-bold text-white shadow-[0_5px_14px_rgba(15,118,110,0.12)] transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                        {actionLoading ? 'Processing...' : 'Accept assignment'}
+                        {actionLoading
+                            ? 'Processing...'
+                            : 'Accept assignment'}
 
                         <Check className="h-3.5 w-3.5" />
                     </button>
@@ -369,6 +378,7 @@ const DrawerFooter = ({ request, onClose, onAction, actionLoading }) => {
                     className="inline-flex items-center gap-2 bg-primary px-5 py-2.5 text-[10px] font-bold text-white shadow-[0_5px_14px_rgba(15,118,110,0.12)] transition hover:bg-primary-hover"
                 >
                     Start assistance
+
                     <ArrowRight className="h-3.5 w-3.5" />
                 </button>
             </div>
@@ -399,6 +409,7 @@ const DrawerFooter = ({ request, onClose, onAction, actionLoading }) => {
                         className="inline-flex items-center gap-2 bg-primary px-5 py-2.5 text-[10px] font-bold text-white shadow-[0_5px_14px_rgba(15,118,110,0.12)] transition hover:bg-primary-hover"
                     >
                         Complete case
+
                         <Check className="h-3.5 w-3.5" />
                     </button>
                 </div>
@@ -434,10 +445,16 @@ const CaseReviewDrawer = ({
         return null;
     }
 
-    const config = statusConfig[request.status] || statusConfig.pending;
+    const config =
+        statusConfig[request.status] || statusConfig.pending;
 
     const canEdit =
-        request.status === 'active' || request.status === 'assigned';
+        request.status === 'active' ||
+        request.status === 'assigned';
+
+    const canRequestWithdrawal =
+        request.status === 'assigned' ||
+        request.status === 'active';
 
     const handleClose = () => {
         setIsEditing(false);
@@ -463,7 +480,6 @@ const CaseReviewDrawer = ({
                 <header className="relative shrink-0 overflow-hidden bg-primary px-6 py-7 text-white sm:px-9 sm:py-8">
                     <div className="pointer-events-none absolute inset-0">
                         <div className="absolute -right-14 -top-20 h-60 w-60 rounded-full border-42 border-white/4.5" />
-
                         <div className="absolute bottom-0 right-[28%] h-px w-45 bg-white/10" />
                     </div>
 
@@ -473,7 +489,8 @@ const CaseReviewDrawer = ({
                                 <span>
                                     CASE HR-
                                     {String(
-                                        request.helpRequestId || request.id,
+                                        request.helpRequestId ||
+                                            request.id,
                                     ).padStart(4, '0')}
                                 </span>
 
@@ -489,7 +506,10 @@ const CaseReviewDrawer = ({
                             </h2>
 
                             <div className="mt-5 flex flex-wrap items-center gap-3">
-                                <UrgencyBadge urgency={request.urgency} dark />
+                                <UrgencyBadge
+                                    urgency={request.urgency}
+                                    dark
+                                />
 
                                 <span className="text-[10px] text-white/45">
                                     Submitted{' '}
@@ -527,9 +547,9 @@ const CaseReviewDrawer = ({
                                     </h3>
 
                                     <p className="mt-2 text-[11px] leading-6 text-[#7e6e50]">
-                                        Accepting this assignment makes your
-                                        organization responsible for providing
-                                        the requested support.
+                                        Accepting this assignment makes
+                                        your organization responsible for
+                                        providing the requested support.
                                     </p>
 
                                     <div className="mt-5 flex flex-wrap gap-2.5">
@@ -537,7 +557,10 @@ const CaseReviewDrawer = ({
                                             type="button"
                                             disabled={actionLoading}
                                             onClick={() =>
-                                                onAction(request, 'accept')
+                                                onAction(
+                                                    request,
+                                                    'accept',
+                                                )
                                             }
                                             className="inline-flex items-center gap-2 bg-primary px-4 py-2.5 text-[10px] font-bold text-white disabled:cursor-not-allowed disabled:opacity-60"
                                         >
@@ -552,11 +575,15 @@ const CaseReviewDrawer = ({
                                             type="button"
                                             disabled={actionLoading}
                                             onClick={() =>
-                                                onAction(request, 'reject')
+                                                onAction(
+                                                    request,
+                                                    'reject',
+                                                )
                                             }
                                             className="inline-flex items-center gap-2 border border-[#e4d7b9] bg-white px-4 py-2.5 text-[10px] font-bold text-[#705e36] disabled:cursor-not-allowed disabled:opacity-60"
                                         >
                                             <X className="h-3.5 w-3.5" />
+
                                             Decline
                                         </button>
                                     </div>
@@ -578,8 +605,9 @@ const CaseReviewDrawer = ({
                                     </h3>
 
                                     <p className="mt-2 text-[11px] leading-6 text-[#5f7e78]">
-                                        Continue recording meaningful updates
-                                        until support has been completed.
+                                        Continue recording meaningful
+                                        updates until support has been
+                                        completed.
                                     </p>
                                 </div>
                             </div>
@@ -594,13 +622,18 @@ const CaseReviewDrawer = ({
                         <div className="grid overflow-hidden border border-[#dce5e8] bg-white shadow-[0_5px_18px_rgba(25,52,60,0.025)] sm:grid-cols-2">
                             <DrawerValue
                                 label="Amount needed"
-                                value={formatCurrency(request.amountNeeded)}
+                                value={formatCurrency(
+                                    request.amountNeeded,
+                                )}
                                 accent
                             />
 
                             <DrawerValue
                                 label="People affected"
-                                value={request.peopleAffected ?? 'Not provided'}
+                                value={
+                                    request.peopleAffected ??
+                                    'Not provided'
+                                }
                             />
 
                             <DrawerValue
@@ -718,14 +751,17 @@ const CaseReviewDrawer = ({
 
                                             <p className="mt-1.5 text-[11px] leading-5 text-[#65757b]">
                                                 Update the case category or
-                                                priority while your organization
-                                                is handling it.
+                                                priority while your
+                                                organization is handling
+                                                it.
                                             </p>
                                         </div>
 
                                         <button
                                             type="button"
-                                            onClick={() => setIsEditing(true)}
+                                            onClick={() =>
+                                                setIsEditing(true)
+                                            }
                                             className="inline-flex shrink-0 items-center gap-2 bg-primary px-4 py-2.5 text-[10px] font-bold text-white transition hover:bg-primary-hover"
                                         >
                                             <Pencil className="h-3.5 w-3.5" />
@@ -736,7 +772,9 @@ const CaseReviewDrawer = ({
                             ) : (
                                 <EditCasePanel
                                     request={request}
-                                    onUpdateAssignment={onUpdateAssignment}
+                                    onUpdateAssignment={
+                                        onUpdateAssignment
+                                    }
                                     actionLoading={actionLoading}
                                     onCancel={handleCancelEdit}
                                 />
@@ -778,7 +816,9 @@ const CaseReviewDrawer = ({
                                     <div
                                         className="h-full bg-primary transition-all duration-300"
                                         style={{
-                                            width: `${request.progress ?? 0}%`,
+                                            width: `${
+                                                request.progress ?? 0
+                                            }%`,
                                         }}
                                     />
                                 </div>
@@ -786,7 +826,7 @@ const CaseReviewDrawer = ({
                         </DrawerSection>
                     )}
 
-                    {request.status === 'active' && (
+                    {canRequestWithdrawal && (
                         <DrawerSection
                             eyebrow="Case management"
                             title="Manage this case"
@@ -805,7 +845,9 @@ const CaseReviewDrawer = ({
                                     description="Use when your organization can no longer continue this case."
                                     danger
                                     onClick={() =>
-                                        onRequestWithdrawal?.(request)
+                                        onRequestWithdrawal?.(
+                                            request,
+                                        )
                                     }
                                     disabled={actionLoading}
                                 />
@@ -816,7 +858,7 @@ const CaseReviewDrawer = ({
 
                 {/* FOOTER */}
 
-                <footer className="shrink-0 border-t border-[#d8e2e5] bg-white px-5 py-5 shadow-[0_-5px_18px_rgba(25,52,60,0.025)] sm:px-8">
+                <footer className="shrink-0 border-t border-[#d8e2e5] bg-white px-5 py-5 shadow-[0_-5px_18px_rgba(15,23,42,0.025)] sm:px-8">
                     <DrawerFooter
                         request={request}
                         onClose={handleClose}

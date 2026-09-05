@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 
 import { formatCurrency } from './helpRequestUtils';
+
 import UrgencyBadge from './UrgencyBadge';
 
 const categories = [
@@ -123,7 +124,9 @@ const EditCasePanel = ({
     onCancel,
 }) => {
     const [category, setCategory] = useState(request.category || '');
+
     const [urgency, setUrgency] = useState(request.urgency || 'normal');
+
     const [error, setError] = useState('');
 
     const handleSave = async () => {
@@ -133,6 +136,7 @@ const EditCasePanel = ({
             setError(
                 'Assignment information is missing. Please refresh the page and try again.',
             );
+
             return;
         }
 
@@ -140,6 +144,7 @@ const EditCasePanel = ({
             setError(
                 'Update function is not available. Please refresh the page and try again.',
             );
+
             return;
         }
 
@@ -178,6 +183,7 @@ const EditCasePanel = ({
                 setError(
                     'The case could not be updated. Please check the error message and try again.',
                 );
+
                 return;
             }
 
@@ -198,10 +204,7 @@ const EditCasePanel = ({
                 <div>
                     <div className="flex items-center gap-2">
                         <div className="flex h-8 w-8 items-center justify-center bg-[#e5f3f0] text-primary">
-                            <Pencil
-                                className="h-3.5 w-3.5"
-                                strokeWidth={1.8}
-                            />
+                            <Pencil className="h-3.5 w-3.5" strokeWidth={1.8} />
                         </div>
 
                         <div>
@@ -244,9 +247,7 @@ const EditCasePanel = ({
                     <select
                         id="case-category"
                         value={category}
-                        onChange={(event) =>
-                            setCategory(event.target.value)
-                        }
+                        onChange={(event) => setCategory(event.target.value)}
                         disabled={actionLoading}
                         className="w-full border border-[#d7e2df] bg-white px-4 py-3 text-[11px] font-medium text-[#435650] outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10 disabled:cursor-not-allowed disabled:bg-[#f3f6f5]"
                     >
@@ -271,15 +272,16 @@ const EditCasePanel = ({
                     <select
                         id="case-priority"
                         value={urgency}
-                        onChange={(event) =>
-                            setUrgency(event.target.value)
-                        }
+                        onChange={(event) => setUrgency(event.target.value)}
                         disabled={actionLoading}
                         className="w-full border border-[#d7e2df] bg-white px-4 py-3 text-[11px] font-medium text-[#435650] outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10 disabled:cursor-not-allowed disabled:bg-[#f3f6f5]"
                     >
                         <option value="low">Low</option>
+
                         <option value="normal">Normal</option>
+
                         <option value="high">High</option>
+
                         <option value="critical">Critical</option>
                     </select>
                 </div>
@@ -318,12 +320,78 @@ const EditCasePanel = ({
     );
 };
 
-const DrawerFooter = ({
-    request,
-    onClose,
-    onAction,
-    actionLoading,
-}) => {
+const WithdrawalPendingNotice = ({ request }) => (
+    <section className="mb-11 border border-[#e7d5a5] bg-[#fffaf0]">
+        <div className="flex items-start gap-5 border-l-4 border-accent px-6 py-6">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center bg-[#fff0c7] text-[#ad7508]">
+                <RotateCcw className="h-4 w-4" strokeWidth={1.8} />
+            </div>
+
+            <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="text-[14px] font-bold text-[#513e19]">
+                        Withdrawal request submitted
+                    </h3>
+
+                    <span className="inline-flex items-center border border-[#e5cf91] bg-[#fff5d8] px-2 py-1 text-[8px] font-bold uppercase tracking-widest text-[#9a7119]">
+                        Awaiting admin review
+                    </span>
+                </div>
+
+                <p className="mt-2 text-[11px] leading-6 text-[#7e6e50]">
+                    Your organization has requested to withdraw from this case.
+                    The assignment will remain active until an administrator
+                    reviews the request.
+                </p>
+
+                {request.withdrawalReason && (
+                    <div className="mt-4 border border-[#eadbb8] bg-white/70 px-4 py-3">
+                        <p className="text-[8px] font-bold uppercase tracking-[0.12em] text-[#9a8a67]">
+                            Submitted reason
+                        </p>
+
+                        <p className="mt-1.5 text-[10px] leading-5 text-[#75694f]">
+                            {request.withdrawalReason}
+                        </p>
+                    </div>
+                )}
+
+                <div className="mt-4 flex items-center gap-2 text-[9px] font-semibold text-[#9a8963]">
+                    <Clock3 className="h-3.5 w-3.5" />
+                    Administration review is pending
+                </div>
+            </div>
+        </div>
+    </section>
+);
+
+const DrawerFooter = ({ request, onClose, onAction, actionLoading }) => {
+    const withdrawalPending = request.withdrawalStatus === 'pending';
+
+    /*
+     * Pending withdrawal must block the normal "start"
+     * action because the organization has already asked
+     * administration to withdraw.
+     */
+    if (withdrawalPending) {
+        return (
+            <div className="flex items-center justify-between gap-3">
+                <button
+                    type="button"
+                    onClick={onClose}
+                    className="text-[10px] font-bold text-[#7d898e] transition hover:text-[#31444a]"
+                >
+                    Close
+                </button>
+
+                <div className="inline-flex items-center gap-2 border border-[#e5d6ad] bg-[#fffaf0] px-4 py-2.5 text-[10px] font-bold text-[#866d35]">
+                    <Clock3 className="h-3.5 w-3.5" />
+                    Awaiting admin review
+                </div>
+            </div>
+        );
+    }
+
     if (request.status === 'pending') {
         return (
             <div className="flex items-center justify-between gap-3">
@@ -351,9 +419,7 @@ const DrawerFooter = ({
                         onClick={() => onAction(request, 'accept')}
                         className="inline-flex items-center gap-2 bg-primary px-5 py-2.5 text-[10px] font-bold text-white shadow-[0_5px_14px_rgba(15,118,110,0.12)] transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                        {actionLoading
-                            ? 'Processing...'
-                            : 'Accept assignment'}
+                        {actionLoading ? 'Processing...' : 'Accept assignment'}
 
                         <Check className="h-3.5 w-3.5" />
                     </button>
@@ -378,7 +444,6 @@ const DrawerFooter = ({
                     className="inline-flex items-center gap-2 bg-primary px-5 py-2.5 text-[10px] font-bold text-white shadow-[0_5px_14px_rgba(15,118,110,0.12)] transition hover:bg-primary-hover"
                 >
                     Start assistance
-
                     <ArrowRight className="h-3.5 w-3.5" />
                 </button>
             </div>
@@ -409,7 +474,6 @@ const DrawerFooter = ({
                         className="inline-flex items-center gap-2 bg-primary px-5 py-2.5 text-[10px] font-bold text-white shadow-[0_5px_14px_rgba(15,118,110,0.12)] transition hover:bg-primary-hover"
                     >
                         Complete case
-
                         <Check className="h-3.5 w-3.5" />
                     </button>
                 </div>
@@ -445,16 +509,27 @@ const CaseReviewDrawer = ({
         return null;
     }
 
-    const config =
-        statusConfig[request.status] || statusConfig.pending;
+    const config = statusConfig[request.status] || statusConfig.pending;
+
+    const withdrawalPending = request.withdrawalStatus === 'pending';
 
     const canEdit =
-        request.status === 'active' ||
-        request.status === 'assigned';
+        !withdrawalPending &&
+        (request.status === 'active' || request.status === 'assigned');
 
+    /*
+     * Organization can request withdrawal only when:
+     *
+     * 1. Assignment is accepted/active in the UI
+     * 2. There is no withdrawal request already pending
+     *
+     * After submission, the backend keeps the assignment
+     * status active/assigned and changes only withdrawalStatus
+     * to "pending".
+     */
     const canRequestWithdrawal =
-        request.status === 'assigned' ||
-        request.status === 'active';
+        !withdrawalPending &&
+        (request.status === 'assigned' || request.status === 'active');
 
     const handleClose = () => {
         setIsEditing(false);
@@ -475,11 +550,14 @@ const CaseReviewDrawer = ({
             />
 
             <aside className="absolute right-0 top-0 flex h-full w-full max-w-175 flex-col bg-[#eef3f6] shadow-[-30px_0_85px_rgba(15,23,42,0.21)]">
-                {/* DRAWER HEADER */}
+                {/* =====================================================
+                    DRAWER HEADER
+                ===================================================== */}
 
                 <header className="relative shrink-0 overflow-hidden bg-primary px-6 py-7 text-white sm:px-9 sm:py-8">
                     <div className="pointer-events-none absolute inset-0">
                         <div className="absolute -right-14 -top-20 h-60 w-60 rounded-full border-42 border-white/4.5" />
+
                         <div className="absolute bottom-0 right-[28%] h-px w-45 bg-white/10" />
                     </div>
 
@@ -489,15 +567,16 @@ const CaseReviewDrawer = ({
                                 <span>
                                     CASE HR-
                                     {String(
-                                        request.helpRequestId ||
-                                            request.id,
+                                        request.helpRequestId || request.id,
                                     ).padStart(4, '0')}
                                 </span>
 
                                 <span className="h-1 w-1 rounded-full bg-white/30" />
 
                                 <span className="text-white/80">
-                                    {config.label}
+                                    {withdrawalPending
+                                        ? 'Withdrawal requested'
+                                        : config.label}
                                 </span>
                             </div>
 
@@ -506,10 +585,7 @@ const CaseReviewDrawer = ({
                             </h2>
 
                             <div className="mt-5 flex flex-wrap items-center gap-3">
-                                <UrgencyBadge
-                                    urgency={request.urgency}
-                                    dark
-                                />
+                                <UrgencyBadge urgency={request.urgency} dark />
 
                                 <span className="text-[10px] text-white/45">
                                     Submitted{' '}
@@ -517,6 +593,13 @@ const CaseReviewDrawer = ({
                                         {request.submitted}
                                     </span>
                                 </span>
+
+                                {withdrawalPending && (
+                                    <span className="inline-flex items-center gap-1.5 border border-white/15 bg-white/8 px-2.5 py-1.5 text-[8px] font-bold uppercase tracking-widest text-[#ffe1a0]">
+                                        <RotateCcw className="h-3 w-3" />
+                                        Awaiting review
+                                    </span>
+                                )}
                             </div>
                         </div>
 
@@ -531,9 +614,23 @@ const CaseReviewDrawer = ({
                     </div>
                 </header>
 
-                {/* CONTENT */}
+                {/* =====================================================
+                    CONTENT
+                ===================================================== */}
 
                 <div className="min-h-0 flex-1 overflow-y-auto px-5 py-9 sm:px-8 sm:py-10">
+                    {/* =================================================
+                        WITHDRAWAL PENDING
+                    ================================================= */}
+
+                    {withdrawalPending && (
+                        <WithdrawalPendingNotice request={request} />
+                    )}
+
+                    {/* =================================================
+                        ASSIGNMENT PENDING
+                    ================================================= */}
+
                     {request.status === 'pending' && (
                         <section className="mb-11 border border-[#ead08b] bg-[#fffaf0]">
                             <div className="flex items-start gap-5 border-l-4 border-accent px-6 py-6">
@@ -547,9 +644,9 @@ const CaseReviewDrawer = ({
                                     </h3>
 
                                     <p className="mt-2 text-[11px] leading-6 text-[#7e6e50]">
-                                        Accepting this assignment makes
-                                        your organization responsible for
-                                        providing the requested support.
+                                        Accepting this assignment makes your
+                                        organization responsible for providing
+                                        the requested support.
                                     </p>
 
                                     <div className="mt-5 flex flex-wrap gap-2.5">
@@ -557,10 +654,7 @@ const CaseReviewDrawer = ({
                                             type="button"
                                             disabled={actionLoading}
                                             onClick={() =>
-                                                onAction(
-                                                    request,
-                                                    'accept',
-                                                )
+                                                onAction(request, 'accept')
                                             }
                                             className="inline-flex items-center gap-2 bg-primary px-4 py-2.5 text-[10px] font-bold text-white disabled:cursor-not-allowed disabled:opacity-60"
                                         >
@@ -575,15 +669,11 @@ const CaseReviewDrawer = ({
                                             type="button"
                                             disabled={actionLoading}
                                             onClick={() =>
-                                                onAction(
-                                                    request,
-                                                    'reject',
-                                                )
+                                                onAction(request, 'reject')
                                             }
                                             className="inline-flex items-center gap-2 border border-[#e4d7b9] bg-white px-4 py-2.5 text-[10px] font-bold text-[#705e36] disabled:cursor-not-allowed disabled:opacity-60"
                                         >
                                             <X className="h-3.5 w-3.5" />
-
                                             Decline
                                         </button>
                                     </div>
@@ -592,7 +682,11 @@ const CaseReviewDrawer = ({
                         </section>
                     )}
 
-                    {request.status === 'active' && (
+                    {/* =================================================
+                        ACTIVE
+                    ================================================= */}
+
+                    {request.status === 'active' && !withdrawalPending && (
                         <section className="mb-11 border border-[#cce4df] bg-white">
                             <div className="flex items-start gap-5 border-l-4 border-primary px-6 py-6">
                                 <div className="flex h-11 w-11 shrink-0 items-center justify-center bg-[#e5f3f0] text-primary">
@@ -605,14 +699,17 @@ const CaseReviewDrawer = ({
                                     </h3>
 
                                     <p className="mt-2 text-[11px] leading-6 text-[#5f7e78]">
-                                        Continue recording meaningful
-                                        updates until support has been
-                                        completed.
+                                        Continue recording meaningful updates
+                                        until support has been completed.
                                     </p>
                                 </div>
                             </div>
                         </section>
                     )}
+
+                    {/* =================================================
+                        CASE OVERVIEW
+                    ================================================= */}
 
                     <DrawerSection
                         eyebrow="Case overview"
@@ -622,18 +719,13 @@ const CaseReviewDrawer = ({
                         <div className="grid overflow-hidden border border-[#dce5e8] bg-white shadow-[0_5px_18px_rgba(25,52,60,0.025)] sm:grid-cols-2">
                             <DrawerValue
                                 label="Amount needed"
-                                value={formatCurrency(
-                                    request.amountNeeded,
-                                )}
+                                value={formatCurrency(request.amountNeeded)}
                                 accent
                             />
 
                             <DrawerValue
                                 label="People affected"
-                                value={
-                                    request.peopleAffected ??
-                                    'Not provided'
-                                }
+                                value={request.peopleAffected ?? 'Not provided'}
                             />
 
                             <DrawerValue
@@ -670,6 +762,10 @@ const CaseReviewDrawer = ({
                         </div>
                     </DrawerSection>
 
+                    {/* =================================================
+                        REQUEST
+                    ================================================= */}
+
                     <DrawerSection
                         eyebrow="Request"
                         title="Why support is needed"
@@ -682,6 +778,10 @@ const CaseReviewDrawer = ({
                             </p>
                         </div>
                     </DrawerSection>
+
+                    {/* =================================================
+                        REQUESTER
+                    ================================================= */}
 
                     <DrawerSection
                         eyebrow="Requester"
@@ -712,6 +812,10 @@ const CaseReviewDrawer = ({
                         </div>
                     </DrawerSection>
 
+                    {/* =================================================
+                        ADMINISTRATION
+                    ================================================= */}
+
                     <DrawerSection
                         eyebrow="Administration"
                         title="Assignment context"
@@ -735,6 +839,10 @@ const CaseReviewDrawer = ({
                         </div>
                     </DrawerSection>
 
+                    {/* =================================================
+                        CASE EDITING
+                    ================================================= */}
+
                     {canEdit && (
                         <DrawerSection
                             eyebrow="Case management"
@@ -751,17 +859,14 @@ const CaseReviewDrawer = ({
 
                                             <p className="mt-1.5 text-[11px] leading-5 text-[#65757b]">
                                                 Update the case category or
-                                                priority while your
-                                                organization is handling
-                                                it.
+                                                priority while your organization
+                                                is handling it.
                                             </p>
                                         </div>
 
                                         <button
                                             type="button"
-                                            onClick={() =>
-                                                setIsEditing(true)
-                                            }
+                                            onClick={() => setIsEditing(true)}
                                             className="inline-flex shrink-0 items-center gap-2 bg-primary px-4 py-2.5 text-[10px] font-bold text-white transition hover:bg-primary-hover"
                                         >
                                             <Pencil className="h-3.5 w-3.5" />
@@ -772,15 +877,17 @@ const CaseReviewDrawer = ({
                             ) : (
                                 <EditCasePanel
                                     request={request}
-                                    onUpdateAssignment={
-                                        onUpdateAssignment
-                                    }
+                                    onUpdateAssignment={onUpdateAssignment}
                                     actionLoading={actionLoading}
                                     onCancel={handleCancelEdit}
                                 />
                             )}
                         </DrawerSection>
                     )}
+
+                    {/* =================================================
+                        PROGRESS
+                    ================================================= */}
 
                     {['active', 'assigned', 'completed', 'withdrawal'].includes(
                         request.status,
@@ -816,15 +923,17 @@ const CaseReviewDrawer = ({
                                     <div
                                         className="h-full bg-primary transition-all duration-300"
                                         style={{
-                                            width: `${
-                                                request.progress ?? 0
-                                            }%`,
+                                            width: `${request.progress ?? 0}%`,
                                         }}
                                     />
                                 </div>
                             </div>
                         </DrawerSection>
                     )}
+
+                    {/* =================================================
+                        WITHDRAWAL MANAGEMENT
+                    ================================================= */}
 
                     {canRequestWithdrawal && (
                         <DrawerSection
@@ -845,18 +954,20 @@ const CaseReviewDrawer = ({
                                     description="Use when your organization can no longer continue this case."
                                     danger
                                     onClick={() =>
-                                        onRequestWithdrawal?.(
-                                            request,
-                                        )
+                                        onRequestWithdrawal?.(request)
                                     }
-                                    disabled={actionLoading}
+                                    disabled={
+                                        actionLoading || withdrawalPending
+                                    }
                                 />
                             </div>
                         </DrawerSection>
                     )}
                 </div>
 
-                {/* FOOTER */}
+                {/* =====================================================
+                    FOOTER
+                ===================================================== */}
 
                 <footer className="shrink-0 border-t border-[#d8e2e5] bg-white px-5 py-5 shadow-[0_-5px_18px_rgba(15,23,42,0.025)] sm:px-8">
                     <DrawerFooter

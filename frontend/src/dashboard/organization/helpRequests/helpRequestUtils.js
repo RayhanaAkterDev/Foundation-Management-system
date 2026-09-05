@@ -106,6 +106,7 @@ export const formatCurrency = (amount) => {
     return `৳${numericAmount.toLocaleString('en-BD')}`;
 };
 
+
 /* =========================================================
    ASSIGNMENT STATUS
 ========================================================= */
@@ -135,10 +136,21 @@ export const mapAssignmentStatus = (status) => {
         case 'assigned':
             return 'assigned';
 
+        /*
+         * "withdrawn" is an actual backend assignment
+         * status after an admin approves withdrawal.
+         *
+         * Keep it as "withdrawal" in the organization UI
+         * so the existing STATUS_CONFIG / filter can use it.
+         */
+        case 'withdrawn':
+            return 'withdrawal';
+
         default:
             return 'pending';
     }
 };
+
 
 /* =========================================================
    BACKEND ASSIGNMENT -> UI REQUEST
@@ -163,9 +175,50 @@ export const normalizeAssignment = (assignment) => {
 
     const createdAt = helpRequest?.created_at || helpRequest?.createdAt;
 
-    const assignedAt = assignment?.assigned_at || assignment?.assignedAt;
+    const assignedAt =
+        assignment?.assigned_at ||
+        assignment?.assignedAt;
 
     const status = mapAssignmentStatus(assignment?.status);
+
+    /*
+     * Withdrawal workflow state is intentionally kept
+     * separate from assignment status.
+     *
+     * Example while waiting for admin:
+     *
+     * status = "assigned"
+     * withdrawalStatus = "pending"
+     *
+     * After admin approval:
+     *
+     * status = "withdrawal"
+     * withdrawalStatus = "approved"
+     *
+     * After admin rejection:
+     *
+     * status = "assigned" / "active"
+     * withdrawalStatus = "rejected"
+     */
+    const withdrawalStatus =
+        assignment?.withdrawal_status ??
+        assignment?.withdrawalStatus ??
+        null;
+
+    const withdrawalReason =
+        assignment?.withdrawal_reason ??
+        assignment?.withdrawalReason ??
+        null;
+
+    const withdrawalRequestedAt =
+        assignment?.withdrawal_requested_at ??
+        assignment?.withdrawalRequestedAt ??
+        null;
+
+    const withdrawalReviewedAt =
+        assignment?.withdrawal_reviewed_at ??
+        assignment?.withdrawalReviewedAt ??
+        null;
 
     /*
      * OrganizationController currently loads:
@@ -193,16 +246,18 @@ export const normalizeAssignment = (assignment) => {
     return {
         /*
          * Assignment ID is the ID that must be sent to
-         * /organization/assignments/{id}/accept|reject
+         * /organization/assignments/{id}/accept|reject/withdraw
          */
         id: assignment?.id,
+
         assignmentId: assignment?.id,
 
         /*
          * Actual Help Request ID
          */
         helpRequestId:
-            helpRequest?.id || assignment?.help_request_id,
+            helpRequest?.id ||
+            assignment?.help_request_id,
 
         /*
          * Help Request data
@@ -210,11 +265,16 @@ export const normalizeAssignment = (assignment) => {
         title: helpRequest?.title || 'No title provided',
 
         description:
-            helpRequest?.description || 'No description provided.',
+            helpRequest?.description ||
+            'No description provided.',
 
-        category: helpRequest?.category || 'Not specified',
+        category:
+            helpRequest?.category ||
+            'Not specified',
 
-        district: helpRequest?.district || 'Not specified',
+        district:
+            helpRequest?.district ||
+            'Not specified',
 
         /*
          * These fields are not currently present in the
@@ -231,13 +291,26 @@ export const normalizeAssignment = (assignment) => {
             helpRequest?.amountNeeded ??
             null,
 
-        urgency: String(helpRequest?.urgency || '').toLowerCase() || 'normal',
+        urgency:
+            String(helpRequest?.urgency || '').toLowerCase() ||
+            'normal',
 
         /*
          * Assignment status is mapped to the original UI's
          * status names.
          */
         status,
+
+        /*
+         * Withdrawal workflow state.
+         */
+        withdrawalStatus,
+
+        withdrawalReason,
+
+        withdrawalRequestedAt,
+
+        withdrawalReviewedAt,
 
         /*
          * Dates
@@ -263,7 +336,9 @@ export const normalizeAssignment = (assignment) => {
          */
         location,
 
-        address: helpRequest?.address || null,
+        address:
+            helpRequest?.address ||
+            null,
 
         /*
          * Assignment information

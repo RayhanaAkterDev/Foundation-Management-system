@@ -1,6 +1,17 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
-import { Download, ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react';
+import {
+    AlertCircle,
+    ArrowDown,
+    ArrowUp,
+    CheckCircle2,
+    Clock3,
+    Download,
+    RotateCcw,
+    X,
+    XCircle,
+    ChevronsUpDown,
+} from 'lucide-react';
 
 import PageHeader from '@/components/dashboard/PageHeader';
 
@@ -27,6 +38,7 @@ import {
 
 import { fetchUser } from './users/userApi';
 import { fetchOrganization } from './organizations/organizationApi';
+import { apiRequest } from '@/api/client';
 
 const HELP_REQUESTS_PER_PAGE = 25;
 
@@ -34,6 +46,22 @@ const AdminHelpRequests = () => {
     const [helpRequests, setHelpRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+
+    // --------------------------------
+    // Withdrawal requests
+    // --------------------------------
+
+    const [withdrawalRequests, setWithdrawalRequests] = useState([]);
+    // const [withdrawalLoading, setWithdrawalLoading] = useState(false);
+    const [withdrawalError, setWithdrawalError] = useState('');
+
+    const [selectedWithdrawalRequest, setSelectedWithdrawalRequest] =
+        useState(null);
+
+    const [withdrawalReviewLoading, setWithdrawalReviewLoading] =
+        useState(false);
+
+    const [withdrawalReviewError, setWithdrawalReviewError] = useState('');
 
     // --------------------------------
     // Filters / Search / Sorting
@@ -219,18 +247,48 @@ const AdminHelpRequests = () => {
         }
     };
 
+    // --------------------------------
+    // Load withdrawal requests
+    // --------------------------------
+
+    const loadWithdrawalRequests = async () => {
+        try {
+            setWithdrawalError('');
+
+            const data = await apiRequest(
+                '/admin/help-requests/withdrawal-requests',
+            );
+
+            setWithdrawalRequests(data.withdrawalRequests || []);
+        } catch (err) {
+            setWithdrawalError(
+                err.message ||
+                    'Unable to load organization withdrawal requests.',
+            );
+        }
+    };
+
+    // --------------------------------
+    // Initial data + polling
+    // --------------------------------
+
     useEffect(() => {
         let cancelled = false;
 
         const checkForUpdates = async (isInitialLoad = false) => {
             try {
-                const data = await fetchHelpRequests();
+                const [helpRequestData, withdrawalData] = await Promise.all([
+                    fetchHelpRequests(),
+                    apiRequest('/admin/help-requests/withdrawal-requests'),
+                ]);
 
                 if (cancelled) {
                     return;
                 }
 
-                const requests = data.helpRequests || [];
+                const requests = helpRequestData.helpRequests || [];
+                const pendingWithdrawals =
+                    withdrawalData.withdrawalRequests || [];
 
                 /*
                  * On the first load, only remember existing rejected
@@ -259,6 +317,8 @@ const AdminHelpRequests = () => {
                     seenRejectedAssignmentsRef.current = existingRejectedIds;
 
                     setHelpRequests(requests);
+                    setWithdrawalRequests(pendingWithdrawals);
+
                     return;
                 }
 
@@ -290,6 +350,7 @@ const AdminHelpRequests = () => {
 
                         const organizationName =
                             assignment?.organization?.name ||
+                            assignment?.organization?.user?.name ||
                             'The assigned organization';
 
                         const requestTitle =
@@ -309,6 +370,7 @@ const AdminHelpRequests = () => {
                 });
 
                 setHelpRequests(requests);
+                setWithdrawalRequests(pendingWithdrawals);
             } catch (err) {
                 /*
                  * Do not replace existing dashboard data just because
@@ -349,6 +411,95 @@ const AdminHelpRequests = () => {
             window.clearInterval(intervalId);
         };
     }, []);
+
+    // --------------------------------
+    // Withdrawal review
+    // --------------------------------
+
+    const handleReviewWithdrawal = (assignment) => {
+        if (!assignment) {
+            return;
+        }
+
+        setWithdrawalReviewError('');
+        setSelectedWithdrawalRequest(assignment);
+    };
+
+    const closeWithdrawalReview = () => {
+        if (withdrawalReviewLoading) {
+            return;
+        }
+
+        setSelectedWithdrawalRequest(null);
+        setWithdrawalReviewError('');
+    };
+
+    const handleWithdrawalDecision = async (decision) => {
+        if (!selectedWithdrawalRequest || withdrawalReviewLoading) {
+            return;
+        }
+
+        setWithdrawalReviewLoading(true);
+        setWithdrawalReviewError('');
+
+        try {
+            await apiRequest(
+                `/admin/help-requests/assignments/${selectedWithdrawalRequest.id}/withdrawal`,
+                {
+                    method: 'PATCH',
+                    body: JSON.stringify({
+                        decision,
+                    }),
+                },
+            );
+
+            /*
+             * Remove the reviewed request immediately from the
+             * pending withdrawal list.
+             */
+            setWithdrawalRequests((currentRequests) =>
+                currentRequests.filter(
+                    (item) =>
+                        String(item.id) !==
+                        String(selectedWithdrawalRequest.id),
+                ),
+            );
+
+            /*
+             * Close the withdrawal review modal.
+             */
+            setSelectedWithdrawalRequest(null);
+
+            /*
+             * Refresh the actual help-request table and withdrawal
+             * requests so the UI reflects the latest database state.
+             *
+             * Approved:
+             *   assignment.status = withdrawn
+             *
+             * Rejected:
+             *   assignment.status remains accepted/in_progress
+             */
+            await Promise.all([loadHelpRequests(), loadWithdrawalRequests()]);
+
+            if (decision === 'approved') {
+                showSuccessToast(
+                    'Organization withdrawal approved successfully.',
+                );
+            } else {
+                showSuccessToast('Organization withdrawal request rejected.');
+            }
+        } catch (err) {
+            setWithdrawalReviewError(
+                err.message ||
+                    `Unable to ${
+                        decision === 'approved' ? 'approve' : 'reject'
+                    } the withdrawal request.`,
+            );
+        } finally {
+            setWithdrawalReviewLoading(false);
+        }
+    };
 
     // --------------------------------
     // Edit
@@ -526,7 +677,6 @@ const AdminHelpRequests = () => {
             ]);
 
             setOrganizations(organizationData.organizations || []);
-
             setVolunteers(volunteerData.volunteers || []);
         } catch (err) {
             setOrganizations([]);
@@ -616,7 +766,6 @@ const AdminHelpRequests = () => {
             ]);
 
             setOrganizations(organizationData.organizations || []);
-
             setVolunteers(volunteerData.volunteers || []);
         } catch (err) {
             setOrganizations([]);
@@ -664,6 +813,26 @@ const AdminHelpRequests = () => {
         /*
          * Organization HAS requested withdrawal.
          *
+         * IMPORTANT:
+         *
+         * This action should only become a true reassignment
+         * workflow after Admin has APPROVED the withdrawal.
+         *
+         * Therefore, do not allow reassignment while the request
+         * is still waiting for admin review.
+         */
+        const pendingWithdrawal = getPendingWithdrawalAssignment(request);
+
+        if (pendingWithdrawal) {
+            showActionMessage(
+                'Withdrawal Awaiting Review',
+                'The organization has requested withdrawal, but the request is still waiting for admin review. Approve the withdrawal before reassigning this help request.',
+            );
+
+            return;
+        }
+
+        /*
          * Now open the actual reassignment workflow.
          */
         setReassignmentError('');
@@ -677,7 +846,6 @@ const AdminHelpRequests = () => {
             ]);
 
             setOrganizations(organizationData.organizations || []);
-
             setVolunteers(volunteerData.volunteers || []);
         } catch (err) {
             setOrganizations([]);
@@ -1133,14 +1301,29 @@ const AdminHelpRequests = () => {
             header: 'Status',
             sortable: true,
             sortKey: 'status',
-            width: '120px',
+            width: '150px',
+
+            render: (value, row) => {
+                const pendingWithdrawal = getPendingWithdrawalAssignment(row);
+
+                if (pendingWithdrawal) {
+                    return (
+                        <div className="inline-flex items-center gap-1.5 whitespace-nowrap text-xs font-semibold text-amber-700">
+                            <RotateCcw size={13} strokeWidth={2} />
+                            Withdrawal requested
+                        </div>
+                    );
+                }
+
+                return value || '—';
+            },
         },
 
         {
             key: 'id',
             header: 'Actions',
             align: 'right',
-            width: '390px',
+            width: '470px',
 
             render: (_, row) => {
                 const hasAssignment = hasExistingAssignment(row);
@@ -1150,6 +1333,8 @@ const AdminHelpRequests = () => {
 
                 const hasActiveOrganization =
                     hasActiveOrganizationAssignment(row);
+
+                const pendingWithdrawal = getPendingWithdrawalAssignment(row);
 
                 return (
                     <div className="flex min-w-max items-center justify-end gap-4 whitespace-nowrap">
@@ -1182,21 +1367,21 @@ const AdminHelpRequests = () => {
                             </button>
                         )}
 
-                        {/*
-                         * INITIAL ASSIGNMENT
-                         *
-                         * Show Assign when:
-                         * - request is verified
-                         * - there is no active assignment
-                         * - there is no pending organization assignment
-                         *
-                         * Therefore:
-                         *
-                         * rejected -> Assign
-                         * never assigned -> Assign
-                         * pending -> no Assign
-                         * accepted -> no Assign
-                         */}
+                        {/* WITHDRAWAL REVIEW */}
+                        {pendingWithdrawal && (
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    handleReviewWithdrawal(pendingWithdrawal)
+                                }
+                                className="inline-flex shrink-0 items-center gap-1.5 text-xs font-bold text-amber-700 transition-colors hover:text-amber-800"
+                            >
+                                <RotateCcw size={13} strokeWidth={2} />
+                                Review Withdrawal
+                            </button>
+                        )}
+
+                        {/* INITIAL ASSIGNMENT */}
                         {row.status === 'verified' &&
                             !hasAssignment &&
                             !hasPendingOrganization && (
@@ -1209,41 +1394,31 @@ const AdminHelpRequests = () => {
                                 </button>
                             )}
 
-                        {/*
-                         * REASSIGN
-                         *
-                         * Only show this when there is an actual active
-                         * organization assignment.
-                         *
-                         * pending -> no Reassign
-                         * rejected -> no Reassign
-                         * accepted/in_progress/completed -> Reassign
-                         */}
-                        {row.status === 'verified' && hasActiveOrganization && (
-                            <button
-                                type="button"
-                                onClick={() => handleReassignRequest(row)}
-                                className="shrink-0 text-xs font-semibold text-amber-600 transition-colors hover:text-amber-700"
-                            >
-                                Reassign
-                            </button>
-                        )}
+                        {/* REASSIGN */}
+                        {row.status === 'verified' &&
+                            hasActiveOrganization &&
+                            !pendingWithdrawal && (
+                                <button
+                                    type="button"
+                                    onClick={() => handleReassignRequest(row)}
+                                    className="shrink-0 text-xs font-semibold text-amber-600 transition-colors hover:text-amber-700"
+                                >
+                                    Reassign
+                                </button>
+                            )}
 
-                        {/*
-                         * ADD SUPPORT
-                         *
-                         * Keep this available only when an actual
-                         * organization assignment exists.
-                         */}
-                        {row.status === 'verified' && hasActiveOrganization && (
-                            <button
-                                type="button"
-                                onClick={() => handleAddSupportRequest(row)}
-                                className="shrink-0 text-xs font-semibold text-primary transition-colors hover:text-primary-hover"
-                            >
-                                Add Support
-                            </button>
-                        )}
+                        {/* ADD SUPPORT */}
+                        {row.status === 'verified' &&
+                            hasActiveOrganization &&
+                            !pendingWithdrawal && (
+                                <button
+                                    type="button"
+                                    onClick={() => handleAddSupportRequest(row)}
+                                    className="shrink-0 text-xs font-semibold text-primary transition-colors hover:text-primary-hover"
+                                >
+                                    Add Support
+                                </button>
+                            )}
                     </div>
                 );
             },
@@ -1320,6 +1495,142 @@ const AdminHelpRequests = () => {
                         </button>
                     }
                 />
+
+                {/* --------------------------------
+                    Withdrawal Requests
+                   -------------------------------- */}
+
+                {withdrawalRequests.length > 0 && (
+                    <section className="border border-amber-200 bg-amber-50/70">
+                        <div className="flex flex-col gap-4 px-5 py-5 sm:px-6">
+                            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                                <div className="flex items-start gap-3">
+                                    <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
+                                        <RotateCcw size={17} strokeWidth={2} />
+                                    </div>
+
+                                    <div>
+                                        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-amber-700">
+                                            Action required
+                                        </p>
+
+                                        <h2 className="mt-1 text-lg font-bold tracking-tight text-text-primary">
+                                            Organization withdrawal requests
+                                        </h2>
+
+                                        <p className="mt-1 max-w-2xl text-sm leading-6 text-text-secondary">
+                                            An organization has requested to
+                                            withdraw from a help request. Review
+                                            the reason before deciding whether
+                                            to approve or reject the withdrawal.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="inline-flex w-fit shrink-0 items-center gap-2 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-amber-700 shadow-sm ring-1 ring-amber-200">
+                                    <Clock3 size={13} />
+                                    {withdrawalRequests.length}{' '}
+                                    {withdrawalRequests.length === 1
+                                        ? 'pending request'
+                                        : 'pending requests'}
+                                </div>
+                            </div>
+
+                            <div className="divide-y divide-amber-100 border border-amber-200 bg-white">
+                                {withdrawalRequests.map((assignment) => {
+                                    const helpRequest =
+                                        assignment?.help_request ||
+                                        assignment?.helpRequest ||
+                                        {};
+
+                                    const organization =
+                                        assignment?.organization || {};
+
+                                    const organizationName =
+                                        organization?.name ||
+                                        organization?.user?.name ||
+                                        'Organization unavailable';
+
+                                    const requestTitle =
+                                        helpRequest?.title || 'Help request';
+
+                                    const requestedAt =
+                                        assignment?.withdrawal_requested_at;
+
+                                    return (
+                                        <div
+                                            key={assignment.id}
+                                            className="flex flex-col gap-4 px-5 py-4 lg:flex-row lg:items-center lg:justify-between"
+                                        >
+                                            <div className="min-w-0">
+                                                <div className="flex flex-wrap items-center gap-2">
+                                                    <span className="text-sm font-bold text-text-primary">
+                                                        {organizationName}
+                                                    </span>
+
+                                                    <span className="text-xs text-text-secondary">
+                                                        requested withdrawal
+                                                    </span>
+                                                </div>
+
+                                                <p className="mt-1 truncate text-sm font-medium text-text-primary">
+                                                    {requestTitle}
+                                                </p>
+
+                                                <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-text-secondary">
+                                                    {requestedAt && (
+                                                        <span>
+                                                            Requested{' '}
+                                                            {formatDateTime(
+                                                                requestedAt,
+                                                            )}
+                                                        </span>
+                                                    )}
+
+                                                    {assignment?.withdrawal_reason && (
+                                                        <span className="max-w-xl truncate">
+                                                            Reason:{' '}
+                                                            {
+                                                                assignment.withdrawal_reason
+                                                            }
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    handleReviewWithdrawal(
+                                                        assignment,
+                                                    )
+                                                }
+                                                className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-xs font-bold text-white transition-colors hover:bg-primary-hover"
+                                            >
+                                                <RotateCcw size={14} />
+                                                Review
+                                            </button>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </section>
+                )}
+
+                {withdrawalError && (
+                    <div className="flex items-start gap-3 border-l-4 border-amber-500 bg-amber-50 px-5 py-4 text-sm text-amber-800">
+                        <AlertCircle size={17} className="mt-0.5 shrink-0" />
+
+                        <div>
+                            <p className="font-semibold">
+                                Withdrawal requests could not be loaded.
+                            </p>
+
+                            <p className="mt-1">{withdrawalError}</p>
+                        </div>
+                    </div>
+                )}
 
                 {/* Help Request Overview */}
 
@@ -1427,11 +1738,26 @@ const AdminHelpRequests = () => {
             </div>
 
             {/* --------------------------------
+                Withdrawal Review Modal
+               -------------------------------- */}
+
+            {selectedWithdrawalRequest && (
+                <WithdrawalReviewModal
+                    assignment={selectedWithdrawalRequest}
+                    loading={withdrawalReviewLoading}
+                    error={withdrawalReviewError}
+                    onClose={closeWithdrawalReview}
+                    onDecision={handleWithdrawalDecision}
+                    onOrganizationClick={handleViewOrganization}
+                />
+            )}
+
+            {/* --------------------------------
                 Action message
                -------------------------------- */}
 
             {actionMessage.show && (
-                <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/30 p-4">
+                <div className="fixed inset-0 z-70 flex items-center justify-center bg-black/30 p-4">
                     <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
                         <h3 className="text-base font-bold text-text-primary">
                             {actionMessage.title}
@@ -1563,7 +1889,9 @@ const AdminHelpRequests = () => {
                 Reassignment
 
                 This modal can ONLY be reached
-                after a withdrawal request exists.
+                after a withdrawal request exists
+                and has passed the pending-review
+                stage.
                -------------------------------- */}
 
             <HelpRequestReassignmentModal
@@ -1579,6 +1907,278 @@ const AdminHelpRequests = () => {
                 onOrganizationClick={handleViewOrganization}
             />
         </>
+    );
+};
+
+/*
+|--------------------------------------------------------------------------
+| Withdrawal Review Modal
+|--------------------------------------------------------------------------
+|
+| This is intentionally kept inside AdminHelpRequests.jsx
+| for this workflow step.
+|
+| Later, if the admin dashboard grows, this can be moved
+| into its own:
+|
+|   WithdrawalReviewModal.jsx
+|
+| without changing the API logic.
+|
+|--------------------------------------------------------------------------
+*/
+
+const WithdrawalReviewModal = ({
+    assignment,
+    loading = false,
+    error = '',
+    onClose,
+    onDecision,
+    onOrganizationClick,
+}) => {
+    if (!assignment) {
+        return null;
+    }
+
+    const helpRequest =
+        assignment?.help_request || assignment?.helpRequest || {};
+
+    const organization = assignment?.organization || {};
+
+    const organizationName =
+        organization?.name ||
+        organization?.user?.name ||
+        'Organization unavailable';
+
+    const organizationId =
+        organization?.id || assignment?.organization_id || null;
+
+    const requestTitle = helpRequest?.title || 'Help request';
+
+    const requestDescription =
+        helpRequest?.description || 'No description provided.';
+
+    const requestedAt = assignment?.withdrawal_requested_at;
+
+    const reason =
+        assignment?.withdrawal_reason || 'No withdrawal reason was provided.';
+
+    const handleClose = () => {
+        if (loading) {
+            return;
+        }
+
+        onClose?.();
+    };
+
+    return (
+        <div className="fixed inset-0 z-80 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
+            <div
+                className="absolute inset-0"
+                onClick={!loading ? handleClose : undefined}
+            />
+
+            <div className="relative z-10 flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl bg-white shadow-[0_30px_100px_rgba(15,23,42,0.28)]">
+                {/* Header */}
+
+                <div className="flex items-start justify-between gap-5 border-b border-border px-6 py-5 sm:px-7">
+                    <div className="flex min-w-0 items-start gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
+                            <RotateCcw size={18} strokeWidth={2} />
+                        </div>
+
+                        <div className="min-w-0">
+                            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-amber-700">
+                                Withdrawal review
+                            </p>
+
+                            <h2 className="mt-1 text-lg font-bold tracking-tight text-text-primary">
+                                Organization withdrawal request
+                            </h2>
+
+                            <p className="mt-1 text-xs leading-5 text-text-secondary">
+                                Review the organization's reason before
+                                approving or rejecting the withdrawal.
+                            </p>
+                        </div>
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={handleClose}
+                        disabled={loading}
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-text-secondary transition-colors hover:bg-background-alt hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
+                        aria-label="Close"
+                    >
+                        <X size={18} />
+                    </button>
+                </div>
+
+                {/* Content */}
+
+                <div className="overflow-y-auto px-6 py-6 sm:px-7">
+                    <div className="space-y-5">
+                        {/* Organization */}
+
+                        <div className="border border-border bg-background-alt/50 p-5">
+                            <div className="flex items-start justify-between gap-4">
+                                <div>
+                                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-text-secondary">
+                                        Organization
+                                    </p>
+
+                                    <button
+                                        type="button"
+                                        disabled={!organizationId}
+                                        onClick={() =>
+                                            onOrganizationClick?.(
+                                                organizationId,
+                                            )
+                                        }
+                                        className="mt-1 text-left text-base font-bold text-text-primary transition-colors hover:text-primary disabled:cursor-default disabled:hover:text-text-primary"
+                                    >
+                                        {organizationName}
+                                    </button>
+                                </div>
+
+                                <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-amber-700">
+                                    <Clock3 size={11} />
+                                    Pending review
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Help Request */}
+
+                        <div>
+                            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-text-secondary">
+                                Help request
+                            </p>
+
+                            <h3 className="mt-1 text-base font-bold text-text-primary">
+                                {requestTitle}
+                            </h3>
+
+                            <p className="mt-2 text-sm leading-6 text-text-secondary">
+                                {requestDescription}
+                            </p>
+                        </div>
+
+                        {/* Requested At */}
+
+                        {requestedAt && (
+                            <div className="border-t border-border pt-4">
+                                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-text-secondary">
+                                    Requested
+                                </p>
+
+                                <p className="mt-1 text-sm font-medium text-text-primary">
+                                    {formatDateTime(requestedAt)}
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Withdrawal reason */}
+
+                        <div className="border-t border-border pt-5">
+                            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-text-secondary">
+                                Organization's reason
+                            </p>
+
+                            <div className="mt-2 border border-amber-200 bg-amber-50 px-4 py-4">
+                                <p className="whitespace-pre-wrap text-sm leading-6 text-text-primary">
+                                    {reason}
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Decision explanation */}
+
+                        <div className="border border-border bg-background-alt px-4 py-4">
+                            <p className="text-xs font-bold text-text-primary">
+                                What happens after your decision?
+                            </p>
+
+                            <ul className="mt-2 space-y-1.5 text-xs leading-5 text-text-secondary">
+                                <li>
+                                    <span className="font-semibold text-text-primary">
+                                        Approve:
+                                    </span>{' '}
+                                    The current organization assignment becomes
+                                    withdrawn and remains in history.
+                                </li>
+
+                                <li>
+                                    <span className="font-semibold text-text-primary">
+                                        Reject:
+                                    </span>{' '}
+                                    The organization remains assigned and can
+                                    continue the help request.
+                                </li>
+
+                                <li>
+                                    <span className="font-semibold text-text-primary">
+                                        Reassignment:
+                                    </span>{' '}
+                                    A replacement organization will be handled
+                                    separately after an approved withdrawal.
+                                </li>
+                            </ul>
+                        </div>
+
+                        {/* Error */}
+
+                        {error && (
+                            <div className="flex items-start gap-3 border-l-4 border-red-500 bg-red-50 px-4 py-3 text-sm text-red-700">
+                                <AlertCircle
+                                    size={17}
+                                    className="mt-0.5 shrink-0"
+                                />
+
+                                <p>{error}</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Footer */}
+
+                <div className="flex flex-col-reverse gap-3 border-t border-border bg-white px-6 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-7">
+                    <button
+                        type="button"
+                        onClick={handleClose}
+                        disabled={loading}
+                        className="h-10 rounded-lg border border-border px-4 text-sm font-semibold text-text-secondary transition-colors hover:bg-background-alt hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        Cancel
+                    </button>
+
+                    <div className="flex flex-col gap-2 sm:flex-row">
+                        <button
+                            type="button"
+                            onClick={() => onDecision?.('rejected')}
+                            disabled={loading}
+                            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-red-200 bg-white px-4 text-sm font-bold text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            <XCircle size={16} />
+
+                            {loading ? 'Processing...' : 'Reject Withdrawal'}
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => onDecision?.('approved')}
+                            disabled={loading}
+                            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-primary px-5 text-sm font-bold text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            <CheckCircle2 size={16} />
+
+                            {loading ? 'Processing...' : 'Approve Withdrawal'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     );
 };
 
@@ -1644,6 +2244,7 @@ const getOrganizationAssignments = (request) => {
      * Main API shape:
      * request.assignments[]
      */
+
     if (Array.isArray(request.assignments)) {
         assignments.push(...request.assignments);
     }
@@ -1652,6 +2253,7 @@ const getOrganizationAssignments = (request) => {
      * Support the alternate singular assignment shape
      * used by some existing API responses.
      */
+
     if (request.assignment) {
         assignments.push(request.assignment);
     }
@@ -1662,6 +2264,7 @@ const getOrganizationAssignments = (request) => {
      * If the backend gives us an explicit assignment object,
      * that object is the source of truth.
      */
+
     return assignments.filter((assignment, index, array) => {
         const assignmentId = assignment?.id;
 
@@ -1709,6 +2312,7 @@ const hasExistingAssignment = (request) => {
     /*
      * Keep the existing volunteer assignment behavior.
      */
+
     if (
         Array.isArray(request.assigned_volunteers) &&
         request.assigned_volunteers.length > 0
@@ -1749,15 +2353,54 @@ const hasActiveOrganizationAssignment = (request) => {
 
 /*
 |--------------------------------------------------------------------------
+| Pending withdrawal assignment
+|--------------------------------------------------------------------------
+|
+| IMPORTANT:
+|
+| The backend intentionally keeps:
+|
+| assignment.status
+|     accepted / in_progress
+|
+| while:
+|
+| assignment.withdrawal_status
+|     pending
+|
+| Therefore withdrawal MUST NOT be detected by checking
+| assignment.status.
+|--------------------------------------------------------------------------
+*/
+
+const getPendingWithdrawalAssignment = (request) => {
+    if (!request) {
+        return null;
+    }
+
+    const assignments = getOrganizationAssignments(request);
+
+    return (
+        assignments.find(
+            (assignment) =>
+                Boolean(
+                    assignment?.organization_id || assignment?.organization,
+                ) &&
+                String(assignment?.withdrawal_status || '')
+                    .trim()
+                    .toLowerCase() === 'pending',
+        ) || null
+    );
+};
+
+/*
+|--------------------------------------------------------------------------
 | Organization withdrawal request detection
 |--------------------------------------------------------------------------
 |
-| Reassign is available as an admin action whenever an
-| organization is assigned.
-|
-| But the reassignment workflow only opens when the
-| CURRENT organization has actually requested withdrawal.
-|
+| This helper intentionally checks the actual backend
+| withdrawal_status field first.
+|--------------------------------------------------------------------------
 */
 
 const hasOrganizationRequestedWithdrawal = (request) => {
@@ -1781,7 +2424,11 @@ const hasOrganizationRequestedWithdrawal = (request) => {
         return true;
     }
 
-    if (request.assignment?.withdrawal_status === 'requested') {
+    /*
+     * Actual backend state.
+     */
+
+    if (request.assignment?.withdrawal_status === 'pending') {
         return true;
     }
 
@@ -1821,7 +2468,7 @@ const hasOrganizationRequestedWithdrawal = (request) => {
 |
 | But the support workflow only opens when the current
 | organization has actually requested additional help.
-|
+|--------------------------------------------------------------------------
 */
 
 const hasAdditionalSupportRequest = (request) => {
@@ -1903,6 +2550,8 @@ const hasAdditionalSupportRequest = (request) => {
 | accepted -> Organization name
 | in_progress -> Organization name
 | completed -> Organization name
+|
+| withdrawn -> Not assigned
 |--------------------------------------------------------------------------
 */
 
@@ -1918,6 +2567,7 @@ const getAssignedOrganizationName = (request) => {
      * to the organization, but the organization has NOT
      * accepted it yet.
      */
+
     const pendingAssignment = organizationAssignments.find(
         isPendingOrganizationAssignment,
     );
@@ -1930,6 +2580,7 @@ const getAssignedOrganizationName = (request) => {
      * Only accepted/active organization assignments can
      * display the organization as actually assigned.
      */
+
     const activeAssignment = organizationAssignments.find(
         isActiveOrganizationAssignment,
     );
@@ -1948,6 +2599,7 @@ const getAssignedOrganizationName = (request) => {
      *
      * These are legacy/fallback shapes.
      */
+
     if (
         organizationAssignments.length === 0 &&
         request.assigned_organization?.name
@@ -1963,9 +2615,11 @@ const getAssignedOrganizationName = (request) => {
     }
 
     /*
-     * Rejected assignment remains in the database for history,
-     * but it is no longer the currently assigned organization.
+     * Rejected/withdrawn assignments remain in the database
+     * for history, but are no longer the currently assigned
+     * organization.
      */
+
     return 'Not assigned';
 };
 
@@ -1979,6 +2633,7 @@ const getAssignedOrganizationName = (request) => {
 |
 | pending  -> null
 | rejected -> null
+| withdrawn -> null
 | accepted -> organization ID
 | in_progress -> organization ID
 | completed -> organization ID
@@ -2010,6 +2665,7 @@ const getAssignedOrganizationId = (request) => {
      * Only use these when there is no explicit assignment
      * collection to inspect.
      */
+
     if (organizationAssignments.length === 0) {
         if (request.assigned_organization?.id) {
             return request.assigned_organization.id;
@@ -2021,6 +2677,32 @@ const getAssignedOrganizationId = (request) => {
     }
 
     return null;
+};
+
+/*
+|--------------------------------------------------------------------------
+| Date / time formatter
+|--------------------------------------------------------------------------
+*/
+
+const formatDateTime = (value) => {
+    if (!value) {
+        return 'Not available';
+    }
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+        return String(value);
+    }
+
+    return date.toLocaleString('en-BD', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+    });
 };
 
 export default AdminHelpRequests;

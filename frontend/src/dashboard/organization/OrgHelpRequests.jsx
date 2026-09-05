@@ -72,32 +72,26 @@ const FILTERS = [
         key: 'all',
         label: 'All cases',
     },
-
     {
         key: 'pending',
         label: 'Needs response',
     },
-
     {
         key: 'assigned',
         label: 'Assigned',
     },
-
     {
         key: 'active',
         label: 'In progress',
     },
-
     {
         key: 'completed',
         label: 'Completed',
     },
-
     {
         key: 'withdrawal',
         label: 'Withdrawal',
     },
-
     {
         key: 'rejected',
         label: 'Declined',
@@ -171,7 +165,7 @@ const OrgHelpRequests = () => {
 
             setAssignments(normalized);
         } catch (err) {
-            setError(err.message || 'Unable to load assigned help requests.');
+            setError(err?.message || 'Unable to load assigned help requests.');
         } finally {
             setLoading(false);
         }
@@ -193,11 +187,13 @@ const OrgHelpRequests = () => {
                     : [];
 
                 setAssignments(rawAssignments.map(normalizeAssignment));
+
                 setError('');
             } catch (err) {
                 if (!cancelled) {
                     setError(
-                        err.message || 'Unable to load assigned help requests.',
+                        err?.message ||
+                            'Unable to load assigned help requests.',
                     );
                 }
             } finally {
@@ -214,6 +210,17 @@ const OrgHelpRequests = () => {
         };
     }, []);
 
+    /*
+     * Withdrawal is a separate workflow state.
+     *
+     * While admin is reviewing:
+     *
+     * status = assigned / active
+     * withdrawalStatus = pending
+     *
+     * Therefore the withdrawal count must use
+     * withdrawalStatus, not status.
+     */
     const counts = useMemo(
         () => ({
             all: assignments.length,
@@ -238,7 +245,7 @@ const OrgHelpRequests = () => {
             ).length,
 
             withdrawal: assignments.filter(
-                (request) => request.status === 'withdrawal',
+                (request) => request.withdrawalStatus === 'pending',
             ).length,
         }),
         [assignments],
@@ -248,8 +255,16 @@ const OrgHelpRequests = () => {
         const query = search.trim().toLowerCase();
 
         return assignments.filter((request) => {
+            /*
+             * Withdrawal filter is based on the separate
+             * withdrawal workflow state.
+             */
             const filterMatch =
-                activeFilter === 'all' || request.status === activeFilter;
+                activeFilter === 'all'
+                    ? true
+                    : activeFilter === 'withdrawal'
+                      ? request.withdrawalStatus === 'pending'
+                      : request.status === activeFilter;
 
             const searchMatch =
                 !query ||
@@ -289,7 +304,10 @@ const OrgHelpRequests = () => {
             setRejectionRequest(request);
             setRejectionNote('');
             setRejectionError('');
+            return;
+        }
 
+        if (action !== 'accept') {
             return;
         }
 
@@ -310,12 +328,13 @@ const OrgHelpRequests = () => {
             setAssignments(normalized);
 
             const updated = normalized.find(
-                (item) => item.assignmentId === request.assignmentId,
+                (item) =>
+                    String(item.assignmentId) === String(request.assignmentId),
             );
 
             setSelectedRequest(updated || null);
         } catch (err) {
-            setError(err.message || 'Unable to accept this assignment.');
+            setError(err?.message || 'Unable to accept this assignment.');
         } finally {
             setActionLoading(false);
         }
@@ -354,9 +373,9 @@ const OrgHelpRequests = () => {
             /*
              * Do NOT immediately refetch here.
              *
-             * The PATCH response already contains the updated assignment.
-             * Refetching immediately can return stale data from the API/cache
-             * and overwrite the successfully updated category/urgency.
+             * The PATCH response already contains the updated
+             * assignment. Refetching immediately can return
+             * stale data and overwrite the successful update.
              */
             const updatedAssignment = updateResponse?.assignment;
 
@@ -393,6 +412,7 @@ const OrgHelpRequests = () => {
                 status: updated.status,
                 category: updated.category,
                 urgency: updated.urgency,
+                withdrawalStatus: updated.withdrawalStatus,
                 rawAssignment: updated.rawAssignment,
                 rawHelpRequest: updated.rawHelpRequest,
             });
@@ -438,6 +458,8 @@ const OrgHelpRequests = () => {
 
             await rejectAssignment(rejectionRequest.assignmentId, note);
 
+            const rejectedAssignmentId = rejectionRequest.assignmentId;
+
             setRejectionRequest(null);
             setRejectionNote('');
 
@@ -452,13 +474,14 @@ const OrgHelpRequests = () => {
             setAssignments(normalized);
 
             const updated = normalized.find(
-                (item) => item.assignmentId === rejectionRequest.assignmentId,
+                (item) =>
+                    String(item.assignmentId) === String(rejectedAssignmentId),
             );
 
             setSelectedRequest(updated || null);
         } catch (err) {
             setRejectionError(
-                err.message || 'Unable to reject this assignment.',
+                err?.message || 'Unable to reject this assignment.',
             );
         } finally {
             setRejectionLoading(false);
@@ -714,10 +737,25 @@ const OrgHelpRequests = () => {
                     request={selectedRequest}
                     statusConfig={STATUS_CONFIG}
                     onClose={() => setSelectedRequest(null)}
-                    onAccept={handleAssignmentAction}
-                    onReject={handleAssignmentAction}
+                    /*
+                     * IMPORTANT:
+                     * CaseReviewDrawer expects one onAction prop.
+                     * It sends:
+                     *
+                     * onAction(request, 'accept')
+                     * onAction(request, 'reject')
+                     */
+                    onAction={handleAssignmentAction}
                     onUpdateAssignment={handleUpdateAssignment}
                     onRequestWithdrawal={(request) => {
+                        /*
+                         * Never open withdrawal modal if a request
+                         * is already waiting for admin review.
+                         */
+                        if (request?.withdrawalStatus === 'pending') {
+                            return;
+                        }
+
                         setWithdrawalRequest(request);
                         setWithdrawalReason('');
                         setWithdrawalError('');

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\HelpRequest;
+use App\Notifications\PlatformNotification;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class HelpRequestController extends Controller
@@ -30,6 +32,8 @@ class HelpRequestController extends Controller
                 'Only individual users can submit help requests.',
             ], 403);
         }
+
+
 
         /*
         |--------------------------------------------------------------------------
@@ -102,6 +106,18 @@ class HelpRequestController extends Controller
 
             'verification_note' => null,
         ]);
+
+        User::where('role', 'admin')
+            ->where('status', 'active')
+            ->get()
+            ->each(function ($admin) use ($helpRequest, $user) {
+                $admin->notify(new PlatformNotification(
+                    'New help request submitted',
+                    "{$user->name} has submitted a new help request.",
+                    '/dashboard/admin/help-requests',
+                    'help_request'
+                ));
+            });
 
         return response()->json([
             'message' =>

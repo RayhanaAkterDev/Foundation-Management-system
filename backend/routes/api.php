@@ -8,6 +8,7 @@ use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\VolunteerController;
 use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\DonationController;
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
 // =============================================================
@@ -36,6 +37,25 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
     Route::put('/profile', [AuthController::class, 'updateProfile']);
+
+    // ---------------------------------------------------------
+    // Notifications
+    // ---------------------------------------------------------
+
+    Route::get(
+        '/notifications',
+        [NotificationController::class, 'index']
+    );
+
+    Route::patch(
+        '/notifications/read-all',
+        [NotificationController::class, 'markAllAsRead']
+    );
+
+    Route::patch(
+        '/notifications/{id}/read',
+        [NotificationController::class, 'markAsRead']
+    );
 
 
     // ---------------------------------------------------------

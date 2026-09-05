@@ -3,11 +3,13 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
     ArrowDown,
     ArrowUp,
+    Building2,
     ChevronsUpDown,
     Download,
     Pencil,
     Plus,
     Trash2,
+    X,
 } from 'lucide-react';
 
 import PageHeader from '@/components/dashboard/PageHeader';
@@ -17,7 +19,6 @@ import HelpRequestCategoryTabs from './myHelpRequests/HelpRequestCategoryTabs';
 import HelpRequestFilters from './myHelpRequests/HelpRequestFilters';
 import HelpRequestTable from './myHelpRequests/HelpRequestTable';
 import HelpRequestPagination from './myHelpRequests/HelpRequestPagination';
-
 import HelpRequestDetailsModal from './myHelpRequests/HelpRequestDetailsModal';
 import HelpRequestEditModal from './myHelpRequests/HelpRequestEditModal';
 import HelpRequestModal from './myHelpRequests/HelpRequestModal';
@@ -42,7 +43,6 @@ const normalizeHelpRequest = (request) => {
 
     return {
         ...request,
-
         id: request.id,
         title: request.title || '',
         description: request.description || '',
@@ -50,14 +50,10 @@ const normalizeHelpRequest = (request) => {
         urgency: request.urgency || 'normal',
         district: request.district || '',
         address: request.address || '',
-
         status: request.status || '',
-
         verification_note: request.verification_note || '',
         verificationNote: request.verification_note || '',
-
         notes: request.verification_note || '',
-
         assignments: Array.isArray(request.assignments)
             ? request.assignments
             : [],
@@ -117,6 +113,145 @@ const getUrgencyLabel = (urgency) => {
         default:
             return urgency || 'Normal';
     }
+};
+
+const getAssignmentInfo = (request) => {
+    const assignments = Array.isArray(request?.assignments)
+        ? request.assignments
+        : [];
+
+    if (assignments.length === 0) {
+        return {
+            state: 'not_assigned',
+            label: 'Not assigned',
+            currentAssignment: null,
+            previousAssignment: null,
+        };
+    }
+
+    const sortedAssignments = [...assignments].sort((a, b) => {
+        const first = a?.assigned_at ? new Date(a.assigned_at).getTime() : 0;
+
+        const second = b?.assigned_at ? new Date(b.assigned_at).getTime() : 0;
+
+        return second - first;
+    });
+
+    const currentAssignment = sortedAssignments[0];
+
+    const pendingStatuses = ['pending'];
+
+    if (pendingStatuses.includes(currentAssignment?.status)) {
+        return {
+            state: 'pending',
+            label: 'Assignment pending',
+            currentAssignment,
+            previousAssignment: sortedAssignments[1] || null,
+        };
+    }
+
+    const acceptedStatuses = [
+        'assigned',
+        'accepted',
+        'active',
+        'in_progress',
+        'completed',
+    ];
+
+    if (acceptedStatuses.includes(currentAssignment?.status)) {
+        return {
+            state: 'accepted',
+            label:
+                currentAssignment?.organization?.name ||
+                'Organization assigned',
+            currentAssignment,
+            previousAssignment:
+                sortedAssignments
+                    .slice(1)
+                    .find(
+                        (assignment) =>
+                            assignment?.organization &&
+                            assignment?.id !== currentAssignment?.id,
+                    ) || null,
+        };
+    }
+
+    return {
+        state: 'not_assigned',
+        label: 'Not assigned',
+        currentAssignment: null,
+        previousAssignment: null,
+    };
+};
+
+const normalizeAssignmentStatus = (status) => {
+    return String(status || '')
+        .trim()
+        .toLowerCase();
+};
+
+const getAssignmentStatusLabel = (status) => {
+    switch (normalizeAssignmentStatus(status)) {
+        case 'pending':
+            return 'Pending';
+
+        case 'assigned':
+            return 'Assigned';
+
+        case 'accepted':
+            return 'Accepted';
+
+        case 'active':
+            return 'Active';
+
+        case 'in_progress':
+            return 'In Progress';
+
+        case 'completed':
+            return 'Completed';
+
+        case 'rejected':
+            return 'Rejected';
+
+        case 'withdrawn':
+            return 'Withdrawn';
+
+        default:
+            return status || 'Unknown';
+    }
+};
+
+const getAssignmentDate = (assignment) => {
+    const date =
+        assignment?.assigned_at ||
+        assignment?.created_at ||
+        assignment?.updated_at;
+
+    if (!date) {
+        return '—';
+    }
+
+    return new Date(date).toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+    });
+};
+
+const getWithdrawalDate = (assignment) => {
+    const date =
+        assignment?.withdrawal_reviewed_at ||
+        assignment?.withdrawal_requested_at;
+
+    if (!date) {
+        return null;
+    }
+
+    return new Date(date).toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+    });
 };
 
 // =========================================================
@@ -185,6 +320,33 @@ const MyHelpRequests = () => {
     const [selectedRequest, setSelectedRequest] = useState(null);
 
     // =========================================================
+    // Organization drawer
+    // =========================================================
+
+    const [selectedOrganization, setSelectedOrganization] = useState(null);
+
+    const handleViewOrganization = (assignmentInfo, request) => {
+        const organization = assignmentInfo?.currentAssignment?.organization;
+
+        if (!organization) {
+            return;
+        }
+
+        setSelectedOrganization({
+            organization,
+            currentAssignment: assignmentInfo.currentAssignment,
+            assignments: Array.isArray(request?.assignments)
+                ? request.assignments
+                : [],
+            request,
+        });
+    };
+
+    const handleCloseOrganization = () => {
+        setSelectedOrganization(null);
+    };
+
+    // =========================================================
     // Delete modal
     // =========================================================
 
@@ -229,7 +391,6 @@ const MyHelpRequests = () => {
                 setLoading(true);
                 setError('');
 
-                // Use the working API function from the previous version.
                 const data = await getMyHelpRequests();
 
                 if (cancelled) {
@@ -285,7 +446,6 @@ const MyHelpRequests = () => {
                 ...previousRequests,
             ]);
 
-            // New request should appear on first page.
             setCurrentPage(1);
         }
 
@@ -347,8 +507,6 @@ const MyHelpRequests = () => {
         setShowEditModal(false);
         setEditingRequest(null);
 
-        // If details modal is open for this request,
-        // update the displayed request as well.
         setSelectedRequest((currentRequest) => {
             if (!currentRequest) {
                 return null;
@@ -407,26 +565,21 @@ const MyHelpRequests = () => {
 
             const deletedId = deleteRequestItem.id;
 
-            // Remove from table.
             setHelpRequests((currentRequests) =>
                 currentRequests.filter((request) => request.id !== deletedId),
             );
 
-            // Close details modal if it happens to be open.
             setSelectedRequest((currentRequest) =>
                 currentRequest?.id === deletedId ? null : currentRequest,
             );
 
-            // Close edit modal if it happens to be open.
             if (editingRequest?.id === deletedId) {
                 setShowEditModal(false);
                 setEditingRequest(null);
             }
 
-            // Close delete modal.
             setDeleteRequestItem(null);
 
-            // Show success toast.
             showSuccessToast('Your help request was deleted successfully.');
         } catch (err) {
             setDeleteError(err?.message || 'Unable to delete help request.');
@@ -767,13 +920,10 @@ const MyHelpRequests = () => {
         const link = document.createElement('a');
 
         link.href = url;
-
         link.download = 'stand-for-people-my-help-requests.csv';
 
         document.body.appendChild(link);
-
         link.click();
-
         document.body.removeChild(link);
 
         URL.revokeObjectURL(url);
@@ -840,6 +990,8 @@ const MyHelpRequests = () => {
         statusLabel: getStatusLabel(request.status),
 
         urgencyLabel: getUrgencyLabel(request.urgency),
+
+        assignmentInfo: getAssignmentInfo(request),
 
         formattedCreatedDate: request.created_at
             ? new Date(request.created_at).toLocaleDateString('en-GB', {
@@ -930,6 +1082,52 @@ const MyHelpRequests = () => {
                     {value}
                 </span>
             ),
+        },
+
+        {
+            key: 'assignmentInfo',
+            header: 'Assignment',
+            sortable: true,
+            label: 'Assignment',
+
+            render: (value, row) => {
+                const assignment = value;
+
+                if (assignment?.state === 'pending') {
+                    return (
+                        <span className="text-sm font-medium text-amber-600">
+                            Assignment pending
+                        </span>
+                    );
+                }
+
+                if (assignment?.state === 'accepted') {
+                    return (
+                        <button
+                            type="button"
+                            onClick={() =>
+                                handleViewOrganization(assignment, row)
+                            }
+                            disabled={
+                                !assignment.currentAssignment?.organization
+                            }
+                            className="inline-flex max-w-full items-center gap-1.5 text-left text-sm font-semibold text-emerald-600 transition-colors hover:text-emerald-700 hover:underline disabled:cursor-default disabled:no-underline"
+                        >
+                            <Building2
+                                size={14}
+                                strokeWidth={1.8}
+                                className="shrink-0"
+                            />
+
+                            <span className="truncate">{assignment.label}</span>
+                        </button>
+                    );
+                }
+
+                return (
+                    <span className="text-sm text-gray-500">Not assigned</span>
+                );
+            },
         },
 
         {
@@ -1193,6 +1391,421 @@ const MyHelpRequests = () => {
                     onClose={handleCloseDeleteModal}
                     onConfirm={handleDeleteConfirm}
                 />
+            )}
+
+            {/* =====================================================
+                ORGANIZATION INFO DRAWER
+            ===================================================== */}
+
+            {selectedOrganization && (
+                <>
+                    <button
+                        type="button"
+                        aria-label="Close organization details"
+                        onClick={handleCloseOrganization}
+                        className="fixed inset-0 z-40 bg-slate-950/30 backdrop-blur-[1px]"
+                    />
+
+                    <aside
+                        role="dialog"
+                        aria-modal="true"
+                        aria-label="Organization information"
+                        className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-border bg-white shadow-2xl"
+                    >
+                        {/* Drawer header */}
+
+                        <div className="flex items-start justify-between border-b border-border px-6 py-5">
+                            <div className="min-w-0">
+                                <div className="flex items-center gap-2">
+                                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                                        <Building2
+                                            size={18}
+                                            strokeWidth={1.8}
+                                        />
+                                    </div>
+
+                                    <div className="min-w-0">
+                                        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary">
+                                            Assigned organization
+                                        </p>
+
+                                        <h2 className="mt-0.5 truncate text-lg font-bold text-text-primary">
+                                            {selectedOrganization.organization
+                                                ?.name || 'Organization'}
+                                        </h2>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={handleCloseOrganization}
+                                aria-label="Close"
+                                className="ml-4 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-background-alt hover:text-text-primary"
+                            >
+                                <X size={18} strokeWidth={1.8} />
+                            </button>
+                        </div>
+
+                        {/* Drawer body */}
+
+                        <div className="flex-1 overflow-y-auto">
+                            <div className="space-y-6 p-6">
+                                {/* Organization information */}
+
+                                <section>
+                                    <div className="mb-3">
+                                        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary">
+                                            Organization
+                                        </p>
+
+                                        <h3 className="mt-1 text-sm font-bold text-text-primary">
+                                            Basic information
+                                        </h3>
+                                    </div>
+
+                                    <div className="divide-y divide-border rounded-xl border border-border bg-background-alt/40">
+                                        <div className="px-4 py-3">
+                                            <p className="text-[10px] font-semibold uppercase tracking-wide text-text-secondary">
+                                                Name
+                                            </p>
+
+                                            <p className="mt-1 text-sm font-semibold text-text-primary">
+                                                {selectedOrganization
+                                                    .organization?.name ||
+                                                    'Not specified'}
+                                            </p>
+                                        </div>
+
+                                        {selectedOrganization.organization
+                                            ?.organization_type && (
+                                            <div className="px-4 py-3">
+                                                <p className="text-[10px] font-semibold uppercase tracking-wide text-text-secondary">
+                                                    Organization type
+                                                </p>
+
+                                                <p className="mt-1 text-sm font-medium capitalize text-text-primary">
+                                                    {
+                                                        selectedOrganization
+                                                            .organization
+                                                            .organization_type
+                                                    }
+                                                </p>
+                                            </div>
+                                        )}
+
+                                        {selectedOrganization.organization
+                                            ?.email && (
+                                            <div className="px-4 py-3">
+                                                <p className="text-[10px] font-semibold uppercase tracking-wide text-text-secondary">
+                                                    Email
+                                                </p>
+
+                                                <p className="mt-1 break-all text-sm font-medium text-text-primary">
+                                                    {
+                                                        selectedOrganization
+                                                            .organization.email
+                                                    }
+                                                </p>
+                                            </div>
+                                        )}
+
+                                        {selectedOrganization.organization
+                                            ?.phone && (
+                                            <div className="px-4 py-3">
+                                                <p className="text-[10px] font-semibold uppercase tracking-wide text-text-secondary">
+                                                    Phone
+                                                </p>
+
+                                                <p className="mt-1 text-sm font-medium text-text-primary">
+                                                    {
+                                                        selectedOrganization
+                                                            .organization.phone
+                                                    }
+                                                </p>
+                                            </div>
+                                        )}
+
+                                        {selectedOrganization.organization
+                                            ?.address && (
+                                            <div className="px-4 py-3">
+                                                <p className="text-[10px] font-semibold uppercase tracking-wide text-text-secondary">
+                                                    Address
+                                                </p>
+
+                                                <p className="mt-1 text-sm font-medium text-text-primary">
+                                                    {
+                                                        selectedOrganization
+                                                            .organization
+                                                            .address
+                                                    }
+                                                </p>
+                                            </div>
+                                        )}
+
+                                        {selectedOrganization.organization
+                                            ?.description && (
+                                            <div className="px-4 py-3">
+                                                <p className="text-[10px] font-semibold uppercase tracking-wide text-text-secondary">
+                                                    About
+                                                </p>
+
+                                                <p className="mt-1 text-sm leading-6 text-text-secondary">
+                                                    {
+                                                        selectedOrganization
+                                                            .organization
+                                                            .description
+                                                    }
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </section>
+
+                                {/* Current assignment */}
+
+                                <section>
+                                    <div className="mb-3">
+                                        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary">
+                                            Current support
+                                        </p>
+
+                                        <h3 className="mt-1 text-sm font-bold text-text-primary">
+                                            Assignment status
+                                        </h3>
+                                    </div>
+
+                                    <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-4">
+                                        <div className="flex items-start justify-between gap-4">
+                                            <div>
+                                                <p className="text-xs font-semibold text-emerald-800">
+                                                    {getAssignmentStatusLabel(
+                                                        selectedOrganization
+                                                            .currentAssignment
+                                                            ?.status,
+                                                    )}
+                                                </p>
+
+                                                <p className="mt-1 text-[11px] leading-5 text-emerald-700">
+                                                    Assigned on{' '}
+                                                    {getAssignmentDate(
+                                                        selectedOrganization.currentAssignment,
+                                                    )}
+                                                </p>
+                                            </div>
+
+                                            {selectedOrganization
+                                                .currentAssignment
+                                                ?.withdrawal_status ===
+                                                'pending' && (
+                                                <span className="rounded-full bg-amber-100 px-2 py-1 text-[9px] font-bold uppercase tracking-wide text-amber-700">
+                                                    Withdrawal pending
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </section>
+
+                                {/* Assignment history */}
+
+                                <section>
+                                    <div className="mb-3">
+                                        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary">
+                                            History
+                                        </p>
+
+                                        <h3 className="mt-1 text-sm font-bold text-text-primary">
+                                            Assignment history
+                                        </h3>
+                                    </div>
+
+                                    {selectedOrganization.assignments?.length >
+                                    0 ? (
+                                        <div className="space-y-3">
+                                            {[
+                                                ...selectedOrganization.assignments,
+                                            ]
+                                                .sort((a, b) => {
+                                                    const first = a?.assigned_at
+                                                        ? new Date(
+                                                              a.assigned_at,
+                                                          ).getTime()
+                                                        : 0;
+
+                                                    const second =
+                                                        b?.assigned_at
+                                                            ? new Date(
+                                                                  b.assigned_at,
+                                                              ).getTime()
+                                                            : 0;
+
+                                                    return second - first;
+                                                })
+                                                .map((assignment) => {
+                                                    const isCurrent =
+                                                        assignment?.id ===
+                                                        selectedOrganization
+                                                            .currentAssignment
+                                                            ?.id;
+
+                                                    const withdrawalDate =
+                                                        getWithdrawalDate(
+                                                            assignment,
+                                                        );
+
+                                                    return (
+                                                        <div
+                                                            key={
+                                                                assignment?.id ||
+                                                                `${assignment?.organization_id}-${assignment?.assigned_at}`
+                                                            }
+                                                            className={`rounded-xl border p-4 ${
+                                                                isCurrent
+                                                                    ? 'border-primary/20 bg-primary/5'
+                                                                    : 'border-border bg-white'
+                                                            }`}
+                                                        >
+                                                            <div className="flex items-start justify-between gap-3">
+                                                                <div className="min-w-0">
+                                                                    <p className="truncate text-sm font-semibold text-text-primary">
+                                                                        {assignment
+                                                                            ?.organization
+                                                                            ?.name ||
+                                                                            'Organization'}
+                                                                    </p>
+
+                                                                    <p className="mt-1 text-[10px] text-text-secondary">
+                                                                        Assigned{' '}
+                                                                        {getAssignmentDate(
+                                                                            assignment,
+                                                                        )}
+                                                                    </p>
+                                                                </div>
+
+                                                                <span
+                                                                    className={`shrink-0 rounded-full px-2 py-1 text-[9px] font-bold ${
+                                                                        normalizeAssignmentStatus(
+                                                                            assignment?.status,
+                                                                        ) ===
+                                                                        'withdrawn'
+                                                                            ? 'bg-slate-100 text-slate-600'
+                                                                            : normalizeAssignmentStatus(
+                                                                                    assignment?.status,
+                                                                                ) ===
+                                                                                'rejected'
+                                                                              ? 'bg-red-50 text-red-700'
+                                                                              : isCurrent
+                                                                                ? 'bg-primary/10 text-primary'
+                                                                                : 'bg-slate-100 text-slate-600'
+                                                                    }`}
+                                                                >
+                                                                    {getAssignmentStatusLabel(
+                                                                        assignment?.status,
+                                                                    )}
+                                                                </span>
+                                                            </div>
+
+                                                            {assignment?.withdrawal_status && (
+                                                                <div className="mt-3 border-t border-border/70 pt-3">
+                                                                    <div className="flex items-center justify-between gap-3">
+                                                                        <span className="text-[10px] font-semibold uppercase tracking-wide text-text-secondary">
+                                                                            Withdrawal
+                                                                        </span>
+
+                                                                        <span className="text-[10px] font-bold capitalize text-text-primary">
+                                                                            {
+                                                                                assignment.withdrawal_status
+                                                                            }
+                                                                        </span>
+                                                                    </div>
+
+                                                                    {assignment?.withdrawal_reason && (
+                                                                        <p className="mt-2 text-xs leading-5 text-text-secondary">
+                                                                            {
+                                                                                assignment.withdrawal_reason
+                                                                            }
+                                                                        </p>
+                                                                    )}
+
+                                                                    {withdrawalDate && (
+                                                                        <p className="mt-2 text-[10px] text-text-secondary">
+                                                                            {assignment.withdrawal_status ===
+                                                                            'approved'
+                                                                                ? 'Reviewed'
+                                                                                : 'Requested'}{' '}
+                                                                            on{' '}
+                                                                            {
+                                                                                withdrawalDate
+                                                                            }
+                                                                        </p>
+                                                                    )}
+                                                                </div>
+                                                            )}
+
+                                                            {assignment?.rejection_note && (
+                                                                <div className="mt-3 border-t border-border/70 pt-3">
+                                                                    <p className="text-[10px] font-semibold uppercase tracking-wide text-text-secondary">
+                                                                        Rejection
+                                                                        note
+                                                                    </p>
+
+                                                                    <p className="mt-1 text-xs leading-5 text-text-secondary">
+                                                                        {
+                                                                            assignment.rejection_note
+                                                                        }
+                                                                    </p>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })}
+                                        </div>
+                                    ) : (
+                                        <div className="rounded-xl border border-dashed border-border px-4 py-6 text-center">
+                                            <p className="text-xs font-medium text-text-secondary">
+                                                No assignment history available.
+                                            </p>
+                                        </div>
+                                    )}
+                                </section>
+
+                                {/* Additional support */}
+
+                                <section>
+                                    <div className="mb-3">
+                                        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-primary">
+                                            Additional support
+                                        </p>
+
+                                        <h3 className="mt-1 text-sm font-bold text-text-primary">
+                                            Support activity
+                                        </h3>
+                                    </div>
+
+                                    <div className="rounded-xl border border-dashed border-border bg-background-alt/40 px-4 py-5">
+                                        <p className="text-xs font-medium leading-5 text-text-secondary">
+                                            Additional support activity will
+                                            appear here when support is added to
+                                            this help request.
+                                        </p>
+                                    </div>
+                                </section>
+                            </div>
+                        </div>
+
+                        {/* Drawer footer */}
+
+                        <div className="border-t border-border bg-white px-6 py-4">
+                            <button
+                                type="button"
+                                onClick={handleCloseOrganization}
+                                className="w-full rounded-lg border border-border px-4 py-2.5 text-sm font-semibold text-text-primary transition-colors hover:bg-background-alt"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </aside>
+                </>
             )}
         </div>
     );

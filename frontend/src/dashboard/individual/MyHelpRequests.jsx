@@ -9,6 +9,7 @@ import {
     Pencil,
     Plus,
     Trash2,
+    ArrowUpRight,
 } from 'lucide-react';
 
 import PageHeader from '@/components/dashboard/PageHeader';
@@ -131,7 +132,6 @@ const getAssignmentInfo = (request) => {
 
     const sortedAssignments = [...assignments].sort((a, b) => {
         const first = a?.assigned_at ? new Date(a.assigned_at).getTime() : 0;
-
         const second = b?.assigned_at ? new Date(b.assigned_at).getTime() : 0;
 
         return second - first;
@@ -650,7 +650,6 @@ const MyHelpRequests = () => {
 
             if (['created_at', 'updated_at'].includes(sortConfig.key)) {
                 first = first ? new Date(first).getTime() : 0;
-
                 second = second ? new Date(second).getTime() : 0;
             }
 
@@ -836,23 +835,27 @@ const MyHelpRequests = () => {
 
     if (loading) {
         return (
-            <div className="space-y-8">
-                <PageHeader
-                    title="My Help Requests"
-                    subtitle="Track and manage the help requests you have submitted through the Stand For People platform."
-                />
+            <div className="min-h-full bg-linear-to-b from-primary/4 via-background to-background">
+                <div className="mx-auto w-full max-w-400 px-4 py-7 sm:px-6 lg:px-8">
+                    <PageHeader
+                        title="My Help Requests"
+                        subtitle="Track and manage the help requests you have submitted through the Stand For People platform."
+                    />
 
-                <div className="flex min-h-70 items-center justify-center border-y border-border bg-white">
-                    <div className="text-center">
-                        <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-border border-t-primary" />
+                    <div className="mt-10 flex min-h-105 items-center justify-center overflow-hidden rounded-2xl border border-primary/10 bg-white shadow-[0_8px_30px_rgba(15,23,42,0.06)]">
+                        <div className="text-center">
+                            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-linear-to-br from-primary/15 via-primary/10 to-transparent shadow-inner">
+                                <div className="h-6 w-6 animate-spin rounded-full border-[3px] border-primary/15 border-t-primary" />
+                            </div>
 
-                        <p className="text-sm font-semibold text-text-primary">
-                            Loading help requests...
-                        </p>
+                            <p className="text-sm font-bold text-text-primary">
+                                Loading your help requests
+                            </p>
 
-                        <p className="mt-1 text-xs text-text-secondary">
-                            Please wait while we retrieve your requests.
-                        </p>
+                            <p className="mt-2 text-xs text-text-secondary">
+                                Retrieving your latest request activity.
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -865,14 +868,24 @@ const MyHelpRequests = () => {
 
     if (error) {
         return (
-            <div className="space-y-8">
-                <PageHeader
-                    title="My Help Requests"
-                    subtitle="Track and manage the help requests you have submitted through the Stand For People platform."
-                />
+            <div className="min-h-full bg-linear-to-b from-red-50/40 via-background to-background">
+                <div className="mx-auto w-full max-w-400 px-4 py-7 sm:px-6 lg:px-8">
+                    <PageHeader
+                        title="My Help Requests"
+                        subtitle="Track and manage the help requests you have submitted through the Stand For People platform."
+                    />
 
-                <div className="border-l-4 border-red-500 bg-red-50 px-5 py-4 text-sm text-red-600">
-                    {error}
+                    <div className="mt-10 overflow-hidden rounded-2xl border border-red-100 bg-white shadow-[0_8px_30px_rgba(220,38,38,0.06)]">
+                        <div className="border-l-4 border-red-500 bg-linear-to-r from-red-50 to-transparent px-6 py-5">
+                            <p className="text-sm font-bold text-red-800">
+                                Unable to load your requests
+                            </p>
+
+                            <p className="mt-1.5 text-sm leading-6 text-red-600">
+                                {error}
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
         );
@@ -925,35 +938,42 @@ const MyHelpRequests = () => {
             sortKey: 'title',
 
             render: (value, row) => (
-                <div className="min-w-0 max-w-90">
-                    <p className="truncate font-semibold text-text-primary">
-                        {value || 'Untitled help request'}
-                    </p>
+                <div className="min-w-0 max-w-110 py-3">
+                    <div className="flex items-start gap-3">
+                        <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-primary/15 to-primary/5 text-primary shadow-sm ring-1 ring-primary/10">
+                            <Building2 size={15} strokeWidth={1.8} />
+                        </div>
 
-                    {row.description && (
-                        <p className="mt-1 line-clamp-2 text-xs leading-5 text-text-secondary">
-                            {row.description}
-                        </p>
-                    )}
+                        <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-extrabold leading-5 text-text-primary">
+                                {value || 'Untitled help request'}
+                            </p>
 
-                    <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1">
-                        {row.category && (
-                            <span className="inline-flex items-center rounded-full bg-background-alt px-2 py-0.5 text-[10px] font-semibold capitalize text-text-secondary">
-                                {row.category}
-                            </span>
-                        )}
+                            {row.description && (
+                                <p className="mt-1 line-clamp-2 text-xs leading-5 text-text-secondary">
+                                    {row.description}
+                                </p>
+                            )}
 
-                        {row.locationName !== 'Location not specified' && (
-                            <>
-                                <span className="text-[10px] text-slate-300">
-                                    •
-                                </span>
+                            <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                                {row.category && (
+                                    <span className="rounded-full bg-linear-to-r from-primary/10 to-primary/4 px-2.5 py-1 text-[10px] font-extrabold capitalize text-primary ring-1 ring-primary/10">
+                                        {row.category}
+                                    </span>
+                                )}
 
-                                <span className="truncate text-[10px] font-medium text-text-secondary">
-                                    {row.locationName}
-                                </span>
-                            </>
-                        )}
+                                {row.locationName !==
+                                    'Location not specified' && (
+                                    <>
+                                        <span className="h-1 w-1 rounded-full bg-slate-300" />
+
+                                        <span className="truncate text-[10px] font-medium text-text-secondary">
+                                            {row.locationName}
+                                        </span>
+                                    </>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
             ),
@@ -965,11 +985,27 @@ const MyHelpRequests = () => {
             sortable: true,
             sortKey: 'urgency',
 
-            render: (value) => (
-                <span className="whitespace-nowrap text-sm font-semibold text-text-primary">
-                    {value}
-                </span>
-            ),
+            render: (value, row) => {
+                const priorityClass =
+                    row.urgency === 'critical'
+                        ? 'border-red-200 bg-linear-to-r from-red-50 to-red-50/40 text-red-600 shadow-[0_1px_4px_rgba(239,68,68,0.15)]'
+                        : row.urgency === 'urgent'
+                          ? 'border-orange-200 bg-linear-to-r from-orange-50 to-orange-50/40 text-orange-600 shadow-[0_1px_4px_rgba(249,115,22,0.15)]'
+                          : row.urgency === 'high'
+                            ? 'border-amber-200 bg-linear-to-r from-amber-50 to-amber-50/40 text-amber-600 shadow-[0_1px_4px_rgba(245,158,11,0.15)]'
+                            : row.urgency === 'low'
+                              ? 'border-slate-200 bg-linear-to-r from-slate-50 to-slate-50/40 text-slate-500'
+                              : 'border-primary/15 bg-linear-to-r from-primary/10 to-primary/3 text-primary shadow-[0_1px_4px_rgba(0,0,0,0.06)]';
+
+                return (
+                    <span
+                        className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-extrabold ${priorityClass}`}
+                    >
+                        <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-current shadow-[0_0_0_3px_currentColor] opacity-90" />
+                        {value}
+                    </span>
+                );
+            },
         },
 
         {
@@ -979,9 +1015,15 @@ const MyHelpRequests = () => {
             sortKey: 'created_at',
 
             render: (value) => (
-                <span className="whitespace-nowrap text-sm font-medium text-text-primary">
-                    {value}
-                </span>
+                <div className="whitespace-nowrap">
+                    <p className="text-xs font-bold text-text-primary">
+                        {value}
+                    </p>
+
+                    <p className="mt-0.5 text-[10px] font-medium text-text-secondary">
+                        Submitted
+                    </p>
+                </div>
             ),
         },
 
@@ -996,9 +1038,13 @@ const MyHelpRequests = () => {
 
                 if (assignment?.state === 'pending') {
                     return (
-                        <span className="text-sm font-medium text-amber-600">
-                            Assignment pending
-                        </span>
+                        <div className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-linear-to-r from-amber-50 to-amber-50/40 px-2.5 py-1.5 shadow-[0_1px_4px_rgba(245,158,11,0.12)]">
+                            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-500" />
+
+                            <span className="whitespace-nowrap text-[10px] font-extrabold text-amber-700">
+                                Assignment pending
+                            </span>
+                        </div>
                     );
                 }
 
@@ -1012,21 +1058,30 @@ const MyHelpRequests = () => {
                             disabled={
                                 !assignment.currentAssignment?.organization
                             }
-                            className="inline-flex max-w-full items-center gap-1.5 text-left text-sm font-semibold text-emerald-600 transition-colors hover:text-emerald-700 hover:underline disabled:cursor-default disabled:no-underline"
+                            className="group flex max-w-full items-center gap-2.5 rounded-xl border border-primary/15 bg-linear-to-r from-primary/6 to-primary/2 px-2.5 py-2 text-left shadow-sm transition-all hover:-translate-y-px hover:border-primary/25 hover:from-primary/10 hover:to-primary/4 hover:shadow-md disabled:cursor-default disabled:hover:translate-y-0"
                         >
-                            <Building2
-                                size={14}
-                                strokeWidth={1.8}
-                                className="shrink-0"
-                            />
+                            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-linear-to-br from-primary to-primary-hover text-white shadow-md shadow-primary/30">
+                                <Building2 size={13} strokeWidth={1.9} />
+                            </span>
 
-                            <span className="truncate">{assignment.label}</span>
+                            <span className="min-w-0">
+                                <span className="block truncate text-[10px] font-extrabold uppercase tracking-wide text-primary/70">
+                                    Organization
+                                </span>
+
+                                <span className="block truncate text-xs font-extrabold text-primary group-hover:underline">
+                                    {assignment.label}
+                                </span>
+                            </span>
                         </button>
                     );
                 }
 
                 return (
-                    <span className="text-sm text-gray-500">Not assigned</span>
+                    <span className="inline-flex items-center gap-2 text-xs font-semibold text-slate-400">
+                        <span className="h-1.5 w-1.5 rounded-full bg-slate-300" />
+                        Not assigned
+                    </span>
                 );
             },
         },
@@ -1037,21 +1092,28 @@ const MyHelpRequests = () => {
             sortable: true,
             sortKey: 'status',
 
-            render: (value, row) => (
-                <span
-                    className={`inline-flex rounded-full px-2.5 py-1 text-[10px] font-bold ${
-                        row.status === 'completed'
-                            ? 'bg-emerald-50 text-emerald-700'
-                            : row.status === 'rejected'
-                              ? 'bg-red-50 text-red-700'
-                              : row.status === 'pending'
-                                ? 'bg-amber-50 text-amber-700'
-                                : 'bg-primary/10 text-primary'
-                    }`}
-                >
-                    {value}
-                </span>
-            ),
+            render: (value, row) => {
+                const statusClass =
+                    row.status === 'completed'
+                        ? 'border-emerald-200 bg-linear-to-r from-emerald-50 to-emerald-50/40 text-emerald-700 shadow-[0_1px_4px_rgba(16,185,129,0.15)]'
+                        : row.status === 'rejected'
+                          ? 'border-red-200 bg-linear-to-r from-red-50 to-red-50/40 text-red-600 shadow-[0_1px_4px_rgba(239,68,68,0.15)]'
+                          : row.status === 'pending'
+                            ? 'border-amber-200 bg-linear-to-r from-amber-50 to-amber-50/40 text-amber-700 shadow-[0_1px_4px_rgba(245,158,11,0.15)]'
+                            : row.status === 'verified'
+                              ? 'border-blue-200 bg-linear-to-r from-blue-50 to-blue-50/40 text-blue-700 shadow-[0_1px_4px_rgba(59,130,246,0.15)]'
+                              : 'border-primary/15 bg-linear-to-r from-primary/10 to-primary/3 text-primary shadow-[0_1px_4px_rgba(0,0,0,0.06)]';
+
+                return (
+                    <span
+                        className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-1.5 text-[10px] font-extrabold ${statusClass}`}
+                    >
+                        <span className="h-1.5 w-1.5 rounded-full bg-current" />
+
+                        {value}
+                    </span>
+                );
+            },
         },
 
         {
@@ -1061,15 +1123,14 @@ const MyHelpRequests = () => {
 
             render: (_, row) => {
                 const canEdit = row.status === 'pending';
-
                 const canDelete = row.status === 'pending';
 
                 return (
-                    <div className="flex items-center justify-end gap-4">
+                    <div className="flex items-center justify-end gap-1">
                         <button
                             type="button"
                             onClick={() => handleView(row)}
-                            className="text-xs font-semibold text-text-secondary transition-colors hover:text-primary"
+                            className="rounded-lg border border-transparent px-2.5 py-1.5 text-[10px] font-extrabold text-text-secondary transition-all hover:border-primary/15 hover:bg-primary/6 hover:text-primary"
                         >
                             View
                         </button>
@@ -1079,9 +1140,9 @@ const MyHelpRequests = () => {
                                 type="button"
                                 onClick={() => handleEdit(row)}
                                 disabled={deleteLoading}
-                                className="inline-flex items-center gap-1 text-xs font-semibold text-text-secondary transition-colors hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
+                                className="inline-flex items-center gap-1.5 rounded-lg border border-transparent px-2.5 py-1.5 text-[10px] font-extrabold text-text-secondary transition-all hover:border-primary/15 hover:bg-primary/6 hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
                             >
-                                <Pencil size={13} strokeWidth={1.8} />
+                                <Pencil size={11} />
                                 Edit
                             </button>
                         )}
@@ -1091,9 +1152,9 @@ const MyHelpRequests = () => {
                                 type="button"
                                 onClick={() => handleDelete(row)}
                                 disabled={deleteLoading}
-                                className="inline-flex items-center gap-1 text-xs font-semibold text-red-500 transition-colors hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+                                className="inline-flex items-center gap-1.5 rounded-lg border border-transparent px-2.5 py-1.5 text-[10px] font-extrabold text-red-500 transition-all hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
                             >
-                                <Trash2 size={13} strokeWidth={1.8} />
+                                <Trash2 size={11} />
                                 Delete
                             </button>
                         )}
@@ -1108,143 +1169,408 @@ const MyHelpRequests = () => {
     // =========================================================
 
     return (
-        <div className="space-y-9">
-            {/* SUCCESS TOAST */}
+        <div className="min-h-full bg-linear-to-b from-primary/[0.035] via-background to-background pb-14">
+            <div className="mx-auto w-full max-w-400 space-y-10 px-4 py-7 sm:px-6 lg:px-8">
+                {/* =====================================================
+                    SUCCESS TOAST
+                ====================================================== */}
 
-            <HelpRequestSuccessToast
-                show={successToast.show}
-                message={successToast.message}
-            />
-
-            <PageHeader
-                title="My Help Requests"
-                subtitle="Track and manage the help requests you have submitted through the Stand For People platform."
-                action={
-                    <div className="flex items-center gap-2">
-                        <button
-                            type="button"
-                            onClick={handleOpenModal}
-                            className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-white transition-colors hover:bg-primary-hover"
-                        >
-                            <Plus size={16} />
-                            New Request
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={handleExportCSV}
-                            disabled={filteredHelpRequests.length === 0}
-                            className="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-white px-4 text-sm font-medium text-text-primary transition-colors hover:border-primary/30 hover:bg-background-alt disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                            <Download size={16} />
-                            Export
-                        </button>
-                    </div>
-                }
-            />
-
-            {/* Statistics */}
-
-            <section>
-                <div className="mb-4 flex items-end justify-between">
-                    <div>
-                        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
-                            Overview
-                        </p>
-
-                        <h2 className="mt-1 text-lg font-bold tracking-tight text-text-primary">
-                            Request base
-                        </h2>
-                    </div>
-
-                    <p className="hidden text-xs text-text-secondary sm:block">
-                        Current request distribution
-                    </p>
-                </div>
-
-                <HelpRequestStats
-                    total={statistics.total}
-                    pending={statistics.pending}
-                    verified={statistics.verified}
-                    assigned={statistics.assigned}
-                    completed={statistics.completed}
-                    rejected={statistics.rejected}
-                />
-            </section>
-
-            {/* Management */}
-
-            <section className="border-t border-border pt-8">
-                <div className="mb-5">
-                    <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
-                        Requests
-                    </p>
-
-                    <div className="mt-1 flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
-                        <h2 className="text-lg font-bold tracking-tight text-text-primary">
-                            My help requests
-                        </h2>
-
-                        <p className="text-xs font-medium text-text-secondary">
-                            {filteredHelpRequests.length}{' '}
-                            {filteredHelpRequests.length === 1
-                                ? 'request'
-                                : 'requests'}{' '}
-                            shown
-                        </p>
-                    </div>
-                </div>
-
-                <HelpRequestCategoryTabs
-                    tabs={categoryTabs}
-                    activeCategory={activeCategory}
-                    onChange={handleCategoryChange}
+                <HelpRequestSuccessToast
+                    show={successToast.show}
+                    message={successToast.message}
                 />
 
-                <div className="mt-4">
-                    <HelpRequestFilters
-                        searchTerm={searchTerm}
-                        categoryFilter={categoryFilter}
-                        priorityFilter={priorityFilter}
-                        statusFilter={statusFilter}
-                        helpRequests={helpRequests}
-                        onSearchChange={handleSearchChange}
-                        onCategoryChange={handleCategoryFilterChange}
-                        onPriorityChange={handlePriorityChange}
-                        onStatusChange={handleStatusChange}
-                    />
-                </div>
+                {/* =====================================================
+                    PAGE HEADER
+                ====================================================== */}
 
-                <div className="mt-5">
-                    <HelpRequestTable
-                        columns={columns}
-                        rows={rows}
-                        onSort={handleSort}
-                        getSortIcon={getSortIcon}
-                        resultCount={filteredHelpRequests.length}
-                    />
-                </div>
+                <section>
+                    <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+                        <div className="max-w-2xl">
+                            <div className="mb-4 inline-flex items-center gap-2.5 rounded-full border border-primary/15 bg-linear-to-r from-primary/10 to-primary/3 px-3 py-1.5 shadow-sm">
+                                <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_0_3px_rgba(0,0,0,0.04)]" />
 
-                {filteredHelpRequests.length > 0 && (
-                    <HelpRequestPagination
-                        currentPage={safeCurrentPage}
-                        totalPages={totalPages}
-                        totalItems={filteredHelpRequests.length}
-                        itemsPerPage={HELP_REQUESTS_PER_PAGE}
-                        onPageChange={setCurrentPage}
-                    />
-                )}
-            </section>
+                                <span className="text-[9px] font-extrabold uppercase tracking-[0.2em] text-primary">
+                                    Personal support
+                                </span>
+                            </div>
 
-            {/* CREATE HELP REQUEST MODAL */}
+                            <PageHeader
+                                title="My Help Requests"
+                                subtitle="Track the requests you've submitted, follow their progress, and stay connected with the organizations helping you."
+                            />
+                        </div>
+
+                        <div className="flex shrink-0 items-center gap-2.5">
+                            <button
+                                type="button"
+                                onClick={handleExportCSV}
+                                disabled={filteredHelpRequests.length === 0}
+                                className="inline-flex h-11 items-center gap-2 rounded-xl border border-border bg-white px-4 text-xs font-extrabold text-text-primary shadow-sm transition-all hover:-translate-y-px hover:border-primary/25 hover:bg-primary/4 hover:text-primary hover:shadow-md disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0"
+                            >
+                                <Download size={15} strokeWidth={1.8} />
+                                Export
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={handleOpenModal}
+                                className="inline-flex h-11 items-center gap-2 rounded-xl bg-linear-to-r from-primary to-primary-hover px-5 text-xs font-extrabold text-white shadow-md shadow-primary/25 transition-all hover:-translate-y-px hover:shadow-lg hover:shadow-primary/30"
+                            >
+                                <Plus size={16} strokeWidth={2.2} />
+                                New Request
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                {/* =====================================================
+                    REQUEST OVERVIEW
+                ====================================================== */}
+
+                <section>
+                    <div className="mb-5 flex items-end justify-between">
+                        <div>
+                            <p className="text-[9px] font-extrabold uppercase tracking-[0.2em] text-text-secondary">
+                                Request overview
+                            </p>
+
+                            <h2 className="mt-1.5 text-xl font-extrabold tracking-tight text-text-primary">
+                                Where your requests stand
+                            </h2>
+                        </div>
+
+                        {statistics.total > 0 && (
+                            <p className="hidden text-xs font-medium text-text-secondary sm:block">
+                                Updated from your submitted requests
+                            </p>
+                        )}
+                    </div>
+
+                    <div className="overflow-hidden rounded-2xl border border-border bg-white shadow-[0_4px_24px_rgba(15,23,42,0.05)]">
+                        {/* Top summary */}
+
+                        <div className="grid border-b border-border lg:grid-cols-[280px_1fr]">
+                            {/* Total */}
+
+                            <div className="relative overflow-hidden border-b border-border bg-linear-to-br from-primary/9 via-primary/3 to-white px-7 py-7 lg:border-b-0 lg:border-r sm:px-8">
+                                <div className="absolute right-0 top-0 h-28 w-28 translate-x-10 -translate-y-10 rounded-full bg-linear-to-br from-primary/20 to-primary/5 blur-[2px]" />
+
+                                <div className="absolute bottom-0 right-8 h-12 w-12 translate-y-7 rounded-full bg-primary/6" />
+
+                                <div className="relative">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <span className="text-[9px] font-extrabold uppercase tracking-[0.18em] text-text-secondary">
+                                                Total submitted
+                                            </span>
+
+                                            <p className="mt-1 text-[10px] font-medium text-text-secondary">
+                                                Your request history
+                                            </p>
+                                        </div>
+
+                                        <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-primary/15 bg-white text-primary shadow-md">
+                                            <ArrowUpRight
+                                                size={15}
+                                                strokeWidth={1.8}
+                                            />
+                                        </span>
+                                    </div>
+
+                                    <div className="mt-6 flex items-end gap-3">
+                                        <span className="bg-linear-to-br from-text-primary to-text-primary/70 bg-clip-text text-5xl font-extrabold leading-none tracking-[-0.055em] text-transparent">
+                                            {statistics.total}
+                                        </span>
+
+                                        <span className="mb-0.5 text-xs font-semibold text-text-secondary">
+                                            requests
+                                        </span>
+                                    </div>
+
+                                    <p className="mt-4 max-w-50 text-xs leading-5 text-text-secondary">
+                                        Every request you have submitted through
+                                        Stand For People.
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Active status area */}
+
+                            <div className="px-6 py-7 sm:px-8">
+                                <div className="mb-7 flex items-center justify-between">
+                                    <div>
+                                        <p className="text-xs font-extrabold text-text-primary">
+                                            Active request flow
+                                        </p>
+
+                                        <p className="mt-1 text-[11px] text-text-secondary">
+                                            Requests currently moving through
+                                            support
+                                        </p>
+                                    </div>
+
+                                    <span className="rounded-full bg-linear-to-r from-primary/12 to-primary/4 px-2.5 py-1 text-[10px] font-extrabold text-primary shadow-sm">
+                                        {statistics.pending +
+                                            statistics.verified +
+                                            statistics.assigned}{' '}
+                                        active
+                                    </span>
+                                </div>
+
+                                <div className="relative">
+                                    <div className="absolute left-3 right-3 top-3 h-px bg-linear-to-r from-amber-200 via-blue-200 to-primary/30" />
+
+                                    <div className="relative grid grid-cols-3 gap-5">
+                                        {/* Pending */}
+
+                                        <div>
+                                            <div className="flex items-center">
+                                                <span className="relative z-10 flex h-6 w-6 items-center justify-center rounded-full border-4 border-white bg-linear-to-br from-amber-400 to-amber-500 shadow-md ring-1 ring-amber-100">
+                                                    <span className="h-1.5 w-1.5 rounded-full bg-white" />
+                                                </span>
+                                            </div>
+
+                                            <div className="mt-4">
+                                                <p className="text-2xl font-extrabold tracking-tight text-text-primary">
+                                                    {statistics.pending}
+                                                </p>
+
+                                                <p className="mt-1 text-[9px] font-extrabold uppercase tracking-[0.14em] text-text-secondary">
+                                                    Pending
+                                                </p>
+
+                                                <p className="mt-2 hidden text-[11px] leading-4 text-text-secondary sm:block">
+                                                    Waiting for review
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Verified */}
+
+                                        <div>
+                                            <div className="flex items-center">
+                                                <span className="relative z-10 flex h-6 w-6 items-center justify-center rounded-full border-4 border-white bg-linear-to-br from-blue-400 to-blue-500 shadow-md ring-1 ring-blue-100">
+                                                    <span className="h-1.5 w-1.5 rounded-full bg-white" />
+                                                </span>
+                                            </div>
+
+                                            <div className="mt-4">
+                                                <p className="text-2xl font-extrabold tracking-tight text-text-primary">
+                                                    {statistics.verified}
+                                                </p>
+
+                                                <p className="mt-1 text-[9px] font-extrabold uppercase tracking-[0.14em] text-text-secondary">
+                                                    Verified
+                                                </p>
+
+                                                <p className="mt-2 hidden text-[11px] leading-4 text-text-secondary sm:block">
+                                                    Request confirmed
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Assigned */}
+
+                                        <div>
+                                            <div className="flex items-center">
+                                                <span className="relative z-10 flex h-6 w-6 items-center justify-center rounded-full border-4 border-white bg-linear-to-br from-primary to-primary-hover shadow-md ring-1 ring-primary/20">
+                                                    <span className="h-1.5 w-1.5 rounded-full bg-white" />
+                                                </span>
+                                            </div>
+
+                                            <div className="mt-4">
+                                                <p className="text-2xl font-extrabold tracking-tight text-text-primary">
+                                                    {statistics.assigned}
+                                                </p>
+
+                                                <p className="mt-1 text-[9px] font-extrabold uppercase tracking-[0.14em] text-text-secondary">
+                                                    Assigned
+                                                </p>
+
+                                                <p className="mt-2 hidden text-[11px] leading-4 text-text-secondary sm:block">
+                                                    Organization connected
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Outcomes */}
+
+                        <div className="grid divide-y divide-border sm:grid-cols-2 sm:divide-x sm:divide-y-0">
+                            <div className="flex items-center justify-between px-7 py-5 transition-colors hover:bg-linear-to-r hover:from-emerald-50/50 hover:to-transparent sm:px-8">
+                                <div className="flex items-center gap-3.5">
+                                    <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-emerald-100 bg-linear-to-br from-emerald-50 to-emerald-100/50 text-emerald-600 shadow-sm">
+                                        <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                                    </span>
+
+                                    <div>
+                                        <p className="text-xs font-extrabold text-text-primary">
+                                            Completed
+                                        </p>
+
+                                        <p className="mt-0.5 text-[10px] text-text-secondary">
+                                            Successfully supported requests
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <span className="text-xl font-extrabold tracking-tight text-emerald-600">
+                                    {statistics.completed}
+                                </span>
+                            </div>
+
+                            <div className="flex items-center justify-between px-7 py-5 transition-colors hover:bg-linear-to-r hover:from-red-50/50 hover:to-transparent sm:px-8">
+                                <div className="flex items-center gap-3.5">
+                                    <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-red-100 bg-linear-to-br from-red-50 to-red-100/50 text-red-500 shadow-sm">
+                                        <span className="h-2 w-2 rounded-full bg-red-500" />
+                                    </span>
+
+                                    <div>
+                                        <p className="text-xs font-extrabold text-text-primary">
+                                            Rejected
+                                        </p>
+
+                                        <p className="mt-0.5 text-[10px] text-text-secondary">
+                                            Requests that could not proceed
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <span className="text-xl font-extrabold tracking-tight text-red-500">
+                                    {statistics.rejected}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="hidden">
+                        <HelpRequestStats
+                            total={statistics.total}
+                            pending={statistics.pending}
+                            verified={statistics.verified}
+                            assigned={statistics.assigned}
+                            completed={statistics.completed}
+                            rejected={statistics.rejected}
+                        />
+                    </div>
+                </section>
+
+                {/* =====================================================
+                    REQUEST WORKSPACE
+                ====================================================== */}
+
+                <section className="overflow-hidden rounded-2xl border border-border bg-white shadow-[0_4px_24px_rgba(15,23,42,0.05)]">
+                    {/* Workspace heading */}
+
+                    <div className="border-b border-border bg-linear-to-r from-primary/3 to-transparent px-6 py-7 sm:px-8">
+                        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+                            <div>
+                                <div className="inline-flex items-center gap-2 rounded-full bg-linear-to-r from-primary/12 to-primary/4 px-2.5 py-1 shadow-sm">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+
+                                    <span className="text-[9px] font-extrabold uppercase tracking-[0.18em] text-primary">
+                                        Request workspace
+                                    </span>
+                                </div>
+
+                                <h2 className="mt-3 text-2xl font-extrabold tracking-tight text-text-primary">
+                                    Your help requests
+                                </h2>
+
+                                <p className="mt-1.5 max-w-xl text-xs leading-5 text-text-secondary">
+                                    Review your submissions and follow each
+                                    request from verification through support.
+                                </p>
+                            </div>
+
+                            <div className="flex items-center gap-3 rounded-xl border border-border bg-linear-to-br from-slate-50 to-white px-4 py-2.5 shadow-sm">
+                                <div className="h-7 w-px bg-border" />
+
+                                <div>
+                                    <p className="text-[9px] font-extrabold uppercase tracking-[0.14em] text-text-secondary">
+                                        Showing
+                                    </p>
+
+                                    <p className="mt-0.5 text-sm font-extrabold text-text-primary">
+                                        {filteredHelpRequests.length}
+                                        <span className="ml-1 font-medium text-text-secondary">
+                                            requests
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Status navigation */}
+
+                    <div className="border-b border-border bg-white px-4 sm:px-6">
+                        <HelpRequestCategoryTabs
+                            tabs={categoryTabs}
+                            activeCategory={activeCategory}
+                            onChange={handleCategoryChange}
+                        />
+                    </div>
+
+                    {/* Filters */}
+
+                    <div className="border-b border-border bg-linear-to-b from-slate-50/80 to-slate-50/40 px-5 py-5 sm:px-6">
+                        <HelpRequestFilters
+                            searchTerm={searchTerm}
+                            categoryFilter={categoryFilter}
+                            priorityFilter={priorityFilter}
+                            statusFilter={statusFilter}
+                            helpRequests={helpRequests}
+                            onSearchChange={handleSearchChange}
+                            onCategoryChange={handleCategoryFilterChange}
+                            onPriorityChange={handlePriorityChange}
+                            onStatusChange={handleStatusChange}
+                        />
+                    </div>
+
+                    {/* Table */}
+
+                    <div className="p-4 sm:p-6">
+                        <div className="overflow-hidden rounded-xl border border-border bg-white shadow-sm">
+                            <HelpRequestTable
+                                columns={columns}
+                                rows={rows}
+                                onSort={handleSort}
+                                getSortIcon={getSortIcon}
+                                resultCount={filteredHelpRequests.length}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Pagination */}
+
+                    {filteredHelpRequests.length > 0 && (
+                        <div className="border-t border-border bg-linear-to-b from-slate-50/60 to-slate-50/20 px-5 py-4 sm:px-6">
+                            <HelpRequestPagination
+                                currentPage={safeCurrentPage}
+                                totalPages={totalPages}
+                                totalItems={filteredHelpRequests.length}
+                                itemsPerPage={HELP_REQUESTS_PER_PAGE}
+                                onPageChange={setCurrentPage}
+                            />
+                        </div>
+                    )}
+                </section>
+            </div>
+
+            {/* =====================================================
+                MODALS / DRAWER
+            ====================================================== */}
 
             <HelpRequestModal
                 isOpen={showModal}
                 onClose={handleCloseModal}
                 onSuccess={handleRequestCreated}
             />
-
-            {/* VIEW DETAILS MODAL */}
 
             {selectedRequest && (
                 <HelpRequestDetailsModal
@@ -1254,8 +1580,6 @@ const MyHelpRequests = () => {
                 />
             )}
 
-            {/* EDIT HELP REQUEST MODAL */}
-
             <HelpRequestEditModal
                 key={editingRequest?.id || 'edit-help-request'}
                 isOpen={showEditModal}
@@ -1263,8 +1587,6 @@ const MyHelpRequests = () => {
                 onClose={handleCloseEditModal}
                 onSuccess={handleRequestUpdated}
             />
-
-            {/* DELETE HELP REQUEST MODAL */}
 
             {deleteRequestItem && (
                 <HelpRequestDeleteModal
@@ -1277,8 +1599,6 @@ const MyHelpRequests = () => {
                     onConfirm={handleDeleteConfirm}
                 />
             )}
-
-            {/* ORGANIZATION INFO DRAWER */}
 
             <OrganizationInfoDrawer
                 isOpen={Boolean(selectedOrganization)}

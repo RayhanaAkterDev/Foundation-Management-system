@@ -16,7 +16,9 @@ const HelpRequestFilters = ({
     const categories = useMemo(() => {
         return [
             ...new Set(
-                helpRequests.map((request) => request.category).filter(Boolean),
+                helpRequests
+                    .map((request) => request?.category)
+                    .filter(Boolean),
             ),
         ];
     }, [helpRequests]);
@@ -44,6 +46,7 @@ const HelpRequestFilters = ({
             {/* Filter label */}
             <div className="hidden items-center gap-2 px-1 text-text-secondary sm:flex">
                 <SlidersHorizontal size={15} />
+
                 <span className="text-xs font-semibold">Filters</span>
             </div>
 

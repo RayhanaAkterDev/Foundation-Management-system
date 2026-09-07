@@ -1,4 +1,4 @@
-import { ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight, CircleCheckBig, XCircle } from 'lucide-react';
 
 const HelpRequestOverview = ({ statistics }) => (
     <section>
@@ -173,7 +173,10 @@ const HelpRequestOverview = ({ statistics }) => (
                         <div className="flex items-center justify-between gap-5 border-b border-border px-1 py-5 sm:border-b-0 sm:border-r sm:pr-7">
                             <div className="flex min-w-0 items-center gap-3.5">
                                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50">
-                                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                                    <CircleCheckBig
+                                        className="h-4.5 w-4.5 text-emerald-500"
+                                        strokeWidth={2}
+                                    />
                                 </span>
 
                                 <div className="min-w-0">
@@ -195,7 +198,10 @@ const HelpRequestOverview = ({ statistics }) => (
                         <div className="flex items-center justify-between gap-5 px-1 py-5 sm:pl-7">
                             <div className="flex min-w-0 items-center gap-3.5">
                                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-red-200 bg-red-50">
-                                    <span className="h-2 w-2 rounded-full bg-red-500" />
+                                    <XCircle
+                                        className="h-4.5 w-4.5 text-red-500"
+                                        strokeWidth={2}
+                                    />
                                 </span>
 
                                 <div className="min-w-0">

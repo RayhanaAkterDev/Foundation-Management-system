@@ -26,7 +26,7 @@ const HelpRequestSidebar = ({
                 border-b
                 border-border
                 bg-primary/7
-                lg:order-none
+                lg:order-0
                 lg:border-b-0
                 lg:border-l
             "

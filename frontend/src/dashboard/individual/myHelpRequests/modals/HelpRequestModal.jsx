@@ -7,6 +7,8 @@ import {
     FileText,
     ChevronDown,
 } from 'lucide-react';
+
+import logo from '@/assets/shared/footerLogo.png';
 import { createHelpRequest } from '../api/helpRequestAPI';
 
 const initialForm = {
@@ -34,6 +36,33 @@ const urgencyOptions = [
     { value: 'high', label: 'High' },
     { value: 'critical', label: 'Critical' },
 ];
+
+const urgencyConfig = {
+    low: {
+        dot: 'bg-slate-400',
+        text: 'text-slate-700',
+        background: 'bg-slate-50',
+        border: 'border-slate-200',
+    },
+    normal: {
+        dot: 'bg-amber-500',
+        text: 'text-amber-700',
+        background: 'bg-amber-50',
+        border: 'border-amber-200',
+    },
+    high: {
+        dot: 'bg-orange-500',
+        text: 'text-orange-700',
+        background: 'bg-orange-50',
+        border: 'border-orange-200',
+    },
+    critical: {
+        dot: 'bg-red-500',
+        text: 'text-red-700',
+        background: 'bg-red-50',
+        border: 'border-red-200',
+    },
+};
 
 const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
     const [form, setForm] = useState(initialForm);
@@ -142,41 +171,29 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
     };
 
     const getErrorMessage = (error) => {
-        if (!error) return '';
-        return Array.isArray(error) ? error[0] : error;
-    };
+        if (!error) {
+            return '';
+        }
 
-    const urgencyConfig = {
-        low: {
-            dot: 'bg-slate-400',
-            text: 'text-slate-700',
-            background: 'bg-slate-50',
-            border: 'border-slate-200',
-        },
-        normal: {
-            dot: 'bg-amber-500',
-            text: 'text-amber-700',
-            background: 'bg-amber-50',
-            border: 'border-amber-200',
-        },
-        high: {
-            dot: 'bg-orange-500',
-            text: 'text-orange-700',
-            background: 'bg-orange-50',
-            border: 'border-orange-200',
-        },
-        critical: {
-            dot: 'bg-red-500',
-            text: 'text-red-700',
-            background: 'bg-red-50',
-            border: 'border-red-200',
-        },
+        return Array.isArray(error) ? error[0] : error;
     };
 
     const selectedUrgency = urgencyConfig[form.urgency];
 
+    const inputBase =
+        'w-full rounded-xl border bg-white px-4 text-[13px] font-medium text-slate-800 outline-none transition-all placeholder:text-slate-400';
+
+    const inputNormal =
+        'border-slate-200 hover:border-slate-300 focus:border-primary focus:ring-4 focus:ring-primary/10';
+
+    const inputError =
+        'border-red-300 bg-red-50/30 focus:border-red-400 focus:ring-4 focus:ring-red-100';
+
+    const getInputClass = (hasError = false, additional = '') =>
+        `${inputBase} ${additional} ${hasError ? inputError : inputNormal}`;
+
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 px-3 py-4 backdrop-blur-md sm:px-5 sm:py-6">
+        <div className="fixed inset-0 z-50 flex min-h-dvh items-center justify-center overflow-hidden bg-slate-800/60 px-2 py-2 backdrop-blur-md sm:px-4 sm:py-4 md:px-5 md:py-6">
             {/* BACKDROP */}
             <div
                 className="absolute inset-0"
@@ -185,45 +202,49 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
             />
 
             {/* MODAL */}
-            <div className="relative z-10 flex max-h-[95vh] w-full max-w-[1180px] overflow-hidden rounded-[28px] border border-white/10 bg-white shadow-[0_40px_120px_rgba(15,23,42,0.35)]">
-                {/* =================================================
-                    LEFT SIDEBAR
-                ================================================== */}
-                <aside className="relative hidden w-[330px] shrink-0 overflow-hidden bg-primary lg:block">
-                    {/* Decorative shapes */}
-                    <div className="absolute -right-28 -top-24 h-[360px] w-[360px] rounded-full border border-white/[0.08]" />
-                    <div className="absolute -right-10 top-10 h-[190px] w-[190px] rounded-full border border-white/[0.06]" />
-                    <div className="absolute -bottom-40 -left-36 h-[390px] w-[390px] rounded-full border border-white/[0.06]" />
-                    <div className="absolute bottom-16 right-[-80px] h-[180px] w-[180px] rounded-full bg-accent/[0.04] blur-3xl" />
+            <div className="relative z-10 flex h-full max-h-[96dvh] w-full max-w-240 min-w-0 overflow-hidden rounded-2xl bg-white shadow-[0_25px_80px_rgba(15,23,42,0.28)] sm:h-auto sm:max-h-[94dvh] sm:rounded-3xl">
+                {/* =====================================================
+                    LEFT PANEL
+                ====================================================== */}
+                <aside className="relative hidden shrink-0 overflow-hidden bg-primary lg:block">
+                    {/* Decorative circles */}
+                    <div className="absolute -right-28 -top-28 h-87.5 w-87.5 rounded-full border border-white/[0.07]" />
+                    <div className="absolute -right-10 top-16 h-45 w-45 rounded-full border border-white/[0.05]" />
+                    <div className="absolute -bottom-40 -left-40 h-97.5 w-97.5 rounded-full border border-white/[0.05]" />
 
-                    <div className="relative flex h-full flex-col px-9 py-9">
-                        {/* Brand */}
+                    <div className="relative flex h-full flex-col px-8 py-8">
+                        {/* BRAND */}
                         <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-primary shadow-[0_8px_20px_rgba(245,158,11,0.18)]">
-                                <span className="h-2.5 w-2.5 rounded-full bg-current" />
+                            <div className="flex w-12 shrink-0 items-center justify-center rounded-xl">
+                                <img
+                                    src={logo}
+                                    alt="SP"
+                                    className="h-auto w-full object-contain"
+                                />
                             </div>
 
-                            <div>
-                                <p className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-white">
+                            <div className="min-w-0">
+                                <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white">
                                     Stand For People
                                 </p>
 
-                                <p className="mt-1 text-[10px] font-medium text-white/45">
+                                <p className="mt-0.5 text-[10px] text-white/40">
                                     Community support
                                 </p>
                             </div>
                         </div>
 
-                        {/* Main message */}
-                        <div className="my-auto">
+                        {/* CENTER CONTENT */}
+                        <div className="my-auto py-8">
                             <div className="mb-5 flex items-center gap-2">
-                                <span className="h-px w-7 bg-accent" />
-                                <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-accent">
+                                <span className="h-px w-6 bg-accent" />
+
+                                <span className="text-[9px] font-bold uppercase tracking-[0.18em] text-accent">
                                     Request assistance
                                 </span>
                             </div>
 
-                            <h2 className="text-[43px] font-semibold leading-[1.02] tracking-[-0.05em] text-white">
+                            <h2 className="text-[clamp(32px,3vw,39px)] font-semibold leading-[1.03] tracking-[-0.045em] text-white">
                                 Let us know
                                 <br />
                                 what you
@@ -231,31 +252,29 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                                 <span className="text-accent">need.</span>
                             </h2>
 
-                            <p className="mt-7 max-w-[235px] text-[13px] leading-6 text-white/55">
+                            <p className="mt-6 max-w-[220px] text-[12px] leading-6 text-white/50">
                                 Tell us what is happening and what kind of
                                 support would make a difference.
                             </p>
 
-                            {/* Small reassurance */}
-                            <div className="mt-9 flex items-start gap-3 border-l border-accent/40 pl-4">
-                                <div>
-                                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/70">
-                                        Your information matters
-                                    </p>
+                            <div className="mt-8 border-l border-accent/40 pl-4">
+                                <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-white/65">
+                                    Your information matters
+                                </p>
 
-                                    <p className="mt-1.5 text-[11px] leading-5 text-white/40">
-                                        Clear and accurate details help us
-                                        understand your request better.
-                                    </p>
-                                </div>
+                                <p className="mt-1.5 max-w-[215px] text-[10px] leading-5 text-white/35">
+                                    Clear and accurate details help us
+                                    understand your request better.
+                                </p>
                             </div>
                         </div>
 
-                        {/* Bottom */}
+                        {/* BOTTOM */}
                         <div className="border-t border-white/10 pt-5">
-                            <div className="flex items-center gap-2.5">
-                                <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-                                <span className="text-[10px] font-medium text-white/45">
+                            <div className="flex items-center gap-2">
+                                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+
+                                <span className="text-[9px] font-medium text-white/40">
                                     Community assistance request
                                 </span>
                             </div>
@@ -263,68 +282,63 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                     </div>
                 </aside>
 
-                {/* =================================================
+                {/* =====================================================
                     RIGHT SIDE
-                ================================================== */}
-                <div className="flex min-w-0 flex-1 flex-col bg-[#f4f7f6]">
+                ====================================================== */}
+                <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-[#f6f8f7]">
                     {/* =================================================
                         HEADER
                     ================================================== */}
-                    <header className="relative shrink-0 overflow-hidden border-b border-slate-200/80 bg-white">
-                        <div className="absolute right-0 top-0 h-full w-[45%] bg-gradient-to-l from-primary/[0.06] via-primary/[0.025] to-transparent" />
+                    <header className="relative shrink-0 border-b border-slate-200/80 bg-white">
+                        <div className="absolute right-0 top-0 h-full w-[42%] bg-gradient-to-l from-primary/[0.055] to-transparent" />
 
-                        <div className="absolute right-12 top-0 h-[3px] w-20 bg-accent" />
-
-                        <div className="relative px-7 pb-7 pt-7 sm:px-10 sm:pb-8 sm:pt-8">
-                            <div className="flex items-start justify-between gap-6">
-                                <div className="min-w-0">
-                                    {/* Eyebrow */}
-                                    <div className="mb-4 flex items-center gap-2.5">
-                                        <span className="inline-flex h-6 items-center rounded-md bg-primary/[0.08] px-2.5 text-[9px] font-extrabold uppercase tracking-[0.17em] text-primary">
+                        <div className="relative px-4 py-5 sm:px-6 sm:py-6 md:px-9 md:py-7">
+                            <div className="flex items-start justify-between gap-3 sm:gap-5">
+                                <div className="min-w-0 flex-1">
+                                    <div className="mb-2.5 flex flex-wrap items-center gap-2 sm:mb-3">
+                                        <span className="inline-flex h-6 items-center rounded-md bg-primary/[0.07] px-2.5 text-[9px] font-extrabold uppercase tracking-[0.16em] text-primary">
                                             New request
                                         </span>
 
-                                        <span className="h-1 w-1 rounded-full bg-slate-300" />
+                                        <span className="h-1 w-1 shrink-0 rounded-full bg-slate-300" />
 
-                                        <span className="text-[10px] font-medium text-slate-400">
+                                        <span className="text-[10px] text-slate-400">
                                             Community assistance
                                         </span>
                                     </div>
 
-                                    <h3 className="max-w-[680px] text-[27px] font-bold leading-[1.1] tracking-[-0.04em] text-slate-950 sm:text-[31px]">
+                                    <h3 className="text-[21px] font-bold leading-tight tracking-[-0.035em] text-slate-950 sm:text-[25px] md:text-[29px]">
                                         Tell us about your situation
                                     </h3>
 
-                                    <p className="mt-2.5 max-w-[610px] text-[13px] leading-5 text-slate-500">
+                                    <p className="mt-2 max-w-[600px] text-[11px] leading-5 text-slate-500 sm:text-[12px]">
                                         Share the details below so we can
                                         understand your needs and determine the
                                         right kind of support.
                                     </p>
                                 </div>
 
-                                {/* Close */}
                                 <button
                                     type="button"
                                     onClick={handleClose}
                                     disabled={submitting}
-                                    className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-400 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-40"
+                                    className="relative z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-400 transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700 focus:outline-none focus:ring-4 focus:ring-primary/10 disabled:cursor-not-allowed disabled:opacity-40 sm:h-10 sm:w-10"
                                     aria-label="Close modal"
                                 >
-                                    <X className="h-[17px] w-[17px]" />
+                                    <X className="h-4 w-4" />
                                 </button>
                             </div>
 
-                            {/* Header bottom information */}
-                            <div className="mt-7 flex items-center justify-between border-t border-slate-100 pt-4">
-                                <div className="flex items-center gap-2">
-                                    <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+                            <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-100 pt-3 sm:mt-5 sm:pt-3.5">
+                                <div className="flex min-w-0 items-center gap-2">
+                                    <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
 
-                                    <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">
+                                    <span className="truncate text-[9px] font-bold uppercase tracking-[0.12em] text-slate-500">
                                         Required information
                                     </span>
                                 </div>
 
-                                <span className="text-[10px] text-slate-400">
+                                <span className="shrink-0 text-[9px] text-slate-400">
                                     * Required
                                 </span>
                             </div>
@@ -336,24 +350,24 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                     ================================================== */}
                     <form
                         onSubmit={handleSubmit}
-                        className="flex min-h-0 flex-1 flex-col"
+                        className="flex min-h-0 flex-1 flex-col overflow-hidden"
                     >
                         {/* FORM CONTENT */}
-                        <div className="min-h-0 flex-1 overflow-y-auto">
-                            <div className="px-6 py-7 sm:px-10 sm:py-8">
+                        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+                            <div className="px-4 py-5 sm:px-6 sm:py-6 md:px-9 md:py-7">
                                 {/* SUBMIT ERROR */}
                                 {submitError && (
-                                    <div className="mb-7 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3.5">
+                                    <div className="mb-5 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-3.5 py-3 sm:mb-6 sm:px-4">
                                         <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-red-100">
                                             <AlertCircle className="h-4 w-4 text-red-500" />
                                         </div>
 
-                                        <div>
+                                        <div className="min-w-0">
                                             <p className="text-xs font-bold text-red-800">
                                                 Unable to submit request
                                             </p>
 
-                                            <p className="mt-1 text-xs leading-5 text-red-600">
+                                            <p className="mt-0.5 break-words text-[11px] leading-5 text-red-600">
                                                 {submitError}
                                             </p>
                                         </div>
@@ -361,17 +375,17 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                                 )}
 
                                 {/* =================================================
-                                    SECTION 01
+                                    SECTION 01 — REQUEST DETAILS
                                 ================================================== */}
                                 <section>
-                                    <div className="flex items-center justify-between border-b border-slate-200 pb-4">
-                                        <div className="flex items-center gap-3">
-                                            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-[10px] font-extrabold text-white">
+                                    <div className="flex items-center justify-between gap-3 border-b border-slate-200 pb-3.5">
+                                        <div className="flex min-w-0 items-center gap-3">
+                                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-[9px] font-extrabold text-white">
                                                 01
                                             </span>
 
-                                            <div>
-                                                <h4 className="text-[14px] font-bold text-slate-900">
+                                            <div className="min-w-0">
+                                                <h4 className="text-[13px] font-bold text-slate-900">
                                                     Request details
                                                 </h4>
 
@@ -382,16 +396,16 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                                             </div>
                                         </div>
 
-                                        <span className="hidden text-[9px] font-bold uppercase tracking-[0.16em] text-primary/45 sm:block">
+                                        <span className="hidden shrink-0 text-[9px] font-bold uppercase tracking-[0.15em] text-primary/40 sm:block">
                                             Details
                                         </span>
                                     </div>
 
                                     {/* TITLE */}
-                                    <div className="mt-6">
+                                    <div className="mt-5">
                                         <label
                                             htmlFor="help-request-title"
-                                            className="mb-2 block text-[11px] font-bold text-slate-600"
+                                            className="mb-2 block text-[10px] font-bold uppercase tracking-[0.03em] text-slate-600"
                                         >
                                             Request title
                                             <span className="ml-1 text-red-500">
@@ -406,27 +420,26 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                                             value={form.title}
                                             onChange={handleChange}
                                             placeholder="Briefly describe what help is needed"
-                                            className={`h-[58px] w-full rounded-xl border bg-white px-4 text-[14px] font-medium text-slate-800 outline-none transition-all placeholder:text-slate-400 ${
-                                                errors.title
-                                                    ? 'border-red-300 bg-red-50/30 focus:border-red-400 focus:ring-4 focus:ring-red-100'
-                                                    : 'border-slate-200 hover:border-slate-300 focus:border-primary focus:ring-4 focus:ring-primary/10'
-                                            }`}
+                                            className={getInputClass(
+                                                errors.title,
+                                                'h-[50px] sm:h-[54px]',
+                                            )}
                                         />
 
                                         {errors.title && (
-                                            <p className="mt-1.5 text-[11px] font-medium text-red-500">
+                                            <p className="mt-1.5 text-[10px] font-medium text-red-500">
                                                 {getErrorMessage(errors.title)}
                                             </p>
                                         )}
                                     </div>
 
                                     {/* CATEGORY + URGENCY */}
-                                    <div className="mt-5 grid gap-5 md:grid-cols-2">
+                                    <div className="mt-4 grid gap-4 md:grid-cols-2">
                                         {/* CATEGORY */}
-                                        <div>
+                                        <div className="min-w-0">
                                             <label
                                                 htmlFor="help-request-category"
-                                                className="mb-2 block text-[11px] font-bold text-slate-600"
+                                                className="mb-2 block text-[10px] font-bold uppercase tracking-[0.03em] text-slate-600"
                                             >
                                                 Category
                                                 <span className="ml-1 text-red-500">
@@ -440,11 +453,10 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                                                     name="category"
                                                     value={form.category}
                                                     onChange={handleChange}
-                                                    className={`h-[58px] w-full appearance-none rounded-xl border bg-white px-4 pr-10 text-[13px] font-medium text-slate-700 outline-none transition-all ${
-                                                        errors.category
-                                                            ? 'border-red-300 bg-red-50/30 focus:border-red-400 focus:ring-4 focus:ring-red-100'
-                                                            : 'border-slate-200 hover:border-slate-300 focus:border-primary focus:ring-4 focus:ring-primary/10'
-                                                    }`}
+                                                    className={`${getInputClass(
+                                                        errors.category,
+                                                        'h-[50px] appearance-none pr-10 sm:h-[54px]',
+                                                    )}`}
                                                 >
                                                     <option value="">
                                                         Select category
@@ -466,7 +478,7 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                                             </div>
 
                                             {errors.category && (
-                                                <p className="mt-1.5 text-[11px] font-medium text-red-500">
+                                                <p className="mt-1.5 text-[10px] font-medium text-red-500">
                                                     {getErrorMessage(
                                                         errors.category,
                                                     )}
@@ -475,10 +487,10 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                                         </div>
 
                                         {/* URGENCY */}
-                                        <div>
+                                        <div className="min-w-0">
                                             <label
                                                 htmlFor="help-request-urgency"
-                                                className="mb-2 block text-[11px] font-bold text-slate-600"
+                                                className="mb-2 block text-[10px] font-bold uppercase tracking-[0.03em] text-slate-600"
                                             >
                                                 Urgency
                                             </label>
@@ -495,7 +507,7 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                                                     name="urgency"
                                                     value={form.urgency}
                                                     onChange={handleChange}
-                                                    className={`h-[58px] w-full appearance-none bg-transparent px-4 pl-10 pr-10 text-[13px] font-bold outline-none ${selectedUrgency.text}`}
+                                                    className={`h-[50px] w-full appearance-none bg-transparent px-4 pl-10 pr-10 text-[13px] font-bold outline-none sm:h-[54px] ${selectedUrgency.text}`}
                                                 >
                                                     {urgencyOptions.map(
                                                         (option) => (
@@ -522,15 +534,15 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                                 {/* =================================================
                                     SECTION 02 — LOCATION
                                 ================================================== */}
-                                <section className="mt-9">
-                                    <div className="flex items-center justify-between border-b border-slate-200 pb-4">
-                                        <div className="flex items-center gap-3">
-                                            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-[10px] font-extrabold text-primary">
+                                <section className="mt-8">
+                                    <div className="flex items-center justify-between gap-3 border-b border-slate-200 pb-3.5">
+                                        <div className="flex min-w-0 items-center gap-3">
+                                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-[9px] font-extrabold text-surface">
                                                 02
                                             </span>
 
-                                            <div>
-                                                <h4 className="text-[14px] font-bold text-slate-900">
+                                            <div className="min-w-0">
+                                                <h4 className="text-[13px] font-bold text-slate-900">
                                                     Location
                                                 </h4>
 
@@ -540,16 +552,15 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                                             </div>
                                         </div>
 
-                                        <MapPin className="h-[17px] w-[17px] text-accent" />
+                                        <MapPin className="h-4 w-4 shrink-0 text-accent" />
                                     </div>
 
-                                    {/* LOCATION FIELDS */}
-                                    <div className="mt-6 grid gap-5 md:grid-cols-2">
+                                    <div className="mt-5 grid gap-4 md:grid-cols-2">
                                         {/* DISTRICT */}
-                                        <div>
+                                        <div className="min-w-0">
                                             <label
                                                 htmlFor="help-request-district"
-                                                className="mb-2 block text-[11px] font-bold text-slate-600"
+                                                className="mb-2 block text-[10px] font-bold uppercase tracking-[0.03em] text-slate-600"
                                             >
                                                 District
                                                 <span className="ml-1 text-red-500">
@@ -564,15 +575,14 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                                                 value={form.district}
                                                 onChange={handleChange}
                                                 placeholder="e.g. Dhaka"
-                                                className={`h-[58px] w-full rounded-xl border bg-white px-4 text-[13px] font-medium text-slate-800 outline-none transition-all placeholder:text-slate-400 ${
-                                                    errors.district
-                                                        ? 'border-red-300 bg-red-50/30 focus:border-red-400 focus:ring-4 focus:ring-red-100'
-                                                        : 'border-slate-200 hover:border-slate-300 focus:border-primary focus:ring-4 focus:ring-primary/10'
-                                                }`}
+                                                className={getInputClass(
+                                                    errors.district,
+                                                    'h-[50px] sm:h-[54px]',
+                                                )}
                                             />
 
                                             {errors.district && (
-                                                <p className="mt-1.5 text-[11px] font-medium text-red-500">
+                                                <p className="mt-1.5 text-[10px] font-medium text-red-500">
                                                     {getErrorMessage(
                                                         errors.district,
                                                     )}
@@ -581,16 +591,16 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                                         </div>
 
                                         {/* ADDRESS */}
-                                        <div>
-                                            <div className="mb-2 flex items-center gap-2">
+                                        <div className="min-w-0">
+                                            <div className="mb-2 flex flex-wrap items-center gap-2">
                                                 <label
                                                     htmlFor="help-request-address"
-                                                    className="text-[11px] font-bold text-slate-600"
+                                                    className="text-[10px] font-bold uppercase tracking-[0.03em] text-slate-600"
                                                 >
                                                     Address
                                                 </label>
 
-                                                <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-[0.08em] text-slate-400">
+                                                <span className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-[0.07em] text-slate-400">
                                                     Optional
                                                 </span>
                                             </div>
@@ -602,11 +612,14 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                                                 value={form.address}
                                                 onChange={handleChange}
                                                 placeholder="Enter relevant location"
-                                                className="h-[58px] w-full rounded-xl border border-slate-200 bg-white px-4 text-[13px] font-medium text-slate-800 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-primary focus:ring-4 focus:ring-primary/10"
+                                                className={getInputClass(
+                                                    false,
+                                                    'h-[50px] sm:h-[54px]',
+                                                )}
                                             />
 
                                             {errors.address && (
-                                                <p className="mt-1.5 text-[11px] font-medium text-red-500">
+                                                <p className="mt-1.5 text-[10px] font-medium text-red-500">
                                                     {getErrorMessage(
                                                         errors.address,
                                                     )}
@@ -619,63 +632,68 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                                 {/* =================================================
                                     SECTION 03 — SITUATION
                                 ================================================== */}
-                                <section className="mt-9">
-                                    <div className="flex items-center justify-between border-b border-slate-200 pb-4">
-                                        <div className="flex items-center gap-3">
-                                            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-[10px] font-extrabold text-white">
+                                <section className="mt-8">
+                                    <div className="flex items-center justify-between gap-3 border-b border-slate-200 pb-3.5">
+                                        <div className="flex min-w-0 items-center gap-3">
+                                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-[9px] font-extrabold text-white">
                                                 03
                                             </span>
 
-                                            <div>
-                                                <h4 className="text-[14px] font-bold text-slate-900">
+                                            <div className="min-w-0">
+                                                <h4 className="text-[13px] font-bold text-slate-900">
                                                     Your situation
                                                 </h4>
 
-                                                <p className="mt-0.5 text-[10px] text-slate-400">
+                                                <p className="mt-0.5 text-[10px] leading-4 text-slate-400">
                                                     Explain what happened and
                                                     what support is needed.
                                                 </p>
                                             </div>
                                         </div>
 
-                                        <FileText className="h-[17px] w-[17px] text-primary/50" />
+                                        <FileText className="h-4 w-4 shrink-0 text-primary/45" />
                                     </div>
 
                                     {/* DESCRIPTION */}
-                                    <div className="mt-6">
-                                        <label
-                                            htmlFor="help-request-description"
-                                            className="mb-2 block text-[11px] font-bold text-slate-600"
-                                        >
-                                            Description
-                                            <span className="ml-1 text-red-500">
-                                                *
+                                    <div className="mt-5">
+                                        <div className="mb-2 flex items-center justify-between gap-3">
+                                            <label
+                                                htmlFor="help-request-description"
+                                                className="text-[10px] font-bold uppercase tracking-[0.03em] text-slate-600"
+                                            >
+                                                Description
+                                                <span className="ml-1 text-red-500">
+                                                    *
+                                                </span>
+                                            </label>
+
+                                            <span className="hidden shrink-0 text-[9px] text-slate-400 sm:block">
+                                                Be as specific as possible
                                             </span>
-                                        </label>
+                                        </div>
 
                                         <textarea
                                             id="help-request-description"
                                             name="description"
                                             value={form.description}
                                             onChange={handleChange}
-                                            rows={7}
+                                            rows={6}
                                             placeholder="Please describe your situation and what kind of help you need..."
-                                            className={`min-h-[175px] w-full resize-none rounded-xl border bg-white px-4 py-4 text-[13px] leading-6 text-slate-800 outline-none transition-all placeholder:text-slate-400 ${
-                                                errors.description
-                                                    ? 'border-red-300 bg-red-50/30 focus:border-red-400 focus:ring-4 focus:ring-red-100'
-                                                    : 'border-slate-200 hover:border-slate-300 focus:border-primary focus:ring-4 focus:ring-primary/10'
-                                            }`}
+                                            className={getInputClass(
+                                                errors.description,
+                                                'min-h-[140px] resize-none px-4 py-4 text-[13px] leading-6 sm:min-h-[155px]',
+                                            )}
                                         />
 
                                         {errors.description ? (
-                                            <p className="mt-1.5 text-[11px] font-medium text-red-500">
+                                            <p className="mt-1.5 text-[10px] font-medium text-red-500">
                                                 {getErrorMessage(
                                                     errors.description,
                                                 )}
                                             </p>
                                         ) : (
-                                            <div className="mt-2 flex items-center gap-2">
-                                                <span className="h-1 w-1 rounded-full bg-accent" />
+                                            <div className="mt-2 flex items-start gap-2">
+                                                <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-accent" />
 
                                                 <p className="text-[10px] leading-4 text-slate-400">
                                                     Include details that may
@@ -692,23 +710,23 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                         {/* =================================================
                             FOOTER
                         ================================================== */}
-                        <footer className="shrink-0 border-t border-slate-200 bg-white px-6 py-4 sm:px-10">
-                            <div className="flex flex-col-reverse gap-4 sm:flex-row sm:items-center sm:justify-between">
-                                <div className="flex items-center gap-2.5">
-                                    <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+                        <footer className="shrink-0 border-t border-slate-200 bg-white px-4 py-3.5 sm:px-6 sm:py-4 md:px-9">
+                            <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                <div className="flex min-w-0 items-start gap-2.5 sm:items-center">
+                                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-accent sm:mt-0" />
 
-                                    <p className="text-[10px] font-medium text-slate-400">
+                                    <p className="text-[10px] leading-4 text-slate-400">
                                         Your request will be reviewed after
                                         submission.
                                     </p>
                                 </div>
 
-                                <div className="flex w-full gap-3 sm:w-auto">
+                                <div className="flex w-full gap-2.5 sm:w-auto">
                                     <button
                                         type="button"
                                         onClick={handleClose}
                                         disabled={submitting}
-                                        className="h-11 flex-1 rounded-xl border border-slate-200 bg-white px-6 text-[13px] font-semibold text-slate-500 transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none"
+                                        className="h-11 min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-4 text-[12px] font-semibold text-slate-500 transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700 focus:outline-none focus:ring-4 focus:ring-primary/10 disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none sm:px-6"
                                     >
                                         Cancel
                                     </button>
@@ -716,7 +734,7 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                                     <button
                                         type="submit"
                                         disabled={submitting}
-                                        className="inline-flex h-11 min-w-[175px] flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-7 text-[13px] font-bold text-white shadow-[0_7px_20px_rgba(15,118,110,0.18)] transition-all hover:bg-primary-hover hover:shadow-[0_9px_26px_rgba(15,118,110,0.25)] disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none"
+                                        className="inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-[12px] font-bold text-white shadow-[0_6px_18px_rgba(15,118,110,0.16)] transition-all hover:bg-primary-hover hover:shadow-[0_8px_22px_rgba(15,118,110,0.22)] focus:outline-none focus:ring-4 focus:ring-primary/15 disabled:cursor-not-allowed disabled:opacity-60 sm:min-w-[165px] sm:flex-none sm:px-7"
                                     >
                                         {submitting ? (
                                             <>

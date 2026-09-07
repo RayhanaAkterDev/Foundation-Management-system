@@ -9,20 +9,15 @@ import React, {
 import { ChevronsUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 
 import { getMyHelpRequests, deleteHelpRequest } from './api/helpRequestAPI';
-
 import HelpRequestPageHeader from './components/HelpRequestPageHeader';
 import HelpRequestOverview from './components/HelpRequestOverview';
 import HelpRequestWorkspace from './components/HelpRequestWorkspace';
 import createHelpRequestColumns from './components/HelpRequestTableColumns';
-
 import HelpRequestErrorState from './components/HelpRequestErrorState';
 import HelpRequestLoadingState from './components/HelpRequestLoadingState';
 import HelpRequestSuccessToast from './components/HelpRequestSuccessToast';
-
 import HelpRequestModals from './modals/HelpRequestModals';
-
 import { HELP_REQUESTS_PER_PAGE } from './constants/helpRequestConstants';
-
 import {
     normalizeHelpRequest,
     normalizeHelpRequests,
@@ -47,7 +42,6 @@ const MyHelpRequests = () => {
     });
 
     const [selectedRequest, setSelectedRequest] = useState(null);
-
     const [selectedOrganization, setSelectedOrganization] = useState(null);
 
     const [deleteRequestItem, setDeleteRequestItem] = useState(null);
@@ -67,10 +61,11 @@ const MyHelpRequests = () => {
 
     const [currentPage, setCurrentPage] = useState(1);
 
-    // =========================================================
-    // Request workspace height
-    // Sidebar's natural content height defines the workspace
-    // =========================================================
+    /*
+     * --------------------------------------------------------------------------
+     * Workspace height
+     * --------------------------------------------------------------------------
+     */
 
     const workspaceSidebarRef = useRef(null);
     const [workspaceHeight, setWorkspaceHeight] = useState(null);
@@ -115,9 +110,11 @@ const MyHelpRequests = () => {
         };
     }, []);
 
-    // =========================================================
-    // Success toast
-    // =========================================================
+    /*
+     * --------------------------------------------------------------------------
+     * Success toast
+     * --------------------------------------------------------------------------
+     */
 
     const showSuccessToast = (message) => {
         setSuccessToast({
@@ -141,9 +138,126 @@ const MyHelpRequests = () => {
         return () => clearTimeout(timer);
     }, [successToast.show]);
 
-    // =========================================================
-    // Organization drawer
-    // =========================================================
+    /*
+     * --------------------------------------------------------------------------
+     * Assignment helper
+     *
+     * IMPORTANT:
+     * Assigned is NOT a HelpRequest status.
+     *
+     * A request is counted as Assigned only when:
+     *
+     * 1. The help request itself is verified.
+     * 2. There is a current assignment.
+     * 3. That assignment belongs to an organization.
+     * 4. That assignment has NOT been rejected.
+     *
+     * This prevents:
+     * - pending requests from being counted as assigned
+     * - rejected requests from being counted as assigned
+     * - verified but unassigned requests from being counted as assigned
+     * - old/rejected assignments from being counted as assigned
+     */
+
+    const hasOrganizationAssignment = (request) => {
+        if (!request || request.status !== 'verified') {
+            return false;
+        }
+
+        const assignmentInfo = getAssignmentInfo(request);
+        const currentAssignment = assignmentInfo?.currentAssignment;
+
+        if (!currentAssignment) {
+            return false;
+        }
+
+        /*
+         * A rejected current assignment is no longer considered assigned.
+         */
+        if (currentAssignment.status === 'rejected') {
+            return false;
+        }
+
+        /*
+         * Organization can be represented either by:
+         *
+         * organization_id
+         *
+         * or:
+         *
+         * organization: { id: ... }
+         */
+        return Boolean(
+            currentAssignment.organization_id ||
+            currentAssignment.organization?.id,
+        );
+    };
+
+    /*
+     * --------------------------------------------------------------------------
+     * Statistics
+     *
+     * Example:
+     *
+     * Total    = 8
+     * Pending  = 1
+     * Verified = 6
+     * Assigned = 4
+     * Rejected = 1
+     * Completed = 0
+     *
+     * Assigned is calculated separately from request.status.
+     */
+
+    const statistics = useMemo(() => {
+        const stats = {
+            total: helpRequests.length,
+            pending: 0,
+            verified: 0,
+            assigned: 0,
+            completed: 0,
+            rejected: 0,
+        };
+
+        helpRequests.forEach((request) => {
+            switch (request.status) {
+                case 'pending':
+                    stats.pending += 1;
+                    break;
+
+                case 'verified':
+                    stats.verified += 1;
+
+                    /*
+                     * Assigned is a subset of verified.
+                     */
+                    if (hasOrganizationAssignment(request)) {
+                        stats.assigned += 1;
+                    }
+
+                    break;
+
+                case 'completed':
+                    stats.completed += 1;
+                    break;
+
+                case 'rejected':
+                    stats.rejected += 1;
+                    break;
+
+                default:
+                    break;
+            }
+        });
+
+        return stats;
+    }, [helpRequests]);
+
+    /*
+     * --------------------------------------------------------------------------
+     * Organization drawer
+     * --------------------------------------------------------------------------
+     */
 
     const handleViewOrganization = (assignmentInfo, request) => {
         const organization = assignmentInfo?.currentAssignment?.organization;
@@ -165,9 +279,11 @@ const MyHelpRequests = () => {
         setSelectedOrganization(null);
     };
 
-    // =========================================================
-    // Load help requests
-    // =========================================================
+    /*
+     * --------------------------------------------------------------------------
+     * Load help requests
+     * --------------------------------------------------------------------------
+     */
 
     useEffect(() => {
         let cancelled = false;
@@ -211,12 +327,19 @@ const MyHelpRequests = () => {
         };
     }, []);
 
-    // =========================================================
-    // CREATE
-    // =========================================================
+    /*
+     * --------------------------------------------------------------------------
+     * Create request
+     * --------------------------------------------------------------------------
+     */
 
-    const handleOpenModal = () => setShowModal(true);
-    const handleCloseModal = () => setShowModal(false);
+    const handleOpenModal = () => {
+        setShowModal(true);
+    };
+
+    const handleCloseModal = () => {
+        setShowModal(false);
+    };
 
     const handleRequestCreated = (createdRequest) => {
         if (createdRequest) {
@@ -235,16 +358,25 @@ const MyHelpRequests = () => {
         showSuccessToast('Your help request was submitted successfully.');
     };
 
-    // =========================================================
-    // VIEW
-    // =========================================================
+    /*
+     * --------------------------------------------------------------------------
+     * View request
+     * --------------------------------------------------------------------------
+     */
 
-    const handleView = (request) => setSelectedRequest(request);
-    const handleCloseDetails = () => setSelectedRequest(null);
+    const handleView = (request) => {
+        setSelectedRequest(request);
+    };
 
-    // =========================================================
-    // EDIT
-    // =========================================================
+    const handleCloseDetails = () => {
+        setSelectedRequest(null);
+    };
+
+    /*
+     * --------------------------------------------------------------------------
+     * Edit request
+     * --------------------------------------------------------------------------
+     */
 
     const handleEdit = (request) => {
         if (!request || request.status !== 'pending') {
@@ -290,9 +422,11 @@ const MyHelpRequests = () => {
         showSuccessToast('Your help request was updated successfully.');
     };
 
-    // =========================================================
-    // DELETE
-    // =========================================================
+    /*
+     * --------------------------------------------------------------------------
+     * Delete request
+     * --------------------------------------------------------------------------
+     */
 
     const handleDelete = (request) => {
         if (!request || request.status !== 'pending' || deleteLoading) {
@@ -348,32 +482,11 @@ const MyHelpRequests = () => {
         }
     };
 
-    // =========================================================
-    // Statistics
-    // =========================================================
-
-    const statistics = useMemo(() => {
-        const stats = {
-            total: helpRequests.length,
-            pending: 0,
-            verified: 0,
-            assigned: 0,
-            completed: 0,
-            rejected: 0,
-        };
-
-        helpRequests.forEach(({ status }) => {
-            if (status in stats) {
-                stats[status] += 1;
-            }
-        });
-
-        return stats;
-    }, [helpRequests]);
-
-    // =========================================================
-    // Status tabs
-    // =========================================================
+    /*
+     * --------------------------------------------------------------------------
+     * Category tabs
+     * --------------------------------------------------------------------------
+     */
 
     const categoryTabs = useMemo(
         () => [
@@ -411,15 +524,30 @@ const MyHelpRequests = () => {
         [statistics],
     );
 
-    // =========================================================
-    // Filtering + sorting
-    // =========================================================
+    /*
+     * --------------------------------------------------------------------------
+     * Filtering
+     * --------------------------------------------------------------------------
+     */
 
     const filteredHelpRequests = useMemo(() => {
         const search = searchTerm.trim().toLowerCase();
 
         const result = helpRequests.filter((request) => {
-            if (activeCategory !== 'all' && request.status !== activeCategory) {
+            /*
+             * Assigned is NOT request.status === 'assigned'.
+             *
+             * It must use the exact same assignment logic as the
+             * Assigned statistic.
+             */
+            if (activeCategory === 'assigned') {
+                if (!hasOrganizationAssignment(request)) {
+                    return false;
+                }
+            } else if (
+                activeCategory !== 'all' &&
+                request.status !== activeCategory
+            ) {
                 return false;
             }
 
@@ -458,6 +586,10 @@ const MyHelpRequests = () => {
             );
         });
 
+        /*
+         * Sorting
+         */
+
         if (!sortConfig.key || !sortConfig.direction) {
             return result;
         }
@@ -471,6 +603,7 @@ const MyHelpRequests = () => {
 
             if (key === 'created_at' || key === 'updated_at') {
                 first = first ? new Date(first).getTime() : 0;
+
                 second = second ? new Date(second).getTime() : 0;
             }
 
@@ -504,9 +637,11 @@ const MyHelpRequests = () => {
         sortConfig,
     ]);
 
-    // =========================================================
-    // Pagination
-    // =========================================================
+    /*
+     * --------------------------------------------------------------------------
+     * Pagination
+     * --------------------------------------------------------------------------
+     */
 
     const totalPages = Math.max(
         1,
@@ -524,9 +659,11 @@ const MyHelpRequests = () => {
         );
     }, [filteredHelpRequests, safeCurrentPage]);
 
-    // =========================================================
-    // Filter controls
-    // =========================================================
+    /*
+     * --------------------------------------------------------------------------
+     * Filter handlers
+     * --------------------------------------------------------------------------
+     */
 
     const handleCategoryChange = (category) => {
         setActiveCategory(category);
@@ -553,9 +690,11 @@ const MyHelpRequests = () => {
         setCurrentPage(1);
     };
 
-    // =========================================================
-    // Sorting
-    // =========================================================
+    /*
+     * --------------------------------------------------------------------------
+     * Sorting
+     * --------------------------------------------------------------------------
+     */
 
     const handleSort = (key) => {
         setSortConfig((current) => {
@@ -592,12 +731,14 @@ const MyHelpRequests = () => {
         );
     };
 
-    // =========================================================
-    // CSV export
-    // =========================================================
+    /*
+     * --------------------------------------------------------------------------
+     * CSV export
+     * --------------------------------------------------------------------------
+     */
 
     const handleExportCSV = () => {
-        if (!filteredHelpRequests.length) {
+        if (filteredHelpRequests.length === 0) {
             return;
         }
 
@@ -615,22 +756,23 @@ const MyHelpRequests = () => {
             request.category || '',
             request.district || '',
             request.urgency || '',
-            request.status || '',
+            getStatusLabel(request.status) || '',
             request.created_at
-                ? new Date(request.created_at).toLocaleDateString()
+                ? new Date(request.created_at).toLocaleDateString('en-GB', {
+                      day: '2-digit',
+                      month: 'short',
+                      year: 'numeric',
+                  })
                 : '',
         ]);
 
-        const csvContent = [headers, ...csvRows]
-            .map((row) =>
-                row
-                    .map(
-                        (value) =>
-                            `"${String(value ?? '').replace(/"/g, '""')}"`,
-                    )
-                    .join(','),
-            )
-            .join('\n');
+        const escapeCSVValue = (value) =>
+            `"${String(value ?? '').replace(/"/g, '""')}"`;
+
+        const csvContent = [
+            headers.map(escapeCSVValue).join(','),
+            ...csvRows.map((row) => row.map(escapeCSVValue).join(',')),
+        ].join('\n');
 
         const blob = new Blob([csvContent], {
             type: 'text/csv;charset=utf-8;',
@@ -649,33 +791,38 @@ const MyHelpRequests = () => {
         URL.revokeObjectURL(url);
     };
 
-    // =========================================================
-    // Loading
-    // =========================================================
+    /*
+     * --------------------------------------------------------------------------
+     * Loading / error
+     * --------------------------------------------------------------------------
+     */
 
     if (loading) {
         return <HelpRequestLoadingState />;
     }
 
-    // =========================================================
-    // Error
-    // =========================================================
-
     if (error) {
         return <HelpRequestErrorState error={error} />;
     }
 
-    // =========================================================
-    // Prepare table rows
-    // =========================================================
+    /*
+     * --------------------------------------------------------------------------
+     * Table rows
+     * --------------------------------------------------------------------------
+     */
 
     const rows = paginatedHelpRequests.map((request, index) => ({
         ...request,
+
         serialNumber:
             (safeCurrentPage - 1) * HELP_REQUESTS_PER_PAGE + index + 1,
+
         statusLabel: getStatusLabel(request.status),
+
         urgencyLabel: getUrgencyLabel(request.urgency),
+
         assignmentInfo: getAssignmentInfo(request),
+
         formattedCreatedDate: request.created_at
             ? new Date(request.created_at).toLocaleDateString('en-GB', {
                   day: '2-digit',
@@ -683,9 +830,16 @@ const MyHelpRequests = () => {
                   year: 'numeric',
               })
             : '—',
+
         locationName:
             request.district || request.address || 'Location not specified',
     }));
+
+    /*
+     * --------------------------------------------------------------------------
+     * Columns
+     * --------------------------------------------------------------------------
+     */
 
     const columns = createHelpRequestColumns({
         handleViewOrganization,
@@ -694,6 +848,12 @@ const MyHelpRequests = () => {
         handleDelete,
         deleteLoading,
     });
+
+    /*
+     * --------------------------------------------------------------------------
+     * Render
+     * --------------------------------------------------------------------------
+     */
 
     return (
         <div className="min-h-full">
@@ -724,8 +884,8 @@ const MyHelpRequests = () => {
                     helpRequests={helpRequests}
                     onSearchChange={handleSearchChange}
                     onCategoryFilterChange={handleCategoryFilterChange}
-                    onPriorityChange={handlePriorityChange}
-                    onStatusChange={handleStatusChange}
+                    onPriorityFilterChange={handlePriorityChange}
+                    onStatusFilterChange={handleStatusChange}
                     columns={columns}
                     rows={rows}
                     onSort={handleSort}

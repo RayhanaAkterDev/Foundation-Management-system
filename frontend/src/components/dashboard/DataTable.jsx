@@ -7,17 +7,17 @@ const DataTable = ({
     columns = [],
     rows = [],
     keyField = 'id',
-    title,
-    action,
+    // title,
+    // action,
     empty,
     onSort,
     getSortIcon,
-    resultCount,
+    // resultCount,
 }) => {
     return (
-        <section className="overflow-hidden rounded-2xl border border-border bg-white">
+        <section className="overflow-hidden border border-border bg-white">
             {/* Table Header */}
-            {(title || action || resultCount !== undefined) && (
+            {/* {(title || action || resultCount !== undefined) && (
                 <div className="flex items-center justify-between gap-4 border-b border-border px-5 py-4">
                     <div className="min-w-0">
                         {title && (
@@ -40,7 +40,7 @@ const DataTable = ({
 
                     {action && <div className="shrink-0">{action}</div>}
                 </div>
-            )}
+            )} */}
 
             {/* Empty */}
             {rows.length === 0 ? (
@@ -49,9 +49,9 @@ const DataTable = ({
                 </div>
             ) : (
                 <div className="overflow-x-auto">
-                    <table className="w-full min-w-205">
+                    <table className="w-full min-w-205 bg-background">
                         <thead>
-                            <tr className="border-b border-border bg-background-alt/35">
+                            <tr className="border-b border-border">
                                 {columns.map((col) => {
                                     const sortable = col.sortable && onSort;
 

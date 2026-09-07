@@ -3,7 +3,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
     ArrowDown,
     ArrowUp,
-    Building2,
     ChevronsUpDown,
     Download,
     Pencil,
@@ -73,22 +72,16 @@ const getStatusLabel = (status) => {
     switch (status) {
         case 'pending':
             return 'Pending';
-
         case 'verified':
             return 'Verified';
-
         case 'assigned':
             return 'Assigned';
-
         case 'in_progress':
             return 'In Progress';
-
         case 'completed':
             return 'Completed';
-
         case 'rejected':
             return 'Rejected';
-
         default:
             return status || '—';
     }
@@ -98,19 +91,14 @@ const getUrgencyLabel = (urgency) => {
     switch (urgency) {
         case 'critical':
             return 'Critical';
-
         case 'urgent':
             return 'Urgent';
-
         case 'high':
             return 'High';
-
         case 'normal':
             return 'Normal';
-
         case 'low':
             return 'Low';
-
         default:
             return urgency || 'Normal';
     }
@@ -132,6 +120,7 @@ const getAssignmentInfo = (request) => {
 
     const sortedAssignments = [...assignments].sort((a, b) => {
         const first = a?.assigned_at ? new Date(a.assigned_at).getTime() : 0;
+
         const second = b?.assigned_at ? new Date(b.assigned_at).getTime() : 0;
 
         return second - first;
@@ -650,6 +639,7 @@ const MyHelpRequests = () => {
 
             if (['created_at', 'updated_at'].includes(sortConfig.key)) {
                 first = first ? new Date(first).getTime() : 0;
+
                 second = second ? new Date(second).getTime() : 0;
             }
 
@@ -816,7 +806,6 @@ const MyHelpRequests = () => {
         });
 
         const url = URL.createObjectURL(blob);
-
         const link = document.createElement('a');
 
         link.href = url;
@@ -835,16 +824,16 @@ const MyHelpRequests = () => {
 
     if (loading) {
         return (
-            <div className="min-h-full bg-linear-to-b from-primary/4 via-background to-background">
-                <div className="mx-auto w-full max-w-400 px-4 py-7 sm:px-6 lg:px-8">
+            <div className="min-h-full">
+                <div className="mx-auto w-full max-w-400">
                     <PageHeader
                         title="My Help Requests"
                         subtitle="Track and manage the help requests you have submitted through the Stand For People platform."
                     />
 
-                    <div className="mt-10 flex min-h-105 items-center justify-center overflow-hidden rounded-2xl border border-primary/10 bg-white shadow-[0_8px_30px_rgba(15,23,42,0.06)]">
+                    <div className="mt-10 flex min-h-105 items-center justify-center overflow-hidden rounded-2xl border border-border bg-white">
                         <div className="text-center">
-                            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-linear-to-br from-primary/15 via-primary/10 to-transparent shadow-inner">
+                            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-xl border border-primary/15 bg-primary/5">
                                 <div className="h-6 w-6 animate-spin rounded-full border-[3px] border-primary/15 border-t-primary" />
                             </div>
 
@@ -852,7 +841,7 @@ const MyHelpRequests = () => {
                                 Loading your help requests
                             </p>
 
-                            <p className="mt-2 text-xs text-text-secondary">
+                            <p className="mt-2 text-sm text-text-secondary">
                                 Retrieving your latest request activity.
                             </p>
                         </div>
@@ -868,15 +857,15 @@ const MyHelpRequests = () => {
 
     if (error) {
         return (
-            <div className="min-h-full bg-linear-to-b from-red-50/40 via-background to-background">
+            <div className="min-h-full bg-background">
                 <div className="mx-auto w-full max-w-400 px-4 py-7 sm:px-6 lg:px-8">
                     <PageHeader
                         title="My Help Requests"
                         subtitle="Track and manage the help requests you have submitted through the Stand For People platform."
                     />
 
-                    <div className="mt-10 overflow-hidden rounded-2xl border border-red-100 bg-white shadow-[0_8px_30px_rgba(220,38,38,0.06)]">
-                        <div className="border-l-4 border-red-500 bg-linear-to-r from-red-50 to-transparent px-6 py-5">
+                    <div className="mt-10 overflow-hidden rounded-2xl border border-red-200 bg-white">
+                        <div className="border-l-4 border-red-500 bg-red-50 px-6 py-5">
                             <p className="text-sm font-bold text-red-800">
                                 Unable to load your requests
                             </p>
@@ -919,169 +908,92 @@ const MyHelpRequests = () => {
             request.district || request.address || 'Location not specified',
     }));
 
-    // =========================================================
-    // Table columns
-    // =========================================================
-
     const columns = [
-        {
-            key: 'serialNumber',
-            header: '#',
-            align: 'center',
-            width: '60px',
-        },
-
         {
             key: 'title',
             header: 'Help Request',
             sortable: true,
             sortKey: 'title',
+            render: (value, row) => {
+                const urgencyStyles = {
+                    critical: {
+                        dot: 'bg-red-500',
+                        text: 'text-red-600',
+                    },
+                    urgent: {
+                        dot: 'bg-orange-500',
+                        text: 'text-orange-600',
+                    },
+                    high: {
+                        dot: 'bg-amber-500',
+                        text: 'text-amber-600',
+                    },
+                    low: {
+                        dot: 'bg-slate-400',
+                        text: 'text-text-secondary',
+                    },
+                    normal: {
+                        dot: 'bg-slate-400',
+                        text: 'text-text-secondary',
+                    },
+                };
 
-            render: (value, row) => (
-                <div className="min-w-0 max-w-110 py-3">
-                    <div className="flex items-start gap-3">
-                        <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-primary/15 to-primary/5 text-primary shadow-sm ring-1 ring-primary/10">
-                            <Building2 size={15} strokeWidth={1.8} />
-                        </div>
+                const urgency =
+                    urgencyStyles[row.urgency] || urgencyStyles.normal;
 
-                        <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-extrabold leading-5 text-text-primary">
-                                {value || 'Untitled help request'}
-                            </p>
+                return (
+                    <div className="min-w-0 py-5 pr-8">
+                        {/* Title */}
+                        <p className="truncate text-[15px] font-bold leading-5.5 tracking-[-0.01em] text-text-primary">
+                            {value || 'Untitled help request'}
+                        </p>
 
-                            {row.description && (
-                                <p className="mt-1 line-clamp-2 text-xs leading-5 text-text-secondary">
-                                    {row.description}
-                                </p>
-                            )}
+                        {/* Description */}
+                        <p className="mt-1.5 line-clamp-2 text-[12px] font-normal leading-5 text-text-secondary">
+                            {row.description || 'No description provided.'}
+                        </p>
 
-                            <div className="mt-2.5 flex flex-wrap items-center gap-2">
-                                {row.category && (
-                                    <span className="rounded-full bg-linear-to-r from-primary/10 to-primary/4 px-2.5 py-1 text-[10px] font-extrabold capitalize text-primary ring-1 ring-primary/10">
+                        {/* Category + Location */}
+                        <div className="mt-3 flex min-w-0 items-center gap-2 text-[11px]">
+                            {row.category && (
+                                <>
+                                    <span className="truncate font-semibold capitalize text-text-secondary">
                                         {row.category}
                                     </span>
-                                )}
 
-                                {row.locationName !==
-                                    'Location not specified' && (
-                                    <>
-                                        <span className="h-1 w-1 rounded-full bg-slate-300" />
+                                    <span className="h-1 w-1 shrink-0 rounded-full bg-slate-300" />
+                                </>
+                            )}
 
-                                        <span className="truncate text-[10px] font-medium text-text-secondary">
-                                            {row.locationName}
-                                        </span>
-                                    </>
-                                )}
-                            </div>
+                            <span className="truncate font-medium text-text-secondary/75">
+                                {row.locationName || 'Location not specified'}
+                            </span>
+                        </div>
+
+                        {/* Submitted + Urgency */}
+                        <div className="mt-2.5 flex items-center gap-3">
+                            <span className="text-[10px] font-medium text-text-secondary/60">
+                                Submitted{' '}
+                                <span className="font-semibold text-text-secondary/85">
+                                    {row.formattedCreatedDate}
+                                </span>
+                            </span>
+
+                            <span className="h-1 w-1 shrink-0 rounded-full bg-slate-300" />
+
+                            <span
+                                className={`inline-flex items-center gap-1.5 ${urgency.text}`}
+                            >
+                                <span
+                                    className={`h-1.5 w-1.5 shrink-0 rounded-full ${urgency.dot}`}
+                                />
+
+                                <span className="text-[10px] font-semibold">
+                                    {row.urgencyLabel}
+                                </span>
+                            </span>
                         </div>
                     </div>
-                </div>
-            ),
-        },
-
-        {
-            key: 'urgencyLabel',
-            header: 'Priority',
-            sortable: true,
-            sortKey: 'urgency',
-
-            render: (value, row) => {
-                const priorityClass =
-                    row.urgency === 'critical'
-                        ? 'border-red-200 bg-linear-to-r from-red-50 to-red-50/40 text-red-600 shadow-[0_1px_4px_rgba(239,68,68,0.15)]'
-                        : row.urgency === 'urgent'
-                          ? 'border-orange-200 bg-linear-to-r from-orange-50 to-orange-50/40 text-orange-600 shadow-[0_1px_4px_rgba(249,115,22,0.15)]'
-                          : row.urgency === 'high'
-                            ? 'border-amber-200 bg-linear-to-r from-amber-50 to-amber-50/40 text-amber-600 shadow-[0_1px_4px_rgba(245,158,11,0.15)]'
-                            : row.urgency === 'low'
-                              ? 'border-slate-200 bg-linear-to-r from-slate-50 to-slate-50/40 text-slate-500'
-                              : 'border-primary/15 bg-linear-to-r from-primary/10 to-primary/3 text-primary shadow-[0_1px_4px_rgba(0,0,0,0.06)]';
-
-                return (
-                    <span
-                        className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-extrabold ${priorityClass}`}
-                    >
-                        <span className="mr-1.5 h-1.5 w-1.5 rounded-full bg-current shadow-[0_0_0_3px_currentColor] opacity-90" />
-                        {value}
-                    </span>
-                );
-            },
-        },
-
-        {
-            key: 'formattedCreatedDate',
-            header: 'Submitted',
-            sortable: true,
-            sortKey: 'created_at',
-
-            render: (value) => (
-                <div className="whitespace-nowrap">
-                    <p className="text-xs font-bold text-text-primary">
-                        {value}
-                    </p>
-
-                    <p className="mt-0.5 text-[10px] font-medium text-text-secondary">
-                        Submitted
-                    </p>
-                </div>
-            ),
-        },
-
-        {
-            key: 'assignmentInfo',
-            header: 'Assignment',
-            sortable: true,
-            label: 'Assignment',
-
-            render: (value, row) => {
-                const assignment = value;
-
-                if (assignment?.state === 'pending') {
-                    return (
-                        <div className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-linear-to-r from-amber-50 to-amber-50/40 px-2.5 py-1.5 shadow-[0_1px_4px_rgba(245,158,11,0.12)]">
-                            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-500" />
-
-                            <span className="whitespace-nowrap text-[10px] font-extrabold text-amber-700">
-                                Assignment pending
-                            </span>
-                        </div>
-                    );
-                }
-
-                if (assignment?.state === 'accepted') {
-                    return (
-                        <button
-                            type="button"
-                            onClick={() =>
-                                handleViewOrganization(assignment, row)
-                            }
-                            disabled={
-                                !assignment.currentAssignment?.organization
-                            }
-                            className="group flex max-w-full items-center gap-2.5 rounded-xl border border-primary/15 bg-linear-to-r from-primary/6 to-primary/2 px-2.5 py-2 text-left shadow-sm transition-all hover:-translate-y-px hover:border-primary/25 hover:from-primary/10 hover:to-primary/4 hover:shadow-md disabled:cursor-default disabled:hover:translate-y-0"
-                        >
-                            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-linear-to-br from-primary to-primary-hover text-white shadow-md shadow-primary/30">
-                                <Building2 size={13} strokeWidth={1.9} />
-                            </span>
-
-                            <span className="min-w-0">
-                                <span className="block truncate text-[10px] font-extrabold uppercase tracking-wide text-primary/70">
-                                    Organization
-                                </span>
-
-                                <span className="block truncate text-xs font-extrabold text-primary group-hover:underline">
-                                    {assignment.label}
-                                </span>
-                            </span>
-                        </button>
-                    );
-                }
-
-                return (
-                    <span className="inline-flex items-center gap-2 text-xs font-semibold text-slate-400">
-                        <span className="h-1.5 w-1.5 rounded-full bg-slate-300" />
-                        Not assigned
-                    </span>
                 );
             },
         },
@@ -1091,71 +1003,283 @@ const MyHelpRequests = () => {
             header: 'Status',
             sortable: true,
             sortKey: 'status',
-
+            width: '16%',
             render: (value, row) => {
-                const statusClass =
-                    row.status === 'completed'
-                        ? 'border-emerald-200 bg-linear-to-r from-emerald-50 to-emerald-50/40 text-emerald-700 shadow-[0_1px_4px_rgba(16,185,129,0.15)]'
-                        : row.status === 'rejected'
-                          ? 'border-red-200 bg-linear-to-r from-red-50 to-red-50/40 text-red-600 shadow-[0_1px_4px_rgba(239,68,68,0.15)]'
-                          : row.status === 'pending'
-                            ? 'border-amber-200 bg-linear-to-r from-amber-50 to-amber-50/40 text-amber-700 shadow-[0_1px_4px_rgba(245,158,11,0.15)]'
-                            : row.status === 'verified'
-                              ? 'border-blue-200 bg-linear-to-r from-blue-50 to-blue-50/40 text-blue-700 shadow-[0_1px_4px_rgba(59,130,246,0.15)]'
-                              : 'border-primary/15 bg-linear-to-r from-primary/10 to-primary/3 text-primary shadow-[0_1px_4px_rgba(0,0,0,0.06)]';
+                const statusStyles = {
+                    pending: {
+                        dot: 'bg-amber-500',
+                        text: 'text-amber-700',
+                        background: 'bg-amber-50',
+                    },
+
+                    verified: {
+                        dot: 'bg-primary',
+                        text: 'text-primary',
+                        background: 'bg-primary/[0.07]',
+                    },
+
+                    assigned: {
+                        dot: 'bg-primary',
+                        text: 'text-primary',
+                        background: 'bg-primary/[0.07]',
+                    },
+
+                    in_progress: {
+                        dot: 'bg-primary',
+                        text: 'text-primary',
+                        background: 'bg-primary/[0.10]',
+                    },
+
+                    completed: {
+                        dot: 'bg-emerald-500',
+                        text: 'text-emerald-700',
+                        background: 'bg-emerald-50',
+                    },
+
+                    rejected: {
+                        dot: 'bg-red-500',
+                        text: 'text-red-700',
+                        background: 'bg-red-50',
+                    },
+                };
+
+                const status = statusStyles[row.status] || {
+                    dot: 'bg-slate-400',
+                    text: 'text-text-secondary',
+                    background: 'bg-slate-50',
+                };
 
                 return (
-                    <span
-                        className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-1.5 text-[10px] font-extrabold ${statusClass}`}
-                    >
-                        <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                    <div className="py-5">
+                        <span
+                            className={`
+              inline-flex
+              items-center
+              gap-2
+              rounded-lg
+              px-3
+              py-2
+              ${status.background}
+            `}
+                        >
+                            <span
+                                className={`h-2 w-2 shrink-0 rounded-full ${status.dot}`}
+                            />
 
-                        {value}
-                    </span>
+                            <span
+                                className={`
+                text-[12px]
+                font-semibold
+                ${status.text}
+              `}
+                            >
+                                {value}
+                            </span>
+                        </span>
+                    </div>
+                );
+            },
+        },
+
+        {
+            key: 'assignmentInfo',
+            header: 'Assigned',
+            sortable: true,
+            sortKey: 'assignmentInfo',
+            width: '20%',
+            render: (value, row) => {
+                const assignment = value;
+
+                {
+                    /* Pending assignment */
+                }
+                if (assignment?.state === 'pending') {
+                    return (
+                        <div className="py-5">
+                            <div className="flex items-center gap-2.5">
+                                <span className="h-2 w-2 shrink-0 rounded-full bg-amber-400" />
+
+                                <div className="min-w-0">
+                                    <p className="text-[12px] font-semibold text-text-secondary">
+                                        Awaiting response
+                                    </p>
+
+                                    <p className="mt-0.5 text-[10px] font-medium text-text-secondary/55">
+                                        Organization assignment
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                }
+
+                {
+                    /* Accepted organization */
+                }
+                if (assignment?.state === 'accepted') {
+                    return (
+                        <div className="py-5">
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    handleViewOrganization(assignment, row)
+                                }
+                                disabled={
+                                    !assignment.currentAssignment?.organization
+                                }
+                                className="
+                group
+                min-w-0
+                max-w-60
+                text-left
+                disabled:cursor-default
+              "
+                            >
+                                <div className="flex min-w-0 items-center gap-2.5">
+                                    <span className="h-2 w-2 shrink-0 rounded-full bg-primary" />
+
+                                    <p
+                                        className="
+                    truncate
+                    text-[13px]
+                    font-semibold
+                    leading-5
+                    text-text-primary
+                    transition-colors
+                    duration-200
+                    group-hover:text-primary
+                  "
+                                    >
+                                        {assignment.label}
+                                    </p>
+                                </div>
+
+                                <p
+                                    className="
+                  mt-1
+                  pl-4.5
+                  text-[10px]
+                  font-medium
+                  text-text-secondary/60
+                  transition-colors
+                  duration-200
+                  group-hover:text-primary/70
+                "
+                                >
+                                    View organization
+                                </p>
+                            </button>
+                        </div>
+                    );
+                }
+
+                {
+                    /* Not assigned */
+                }
+                return (
+                    <div className="py-5">
+                        <div className="flex items-center gap-2.5">
+                            <span className="h-2 w-2 shrink-0 rounded-full bg-slate-300" />
+
+                            <span className="text-[12px] font-medium text-text-secondary/70">
+                                Not assigned
+                            </span>
+                        </div>
+                    </div>
                 );
             },
         },
 
         {
             key: 'actions',
-            header: 'Actions',
+            header: 'Action',
             align: 'right',
-
+            width: '14%',
             render: (_, row) => {
                 const canEdit = row.status === 'pending';
                 const canDelete = row.status === 'pending';
 
                 return (
-                    <div className="flex items-center justify-end gap-1">
+                    <div className="flex items-center justify-end gap-1 py-5">
+                        {/* View */}
                         <button
                             type="button"
                             onClick={() => handleView(row)}
-                            className="rounded-lg border border-transparent px-2.5 py-1.5 text-[10px] font-extrabold text-text-secondary transition-all hover:border-primary/15 hover:bg-primary/6 hover:text-primary"
+                            className="
+              inline-flex
+              items-center
+              gap-1.5
+              rounded-lg
+              px-3
+              py-2
+              text-[11px]
+              font-semibold
+              text-text-secondary
+              transition-colors
+              duration-200
+              hover:bg-slate-100
+              hover:text-text-primary
+            "
                         >
-                            View
+                            <ArrowUpRight size={14} strokeWidth={1.8} />
+                            <span>View</span>
                         </button>
 
+                        {/* Edit */}
                         {canEdit && (
                             <button
                                 type="button"
                                 onClick={() => handleEdit(row)}
                                 disabled={deleteLoading}
-                                className="inline-flex items-center gap-1.5 rounded-lg border border-transparent px-2.5 py-1.5 text-[10px] font-extrabold text-text-secondary transition-all hover:border-primary/15 hover:bg-primary/6 hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
+                                className="
+                inline-flex
+                items-center
+                gap-1.5
+                rounded-lg
+                px-3
+                py-2
+                text-[11px]
+                font-semibold
+                text-text-secondary
+                transition-colors
+                duration-200
+                hover:bg-primary/6
+                hover:text-primary
+                disabled:cursor-not-allowed
+                disabled:opacity-50
+              "
                             >
-                                <Pencil size={11} />
-                                Edit
+                                <Pencil size={14} strokeWidth={1.8} />
+                                <span>Edit</span>
                             </button>
                         )}
 
+                        {/* Delete */}
                         {canDelete && (
                             <button
                                 type="button"
                                 onClick={() => handleDelete(row)}
                                 disabled={deleteLoading}
-                                className="inline-flex items-center gap-1.5 rounded-lg border border-transparent px-2.5 py-1.5 text-[10px] font-extrabold text-red-500 transition-all hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
+                                className="
+                inline-flex
+                items-center
+                gap-1.5
+                rounded-lg
+                px-3
+                py-2
+                text-[11px]
+                font-semibold
+                text-red-500
+                transition-colors
+                duration-200
+                hover:bg-red-50
+                hover:text-red-600
+                disabled:cursor-not-allowed
+                disabled:opacity-50
+              "
                             >
-                                <Trash2 size={11} />
-                                Delete
+                                <Trash2 size={14} strokeWidth={1.8} />
+                                <span>Delete</span>
                             </button>
                         )}
                     </div>
@@ -1169,148 +1293,267 @@ const MyHelpRequests = () => {
     // =========================================================
 
     return (
-        <div className="min-h-full bg-linear-to-b from-primary/[0.035] via-background to-background pb-14">
-            <div className="mx-auto w-full max-w-400 space-y-10 px-4 py-7 sm:px-6 lg:px-8">
+        <div className="min-h-full">
+            <div className="mx-auto w-full max-w-400 space-y-10">
                 {/* =====================================================
                     SUCCESS TOAST
                 ====================================================== */}
-
                 <HelpRequestSuccessToast
                     show={successToast.show}
                     message={successToast.message}
                 />
-
                 {/* =====================================================
-                    PAGE HEADER
-                ====================================================== */}
+    PAGE HEADER
+====================================================== */}
 
-                <section>
-                    <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-                        <div className="max-w-2xl">
-                            <div className="mb-4 inline-flex items-center gap-2.5 rounded-full border border-primary/15 bg-linear-to-r from-primary/10 to-primary/3 px-3 py-1.5 shadow-sm">
-                                <span className="h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_0_3px_rgba(0,0,0,0.04)]" />
+                <section className="relative overflow-hidden rounded-2xl border border-primary/10 bg-[#e8f1f1]">
+                    {/* =================================================
+        MAIN HEADER
+    ================================================== */}
+                    <div className="flex flex-col lg:flex-row">
+                        {/* =================================================
+            LEFT — PRIMARY PAGE INTRO
+        ================================================== */}
+                        <div className="relative flex min-w-0 flex-1 items-center overflow-hidden bg-primary px-7 py-9 sm:px-9 sm:py-10 lg:px-10 lg:py-11">
+                            {/* restrained background detail */}
+                            <div className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full border-28 border-white/[0.035]" />
 
-                                <span className="text-[9px] font-extrabold uppercase tracking-[0.2em] text-primary">
-                                    Personal support
-                                </span>
+                            <div className="pointer-events-none absolute -bottom-28 -left-16 h-52 w-52 rounded-full bg-white/2.5" />
+
+                            <div className="relative max-w-2xl">
+                                {/* eyebrow */}
+                                <div className="mb-6 flex items-center gap-3">
+                                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/10 ring-1 ring-white/15">
+                                        <span className="h-1.5 w-1.5 rounded-full bg-white" />
+                                    </span>
+
+                                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/70">
+                                        Personal support
+                                    </span>
+
+                                    <span className="h-px w-10 bg-white/20" />
+                                </div>
+
+                                {/* title */}
+                                <h1 className="text-3xl font-extrabold leading-[1.08] tracking-[-0.03em] text-white sm:text-4xl lg:text-[42px]">
+                                    My Help Requests
+                                </h1>
+
+                                {/* subtitle */}
+                                <p className="mt-4 max-w-xl text-[14px] font-medium leading-6 text-white/70 sm:text-[15px] sm:leading-7">
+                                    Track the requests you've submitted, follow
+                                    their progress, and stay connected with the
+                                    organizations helping you.
+                                </p>
+
+                                {/* visual accent */}
+                                <div className="mt-7 flex items-center gap-1.5">
+                                    <span className="h-1 w-8 rounded-full bg-white/75" />
+                                    <span className="h-1 w-2 rounded-full bg-white/30" />
+                                    <span className="h-1 w-2 rounded-full bg-white/15" />
+                                </div>
                             </div>
-
-                            <PageHeader
-                                title="My Help Requests"
-                                subtitle="Track the requests you've submitted, follow their progress, and stay connected with the organizations helping you."
-                            />
                         </div>
 
-                        <div className="flex shrink-0 items-center gap-2.5">
-                            <button
-                                type="button"
-                                onClick={handleExportCSV}
-                                disabled={filteredHelpRequests.length === 0}
-                                className="inline-flex h-11 items-center gap-2 rounded-xl border border-border bg-white px-4 text-xs font-extrabold text-text-primary shadow-sm transition-all hover:-translate-y-px hover:border-primary/25 hover:bg-primary/4 hover:text-primary hover:shadow-md disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0"
-                            >
-                                <Download size={15} strokeWidth={1.8} />
-                                Export
-                            </button>
+                        {/* =================================================
+            RIGHT — ACTION AREA
+        ================================================== */}
+                        <div className="flex shrink-0 items-center border-t border-primary/10 bg-white px-7 py-7 sm:px-9 lg:w-85 lg:border-l lg:border-t-0 lg:px-8">
+                            <div className="w-full">
+                                {/* action heading */}
+                                <div className="mb-5">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-text-secondary">
+                                            Quick actions
+                                        </span>
 
-                            <button
-                                type="button"
-                                onClick={handleOpenModal}
-                                className="inline-flex h-11 items-center gap-2 rounded-xl bg-linear-to-r from-primary to-primary-hover px-5 text-xs font-extrabold text-white shadow-md shadow-primary/25 transition-all hover:-translate-y-px hover:shadow-lg hover:shadow-primary/30"
-                            >
-                                <Plus size={16} strokeWidth={2.2} />
-                                New Request
-                            </button>
+                                        <span className="h-px flex-1 bg-border" />
+                                    </div>
+
+                                    <p className="mt-2 text-sm font-semibold text-text-primary">
+                                        Manage your support activity
+                                    </p>
+                                </div>
+
+                                {/* actions */}
+                                <div className="flex items-center gap-2.5 sm:gap-3">
+                                    {/* New Request */}
+                                    <button
+                                        type="button"
+                                        onClick={handleOpenModal}
+                                        className="group inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-bold text-white shadow-sm transition-all duration-200 hover:bg-primary-hover hover:shadow-md"
+                                    >
+                                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-white/15">
+                                            <Plus size={16} strokeWidth={2.4} />
+                                        </span>
+
+                                        <span>New Request</span>
+                                    </button>
+
+                                    {/* Export */}
+                                    <button
+                                        type="button"
+                                        onClick={handleExportCSV}
+                                        disabled={
+                                            filteredHelpRequests.length === 0
+                                        }
+                                        className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border bg-background text-text-primary transition-all duration-200 hover:border-primary/25 hover:bg-primary/4 hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
+                                        aria-label="Export requests"
+                                        title="Export requests"
+                                    >
+                                        <Download size={16} strokeWidth={1.8} />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* =================================================
+        BOTTOM ACCENT
+    ================================================== */}
+                    <div className="flex items-center justify-between border-t bg-white border-primary/10 px-7 py-3.5 sm:px-9 lg:px-10 h-20">
+                        <div className="flex items-center gap-3">
+                            <span className="text-[9px] font-bold uppercase tracking-[0.18em] text-text-secondary">
+                                Manage · Track · Connect
+                            </span>
+                        </div>
+
+                        <div className="flex items-center gap-1.5">
+                            <span className="h-1.5 w-6 rounded-full bg-primary/20" />
+                            <span className="h-1.5 w-2 rounded-full bg-primary/10" />
                         </div>
                     </div>
                 </section>
 
                 {/* =====================================================
-                    REQUEST OVERVIEW
-                ====================================================== */}
+    REQUEST OVERVIEW
+====================================================== */}
 
                 <section>
-                    <div className="mb-5 flex items-end justify-between">
-                        <div>
-                            <p className="text-[9px] font-extrabold uppercase tracking-[0.2em] text-text-secondary">
-                                Request overview
-                            </p>
+                    {/* =====================================================
+    REQUEST OVERVIEW HEADING
+====================================================== */}
 
-                            <h2 className="mt-1.5 text-xl font-extrabold tracking-tight text-text-primary">
-                                Where your requests stand
-                            </h2>
+                    <div className="p-4 mt-12">
+                        <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+                            {/* Left — section identity */}
+
+                            <div className="min-w-0">
+                                <div className="flex items-center gap-3">
+                                    <span className="h-px w-8 bg-primary/50" />
+
+                                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
+                                        Request overview
+                                    </p>
+                                </div>
+
+                                <h2 className="mt-3 text-[25px] font-extrabold leading-[1.12] tracking-[-0.03em] text-text-primary sm:text-[27px]">
+                                    Where your requests stand
+                                </h2>
+                            </div>
+
+                            {/* Right — contextual metadata */}
+
+                            {statistics.total > 0 && (
+                                <div className="flex shrink-0 items-center gap-2.5 pb-1">
+                                    <span className="h-1.5 w-1.5 rounded-full bg-primary/60" />
+
+                                    <p className="text-[11px] font-medium leading-5 text-text-secondary">
+                                        Updated from your submitted requests
+                                    </p>
+                                </div>
+                            )}
                         </div>
-
-                        {statistics.total > 0 && (
-                            <p className="hidden text-xs font-medium text-text-secondary sm:block">
-                                Updated from your submitted requests
-                            </p>
-                        )}
                     </div>
 
-                    <div className="overflow-hidden rounded-2xl border border-border bg-white shadow-[0_4px_24px_rgba(15,23,42,0.05)]">
-                        {/* Top summary */}
+                    {/* =================================================
+        TOP SUMMARY
+    ================================================== */}
 
-                        <div className="grid border-b border-border lg:grid-cols-[280px_1fr]">
-                            {/* Total */}
+                    <div className="overflow-hidden rounded-2xl border border-border bg-white shadow-[0_5px_24px_rgba(15,23,42,0.04)]">
+                        <div className="grid lg:grid-cols-[300px_1fr]">
+                            {/* =================================================
+                TOTAL SUBMITTED
+            ================================================== */}
 
-                            <div className="relative overflow-hidden border-b border-border bg-linear-to-br from-primary/9 via-primary/3 to-white px-7 py-7 lg:border-b-0 lg:border-r sm:px-8">
-                                <div className="absolute right-0 top-0 h-28 w-28 translate-x-10 -translate-y-10 rounded-full bg-linear-to-br from-primary/20 to-primary/5 blur-[2px]" />
+                            <div className="relative overflow-hidden border-b border-primary/15 bg-primary/10 px-7 py-8 sm:px-8 lg:border-b-0 lg:border-r lg:px-9 lg:py-9">
+                                {/* restrained visual accent */}
 
-                                <div className="absolute bottom-0 right-8 h-12 w-12 translate-y-7 rounded-full bg-primary/6" />
+                                <div className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full border-18 border-primary/4.5" />
+
+                                <div className="pointer-events-none absolute -bottom-16 -left-10 h-28 w-28 rounded-full bg-primary/2.5" />
 
                                 <div className="relative">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <span className="text-[9px] font-extrabold uppercase tracking-[0.18em] text-text-secondary">
-                                                Total submitted
-                                            </span>
+                                    {/* label row */}
 
-                                            <p className="mt-1 text-[10px] font-medium text-text-secondary">
+                                    <div className="flex items-start justify-between gap-5">
+                                        <div>
+                                            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-secondary">
+                                                Total submitted
+                                            </p>
+
+                                            <p className="mt-2 text-xs leading-5 text-text-secondary">
                                                 Your request history
                                             </p>
                                         </div>
 
-                                        <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-primary/15 bg-white text-primary shadow-md">
+                                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-primary/15 bg-white text-primary shadow-sm">
                                             <ArrowUpRight
-                                                size={15}
+                                                size={17}
                                                 strokeWidth={1.8}
                                             />
                                         </span>
                                     </div>
 
-                                    <div className="mt-6 flex items-end gap-3">
-                                        <span className="bg-linear-to-br from-text-primary to-text-primary/70 bg-clip-text text-5xl font-extrabold leading-none tracking-[-0.055em] text-transparent">
+                                    {/* main number */}
+
+                                    <div className="mt-8 flex items-end gap-3">
+                                        <span className="text-[56px] font-extrabold leading-[0.9] tracking-tighter text-text-primary">
                                             {statistics.total}
                                         </span>
 
-                                        <span className="mb-0.5 text-xs font-semibold text-text-secondary">
+                                        <span className="mb-1 text-xs font-bold text-text-secondary">
                                             requests
                                         </span>
                                     </div>
 
-                                    <p className="mt-4 max-w-50 text-xs leading-5 text-text-secondary">
+                                    {/* supporting text */}
+
+                                    <p className="mt-6 max-w-55 text-xs leading-5 text-text-secondary">
                                         Every request you have submitted through
                                         Stand For People.
                                     </p>
+
+                                    {/* bottom accent */}
+
+                                    <div className="mt-7 flex items-center gap-1.5">
+                                        <span className="h-1 w-7 rounded-full bg-primary/50" />
+                                        <span className="h-1 w-2 rounded-full bg-primary/20" />
+                                        <span className="h-1 w-2 rounded-full bg-primary/10" />
+                                    </div>
                                 </div>
                             </div>
 
-                            {/* Active status area */}
+                            {/* =================================================
+                ACTIVE REQUEST FLOW
+            ================================================== */}
 
-                            <div className="px-6 py-7 sm:px-8">
-                                <div className="mb-7 flex items-center justify-between">
+                            <div className="px-7 py-8 sm:px-8 lg:px-9 lg:py-9  bg-white">
+                                {/* heading */}
+
+                                <div className="flex items-start justify-between gap-6">
                                     <div>
-                                        <p className="text-xs font-extrabold text-text-primary">
+                                        <p className="text-[15px] font-bold leading-5 text-text-primary">
                                             Active request flow
                                         </p>
 
-                                        <p className="mt-1 text-[11px] text-text-secondary">
+                                        <p className="mt-2 text-xs leading-5 text-text-secondary">
                                             Requests currently moving through
                                             support
                                         </p>
                                     </div>
 
-                                    <span className="rounded-full bg-linear-to-r from-primary/12 to-primary/4 px-2.5 py-1 text-[10px] font-extrabold text-primary shadow-sm">
+                                    <span className="shrink-0 rounded-lg border border-primary/15 bg-primary/5.5 px-3 py-1.5 text-[11px] font-bold text-primary">
                                         {statistics.pending +
                                             statistics.verified +
                                             statistics.assigned}{' '}
@@ -1318,29 +1561,33 @@ const MyHelpRequests = () => {
                                     </span>
                                 </div>
 
-                                <div className="relative">
-                                    <div className="absolute left-3 right-3 top-3 h-px bg-linear-to-r from-amber-200 via-blue-200 to-primary/30" />
+                                {/* flow */}
 
-                                    <div className="relative grid grid-cols-3 gap-5">
+                                <div className="relative mt-9">
+                                    {/* connecting line */}
+
+                                    <div className="absolute left-3 right-3 top-3 h-px bg-border" />
+
+                                    <div className="relative grid grid-cols-3 gap-6">
                                         {/* Pending */}
 
                                         <div>
                                             <div className="flex items-center">
-                                                <span className="relative z-10 flex h-6 w-6 items-center justify-center rounded-full border-4 border-white bg-linear-to-br from-amber-400 to-amber-500 shadow-md ring-1 ring-amber-100">
+                                                <span className="relative z-10 flex h-6 w-6 items-center justify-center rounded-full border-4 border-white bg-amber-500 shadow-sm">
                                                     <span className="h-1.5 w-1.5 rounded-full bg-white" />
                                                 </span>
                                             </div>
 
-                                            <div className="mt-4">
-                                                <p className="text-2xl font-extrabold tracking-tight text-text-primary">
+                                            <div className="mt-5">
+                                                <p className="text-[27px] font-extrabold leading-none tracking-[-0.035em] text-text-primary">
                                                     {statistics.pending}
                                                 </p>
 
-                                                <p className="mt-1 text-[9px] font-extrabold uppercase tracking-[0.14em] text-text-secondary">
+                                                <p className="mt-2.5 text-[10px] font-bold uppercase tracking-[0.14em] text-text-secondary">
                                                     Pending
                                                 </p>
 
-                                                <p className="mt-2 hidden text-[11px] leading-4 text-text-secondary sm:block">
+                                                <p className="mt-2.5 hidden text-xs leading-5 text-text-secondary sm:block">
                                                     Waiting for review
                                                 </p>
                                             </div>
@@ -1350,21 +1597,21 @@ const MyHelpRequests = () => {
 
                                         <div>
                                             <div className="flex items-center">
-                                                <span className="relative z-10 flex h-6 w-6 items-center justify-center rounded-full border-4 border-white bg-linear-to-br from-blue-400 to-blue-500 shadow-md ring-1 ring-blue-100">
+                                                <span className="relative z-10 flex h-6 w-6 items-center justify-center rounded-full border-4 border-white bg-blue-500 shadow-sm">
                                                     <span className="h-1.5 w-1.5 rounded-full bg-white" />
                                                 </span>
                                             </div>
 
-                                            <div className="mt-4">
-                                                <p className="text-2xl font-extrabold tracking-tight text-text-primary">
+                                            <div className="mt-5">
+                                                <p className="text-[27px] font-extrabold leading-none tracking-[-0.035em] text-text-primary">
                                                     {statistics.verified}
                                                 </p>
 
-                                                <p className="mt-1 text-[9px] font-extrabold uppercase tracking-[0.14em] text-text-secondary">
+                                                <p className="mt-2.5 text-[10px] font-bold uppercase tracking-[0.14em] text-text-secondary">
                                                     Verified
                                                 </p>
 
-                                                <p className="mt-2 hidden text-[11px] leading-4 text-text-secondary sm:block">
+                                                <p className="mt-2.5 hidden text-xs leading-5 text-text-secondary sm:block">
                                                     Request confirmed
                                                 </p>
                                             </div>
@@ -1374,75 +1621,83 @@ const MyHelpRequests = () => {
 
                                         <div>
                                             <div className="flex items-center">
-                                                <span className="relative z-10 flex h-6 w-6 items-center justify-center rounded-full border-4 border-white bg-linear-to-br from-primary to-primary-hover shadow-md ring-1 ring-primary/20">
+                                                <span className="relative z-10 flex h-6 w-6 items-center justify-center rounded-full border-4 border-white bg-primary shadow-sm">
                                                     <span className="h-1.5 w-1.5 rounded-full bg-white" />
                                                 </span>
                                             </div>
 
-                                            <div className="mt-4">
-                                                <p className="text-2xl font-extrabold tracking-tight text-text-primary">
+                                            <div className="mt-5">
+                                                <p className="text-[27px] font-extrabold leading-none tracking-[-0.035em] text-text-primary">
                                                     {statistics.assigned}
                                                 </p>
 
-                                                <p className="mt-1 text-[9px] font-extrabold uppercase tracking-[0.14em] text-text-secondary">
+                                                <p className="mt-2.5 text-[10px] font-bold uppercase tracking-[0.14em] text-text-secondary">
                                                     Assigned
                                                 </p>
 
-                                                <p className="mt-2 hidden text-[11px] leading-4 text-text-secondary sm:block">
+                                                <p className="mt-2.5 hidden text-xs leading-5 text-text-secondary sm:block">
                                                     Organization connected
                                                 </p>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
 
-                        {/* Outcomes */}
+                                    {/* =================================================
+            OUTCOMES
+        ================================================== */}
 
-                        <div className="grid divide-y divide-border sm:grid-cols-2 sm:divide-x sm:divide-y-0">
-                            <div className="flex items-center justify-between px-7 py-5 transition-colors hover:bg-linear-to-r hover:from-emerald-50/50 hover:to-transparent sm:px-8">
-                                <div className="flex items-center gap-3.5">
-                                    <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-emerald-100 bg-linear-to-br from-emerald-50 to-emerald-100/50 text-emerald-600 shadow-sm">
-                                        <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                                    </span>
+                                    <div className="grid divide-y divide-border border-t mt-20 border-border sm:grid-cols-2 sm:divide-x sm:divide-y-0">
+                                        {/* Completed */}
 
-                                    <div>
-                                        <p className="text-xs font-extrabold text-text-primary">
-                                            Completed
-                                        </p>
+                                        <div className="flex items-center justify-between px-7 transition-colors hover:bg-emerald-50/40 sm:px-8">
+                                            <div className="flex items-center gap-4">
+                                                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50">
+                                                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                                                </span>
 
-                                        <p className="mt-0.5 text-[10px] text-text-secondary">
-                                            Successfully supported requests
-                                        </p>
+                                                <div>
+                                                    <p className="text-[14px] font-bold leading-5 text-text-primary">
+                                                        Completed
+                                                    </p>
+
+                                                    <p className="mt-1 text-xs leading-5 text-text-secondary">
+                                                        Successfully supported
+                                                        requests
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <span className="text-[22px] font-extrabold leading-none tracking-tight text-emerald-600">
+                                                {statistics.completed}
+                                            </span>
+                                        </div>
+
+                                        {/* Rejected */}
+
+                                        <div className="flex items-center justify-between px-7 py-6 transition-colors hover:bg-red-50/40 sm:px-8">
+                                            <div className="flex items-center gap-4">
+                                                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-red-200 bg-red-50">
+                                                    <span className="h-2 w-2 rounded-full bg-red-500" />
+                                                </span>
+
+                                                <div>
+                                                    <p className="text-[14px] font-bold leading-5 text-text-primary">
+                                                        Rejected
+                                                    </p>
+
+                                                    <p className="mt-1 text-xs leading-5 text-text-secondary">
+                                                        Requests that could not
+                                                        proceed
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <span className="text-[22px] font-extrabold leading-none tracking-tight text-red-500">
+                                                {statistics.rejected}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
-
-                                <span className="text-xl font-extrabold tracking-tight text-emerald-600">
-                                    {statistics.completed}
-                                </span>
-                            </div>
-
-                            <div className="flex items-center justify-between px-7 py-5 transition-colors hover:bg-linear-to-r hover:from-red-50/50 hover:to-transparent sm:px-8">
-                                <div className="flex items-center gap-3.5">
-                                    <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-red-100 bg-linear-to-br from-red-50 to-red-100/50 text-red-500 shadow-sm">
-                                        <span className="h-2 w-2 rounded-full bg-red-500" />
-                                    </span>
-
-                                    <div>
-                                        <p className="text-xs font-extrabold text-text-primary">
-                                            Rejected
-                                        </p>
-
-                                        <p className="mt-0.5 text-[10px] text-text-secondary">
-                                            Requests that could not proceed
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <span className="text-xl font-extrabold tracking-tight text-red-500">
-                                    {statistics.rejected}
-                                </span>
                             </div>
                         </div>
                     </div>
@@ -1460,105 +1715,223 @@ const MyHelpRequests = () => {
                 </section>
 
                 {/* =====================================================
-                    REQUEST WORKSPACE
-                ====================================================== */}
+    REQUEST WORKSPACE
+====================================================== */}
 
-                <section className="overflow-hidden rounded-2xl border border-border bg-white shadow-[0_4px_24px_rgba(15,23,42,0.05)]">
-                    {/* Workspace heading */}
+                <section className="overflow-hidden rounded-2xl border border-border bg-white shadow-[0_8px_30px_rgba(15,23,42,0.045)]">
+                    {/* =================================================
+        WORKSPACE BODY
+    ================================================== */}
 
-                    <div className="border-b border-border bg-linear-to-r from-primary/3 to-transparent px-6 py-7 sm:px-8">
-                        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-                            <div>
-                                <div className="inline-flex items-center gap-2 rounded-full bg-linear-to-r from-primary/12 to-primary/4 px-2.5 py-1 shadow-sm">
-                                    <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                    <div className="grid min-w-0 lg:grid-cols-[300px_minmax(0,1fr)]">
+                        {/* =================================================
+            LEFT — REQUEST CONTROLS
+        ================================================== */}
 
-                                    <span className="text-[9px] font-extrabold uppercase tracking-[0.18em] text-primary">
-                                        Request workspace
-                                    </span>
-                                </div>
-
-                                <h2 className="mt-3 text-2xl font-extrabold tracking-tight text-text-primary">
-                                    Your help requests
-                                </h2>
-
-                                <p className="mt-1.5 max-w-xl text-xs leading-5 text-text-secondary">
-                                    Review your submissions and follow each
-                                    request from verification through support.
-                                </p>
-                            </div>
-
-                            <div className="flex items-center gap-3 rounded-xl border border-border bg-linear-to-br from-slate-50 to-white px-4 py-2.5 shadow-sm">
-                                <div className="h-7 w-px bg-border" />
+                        <aside className="min-w-0 overflow-hidden border-b border-border bg-background lg:border-b-0 lg:border-r">
+                            <div className="p-6 sm:p-7">
+                                {/* =================================================
+                    REQUEST STATUS
+                ================================================== */}
 
                                 <div>
-                                    <p className="text-[9px] font-extrabold uppercase tracking-[0.14em] text-text-secondary">
-                                        Showing
-                                    </p>
-
-                                    <p className="mt-0.5 text-sm font-extrabold text-text-primary">
-                                        {filteredHelpRequests.length}
-                                        <span className="ml-1 font-medium text-text-secondary">
-                                            requests
+                                    <div className="mb-5 flex items-center gap-2.5">
+                                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                                            <span className="relative h-3.5 w-3.5">
+                                                <span className="absolute left-0 top-0.5 h-px w-3.5 bg-primary" />
+                                                <span className="absolute left-1 top-1.5 h-px w-2.5 bg-primary" />
+                                                <span className="absolute left-2 top-2.5 h-px w-1.5 bg-primary" />
+                                            </span>
                                         </span>
-                                    </p>
+
+                                        <div>
+                                            <p className="text-[13px] font-extrabold leading-5 tracking-[-0.005em] text-text-primary">
+                                                Request status
+                                            </p>
+
+                                            <p className="mt-1 text-[11px] font-normal leading-4.5 text-text-secondary">
+                                                Browse by current stage
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <HelpRequestCategoryTabs
+                                        tabs={categoryTabs}
+                                        activeCategory={activeCategory}
+                                        onChange={handleCategoryChange}
+                                    />
+                                </div>
+
+                                {/* =================================================
+                    FILTER REQUESTS
+                ================================================== */}
+
+                                <div className="mt-9 border-t border-border pt-8">
+                                    <div className="mb-6">
+                                        <div className="flex items-center gap-2.5">
+                                            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                                                <span className="relative h-3.5 w-3.5">
+                                                    <span className="absolute left-0 top-0.5 h-px w-3.5 bg-primary" />
+                                                    <span className="absolute left-1 top-1.5 h-px w-2.5 bg-primary" />
+                                                    <span className="absolute left-2 top-2.5 h-px w-1.5 bg-primary" />
+                                                </span>
+                                            </span>
+
+                                            <div>
+                                                <p className="text-[13px] font-extrabold leading-5 tracking-[-0.005em] text-text-primary">
+                                                    Filter requests
+                                                </p>
+
+                                                <p className="mt-1 text-[11px] font-normal leading-4.5 text-text-secondary">
+                                                    Narrow down your results
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* =================================================
+                        FILTER CONTROLS
+                        Single vertical column.
+                        No nested card.
+                    ================================================== */}
+
+                                    <div
+                                        className="
+                            min-w-0
+                            [&>div]:grid!
+                            [&>div]:w-full!
+                            [&>div]:grid-cols-1!
+                            [&>div]:gap-5!
+                            [&>div>div]:w-full!
+                            [&>div>div]:min-w-0!
+                            [&_label]:mb-2!
+                            [&_label]:block!
+                            [&_label]:w-full!
+                            [&_label]:text-[11px]!
+                            [&_input]:w-full!
+                            [&_input]:min-w-0!
+                            [&_select]:w-full!
+                            [&_select]:min-w-0!
+                            [&_button]:max-w-full!
+                        "
+                                    >
+                                        <HelpRequestFilters
+                                            searchTerm={searchTerm}
+                                            categoryFilter={categoryFilter}
+                                            priorityFilter={priorityFilter}
+                                            statusFilter={statusFilter}
+                                            helpRequests={helpRequests}
+                                            onSearchChange={handleSearchChange}
+                                            onCategoryChange={
+                                                handleCategoryFilterChange
+                                            }
+                                            onPriorityChange={
+                                                handlePriorityChange
+                                            }
+                                            onStatusChange={handleStatusChange}
+                                        />
+                                    </div>
                                 </div>
                             </div>
+                        </aside>
+
+                        {/* =================================================
+            RIGHT — REQUEST RESULTS
+        ================================================== */}
+
+                        <div className="min-w-0 bg-white">
+                            {/* =================================================
+                SUBMITTED REQUESTS HEADER
+            ================================================== */}
+
+                            <div className="border-b border-border bg-background p-6">
+                                {/* =================================================
+        WORKSPACE HEADER
+    ================================================== */}
+
+                                <div className="border-b border-border pb-6">
+                                    <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+                                        <div className="min-w-0">
+                                            <div className="mb-3.5 flex items-center gap-2.5">
+                                                <span className="h-2 w-2 rounded-full bg-primary" />
+
+                                                <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary">
+                                                    Request workspace
+                                                </span>
+                                            </div>
+
+                                            <h2 className="text-[26px] font-extrabold leading-[1.18] tracking-tight text-text-primary sm:text-[28px]">
+                                                Your help requests
+                                            </h2>
+
+                                            <p className="mt-3 max-w-2xl text-[14px] font-normal leading-6 text-text-secondary">
+                                                Review your submissions and
+                                                follow each request from
+                                                verification through support.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between mt-6">
+                                    {/* LEFT */}
+
+                                    <div className="flex min-w-0 items-start gap-3.5">
+                                        <div className="min-w-0">
+                                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                                                <h3 className="text-[16px] font-extrabold leading-5.5 tracking-[-0.015em] text-text-primary">
+                                                    Submitted requests
+                                                </h3>
+
+                                                <span className="h-1 w-1 rounded-full bg-border" />
+
+                                                <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-secondary">
+                                                    {
+                                                        filteredHelpRequests.length
+                                                    }{' '}
+                                                    results
+                                                </span>
+                                            </div>
+
+                                            <p className="mt-2 text-[12px] font-normal leading-5 text-text-secondary">
+                                                Your current request activity
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* =================================================
+                TABLE
+            ================================================== */}
+
+                            <div className="min-w-0 overflow-x-auto">
+                                <HelpRequestTable
+                                    columns={columns}
+                                    rows={rows}
+                                    onSort={handleSort}
+                                    getSortIcon={getSortIcon}
+                                    resultCount={filteredHelpRequests.length}
+                                />
+                            </div>
+
+                            {/* =================================================
+                PAGINATION
+            ================================================== */}
+
+                            {filteredHelpRequests.length > 0 && (
+                                <div className="border-t border-border bg-[#fafbfb] px-5 py-5 sm:px-6 lg:px-8">
+                                    <HelpRequestPagination
+                                        currentPage={safeCurrentPage}
+                                        totalPages={totalPages}
+                                        totalItems={filteredHelpRequests.length}
+                                        itemsPerPage={HELP_REQUESTS_PER_PAGE}
+                                        onPageChange={setCurrentPage}
+                                    />
+                                </div>
+                            )}
                         </div>
                     </div>
-
-                    {/* Status navigation */}
-
-                    <div className="border-b border-border bg-white px-4 sm:px-6">
-                        <HelpRequestCategoryTabs
-                            tabs={categoryTabs}
-                            activeCategory={activeCategory}
-                            onChange={handleCategoryChange}
-                        />
-                    </div>
-
-                    {/* Filters */}
-
-                    <div className="border-b border-border bg-linear-to-b from-slate-50/80 to-slate-50/40 px-5 py-5 sm:px-6">
-                        <HelpRequestFilters
-                            searchTerm={searchTerm}
-                            categoryFilter={categoryFilter}
-                            priorityFilter={priorityFilter}
-                            statusFilter={statusFilter}
-                            helpRequests={helpRequests}
-                            onSearchChange={handleSearchChange}
-                            onCategoryChange={handleCategoryFilterChange}
-                            onPriorityChange={handlePriorityChange}
-                            onStatusChange={handleStatusChange}
-                        />
-                    </div>
-
-                    {/* Table */}
-
-                    <div className="p-4 sm:p-6">
-                        <div className="overflow-hidden rounded-xl border border-border bg-white shadow-sm">
-                            <HelpRequestTable
-                                columns={columns}
-                                rows={rows}
-                                onSort={handleSort}
-                                getSortIcon={getSortIcon}
-                                resultCount={filteredHelpRequests.length}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Pagination */}
-
-                    {filteredHelpRequests.length > 0 && (
-                        <div className="border-t border-border bg-linear-to-b from-slate-50/60 to-slate-50/20 px-5 py-4 sm:px-6">
-                            <HelpRequestPagination
-                                currentPage={safeCurrentPage}
-                                totalPages={totalPages}
-                                totalItems={filteredHelpRequests.length}
-                                itemsPerPage={HELP_REQUESTS_PER_PAGE}
-                                onPageChange={setCurrentPage}
-                            />
-                        </div>
-                    )}
                 </section>
             </div>
 

@@ -22,7 +22,7 @@ const HelpRequestFilters = ({
     }, [helpRequests]);
 
     return (
-        <div className="flex flex-col gap-3 border-b border-border pb-5 lg:flex-row lg:items-center">
+        <div className="flex flex-col gap-3 pb-5 lg:flex-row lg:items-center">
             {/* Search */}
             <div className="relative min-w-0 flex-1">
                 <Search

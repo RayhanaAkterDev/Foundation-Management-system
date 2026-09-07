@@ -1,4 +1,5 @@
 import React from 'react';
+
 import { ChevronsUpDown } from 'lucide-react';
 
 import EmptyState from './EmptyState';
@@ -25,7 +26,6 @@ const DataTable = ({
                                 {title}
                             </h2>
                         )}
-
                         {resultCount !== undefined && (
                             <p
                                 className={`text-xs text-text-secondary ${
@@ -48,13 +48,12 @@ const DataTable = ({
                     <EmptyState {...(empty || {})} />
                 </div>
             ) : (
-                <div className="overflow-x-auto">
-                    <table className="w-full min-w-205 bg-background">
+                <div className="w-full min-w-0 overflow-x-hidden">
+                    <table className="w-full table-fixed bg-background">
                         <thead>
                             <tr className="border-b border-border">
                                 {columns.map((col) => {
                                     const sortable = col.sortable && onSort;
-
                                     const sortKey = col.sortKey || col.key;
 
                                     return (

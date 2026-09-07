@@ -64,7 +64,7 @@ import IndividualNotifications from '@/dashboard/individual/IndividualNotificati
 import IndividualProfile from '@/dashboard/individual/IndividualProfile';
 import IndividualSettings from '@/dashboard/individual/IndividualSettings';
 import MyDonations from '@/dashboard/individual/MyDonations';
-import MyHelpRequests from '@/dashboard/individual/MyHelpRequests';
+import MyHelpRequests from '@/dashboard/individual/myHelpRequests/MyHelpRequests';
 import MyVolunteerActivities from '@/dashboard/individual/MyVolunteerActivities';
 
 const router = createBrowserRouter([

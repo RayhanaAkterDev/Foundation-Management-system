@@ -30,8 +30,8 @@ const HelpRequestPagination = ({
     });
 
     return (
-        <div className="flex flex-col gap-4 px-1 pt-1 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-xs text-text-secondary">
+        <div className="flex min-h-9 items-center justify-between gap-4 px-1">
+            <p className="whitespace-nowrap text-[11px] leading-4 text-text-secondary">
                 Showing{' '}
                 <span className="font-semibold text-text-primary">
                     {startItem}–{endItem}
@@ -43,12 +43,24 @@ const HelpRequestPagination = ({
                 {totalItems === 1 ? 'help request' : 'help requests'}
             </p>
 
-            <div className="flex items-center rounded-lg border border-border bg-white p-1">
+            <div className="flex shrink-0 items-center rounded-md border border-border bg-white">
                 <button
                     type="button"
                     disabled={currentPage === 1}
                     onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-                    className="rounded-md px-3 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:bg-background-alt hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-35"
+                    className="
+                        rounded-l-md
+                        px-2.5
+                        py-1.5
+                        text-[11px]
+                        font-semibold
+                        text-text-secondary
+                        transition-colors
+                        hover:bg-background-alt
+                        hover:text-text-primary
+                        disabled:cursor-not-allowed
+                        disabled:opacity-35
+                    "
                 >
                     Previous
                 </button>
@@ -62,7 +74,7 @@ const HelpRequestPagination = ({
                     return (
                         <React.Fragment key={page}>
                             {showEllipsis && (
-                                <span className="px-1 text-xs text-text-secondary">
+                                <span className="px-1 text-[11px] text-text-secondary">
                                     …
                                 </span>
                             )}
@@ -70,11 +82,20 @@ const HelpRequestPagination = ({
                             <button
                                 type="button"
                                 onClick={() => onPageChange(page)}
-                                className={`h-7 min-w-7 rounded-md px-2 text-xs font-semibold transition-all ${
-                                    currentPage === page
-                                        ? 'bg-primary text-white'
-                                        : 'text-text-secondary hover:bg-background-alt hover:text-text-primary'
-                                }`}
+                                className={`
+                                    h-7
+                                    min-w-7
+                                    rounded-md
+                                    px-2
+                                    text-[11px]
+                                    font-semibold
+                                    transition-all
+                                    ${
+                                        currentPage === page
+                                            ? 'bg-primary text-white'
+                                            : 'text-text-secondary hover:bg-background-alt hover:text-text-primary'
+                                    }
+                                `}
                             >
                                 {page}
                             </button>
@@ -88,7 +109,19 @@ const HelpRequestPagination = ({
                     onClick={() =>
                         onPageChange(Math.min(totalPages, currentPage + 1))
                     }
-                    className="rounded-md px-3 py-1.5 text-xs font-semibold text-text-secondary transition-colors hover:bg-background-alt hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-35"
+                    className="
+                        rounded-r-md
+                        px-2.5
+                        py-1.5
+                        text-[11px]
+                        font-semibold
+                        text-text-secondary
+                        transition-colors
+                        hover:bg-background-alt
+                        hover:text-text-primary
+                        disabled:cursor-not-allowed
+                        disabled:opacity-35
+                    "
                 >
                     Next
                 </button>

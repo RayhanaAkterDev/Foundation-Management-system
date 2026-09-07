@@ -1,4 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, {
+    useEffect,
+    useLayoutEffect,
+    useMemo,
+    useRef,
+    useState,
+} from 'react';
 
 import {
     ArrowDown,
@@ -32,6 +38,87 @@ import {
 
 const HELP_REQUESTS_PER_PAGE = 25;
 
+const STATUS_LABELS = {
+    pending: 'Pending',
+    verified: 'Verified',
+    assigned: 'Assigned',
+    in_progress: 'In Progress',
+    completed: 'Completed',
+    rejected: 'Rejected',
+};
+
+const URGENCY_LABELS = {
+    critical: 'Critical',
+    urgent: 'Urgent',
+    high: 'High',
+    normal: 'Normal',
+    low: 'Low',
+};
+
+const URGENCY_STYLES = {
+    critical: {
+        dot: 'bg-red-500',
+        text: 'text-red-600',
+    },
+    urgent: {
+        dot: 'bg-orange-500',
+        text: 'text-orange-600',
+    },
+    high: {
+        dot: 'bg-amber-500',
+        text: 'text-amber-600',
+    },
+    low: {
+        dot: 'bg-slate-400',
+        text: 'text-text-secondary',
+    },
+    normal: {
+        dot: 'bg-slate-400',
+        text: 'text-text-secondary',
+    },
+};
+
+const STATUS_STYLES = {
+    pending: {
+        dot: 'bg-amber-500',
+        text: 'text-amber-700',
+        background: 'bg-amber-50',
+    },
+    verified: {
+        dot: 'bg-primary',
+        text: 'text-primary',
+        background: 'bg-primary/[0.07]',
+    },
+    assigned: {
+        dot: 'bg-primary',
+        text: 'text-primary',
+        background: 'bg-primary/[0.07]',
+    },
+    in_progress: {
+        dot: 'bg-primary',
+        text: 'text-primary',
+        background: 'bg-primary/[0.10]',
+    },
+    completed: {
+        dot: 'bg-emerald-500',
+        text: 'text-emerald-700',
+        background: 'bg-emerald-50',
+    },
+    rejected: {
+        dot: 'bg-red-500',
+        text: 'text-red-700',
+        background: 'bg-red-50',
+    },
+};
+
+const ACCEPTED_ASSIGNMENT_STATUSES = new Set([
+    'assigned',
+    'accepted',
+    'active',
+    'in_progress',
+    'completed',
+]);
+
 // =========================================================
 // Helpers
 // =========================================================
@@ -41,9 +128,10 @@ const normalizeHelpRequest = (request) => {
         return request;
     }
 
+    const verificationNote = request.verification_note || '';
+
     return {
         ...request,
-        id: request.id,
         title: request.title || '',
         description: request.description || '',
         category: request.category || '',
@@ -51,65 +139,29 @@ const normalizeHelpRequest = (request) => {
         district: request.district || '',
         address: request.address || '',
         status: request.status || '',
-        verification_note: request.verification_note || '',
-        verificationNote: request.verification_note || '',
-        notes: request.verification_note || '',
+        verification_note: verificationNote,
+        verificationNote,
+        notes: verificationNote,
         assignments: Array.isArray(request.assignments)
             ? request.assignments
             : [],
     };
 };
 
-const normalizeHelpRequests = (requests) => {
-    if (!Array.isArray(requests)) {
-        return [];
-    }
+const normalizeHelpRequests = (requests) =>
+    Array.isArray(requests) ? requests.map(normalizeHelpRequest) : [];
 
-    return requests.map(normalizeHelpRequest);
-};
+const getStatusLabel = (status) => STATUS_LABELS[status] || status || '—';
 
-const getStatusLabel = (status) => {
-    switch (status) {
-        case 'pending':
-            return 'Pending';
-        case 'verified':
-            return 'Verified';
-        case 'assigned':
-            return 'Assigned';
-        case 'in_progress':
-            return 'In Progress';
-        case 'completed':
-            return 'Completed';
-        case 'rejected':
-            return 'Rejected';
-        default:
-            return status || '—';
-    }
-};
-
-const getUrgencyLabel = (urgency) => {
-    switch (urgency) {
-        case 'critical':
-            return 'Critical';
-        case 'urgent':
-            return 'Urgent';
-        case 'high':
-            return 'High';
-        case 'normal':
-            return 'Normal';
-        case 'low':
-            return 'Low';
-        default:
-            return urgency || 'Normal';
-    }
-};
+const getUrgencyLabel = (urgency) =>
+    URGENCY_LABELS[urgency] || urgency || 'Normal';
 
 const getAssignmentInfo = (request) => {
     const assignments = Array.isArray(request?.assignments)
         ? request.assignments
         : [];
 
-    if (assignments.length === 0) {
+    if (!assignments.length) {
         return {
             state: 'not_assigned',
             label: 'Not assigned',
@@ -118,19 +170,15 @@ const getAssignmentInfo = (request) => {
         };
     }
 
-    const sortedAssignments = [...assignments].sort((a, b) => {
-        const first = a?.assigned_at ? new Date(a.assigned_at).getTime() : 0;
-
-        const second = b?.assigned_at ? new Date(b.assigned_at).getTime() : 0;
-
-        return second - first;
-    });
+    const sortedAssignments = [...assignments].sort(
+        (a, b) =>
+            (b?.assigned_at ? new Date(b.assigned_at).getTime() : 0) -
+            (a?.assigned_at ? new Date(a.assigned_at).getTime() : 0),
+    );
 
     const currentAssignment = sortedAssignments[0];
 
-    const pendingStatuses = ['pending'];
-
-    if (pendingStatuses.includes(currentAssignment?.status)) {
+    if (currentAssignment?.status === 'pending') {
         return {
             state: 'pending',
             label: 'Assignment pending',
@@ -139,15 +187,7 @@ const getAssignmentInfo = (request) => {
         };
     }
 
-    const acceptedStatuses = [
-        'assigned',
-        'accepted',
-        'active',
-        'in_progress',
-        'completed',
-    ];
-
-    if (acceptedStatuses.includes(currentAssignment?.status)) {
+    if (ACCEPTED_ASSIGNMENT_STATUSES.has(currentAssignment?.status)) {
         return {
             state: 'accepted',
             label:
@@ -178,35 +218,92 @@ const getAssignmentInfo = (request) => {
 // =========================================================
 
 const MyHelpRequests = () => {
-    // =========================================================
-    // Help request data
-    // =========================================================
-
     const [helpRequests, setHelpRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
-    // =========================================================
-    // Create modal
-    // =========================================================
-
     const [showModal, setShowModal] = useState(false);
-
-    // =========================================================
-    // Edit modal
-    // =========================================================
 
     const [editingRequest, setEditingRequest] = useState(null);
     const [showEditModal, setShowEditModal] = useState(false);
-
-    // =========================================================
-    // Success toast
-    // =========================================================
 
     const [successToast, setSuccessToast] = useState({
         show: false,
         message: '',
     });
+
+    const [selectedRequest, setSelectedRequest] = useState(null);
+
+    const [selectedOrganization, setSelectedOrganization] = useState(null);
+
+    const [deleteRequestItem, setDeleteRequestItem] = useState(null);
+    const [deleteLoading, setDeleteLoading] = useState(false);
+    const [deleteError, setDeleteError] = useState('');
+
+    const [activeCategory, setActiveCategory] = useState('all');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [categoryFilter, setCategoryFilter] = useState('all');
+    const [priorityFilter, setPriorityFilter] = useState('all');
+    const [statusFilter, setStatusFilter] = useState('all');
+
+    const [sortConfig, setSortConfig] = useState({
+        key: 'created_at',
+        direction: 'desc',
+    });
+
+    const [currentPage, setCurrentPage] = useState(1);
+
+    // =========================================================
+    // Request workspace height
+    // Sidebar's natural content height defines the workspace
+    // =========================================================
+
+    const workspaceSidebarRef = useRef(null);
+    const [workspaceHeight, setWorkspaceHeight] = useState(null);
+
+    useLayoutEffect(() => {
+        const sidebar = workspaceSidebarRef.current;
+
+        if (!sidebar) {
+            return undefined;
+        }
+
+        const updateWorkspaceHeight = () => {
+            if (window.innerWidth < 1024) {
+                setWorkspaceHeight(null);
+                return;
+            }
+
+            const height = sidebar.getBoundingClientRect().height;
+
+            if (height > 0) {
+                const nextHeight = Math.ceil(height);
+
+                setWorkspaceHeight((currentHeight) =>
+                    currentHeight === nextHeight ? currentHeight : nextHeight,
+                );
+            }
+        };
+
+        updateWorkspaceHeight();
+
+        const resizeObserver = new ResizeObserver(() => {
+            updateWorkspaceHeight();
+        });
+
+        resizeObserver.observe(sidebar);
+
+        window.addEventListener('resize', updateWorkspaceHeight);
+
+        return () => {
+            resizeObserver.disconnect();
+            window.removeEventListener('resize', updateWorkspaceHeight);
+        };
+    }, []);
+
+    // =========================================================
+    // Success toast
+    // =========================================================
 
     const showSuccessToast = (message) => {
         setSuccessToast({
@@ -227,22 +324,12 @@ const MyHelpRequests = () => {
             });
         }, 4000);
 
-        return () => {
-            clearTimeout(timer);
-        };
+        return () => clearTimeout(timer);
     }, [successToast.show]);
-
-    // =========================================================
-    // View modal
-    // =========================================================
-
-    const [selectedRequest, setSelectedRequest] = useState(null);
 
     // =========================================================
     // Organization drawer
     // =========================================================
-
-    const [selectedOrganization, setSelectedOrganization] = useState(null);
 
     const handleViewOrganization = (assignmentInfo, request) => {
         const organization = assignmentInfo?.currentAssignment?.organization;
@@ -263,39 +350,6 @@ const MyHelpRequests = () => {
     const handleCloseOrganization = () => {
         setSelectedOrganization(null);
     };
-
-    // =========================================================
-    // Delete modal
-    // =========================================================
-
-    const [deleteRequestItem, setDeleteRequestItem] = useState(null);
-    const [deleteLoading, setDeleteLoading] = useState(false);
-    const [deleteError, setDeleteError] = useState('');
-
-    // =========================================================
-    // Filters
-    // =========================================================
-
-    const [activeCategory, setActiveCategory] = useState('all');
-    const [searchTerm, setSearchTerm] = useState('');
-    const [categoryFilter, setCategoryFilter] = useState('all');
-    const [priorityFilter, setPriorityFilter] = useState('all');
-    const [statusFilter, setStatusFilter] = useState('all');
-
-    // =========================================================
-    // Sorting
-    // =========================================================
-
-    const [sortConfig, setSortConfig] = useState({
-        key: 'created_at',
-        direction: 'desc',
-    });
-
-    // =========================================================
-    // Pagination
-    // =========================================================
-
-    const [currentPage, setCurrentPage] = useState(1);
 
     // =========================================================
     // Load help requests
@@ -347,13 +401,8 @@ const MyHelpRequests = () => {
     // CREATE
     // =========================================================
 
-    const handleOpenModal = () => {
-        setShowModal(true);
-    };
-
-    const handleCloseModal = () => {
-        setShowModal(false);
-    };
+    const handleOpenModal = () => setShowModal(true);
+    const handleCloseModal = () => setShowModal(false);
 
     const handleRequestCreated = (createdRequest) => {
         if (createdRequest) {
@@ -376,13 +425,8 @@ const MyHelpRequests = () => {
     // VIEW
     // =========================================================
 
-    const handleView = (request) => {
-        setSelectedRequest(request);
-    };
-
-    const handleCloseDetails = () => {
-        setSelectedRequest(null);
-    };
+    const handleView = (request) => setSelectedRequest(request);
+    const handleCloseDetails = () => setSelectedRequest(null);
 
     // =========================================================
     // EDIT
@@ -423,15 +467,11 @@ const MyHelpRequests = () => {
         setShowEditModal(false);
         setEditingRequest(null);
 
-        setSelectedRequest((currentRequest) => {
-            if (!currentRequest) {
-                return null;
-            }
-
-            return currentRequest.id === formattedRequest.id
+        setSelectedRequest((currentRequest) =>
+            currentRequest?.id === formattedRequest.id
                 ? formattedRequest
-                : currentRequest;
-        });
+                : currentRequest,
+        );
 
         showSuccessToast('Your help request was updated successfully.');
     };
@@ -441,11 +481,7 @@ const MyHelpRequests = () => {
     // =========================================================
 
     const handleDelete = (request) => {
-        if (!request || request.status !== 'pending') {
-            return;
-        }
-
-        if (deleteLoading) {
+        if (!request || request.status !== 'pending' || deleteLoading) {
             return;
         }
 
@@ -463,11 +499,7 @@ const MyHelpRequests = () => {
     };
 
     const handleDeleteConfirm = async () => {
-        if (!deleteRequestItem) {
-            return;
-        }
-
-        if (deleteLoading) {
+        if (!deleteRequestItem || deleteLoading) {
             return;
         }
 
@@ -507,29 +539,22 @@ const MyHelpRequests = () => {
     // =========================================================
 
     const statistics = useMemo(() => {
-        return {
+        const stats = {
             total: helpRequests.length,
-
-            pending: helpRequests.filter(
-                (request) => request.status === 'pending',
-            ).length,
-
-            verified: helpRequests.filter(
-                (request) => request.status === 'verified',
-            ).length,
-
-            assigned: helpRequests.filter(
-                (request) => request.status === 'assigned',
-            ).length,
-
-            completed: helpRequests.filter(
-                (request) => request.status === 'completed',
-            ).length,
-
-            rejected: helpRequests.filter(
-                (request) => request.status === 'rejected',
-            ).length,
+            pending: 0,
+            verified: 0,
+            assigned: 0,
+            completed: 0,
+            rejected: 0,
         };
+
+        helpRequests.forEach(({ status }) => {
+            if (status in stats) {
+                stats[status] += 1;
+            }
+        });
+
+        return stats;
     }, [helpRequests]);
 
     // =========================================================
@@ -577,69 +602,61 @@ const MyHelpRequests = () => {
     // =========================================================
 
     const filteredHelpRequests = useMemo(() => {
-        let result = [...helpRequests];
-
-        if (activeCategory !== 'all') {
-            result = result.filter(
-                (request) => request.status === activeCategory,
-            );
-        }
-
-        if (categoryFilter !== 'all') {
-            result = result.filter(
-                (request) => request.category === categoryFilter,
-            );
-        }
-
-        if (priorityFilter !== 'all') {
-            result = result.filter(
-                (request) => request.urgency === priorityFilter,
-            );
-        }
-
-        if (statusFilter !== 'all') {
-            result = result.filter(
-                (request) => request.status === statusFilter,
-            );
-        }
-
         const search = searchTerm.trim().toLowerCase();
 
-        if (search) {
-            result = result.filter((request) => {
-                const title = String(request.title || '').toLowerCase();
+        const result = helpRequests.filter((request) => {
+            if (activeCategory !== 'all' && request.status !== activeCategory) {
+                return false;
+            }
 
-                const description = String(
-                    request.description || '',
-                ).toLowerCase();
+            if (
+                categoryFilter !== 'all' &&
+                request.category !== categoryFilter
+            ) {
+                return false;
+            }
 
-                const category = String(request.category || '').toLowerCase();
+            if (
+                priorityFilter !== 'all' &&
+                request.urgency !== priorityFilter
+            ) {
+                return false;
+            }
 
-                const district = String(request.district || '').toLowerCase();
+            if (statusFilter !== 'all' && request.status !== statusFilter) {
+                return false;
+            }
 
-                const address = String(request.address || '').toLowerCase();
+            if (!search) {
+                return true;
+            }
 
-                return (
-                    title.includes(search) ||
-                    description.includes(search) ||
-                    category.includes(search) ||
-                    district.includes(search) ||
-                    address.includes(search)
-                );
-            });
-        }
+            return [
+                request.title,
+                request.description,
+                request.category,
+                request.district,
+                request.address,
+            ].some((value) =>
+                String(value || '')
+                    .toLowerCase()
+                    .includes(search),
+            );
+        });
 
         if (!sortConfig.key || !sortConfig.direction) {
             return result;
         }
 
+        const { key, direction } = sortConfig;
+        const multiplier = direction === 'asc' ? 1 : -1;
+
         result.sort((a, b) => {
-            let first = a[sortConfig.key];
-            let second = b[sortConfig.key];
+            let first = a[key];
+            let second = b[key];
 
-            if (['created_at', 'updated_at'].includes(sortConfig.key)) {
+            if (key === 'created_at' || key === 'updated_at') {
                 first = first ? new Date(first).getTime() : 0;
-
                 second = second ? new Date(second).getTime() : 0;
             }
 
@@ -652,11 +669,11 @@ const MyHelpRequests = () => {
             }
 
             if (first < second) {
-                return sortConfig.direction === 'asc' ? -1 : 1;
+                return -1 * multiplier;
             }
 
             if (first > second) {
-                return sortConfig.direction === 'asc' ? 1 : -1;
+                return 1 * multiplier;
             }
 
             return 0;
@@ -754,11 +771,11 @@ const MyHelpRequests = () => {
             return <ChevronsUpDown size={14} strokeWidth={1.8} />;
         }
 
-        if (sortConfig.direction === 'asc') {
-            return <ArrowUp size={14} strokeWidth={2} />;
-        }
-
-        return <ArrowDown size={14} strokeWidth={2} />;
+        return sortConfig.direction === 'asc' ? (
+            <ArrowUp size={14} strokeWidth={2} />
+        ) : (
+            <ArrowDown size={14} strokeWidth={2} />
+        );
     };
 
     // =========================================================
@@ -766,7 +783,7 @@ const MyHelpRequests = () => {
     // =========================================================
 
     const handleExportCSV = () => {
-        if (filteredHelpRequests.length === 0) {
+        if (!filteredHelpRequests.length) {
             return;
         }
 
@@ -886,16 +903,11 @@ const MyHelpRequests = () => {
 
     const rows = paginatedHelpRequests.map((request, index) => ({
         ...request,
-
         serialNumber:
             (safeCurrentPage - 1) * HELP_REQUESTS_PER_PAGE + index + 1,
-
         statusLabel: getStatusLabel(request.status),
-
         urgencyLabel: getUrgencyLabel(request.urgency),
-
         assignmentInfo: getAssignmentInfo(request),
-
         formattedCreatedDate: request.created_at
             ? new Date(request.created_at).toLocaleDateString('en-GB', {
                   day: '2-digit',
@@ -903,7 +915,6 @@ const MyHelpRequests = () => {
                   year: 'numeric',
               })
             : '—',
-
         locationName:
             request.district || request.address || 'Location not specified',
     }));
@@ -914,72 +925,29 @@ const MyHelpRequests = () => {
             header: 'Help Request',
             sortable: true,
             sortKey: 'title',
+            width: '35%',
             render: (value, row) => {
-                const urgencyStyles = {
-                    critical: {
-                        dot: 'bg-red-500',
-                        text: 'text-red-600',
-                    },
-                    urgent: {
-                        dot: 'bg-orange-500',
-                        text: 'text-orange-600',
-                    },
-                    high: {
-                        dot: 'bg-amber-500',
-                        text: 'text-amber-600',
-                    },
-                    low: {
-                        dot: 'bg-slate-400',
-                        text: 'text-text-secondary',
-                    },
-                    normal: {
-                        dot: 'bg-slate-400',
-                        text: 'text-text-secondary',
-                    },
-                };
-
                 const urgency =
-                    urgencyStyles[row.urgency] || urgencyStyles.normal;
+                    URGENCY_STYLES[row.urgency] || URGENCY_STYLES.normal;
 
                 return (
                     <div className="min-w-0 py-5 pr-8">
-                        {/* Title */}
-                        <p className="truncate text-[15px] font-bold leading-5.5 tracking-[-0.01em] text-text-primary">
+                        <p className="truncate text-[15px] font-medium underline leading-5.5 tracking-[-0.01em] text-text-primary">
                             {value || 'Untitled help request'}
                         </p>
 
-                        {/* Description */}
                         <p className="mt-1.5 line-clamp-2 text-[12px] font-normal leading-5 text-text-secondary">
                             {row.description || 'No description provided.'}
                         </p>
 
-                        {/* Category + Location */}
                         <div className="mt-3 flex min-w-0 items-center gap-2 text-[11px]">
                             {row.category && (
                                 <>
-                                    <span className="truncate font-semibold capitalize text-text-secondary">
+                                    <span className="truncate font-semibold capitalize text-primary">
                                         {row.category}
                                     </span>
-
-                                    <span className="h-1 w-1 shrink-0 rounded-full bg-slate-300" />
                                 </>
                             )}
-
-                            <span className="truncate font-medium text-text-secondary/75">
-                                {row.locationName || 'Location not specified'}
-                            </span>
-                        </div>
-
-                        {/* Submitted + Urgency */}
-                        <div className="mt-2.5 flex items-center gap-3">
-                            <span className="text-[10px] font-medium text-text-secondary/60">
-                                Submitted{' '}
-                                <span className="font-semibold text-text-secondary/85">
-                                    {row.formattedCreatedDate}
-                                </span>
-                            </span>
-
-                            <span className="h-1 w-1 shrink-0 rounded-full bg-slate-300" />
 
                             <span
                                 className={`inline-flex items-center gap-1.5 ${urgency.text}`}
@@ -993,6 +961,16 @@ const MyHelpRequests = () => {
                                 </span>
                             </span>
                         </div>
+
+                        <div className="truncate font-medium text-text-secondary">
+                            {row.locationName || 'Location not specified'}
+
+                            <span className="h-1 w-1 shrink-0 rounded-full bg-slate-300" />
+
+                            <span className="text-[10px] underline tracking-wide ml-2 font-semibold text-text-secondary/80">
+                                {row.formattedCreatedDate}
+                            </span>
+                        </div>
                     </div>
                 );
             },
@@ -1003,47 +981,9 @@ const MyHelpRequests = () => {
             header: 'Status',
             sortable: true,
             sortKey: 'status',
-            width: '16%',
+            width: '10%',
             render: (value, row) => {
-                const statusStyles = {
-                    pending: {
-                        dot: 'bg-amber-500',
-                        text: 'text-amber-700',
-                        background: 'bg-amber-50',
-                    },
-
-                    verified: {
-                        dot: 'bg-primary',
-                        text: 'text-primary',
-                        background: 'bg-primary/[0.07]',
-                    },
-
-                    assigned: {
-                        dot: 'bg-primary',
-                        text: 'text-primary',
-                        background: 'bg-primary/[0.07]',
-                    },
-
-                    in_progress: {
-                        dot: 'bg-primary',
-                        text: 'text-primary',
-                        background: 'bg-primary/[0.10]',
-                    },
-
-                    completed: {
-                        dot: 'bg-emerald-500',
-                        text: 'text-emerald-700',
-                        background: 'bg-emerald-50',
-                    },
-
-                    rejected: {
-                        dot: 'bg-red-500',
-                        text: 'text-red-700',
-                        background: 'bg-red-50',
-                    },
-                };
-
-                const status = statusStyles[row.status] || {
+                const status = STATUS_STYLES[row.status] || {
                     dot: 'bg-slate-400',
                     text: 'text-text-secondary',
                     background: 'bg-slate-50',
@@ -1053,14 +993,14 @@ const MyHelpRequests = () => {
                     <div className="py-5">
                         <span
                             className={`
-              inline-flex
-              items-center
-              gap-2
-              rounded-lg
-              px-3
-              py-2
-              ${status.background}
-            `}
+                                inline-flex
+                                items-center
+                                gap-2
+                                rounded-lg
+                                px-3
+                                py-2
+                                ${status.background}
+                            `}
                         >
                             <span
                                 className={`h-2 w-2 shrink-0 rounded-full ${status.dot}`}
@@ -1068,10 +1008,10 @@ const MyHelpRequests = () => {
 
                             <span
                                 className={`
-                text-[12px]
-                font-semibold
-                ${status.text}
-              `}
+                                    text-[12px]
+                                    font-semibold
+                                    ${status.text}
+                                `}
                             >
                                 {value}
                             </span>
@@ -1086,14 +1026,9 @@ const MyHelpRequests = () => {
             header: 'Assigned',
             sortable: true,
             sortKey: 'assignmentInfo',
-            width: '20%',
+            width: '12%',
             render: (value, row) => {
-                const assignment = value;
-
-                {
-                    /* Pending assignment */
-                }
-                if (assignment?.state === 'pending') {
+                if (value?.state === 'pending') {
                     return (
                         <div className="py-5">
                             <div className="flex items-center gap-2.5">
@@ -1113,58 +1048,55 @@ const MyHelpRequests = () => {
                     );
                 }
 
-                {
-                    /* Accepted organization */
-                }
-                if (assignment?.state === 'accepted') {
+                if (value?.state === 'accepted') {
                     return (
                         <div className="py-5">
                             <button
                                 type="button"
                                 onClick={() =>
-                                    handleViewOrganization(assignment, row)
+                                    handleViewOrganization(value, row)
                                 }
                                 disabled={
-                                    !assignment.currentAssignment?.organization
+                                    !value.currentAssignment?.organization
                                 }
                                 className="
-                group
-                min-w-0
-                max-w-60
-                text-left
-                disabled:cursor-default
-              "
+                                    group
+                                    min-w-0
+                                    max-w-60
+                                    text-left
+                                    disabled:cursor-default
+                                "
                             >
                                 <div className="flex min-w-0 items-center gap-2.5">
                                     <span className="h-2 w-2 shrink-0 rounded-full bg-primary" />
 
                                     <p
                                         className="
-                    truncate
-                    text-[13px]
-                    font-semibold
-                    leading-5
-                    text-text-primary
-                    transition-colors
-                    duration-200
-                    group-hover:text-primary
-                  "
+                                            truncate
+                                            text-[13px]
+                                            font-semibold
+                                            leading-5
+                                            text-text-primary
+                                            transition-colors
+                                            duration-200
+                                            group-hover:text-primary
+                                        "
                                     >
-                                        {assignment.label}
+                                        {value.label}
                                     </p>
                                 </div>
 
                                 <p
                                     className="
-                  mt-1
-                  pl-4.5
-                  text-[10px]
-                  font-medium
-                  text-text-secondary/60
-                  transition-colors
-                  duration-200
-                  group-hover:text-primary/70
-                "
+                                        mt-1
+                                        pl-4.5
+                                        text-[10px]
+                                        font-medium
+                                        text-text-secondary/60
+                                        transition-colors
+                                        duration-200
+                                        group-hover:text-primary/70
+                                    "
                                 >
                                     View organization
                                 </p>
@@ -1173,9 +1105,6 @@ const MyHelpRequests = () => {
                     );
                 }
 
-                {
-                    /* Not assigned */
-                }
                 return (
                     <div className="py-5">
                         <div className="flex items-center gap-2.5">
@@ -1194,89 +1123,86 @@ const MyHelpRequests = () => {
             key: 'actions',
             header: 'Action',
             align: 'right',
-            width: '14%',
+            width: '24%',
             render: (_, row) => {
                 const canEdit = row.status === 'pending';
                 const canDelete = row.status === 'pending';
 
                 return (
                     <div className="flex items-center justify-end gap-1 py-5">
-                        {/* View */}
                         <button
                             type="button"
                             onClick={() => handleView(row)}
                             className="
-              inline-flex
-              items-center
-              gap-1.5
-              rounded-lg
-              px-3
-              py-2
-              text-[11px]
-              font-semibold
-              text-text-secondary
-              transition-colors
-              duration-200
-              hover:bg-slate-100
-              hover:text-text-primary
-            "
+                                inline-flex
+                                items-center
+                                gap-1.5
+                                rounded-lg
+                                px-3
+                                py-2
+                                text-[11px]
+                                font-semibold
+                                text-text-secondary
+                                transition-colors
+                                duration-200
+                                hover:bg-slate-100
+                                hover:text-text-primary
+                            "
                         >
                             <ArrowUpRight size={14} strokeWidth={1.8} />
                             <span>View</span>
                         </button>
 
-                        {/* Edit */}
                         {canEdit && (
                             <button
                                 type="button"
                                 onClick={() => handleEdit(row)}
                                 disabled={deleteLoading}
                                 className="
-                inline-flex
-                items-center
-                gap-1.5
-                rounded-lg
-                px-3
-                py-2
-                text-[11px]
-                font-semibold
-                text-text-secondary
-                transition-colors
-                duration-200
-                hover:bg-primary/6
-                hover:text-primary
-                disabled:cursor-not-allowed
-                disabled:opacity-50
-              "
+                                    inline-flex
+                                    items-center
+                                    gap-1.5
+                                    rounded-lg
+                                    px-3
+                                    py-2
+                                    text-[11px]
+                                    font-semibold
+                                    text-text-secondary
+                                    transition-colors
+                                    duration-200
+                                    hover:bg-primary/6
+                                    hover:text-primary
+                                    disabled:cursor-not-allowed
+                                    disabled:opacity-50
+                                "
                             >
                                 <Pencil size={14} strokeWidth={1.8} />
                                 <span>Edit</span>
                             </button>
                         )}
 
-                        {/* Delete */}
                         {canDelete && (
                             <button
                                 type="button"
                                 onClick={() => handleDelete(row)}
                                 disabled={deleteLoading}
                                 className="
-                inline-flex
-                items-center
-                gap-1.5
-                rounded-lg
-                px-3
-                py-2
-                text-[11px]
-                font-semibold
-                text-red-500
-                transition-colors
-                duration-200
-                hover:bg-red-50
-                hover:text-red-600
-                disabled:cursor-not-allowed
-                disabled:opacity-50
-              "
+                                    inline-flex
+                                    items-center
+                                    gap-1.5
+                                    rounded-lg
+                                    px-3
+                                    py-2
+                                    text-[11px]
+                                    font-semibold
+                                    text-red-500
+                                    transition-colors
+                                    duration-200
+                                    hover:bg-red-50
+                                    hover:text-red-600
+                                    disabled:cursor-not-allowed
+                                    disabled:opacity-50
+                                "
                             >
                                 <Trash2 size={14} strokeWidth={1.8} />
                                 <span>Delete</span>
@@ -1295,33 +1221,27 @@ const MyHelpRequests = () => {
     return (
         <div className="min-h-full">
             <div className="mx-auto w-full max-w-400 space-y-10">
-                {/* =====================================================
-                    SUCCESS TOAST
-                ====================================================== */}
                 <HelpRequestSuccessToast
                     show={successToast.show}
                     message={successToast.message}
                 />
-                {/* =====================================================
-    PAGE HEADER
-====================================================== */}
 
-                <section className="relative overflow-hidden rounded-2xl border border-primary/10 bg-[#e8f1f1]">
-                    {/* =================================================
-        MAIN HEADER
-    ================================================== */}
+                {/* =====================================================
+                    PAGE HEADER
+                ====================================================== */}
+
+                <section className="relative overflow-hidden rounded-2xl border border-primary/10 bg-[#edf4f4]">
                     <div className="flex flex-col lg:flex-row">
                         {/* =================================================
-            LEFT — PRIMARY PAGE INTRO
-        ================================================== */}
+                            MAIN HEADER
+                        ================================================== */}
+
                         <div className="relative flex min-w-0 flex-1 items-center overflow-hidden bg-primary px-7 py-9 sm:px-9 sm:py-10 lg:px-10 lg:py-11">
-                            {/* restrained background detail */}
                             <div className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full border-28 border-white/[0.035]" />
 
                             <div className="pointer-events-none absolute -bottom-28 -left-16 h-52 w-52 rounded-full bg-white/2.5" />
 
                             <div className="relative max-w-2xl">
-                                {/* eyebrow */}
                                 <div className="mb-6 flex items-center gap-3">
                                     <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/10 ring-1 ring-white/15">
                                         <span className="h-1.5 w-1.5 rounded-full bg-white" />
@@ -1334,19 +1254,16 @@ const MyHelpRequests = () => {
                                     <span className="h-px w-10 bg-white/20" />
                                 </div>
 
-                                {/* title */}
                                 <h1 className="text-3xl font-extrabold leading-[1.08] tracking-[-0.03em] text-white sm:text-4xl lg:text-[42px]">
                                     My Help Requests
                                 </h1>
 
-                                {/* subtitle */}
                                 <p className="mt-4 max-w-xl text-[14px] font-medium leading-6 text-white/70 sm:text-[15px] sm:leading-7">
                                     Track the requests you've submitted, follow
                                     their progress, and stay connected with the
                                     organizations helping you.
                                 </p>
 
-                                {/* visual accent */}
                                 <div className="mt-7 flex items-center gap-1.5">
                                     <span className="h-1 w-8 rounded-full bg-white/75" />
                                     <span className="h-1 w-2 rounded-full bg-white/30" />
@@ -1356,18 +1273,18 @@ const MyHelpRequests = () => {
                         </div>
 
                         {/* =================================================
-            RIGHT — ACTION AREA
-        ================================================== */}
-                        <div className="flex shrink-0 items-center border-t border-primary/10 bg-white px-7 py-7 sm:px-9 lg:w-85 lg:border-l lg:border-t-0 lg:px-8">
+                            QUICK ACTIONS
+                        ================================================== */}
+
+                        <div className="flex shrink-0 items-center border-t border-primary/10 bg-[#f4f8f8] px-7 py-7 sm:px-9 lg:w-85 lg:border-l lg:border-t-0 lg:px-8">
                             <div className="w-full">
-                                {/* action heading */}
                                 <div className="mb-5">
                                     <div className="flex items-center gap-2">
                                         <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-text-secondary">
                                             Quick actions
                                         </span>
 
-                                        <span className="h-px flex-1 bg-border" />
+                                        <span className="h-px flex-1 bg-primary/10" />
                                     </div>
 
                                     <p className="mt-2 text-sm font-semibold text-text-primary">
@@ -1375,9 +1292,7 @@ const MyHelpRequests = () => {
                                     </p>
                                 </div>
 
-                                {/* actions */}
                                 <div className="flex items-center gap-2.5 sm:gap-3">
-                                    {/* New Request */}
                                     <button
                                         type="button"
                                         onClick={handleOpenModal}
@@ -1390,14 +1305,13 @@ const MyHelpRequests = () => {
                                         <span>New Request</span>
                                     </button>
 
-                                    {/* Export */}
                                     <button
                                         type="button"
                                         onClick={handleExportCSV}
                                         disabled={
                                             filteredHelpRequests.length === 0
                                         }
-                                        className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border bg-background text-text-primary transition-all duration-200 hover:border-primary/25 hover:bg-primary/4 hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
+                                        className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-primary/10 bg-white text-text-primary shadow-sm transition-all duration-200 hover:border-primary/25 hover:bg-primary/4 hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
                                         aria-label="Export requests"
                                         title="Export requests"
                                     >
@@ -1409,36 +1323,29 @@ const MyHelpRequests = () => {
                     </div>
 
                     {/* =================================================
-        BOTTOM ACCENT
-    ================================================== */}
-                    <div className="flex items-center justify-between border-t bg-white border-primary/10 px-7 py-3.5 sm:px-9 lg:px-10 h-20">
-                        <div className="flex items-center gap-3">
-                            <span className="text-[9px] font-bold uppercase tracking-[0.18em] text-text-secondary">
-                                Manage · Track · Connect
-                            </span>
-                        </div>
+                        HEADER FOOTER STRIP
+                    ================================================== */}
+
+                    <div className="flex h-16 items-center justify-between border-t border-primary/10 bg-[#e8f1f1] px-7 sm:px-9 lg:px-10">
+                        <span className="text-[9px] font-bold uppercase tracking-[0.18em] text-text-secondary">
+                            Manage · Track · Connect
+                        </span>
 
                         <div className="flex items-center gap-1.5">
-                            <span className="h-1.5 w-6 rounded-full bg-primary/20" />
-                            <span className="h-1.5 w-2 rounded-full bg-primary/10" />
+                            <span className="h-1.5 w-6 rounded-full bg-primary/25" />
+                            <span className="h-1.5 w-2 rounded-full bg-primary/15" />
                         </div>
                     </div>
                 </section>
 
                 {/* =====================================================
-    REQUEST OVERVIEW
-====================================================== */}
+                    REQUEST OVERVIEW
+                ====================================================== */}
 
                 <section>
-                    {/* =====================================================
-    REQUEST OVERVIEW HEADING
-====================================================== */}
-
-                    <div className="p-4 mt-12">
-                        <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-                            {/* Left — section identity */}
-
-                            <div className="min-w-0">
+                    <div className="mt-12 px-4">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                            <div>
                                 <div className="flex items-center gap-3">
                                     <span className="h-px w-8 bg-primary/50" />
 
@@ -1447,16 +1354,14 @@ const MyHelpRequests = () => {
                                     </p>
                                 </div>
 
-                                <h2 className="mt-3 text-[25px] font-extrabold leading-[1.12] tracking-[-0.03em] text-text-primary sm:text-[27px]">
+                                <h2 className="mt-2.5 text-[24px] font-extrabold leading-[1.12] tracking-[-0.03em] text-text-primary sm:text-[27px]">
                                     Where your requests stand
                                 </h2>
                             </div>
 
-                            {/* Right — contextual metadata */}
-
                             {statistics.total > 0 && (
-                                <div className="flex shrink-0 items-center gap-2.5 pb-1">
-                                    <span className="h-1.5 w-1.5 rounded-full bg-primary/60" />
+                                <div className="flex items-center gap-2 pb-0.5">
+                                    <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary/60" />
 
                                     <p className="text-[11px] font-medium leading-5 text-text-secondary">
                                         Updated from your submitted requests
@@ -1466,67 +1371,49 @@ const MyHelpRequests = () => {
                         </div>
                     </div>
 
-                    {/* =================================================
-        TOP SUMMARY
-    ================================================== */}
-
-                    <div className="overflow-hidden rounded-2xl border border-border bg-white shadow-[0_5px_24px_rgba(15,23,42,0.04)]">
-                        <div className="grid lg:grid-cols-[300px_1fr]">
-                            {/* =================================================
-                TOTAL SUBMITTED
-            ================================================== */}
-
-                            <div className="relative overflow-hidden border-b border-primary/15 bg-primary/10 px-7 py-8 sm:px-8 lg:border-b-0 lg:border-r lg:px-9 lg:py-9">
-                                {/* restrained visual accent */}
-
-                                <div className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full border-18 border-primary/4.5" />
+                    <div className="mt-5 overflow-hidden rounded-2xl border border-border bg-white shadow-[0_5px_24px_rgba(15,23,42,0.04)]">
+                        <div className="grid lg:grid-cols-[280px_1fr]">
+                            <div className="relative overflow-hidden border-b border-primary/10 bg-primary/7 px-7 py-7 sm:px-8 lg:border-b-0 lg:border-r lg:px-8 lg:py-8">
+                                <div className="pointer-events-none absolute -right-14 -top-14 h-36 w-36 rounded-full border-18 border-primary/4.5" />
 
                                 <div className="pointer-events-none absolute -bottom-16 -left-10 h-28 w-28 rounded-full bg-primary/2.5" />
 
                                 <div className="relative">
-                                    {/* label row */}
-
-                                    <div className="flex items-start justify-between gap-5">
+                                    <div className="flex items-start justify-between gap-4">
                                         <div>
                                             <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-secondary">
                                                 Total submitted
                                             </p>
 
-                                            <p className="mt-2 text-xs leading-5 text-text-secondary">
+                                            <p className="mt-1.5 text-xs leading-5 text-text-secondary">
                                                 Your request history
                                             </p>
                                         </div>
 
-                                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-primary/15 bg-white text-primary shadow-sm">
+                                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-primary/15 bg-white text-primary shadow-sm">
                                             <ArrowUpRight
-                                                size={17}
+                                                size={16}
                                                 strokeWidth={1.8}
                                             />
                                         </span>
                                     </div>
 
-                                    {/* main number */}
-
-                                    <div className="mt-8 flex items-end gap-3">
-                                        <span className="text-[56px] font-extrabold leading-[0.9] tracking-tighter text-text-primary">
+                                    <div className="mt-7 flex items-end gap-2.5">
+                                        <span className="text-[52px] font-extrabold leading-[0.9] tracking-[-0.045em] text-text-primary">
                                             {statistics.total}
                                         </span>
 
-                                        <span className="mb-1 text-xs font-bold text-text-secondary">
+                                        <span className="mb-0.5 text-xs font-bold text-text-secondary">
                                             requests
                                         </span>
                                     </div>
 
-                                    {/* supporting text */}
-
-                                    <p className="mt-6 max-w-55 text-xs leading-5 text-text-secondary">
+                                    <p className="mt-35 max-w-57.5 text-xs leading-5 text-text-secondary">
                                         Every request you have submitted through
                                         Stand For People.
                                     </p>
 
-                                    {/* bottom accent */}
-
-                                    <div className="mt-7 flex items-center gap-1.5">
+                                    <div className="mt-6 flex items-center gap-1.5">
                                         <span className="h-1 w-7 rounded-full bg-primary/50" />
                                         <span className="h-1 w-2 rounded-full bg-primary/20" />
                                         <span className="h-1 w-2 rounded-full bg-primary/10" />
@@ -1534,26 +1421,20 @@ const MyHelpRequests = () => {
                                 </div>
                             </div>
 
-                            {/* =================================================
-                ACTIVE REQUEST FLOW
-            ================================================== */}
-
-                            <div className="px-7 py-8 sm:px-8 lg:px-9 lg:py-9  bg-white">
-                                {/* heading */}
-
-                                <div className="flex items-start justify-between gap-6">
+                            <div className="min-w-0 bg-white px-6 py-7 sm:px-8 lg:px-9 lg:py-8">
+                                <div className="flex items-start justify-between gap-5">
                                     <div>
                                         <p className="text-[15px] font-bold leading-5 text-text-primary">
                                             Active request flow
                                         </p>
 
-                                        <p className="mt-2 text-xs leading-5 text-text-secondary">
+                                        <p className="mt-1.5 text-xs leading-5 text-text-secondary">
                                             Requests currently moving through
                                             support
                                         </p>
                                     </div>
 
-                                    <span className="shrink-0 rounded-lg border border-primary/15 bg-primary/5.5 px-3 py-1.5 text-[11px] font-bold text-primary">
+                                    <span className="shrink-0 rounded-lg border border-primary/10 bg-primary/4.5 px-3 py-1.5 text-[11px] font-bold text-primary">
                                         {statistics.pending +
                                             statistics.verified +
                                             statistics.assigned}{' '}
@@ -1561,25 +1442,19 @@ const MyHelpRequests = () => {
                                     </span>
                                 </div>
 
-                                {/* flow */}
-
                                 <div className="relative mt-9">
-                                    {/* connecting line */}
+                                    <div className="absolute left-3 right-3 top-3 h-px bg-border sm:left-4 sm:right-4" />
 
-                                    <div className="absolute left-3 right-3 top-3 h-px bg-border" />
-
-                                    <div className="relative grid grid-cols-3 gap-6">
-                                        {/* Pending */}
-
-                                        <div>
-                                            <div className="flex items-center">
+                                    <div className="relative grid grid-cols-3">
+                                        <div className="min-w-0 text-left">
+                                            <div className="flex justify-start">
                                                 <span className="relative z-10 flex h-6 w-6 items-center justify-center rounded-full border-4 border-white bg-amber-500 shadow-sm">
                                                     <span className="h-1.5 w-1.5 rounded-full bg-white" />
                                                 </span>
                                             </div>
 
                                             <div className="mt-5">
-                                                <p className="text-[27px] font-extrabold leading-none tracking-[-0.035em] text-text-primary">
+                                                <p className="text-[28px] font-extrabold leading-none tracking-[-0.04em] text-text-primary">
                                                     {statistics.pending}
                                                 </p>
 
@@ -1587,23 +1462,21 @@ const MyHelpRequests = () => {
                                                     Pending
                                                 </p>
 
-                                                <p className="mt-2.5 hidden text-xs leading-5 text-text-secondary sm:block">
+                                                <p className="mt-2 text-xs leading-5 text-text-secondary">
                                                     Waiting for review
                                                 </p>
                                             </div>
                                         </div>
 
-                                        {/* Verified */}
-
-                                        <div>
-                                            <div className="flex items-center">
+                                        <div className="min-w-0 text-center">
+                                            <div className="flex justify-center">
                                                 <span className="relative z-10 flex h-6 w-6 items-center justify-center rounded-full border-4 border-white bg-blue-500 shadow-sm">
                                                     <span className="h-1.5 w-1.5 rounded-full bg-white" />
                                                 </span>
                                             </div>
 
                                             <div className="mt-5">
-                                                <p className="text-[27px] font-extrabold leading-none tracking-[-0.035em] text-text-primary">
+                                                <p className="text-[28px] font-extrabold leading-none tracking-[-0.04em] text-text-primary">
                                                     {statistics.verified}
                                                 </p>
 
@@ -1611,23 +1484,21 @@ const MyHelpRequests = () => {
                                                     Verified
                                                 </p>
 
-                                                <p className="mt-2.5 hidden text-xs leading-5 text-text-secondary sm:block">
+                                                <p className="mt-2 text-xs leading-5 text-text-secondary">
                                                     Request confirmed
                                                 </p>
                                             </div>
                                         </div>
 
-                                        {/* Assigned */}
-
-                                        <div>
-                                            <div className="flex items-center">
+                                        <div className="min-w-0 text-right">
+                                            <div className="flex justify-end">
                                                 <span className="relative z-10 flex h-6 w-6 items-center justify-center rounded-full border-4 border-white bg-primary shadow-sm">
                                                     <span className="h-1.5 w-1.5 rounded-full bg-white" />
                                                 </span>
                                             </div>
 
                                             <div className="mt-5">
-                                                <p className="text-[27px] font-extrabold leading-none tracking-[-0.035em] text-text-primary">
+                                                <p className="text-[28px] font-extrabold leading-none tracking-[-0.04em] text-text-primary">
                                                     {statistics.assigned}
                                                 </p>
 
@@ -1635,82 +1506,63 @@ const MyHelpRequests = () => {
                                                     Assigned
                                                 </p>
 
-                                                <p className="mt-2.5 hidden text-xs leading-5 text-text-secondary sm:block">
+                                                <p className="mt-2 text-xs leading-5 text-text-secondary">
                                                     Organization connected
                                                 </p>
                                             </div>
                                         </div>
                                     </div>
+                                </div>
 
-                                    {/* =================================================
-            OUTCOMES
-        ================================================== */}
-
-                                    <div className="grid divide-y divide-border border-t mt-20 border-border sm:grid-cols-2 sm:divide-x sm:divide-y-0">
-                                        {/* Completed */}
-
-                                        <div className="flex items-center justify-between px-7 transition-colors hover:bg-emerald-50/40 sm:px-8">
-                                            <div className="flex items-center gap-4">
-                                                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50">
-                                                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                                                </span>
-
-                                                <div>
-                                                    <p className="text-[14px] font-bold leading-5 text-text-primary">
-                                                        Completed
-                                                    </p>
-
-                                                    <p className="mt-1 text-xs leading-5 text-text-secondary">
-                                                        Successfully supported
-                                                        requests
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            <span className="text-[22px] font-extrabold leading-none tracking-tight text-emerald-600">
-                                                {statistics.completed}
+                                <div className="mt-12 grid border-t border-border sm:grid-cols-2">
+                                    <div className="flex items-center justify-between gap-5 border-b border-border px-1 py-5 sm:border-b-0 sm:border-r sm:pr-7">
+                                        <div className="flex min-w-0 items-center gap-3.5">
+                                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50">
+                                                <span className="h-2 w-2 rounded-full bg-emerald-500" />
                                             </span>
+
+                                            <div className="min-w-0">
+                                                <p className="text-[13px] font-bold leading-5 text-text-primary">
+                                                    Completed
+                                                </p>
+
+                                                <p className="mt-0.5 text-[11px] leading-5 text-text-secondary">
+                                                    Successfully supported
+                                                    requests
+                                                </p>
+                                            </div>
                                         </div>
 
-                                        {/* Rejected */}
+                                        <span className="shrink-0 text-[21px] font-extrabold leading-none tracking-tight text-emerald-600">
+                                            {statistics.completed}
+                                        </span>
+                                    </div>
 
-                                        <div className="flex items-center justify-between px-7 py-6 transition-colors hover:bg-red-50/40 sm:px-8">
-                                            <div className="flex items-center gap-4">
-                                                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-red-200 bg-red-50">
-                                                    <span className="h-2 w-2 rounded-full bg-red-500" />
-                                                </span>
-
-                                                <div>
-                                                    <p className="text-[14px] font-bold leading-5 text-text-primary">
-                                                        Rejected
-                                                    </p>
-
-                                                    <p className="mt-1 text-xs leading-5 text-text-secondary">
-                                                        Requests that could not
-                                                        proceed
-                                                    </p>
-                                                </div>
-                                            </div>
-
-                                            <span className="text-[22px] font-extrabold leading-none tracking-tight text-red-500">
-                                                {statistics.rejected}
+                                    <div className="flex items-center justify-between gap-5 px-1 py-5 sm:pl-7">
+                                        <div className="flex min-w-0 items-center gap-3.5">
+                                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-red-200 bg-red-50">
+                                                <span className="h-2 w-2 rounded-full bg-red-500" />
                                             </span>
+
+                                            <div className="min-w-0">
+                                                <p className="text-[13px] font-bold leading-5 text-text-primary">
+                                                    Rejected
+                                                </p>
+
+                                                <p className="mt-0.5 text-[11px] leading-5 text-text-secondary">
+                                                    Requests that could not
+                                                    proceed
+                                                </p>
+                                            </div>
                                         </div>
+
+                                        <span className="shrink-0 text-[21px] font-extrabold leading-none tracking-tight text-red-500">
+                                            {statistics.rejected}
+                                        </span>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-
-                    <div className="hidden">
-                        <HelpRequestStats
-                            total={statistics.total}
-                            pending={statistics.pending}
-                            verified={statistics.verified}
-                            assigned={statistics.assigned}
-                            completed={statistics.completed}
-                            rejected={statistics.rejected}
-                        />
                     </div>
                 </section>
 
@@ -1718,17 +1570,149 @@ const MyHelpRequests = () => {
     REQUEST WORKSPACE
 ====================================================== */}
 
-                <section className="overflow-hidden rounded-2xl border border-border bg-white shadow-[0_8px_30px_rgba(15,23,42,0.045)]">
-                    {/* =================================================
-        WORKSPACE BODY
-    ================================================== */}
+                <section className="overflow-hidden h-224! rounded-2xl border border-border bg-white shadow-[0_8px_30px_rgba(15,23,42,0.045)]">
+                    <div
+                        className="
+            grid
+            h-full
+            min-w-0
+            min-h-0
+            lg:grid-cols-[minmax(0,1fr)_300px]
+        "
+                        style={
+                            workspaceHeight
+                                ? {
+                                      height: `${workspaceHeight}px`,
+                                  }
+                                : undefined
+                        }
+                    >
+                        {/* =====================================================
+            MAIN CONTENT
+        ====================================================== */}
 
-                    <div className="grid min-w-0 lg:grid-cols-[300px_minmax(0,1fr)]">
-                        {/* =================================================
-            LEFT — REQUEST CONTROLS
-        ================================================== */}
+                        <div
+                            className="
+                flex
+                h-full
+                min-w-0
+                min-h-0
+                flex-col
+                bg-primary/7
+            "
+                        >
+                            {/* =================================================
+                REQUEST HEADER — FIXED
+            ================================================== */}
 
-                        <aside className="min-w-0 overflow-hidden border-b border-border bg-background lg:border-b-0 lg:border-r">
+                            <div className="shrink-0 px-6 pt-12 pb-8 border-b border-border shadow-4xl">
+                                <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+                                    <div className="min-w-0">
+                                        <h2 className="text-[28px] font-extrabold leading-tight tracking-[-0.035em] text-text-primary">
+                                            Help requests
+                                        </h2>
+
+                                        <p className="mt-2 max-w-lg text-[13px] leading-5.5 text-text-secondary">
+                                            Keep track of the requests you have
+                                            submitted and see <br />
+                                            where each one currently stands.
+                                        </p>
+                                    </div>
+
+                                    <div className="flex items-center gap-6 self-start lg:self-auto">
+                                        <div>
+                                            <div className="text-[24px] font-extrabold leading-none tracking-[-0.03em] text-text-primary">
+                                                {filteredHelpRequests.length}
+                                            </div>
+
+                                            <div className="mt-1.5 text-[10px] font-bold uppercase tracking-[0.13em] text-text-secondary">
+                                                Total requests
+                                            </div>
+                                        </div>
+
+                                        <div className="h-10 w-px bg-border" />
+
+                                        <div>
+                                            <div className="text-[13px] font-semibold text-text-primary">
+                                                Submitted
+                                            </div>
+
+                                            <div className="mt-1 text-[11px] text-text-secondary">
+                                                Your request history
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* =================================================
+                TABLE DATA — ONLY THIS AREA SCROLLS
+            ================================================== */}
+
+                            <div
+                                className="
+        min-h-0
+        min-w-0
+        flex-1
+        overflow-y-scroll
+        overflow-x-hidden
+        overscroll-contain
+        bg-white
+    "
+                                style={{
+                                    scrollbarGutter: 'stable',
+                                }}
+                            >
+                                <div className="w-full min-w-0 overflow-x-hidden bg-white">
+                                    <HelpRequestTable
+                                        columns={columns}
+                                        rows={rows}
+                                        onSort={handleSort}
+                                        getSortIcon={getSortIcon}
+                                        resultCount={
+                                            filteredHelpRequests.length
+                                        }
+                                    />
+                                </div>
+                            </div>
+
+                            {/* =================================================
+                PAGINATION — FIXED
+            ================================================== */}
+
+                            {filteredHelpRequests.length > 0 && (
+                                <div className="shrink-0 border-t border-border bg-primary/0.5 px-5 py-4 sm:px-6 lg:px-8">
+                                    <HelpRequestPagination
+                                        currentPage={safeCurrentPage}
+                                        totalPages={totalPages}
+                                        totalItems={filteredHelpRequests.length}
+                                        itemsPerPage={HELP_REQUESTS_PER_PAGE}
+                                        onPageChange={setCurrentPage}
+                                    />
+                                </div>
+                            )}
+                        </div>
+
+                        {/* =====================================================
+            RIGHT SIDEBAR
+            Its natural content height defines the workspace
+        ====================================================== */}
+
+                        <aside
+                            ref={workspaceSidebarRef}
+                            className="
+                order-first
+                min-w-0
+                self-start
+                overflow-hidden
+                border-b
+                border-border
+                bg-primary/7
+                lg:order-none
+                lg:border-b-0
+                lg:border-l
+            "
+                        >
                             <div className="p-6 sm:p-7">
                                 {/* =================================================
                     REQUEST STATUS
@@ -1763,7 +1747,7 @@ const MyHelpRequests = () => {
                                 </div>
 
                                 {/* =================================================
-                    FILTER REQUESTS
+                    FILTERS
                 ================================================== */}
 
                                 <div className="mt-9 border-t border-border pt-8">
@@ -1788,12 +1772,6 @@ const MyHelpRequests = () => {
                                             </div>
                                         </div>
                                     </div>
-
-                                    {/* =================================================
-                        FILTER CONTROLS
-                        Single vertical column.
-                        No nested card.
-                    ================================================== */}
 
                                     <div
                                         className="
@@ -1834,103 +1812,6 @@ const MyHelpRequests = () => {
                                 </div>
                             </div>
                         </aside>
-
-                        {/* =================================================
-            RIGHT — REQUEST RESULTS
-        ================================================== */}
-
-                        <div className="min-w-0 bg-white">
-                            {/* =================================================
-                SUBMITTED REQUESTS HEADER
-            ================================================== */}
-
-                            <div className="border-b border-border bg-background p-6">
-                                {/* =================================================
-        WORKSPACE HEADER
-    ================================================== */}
-
-                                <div className="border-b border-border pb-6">
-                                    <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-                                        <div className="min-w-0">
-                                            <div className="mb-3.5 flex items-center gap-2.5">
-                                                <span className="h-2 w-2 rounded-full bg-primary" />
-
-                                                <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-primary">
-                                                    Request workspace
-                                                </span>
-                                            </div>
-
-                                            <h2 className="text-[26px] font-extrabold leading-[1.18] tracking-tight text-text-primary sm:text-[28px]">
-                                                Your help requests
-                                            </h2>
-
-                                            <p className="mt-3 max-w-2xl text-[14px] font-normal leading-6 text-text-secondary">
-                                                Review your submissions and
-                                                follow each request from
-                                                verification through support.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between mt-6">
-                                    {/* LEFT */}
-
-                                    <div className="flex min-w-0 items-start gap-3.5">
-                                        <div className="min-w-0">
-                                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-                                                <h3 className="text-[16px] font-extrabold leading-5.5 tracking-[-0.015em] text-text-primary">
-                                                    Submitted requests
-                                                </h3>
-
-                                                <span className="h-1 w-1 rounded-full bg-border" />
-
-                                                <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-secondary">
-                                                    {
-                                                        filteredHelpRequests.length
-                                                    }{' '}
-                                                    results
-                                                </span>
-                                            </div>
-
-                                            <p className="mt-2 text-[12px] font-normal leading-5 text-text-secondary">
-                                                Your current request activity
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* =================================================
-                TABLE
-            ================================================== */}
-
-                            <div className="min-w-0 overflow-x-auto">
-                                <HelpRequestTable
-                                    columns={columns}
-                                    rows={rows}
-                                    onSort={handleSort}
-                                    getSortIcon={getSortIcon}
-                                    resultCount={filteredHelpRequests.length}
-                                />
-                            </div>
-
-                            {/* =================================================
-                PAGINATION
-            ================================================== */}
-
-                            {filteredHelpRequests.length > 0 && (
-                                <div className="border-t border-border bg-[#fafbfb] px-5 py-5 sm:px-6 lg:px-8">
-                                    <HelpRequestPagination
-                                        currentPage={safeCurrentPage}
-                                        totalPages={totalPages}
-                                        totalItems={filteredHelpRequests.length}
-                                        itemsPerPage={HELP_REQUESTS_PER_PAGE}
-                                        onPageChange={setCurrentPage}
-                                    />
-                                </div>
-                            )}
-                        </div>
                     </div>
                 </section>
             </div>

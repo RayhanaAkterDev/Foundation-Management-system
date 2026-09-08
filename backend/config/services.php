@@ -41,12 +41,16 @@ return [
 
         'initiation_url' => env(
             'SSLCOMMERZ_INITIATION_URL',
-            'https://sandbox.sslcommerz.com/gwprocess/v4/api.php'
+            'https://sandbox-gw.sslcommerz.com/gwprocess/v4/api.php'
         ),
 
         'validation_url' => env(
             'SSLCOMMERZ_VALIDATION_URL',
             'https://sandbox.sslcommerz.com/validator/api/validationserverAPI.php'
+        ),
+
+        'callback_url' => env(
+            'SSLCOMMERZ_CALLBACK_URL'
         ),
     ],
 

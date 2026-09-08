@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\DonationAttempt;
 use Illuminate\Support\Facades\DB;
@@ -17,6 +18,8 @@ class SSLCOMMERZService
     private string $initiationUrl;
 
     private string $validationUrl;
+
+    private string $callbackUrl;
 
     public function __construct()
     {
@@ -35,6 +38,11 @@ class SSLCOMMERZService
         $this->validationUrl = (string) config(
             'services.sslcommerz.validation_url'
         );
+
+        $this->callbackUrl = rtrim(
+            (string) config('services.sslcommerz.callback_url'),
+            '/'
+        );
     }
 
     /**
@@ -44,6 +52,7 @@ class SSLCOMMERZService
     {
         $payload = [
             'store_id' => $this->storeId,
+
             'store_passwd' => $this->storePassword,
 
             'total_amount' => number_format(
@@ -57,32 +66,38 @@ class SSLCOMMERZService
 
             'tran_id' => $data['transaction_id'],
 
-            'success_url' => route(
-                'donations.payment.success'
-            ),
+            'success_url' =>
+            $this->callbackUrl .
+                '/api/donations/payment/success',
 
-            'fail_url' => route(
-                'donations.payment.fail'
-            ),
+            'fail_url' =>
+            $this->callbackUrl .
+                '/api/donations/payment/fail',
 
-            'cancel_url' => route(
-                'donations.payment.cancel'
-            ),
+            'cancel_url' =>
+            $this->callbackUrl .
+                '/api/donations/payment/cancel',
 
-            'ipn_url' => route(
-                'donations.payment.ipn'
-            ),
+            'ipn_url' =>
+            $this->callbackUrl .
+                '/api/donations/payment/ipn',
 
             'cus_name' => $data['donor_name'],
+
             'cus_email' => $data['donor_email'],
 
             'cus_add1' => 'Bangladesh',
+
             'cus_city' => 'Dhaka',
+
             'cus_country' => 'Bangladesh',
 
             'shipping_method' => 'NO',
+
             'product_name' => $data['campaign_title'],
+
             'product_category' => 'donation',
+
             'product_profile' => 'general',
 
             /*
@@ -90,6 +105,7 @@ class SSLCOMMERZService
              * information through the gateway request.
              */
             'value_a' => (string) $data['campaign_id'],
+
             'value_b' => (string) $data['transaction_id'],
         ];
 
@@ -119,7 +135,9 @@ class SSLCOMMERZService
 
         return [
             'success' => true,
+
             'gateway_url' => $result['GatewayPageURL'],
+
             'session_key' => $result['sessionkey'] ?? null,
         ];
     }
@@ -142,7 +160,9 @@ class SSLCOMMERZService
         if ($status === 'CANCELLED') {
             return [
                 'success' => false,
+
                 'status' => DonationAttempt::STATUS_CANCELLED,
+
                 'message' => 'Payment was cancelled.',
             ];
         }
@@ -150,7 +170,9 @@ class SSLCOMMERZService
         if ($status !== 'VALID') {
             return [
                 'success' => false,
+
                 'status' => DonationAttempt::STATUS_FAILED,
+
                 'message' => 'Payment was not successful.',
             ];
         }
@@ -165,7 +187,9 @@ class SSLCOMMERZService
         ) {
             return [
                 'success' => false,
+
                 'status' => DonationAttempt::STATUS_FAILED,
+
                 'message' => 'Invalid transaction ID.',
             ];
         }
@@ -177,7 +201,9 @@ class SSLCOMMERZService
         if ($validationId === '') {
             return [
                 'success' => false,
+
                 'status' => DonationAttempt::STATUS_FAILED,
+
                 'message' => 'Payment validation ID is missing.',
             ];
         }
@@ -186,8 +212,11 @@ class SSLCOMMERZService
             $this->validationUrl,
             [
                 'val_id' => $validationId,
+
                 'store_id' => $this->storeId,
+
                 'store_passwd' => $this->storePassword,
+
                 'format' => 'json',
             ]
         );
@@ -195,7 +224,9 @@ class SSLCOMMERZService
         if (!$response->successful()) {
             return [
                 'success' => false,
+
                 'status' => DonationAttempt::STATUS_FAILED,
+
                 'message' =>
                 'Unable to validate payment with SSLCOMMERZ.',
             ];
@@ -206,7 +237,9 @@ class SSLCOMMERZService
         if (!is_array($result)) {
             return [
                 'success' => false,
+
                 'status' => DonationAttempt::STATUS_FAILED,
+
                 'message' =>
                 'Invalid validation response from SSLCOMMERZ.',
             ];
@@ -225,7 +258,9 @@ class SSLCOMMERZService
         ) {
             return [
                 'success' => false,
+
                 'status' => DonationAttempt::STATUS_FAILED,
+
                 'message' =>
                 'SSLCOMMERZ did not validate the payment.',
             ];
@@ -241,7 +276,9 @@ class SSLCOMMERZService
         ) {
             return [
                 'success' => false,
+
                 'status' => DonationAttempt::STATUS_FAILED,
+
                 'message' =>
                 'Validated transaction does not match the donation attempt.',
             ];
@@ -258,7 +295,9 @@ class SSLCOMMERZService
         ) {
             return [
                 'success' => false,
+
                 'status' => DonationAttempt::STATUS_FAILED,
+
                 'message' =>
                 'Payment amount does not match the donation amount.',
             ];
@@ -271,23 +310,31 @@ class SSLCOMMERZService
         if ($currency !== 'BDT') {
             return [
                 'success' => false,
+
                 'status' => DonationAttempt::STATUS_FAILED,
-                'message' =>
-                'Invalid payment currency.',
+
+                'message' => 'Invalid payment currency.',
             ];
         }
 
         return [
             'success' => true,
+
             'status' => DonationAttempt::STATUS_PENDING,
+
             'transaction_id' => $validatedTransactionId,
+
             'validation_id' => $validationId,
+
             'amount' => $gatewayAmount,
+
             'currency' => $currency,
+
             'payment_method' =>
             $result['card_type']
                 ?? $result['card_brand']
                 ?? 'SSLCOMMERZ',
+
             'gateway_response' => $result,
         ];
     }
@@ -336,7 +383,7 @@ class SSLCOMMERZService
 
             if (
                 $campaign->status !==
-                \App\Models\Campaign::STATUS_ACTIVE
+                Campaign::STATUS_ACTIVE
             ) {
                 throw new RuntimeException(
                     'Campaign is no longer active.'
@@ -348,12 +395,18 @@ class SSLCOMMERZService
              */
             $donation = Donation::create([
                 'user_id' => $attempt->user_id,
+
                 'donor_name' => $attempt->donor_name,
+
                 'donor_email' => $attempt->donor_email,
+
                 'campaign_id' => $attempt->campaign_id,
+
                 'amount' => $attempt->amount,
+
                 'payment_method' =>
                 $payment['payment_method'],
+
                 'transaction_id' =>
                 $attempt->transaction_id,
             ]);

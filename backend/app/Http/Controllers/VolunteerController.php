@@ -35,7 +35,10 @@ class VolunteerController extends Controller
             'volunteer_id',
             $userId
         )
-            ->whereIn('status', CampaignVolunteerAssignment::activeStatuses())
+            ->whereIn(
+                'status',
+                CampaignVolunteerAssignment::activeStatuses()
+            )
             ->exists();
 
         $volunteer->update([
@@ -522,7 +525,8 @@ class VolunteerController extends Controller
         ]);
 
         $assignment->update([
-            'status' => CampaignVolunteerAssignment::STATUS_WITHDRAWAL_REQUESTED,
+            'status' =>
+            CampaignVolunteerAssignment::STATUS_WITHDRAWAL_REQUESTED,
             'withdrawal_reason' => $validated['withdrawal_reason'],
             'withdrawal_requested_at' => now(),
             'withdrawal_reviewed_at' => null,
@@ -545,8 +549,8 @@ class VolunteerController extends Controller
     /**
      * Admin: Review a volunteer campaign withdrawal request.
      *
-     * Approved  -> withdrawn -> volunteer becomes available.
-     * Rejected  -> in_progress -> volunteer remains occupied.
+     * Approved -> withdrawn -> volunteer becomes available.
+     * Rejected -> in_progress -> volunteer remains occupied.
      */
     public function reviewCampaignWithdrawal(
         Request $request,
@@ -597,13 +601,15 @@ class VolunteerController extends Controller
         ) {
             if ($validated['decision'] === 'approved') {
                 $assignment->update([
-                    'status' => CampaignVolunteerAssignment::STATUS_WITHDRAWN,
+                    'status' =>
+                    CampaignVolunteerAssignment::STATUS_WITHDRAWN,
                     'withdrawal_reviewed_at' => now(),
                     'withdrawal_reviewed_by' => $user->id,
                 ]);
             } else {
                 $assignment->update([
-                    'status' => CampaignVolunteerAssignment::STATUS_IN_PROGRESS,
+                    'status' =>
+                    CampaignVolunteerAssignment::STATUS_IN_PROGRESS,
                     'withdrawal_reviewed_at' => now(),
                     'withdrawal_reviewed_by' => $user->id,
                 ]);
@@ -628,7 +634,7 @@ class VolunteerController extends Controller
     /**
      * Admin: Validate a volunteer's campaign rejection.
      *
-     * Valid rejection  -> rejection_validated = true
+     * Valid rejection -> rejection_validated = true
      * Invalid rejection -> rejection_validated = false
      */
     public function validateCampaignRejection(
@@ -745,7 +751,7 @@ class VolunteerController extends Controller
         $newStatus = $validated['status'];
         $currentStatus = $volunteer->status;
 
-        /*
+        /**
          * A volunteer can become active only from pending.
          */
         if (
@@ -761,8 +767,12 @@ class VolunteerController extends Controller
             ], 422);
         }
 
-        /*
-         * A suspended/removed volunteer cannot receive campaign assignments.
+        /**
+         * A volunteer cannot be suspended or removed while
+         * actively assigned to a campaign.
+         *
+         * Active campaign assignment statuses are:
+         * assigned, accepted, in_progress, withdrawal_requested.
          */
         if (
             in_array($newStatus, [
@@ -770,15 +780,23 @@ class VolunteerController extends Controller
                 Volunteer::STATUS_REMOVED,
             ], true)
         ) {
-            CampaignVolunteerAssignment::where(
-                'volunteer_id',
-                $volunteer->user_id
-            )
+            $hasActiveCampaignAssignment =
+                CampaignVolunteerAssignment::where(
+                    'volunteer_id',
+                    $volunteer->user_id
+                )
                 ->whereIn(
                     'status',
                     CampaignVolunteerAssignment::activeStatuses()
                 )
                 ->exists();
+
+            if ($hasActiveCampaignAssignment) {
+                return response()->json([
+                    'message' =>
+                    'This volunteer cannot be suspended or removed while they have an active campaign assignment.',
+                ], 422);
+            }
         }
 
         $volunteer->update([
@@ -790,19 +808,14 @@ class VolunteerController extends Controller
         $message = match ($newStatus) {
             Volunteer::STATUS_ACTIVE =>
             'Volunteer approved successfully.',
-
             Volunteer::STATUS_REJECTED =>
             'Volunteer rejected successfully.',
-
             Volunteer::STATUS_SUSPENDED =>
             'Volunteer suspended successfully.',
-
             Volunteer::STATUS_REMOVED =>
             'Volunteer removed successfully.',
-
             Volunteer::STATUS_PENDING =>
             'Volunteer status changed to pending.',
-
             default =>
             'Volunteer status updated successfully.',
         };

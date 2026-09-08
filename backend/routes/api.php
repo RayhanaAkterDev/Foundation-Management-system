@@ -25,6 +25,29 @@ Route::get('/campaigns/{id}', [CampaignController::class, 'show']);
 
 Route::post('/donations', [DonationController::class, 'store']);
 
+// -------------------------------------------------------------
+// SSLCOMMERZ Payment Callbacks
+// -------------------------------------------------------------
+
+Route::post(
+    '/donations/payment/success',
+    [DonationController::class, 'success']
+)->name('donations.payment.success');
+
+Route::post(
+    '/donations/payment/fail',
+    [DonationController::class, 'fail']
+)->name('donations.payment.fail');
+
+Route::post(
+    '/donations/payment/cancel',
+    [DonationController::class, 'cancel']
+)->name('donations.payment.cancel');
+
+Route::post(
+    '/donations/payment/ipn',
+    [DonationController::class, 'ipn']
+)->name('donations.payment.ipn');
 
 // =============================================================
 // AUTHENTICATED USERS
@@ -41,7 +64,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
 
     Route::put('/profile', [AuthController::class, 'updateProfile']);
-
 
     // ---------------------------------------------------------
     // Notifications
@@ -62,7 +84,6 @@ Route::middleware('auth:sanctum')->group(function () {
         [NotificationController::class, 'markAsRead']
     );
 
-
     // ---------------------------------------------------------
     // Individual Dashboard
     // ---------------------------------------------------------
@@ -71,7 +92,6 @@ Route::middleware('auth:sanctum')->group(function () {
         '/individual/dashboard',
         [IndividualDashboardController::class, 'index']
     );
-
 
     // ---------------------------------------------------------
     // Help Requests - Individual
@@ -102,7 +122,6 @@ Route::middleware('auth:sanctum')->group(function () {
         [HelpRequestController::class, 'destroy']
     );
 
-
     // ---------------------------------------------------------
     // Campaigns - Organization / Admin
     // ---------------------------------------------------------
@@ -111,7 +130,6 @@ Route::middleware('auth:sanctum')->group(function () {
         '/campaigns',
         [CampaignController::class, 'store']
     );
-
 
     // ---------------------------------------------------------
     // Volunteer - Individual
@@ -126,7 +144,6 @@ Route::middleware('auth:sanctum')->group(function () {
         '/volunteer',
         [VolunteerController::class, 'show']
     );
-
 
     // ---------------------------------------------------------
     // Campaign Volunteer Assignments - Individual
@@ -151,7 +168,6 @@ Route::middleware('auth:sanctum')->group(function () {
         '/volunteer/campaign-assignments/{id}/complete',
         [VolunteerController::class, 'completeCampaignAssignment']
     );
-
 
     // ---------------------------------------------------------
     // Organization - Help Request Assignments
@@ -183,7 +199,6 @@ Route::middleware('auth:sanctum')->group(function () {
     );
 });
 
-
 // =============================================================
 // ADMIN
 // =============================================================
@@ -196,7 +211,6 @@ Route::middleware('auth:sanctum')
             '/dashboard',
             [AdminController::class, 'dashboard']
         );
-
 
         // ---------------------------------------------------------
         // Users
@@ -226,7 +240,6 @@ Route::middleware('auth:sanctum')
             '/users/{id}',
             [AdminController::class, 'destroyUser']
         );
-
 
         // ---------------------------------------------------------
         // Organizations
@@ -261,7 +274,6 @@ Route::middleware('auth:sanctum')
             '/organizations/{id}',
             [AdminController::class, 'destroyOrganization']
         );
-
 
         // ---------------------------------------------------------
         // Help Requests
@@ -302,7 +314,6 @@ Route::middleware('auth:sanctum')
             [AdminController::class, 'reassignHelpRequest']
         );
 
-
         // ---------------------------------------------------------
         // Volunteers - Admin
         // ---------------------------------------------------------
@@ -321,7 +332,6 @@ Route::middleware('auth:sanctum')
             '/volunteers/{id}/status',
             [VolunteerController::class, 'updateStatus']
         );
-
 
         // ---------------------------------------------------------
         // Campaigns - Admin
@@ -346,7 +356,6 @@ Route::middleware('auth:sanctum')
             '/campaigns/{id}/assignment',
             [AdminController::class, 'assignCampaignVolunteer']
         );
-
 
         // ---------------------------------------------------------
         // Other Admin Modules

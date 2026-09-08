@@ -73,9 +73,20 @@ class User extends Authenticatable
         return $this->hasOne(Volunteer::class);
     }
 
-    public function donations()
+    /**
+     * Successful donations made by this user.
+     */
+    public function donations(): HasMany
     {
         return $this->hasMany(Donation::class);
+    }
+
+    /**
+     * Failed/cancelled donation attempts made by this user.
+     */
+    public function donationAttempts(): HasMany
+    {
+        return $this->hasMany(DonationAttempt::class);
     }
 
     public function campaignVolunteerAssignments(): HasMany

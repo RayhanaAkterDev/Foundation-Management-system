@@ -5,16 +5,30 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Donation extends Model
+class DonationAttempt extends Model
 {
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_FAILED = 'failed';
+    public const STATUS_CANCELLED = 'cancelled';
+
+    public static function statuses(): array
+    {
+        return [
+            self::STATUS_PENDING,
+            self::STATUS_FAILED,
+            self::STATUS_CANCELLED,
+        ];
+    }
+
     protected $fillable = [
         'user_id',
-        'donor_name',
-        'donor_email',
         'campaign_id',
         'amount',
+        'status',
         'payment_method',
         'transaction_id',
+        'donor_name',
+        'donor_email',
     ];
 
     protected $casts = [

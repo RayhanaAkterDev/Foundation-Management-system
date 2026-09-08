@@ -2,6 +2,11 @@ import React, { useMemo } from 'react';
 
 import { Search, SlidersHorizontal, ChevronDown } from 'lucide-react';
 
+import {
+    STATUS_LABELS,
+    URGENCY_LABELS,
+} from '../constants/helpRequestConstants';
+
 const HelpRequestFilters = ({
     searchTerm,
     categoryFilter,
@@ -81,15 +86,11 @@ const HelpRequestFilters = ({
                 >
                     <option value="all">All priority</option>
 
-                    <option value="critical">Critical</option>
-
-                    <option value="urgent">Urgent</option>
-
-                    <option value="high">High</option>
-
-                    <option value="normal">Normal</option>
-
-                    <option value="low">Low</option>
+                    {Object.entries(URGENCY_LABELS).map(([value, label]) => (
+                        <option key={value} value={value}>
+                            {label}
+                        </option>
+                    ))}
                 </select>
 
                 <ChevronDown
@@ -107,17 +108,11 @@ const HelpRequestFilters = ({
                 >
                     <option value="all">All status</option>
 
-                    <option value="pending">Pending</option>
-
-                    <option value="verified">Verified</option>
-
-                    <option value="assigned">Assigned</option>
-
-                    <option value="in_progress">In Progress</option>
-
-                    <option value="completed">Completed</option>
-
-                    <option value="rejected">Rejected</option>
+                    {Object.entries(STATUS_LABELS).map(([value, label]) => (
+                        <option key={value} value={value}>
+                            {label}
+                        </option>
+                    ))}
                 </select>
 
                 <ChevronDown

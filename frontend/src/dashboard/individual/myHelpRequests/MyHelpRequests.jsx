@@ -9,6 +9,7 @@ import React, {
 import { ChevronsUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 
 import { getMyHelpRequests, deleteHelpRequest } from './api/helpRequestAPI';
+
 import HelpRequestPageHeader from './components/HelpRequestPageHeader';
 import HelpRequestOverview from './components/HelpRequestOverview';
 import HelpRequestWorkspace from './components/HelpRequestWorkspace';
@@ -17,7 +18,9 @@ import HelpRequestErrorState from './components/HelpRequestErrorState';
 import HelpRequestLoadingState from './components/HelpRequestLoadingState';
 import HelpRequestSuccessToast from './components/HelpRequestSuccessToast';
 import HelpRequestModals from './modals/HelpRequestModals';
+
 import { HELP_REQUESTS_PER_PAGE } from './constants/helpRequestConstants';
+
 import {
     normalizeHelpRequest,
     normalizeHelpRequests,
@@ -32,7 +35,6 @@ const MyHelpRequests = () => {
     const [error, setError] = useState('');
 
     const [showModal, setShowModal] = useState(false);
-
     const [editingRequest, setEditingRequest] = useState(null);
     const [showEditModal, setShowEditModal] = useState(false);
 
@@ -101,7 +103,6 @@ const MyHelpRequests = () => {
         });
 
         resizeObserver.observe(sidebar);
-
         window.addEventListener('resize', updateWorkspaceHeight);
 
         return () => {
@@ -140,76 +141,55 @@ const MyHelpRequests = () => {
 
     /*
      * --------------------------------------------------------------------------
-     * Assignment helper
-     *
-     * IMPORTANT:
-     * Assigned is NOT a HelpRequest status.
-     *
-     * A request is counted as Assigned only when:
-     *
-     * 1. The help request itself is verified.
-     * 2. There is a current assignment.
-     * 3. That assignment belongs to an organization.
-     * 4. That assignment has NOT been rejected.
-     *
-     * This prevents:
-     * - pending requests from being counted as assigned
-     * - rejected requests from being counted as assigned
-     * - verified but unassigned requests from being counted as assigned
-     * - old/rejected assignments from being counted as assigned
-     */
-
-    const hasOrganizationAssignment = (request) => {
-        if (!request || request.status !== 'verified') {
-            return false;
-        }
-
-        const assignmentInfo = getAssignmentInfo(request);
-        const currentAssignment = assignmentInfo?.currentAssignment;
-
-        if (!currentAssignment) {
-            return false;
-        }
-
-        /*
-         * A rejected current assignment is no longer considered assigned.
-         */
-        if (currentAssignment.status === 'rejected') {
-            return false;
-        }
-
-        /*
-         * Organization can be represented either by:
-         *
-         * organization_id
-         *
-         * or:
-         *
-         * organization: { id: ... }
-         */
-        return Boolean(
-            currentAssignment.organization_id ||
-            currentAssignment.organization?.id,
-        );
-    };
-
-    /*
-     * --------------------------------------------------------------------------
      * Statistics
+     * --------------------------------------------------------------------------
      *
-     * Example:
+     * HelpRequest.status:
      *
-     * Total    = 8
-     * Pending  = 1
-     * Verified = 6
-     * Assigned = 4
-     * Rejected = 1
-     * Completed = 0
+     * pending
+     * verified
+     * rejected
+     * completed
      *
-     * Assigned is calculated separately from request.status.
+     * Assignment.status:
+     *
+     * pending
+     * accepted
+     * rejected
+     * in_progress
+     * completed
+     *
+     * "Assigned" is calculated from the organization assignment and is NOT
+     * treated as a HelpRequest.status.
+     * --------------------------------------------------------------------------
      */
 
     const statistics = useMemo(() => {
+        const hasOrganizationAssignment = (request) => {
+            if (!request || request.status !== 'verified') {
+                return false;
+            }
+
+            const assignmentInfo = getAssignmentInfo(request);
+            const currentAssignment = assignmentInfo?.currentAssignment;
+
+            if (!currentAssignment) {
+                return false;
+            }
+
+            if (
+                String(currentAssignment.status || '').toLowerCase() ===
+                'rejected'
+            ) {
+                return false;
+            }
+
+            return Boolean(
+                currentAssignment.organization_id ||
+                currentAssignment.organization?.id,
+            );
+        };
+
         const stats = {
             total: helpRequests.length,
             pending: 0,
@@ -228,9 +208,6 @@ const MyHelpRequests = () => {
                 case 'verified':
                     stats.verified += 1;
 
-                    /*
-                     * Assigned is a subset of verified.
-                     */
                     if (hasOrganizationAssignment(request)) {
                         stats.assigned += 1;
                     }
@@ -531,14 +508,37 @@ const MyHelpRequests = () => {
      */
 
     const filteredHelpRequests = useMemo(() => {
-        const search = searchTerm.trim().toLowerCase();
+        const hasOrganizationAssignment = (request) => {
+            if (!request || request.status !== 'verified') {
+                return false;
+            }
 
-        const result = helpRequests.filter((request) => {
+            const assignmentInfo = getAssignmentInfo(request);
+            const currentAssignment = assignmentInfo?.currentAssignment;
+
+            if (!currentAssignment) {
+                return false;
+            }
+
+            if (
+                String(currentAssignment.status || '').toLowerCase() ===
+                'rejected'
+            ) {
+                return false;
+            }
+
+            return Boolean(
+                currentAssignment.organization_id ||
+                currentAssignment.organization?.id,
+            );
+        };
+
+        return helpRequests.filter((request) => {
             /*
-             * Assigned is NOT request.status === 'assigned'.
+             * Category tab
              *
-             * It must use the exact same assignment logic as the
-             * Assigned statistic.
+             * "assigned" is not a HelpRequest.status.
+             * It is derived from the current organization assignment.
              */
             if (activeCategory === 'assigned') {
                 if (!hasOrganizationAssignment(request)) {
@@ -551,6 +551,9 @@ const MyHelpRequests = () => {
                 return false;
             }
 
+            /*
+             * Category filter
+             */
             if (
                 categoryFilter !== 'all' &&
                 request.category !== categoryFilter
@@ -558,75 +561,79 @@ const MyHelpRequests = () => {
                 return false;
             }
 
-            if (
-                priorityFilter !== 'all' &&
-                request.urgency !== priorityFilter
-            ) {
-                return false;
+            /*
+             * Priority / urgency filter
+             *
+             * Actual backend values:
+             * normal
+             * high
+             * critical
+             */
+            if (priorityFilter !== 'all') {
+                const requestPriority = String(request?.urgency ?? '')
+                    .trim()
+                    .toLowerCase();
+
+                const selectedPriority = String(priorityFilter)
+                    .trim()
+                    .toLowerCase();
+
+                if (requestPriority !== selectedPriority) {
+                    return false;
+                }
             }
 
-            if (statusFilter !== 'all' && request.status !== statusFilter) {
-                return false;
+            /*
+             * Status filter
+             *
+             * Actual HelpRequest.status values:
+             * pending
+             * verified
+             * rejected
+             *
+             * Assigned is intentionally NOT handled here because
+             * Assigned is an assignment-derived category/filter.
+             */
+            if (statusFilter !== 'all') {
+                const requestStatus = String(request?.status ?? '')
+                    .trim()
+                    .toLowerCase();
+
+                const selectedStatus = String(statusFilter)
+                    .trim()
+                    .toLowerCase();
+
+                if (requestStatus !== selectedStatus) {
+                    return false;
+                }
             }
 
-            if (!search) {
-                return true;
+            /*
+             * Search
+             */
+            const normalizedSearch = searchTerm.trim().toLowerCase();
+
+            if (normalizedSearch) {
+                const searchableText = [
+                    request?.title,
+                    request?.description,
+                    request?.category,
+                    request?.district,
+                    request?.address,
+                    request?.urgency,
+                    request?.status,
+                ]
+                    .filter(Boolean)
+                    .join(' ')
+                    .toLowerCase();
+
+                if (!searchableText.includes(normalizedSearch)) {
+                    return false;
+                }
             }
 
-            return [
-                request.title,
-                request.description,
-                request.category,
-                request.district,
-                request.address,
-            ].some((value) =>
-                String(value || '')
-                    .toLowerCase()
-                    .includes(search),
-            );
+            return true;
         });
-
-        /*
-         * Sorting
-         */
-
-        if (!sortConfig.key || !sortConfig.direction) {
-            return result;
-        }
-
-        const { key, direction } = sortConfig;
-        const multiplier = direction === 'asc' ? 1 : -1;
-
-        result.sort((a, b) => {
-            let first = a[key];
-            let second = b[key];
-
-            if (key === 'created_at' || key === 'updated_at') {
-                first = first ? new Date(first).getTime() : 0;
-
-                second = second ? new Date(second).getTime() : 0;
-            }
-
-            first = first ?? '';
-            second = second ?? '';
-
-            if (typeof first === 'string') {
-                first = first.toLowerCase();
-                second = String(second).toLowerCase();
-            }
-
-            if (first < second) {
-                return -1 * multiplier;
-            }
-
-            if (first > second) {
-                return 1 * multiplier;
-            }
-
-            return 0;
-        });
-
-        return result;
     }, [
         helpRequests,
         activeCategory,
@@ -634,7 +641,6 @@ const MyHelpRequests = () => {
         priorityFilter,
         statusFilter,
         searchTerm,
-        sortConfig,
     ]);
 
     /*
@@ -884,8 +890,8 @@ const MyHelpRequests = () => {
                     helpRequests={helpRequests}
                     onSearchChange={handleSearchChange}
                     onCategoryFilterChange={handleCategoryFilterChange}
-                    onPriorityFilterChange={handlePriorityChange}
-                    onStatusFilterChange={handleStatusChange}
+                    onPriorityChange={handlePriorityChange}
+                    onStatusChange={handleStatusChange}
                     columns={columns}
                     rows={rows}
                     onSort={handleSort}

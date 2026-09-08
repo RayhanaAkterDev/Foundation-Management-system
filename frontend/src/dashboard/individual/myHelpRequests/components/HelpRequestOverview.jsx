@@ -2,11 +2,12 @@ import { ArrowUpRight, CircleCheckBig, XCircle } from 'lucide-react';
 
 const HelpRequestOverview = ({ statistics }) => (
     <section>
+        {/* Section Header */}
         <div className="mt-12 px-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                <div>
+                <div className="min-w-0">
                     <div className="flex items-center gap-3">
-                        <span className="h-px w-8 bg-primary/50" />
+                        <span className="h-px w-8 shrink-0 bg-primary/50" />
 
                         <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
                             Request overview
@@ -19,7 +20,7 @@ const HelpRequestOverview = ({ statistics }) => (
                 </div>
 
                 {statistics.total > 0 && (
-                    <div className="flex items-center gap-2 pb-0.5">
+                    <div className="flex min-w-0 items-center gap-2 pb-0.5">
                         <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary/60" />
 
                         <p className="text-[11px] font-medium leading-5 text-text-secondary">
@@ -30,16 +31,18 @@ const HelpRequestOverview = ({ statistics }) => (
             </div>
         </div>
 
+        {/* Overview Card */}
         <div className="mt-5 overflow-hidden rounded-2xl border border-border bg-white shadow-[0_5px_24px_rgba(15,23,42,0.04)]">
-            <div className="grid lg:grid-cols-[280px_1fr]">
-                <div className="relative overflow-hidden border-b border-primary/10 bg-primary/7 px-7 py-7 sm:px-8 lg:border-b-0 lg:border-r lg:px-8 lg:py-8">
-                    <div className="pointer-events-none absolute -right-14 -top-14 h-36 w-36 rounded-full border-18 border-primary/4.5" />
+            <div className="grid lg:grid-cols-[280px_minmax(0,1fr)]">
+                {/* Total Submitted */}
+                <div className="relative overflow-hidden border-b border-primary/10 bg-primary/7 px-6 py-7 sm:px-8 lg:border-b-0 lg:border-r lg:px-8 lg:py-8">
+                    <div className="pointer-events-none absolute -right-14 -top-14 h-36 w-36 rounded-full border-[18px] border-primary/4.5" />
 
                     <div className="pointer-events-none absolute -bottom-16 -left-10 h-28 w-28 rounded-full bg-primary/2.5" />
 
                     <div className="relative">
                         <div className="flex items-start justify-between gap-4">
-                            <div>
+                            <div className="min-w-0">
                                 <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-secondary">
                                     Total submitted
                                 </p>
@@ -64,7 +67,7 @@ const HelpRequestOverview = ({ statistics }) => (
                             </span>
                         </div>
 
-                        <p className="mt-20 max-w-57.5 lg:mt-35 text-xs leading-5 text-text-secondary">
+                        <p className="mt-12 max-w-[230px] text-xs leading-5 text-text-secondary sm:mt-16 lg:mt-35">
                             Every request you have submitted through Stand For
                             People.
                         </p>
@@ -77,9 +80,10 @@ const HelpRequestOverview = ({ statistics }) => (
                     </div>
                 </div>
 
-                <div className="min-w-0 bg-white px-6 py-7 sm:px-8 lg:px-9 lg:py-8">
-                    <div className="flex items-start justify-between gap-5">
-                        <div>
+                {/* Request Flow */}
+                <div className="min-w-0 bg-white px-5 py-7 sm:px-8 lg:px-9 lg:py-8">
+                    <div className="flex items-start justify-between gap-4">
+                        <div className="min-w-0">
                             <p className="text-[15px] font-bold leading-5 text-text-primary">
                                 Active request flow
                             </p>
@@ -90,17 +94,20 @@ const HelpRequestOverview = ({ statistics }) => (
                         </div>
 
                         <span className="shrink-0 rounded-lg border border-primary/10 bg-primary/4.5 px-3 py-1.5 text-[11px] font-bold text-primary">
-                            {statistics.pending +
+                            {/* {statistics.pending +
                                 statistics.verified +
                                 statistics.assigned}{' '}
-                            active
+                            active */}
+                            Status
                         </span>
                     </div>
 
+                    {/* Timeline */}
                     <div className="relative mt-9">
                         <div className="absolute left-3 right-3 top-3 h-px bg-border sm:left-4 sm:right-4" />
 
                         <div className="relative grid grid-cols-3">
+                            {/* Pending */}
                             <div className="min-w-0 text-left">
                                 <div className="flex justify-start">
                                     <span className="relative z-10 flex h-6 w-6 items-center justify-center rounded-full border-4 border-white bg-amber-500 shadow-sm">
@@ -117,12 +124,13 @@ const HelpRequestOverview = ({ statistics }) => (
                                         Pending
                                     </p>
 
-                                    <p className="mt-2 text-xs leading-5 text-text-secondary">
+                                    <p className="mt-2 max-w-[120px] text-xs leading-5 text-text-secondary">
                                         Waiting for review
                                     </p>
                                 </div>
                             </div>
 
+                            {/* Verified */}
                             <div className="min-w-0 text-center">
                                 <div className="flex justify-center">
                                     <span className="relative z-10 flex h-6 w-6 items-center justify-center rounded-full border-4 border-white bg-blue-500 shadow-sm">
@@ -139,12 +147,13 @@ const HelpRequestOverview = ({ statistics }) => (
                                         Verified
                                     </p>
 
-                                    <p className="mt-2 text-xs leading-5 text-text-secondary">
+                                    <p className="mt-2 mx-auto max-w-[120px] text-xs leading-5 text-text-secondary">
                                         Request confirmed
                                     </p>
                                 </div>
                             </div>
 
+                            {/* Assigned */}
                             <div className="min-w-0 text-right">
                                 <div className="flex justify-end">
                                     <span className="relative z-10 flex h-6 w-6 items-center justify-center rounded-full border-4 border-white bg-primary shadow-sm">
@@ -161,7 +170,7 @@ const HelpRequestOverview = ({ statistics }) => (
                                         Assigned
                                     </p>
 
-                                    <p className="mt-2 text-xs leading-5 text-text-secondary">
+                                    <p className="mt-2 ml-auto max-w-[120px] text-xs leading-5 text-text-secondary">
                                         Organization connected
                                     </p>
                                 </div>
@@ -169,8 +178,10 @@ const HelpRequestOverview = ({ statistics }) => (
                         </div>
                     </div>
 
+                    {/* Completed / Rejected */}
                     <div className="mt-12 grid border-t border-border sm:grid-cols-2">
-                        <div className="flex items-center justify-between gap-5 border-b border-border px-1 py-5 sm:border-b-0 sm:border-r sm:pr-7">
+                        {/* Completed */}
+                        <div className="flex min-w-0 items-center justify-between gap-5 border-b border-border px-1 py-5 sm:border-b-0 sm:border-r sm:pr-7">
                             <div className="flex min-w-0 items-center gap-3.5">
                                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50">
                                     <CircleCheckBig
@@ -195,7 +206,8 @@ const HelpRequestOverview = ({ statistics }) => (
                             </span>
                         </div>
 
-                        <div className="flex items-center justify-between gap-5 px-1 py-5 sm:pl-7">
+                        {/* Rejected */}
+                        <div className="flex min-w-0 items-center justify-between gap-5 px-1 py-5 sm:pl-7">
                             <div className="flex min-w-0 items-center gap-3.5">
                                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-red-200 bg-red-50">
                                     <XCircle

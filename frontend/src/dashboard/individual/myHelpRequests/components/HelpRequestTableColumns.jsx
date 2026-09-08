@@ -24,24 +24,31 @@ const createHelpRequestColumns = ({
 
             return (
                 <div className="min-w-0 py-5 pr-8">
-                    <p className="truncate text-[15px] font-medium leading-5.5 tracking-[-0.01em] text-text-primary/80">
-                        {value || 'Untitled help request'}
+                    {/* Title */}
+                    <div className="flex min-w-0 items-baseline gap-2">
+                        <p className="min-w-0 truncate text-[14px] font-semibold leading-5 tracking-[-0.01em] text-text-primary">
+                            {value || 'Untitled help request'}
+                        </p>
 
-                        <span className="text-[10px] underline tracking-wide ml-2 font-semibold text-text-secondary/80">
+                        <span className="shrink-0 text-[10px] font-medium tracking-wide text-text-secondary/50">
                             {row.formattedCreatedDate}
                         </span>
-                    </p>
+                    </div>
 
-                    <p className="mt-1.5 line-clamp-2 text-[12px] font-normal leading-5 text-text-secondary">
+                    {/* Description */}
+                    <p className="mt-1.5 line-clamp-2 max-w-[560px] text-[12px] font-normal leading-[1.65] text-text-secondary/85">
                         {row.description || 'No description provided.'}
                     </p>
 
-                    <div className="mt-3 flex min-w-0 items-center gap-2 text-[11px]">
+                    {/* Category + Urgency */}
+                    <div className="mt-3 flex min-w-0 items-center gap-2.5 text-[11px]">
                         {row.category && (
                             <>
-                                <span className="truncate font-semibold capitalize text-primary">
+                                <span className="max-w-[150px] truncate font-semibold capitalize text-primary">
                                     {row.category}
                                 </span>
+
+                                <span className="h-1 w-1 shrink-0 rounded-full bg-slate-300/80" />
                             </>
                         )}
 
@@ -52,26 +59,34 @@ const createHelpRequestColumns = ({
                                 className={`h-1.5 w-1.5 shrink-0 rounded-full ${urgency.dot}`}
                             />
 
-                            <span className="text-[10px] font-semibold">
+                            <span className="text-[10px] font-semibold tracking-[0.01em]">
                                 {row.urgencyLabel}
                             </span>
                         </span>
                     </div>
 
-                    <div className="truncate font-medium text-text-secondary">
-                        {row.address && (
-                            <>
-                                {row.address}{' '}
-                                <span className="mx-1 inline-block h-1 w-1 shrink-0 rounded-full bg-slate-300" />
-                            </>
-                        )}
+                    {/* Location */}
+                    <div className="mt-2.5 flex min-w-0 items-center text-[11px] font-medium leading-4 text-text-secondary/70">
+                        <span className="min-w-0 truncate">
+                            {row.address && (
+                                <>
+                                    {row.address}
 
-                        {row.locationName || 'Location not specified'}
+                                    <span className="mx-1.5 inline-block h-0.5 w-0.5 shrink-0 rounded-full bg-slate-300 align-middle" />
+                                </>
+                            )}
+
+                            {row.locationName || 'Location not specified'}
+                        </span>
                     </div>
                 </div>
             );
         },
     },
+
+    // =========================================================
+    // STATUS
+    // =========================================================
 
     {
         key: 'statusLabel',
@@ -81,7 +96,6 @@ const createHelpRequestColumns = ({
         width: '10%',
         render: (value, row) => {
             const status = STATUS_STYLES[row.status] || {
-                dot: 'bg-slate-400',
                 text: 'text-text-secondary',
                 background: 'bg-slate-50',
             };
@@ -90,127 +104,172 @@ const createHelpRequestColumns = ({
                 <div className="py-5">
                     <span
                         className={`
-                                inline-flex
-                                items-center
-                                gap-2
-                                rounded-lg
-                                px-3
-                                py-2
-                                ${status.background}
-                            `}
+                            inline-flex
+                            items-center
+                            rounded-md
+                            border
+                            border-slate-200/70
+                            px-2.5
+                            py-1.5
+                            text-[10px]
+                            font-semibold
+                            tracking-wide
+                            ${status.background}
+                            ${status.text}
+                        `}
                     >
-                        <span
-                            className={`h-2 w-2 shrink-0 rounded-full ${status.dot}`}
-                        />
-
-                        <span
-                            className={`
-                                    text-[12px]
-                                    font-semibold
-                                    ${status.text}
-                                `}
-                        >
-                            {value}
-                        </span>
+                        {value}
                     </span>
                 </div>
             );
         },
     },
 
+    // =========================================================
+    // ASSIGNED
+    // =========================================================
+
     {
         key: 'assignmentInfo',
         header: 'Assigned',
         sortable: true,
         sortKey: 'assignmentInfo',
-        width: '12%',
+        width: '16%',
         render: (value, row) => {
+            /*
+             * Assignment is waiting for an organization response.
+             */
             if (value?.state === 'pending') {
                 return (
                     <div className="py-5">
-                        <div className="flex items-center gap-2.5">
-                            <span className="h-2 w-2 shrink-0 rounded-full bg-amber-400" />
+                        <div className="min-w-0">
+                            <p className="text-[11px] font-semibold leading-4 text-text-secondary">
+                                Awaiting response
+                            </p>
 
-                            <div className="min-w-0">
-                                <p className="text-[12px] font-semibold text-text-secondary">
-                                    Awaiting response
-                                </p>
-
-                                <p className="mt-0.5 text-[10px] font-medium text-text-secondary/55">
-                                    Organization assignment
-                                </p>
-                            </div>
+                            <p className="mt-1 text-[10px] font-medium leading-4 text-text-secondary/50">
+                                Organization assignment
+                            </p>
                         </div>
                     </div>
                 );
             }
 
-            if (value?.state === 'accepted') {
+            /*
+             * Organization has been assigned.
+             *
+             * Both "assigned" and "accepted" are valid assignment
+             * states in the backend, and both have an organization
+             * that should be displayed here.
+             */
+            if (value?.state === 'assigned' || value?.state === 'accepted') {
+                const organization = value?.currentAssignment?.organization;
+
+                const organizationName =
+                    organization?.name ||
+                    value?.label ||
+                    'Organization assigned';
+
                 return (
                     <div className="py-5">
                         <button
                             type="button"
                             onClick={() => handleViewOrganization(value, row)}
-                            disabled={!value.currentAssignment?.organization}
+                            disabled={!organization}
                             className="
-                                    group
-                                    min-w-0
-                                    max-w-60
-                                    text-left
-                                    disabled:cursor-default
-                                "
+                                group
+                                min-w-0
+                                max-w-60
+                                text-left
+                                disabled:cursor-default
+                            "
                         >
-                            <div className="flex min-w-0 items-center gap-2.5">
-                                <span className="h-2 w-2 shrink-0 rounded-full bg-primary" />
-
+                            <div className="flex min-w-0 items-center gap-2">
                                 <p
                                     className="
-                                            truncate
-                                            text-[13px]
-                                            font-semibold
-                                            leading-5
-                                            text-text-primary
-                                            transition-colors
-                                            duration-200
-                                            group-hover:text-primary
-                                        "
+                                        relative
+                                        truncate
+                                        text-[12px]
+                                        font-semibold
+                                        leading-5
+                                        text-text-primary
+                                        transition-colors
+                                        duration-200
+                                        group-hover:text-primary
+                                        after:absolute
+                                        after:bottom-[-1px]
+                                        after:left-0
+                                        after:h-[2px]
+                                        after:w-full
+                                        after:origin-left
+                                        after:scale-x-0
+                                        after:rounded-full
+                                        after:bg-primary/70
+                                        after:transition-transform
+                                        after:duration-300
+                                        after:ease-out
+                                        group-hover:after:scale-x-100
+                                    "
                                 >
-                                    {value.label}
+                                    {organizationName}
                                 </p>
+
+                                <ArrowUpRight
+                                    size={12}
+                                    strokeWidth={1.8}
+                                    className="
+                                        shrink-0
+                                        text-text-secondary/35
+                                        transition-all
+                                        duration-200
+                                        group-hover:translate-x-0.5
+                                        group-hover:-translate-y-0.5
+                                        group-hover:text-primary
+                                    "
+                                />
                             </div>
 
                             <p
                                 className="
-                                        mt-1
-                                        pl-4.5
-                                        text-[10px]
-                                        font-medium
-                                        text-text-secondary/60
-                                        transition-colors
-                                        duration-200
-                                        group-hover:text-primary/70
-                                    "
+                                    mt-0.5
+                                    text-[10px]
+                                    font-medium
+                                    leading-4
+                                    text-text-secondary/50
+                                    transition-colors
+                                    duration-200
+                                    group-hover:text-primary/70
+                                "
                             >
-                                View organization
+                                {value?.state === 'accepted'
+                                    ? 'Organization accepted'
+                                    : 'Assigned organization'}
                             </p>
                         </button>
                     </div>
                 );
             }
 
+            /*
+             * No current organization assignment.
+             *
+             * This also covers withdrawn/rejected assignments because
+             * getAssignmentInfo() intentionally treats those as
+             * not currently assigned.
+             */
             return (
                 <div className="py-5">
-                    <div className="flex items-center gap-2.5">
-                        <span className="h-2 w-2 shrink-0 rounded-full bg-slate-300" />
-
-                        <span className="text-[12px] font-medium text-text-secondary/70">
-                            Not assigned
-                        </span>
-                    </div>
+                    <span className="text-[11px] font-medium text-text-secondary/55">
+                        Not assigned
+                    </span>
                 </div>
             );
         },
     },
+
+    // =========================================================
+    // ACTIONS
+    // =========================================================
 
     {
         key: 'actions',
@@ -222,82 +281,88 @@ const createHelpRequestColumns = ({
             const canDelete = row.status === 'pending';
 
             return (
-                <div className="flex items-center justify-end gap-1 py-5">
+                <div className="flex items-center justify-end gap-0.5 py-5">
+                    {/* View */}
                     <button
                         type="button"
                         onClick={() => handleView(row)}
                         className="
-                                inline-flex
-                                items-center
-                                gap-1.5
-                                rounded-lg
-                                px-3
-                                py-2
-                                text-[11px]
-                                font-semibold
-                                text-text-secondary
-                                transition-colors
-                                duration-200
-                                hover:bg-slate-100
-                                hover:text-text-primary
-                            "
+                            inline-flex
+                            items-center
+                            gap-1.5
+                            rounded-md
+                            px-2.5
+                            py-1.5
+                            text-[11px]
+                            font-semibold
+                            text-text-secondary
+                            transition-all
+                            duration-200
+                            hover:bg-slate-100/80
+                            hover:text-text-primary
+                        "
                     >
                         <ArrowUpRight size={14} strokeWidth={1.8} />
+
                         <span>View</span>
                     </button>
 
+                    {/* Edit */}
                     {canEdit && (
                         <button
                             type="button"
                             onClick={() => handleEdit(row)}
                             disabled={deleteLoading}
                             className="
-                                    inline-flex
-                                    items-center
-                                    gap-1.5
-                                    rounded-lg
-                                    px-3
-                                    py-2
-                                    text-[11px]
-                                    font-semibold
-                                    text-text-secondary
-                                    transition-colors
-                                    duration-200
-                                    hover:bg-primary/6
-                                    hover:text-primary
-                                    disabled:cursor-not-allowed
-                                    disabled:opacity-50
-                                "
+                                inline-flex
+                                items-center
+                                gap-1.5
+                                rounded-md
+                                px-2.5
+                                py-1.5
+                                text-[11px]
+                                font-semibold
+                                text-text-secondary
+                                transition-all
+                                duration-200
+                                hover:bg-primary/5
+                                hover:text-primary
+                                disabled:cursor-not-allowed
+                                disabled:opacity-50
+                            "
                         >
-                            <Pencil size={14} strokeWidth={1.8} />
+                            <Pencil size={13} strokeWidth={1.8} />
+
                             <span>Edit</span>
                         </button>
                     )}
 
+                    {/* Delete */}
                     {canDelete && (
                         <button
                             type="button"
                             onClick={() => handleDelete(row)}
                             disabled={deleteLoading}
                             className="
-                                    inline-flex
-                                    items-center
-                                    gap-1.5
-                                    rounded-lg
-                                    px-3
-                                    py-2
-                                    text-[11px]
-                                    font-semibold
-                                    text-red-500
-                                    transition-colors
-                                    duration-200
-                                    hover:bg-red-50
-                                    hover:text-red-600
-                                    disabled:cursor-not-allowed
-                                    disabled:opacity-50
-                                "
+                                inline-flex
+                                items-center
+                                gap-1.5
+                                rounded-md
+                                px-2.5
+                                py-1.5
+                                text-[11px]
+                                font-semibold
+                                text-text-secondary/70
+                                transition-all
+                                duration-200
+                                hover:bg-slate-100
+                                hover:text-red-500
+                                disabled:cursor-not-allowed
+                                disabled:opacity-50
+                            "
                         >
-                            <Trash2 size={14} strokeWidth={1.8} />
+                            <Trash2 size={13} strokeWidth={1.8} />
+
                             <span>Delete</span>
                         </button>
                     )}

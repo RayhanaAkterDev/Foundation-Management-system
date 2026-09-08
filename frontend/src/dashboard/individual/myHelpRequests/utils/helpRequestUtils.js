@@ -32,7 +32,8 @@ export const normalizeHelpRequest = (request) => {
 export const normalizeHelpRequests = (requests) =>
     Array.isArray(requests) ? requests.map(normalizeHelpRequest) : [];
 
-export const getStatusLabel = (status) => STATUS_LABELS[status] || status || '—';
+export const getStatusLabel = (status) =>
+    STATUS_LABELS[status] || status || '—';
 
 export const getUrgencyLabel = (urgency) =>
     URGENCY_LABELS[urgency] || urgency || 'Normal';
@@ -59,21 +60,23 @@ export const getAssignmentInfo = (request) => {
 
     const currentAssignment = sortedAssignments[0];
 
-    if (currentAssignment?.status === 'pending') {
+    if (currentAssignment?.status === 'assigned') {
         return {
-            state: 'pending',
-            label: 'Assignment pending',
+            state: 'assigned',
+            label:
+                currentAssignment?.organization?.name ||
+                'Organization assigned',
             currentAssignment,
             previousAssignment: sortedAssignments[1] || null,
         };
     }
 
-    if (ACCEPTED_ASSIGNMENT_STATUSES.has(currentAssignment?.status)) {
+    if (currentAssignment?.status === 'accepted') {
         return {
             state: 'accepted',
             label:
                 currentAssignment?.organization?.name ||
-                'Organization assigned',
+                'Organization accepted',
             currentAssignment,
             previousAssignment:
                 sortedAssignments

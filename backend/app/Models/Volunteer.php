@@ -8,6 +8,23 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Volunteer extends Model
 {
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_ACTIVE = 'active';
+    public const STATUS_REJECTED = 'rejected';
+    public const STATUS_SUSPENDED = 'suspended';
+    public const STATUS_REMOVED = 'removed';
+
+    public static function statuses(): array
+    {
+        return [
+            self::STATUS_PENDING,
+            self::STATUS_ACTIVE,
+            self::STATUS_REJECTED,
+            self::STATUS_SUSPENDED,
+            self::STATUS_REMOVED,
+        ];
+    }
+
     protected $fillable = [
         'user_id',
         'organization_id',
@@ -49,38 +66,19 @@ class Volunteer extends Model
 
     /*
     |--------------------------------------------------------------------------
-    | Help Request Assignments
+    | Campaign Volunteer Assignments
     |--------------------------------------------------------------------------
     |
-    | IMPORTANT:
+    | Volunteers are assigned to campaigns, never directly to Help Requests.
     |
-    | help_request_assignments.volunteer_id
-    | stores users.id.
-    |
-    | This Volunteer model stores:
-    |
-    | volunteers.user_id
-    |
-    | Therefore:
-    |
-    | volunteers.user_id
-    |          ↓
-    | help_request_assignments.volunteer_id
-    |
-    | Example:
-    |
-    | Volunteer #2
-    | user_id = 21
-    |
-    | Assignment:
-    | volunteer_id = 21
+    | campaign_volunteer_assignments.volunteer_id stores users.id.
     |
     */
 
-    public function helpRequestAssignments(): HasMany
+    public function campaignVolunteerAssignments(): HasMany
     {
         return $this->hasMany(
-            HelpRequestAssignment::class,
+            CampaignVolunteerAssignment::class,
             'volunteer_id',
             'user_id'
         );

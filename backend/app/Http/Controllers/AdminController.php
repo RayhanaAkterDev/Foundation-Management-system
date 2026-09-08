@@ -563,7 +563,6 @@ class AdminController extends Controller
         $targetUser->email = $validated['email'];
         $targetUser->status = $validated['status'];
 
-
         if (!empty($validated['password'])) {
             $targetUser->password = $validated['password'];
         }
@@ -927,12 +926,10 @@ class AdminController extends Controller
         DB::transaction(function () use ($organization, $validated) {
             $verificationStatus = $validated['verification_status'];
 
-            // Update organization verification status.
             $organization->update([
                 'verification_status' => $verificationStatus,
             ]);
 
-            // Update the linked organization owner's account status.
             $accountStatus = $verificationStatus === 'rejected'
                 ? 'inactive'
                 : 'active';
@@ -947,7 +944,9 @@ class AdminController extends Controller
             ->load('user');
 
         return response()->json([
-            'message' => 'Organization verification status updated successfully.',
+            'message' =>
+            'Organization verification status updated successfully.',
+
             'organization' => $organization,
         ]);
     }
@@ -1031,7 +1030,7 @@ class AdminController extends Controller
     | pending -> verified
     | pending -> rejected
     |
-    | Assignment DOES NOT change this status.
+    | Assignment does not change this status.
     |
     */
 
@@ -1156,26 +1155,23 @@ class AdminController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | Help Requests - Assign Organization / Volunteer
+    | Help Requests - Assign Organization
     |--------------------------------------------------------------------------
     |
-    | IMPORTANT:
+    | Volunteers are NEVER assigned directly to Help Requests.
     |
-    | HelpRequest.status and HelpRequestAssignment.status
-    | are completely separate.
+    | Help Request assignment is exclusively for organizations.
     |
-    | HelpRequest:
+    | HelpRequest lifecycle:
     |
     | pending -> verified -> in_progress -> completed
     | pending -> rejected
     |
-    | Assignment:
+    | Organization assignment:
     |
     | pending -> accepted
     | pending -> rejected
     | accepted -> withdrawn
-    |
-    | The Help Request is NEVER changed to "assigned".
     |
     */
 
@@ -1197,12 +1193,6 @@ class AdminController extends Controller
             ], 404);
         }
 
-        /*
-    |--------------------------------------------------------------------------
-    | Only Verified Help Requests Can Be Assigned
-    |--------------------------------------------------------------------------
-    */
-
         if ($helpRequest->status !== HelpRequest::STATUS_VERIFIED) {
             return response()->json([
                 'message' =>
@@ -1210,28 +1200,11 @@ class AdminController extends Controller
             ], 422);
         }
 
-        /*
-    |--------------------------------------------------------------------------
-    | Validate Request
-    |--------------------------------------------------------------------------
-    */
-
         $validated = $request->validate([
             'organization_id' => [
-                'nullable',
+                'required',
                 'integer',
                 'exists:organizations,id',
-            ],
-
-            'volunteer_ids' => [
-                'nullable',
-                'array',
-            ],
-
-            'volunteer_ids.*' => [
-                'integer',
-                'distinct',
-                'exists:users,id',
             ],
 
             'assignment_note' => [
@@ -1241,401 +1214,114 @@ class AdminController extends Controller
             ],
         ]);
 
-        $organizationId = $validated['organization_id'] ?? null;
+        $organizationId = $validated['organization_id'];
 
-        $volunteerIds = $validated['volunteer_ids'] ?? [];
+        $organization = Organization::find($organizationId);
 
-        /*
-    |--------------------------------------------------------------------------
-    | At Least One Assignment Target Required
-    |--------------------------------------------------------------------------
-    */
-
-        if (!$organizationId && empty($volunteerIds)) {
+        if (
+            !$organization ||
+            $organization->verification_status !== 'verified'
+        ) {
             return response()->json([
                 'message' =>
-                'Select an organization or at least one volunteer.',
+                'The selected organization is not verified.',
             ], 422);
         }
 
         /*
-    |--------------------------------------------------------------------------
-    | Validate Organization
-    |--------------------------------------------------------------------------
-    */
-
-        if ($organizationId) {
-
-            $organization = Organization::find($organizationId);
-
-            if (
-                !$organization ||
-                $organization->verification_status !== 'verified'
-            ) {
-                return response()->json([
-                    'message' =>
-                    'The selected organization is not verified.',
-                ], 422);
-            }
-
-            /*
         |--------------------------------------------------------------------------
         | Prevent Invalid Organization Reassignment
         |--------------------------------------------------------------------------
-        |
-        | Once an organization rejects a help request, that same
-        | organization must never receive the same help request again.
-        |
-        | The rejected assignment remains in the database as history.
-        |
         */
 
-            $organizationPreviouslyRejected =
-                HelpRequestAssignment::where(
-                    'help_request_id',
-                    $helpRequest->id
-                )
-                ->where(
-                    'organization_id',
-                    $organizationId
-                )
-                ->where(
-                    'status',
-                    HelpRequestAssignment::STATUS_REJECTED
-                )
-                ->exists();
+        $organizationPreviouslyRejected =
+            HelpRequestAssignment::where(
+                'help_request_id',
+                $helpRequest->id
+            )
+            ->where(
+                'organization_id',
+                $organizationId
+            )
+            ->where(
+                'status',
+                HelpRequestAssignment::STATUS_REJECTED
+            )
+            ->exists();
 
-            if ($organizationPreviouslyRejected) {
-                return response()->json([
-                    'message' =>
-                    'This organization has already rejected this help request and cannot be assigned to it again.',
-                ], 422);
-            }
+        if ($organizationPreviouslyRejected) {
+            return response()->json([
+                'message' =>
+                'This organization has already rejected this help request and cannot be assigned to it again.',
+            ], 422);
+        }
 
-            /*
+        /*
         |--------------------------------------------------------------------------
         | Prevent Duplicate Active Assignment
         |--------------------------------------------------------------------------
-        |
-        | pending is included here so Admin cannot send another
-        | assignment while the existing assignment is waiting
-        | for organization response.
-        |
         */
 
-            $organizationAlreadyAssigned =
-                HelpRequestAssignment::where(
-                    'help_request_id',
-                    $helpRequest->id
-                )
-                ->where(
-                    'organization_id',
-                    $organizationId
-                )
-                ->whereIn('status', [
-                    HelpRequestAssignment::STATUS_PENDING,
-                    HelpRequestAssignment::STATUS_ACCEPTED,
-                ])
-                ->exists();
-
-            if ($organizationAlreadyAssigned) {
-                return response()->json([
-                    'message' =>
-                    'This organization already has an active assignment for this help request.',
-                ], 422);
-            }
-        }
-
-        /*
-    |--------------------------------------------------------------------------
-    | Validate Volunteers
-    |--------------------------------------------------------------------------
-    */
-
-        foreach ($volunteerIds as $volunteerId) {
-
-            /*
-        |--------------------------------------------------------------------------
-        | IMPORTANT
-        |--------------------------------------------------------------------------
-        |
-        | volunteer_id in help_request_assignments references
-        | users.id, NOT volunteers.id.
-        |
-        */
-
-            $volunteerUser = User::find($volunteerId);
-
-            if (!$volunteerUser) {
-                return response()->json([
-                    'message' =>
-                    "Volunteer user #{$volunteerId} not found.",
-                ], 422);
-            }
-
-            if ($volunteerUser->role !== 'individual') {
-                return response()->json([
-                    'message' =>
-                    "User #{$volunteerId} is not an individual user.",
-                ], 422);
-            }
-
-            if ($volunteerUser->status !== 'active') {
-                return response()->json([
-                    'message' =>
-                    "Volunteer {$volunteerUser->name} is not active.",
-                ], 422);
-            }
-
-            /*
-        |--------------------------------------------------------------------------
-        | Approved SP Volunteer Profile
-        |--------------------------------------------------------------------------
-        */
-
-            $volunteer = Volunteer::where(
-                'user_id',
-                $volunteerId
+        $organizationAlreadyAssigned =
+            HelpRequestAssignment::where(
+                'help_request_id',
+                $helpRequest->id
             )
-                ->where('status', 'approved')
-                ->first();
+            ->where(
+                'organization_id',
+                $organizationId
+            )
+            ->whereIn('status', [
+                HelpRequestAssignment::STATUS_PENDING,
+                HelpRequestAssignment::STATUS_ACCEPTED,
+            ])
+            ->exists();
 
-            if (!$volunteer) {
-                return response()->json([
-                    'message' =>
-                    "{$volunteerUser->name} is not an approved SP volunteer.",
-                ], 422);
-            }
-
-            /*
-        |--------------------------------------------------------------------------
-        | Volunteer Availability
-        |--------------------------------------------------------------------------
-        */
-
-            if ($volunteer->availability !== 'available') {
-                return response()->json([
-                    'message' =>
-                    "{$volunteerUser->name} is currently unavailable.",
-                ], 422);
-            }
-
-            /*
-        |--------------------------------------------------------------------------
-        | Existing Active Assignment
-        |--------------------------------------------------------------------------
-        */
-
-            $hasActiveAssignment =
-                HelpRequestAssignment::where(
-                    'volunteer_id',
-                    $volunteerId
-                )
-                ->whereIn('status', [
-                    HelpRequestAssignment::STATUS_PENDING,
-                    HelpRequestAssignment::STATUS_ACCEPTED,
-                ])
-                ->exists();
-
-            if ($hasActiveAssignment) {
-                return response()->json([
-                    'message' =>
-                    "{$volunteerUser->name} is currently unavailable.",
-                ], 422);
-            }
-
-            /*
-        |--------------------------------------------------------------------------
-        | Duplicate Assignment For This Help Request
-        |--------------------------------------------------------------------------
-        |
-        | Rejected assignments can be recreated.
-        |
-        */
-
-            $alreadyAssigned =
-                HelpRequestAssignment::where(
-                    'help_request_id',
-                    $helpRequest->id
-                )
-                ->where(
-                    'volunteer_id',
-                    $volunteerId
-                )
-                ->whereIn('status', [
-                    HelpRequestAssignment::STATUS_PENDING,
-                    HelpRequestAssignment::STATUS_ACCEPTED,
-                ])
-                ->exists();
-
-            if ($alreadyAssigned) {
-                return response()->json([
-                    'message' =>
-                    "{$volunteerUser->name} is already assigned to this help request.",
-                ], 422);
-            }
+        if ($organizationAlreadyAssigned) {
+            return response()->json([
+                'message' =>
+                'This organization already has an active assignment for this help request.',
+            ], 422);
         }
 
-        /*
-    |--------------------------------------------------------------------------
-    | Create Assignments
-    |--------------------------------------------------------------------------
-    */
-
-        $assignments = DB::transaction(function () use (
+        $assignment = DB::transaction(function () use (
             $helpRequest,
             $organizationId,
-            $volunteerIds,
             $validated,
             $user
         ) {
-
-            $createdAssignments = collect();
-
-            /*
-        |--------------------------------------------------------------------------
-        | Organization Assignment
-        |--------------------------------------------------------------------------
-        |
-        | IMPORTANT:
-        |
-        | Organization assignments start as PENDING.
-        |
-        | The organization must accept the assignment before it becomes
-        | an accepted/active assignment.
-        |
-        */
-
-            if ($organizationId) {
-
-                $createdAssignments->push(
-                    HelpRequestAssignment::create([
-                        'help_request_id' => $helpRequest->id,
-
-                        'organization_id' => $organizationId,
-
-                        'volunteer_id' => null,
-
-                        'assigned_by' => $user->id,
-
-                        'status' =>
-                        HelpRequestAssignment::STATUS_PENDING,
-
-                        'assignment_note' =>
-                        $validated['assignment_note'] ?? null,
-
-                        'assigned_at' => now(),
-                    ])
-                );
-            }
-
-            /*
-        |--------------------------------------------------------------------------
-        | Volunteer Assignments
-        |--------------------------------------------------------------------------
-        |
-        | Volunteer workflow remains unchanged.
-        |
-        */
-
-            foreach ($volunteerIds as $volunteerId) {
-
-                $createdAssignments->push(
-                    HelpRequestAssignment::create([
-                        'help_request_id' => $helpRequest->id,
-
-                        'organization_id' => null,
-
-                        /*
-                    |--------------------------------------------------------------------------
-                    | IMPORTANT:
-                    |--------------------------------------------------------------------------
-                    |
-                    | This is users.id.
-                    |
-                    */
-
-                        'volunteer_id' => $volunteerId,
-
-                        'assigned_by' => $user->id,
-
-                        'status' =>
-                        HelpRequestAssignment::STATUS_PENDING,
-
-                        'assignment_note' =>
-                        $validated['assignment_note'] ?? null,
-
-                        'assigned_at' => now(),
-                    ])
-                );
-
-                /*
-            |--------------------------------------------------------------------------
-            | Volunteer becomes unavailable while assignment is active.
-            |--------------------------------------------------------------------------
-            */
-
-                Volunteer::where(
-                    'user_id',
-                    $volunteerId
-                )->update([
-                    'availability' => 'unavailable',
-                ]);
-            }
-
-            /*
-        |--------------------------------------------------------------------------
-        | IMPORTANT:
-        |--------------------------------------------------------------------------
-        |
-        | Do NOT update HelpRequest.status here.
-        |
-        | It remains "verified".
-        |
-        */
-
-            return $createdAssignments;
-        });
-
-        /*
-    |--------------------------------------------------------------------------
-    | Load Relationships
-    |--------------------------------------------------------------------------
-    */
-
-        $assignments = $assignments->map(function ($assignment) {
-
-            return $assignment
-                ->fresh()
-                ->load([
-                    'helpRequest',
-                    'organization',
-                    'volunteer',
-                    'assignedBy',
-                ]);
+            return HelpRequestAssignment::create([
+                'help_request_id' => $helpRequest->id,
+                'organization_id' => $organizationId,
+                'volunteer_id' => null,
+                'assigned_by' => $user->id,
+                'status' => HelpRequestAssignment::STATUS_PENDING,
+                'assignment_note' =>
+                $validated['assignment_note'] ?? null,
+                'assigned_at' => now(),
+            ]);
         });
 
         return response()->json([
             'message' =>
-            'Help request assignment created successfully.',
+            'Help request organization assignment created successfully.',
 
-            'assignments' => $assignments,
-
+            'assignment' => $assignment
+                ->fresh()
+                ->load([
+                    'helpRequest.user',
+                    'organization.user',
+                    'assignedBy',
+                ]),
         ], 201);
     }
 
-/*
-|--------------------------------------------------------------------------
-| Help Requests - Withdrawal Requests
-|--------------------------------------------------------------------------
-*/
+    /*
+    |--------------------------------------------------------------------------
+    | Help Requests - Withdrawal Requests
+    |--------------------------------------------------------------------------
+    */
 
-    /**
-     * Get all pending organization withdrawal requests.
-     *
-     * Admin uses this to see organizations that have requested
-     * to withdraw from their current help request.
-     */
     public function withdrawalRequests(Request $request)
     {
         $user = $this->authorizeAdmin($request);
@@ -1662,36 +1348,12 @@ class AdminController extends Controller
         ]);
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Help Requests - Review Withdrawal
+    |--------------------------------------------------------------------------
+    */
 
-    /**
-     * Approve or reject an organization's withdrawal request.
-     *
-     * APPROVE:
-     *
-     * assignment.status
-     *     accepted
-     *          ↓
-     *     withdrawn
-     *
-     * assignment.withdrawal_status
-     *     pending
-     *          ↓
-     *     approved
-     *
-     *
-     * REJECT:
-     *
-     * assignment.status
-     *     remains accepted
-     *
-     * assignment.withdrawal_status
-     *     pending
-     *          ↓
-     *     rejected
-     *
-     * The organization remains assigned when the withdrawal
-     * request is rejected.
-     */
     public function reviewWithdrawal(
         Request $request,
         int $id
@@ -1750,18 +1412,10 @@ class AdminController extends Controller
 
         $decision = $validated['decision'];
 
-        if ($decision === HelpRequestAssignment::WITHDRAWAL_APPROVED) {
-            /*
-        |--------------------------------------------------------------------------
-        | Approve Withdrawal
-        |--------------------------------------------------------------------------
-        |
-        | Preserve the assignment as history.
-        |
-        | Do NOT delete it.
-        |
-        */
-
+        if (
+            $decision ===
+            HelpRequestAssignment::WITHDRAWAL_APPROVED
+        ) {
             $assignment->update([
                 'status' =>
                 HelpRequestAssignment::STATUS_WITHDRAWN,
@@ -1789,15 +1443,6 @@ class AdminController extends Controller
             ]);
         }
 
-        /*
-    |--------------------------------------------------------------------------
-    | Reject Withdrawal
-    |--------------------------------------------------------------------------
-    |
-    | Keep the assignment active.
-    |
-    */
-
         $assignment->update([
             'withdrawal_status' =>
             HelpRequestAssignment::WITHDRAWAL_REJECTED,
@@ -1822,25 +1467,12 @@ class AdminController extends Controller
         ]);
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Help Requests - Reassign Organization
+    |--------------------------------------------------------------------------
+    */
 
-    /**
-     * Reassign a help request to another organization after
-     * the previous organization's withdrawal has been approved.
-     *
-     * IMPORTANT:
-     *
-     * The old assignment is NEVER deleted.
-     *
-     * Example:
-     *
-     * Assignment #10
-     * Organization A
-     * status = withdrawn
-     *
-     * Assignment #11
-     * Organization B
-     * status = pending
-     */
     public function reassignHelpRequest(
         Request $request,
         int $id
@@ -1882,12 +1514,6 @@ class AdminController extends Controller
 
         $organizationId = $validated['organization_id'];
 
-        /*
-    |--------------------------------------------------------------------------
-    | Validate Selected Organization
-    |--------------------------------------------------------------------------
-    */
-
         $organization = Organization::find($organizationId);
 
         if (!$organization) {
@@ -1902,15 +1528,6 @@ class AdminController extends Controller
                 'The selected organization is not verified.',
             ], 422);
         }
-
-        /*
-    |--------------------------------------------------------------------------
-    | Find Current Assignment
-    |--------------------------------------------------------------------------
-    |
-    | There must be an organization whose withdrawal was approved.
-    |
-    */
 
         $withdrawnAssignment = HelpRequestAssignment::where(
             'help_request_id',
@@ -1935,18 +1552,6 @@ class AdminController extends Controller
             ], 422);
         }
 
-        /*
-    |--------------------------------------------------------------------------
-    | Prevent Reassigning To The Same Organization
-    |--------------------------------------------------------------------------
-    |
-    | This is the important backend protection.
-    |
-    | The organization that previously handled this help request
-    | cannot be selected again.
-    |
-    */
-
         $organizationPreviouslyUsed =
             HelpRequestAssignment::where(
                 'help_request_id',
@@ -1964,12 +1569,6 @@ class AdminController extends Controller
                 'This organization has already been assigned to this help request and cannot be selected again.',
             ], 422);
         }
-
-        /*
-    |--------------------------------------------------------------------------
-    | Prevent Another Pending Organization Assignment
-    |--------------------------------------------------------------------------
-    */
 
         $pendingAssignmentExists =
             HelpRequestAssignment::where(
@@ -1990,20 +1589,6 @@ class AdminController extends Controller
             ], 422);
         }
 
-        /*
-    |--------------------------------------------------------------------------
-    | Create New Assignment
-    |--------------------------------------------------------------------------
-    |
-    | IMPORTANT:
-    |
-    | The new organization starts as PENDING.
-    |
-    | Admin has assigned the request to the organization,
-    | but the organization has not accepted it yet.
-    |
-    */
-
         $newAssignment = DB::transaction(function () use (
             $helpRequest,
             $organizationId,
@@ -2012,38 +1597,20 @@ class AdminController extends Controller
         ) {
             return HelpRequestAssignment::create([
                 'help_request_id' => $helpRequest->id,
-
                 'organization_id' => $organizationId,
-
                 'volunteer_id' => null,
-
                 'assigned_by' => $user->id,
-
-                'status' =>
-                HelpRequestAssignment::STATUS_PENDING,
-
+                'status' => HelpRequestAssignment::STATUS_PENDING,
                 'assignment_note' =>
                 $validated['assignment_note'] ?? null,
-
                 'assigned_at' => now(),
-
                 'withdrawal_status' => null,
-
                 'withdrawal_reason' => null,
-
                 'withdrawal_requested_at' => null,
-
                 'withdrawal_reviewed_at' => null,
-
                 'withdrawal_reviewed_by' => null,
             ]);
         });
-
-        /*
-    |--------------------------------------------------------------------------
-    | Return New Assignment
-    |--------------------------------------------------------------------------
-    */
 
         return response()->json([
             'message' =>
@@ -2059,24 +1626,10 @@ class AdminController extends Controller
         ], 201);
     }
 
-
     /*
     |--------------------------------------------------------------------------
     | Help Requests - Complete
     |--------------------------------------------------------------------------
-    |
-    | Help Request completion is separate from Assignment completion.
-    |
-    | in_progress -> completed
-    |
-    | This method DOES NOT:
-    |
-    | - change assignment statuses
-    | - automatically complete assignments
-    | - automatically release volunteers
-    |
-    | Those belong to the Assignment workflow.
-    |
     */
 
     public function completeHelpRequest(
@@ -2097,12 +1650,6 @@ class AdminController extends Controller
             ], 404);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Only In-Progress Help Requests Can Be Completed
-        |--------------------------------------------------------------------------
-        */
-
         if ($helpRequest->status !== HelpRequest::STATUS_IN_PROGRESS) {
             return response()->json([
                 'message' =>
@@ -2110,34 +1657,9 @@ class AdminController extends Controller
             ], 422);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Mark Help Request Completed
-        |--------------------------------------------------------------------------
-        |
-        | No completion_note is used because the current
-        | HelpRequest model/migration does not contain such a field.
-        |
-        */
-
         $helpRequest->update([
             'status' => HelpRequest::STATUS_COMPLETED,
         ]);
-
-        /*
-        |--------------------------------------------------------------------------
-        | IMPORTANT
-        |--------------------------------------------------------------------------
-        |
-        | Do NOT release volunteers here.
-        |
-        | Assignment completion is independent.
-        |
-        | Assignment statuses are independent from HelpRequest.status.
-        |
-        | No assignment status is changed here.
-        |
-        */
 
         return response()->json([
             'message' =>
@@ -2291,6 +1813,17 @@ class AdminController extends Controller
                         $validated['verification_note'] ?? null
                     );
 
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Local Case -> Start Linked Help Request
+                    |--------------------------------------------------------------------------
+                    |
+                    | A local-case campaign becomes active only for a
+                    | verified help request. Once the campaign is activated,
+                    | the linked help request moves to in_progress.
+                    |
+                    */
+
                     if (
                         $campaign->type === Campaign::TYPE_LOCAL_CASE &&
                         $campaign->help_request_id
@@ -2317,7 +1850,8 @@ class AdminController extends Controller
                         }
 
                         $helpRequest->update([
-                            'status' => HelpRequest::STATUS_IN_PROGRESS,
+                            'status' =>
+                            HelpRequest::STATUS_IN_PROGRESS,
                         ]);
                     }
 
@@ -2436,6 +1970,31 @@ class AdminController extends Controller
     |--------------------------------------------------------------------------
     | Campaigns - Assign Volunteer
     |--------------------------------------------------------------------------
+    |
+    | ONLY ADMIN can assign volunteers to campaigns.
+    |
+    | Volunteers are NEVER assigned directly to Help Requests.
+    |
+    | Campaign assignment lifecycle:
+    |
+    | assigned
+    |     -> accepted
+    |     -> in_progress
+    |     -> completed
+    |
+    | assigned
+    |     -> rejected
+    |
+    | accepted / in_progress
+    |     -> withdrawal_requested
+    |     -> withdrawn
+    |     OR
+    |     -> in_progress after admin rejects withdrawal
+    |
+    | The volunteer is occupied from the moment the assignment
+    | is created, including the assigned and withdrawal_requested
+    | states.
+    |
     */
 
     public function assignCampaignVolunteer(
@@ -2470,12 +2029,24 @@ class AdminController extends Controller
             ], 404);
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Only Active Campaigns
+        |--------------------------------------------------------------------------
+        */
+
         if ($campaign->status !== Campaign::STATUS_ACTIVE) {
             return response()->json([
                 'message' =>
                 'Only active campaigns can have volunteers assigned.',
             ], 422);
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Validate Volunteer User
+        |--------------------------------------------------------------------------
+        */
 
         $volunteerUser = User::find(
             $validated['volunteer_id']
@@ -2497,23 +2068,71 @@ class AdminController extends Controller
         if ($volunteerUser->status !== 'active') {
             return response()->json([
                 'message' =>
-                "Volunteer {$volunteerUser->name} is not active.",
+                "Volunteer {$volunteerUser->name} is not an active user.",
             ], 422);
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Validate Volunteer Profile
+        |--------------------------------------------------------------------------
+        */
 
         $volunteer = Volunteer::where(
             'user_id',
             $volunteerUser->id
         )
-            ->where('status', 'approved')
+            ->where(
+                'status',
+                Volunteer::STATUS_ACTIVE
+            )
             ->first();
 
         if (!$volunteer) {
             return response()->json([
                 'message' =>
-                "{$volunteerUser->name} is not an approved SP volunteer.",
+                "{$volunteerUser->name} is not an active SP volunteer.",
             ], 422);
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Sync Availability Before Checking
+        |--------------------------------------------------------------------------
+        |
+        | Availability is derived from the actual campaign assignments.
+        | This prevents stale availability values from allowing an
+        | already-occupied volunteer to be assigned again.
+        |
+        */
+
+        $hasActiveAssignment =
+            CampaignVolunteerAssignment::where(
+                'volunteer_id',
+                $volunteerUser->id
+            )
+            ->whereIn(
+                'status',
+                CampaignVolunteerAssignment::activeStatuses()
+            )
+            ->exists();
+
+        if ($hasActiveAssignment) {
+            $volunteer->update([
+                'availability' => 'unavailable',
+            ]);
+
+            return response()->json([
+                'message' =>
+                "{$volunteerUser->name} is currently assigned to another campaign.",
+            ], 422);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Volunteer Must Be Available
+        |--------------------------------------------------------------------------
+        */
 
         if ($volunteer->availability !== 'available') {
             return response()->json([
@@ -2522,26 +2141,17 @@ class AdminController extends Controller
             ], 422);
         }
 
-        $hasActiveAssignment =
-            CampaignVolunteerAssignment::where(
-                'volunteer_id',
-                $volunteerUser->id
-            )
-            ->whereIn('status', [
-                'assigned',
-                'accepted',
-                'in_progress',
-            ])
-            ->exists();
+        /*
+        |--------------------------------------------------------------------------
+        | Prevent Duplicate Historical/Active Assignment
+        |--------------------------------------------------------------------------
+        |
+        | Rejected/completed/withdrawn assignments are historical records
+        | and do not occupy the volunteer.
+        |
+        */
 
-        if ($hasActiveAssignment) {
-            return response()->json([
-                'message' =>
-                "{$volunteerUser->name} is currently unavailable.",
-            ], 422);
-        }
-
-        $duplicateAssignment =
+        $duplicateActiveAssignment =
             CampaignVolunteerAssignment::where(
                 'campaign_id',
                 $campaign->id
@@ -2550,50 +2160,117 @@ class AdminController extends Controller
                 'volunteer_id',
                 $volunteerUser->id
             )
-            ->whereIn('status', [
-                'assigned',
-                'accepted',
-                'in_progress',
-            ])
+            ->whereIn(
+                'status',
+                CampaignVolunteerAssignment::activeStatuses()
+            )
             ->exists();
 
-        if ($duplicateAssignment) {
+        if ($duplicateActiveAssignment) {
             return response()->json([
                 'message' =>
                 "{$volunteerUser->name} already has an active assignment for this campaign.",
             ], 422);
         }
 
-        $assignment = DB::transaction(function () use (
-            $campaign,
-            $volunteerUser,
-            $validated,
-            $user
-        ) {
-            $assignment = CampaignVolunteerAssignment::create([
-                'campaign_id' => $campaign->id,
+        /*
+        |--------------------------------------------------------------------------
+        | Create Campaign Assignment
+        |--------------------------------------------------------------------------
+        */
 
-                'volunteer_id' => $volunteerUser->id,
+        try {
+            $assignment = DB::transaction(function () use (
+                $campaign,
+                $volunteerUser,
+                $validated,
+                $user
+            ) {
+                $assignment = CampaignVolunteerAssignment::create([
+                    'campaign_id' => $campaign->id,
 
-                'assigned_by' => $user->id,
+                    /*
+                    |--------------------------------------------------------------------------
+                    | IMPORTANT
+                    |--------------------------------------------------------------------------
+                    |
+                    | campaign_volunteer_assignments.volunteer_id points
+                    | to users.id, not volunteers.id.
+                    |
+                    */
 
-                'status' => 'assigned',
+                    'volunteer_id' => $volunteerUser->id,
 
-                'assignment_note' =>
-                $validated['assignment_note'] ?? null,
+                    'assigned_by' => $user->id,
 
-                'assigned_at' => now(),
-            ]);
+                    'status' =>
+                    CampaignVolunteerAssignment::STATUS_ASSIGNED,
 
-            Volunteer::where(
-                'user_id',
-                $volunteerUser->id
-            )->update([
-                'availability' => 'unavailable',
-            ]);
+                    'assignment_note' =>
+                    $validated['assignment_note'] ?? null,
 
-            return $assignment;
-        });
+                    'assigned_at' => now(),
+
+                    'rejection_reason' => null,
+
+                    'rejection_validated' => null,
+
+                    'completed_at' => null,
+
+                    'withdrawal_reason' => null,
+
+                    'withdrawal_requested_at' => null,
+
+                    'withdrawal_reviewed_at' => null,
+
+                    'withdrawal_reviewed_by' => null,
+                ]);
+
+                /*
+                |--------------------------------------------------------------------------
+                | Reserve Volunteer
+                |--------------------------------------------------------------------------
+                |
+                | assigned already occupies the volunteer.
+                | This prevents another campaign offer while the volunteer
+                | has not yet responded to this assignment.
+                |
+                */
+
+                Volunteer::where(
+                    'user_id',
+                    $volunteerUser->id
+                )->update([
+                    'availability' => 'unavailable',
+                ]);
+
+                return $assignment;
+            });
+        } catch (\Illuminate\Database\QueryException $e) {
+            /*
+            |--------------------------------------------------------------------------
+            | Database Safety Net
+            |--------------------------------------------------------------------------
+            |
+            | The PostgreSQL partial unique index also protects the
+            | one-active-campaign rule against concurrent requests.
+            |
+            */
+
+            if (
+                str_contains(
+                    $e->getMessage(),
+                    'campaign_volunteer_assignments_one_active_campaign'
+                )
+            ) {
+                return response()->json([
+                    'message' =>
+                    "{$volunteerUser->name} is already assigned to another active campaign.",
+                ], 422);
+            }
+
+            throw $e;
+        }
 
         return response()->json([
             'message' =>

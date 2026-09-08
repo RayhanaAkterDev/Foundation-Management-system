@@ -16,9 +16,11 @@ use Illuminate\Support\Facades\Route;
 // =============================================================
 
 Route::post('/register', [AuthController::class, 'register']);
+
 Route::post('/login', [AuthController::class, 'login']);
 
 Route::get('/campaigns', [CampaignController::class, 'index']);
+
 Route::get('/campaigns/{id}', [CampaignController::class, 'show']);
 
 Route::post('/donations', [DonationController::class, 'store']);
@@ -35,8 +37,11 @@ Route::middleware('auth:sanctum')->group(function () {
     // ---------------------------------------------------------
 
     Route::post('/logout', [AuthController::class, 'logout']);
+
     Route::get('/user', [AuthController::class, 'user']);
+
     Route::put('/profile', [AuthController::class, 'updateProfile']);
+
 
     // ---------------------------------------------------------
     // Notifications
@@ -72,51 +77,54 @@ Route::middleware('auth:sanctum')->group(function () {
     // Help Requests - Individual
     // ---------------------------------------------------------
 
-    Route::get('/help-requests', [HelpRequestController::class, 'myRequests']);
-    Route::post('/help-requests', [HelpRequestController::class, 'store']);
-    Route::get('/help-requests/{id}', [HelpRequestController::class, 'show']);
-    Route::patch('/help-requests/{id}', [HelpRequestController::class, 'update']);
-    Route::delete('/help-requests/{id}', [HelpRequestController::class, 'destroy']);
+    Route::get(
+        '/help-requests',
+        [HelpRequestController::class, 'myRequests']
+    );
+
+    Route::post(
+        '/help-requests',
+        [HelpRequestController::class, 'store']
+    );
+
+    Route::get(
+        '/help-requests/{id}',
+        [HelpRequestController::class, 'show']
+    );
+
+    Route::patch(
+        '/help-requests/{id}',
+        [HelpRequestController::class, 'update']
+    );
+
+    Route::delete(
+        '/help-requests/{id}',
+        [HelpRequestController::class, 'destroy']
+    );
 
 
     // ---------------------------------------------------------
-    // Campaigns - Organization
+    // Campaigns - Organization / Admin
     // ---------------------------------------------------------
 
-    Route::post('/campaigns', [CampaignController::class, 'store']);
+    Route::post(
+        '/campaigns',
+        [CampaignController::class, 'store']
+    );
 
 
     // ---------------------------------------------------------
     // Volunteer - Individual
     // ---------------------------------------------------------
 
-    Route::post('/volunteer', [VolunteerController::class, 'store']);
-
-    Route::get('/volunteer', [VolunteerController::class, 'show']);
+    Route::post(
+        '/volunteer',
+        [VolunteerController::class, 'store']
+    );
 
     Route::get(
-        '/volunteer/assignments',
-        [VolunteerController::class, 'assignments']
-    );
-
-    Route::patch(
-        '/volunteer/assignments/{id}/accept',
-        [VolunteerController::class, 'acceptAssignment']
-    );
-
-    Route::patch(
-        '/volunteer/assignments/{id}/reject',
-        [VolunteerController::class, 'rejectAssignment']
-    );
-
-    Route::patch(
-        '/volunteer/assignments/{id}/start',
-        [VolunteerController::class, 'startAssignment']
-    );
-
-    Route::patch(
-        '/volunteer/assignments/{id}/complete',
-        [VolunteerController::class, 'completeAssignment']
+        '/volunteer',
+        [VolunteerController::class, 'show']
     );
 
 
@@ -146,7 +154,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     // ---------------------------------------------------------
-    // Organization
+    // Organization - Help Request Assignments
     // ---------------------------------------------------------
 
     Route::get(
@@ -162,16 +170,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch(
         '/organization/assignments/{id}/reject',
         [OrganizationController::class, 'rejectAssignment']
-    );
-
-    Route::patch(
-        '/organization/assignments/{id}/start',
-        [OrganizationController::class, 'startAssignment']
-    );
-
-    Route::patch(
-        '/organization/assignments/{id}/complete',
-        [OrganizationController::class, 'completeAssignment']
     );
 
     Route::patch(
@@ -194,14 +192,20 @@ Route::middleware('auth:sanctum')
     ->prefix('admin')
     ->group(function () {
 
-        Route::get('/dashboard', [AdminController::class, 'dashboard']);
+        Route::get(
+            '/dashboard',
+            [AdminController::class, 'dashboard']
+        );
 
 
         // ---------------------------------------------------------
         // Users
         // ---------------------------------------------------------
 
-        Route::get('/users', [AdminController::class, 'users']);
+        Route::get(
+            '/users',
+            [AdminController::class, 'users']
+        );
 
         Route::get(
             '/users/{id}',
@@ -320,7 +324,7 @@ Route::middleware('auth:sanctum')
 
 
         // ---------------------------------------------------------
-        // Campaigns Modules
+        // Campaigns - Admin
         // ---------------------------------------------------------
 
         Route::get(

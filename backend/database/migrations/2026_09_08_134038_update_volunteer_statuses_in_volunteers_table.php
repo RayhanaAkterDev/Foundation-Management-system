@@ -9,14 +9,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        /*
-         * Existing volunteer statuses:
-         * pending, approved, inactive
-         *
-         * New lifecycle:
-         * pending, active, rejected, suspended, removed
-         */
-
+        // Convert existing statuses to the new volunteer lifecycle.
         DB::table('volunteers')
             ->where('status', 'approved')
             ->update([

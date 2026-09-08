@@ -221,35 +221,37 @@ const OrgHelpRequests = () => {
      * Therefore the withdrawal count must use
      * withdrawalStatus, not status.
      */
-    const counts = useMemo(
-        () => ({
+    const counts = useMemo(() => {
+        const pendingCount = assignments.filter(
+            (request) => request.status === 'assigned',
+        ).length;
+
+        const activeCount = assignments.filter(
+            (request) => request.status === 'accepted',
+        ).length;
+
+        const completedCount = assignments.filter(
+            (request) => request.status === 'completed',
+        ).length;
+
+        const rejectedCount = assignments.filter(
+            (request) => request.status === 'rejected',
+        ).length;
+
+        const withdrawalCount = assignments.filter(
+            (request) => request.withdrawalStatus === 'pending',
+        ).length;
+
+        return {
             all: assignments.length,
-
-            pending: assignments.filter(
-                (request) => request.status === 'pending',
-            ).length,
-
-            assigned: assignments.filter(
-                (request) => request.status === 'assigned',
-            ).length,
-
-            active: assignments.filter((request) => request.status === 'active')
-                .length,
-
-            completed: assignments.filter(
-                (request) => request.status === 'completed',
-            ).length,
-
-            rejected: assignments.filter(
-                (request) => request.status === 'rejected',
-            ).length,
-
-            withdrawal: assignments.filter(
-                (request) => request.withdrawalStatus === 'pending',
-            ).length,
-        }),
-        [assignments],
-    );
+            pending: pendingCount,
+            assigned: pendingCount,
+            active: activeCount,
+            completed: completedCount,
+            rejected: rejectedCount,
+            withdrawal: withdrawalCount,
+        };
+    }, [assignments]);
 
     const filteredRequests = useMemo(() => {
         const query = search.trim().toLowerCase();

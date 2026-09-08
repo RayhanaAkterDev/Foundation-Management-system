@@ -929,6 +929,10 @@ const AdminHelpRequests = () => {
                 (request) => request.status === 'verified',
             ).length,
 
+            assigned: helpRequests.filter((request) =>
+                hasActiveOrganizationAssignment(request),
+            ).length,
+
             completed: helpRequests.filter(
                 (request) => request.status === 'completed',
             ).length,
@@ -1655,6 +1659,7 @@ const AdminHelpRequests = () => {
                         total={statistics.total}
                         pending={statistics.pending}
                         verified={statistics.verified}
+                        assigned={statistics.assigned}
                         completed={statistics.completed}
                         rejected={statistics.rejected}
                     />

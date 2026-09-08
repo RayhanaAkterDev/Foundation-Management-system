@@ -51,7 +51,7 @@ import AdminSettings from '@/dashboard/admin/AdminSettings';
 // Organization dashboard routes
 import OrgDashboard from '@/dashboard/organization/OrgDashboard';
 import OrganizationHelpRequests from '@/dashboard/organization/OrgHelpRequests';
-import OrganizationCampaigns from '@/dashboard/organization/OrgCampaigns';
+import OrganizationCampaigns from '@/dashboard/organization/campaigns/OrgCampaigns';
 import OrganizationVolunteers from '@/dashboard/organization/OrgVolunteers';
 import OrganizationReports from '@/dashboard/organization/OrgReports';
 import OrganizationProfile from '@/dashboard/organization/OrgProfile';

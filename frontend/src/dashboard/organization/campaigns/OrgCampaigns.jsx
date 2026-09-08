@@ -5,6 +5,7 @@ import CampaignOverview from './components/CampaignOverview';
 import CampaignFilters from './components/CampaignFilters';
 import CampaignList from './components/CampaignList';
 import CampaignPagination from './components/CampaignPagination';
+import CampaignCreateModal from './modals/CampaignCreateModal';
 
 import { mockOrgCampaigns } from '@/data/mockOrganization';
 
@@ -14,6 +15,7 @@ const OrgCampaigns = () => {
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [currentPage, setCurrentPage] = useState(1);
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
     const campaigns = Array.isArray(mockOrgCampaigns) ? mockOrgCampaigns : [];
 
@@ -70,7 +72,15 @@ const OrgCampaigns = () => {
     };
 
     const handleCreateCampaign = () => {
-        // Campaign creation logic will be connected later.
+        setIsCreateModalOpen(true);
+    };
+
+    const handleCloseCreateModal = () => {
+        setIsCreateModalOpen(false);
+    };
+
+    const handleCampaignCreated = () => {
+        setIsCreateModalOpen(false);
     };
 
     const handleOpenCampaign = (campaign) => {
@@ -118,6 +128,12 @@ const OrgCampaigns = () => {
                     />
                 )}
             </section>
+
+            <CampaignCreateModal
+                open={isCreateModalOpen}
+                onClose={handleCloseCreateModal}
+                onCreated={handleCampaignCreated}
+            />
         </div>
     );
 };

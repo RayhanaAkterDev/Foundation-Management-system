@@ -4,24 +4,53 @@ namespace App\Http\Controllers;
 
 use App\Models\Campaign;
 use App\Models\Donation;
+use App\Services\CampaignService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class DonationController extends Controller
 {
-    public function store(Request $request)
-    {
+    public function store(
+        Request $request,
+        CampaignService $campaignService
+    ) {
         $validated = $request->validate([
-            'campaign_id' => ['required', 'integer', 'exists:campaigns,id'],
-            'amount' => ['required', 'numeric', 'min:1'],
-            'payment_method' => ['required', 'string', 'max:255'],
-            'transaction_id' => ['nullable', 'string', 'max:255'],
-            'donor_name' => ['nullable', 'string', 'max:255'],
-            'donor_email' => ['nullable', 'email', 'max:255'],
+            'campaign_id' => [
+                'required',
+                'integer',
+                'exists:campaigns,id',
+            ],
+            'amount' => [
+                'required',
+                'numeric',
+                'min:1',
+            ],
+            'payment_method' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+            'transaction_id' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+            'donor_name' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+            'donor_email' => [
+                'nullable',
+                'email',
+                'max:255',
+            ],
         ]);
 
-        $campaign = Campaign::where('status', 'active')
-            ->find($validated['campaign_id']);
+        $campaign = Campaign::where(
+            'status',
+            Campaign::STATUS_ACTIVE
+        )->find($validated['campaign_id']);
 
         if (!$campaign) {
             return response()->json([
@@ -33,29 +62,49 @@ class DonationController extends Controller
 
         if ($user && $user->role !== 'individual') {
             return response()->json([
-                'message' => 'Only individual users can make donations.',
+                'message' =>
+                'Only individual users can make donations.',
             ], 403);
         }
 
-        $donation = DB::transaction(function () use ($validated, $user, $campaign) {
-            $donation = Donation::create([
-                'user_id' => $user?->id,
-                'donor_name' => $validated['donor_name'] ?? null,
-                'donor_email' => $validated['donor_email'] ?? null,
-                'campaign_id' => $campaign->id,
-                'amount' => $validated['amount'],
-                'status' => 'completed',
-                'payment_method' => $validated['payment_method'],
-                'transaction_id' => $validated['transaction_id'] ?? null,
-            ]);
+        $donation = DB::transaction(
+            function () use (
+                $validated,
+                $user,
+                $campaign
+            ) {
+                $donation = Donation::create([
+                    'user_id' => $user?->id,
+                    'donor_name' =>
+                    $validated['donor_name'] ?? null,
+                    'donor_email' =>
+                    $validated['donor_email'] ?? null,
+                    'campaign_id' => $campaign->id,
+                    'amount' => $validated['amount'],
+                    'status' => 'completed',
+                    'payment_method' =>
+                    $validated['payment_method'],
+                    'transaction_id' =>
+                    $validated['transaction_id'] ?? null,
+                ]);
 
-            $campaign->increment(
-                'collected_amount',
-                $validated['amount']
-            );
+                $campaign->increment(
+                    'collected_amount',
+                    $validated['amount']
+                );
 
-            return $donation;
-        });
+                return $donation;
+            }
+        );
+
+        /*
+         * Donation has now changed collected_amount.
+         * Let CampaignService determine whether BOTH campaign
+         * completion conditions are satisfied.
+         */
+        $campaignService->completeCampaignIfEligible(
+            $campaign->fresh()
+        );
 
         return response()->json([
             'message' => 'Donation submitted successfully.',

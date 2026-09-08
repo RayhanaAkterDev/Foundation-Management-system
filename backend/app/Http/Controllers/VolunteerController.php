@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Volunteer;
 use App\Models\HelpRequestAssignment;
 use App\Models\CampaignVolunteerAssignment;
+use App\Services\Campaign\CampaignService;
 use Illuminate\Http\Request;
 
 class VolunteerController extends Controller
@@ -16,13 +17,15 @@ class VolunteerController extends Controller
      */
     private function syncVolunteerAvailability(int $userId): void
     {
-        $volunteer = Volunteer::where('user_id', $userId)->first();
+        $volunteer = Volunteer::where(
+            'user_id',
+            $userId
+        )->first();
 
         if (!$volunteer) {
             return;
         }
 
-        // Only approved volunteers can be available.
         if ($volunteer->status !== 'approved') {
             $volunteer->update([
                 'availability' => null,
@@ -31,10 +34,11 @@ class VolunteerController extends Controller
             return;
         }
 
-        $hasActiveHelpRequestAssignment = HelpRequestAssignment::where(
-            'volunteer_id',
-            $userId
-        )
+        $hasActiveHelpRequestAssignment =
+            HelpRequestAssignment::where(
+                'volunteer_id',
+                $userId
+            )
             ->whereIn('status', [
                 'assigned',
                 'accepted',
@@ -42,10 +46,11 @@ class VolunteerController extends Controller
             ])
             ->exists();
 
-        $hasActiveCampaignAssignment = CampaignVolunteerAssignment::where(
-            'volunteer_id',
-            $userId
-        )
+        $hasActiveCampaignAssignment =
+            CampaignVolunteerAssignment::where(
+                'volunteer_id',
+                $userId
+            )
             ->whereIn('status', [
                 'assigned',
                 'accepted',
@@ -97,14 +102,15 @@ class VolunteerController extends Controller
 
         if (!$user || $user->role !== 'individual') {
             return response()->json([
-                'message' => 'Only individual users can apply as volunteers.',
+                'message' =>
+                'Only individual users can apply as volunteers.',
             ], 403);
         }
 
-        // Prevent duplicate volunteer applications.
         if ($user->volunteer) {
             return response()->json([
-                'message' => 'You already have a volunteer application.',
+                'message' =>
+                'You already have a volunteer application.',
             ], 422);
         }
 
@@ -140,7 +146,8 @@ class VolunteerController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Volunteer application submitted successfully.',
+            'message' =>
+            'Volunteer application submitted successfully.',
             'volunteer' => $volunteer->load('user'),
         ], 201);
     }
@@ -154,7 +161,8 @@ class VolunteerController extends Controller
 
         if (!$user || $user->role !== 'individual') {
             return response()->json([
-                'message' => 'Only individual users can view volunteer information.',
+                'message' =>
+                'Only individual users can view volunteer information.',
             ], 403);
         }
 
@@ -167,7 +175,8 @@ class VolunteerController extends Controller
 
         if (!$volunteer) {
             return response()->json([
-                'message' => 'You are not registered as a volunteer.',
+                'message' =>
+                'You are not registered as a volunteer.',
             ], 404);
         }
 
@@ -185,15 +194,20 @@ class VolunteerController extends Controller
 
         if (!$user || $user->role !== 'individual') {
             return response()->json([
-                'message' => 'Only individual users can view volunteer assignments.',
+                'message' =>
+                'Only individual users can view volunteer assignments.',
             ], 403);
         }
 
-        $volunteer = Volunteer::where('user_id', $user->id)->first();
+        $volunteer = Volunteer::where(
+            'user_id',
+            $user->id
+        )->first();
 
         if (!$volunteer) {
             return response()->json([
-                'message' => 'You are not registered as a volunteer.',
+                'message' =>
+                'You are not registered as a volunteer.',
             ], 404);
         }
 
@@ -220,7 +234,8 @@ class VolunteerController extends Controller
 
         if (!$user || $user->role !== 'individual') {
             return response()->json([
-                'message' => 'Only individual users can accept assignments.',
+                'message' =>
+                'Only individual users can accept assignments.',
             ], 403);
         }
 
@@ -237,7 +252,8 @@ class VolunteerController extends Controller
 
         if ($assignment->status !== 'assigned') {
             return response()->json([
-                'message' => 'Only assigned requests can be accepted.',
+                'message' =>
+                'Only assigned requests can be accepted.',
             ], 422);
         }
 
@@ -248,7 +264,8 @@ class VolunteerController extends Controller
         $this->syncVolunteerAvailability($user->id);
 
         return response()->json([
-            'message' => 'Help request assignment accepted successfully.',
+            'message' =>
+            'Help request assignment accepted successfully.',
             'assignment' => $assignment->fresh()->load([
                 'helpRequest',
                 'organization:id,name',
@@ -266,7 +283,8 @@ class VolunteerController extends Controller
 
         if (!$user || $user->role !== 'individual') {
             return response()->json([
-                'message' => 'Only individual users can reject assignments.',
+                'message' =>
+                'Only individual users can reject assignments.',
             ], 403);
         }
 
@@ -283,7 +301,8 @@ class VolunteerController extends Controller
 
         if ($assignment->status !== 'assigned') {
             return response()->json([
-                'message' => 'Only assigned requests can be rejected.',
+                'message' =>
+                'Only assigned requests can be rejected.',
             ], 422);
         }
 
@@ -294,7 +313,8 @@ class VolunteerController extends Controller
         $this->syncVolunteerAvailability($user->id);
 
         return response()->json([
-            'message' => 'Help request assignment rejected successfully.',
+            'message' =>
+            'Help request assignment rejected successfully.',
             'assignment' => $assignment->fresh()->load([
                 'helpRequest',
                 'organization:id,name',
@@ -312,7 +332,8 @@ class VolunteerController extends Controller
 
         if (!$user || $user->role !== 'individual') {
             return response()->json([
-                'message' => 'Only individual users can start assignments.',
+                'message' =>
+                'Only individual users can start assignments.',
             ], 403);
         }
 
@@ -329,7 +350,8 @@ class VolunteerController extends Controller
 
         if ($assignment->status !== 'accepted') {
             return response()->json([
-                'message' => 'Only accepted assignments can be started.',
+                'message' =>
+                'Only accepted assignments can be started.',
             ], 422);
         }
 
@@ -340,7 +362,8 @@ class VolunteerController extends Controller
         $this->syncVolunteerAvailability($user->id);
 
         return response()->json([
-            'message' => 'Help request assignment marked as in progress.',
+            'message' =>
+            'Help request assignment marked as in progress.',
             'assignment' => $assignment->fresh()->load([
                 'helpRequest',
                 'organization:id,name',
@@ -358,7 +381,8 @@ class VolunteerController extends Controller
 
         if (!$user || $user->role !== 'individual') {
             return response()->json([
-                'message' => 'Only individual users can complete assignments.',
+                'message' =>
+                'Only individual users can complete assignments.',
             ], 403);
         }
 
@@ -375,7 +399,8 @@ class VolunteerController extends Controller
 
         if ($assignment->status !== 'in_progress') {
             return response()->json([
-                'message' => 'Only in-progress assignments can be completed.',
+                'message' =>
+                'Only in-progress assignments can be completed.',
             ], 422);
         }
 
@@ -387,7 +412,8 @@ class VolunteerController extends Controller
         $this->syncVolunteerAvailability($user->id);
 
         return response()->json([
-            'message' => 'Help request assignment completed successfully.',
+            'message' =>
+            'Help request assignment completed successfully.',
             'assignment' => $assignment->fresh()->load([
                 'helpRequest',
                 'organization:id,name',
@@ -399,13 +425,16 @@ class VolunteerController extends Controller
     /**
      * Individual: Accept an assigned campaign volunteer assignment.
      */
-    public function acceptCampaignAssignment(Request $request, int $id)
-    {
+    public function acceptCampaignAssignment(
+        Request $request,
+        int $id
+    ) {
         $user = $request->user();
 
         if (!$user || $user->role !== 'individual') {
             return response()->json([
-                'message' => 'Only individual users can accept campaign assignments.',
+                'message' =>
+                'Only individual users can accept campaign assignments.',
             ], 403);
         }
 
@@ -422,7 +451,8 @@ class VolunteerController extends Controller
 
         if ($assignment->status !== 'assigned') {
             return response()->json([
-                'message' => 'Only assigned campaign assignments can be accepted.',
+                'message' =>
+                'Only assigned campaign assignments can be accepted.',
             ], 422);
         }
 
@@ -433,7 +463,8 @@ class VolunteerController extends Controller
         $this->syncVolunteerAvailability($user->id);
 
         return response()->json([
-            'message' => 'Campaign assignment accepted successfully.',
+            'message' =>
+            'Campaign assignment accepted successfully.',
             'assignment' => $assignment->fresh()->load([
                 'campaign',
                 'volunteer:id,name,email',
@@ -445,13 +476,16 @@ class VolunteerController extends Controller
     /**
      * Individual: Reject an assigned campaign volunteer assignment.
      */
-    public function rejectCampaignAssignment(Request $request, int $id)
-    {
+    public function rejectCampaignAssignment(
+        Request $request,
+        int $id
+    ) {
         $user = $request->user();
 
         if (!$user || $user->role !== 'individual') {
             return response()->json([
-                'message' => 'Only individual users can reject campaign assignments.',
+                'message' =>
+                'Only individual users can reject campaign assignments.',
             ], 403);
         }
 
@@ -468,7 +502,8 @@ class VolunteerController extends Controller
 
         if ($assignment->status !== 'assigned') {
             return response()->json([
-                'message' => 'Only assigned campaign assignments can be rejected.',
+                'message' =>
+                'Only assigned campaign assignments can be rejected.',
             ], 422);
         }
 
@@ -479,7 +514,8 @@ class VolunteerController extends Controller
         $this->syncVolunteerAvailability($user->id);
 
         return response()->json([
-            'message' => 'Campaign assignment rejected successfully.',
+            'message' =>
+            'Campaign assignment rejected successfully.',
             'assignment' => $assignment->fresh()->load([
                 'campaign',
                 'volunteer:id,name,email',
@@ -491,13 +527,16 @@ class VolunteerController extends Controller
     /**
      * Individual: Start an accepted campaign volunteer assignment.
      */
-    public function startCampaignAssignment(Request $request, int $id)
-    {
+    public function startCampaignAssignment(
+        Request $request,
+        int $id
+    ) {
         $user = $request->user();
 
         if (!$user || $user->role !== 'individual') {
             return response()->json([
-                'message' => 'Only individual users can start campaign assignments.',
+                'message' =>
+                'Only individual users can start campaign assignments.',
             ], 403);
         }
 
@@ -514,7 +553,8 @@ class VolunteerController extends Controller
 
         if ($assignment->status !== 'accepted') {
             return response()->json([
-                'message' => 'Only accepted campaign assignments can be started.',
+                'message' =>
+                'Only accepted campaign assignments can be started.',
             ], 422);
         }
 
@@ -525,7 +565,8 @@ class VolunteerController extends Controller
         $this->syncVolunteerAvailability($user->id);
 
         return response()->json([
-            'message' => 'Campaign assignment marked as in progress.',
+            'message' =>
+            'Campaign assignment marked as in progress.',
             'assignment' => $assignment->fresh()->load([
                 'campaign',
                 'volunteer:id,name,email',
@@ -536,14 +577,21 @@ class VolunteerController extends Controller
 
     /**
      * Individual: Complete an in-progress campaign volunteer assignment.
+     *
+     * Completing the assignment triggers the campaign's automatic
+     * completion check.
      */
-    public function completeCampaignAssignment(Request $request, int $id)
-    {
+    public function completeCampaignAssignment(
+        Request $request,
+        int $id,
+        CampaignService $campaignService
+    ) {
         $user = $request->user();
 
         if (!$user || $user->role !== 'individual') {
             return response()->json([
-                'message' => 'Only individual users can complete campaign assignments.',
+                'message' =>
+                'Only individual users can complete campaign assignments.',
             ], 403);
         }
 
@@ -560,7 +608,8 @@ class VolunteerController extends Controller
 
         if ($assignment->status !== 'in_progress') {
             return response()->json([
-                'message' => 'Only in-progress campaign assignments can be completed.',
+                'message' =>
+                'Only in-progress campaign assignments can be completed.',
             ], 422);
         }
 
@@ -569,15 +618,26 @@ class VolunteerController extends Controller
             'completed_at' => now(),
         ]);
 
+        /*
+         * This assignment may have been the final unfinished
+         * campaign task. The service now checks the complete
+         * campaign completion rule.
+         */
+        $campaign = $campaignService->completeCampaignIfEligible(
+            $assignment->campaign
+        );
+
         $this->syncVolunteerAvailability($user->id);
 
         return response()->json([
-            'message' => 'Campaign assignment completed successfully.',
+            'message' =>
+            'Campaign assignment completed successfully.',
             'assignment' => $assignment->fresh()->load([
                 'campaign',
                 'volunteer:id,name,email',
                 'assignedBy:id,name,email',
             ]),
+            'campaign' => $campaign,
         ]);
     }
 
@@ -642,10 +702,13 @@ class VolunteerController extends Controller
             'status' => $validated['status'],
         ]);
 
-        $this->syncVolunteerAvailability($volunteer->user_id);
+        $this->syncVolunteerAvailability(
+            $volunteer->user_id
+        );
 
         return response()->json([
-            'message' => $validated['status'] === 'approved'
+            'message' =>
+            $validated['status'] === 'approved'
                 ? 'Volunteer approved successfully.'
                 : 'Volunteer marked as inactive successfully.',
             'volunteer' => $volunteer->fresh()->load([

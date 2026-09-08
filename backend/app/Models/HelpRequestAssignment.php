@@ -15,43 +15,38 @@ class HelpRequestAssignment extends Model
     | Assignment Statuses
     |--------------------------------------------------------------------------
     |
-    | Organization:
+    | Organization assignment:
     |
-    | pending -> accepted -> in_progress -> completed
+    | pending -> accepted -> withdrawn
     | pending -> rejected
-    |
-    | Withdrawal:
-    |
-    | accepted/in_progress
-    |        ↓
-    | withdrawal_status = pending
-    |        ↓
-    | Admin approves
-    |        ↓
-    | status = withdrawn
     |
     | "pending" means Admin has sent the assignment to the
     | organization but the organization has not accepted it yet.
     |
-    | "accepted" means the organization has accepted the assignment
-    | and is therefore considered assigned.
+    | "accepted" means the organization accepted the assignment.
+    | Therefore, the Help Request is now assigned to that organization.
     |
-    | "withdrawn" means Admin has approved the organization's
-    | withdrawal request and this assignment is no longer active.
+    | "rejected" means the organization declined the assignment.
+    |
+    | "withdrawn" means the organization had previously accepted
+    | the assignment and Admin approved its withdrawal request.
+    |
+    | IMPORTANT:
+    |
+    | Assignment status does NOT represent Help Request progress.
+    |
+    | Help Request progress is stored separately on HelpRequest.status:
+    |
+    | pending -> verified -> in_progress -> completed
+    |              └────→ rejected
     |
     */
 
     public const STATUS_PENDING = 'pending';
 
-    public const STATUS_ASSIGNED = 'assigned';
-
     public const STATUS_ACCEPTED = 'accepted';
 
     public const STATUS_REJECTED = 'rejected';
-
-    public const STATUS_IN_PROGRESS = 'in_progress';
-
-    public const STATUS_COMPLETED = 'completed';
 
     public const STATUS_WITHDRAWN = 'withdrawn';
 
@@ -80,11 +75,8 @@ class HelpRequestAssignment extends Model
     {
         return [
             self::STATUS_PENDING,
-            self::STATUS_ASSIGNED,
             self::STATUS_ACCEPTED,
             self::STATUS_REJECTED,
-            self::STATUS_IN_PROGRESS,
-            self::STATUS_COMPLETED,
             self::STATUS_WITHDRAWN,
         ];
     }

@@ -1166,13 +1166,14 @@ class AdminController extends Controller
     |
     | HelpRequest:
     |
-    | pending -> verified -> completed
+    | pending -> verified -> in_progress -> completed
     | pending -> rejected
     |
     | Assignment:
     |
-    | assigned -> accepted -> in_progress -> completed
-    | assigned -> rejected
+    | pending -> accepted
+    | pending -> rejected
+    | accepted -> withdrawn
     |
     | The Help Request is NEVER changed to "assigned".
     |
@@ -1333,10 +1334,7 @@ class AdminController extends Controller
                 )
                 ->whereIn('status', [
                     HelpRequestAssignment::STATUS_PENDING,
-                    HelpRequestAssignment::STATUS_ASSIGNED,
                     HelpRequestAssignment::STATUS_ACCEPTED,
-                    HelpRequestAssignment::STATUS_IN_PROGRESS,
-                    HelpRequestAssignment::STATUS_COMPLETED,
                 ])
                 ->exists();
 
@@ -1434,9 +1432,8 @@ class AdminController extends Controller
                     $volunteerId
                 )
                 ->whereIn('status', [
-                    HelpRequestAssignment::STATUS_ASSIGNED,
+                    HelpRequestAssignment::STATUS_PENDING,
                     HelpRequestAssignment::STATUS_ACCEPTED,
-                    HelpRequestAssignment::STATUS_IN_PROGRESS,
                 ])
                 ->exists();
 
@@ -1466,10 +1463,8 @@ class AdminController extends Controller
                     $volunteerId
                 )
                 ->whereIn('status', [
-                    HelpRequestAssignment::STATUS_ASSIGNED,
+                    HelpRequestAssignment::STATUS_PENDING,
                     HelpRequestAssignment::STATUS_ACCEPTED,
-                    HelpRequestAssignment::STATUS_IN_PROGRESS,
-                    HelpRequestAssignment::STATUS_COMPLETED,
                 ])
                 ->exists();
 
@@ -1565,7 +1560,7 @@ class AdminController extends Controller
                         'assigned_by' => $user->id,
 
                         'status' =>
-                        HelpRequestAssignment::STATUS_ASSIGNED,
+                        HelpRequestAssignment::STATUS_PENDING,
 
                         'assignment_note' =>
                         $validated['assignment_note'] ?? null,
@@ -1674,7 +1669,7 @@ class AdminController extends Controller
      * APPROVE:
      *
      * assignment.status
-     *     accepted/in_progress
+     *     accepted
      *          ↓
      *     withdrawn
      *
@@ -1687,7 +1682,7 @@ class AdminController extends Controller
      * REJECT:
      *
      * assignment.status
-     *     remains accepted/in_progress
+     *     remains accepted
      *
      * assignment.withdrawal_status
      *     pending
@@ -1733,6 +1728,16 @@ class AdminController extends Controller
             return response()->json([
                 'message' =>
                 'This assignment does not have a pending withdrawal request.',
+            ], 422);
+        }
+
+        if (
+            $assignment->status !==
+            HelpRequestAssignment::STATUS_ACCEPTED
+        ) {
+            return response()->json([
+                'message' =>
+                'Only accepted organization assignments can be withdrawn.',
             ], 422);
         }
 
@@ -2062,7 +2067,7 @@ class AdminController extends Controller
     |
     | Help Request completion is separate from Assignment completion.
     |
-    | verified -> completed
+    | in_progress -> completed
     |
     | This method DOES NOT:
     |
@@ -2094,14 +2099,14 @@ class AdminController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Only Verified Help Requests Can Be Completed
+        | Only In-Progress Help Requests Can Be Completed
         |--------------------------------------------------------------------------
         */
 
-        if ($helpRequest->status !== HelpRequest::STATUS_VERIFIED) {
+        if ($helpRequest->status !== HelpRequest::STATUS_IN_PROGRESS) {
             return response()->json([
                 'message' =>
-                'Only verified help requests can be completed.',
+                'Only in-progress help requests can be completed.',
             ], 422);
         }
 
@@ -2128,13 +2133,9 @@ class AdminController extends Controller
         |
         | Assignment completion is independent.
         |
-        | Example:
+        | Assignment statuses are independent from HelpRequest.status.
         |
-        | HelpRequest = completed
-        | Assignment = in_progress
-        |
-        | The assignment must later be completed through its own
-        | assignment workflow before the volunteer becomes available.
+        | No assignment status is changed here.
         |
         */
 
@@ -2278,11 +2279,50 @@ class AdminController extends Controller
             );
 
             if ($validated['status'] === Campaign::STATUS_ACTIVE) {
-                $campaign = $campaignService->verifyCampaign(
+                $campaign = DB::transaction(function () use (
+                    $campaignService,
                     $campaign,
-                    $user->id,
-                    $validated['verification_note'] ?? null
-                );
+                    $user,
+                    $validated
+                ) {
+                    $campaign = $campaignService->verifyCampaign(
+                        $campaign,
+                        $user->id,
+                        $validated['verification_note'] ?? null
+                    );
+
+                    if (
+                        $campaign->type === Campaign::TYPE_LOCAL_CASE &&
+                        $campaign->help_request_id
+                    ) {
+                        $helpRequest = HelpRequest::find(
+                            $campaign->help_request_id
+                        );
+
+                        if (!$helpRequest) {
+                            throw ValidationException::withMessages([
+                                'help_request_id' =>
+                                'The help request linked to this local case campaign was not found.',
+                            ]);
+                        }
+
+                        if (
+                            $helpRequest->status !==
+                            HelpRequest::STATUS_VERIFIED
+                        ) {
+                            throw ValidationException::withMessages([
+                                'help_request_id' =>
+                                'A local case campaign can only be activated for a verified help request.',
+                            ]);
+                        }
+
+                        $helpRequest->update([
+                            'status' => HelpRequest::STATUS_IN_PROGRESS,
+                        ]);
+                    }
+
+                    return $campaign;
+                });
 
                 return response()->json([
                     'message' =>

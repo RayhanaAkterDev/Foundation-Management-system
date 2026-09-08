@@ -13,13 +13,20 @@ class HelpRequest extends Model
     | Help Request Statuses
     |--------------------------------------------------------------------------
     |
-    | Assignment statuses such as "assigned", "accepted", etc.
-    | do NOT belong here.
+    | Help Request lifecycle:
+    |
+    | pending -> verified -> in_progress -> completed
+    |              |
+    |              └──────> rejected
+    |
+    | Assignment statuses such as "assigned", "accepted",
+    | "withdrawn", etc. do NOT belong here.
     |
     */
 
     public const STATUS_PENDING = 'pending';
     public const STATUS_VERIFIED = 'verified';
+    public const STATUS_IN_PROGRESS = 'in_progress';
     public const STATUS_REJECTED = 'rejected';
     public const STATUS_COMPLETED = 'completed';
 
@@ -31,6 +38,7 @@ class HelpRequest extends Model
         return [
             self::STATUS_PENDING,
             self::STATUS_VERIFIED,
+            self::STATUS_IN_PROGRESS,
             self::STATUS_REJECTED,
             self::STATUS_COMPLETED,
         ];

@@ -174,12 +174,6 @@ class OrganizationController extends Controller
             ], 422);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Validate rejection reason
-        |--------------------------------------------------------------------------
-        */
-
         $validated = $request->validate([
             'rejection_note' => [
                 'required',
@@ -187,16 +181,6 @@ class OrganizationController extends Controller
                 'max:2000',
             ],
         ]);
-
-        /*
-        |--------------------------------------------------------------------------
-        | Reject assignment
-        |--------------------------------------------------------------------------
-        |
-        | Keep organization_id so Admin can see which organization
-        | rejected the assignment and the reason.
-        |
-        */
 
         $assignment->update([
             'status' =>
@@ -220,9 +204,11 @@ class OrganizationController extends Controller
     }
 
     /**
-     * Organization: Start working on an accepted assignment.
+     * Compatibility endpoint for the old assignment workflow.
      *
-     * accepted -> in_progress
+     * Assignment status no longer has an in_progress state.
+     *
+     * The Help Request itself owns the in_progress state.
      */
     public function startAssignment(
         Request $request,
@@ -236,65 +222,18 @@ class OrganizationController extends Controller
             ], 403);
         }
 
-        $organization = Organization::where(
-            'user_id',
-            $user->id
-        )->first();
-
-        if (!$organization) {
-            return response()->json([
-                'message' => 'Organization profile not found.',
-            ], 404);
-        }
-
-        $assignment = HelpRequestAssignment::where(
-            'id',
-            $id
-        )
-            ->where(
-                'organization_id',
-                $organization->id
-            )
-            ->first();
-
-        if (!$assignment) {
-            return response()->json([
-                'message' => 'Assignment not found.',
-            ], 404);
-        }
-
-        if (
-            $assignment->status !==
-            HelpRequestAssignment::STATUS_ACCEPTED
-        ) {
-            return response()->json([
-                'message' =>
-                'Only accepted assignments can be started.',
-            ], 422);
-        }
-
-        $assignment->update([
-            'status' =>
-            HelpRequestAssignment::STATUS_IN_PROGRESS,
-        ]);
-
         return response()->json([
             'message' =>
-            'Help request assignment started successfully.',
-
-            'assignment' => $assignment
-                ->fresh()
-                ->load([
-                    'helpRequest',
-                    'assignedBy:id,name,email',
-                ]),
-        ]);
+            'Starting an assignment is no longer supported. An accepted assignment remains accepted.',
+        ], 422);
     }
 
     /**
-     * Organization: Complete an in-progress assignment.
+     * Compatibility endpoint for the old assignment workflow.
      *
-     * in_progress -> completed
+     * Assignment status no longer has a completed state.
+     *
+     * Completion belongs to HelpRequest.status.
      */
     public function completeAssignment(
         Request $request,
@@ -308,71 +247,20 @@ class OrganizationController extends Controller
             ], 403);
         }
 
-        $organization = Organization::where(
-            'user_id',
-            $user->id
-        )->first();
-
-        if (!$organization) {
-            return response()->json([
-                'message' => 'Organization profile not found.',
-            ], 404);
-        }
-
-        $assignment = HelpRequestAssignment::where(
-            'id',
-            $id
-        )
-            ->where(
-                'organization_id',
-                $organization->id
-            )
-            ->first();
-
-        if (!$assignment) {
-            return response()->json([
-                'message' => 'Assignment not found.',
-            ], 404);
-        }
-
-        if (
-            $assignment->status !==
-            HelpRequestAssignment::STATUS_IN_PROGRESS
-        ) {
-            return response()->json([
-                'message' =>
-                'Only in-progress assignments can be completed.',
-            ], 422);
-        }
-
-        $assignment->update([
-            'status' =>
-            HelpRequestAssignment::STATUS_COMPLETED,
-
-            'completed_at' => now(),
-        ]);
-
         return response()->json([
             'message' =>
-            'Help request assignment completed successfully.',
-
-            'assignment' => $assignment
-                ->fresh()
-                ->load([
-                    'helpRequest',
-                    'assignedBy:id,name,email',
-                ]),
-        ]);
+            'Completing an assignment is no longer supported. Completion belongs to the help request workflow.',
+        ], 422);
     }
 
     /**
-     * Organization: Request withdrawal from an accepted/in-progress assignment.
+     * Organization: Request withdrawal from an accepted assignment.
      *
-     * accepted/in_progress
-     *        ↓
+     * accepted
+     *     ↓
      * withdrawal_status = pending
      *
-     * The assignment itself remains active until Admin approves
+     * The assignment remains accepted until Admin approves
      * the withdrawal request.
      */
     public function requestWithdrawal(
@@ -381,23 +269,11 @@ class OrganizationController extends Controller
     ) {
         $user = $request->user();
 
-        /*
-    |--------------------------------------------------------------------------
-    | Authorization
-    |--------------------------------------------------------------------------
-    */
-
         if (!$user || $user->role !== 'organization') {
             return response()->json([
                 'message' => 'Unauthorized.',
             ], 403);
         }
-
-        /*
-    |--------------------------------------------------------------------------
-    | Find Organization
-    |--------------------------------------------------------------------------
-    */
 
         $organization = Organization::where(
             'user_id',
@@ -409,12 +285,6 @@ class OrganizationController extends Controller
                 'message' => 'Organization profile not found.',
             ], 404);
         }
-
-        /*
-    |--------------------------------------------------------------------------
-    | Find Assignment Belonging To This Organization
-    |--------------------------------------------------------------------------
-    */
 
         $assignment = HelpRequestAssignment::where(
             'id',
@@ -434,30 +304,32 @@ class OrganizationController extends Controller
         }
 
         /*
-    |--------------------------------------------------------------------------
-    | Assignment Must Be Active
-    |--------------------------------------------------------------------------
-    |
-    | Organization can request withdrawal only after accepting
-    | the assignment and before completing it.
-    |
-    */
+        |--------------------------------------------------------------------------
+        | Only Accepted Assignments Can Request Withdrawal
+        |--------------------------------------------------------------------------
+        |
+        | pending    -> cannot withdraw
+        | accepted   -> can request withdrawal
+        | rejected   -> cannot withdraw
+        | withdrawn  -> cannot withdraw again
+        |
+        */
 
-        if (!in_array($assignment->status, [
-            HelpRequestAssignment::STATUS_ACCEPTED,
-            HelpRequestAssignment::STATUS_IN_PROGRESS,
-        ], true)) {
+        if (
+            $assignment->status !==
+            HelpRequestAssignment::STATUS_ACCEPTED
+        ) {
             return response()->json([
                 'message' =>
-                'Only accepted or in-progress assignments can be withdrawn.',
+                'Only accepted assignments can be withdrawn.',
             ], 422);
         }
 
         /*
-    |--------------------------------------------------------------------------
-    | Prevent Duplicate Pending Request
-    |--------------------------------------------------------------------------
-    */
+        |--------------------------------------------------------------------------
+        | Prevent Duplicate Pending Request
+        |--------------------------------------------------------------------------
+        */
 
         if (
             $assignment->withdrawal_status ===
@@ -470,10 +342,10 @@ class OrganizationController extends Controller
         }
 
         /*
-    |--------------------------------------------------------------------------
-    | Validate Withdrawal Reason
-    |--------------------------------------------------------------------------
-    */
+        |--------------------------------------------------------------------------
+        | Validate Withdrawal Reason
+        |--------------------------------------------------------------------------
+        */
 
         $validated = $request->validate([
             'withdrawal_reason' => [
@@ -485,18 +357,18 @@ class OrganizationController extends Controller
         ]);
 
         /*
-    |--------------------------------------------------------------------------
-    | Create Withdrawal Request
-    |--------------------------------------------------------------------------
-    |
-    | IMPORTANT:
-    |
-    | We DO NOT change assignment status here.
-    |
-    | The organization is still the current organization until
-    | Admin approves the withdrawal.
-    |
-    */
+        |--------------------------------------------------------------------------
+        | Create Withdrawal Request
+        |--------------------------------------------------------------------------
+        |
+        | IMPORTANT:
+        |
+        | The assignment status remains accepted.
+        |
+        | It changes to withdrawn only after Admin approves
+        | the withdrawal request.
+        |
+        */
 
         $assignment->update([
             'withdrawal_status' =>
@@ -527,7 +399,7 @@ class OrganizationController extends Controller
     }
 
     /**
-     * Organization: Update selected fields of an assigned help request.
+     * Organization: Update selected fields of an accepted help request.
      *
      * Organizations can only modify:
      * - category
@@ -550,23 +422,11 @@ class OrganizationController extends Controller
     ) {
         $user = $request->user();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Authorization
-        |--------------------------------------------------------------------------
-        */
-
         if (!$user || $user->role !== 'organization') {
             return response()->json([
                 'message' => 'Unauthorized.',
             ], 403);
         }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Find Organization Profile
-        |--------------------------------------------------------------------------
-        */
 
         $organization = Organization::where(
             'user_id',
@@ -578,12 +438,6 @@ class OrganizationController extends Controller
                 'message' => 'Organization profile not found.',
             ], 404);
         }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Find Assignment Belonging To This Organization
-        |--------------------------------------------------------------------------
-        */
 
         $assignment = HelpRequestAssignment::where(
             'id',
@@ -604,17 +458,17 @@ class OrganizationController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Only Accepted / In-Progress Assignments Can Be Edited
+        | Only Accepted Assignments Can Be Edited
         |--------------------------------------------------------------------------
         */
 
-        if (!in_array($assignment->status, [
-            HelpRequestAssignment::STATUS_ACCEPTED,
-            HelpRequestAssignment::STATUS_IN_PROGRESS,
-        ], true)) {
+        if (
+            $assignment->status !==
+            HelpRequestAssignment::STATUS_ACCEPTED
+        ) {
             return response()->json([
                 'message' =>
-                'Only accepted or in-progress assignments can be edited.',
+                'Only accepted assignments can be edited.',
             ], 422);
         }
 
@@ -638,12 +492,8 @@ class OrganizationController extends Controller
         | Validate Only Organization-Editable Fields
         |--------------------------------------------------------------------------
         |
-        | IMPORTANT:
-        |
-        | The application's valid priority values are:
+        | Valid urgency values:
         | low, normal, high, critical
-        |
-        | "medium" is NOT a valid urgency value.
         |
         */
 
@@ -683,12 +533,6 @@ class OrganizationController extends Controller
         */
 
         $helpRequest->update($validated);
-
-        /*
-        |--------------------------------------------------------------------------
-        | Return Fresh Database Data
-        |--------------------------------------------------------------------------
-        */
 
         return response()->json([
             'message' =>

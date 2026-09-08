@@ -19,7 +19,7 @@ class CampaignService
     | - Must have a Help Request.
     | - Must remain unverified until Admin review.
     | - If an organization is attached, that organization must actually
-    |   be assigned to the selected Help Request.
+    |   have an accepted assignment for the selected Help Request.
     |
     */
 
@@ -93,7 +93,7 @@ class CampaignService
     |
     | Verification is available for EVERY campaign type.
     |
-    | unverified → active
+    | unverified -> active
     |
     */
 
@@ -123,9 +123,7 @@ class CampaignService
     | Reject Campaign
     |--------------------------------------------------------------------------
     |
-    | Verification is available for EVERY campaign type.
-    |
-    | unverified → rejected
+    | unverified -> rejected
     |
     */
 
@@ -155,10 +153,8 @@ class CampaignService
     | Update Campaign Status
     |--------------------------------------------------------------------------
     |
-    | After verification, Admin can update the operational status:
-    |
-    | active → completed
-    | active → cancelled
+    | active -> completed
+    | active -> cancelled
     |
     */
 
@@ -230,36 +226,44 @@ class CampaignService
         |--------------------------------------------------------------------------
         |
         | If organization_id is present, the organization MUST actually
-        | be assigned to this Help Request through HelpRequestAssignment.
-        |
-        | Only accepted/in_progress assignments count as an active
-        | organization assignment.
+        | have an ACCEPTED assignment for this Help Request.
         |
         | pending:
         |   Admin sent assignment but organization has not accepted yet.
         |
+        | accepted:
+        |   Organization accepted and therefore owns the assignment.
+        |
         | rejected:
         |   Organization rejected it.
-        |
-        | completed:
-        |   Assignment is finished.
         |
         | withdrawn:
         |   Organization is no longer responsible.
         |
+        | IMPORTANT:
+        |
+        | Assignment status does not contain in_progress/completed.
+        | Those states belong to HelpRequest.status.
+        |
         */
 
         if (!empty($data['organization_id'])) {
-            $hasActiveAssignment = HelpRequestAssignment::query()
-                ->where('help_request_id', $data['help_request_id'])
-                ->where('organization_id', $data['organization_id'])
-                ->whereIn('status', [
-                    HelpRequestAssignment::STATUS_ACCEPTED,
-                    HelpRequestAssignment::STATUS_IN_PROGRESS,
-                ])
+            $hasAcceptedAssignment = HelpRequestAssignment::query()
+                ->where(
+                    'help_request_id',
+                    $data['help_request_id']
+                )
+                ->where(
+                    'organization_id',
+                    $data['organization_id']
+                )
+                ->where(
+                    'status',
+                    HelpRequestAssignment::STATUS_ACCEPTED
+                )
                 ->exists();
 
-            if (!$hasActiveAssignment) {
+            if (!$hasAcceptedAssignment) {
                 throw ValidationException::withMessages([
                     'help_request_id' =>
                     'The selected help request is not currently assigned to this organization.',

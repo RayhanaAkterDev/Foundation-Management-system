@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Validation\Rule;
+
 use App\Models\User;
 use App\Models\Organization;
 use App\Models\IndividualProfile;
@@ -269,15 +271,12 @@ class AdminController extends Controller
                 'id',
                 'name',
                 'email',
+                'phone',
                 'role',
                 'status',
                 'email_verified_at',
                 'created_at',
             ]);
-
-        return response()->json([
-            'users' => $users,
-        ]);
     }
 
     /*
@@ -512,7 +511,32 @@ class AdminController extends Controller
             ], 404);
         }
 
-        $validated = $request->validate([
+        /*
+    |--------------------------------------------------------------------------
+    | Phone number permission
+    |--------------------------------------------------------------------------
+    |
+    | Admin can update only their own phone number.
+    | Admin can view another user's phone number, but cannot modify it.
+    |
+    */
+
+        if (
+            $targetUser->id !== $user->id &&
+            $request->exists('phone')
+        ) {
+            return response()->json([
+                'message' => 'You cannot change another user\'s phone number.',
+            ], 403);
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Validation
+    |--------------------------------------------------------------------------
+    */
+
+        $validationRules = [
             'name' => [
                 'required',
                 'string',
@@ -541,7 +565,40 @@ class AdminController extends Controller
                 'string',
                 'min:8',
             ],
-        ]);
+        ];
+
+        /*
+    |--------------------------------------------------------------------------
+    | Phone validation
+    |--------------------------------------------------------------------------
+    |
+    | Only the logged-in admin can update their own phone.
+    |
+    | Rules:
+    | - Optional during an update
+    | - Bangladesh number
+    | - Exactly 11 digits
+    | - Must start with 01
+    | - Must be unique across users
+    |
+    */
+
+        if ($targetUser->id === $user->id) {
+            $validationRules['phone'] = [
+                'sometimes',
+                'nullable',
+                'regex:/^01[0-9]{9}$/',
+                Rule::unique('users', 'phone')->ignore($targetUser->id),
+            ];
+        }
+
+        $validated = $request->validate($validationRules);
+
+        /*
+    |--------------------------------------------------------------------------
+    | Role cannot be changed
+    |--------------------------------------------------------------------------
+    */
 
         if ($validated['role'] !== $targetUser->role) {
             return response()->json([
@@ -549,6 +606,12 @@ class AdminController extends Controller
                 'User role cannot be changed after account creation.',
             ], 422);
         }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Admin cannot remove their own admin role
+    |--------------------------------------------------------------------------
+    */
 
         if (
             $targetUser->id === $user->id &&
@@ -559,15 +622,46 @@ class AdminController extends Controller
             ], 422);
         }
 
+        /*
+    |--------------------------------------------------------------------------
+    | Update basic user information
+    |--------------------------------------------------------------------------
+    */
+
         $targetUser->name = $validated['name'];
         $targetUser->email = $validated['email'];
         $targetUser->status = $validated['status'];
+
+        /*
+    |--------------------------------------------------------------------------
+    | Update phone only when editing own account
+    |--------------------------------------------------------------------------
+    */
+
+        if (
+            $targetUser->id === $user->id &&
+            array_key_exists('phone', $validated)
+        ) {
+            $targetUser->phone = $validated['phone'];
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Update password when provided
+    |--------------------------------------------------------------------------
+    */
 
         if (!empty($validated['password'])) {
             $targetUser->password = $validated['password'];
         }
 
         $targetUser->save();
+
+        /*
+    |--------------------------------------------------------------------------
+    | Keep organization name synchronized
+    |--------------------------------------------------------------------------
+    */
 
         if ($targetUser->role === 'organization') {
             Organization::where(

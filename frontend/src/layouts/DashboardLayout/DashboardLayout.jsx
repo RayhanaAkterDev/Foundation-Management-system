@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+
 import { Outlet, useLocation } from 'react-router-dom';
 
 import DashboardSidebar from './DashboardSidebar';
@@ -12,12 +13,16 @@ import { NAV_CONFIG } from '@/routes/dashboardNav';
 // ============================================================
 
 function getRoleFromPath(pathname) {
-    if (pathname.startsWith('/dashboard/organization')) {
+    if (pathname.startsWith('/admin/dashboard')) {
+        return 'admin';
+    }
+
+    if (pathname.startsWith('/organization/dashboard')) {
         return 'organization';
     }
 
-    if (pathname.startsWith('/dashboard/admin')) {
-        return 'admin';
+    if (pathname.startsWith('/individual/dashboard')) {
+        return 'individual';
     }
 
     return 'individual';
@@ -31,7 +36,6 @@ function getPageTitle(pathname, role) {
     const nav = NAV_CONFIG[role] || [];
 
     const segments = pathname.split('/').filter(Boolean);
-
     const lastSegment = segments[segments.length - 1];
 
     if (lastSegment === role || lastSegment === 'dashboard') {
@@ -109,7 +113,9 @@ const DashboardLayout = () => {
                     md:pl-66
                 "
             >
-                {/* TOPBAR */}
+                {/* ==================================================
+                    TOPBAR
+                ================================================== */}
 
                 <DashboardTopbar
                     pageTitle={pageTitle}

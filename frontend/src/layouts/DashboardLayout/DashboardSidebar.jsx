@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import logo from '@/assets/shared/footerLogo.png';
+
 import {
     HeartHandshake,
     LogOut,
@@ -28,10 +29,22 @@ const MOCK_USERS = {
 };
 
 const ROOT_PATHS = [
-    '/dashboard/individual',
-    '/dashboard/organization',
-    '/dashboard/admin',
+    '/individual/dashboard',
+    '/organization/dashboard',
+    '/admin/dashboard',
 ];
+
+const PROFILE_PATHS = {
+    individual: '/individual/dashboard/profile',
+    organization: '/organization/dashboard/profile',
+    admin: '/admin/dashboard',
+};
+
+const SETTINGS_PATHS = {
+    individual: '/individual/dashboard/settings',
+    organization: '/organization/dashboard/settings',
+    admin: '/admin/dashboard/settings',
+};
 
 const DashboardSidebar = ({ role, currentPath }) => {
     const navigate = useNavigate();
@@ -67,6 +80,9 @@ const DashboardSidebar = ({ role, currentPath }) => {
         .join('')
         .toUpperCase();
 
+    const profilePath = PROFILE_PATHS[role];
+    const settingsPath = SETTINGS_PATHS[role];
+
     return (
         <aside
             className="
@@ -83,47 +99,46 @@ const DashboardSidebar = ({ role, currentPath }) => {
             "
         >
             {/* ==================================================
-    BRAND
-================================================== */}
-
+                BRAND
+            ================================================== */}
             <div className="shrink-0 px-5 pt-5">
                 <div
                     className="
-            relative
-            block
-            overflow-hidden
-            rounded-[22px]
-            border
-            border-white/15
-            p-5
-            backdrop-blur-md
-        "
+                        relative
+                        block
+                        overflow-hidden
+                        rounded-[22px]
+                        border
+                        border-white/15
+                        p-5
+                        backdrop-blur-md
+                    "
                 >
                     {/* Decorative accent */}
                     <div
                         className="
-                absolute
-                -right-8
-                -top-8
-                h-28
-                w-28
-                rounded-full
-                bg-accent/10
-                blur-2xl
-            "
+                            absolute
+                            -right-8
+                            -top-8
+                            h-28
+                            w-28
+                            rounded-full
+                            bg-accent/10
+                            blur-2xl
+                        "
                     />
 
                     <div
                         className="
-                absolute
-                -bottom-8.75
-                -left-6.25
-                h-24
-                w-24
-                rounded-full
-                bg-white/6
-                blur-xl
-            "
+                            absolute
+                            -bottom-8.75
+                            -left-6.25
+                            h-24
+                            w-24
+                            rounded-full
+                            bg-white/6
+                            blur-xl
+                        "
                     />
 
                     {/* Main brand */}
@@ -131,18 +146,18 @@ const DashboardSidebar = ({ role, currentPath }) => {
                         {/* Logo */}
                         <div
                             className="
-                    relative
-                    flex
-                    h-14
-                    w-14
-                    shrink-0
-                    items-center
-                    justify-center
-                    rounded-2xl
-                    bg-white
-                    text-primary
-                    shadow-[0_8px_24px_rgba(0,0,0,0.14)]
-                "
+                                relative
+                                flex
+                                h-14
+                                w-14
+                                shrink-0
+                                items-center
+                                justify-center
+                                rounded-2xl
+                                bg-white
+                                text-primary
+                                shadow-[0_8px_24px_rgba(0,0,0,0.14)]
+                            "
                         >
                             <img src={logo} alt="sp" />
                         </div>
@@ -151,13 +166,13 @@ const DashboardSidebar = ({ role, currentPath }) => {
                         <div className="min-w-0">
                             <div
                                 className="
-                        font-fraunces
-                        text-[22px]
-                        font-semibold
-                        leading-[0.95]
-                        tracking-[-0.04em]
-                        text-white
-                    "
+                                    font-fraunces
+                                    text-[22px]
+                                    font-semibold
+                                    leading-[0.95]
+                                    tracking-[-0.04em]
+                                    text-white
+                                "
                             >
                                 Stand
                                 <span className="text-accent"> For</span>
@@ -167,13 +182,13 @@ const DashboardSidebar = ({ role, currentPath }) => {
 
                             <p
                                 className="
-                        mt-2.5
-                        text-[8.5px]
-                        font-semibold
-                        uppercase
-                        tracking-[0.17em]
-                        text-white/50
-                    "
+                                    mt-2.5
+                                    text-[8.5px]
+                                    font-semibold
+                                    uppercase
+                                    tracking-[0.17em]
+                                    text-white/50
+                                "
                             >
                                 Social Impact Platform
                             </p>
@@ -183,34 +198,34 @@ const DashboardSidebar = ({ role, currentPath }) => {
                     {/* Bottom identity strip */}
                     <div
                         className="
-                relative
-                mt-5
-                flex
-                items-center
-                justify-between
-                border-t
-                border-white/10
-                pt-3.5
-            "
+                            relative
+                            mt-5
+                            flex
+                            items-center
+                            justify-between
+                            border-t
+                            border-white/10
+                            pt-3.5
+                        "
                     >
                         <div className="flex items-center gap-2">
                             <span
                                 className="
-                        h-1.5
-                        w-1.5
-                        rounded-full
-                        bg-accent
-                    "
+                                    h-1.5
+                                    w-1.5
+                                    rounded-full
+                                    bg-accent
+                                "
                             />
 
                             <span
                                 className="
-                        text-[10px]
-                        font-semibold
-                        uppercase
-                        tracking-[0.13em]
-                        text-white/55
-                    "
+                                    text-[10px]
+                                    font-semibold
+                                    uppercase
+                                    tracking-[0.13em]
+                                    text-white/55
+                                "
                             >
                                 Your dashboard
                             </span>
@@ -218,10 +233,10 @@ const DashboardSidebar = ({ role, currentPath }) => {
                     </div>
                 </div>
             </div>
+
             {/* ==================================================
                 NAVIGATION
             ================================================== */}
-
             <nav
                 className="
                     min-h-0
@@ -280,7 +295,6 @@ const DashboardSidebar = ({ role, currentPath }) => {
                                     text-[13px]
                                     transition-all
                                     duration-200
-
                                     ${
                                         isActive
                                             ? `
@@ -298,7 +312,6 @@ const DashboardSidebar = ({ role, currentPath }) => {
                                 `}
                             >
                                 {/* Active rail */}
-
                                 {isActive && (
                                     <span
                                         className="
@@ -315,7 +328,6 @@ const DashboardSidebar = ({ role, currentPath }) => {
                                 )}
 
                                 {/* Icon */}
-
                                 <span
                                     className={`
                                         flex
@@ -325,7 +337,6 @@ const DashboardSidebar = ({ role, currentPath }) => {
                                         items-center
                                         justify-center
                                         rounded-lg
-
                                         ${
                                             isActive
                                                 ? 'bg-white/10 text-white'
@@ -340,13 +351,11 @@ const DashboardSidebar = ({ role, currentPath }) => {
                                 </span>
 
                                 {/* Label */}
-
                                 <span className="min-w-0 flex-1 truncate">
                                     {item.label}
                                 </span>
 
                                 {/* Arrow */}
-
                                 {isActive && (
                                     <ChevronRight
                                         className="
@@ -367,10 +376,8 @@ const DashboardSidebar = ({ role, currentPath }) => {
             {/* ==================================================
                 ACCOUNT AREA
             ================================================== */}
-
             <div className="relative shrink-0 px-4 pb-5">
                 {/* Account Menu */}
-
                 {accountOpen && (
                     <div
                         className="
@@ -388,7 +395,6 @@ const DashboardSidebar = ({ role, currentPath }) => {
                         "
                     >
                         {/* Account heading */}
-
                         <div className="px-3 pb-2 pt-2">
                             <p
                                 className="
@@ -418,93 +424,94 @@ const DashboardSidebar = ({ role, currentPath }) => {
                         <div className="my-1.5 h-px bg-white/10" />
 
                         {/* Profile */}
-
-                        <NavLink
-                            to={`/dashboard/${role}/profile`}
-                            onClick={() => setAccountOpen(false)}
-                            className="
-                                group
-                                flex
-                                items-center
-                                gap-3
-                                rounded-xl
-                                px-3
-                                py-2.5
-                                text-[12px]
-                                font-medium
-                                text-white/65
-                                transition-colors
-                                hover:bg-white/8
-                                hover:text-white
-                            "
-                        >
-                            <UserRound
+                        {profilePath && (
+                            <NavLink
+                                to={profilePath}
+                                onClick={() => setAccountOpen(false)}
                                 className="
-                                    h-4
-                                    w-4
-                                    text-white/40
-                                    group-hover:text-white
+                                    group
+                                    flex
+                                    items-center
+                                    gap-3
+                                    rounded-xl
+                                    px-3
+                                    py-2.5
+                                    text-[12px]
+                                    font-medium
+                                    text-white/65
+                                    transition-colors
+                                    hover:bg-white/8
+                                    hover:text-white
                                 "
-                                strokeWidth={1.8}
-                            />
+                            >
+                                <UserRound
+                                    className="
+                                        h-4
+                                        w-4
+                                        text-white/40
+                                        group-hover:text-white
+                                    "
+                                    strokeWidth={1.8}
+                                />
 
-                            <span className="flex-1">Profile</span>
+                                <span className="flex-1">Profile</span>
 
-                            <ChevronRight
-                                className="
-                                    h-3.5
-                                    w-3.5
-                                    text-white/20
-                                    group-hover:text-white/50
-                                "
-                            />
-                        </NavLink>
+                                <ChevronRight
+                                    className="
+                                        h-3.5
+                                        w-3.5
+                                        text-white/20
+                                        group-hover:text-white/50
+                                    "
+                                />
+                            </NavLink>
+                        )}
 
                         {/* Settings */}
-
-                        <NavLink
-                            to={`/dashboard/${role}/settings`}
-                            onClick={() => setAccountOpen(false)}
-                            className="
-                                group
-                                flex
-                                items-center
-                                gap-3
-                                rounded-xl
-                                px-3
-                                py-2.5
-                                text-[12px]
-                                font-medium
-                                text-white/65
-                                transition-colors
-                                hover:bg-white/8
-                                hover:text-white
-                            "
-                        >
-                            <Settings
+                        {settingsPath && (
+                            <NavLink
+                                to={settingsPath}
+                                onClick={() => setAccountOpen(false)}
                                 className="
-                                    h-4
-                                    w-4
-                                    text-white/40
-                                    group-hover:text-white
+                                    group
+                                    flex
+                                    items-center
+                                    gap-3
+                                    rounded-xl
+                                    px-3
+                                    py-2.5
+                                    text-[12px]
+                                    font-medium
+                                    text-white/65
+                                    transition-colors
+                                    hover:bg-white/8
+                                    hover:text-white
                                 "
-                                strokeWidth={1.8}
-                            />
+                            >
+                                <Settings
+                                    className="
+                                        h-4
+                                        w-4
+                                        text-white/40
+                                        group-hover:text-white
+                                    "
+                                    strokeWidth={1.8}
+                                />
 
-                            <span className="flex-1">Account settings</span>
+                                <span className="flex-1">Account settings</span>
 
-                            <ChevronRight
-                                className="
-                                    h-3.5
-                                    w-3.5
-                                    text-white/20
-                                    group-hover:text-white/50
-                                "
-                            />
-                        </NavLink>
+                                <ChevronRight
+                                    className="
+                                        h-3.5
+                                        w-3.5
+                                        text-white/20
+                                        group-hover:text-white/50
+                                    "
+                                />
+                            </NavLink>
+                        )}
 
                         {/* Help */}
-
                         <NavLink
                             to="/help"
                             onClick={() => setAccountOpen(false)}
@@ -549,7 +556,6 @@ const DashboardSidebar = ({ role, currentPath }) => {
                         <div className="my-1.5 h-px bg-white/10" />
 
                         {/* Sign out */}
-
                         <button
                             type="button"
                             onClick={handleSignOut}
@@ -587,7 +593,6 @@ const DashboardSidebar = ({ role, currentPath }) => {
                 )}
 
                 {/* Account Trigger */}
-
                 <button
                     type="button"
                     onClick={() => setAccountOpen((prev) => !prev)}
@@ -604,7 +609,6 @@ const DashboardSidebar = ({ role, currentPath }) => {
                         text-left
                         transition-all
                         duration-200
-
                         ${
                             accountOpen
                                 ? 'border-white/15 bg-white/10'
@@ -613,7 +617,6 @@ const DashboardSidebar = ({ role, currentPath }) => {
                     `}
                 >
                     {/* Avatar */}
-
                     <div
                         className="
                             flex
@@ -642,7 +645,6 @@ const DashboardSidebar = ({ role, currentPath }) => {
                     </div>
 
                     {/* User information */}
-
                     <div className="min-w-0 flex-1">
                         <p
                             className="
@@ -669,7 +671,6 @@ const DashboardSidebar = ({ role, currentPath }) => {
                     </div>
 
                     {/* Menu indicator */}
-
                     <ChevronRight
                         className={`
                             h-4

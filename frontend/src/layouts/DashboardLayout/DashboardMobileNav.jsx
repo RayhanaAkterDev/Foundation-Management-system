@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react';
+
 import { NavLink, useNavigate } from 'react-router-dom';
+
 import logo from '@/assets/shared/footerLogo.png';
+
 import {
     HeartHandshake,
     X,
@@ -39,10 +42,22 @@ const MOCK_USERS = {
 // ============================================================
 
 const ROOT_PATHS = [
-    '/dashboard/individual',
-    '/dashboard/organization',
-    '/dashboard/admin',
+    '/individual/dashboard',
+    '/organization/dashboard',
+    '/admin/dashboard',
 ];
+
+const PROFILE_PATHS = {
+    individual: '/individual/dashboard/profile',
+    organization: '/organization/dashboard/profile',
+    admin: '/admin/dashboard',
+};
+
+const SETTINGS_PATHS = {
+    individual: '/individual/dashboard/settings',
+    organization: '/organization/dashboard/settings',
+    admin: '/admin/dashboard/settings',
+};
 
 const isRootDashboard = (path) => ROOT_PATHS.includes(path);
 
@@ -61,12 +76,17 @@ const DashboardMobileNav = ({ role, currentPath, open, onClose }) => {
 
     const roleLabel = ROLE_LABELS[role] || 'User';
 
+    const profilePath = PROFILE_PATHS[role];
+
+    const settingsPath = SETTINGS_PATHS[role];
+
     // ========================================================
     // CLOSE AFTER ROUTE CHANGE
     // ========================================================
 
     useEffect(() => {
         onClose();
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentPath]);
 
@@ -169,7 +189,13 @@ const DashboardMobileNav = ({ role, currentPath, open, onClose }) => {
                 >
                     <div className="flex items-center justify-between">
                         <NavLink
-                            to={`/dashboard/${role}`}
+                            to={
+                                role === 'admin'
+                                    ? '/admin/dashboard'
+                                    : role === 'organization'
+                                      ? '/organization/dashboard'
+                                      : '/individual/dashboard'
+                            }
                             onClick={onClose}
                             className="
                                 flex
@@ -198,13 +224,13 @@ const DashboardMobileNav = ({ role, currentPath, open, onClose }) => {
                             <div className="min-w-0">
                                 <div
                                     className="
-                        font-fraunces
-                        text-lg
-                        font-semibold
-                        leading-[0.95]
-                        tracking-[-0.04em]
-                        text-white
-                    "
+                                        font-fraunces
+                                        text-lg
+                                        font-semibold
+                                        leading-[0.95]
+                                        tracking-[-0.04em]
+                                        text-white
+                                    "
                                 >
                                     Stand
                                     <span className="text-accent"> For</span>
@@ -226,6 +252,25 @@ const DashboardMobileNav = ({ role, currentPath, open, onClose }) => {
                                 </p>
                             </div>
                         </NavLink>
+
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="
+                                hidden
+                                h-8
+                                w-8
+                                items-center
+                                justify-center
+                                rounded-lg
+                                text-white/50
+                                hover:bg-white/10
+                                hover:text-white
+                            "
+                            aria-label="Close navigation"
+                        >
+                            <X className="h-4 w-4" />
+                        </button>
                     </div>
                 </div>
 
@@ -296,7 +341,6 @@ const DashboardMobileNav = ({ role, currentPath, open, onClose }) => {
                                         text-[13px]
                                         transition-all
                                         duration-200
-
                                         ${
                                             active
                                                 ? `
@@ -337,7 +381,6 @@ const DashboardMobileNav = ({ role, currentPath, open, onClose }) => {
                                             items-center
                                             justify-center
                                             rounded-lg
-
                                             ${
                                                 active
                                                     ? 'bg-white/10 text-white'
@@ -427,93 +470,105 @@ const DashboardMobileNav = ({ role, currentPath, open, onClose }) => {
 
                             <div className="my-1.5 h-px bg-white/10" />
 
-                            {/* Profile */}
+                            {/* ==================================================
+                                PROFILE
+                            ================================================== */}
 
-                            <NavLink
-                                to={`/dashboard/${role}/profile`}
-                                onClick={onClose}
-                                className="
-                                    group
-                                    flex
-                                    items-center
-                                    gap-3
-                                    rounded-xl
-                                    px-3
-                                    py-2.5
-                                    text-[12px]
-                                    font-medium
-                                    text-white/65
-                                    transition-colors
-                                    hover:bg-white/8
-                                    hover:text-white
-                                "
-                            >
-                                <UserRound
+                            {profilePath && (
+                                <NavLink
+                                    to={profilePath}
+                                    onClick={onClose}
                                     className="
-                                        h-4
-                                        w-4
-                                        text-white/40
-                                        group-hover:text-white
+                                        group
+                                        flex
+                                        items-center
+                                        gap-3
+                                        rounded-xl
+                                        px-3
+                                        py-2.5
+                                        text-[12px]
+                                        font-medium
+                                        text-white/65
+                                        transition-colors
+                                        hover:bg-white/8
+                                        hover:text-white
                                     "
-                                    strokeWidth={1.8}
-                                />
+                                >
+                                    <UserRound
+                                        className="
+                                            h-4
+                                            w-4
+                                            text-white/40
+                                            group-hover:text-white
+                                        "
+                                        strokeWidth={1.8}
+                                    />
 
-                                <span className="flex-1">Profile</span>
+                                    <span className="flex-1">Profile</span>
 
-                                <ChevronRight
+                                    <ChevronRight
+                                        className="
+                                            h-3.5
+                                            w-3.5
+                                            text-white/20
+                                        "
+                                        strokeWidth={1.8}
+                                    />
+                                </NavLink>
+                            )}
+
+                            {/* ==================================================
+                                SETTINGS
+                            ================================================== */}
+
+                            {settingsPath && (
+                                <NavLink
+                                    to={settingsPath}
+                                    onClick={onClose}
                                     className="
-                                        h-3.5
-                                        w-3.5
-                                        text-white/20
+                                        group
+                                        flex
+                                        items-center
+                                        gap-3
+                                        rounded-xl
+                                        px-3
+                                        py-2.5
+                                        text-[12px]
+                                        font-medium
+                                        text-white/65
+                                        transition-colors
+                                        hover:bg-white/8
+                                        hover:text-white
                                     "
-                                    strokeWidth={1.8}
-                                />
-                            </NavLink>
+                                >
+                                    <Settings
+                                        className="
+                                            h-4
+                                            w-4
+                                            text-white/40
+                                            group-hover:text-white
+                                        "
+                                        strokeWidth={1.8}
+                                    />
 
-                            {/* Settings */}
+                                    <span className="flex-1">
+                                        Account settings
+                                    </span>
 
-                            <NavLink
-                                to={`/dashboard/${role}/settings`}
-                                onClick={onClose}
-                                className="
-                                    group
-                                    flex
-                                    items-center
-                                    gap-3
-                                    rounded-xl
-                                    px-3
-                                    py-2.5
-                                    text-[12px]
-                                    font-medium
-                                    text-white/65
-                                    transition-colors
-                                    hover:bg-white/8
-                                    hover:text-white
-                                "
-                            >
-                                <Settings
-                                    className="
-                                        h-4
-                                        w-4
-                                        text-white/40
-                                        group-hover:text-white
-                                    "
-                                    strokeWidth={1.8}
-                                />
+                                    <ChevronRight
+                                        className="
+                                            h-3.5
+                                            w-3.5
+                                            text-white/20
+                                        "
+                                        strokeWidth={1.8}
+                                    />
+                                </NavLink>
+                            )}
 
-                                <span className="flex-1">Account settings</span>
-
-                                <ChevronRight
-                                    className="
-                                        h-3.5
-                                        w-3.5
-                                        text-white/20
-                                    "
-                                    strokeWidth={1.8}
-                                />
-                            </NavLink>
-
-                            {/* Help */}
+                            {/* ==================================================
+                                HELP
+                            ================================================== */}
 
                             <NavLink
                                 to="/help"
@@ -558,7 +613,9 @@ const DashboardMobileNav = ({ role, currentPath, open, onClose }) => {
 
                             <div className="my-1.5 h-px bg-white/10" />
 
-                            {/* Sign out */}
+                            {/* ==================================================
+                                SIGN OUT
+                            ================================================== */}
 
                             <button
                                 type="button"
@@ -616,7 +673,6 @@ const DashboardMobileNav = ({ role, currentPath, open, onClose }) => {
                             text-left
                             transition-all
                             duration-200
-
                             ${
                                 accountOpen
                                     ? 'border-white/15 bg-white/10'
@@ -646,7 +702,11 @@ const DashboardMobileNav = ({ role, currentPath, open, onClose }) => {
                                 <img
                                     src={user.avatar}
                                     alt={user.name}
-                                    className="h-full w-full object-cover"
+                                    className="
+                                        h-full
+                                        w-full
+                                        object-cover
+                                    "
                                 />
                             ) : (
                                 initials

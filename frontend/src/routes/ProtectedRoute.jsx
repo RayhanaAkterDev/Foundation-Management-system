@@ -16,6 +16,7 @@ const ProtectedRoute = ({ allowedRoles = [] }) => {
      * Public users should choose their account type first.
      * Admin authentication has its own separate login page.
      */
+
     if (!token || !userStorage) {
         const isAdminRoute = allowedRoles.includes('admin');
 
@@ -35,7 +36,6 @@ const ProtectedRoute = ({ allowedRoles = [] }) => {
     } catch {
         localStorage.removeItem('auth_token');
         localStorage.removeItem('user');
-
         sessionStorage.removeItem('auth_token');
         sessionStorage.removeItem('user');
 
@@ -52,23 +52,23 @@ const ProtectedRoute = ({ allowedRoles = [] }) => {
      * Users who are already authenticated but try to access
      * another role's dashboard are returned to their own dashboard.
      */
+
     if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
         if (user.role === 'individual') {
-            return <Navigate to="/dashboard/individual" replace />;
+            return <Navigate to="/individual/dashboard" replace />;
         }
 
         if (user.role === 'organization') {
-            return <Navigate to="/dashboard/organization" replace />;
+            return <Navigate to="/organization/dashboard" replace />;
         }
 
         if (user.role === 'admin') {
-            return <Navigate to="/dashboard/admin" replace />;
+            return <Navigate to="/admin/dashboard" replace />;
         }
 
         // Unknown/invalid role
         localStorage.removeItem('auth_token');
         localStorage.removeItem('user');
-
         sessionStorage.removeItem('auth_token');
         sessionStorage.removeItem('user');
 

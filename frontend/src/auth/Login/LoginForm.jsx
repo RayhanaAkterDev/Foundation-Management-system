@@ -1,9 +1,12 @@
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+
 import { Eye, EyeOff, LockKeyhole, Mail } from 'lucide-react';
+
 import { useState } from 'react';
 
 const LoginForm = ({ loginRole = null }) => {
     const navigate = useNavigate();
+
     const [searchParams] = useSearchParams();
 
     // Public login gets its role from the URL.
@@ -14,9 +17,11 @@ const LoginForm = ({ loginRole = null }) => {
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+
     const [rememberMe, setRememberMe] = useState(false);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
+
     const [loginError, setLoginError] = useState('');
 
     const handleSubmit = async (e) => {
@@ -26,18 +31,21 @@ const LoginForm = ({ loginRole = null }) => {
         setIsSubmitting(true);
 
         try {
-            const response = await fetch('https://stand-for-people-api.onrender.com/api/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Accept: 'application/json',
+            const response = await fetch(
+                'https://stand-for-people-api.onrender.com/api/login',
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Accept: 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email,
+                        password,
+                        role,
+                    }),
                 },
-                body: JSON.stringify({
-                    email,
-                    password,
-                    role,
-                }),
-            });
+            );
 
             const data = await response.json();
 
@@ -55,11 +63,11 @@ const LoginForm = ({ loginRole = null }) => {
 
             // Redirect based on authenticated account role
             if (data.user.role === 'individual') {
-                navigate('/dashboard/individual');
+                navigate('/individual/dashboard');
             } else if (data.user.role === 'organization') {
-                navigate('/dashboard/organization');
+                navigate('/organization/dashboard');
             } else if (data.user.role === 'admin') {
-                navigate('/dashboard/admin');
+                navigate('/admin/dashboard');
             } else {
                 throw new Error('Unknown account type.');
             }
@@ -147,7 +155,7 @@ const LoginForm = ({ loginRole = null }) => {
                     </label>
 
                     <Link
-                        to="/forgot-password"
+                        to="/account/forgot-password"
                         className="text-xs font-semibold text-primary transition-colors hover:text-primary-hover sm:text-sm"
                     >
                         Forgot password?

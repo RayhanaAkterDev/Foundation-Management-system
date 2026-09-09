@@ -309,6 +309,38 @@ class AdminController extends Controller
                 'in:active,inactive,suspended',
             ],
 
+            /*
+        |--------------------------------------------------------------------------
+        | Account-level phone
+        |--------------------------------------------------------------------------
+        |
+        | Phone belongs to users.phone for every account type.
+        |
+        | Rules:
+        | - Required
+        | - Bangladesh number
+        | - Exactly 11 digits
+        | - Must start with 01
+        | - Unique across all users
+        |
+        */
+            'phone' => [
+                'required',
+                'string',
+                'regex:/^01[0-9]{9}$/',
+                Rule::unique('users', 'phone'),
+            ],
+
+            /*
+        |--------------------------------------------------------------------------
+        | Organization-specific fields
+        |--------------------------------------------------------------------------
+        |
+        | These are only used when the selected role is organization.
+        | Phone is intentionally NOT included here because phone belongs
+        | to the users table.
+        |
+        */
             'organization_type' => [
                 'nullable',
                 'string',
@@ -319,12 +351,6 @@ class AdminController extends Controller
                 'nullable',
                 'string',
                 'max:255',
-            ],
-
-            'phone' => [
-                'nullable',
-                'string',
-                'max:50',
             ],
 
             'website' => [
@@ -363,9 +389,16 @@ class AdminController extends Controller
         ]);
 
         $result = DB::transaction(function () use ($validated) {
+            /*
+        |--------------------------------------------------------------------------
+        | Create user account
+        |--------------------------------------------------------------------------
+        */
+
             $newUser = User::create([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
+                'phone' => $validated['phone'],
                 'password' => $validated['password'],
                 'role' => $validated['role'],
                 'status' => $validated['status'] ?? 'active',
@@ -374,11 +407,31 @@ class AdminController extends Controller
             $individualProfile = null;
             $organization = null;
 
+            /*
+        |--------------------------------------------------------------------------
+        | Individual
+        |--------------------------------------------------------------------------
+        |
+        | Phone is stored in users.phone.
+        | Do NOT store it in individual_profiles.phone.
+        |
+        */
+
             if ($validated['role'] === 'individual') {
                 $individualProfile = IndividualProfile::create([
                     'user_id' => $newUser->id,
                 ]);
             }
+
+            /*
+        |--------------------------------------------------------------------------
+        | Organization
+        |--------------------------------------------------------------------------
+        |
+        | Phone is stored in users.phone.
+        | Do NOT store it in organizations.phone.
+        |
+        */
 
             if ($validated['role'] === 'organization') {
                 $organization = Organization::create([
@@ -390,9 +443,6 @@ class AdminController extends Controller
 
                     'registration_number' =>
                     $validated['registration_number'] ?? null,
-
-                    'phone' =>
-                    $validated['phone'] ?? null,
 
                     'website' =>
                     $validated['website'] ?? null,

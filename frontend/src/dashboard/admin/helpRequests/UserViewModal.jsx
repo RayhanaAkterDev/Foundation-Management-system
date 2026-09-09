@@ -8,8 +8,14 @@ import {
     Phone,
     MapPin,
     Home,
+    Building2,
+    FileText,
+    Globe,
+    Users,
+    Target,
+    Tags,
+    HeartHandshake,
 } from 'lucide-react';
-
 import StatusBadge from '@/components/dashboard/StatusBadge';
 
 const UserViewModal = ({ user, loading, error, onClose }) => {
@@ -18,328 +24,576 @@ const UserViewModal = ({ user, loading, error, onClose }) => {
     }
 
     const individualProfile = user?.individual_profile;
+    const organization = user?.organization;
 
-    const formatRole = (role) => {
-        if (!role) {
+    const formatType = (value) => {
+        if (!value) {
             return 'Not provided';
         }
 
-        if (role === 'admin') {
-            return 'Administrator';
-        }
-
-        return role
+        return value
             .replace(/_/g, ' ')
             .replace(/\b\w/g, (letter) => letter.toUpperCase());
     };
 
-    const formatDate = (date) => {
-        if (!date) {
+    const formatList = (value) => {
+        if (!value) {
             return 'Not provided';
         }
 
-        return new Date(date).toLocaleDateString();
+        if (Array.isArray(value)) {
+            return value.length > 0 ? value.join(', ') : 'Not provided';
+        }
+
+        if (typeof value === 'string') {
+            try {
+                const parsed = JSON.parse(value);
+
+                if (Array.isArray(parsed)) {
+                    return parsed.length > 0
+                        ? parsed.join(', ')
+                        : 'Not provided';
+                }
+            } catch {
+                // Keep normal string values unchanged.
+            }
+        }
+
+        return value;
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-[4px]">
-            <div className="flex max-h-[90vh] w-full max-w-[760px] flex-col overflow-hidden rounded-[26px] border border-slate-200 bg-white shadow-[0_30px_100px_rgba(15,23,42,0.22)]">
-                {/* =========================================================
-                    HEADER
-                ========================================================= */}
-                <div className="relative shrink-0 overflow-hidden bg-[#eef8f6] px-7 pb-7 pt-6">
-                    <div className="pointer-events-none absolute -right-16 -top-24 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
-
-                    <div className="pointer-events-none absolute bottom-[-70px] left-[38%] h-36 w-36 rounded-full bg-amber-300/10 blur-3xl" />
-
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-[3px]">
+            <div className="flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-border bg-white shadow-2xl shadow-slate-900/10">
+                {/* Header */}
+                <div className="relative shrink-0 border-b border-border px-6 py-5">
                     <button
                         type="button"
                         onClick={onClose}
-                        className="absolute right-5 top-5 z-10 flex h-9 w-9 items-center justify-center rounded-xl border border-white/70 bg-white/70 text-slate-500 backdrop-blur transition hover:bg-white hover:text-slate-800"
+                        className="absolute right-5 top-5 flex h-9 w-9 items-center justify-center rounded-lg text-text-secondary transition-all hover:bg-background-alt hover:text-text-primary"
                         aria-label="Close"
                     >
                         <X size={18} />
                     </button>
 
-                    <div className="relative flex items-center gap-4 pr-12">
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white text-primary shadow-sm ring-1 ring-primary/10">
-                            <UserRound size={22} strokeWidth={1.7} />
+                    <p className="text-xs font-semibold uppercase tracking-[0.08em] text-primary">
+                        User profile
+                    </p>
+
+                    <h2 className="mt-1.5 pr-12 text-xl font-semibold tracking-tight text-text-primary">
+                        {user ? user.name : 'User Details'}
+                    </h2>
+
+                    {user && (
+                        <div className="mt-2 flex items-center gap-2">
+                            <span className="text-sm capitalize text-text-secondary">
+                                {user.role === 'admin'
+                                    ? 'Administrator'
+                                    : user.role}
+                            </span>
+
+                            <span className="h-1 w-1 rounded-full bg-border" />
+
+                            <StatusBadge status={user.status} />
                         </div>
+                    )}
 
-                        <div className="min-w-0">
-                            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
-                                User profile
-                            </p>
-
-                            <h2 className="mt-1 text-xl font-bold tracking-tight text-slate-900">
-                                {user ? user.name : 'User Details'}
-                            </h2>
-
-                            {user && (
-                                <div className="mt-1.5 flex flex-wrap items-center gap-2">
-                                    <span className="text-xs font-medium text-slate-500">
-                                        {formatRole(user.role)}
-                                    </span>
-
-                                    {user.status && (
-                                        <>
-                                            <span className="h-1 w-1 rounded-full bg-slate-300" />
-                                            <StatusBadge status={user.status} />
-                                        </>
-                                    )}
-                                </div>
-                            )}
-
-                            {!user && !loading && error && (
-                                <p className="mt-1 text-sm text-slate-500">
-                                    Unable to load this account
-                                </p>
-                            )}
-                        </div>
-                    </div>
+                    {!user && !loading && error && (
+                        <p className="mt-1 text-sm text-text-secondary">
+                            Unable to load this account
+                        </p>
+                    )}
                 </div>
 
-                {/* =========================================================
-                    BODY
-                ========================================================= */}
-                <div className="min-h-0 flex-1 overflow-y-auto bg-white">
+                {/* Scrollable Content */}
+                <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
                     {loading && (
-                        <div className="flex min-h-64 flex-col items-center justify-center text-center">
-                            <div className="mb-4 h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-primary" />
+                        <div className="flex min-h-48 flex-col items-center justify-center text-center">
+                            <div className="mb-3 h-7 w-7 animate-spin rounded-full border-2 border-border border-t-primary" />
 
-                            <p className="text-sm font-semibold text-slate-800">
+                            <p className="text-sm font-medium text-text-primary">
                                 Loading user details...
                             </p>
 
-                            <p className="mt-1 text-xs text-slate-500">
+                            <p className="mt-1 text-xs text-text-secondary">
                                 Please wait a moment.
                             </p>
                         </div>
                     )}
 
                     {error && (
-                        <div className="m-6 rounded-2xl border border-red-200 bg-red-50 px-5 py-4">
-                            <p className="text-sm font-semibold text-red-700">
-                                Unable to load account
-                            </p>
-
-                            <p className="mt-1 text-xs leading-5 text-red-600">
-                                {error}
-                            </p>
+                        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3.5 text-sm text-red-600">
+                            {error}
                         </div>
                     )}
 
                     {user && !loading && (
-                        <div className="grid md:grid-cols-[250px_1fr]">
-                            {/* =================================================
-                                LEFT PROFILE RAIL
-                            ================================================= */}
-                            <aside className="border-b border-slate-100 bg-[#f8faf9] px-6 py-7 md:border-b-0 md:border-r">
-                                <div className="flex flex-col">
-                                    <div className="flex h-20 w-20 items-center justify-center rounded-[24px] bg-primary/10 text-primary">
-                                        <UserRound
-                                            size={34}
-                                            strokeWidth={1.5}
+                        <div className="space-y-5">
+                            {/* Account Summary */}
+                            <div className="flex items-center gap-4 rounded-xl bg-background-alt/60 px-4 py-4">
+                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                                    {user.role === 'organization' ? (
+                                        <Building2
+                                            size={22}
+                                            strokeWidth={1.8}
                                         />
-                                    </div>
+                                    ) : (
+                                        <UserRound
+                                            size={22}
+                                            strokeWidth={1.8}
+                                        />
+                                    )}
+                                </div>
 
-                                    <h3 className="mt-5 text-base font-bold text-slate-900">
+                                <div className="min-w-0">
+                                    <p className="text-sm font-medium text-text-primary">
                                         {user.name}
-                                    </h3>
-
-                                    <p className="mt-1 break-all text-xs leading-5 text-slate-500">
-                                        {user.email || 'No email available'}
                                     </p>
 
-                                    <div className="mt-6 h-px bg-slate-200" />
+                                    <p className="mt-0.5 truncate text-xs text-text-secondary">
+                                        {user.email}
+                                    </p>
+                                </div>
+                            </div>
 
-                                    <div className="mt-6 space-y-5">
-                                        <RailItem
-                                            label="Role"
-                                            value={formatRole(user.role)}
-                                            icon={Shield}
-                                        />
+                            {/* Account Information */}
+                            <div>
+                                <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-text-secondary">
+                                    Account information
+                                </p>
 
-                                        {user.status && (
-                                            <RailItem
-                                                label="Status"
-                                                value={
-                                                    <StatusBadge
-                                                        status={user.status}
-                                                    />
-                                                }
-                                                icon={Shield}
+                                <div className="divide-y divide-border rounded-xl border border-border">
+                                    {/* Email */}
+                                    <div className="flex items-center gap-4 px-4 py-4">
+                                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-background-alt text-text-secondary">
+                                            <Mail size={17} strokeWidth={1.8} />
+                                        </div>
+
+                                        <div className="min-w-0">
+                                            <p className="text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                                                Email address
+                                            </p>
+
+                                            <p className="mt-1 truncate text-sm font-medium text-text-primary">
+                                                {user.email}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Phone */}
+                                    <div className="flex items-center gap-4 px-4 py-4">
+                                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-background-alt text-text-secondary">
+                                            <Phone
+                                                size={17}
+                                                strokeWidth={1.8}
                                             />
-                                        )}
-
-                                        <RailItem
-                                            label="Member since"
-                                            value={formatDate(user.created_at)}
-                                            icon={Calendar}
-                                        />
-                                    </div>
-                                </div>
-                            </aside>
-
-                            {/* =================================================
-                                RIGHT INFORMATION CANVAS
-                            ================================================= */}
-                            <main className="px-6 py-7 sm:px-8">
-                                {/* Contact */}
-                                <div>
-                                    <div className="flex items-end justify-between">
-                                        <div>
-                                            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
-                                                Contact
-                                            </p>
-
-                                            <h3 className="mt-1 text-base font-bold text-slate-900">
-                                                Contact information
-                                            </h3>
                                         </div>
 
-                                        <Mail
-                                            size={20}
-                                            strokeWidth={1.5}
-                                            className="text-slate-200"
-                                        />
-                                    </div>
-
-                                    <div className="mt-6 grid gap-x-8 gap-y-6 sm:grid-cols-2">
-                                        <OpenField
-                                            icon={Mail}
-                                            label="Email address"
-                                            value={user.email || 'Not provided'}
-                                        />
-
-                                        <OpenField
-                                            icon={Phone}
-                                            label="Phone number"
-                                            value={
-                                                individualProfile?.phone ||
-                                                'Not provided'
-                                            }
-                                        />
-
-                                        <OpenField
-                                            icon={MapPin}
-                                            label="District"
-                                            value={
-                                                individualProfile?.district ||
-                                                'Not provided'
-                                            }
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="my-8 h-px bg-slate-100" />
-
-                                {/* Personal */}
-                                <div>
-                                    <div className="flex items-end justify-between">
                                         <div>
-                                            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-amber-600">
-                                                Personal
+                                            <p className="text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                                                Phone number
                                             </p>
 
-                                            <h3 className="mt-1 text-base font-bold text-slate-900">
-                                                Personal information
-                                            </h3>
+                                            <p className="mt-1 text-sm font-medium text-text-primary">
+                                                {user.phone || 'Not provided'}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Role */}
+                                    <div className="flex items-center gap-4 px-4 py-4">
+                                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-background-alt text-text-secondary">
+                                            <Shield
+                                                size={17}
+                                                strokeWidth={1.8}
+                                            />
                                         </div>
 
-                                        <UserRound
-                                            size={20}
-                                            strokeWidth={1.5}
-                                            className="text-slate-200"
-                                        />
+                                        <div>
+                                            <p className="text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                                                Account role
+                                            </p>
+
+                                            <p className="mt-1 text-sm font-medium capitalize text-text-primary">
+                                                {user.role === 'admin'
+                                                    ? 'Administrator'
+                                                    : user.role}
+                                            </p>
+                                        </div>
                                     </div>
 
-                                    <div className="mt-6 space-y-6">
-                                        <OpenField
-                                            icon={Home}
-                                            label="Address"
-                                            value={
-                                                individualProfile?.address ||
-                                                'Not provided'
-                                            }
-                                            wide
-                                        />
+                                    {/* Status */}
+                                    <div className="flex items-center gap-4 px-4 py-4">
+                                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-background-alt text-text-secondary">
+                                            <Shield
+                                                size={17}
+                                                strokeWidth={1.8}
+                                            />
+                                        </div>
 
-                                        <OpenField
-                                            icon={Calendar}
-                                            label="Date of birth"
-                                            value={formatDate(
-                                                individualProfile?.date_of_birth,
-                                            )}
-                                        />
+                                        <div>
+                                            <p className="text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                                                Account status
+                                            </p>
+
+                                            <div className="mt-1">
+                                                <StatusBadge
+                                                    status={user.status}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Verification */}
+                                    {user?.role === 'organization' && (
+                                        <div className="flex items-center gap-4 px-4 py-4">
+                                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-background-alt text-text-secondary">
+                                                <Shield
+                                                    size={17}
+                                                    strokeWidth={1.8}
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <p className="text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                                                    Verification status
+                                                </p>
+
+                                                <div className="mt-1">
+                                                    <StatusBadge
+                                                        status={
+                                                            organization?.verification_status
+                                                        }
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Member Since */}
+                                    <div className="flex items-center gap-4 px-4 py-4">
+                                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-background-alt text-text-secondary">
+                                            <Calendar
+                                                size={17}
+                                                strokeWidth={1.8}
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <p className="text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                                                Member since
+                                            </p>
+
+                                            <p className="mt-1 text-sm font-medium text-text-primary">
+                                                {user.created_at
+                                                    ? new Date(
+                                                          user.created_at,
+                                                      ).toLocaleDateString()
+                                                    : 'Not provided'}
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
-                            </main>
+                            </div>
+
+                            {/* Individual Information */}
+                            {user.role === 'individual' &&
+                                individualProfile && (
+                                    <div>
+                                        <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-text-secondary">
+                                            Personal information
+                                        </p>
+
+                                        <div className="divide-y divide-border rounded-xl border border-border">
+                                            {/* District */}
+                                            <div className="flex items-center gap-4 px-4 py-4">
+                                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-background-alt text-text-secondary">
+                                                    <MapPin
+                                                        size={17}
+                                                        strokeWidth={1.8}
+                                                    />
+                                                </div>
+
+                                                <div>
+                                                    <p className="text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                                                        District
+                                                    </p>
+
+                                                    <p className="mt-1 text-sm font-medium text-text-primary">
+                                                        {individualProfile.district ||
+                                                            'Not provided'}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            {/* Address */}
+                                            <div className="flex items-center gap-4 px-4 py-4">
+                                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-background-alt text-text-secondary">
+                                                    <Home
+                                                        size={17}
+                                                        strokeWidth={1.8}
+                                                    />
+                                                </div>
+
+                                                <div className="min-w-0">
+                                                    <p className="text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                                                        Address
+                                                    </p>
+
+                                                    <p className="mt-1 text-sm font-medium text-text-primary">
+                                                        {individualProfile.address ||
+                                                            'Not provided'}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            {/* Date of Birth */}
+                                            <div className="flex items-center gap-4 px-4 py-4">
+                                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-background-alt text-text-secondary">
+                                                    <Calendar
+                                                        size={17}
+                                                        strokeWidth={1.8}
+                                                    />
+                                                </div>
+
+                                                <div>
+                                                    <p className="text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                                                        Date of birth
+                                                    </p>
+
+                                                    <p className="mt-1 text-sm font-medium text-text-primary">
+                                                        {individualProfile.date_of_birth
+                                                            ? new Date(
+                                                                  individualProfile.date_of_birth,
+                                                              ).toLocaleDateString()
+                                                            : 'Not provided'}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                            {/* Organization Information */}
+                            {user.role === 'organization' && organization && (
+                                <div>
+                                    <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-text-secondary">
+                                        Organization information
+                                    </p>
+
+                                    <div className="divide-y divide-border rounded-xl border border-border">
+                                        {/* Organization Type */}
+                                        <div className="flex items-center gap-4 px-4 py-4">
+                                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-background-alt text-text-secondary">
+                                                <Building2
+                                                    size={17}
+                                                    strokeWidth={1.8}
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <p className="text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                                                    Organization type
+                                                </p>
+
+                                                <p className="mt-1 text-sm font-medium text-text-primary">
+                                                    {formatType(
+                                                        organization.organization_type,
+                                                    )}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Registration Number */}
+                                        <div className="flex items-center gap-4 px-4 py-4">
+                                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-background-alt text-text-secondary">
+                                                <FileText
+                                                    size={17}
+                                                    strokeWidth={1.8}
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <p className="text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                                                    Registration number
+                                                </p>
+
+                                                <p className="mt-1 text-sm font-medium text-text-primary">
+                                                    {organization.registration_number ||
+                                                        'Not provided'}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Website */}
+                                        <div className="flex items-center gap-4 px-4 py-4">
+                                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-background-alt text-text-secondary">
+                                                <Globe
+                                                    size={17}
+                                                    strokeWidth={1.8}
+                                                />
+                                            </div>
+
+                                            <div className="min-w-0">
+                                                <p className="text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                                                    Website
+                                                </p>
+
+                                                <p className="mt-1 truncate text-sm font-medium text-text-primary">
+                                                    {organization.website ||
+                                                        'Not provided'}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Address */}
+                                        <div className="flex items-center gap-4 px-4 py-4">
+                                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-background-alt text-text-secondary">
+                                                <MapPin
+                                                    size={17}
+                                                    strokeWidth={1.8}
+                                                />
+                                            </div>
+
+                                            <div className="min-w-0">
+                                                <p className="text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                                                    Address
+                                                </p>
+
+                                                <p className="mt-1 text-sm font-medium text-text-primary">
+                                                    {organization.address ||
+                                                        'Not provided'}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Mission */}
+                                        <div className="flex items-start gap-4 px-4 py-4">
+                                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-background-alt text-text-secondary">
+                                                <Target
+                                                    size={17}
+                                                    strokeWidth={1.8}
+                                                />
+                                            </div>
+
+                                            <div className="min-w-0">
+                                                <p className="text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                                                    Mission
+                                                </p>
+
+                                                <p className="mt-1 text-sm font-medium leading-6 text-text-primary">
+                                                    {organization.mission ||
+                                                        'Not provided'}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Focus Areas */}
+                                        <div className="flex items-start gap-4 px-4 py-4">
+                                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-background-alt text-text-secondary">
+                                                <Tags
+                                                    size={17}
+                                                    strokeWidth={1.8}
+                                                />
+                                            </div>
+
+                                            <div className="min-w-0">
+                                                <p className="text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                                                    Focus areas
+                                                </p>
+
+                                                <p className="mt-1 text-sm font-medium leading-6 text-text-primary">
+                                                    {formatList(
+                                                        organization.focus_areas,
+                                                    )}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Communities Served */}
+                                        <div className="flex items-start gap-4 px-4 py-4">
+                                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-background-alt text-text-secondary">
+                                                <Users
+                                                    size={17}
+                                                    strokeWidth={1.8}
+                                                />
+                                            </div>
+
+                                            <div className="min-w-0">
+                                                <p className="text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                                                    Communities served
+                                                </p>
+
+                                                <p className="mt-1 text-sm font-medium leading-6 text-text-primary">
+                                                    {formatList(
+                                                        organization.communities_served,
+                                                    )}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Primary Activities */}
+                                        <div className="flex items-start gap-4 px-4 py-4">
+                                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-background-alt text-text-secondary">
+                                                <HeartHandshake
+                                                    size={17}
+                                                    strokeWidth={1.8}
+                                                />
+                                            </div>
+
+                                            <div className="min-w-0">
+                                                <p className="text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                                                    Primary activities
+                                                </p>
+
+                                                <p className="mt-1 text-sm font-medium leading-6 text-text-primary">
+                                                    {formatList(
+                                                        organization.primary_activities,
+                                                    )}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Team Size */}
+                                        <div className="flex items-center gap-4 px-4 py-4">
+                                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-background-alt text-text-secondary">
+                                                <Users
+                                                    size={17}
+                                                    strokeWidth={1.8}
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <p className="text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                                                    Team size
+                                                </p>
+
+                                                <p className="mt-1 text-sm font-medium text-text-primary">
+                                                    {organization.team_size !==
+                                                        null &&
+                                                    organization.team_size !==
+                                                        undefined
+                                                        ? organization.team_size
+                                                        : 'Not provided'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>
 
-                {/* =========================================================
-                    FOOTER
-                ========================================================= */}
-                <div className="flex shrink-0 items-center justify-end border-t border-slate-200 bg-white px-6 py-4">
+                {/* Footer */}
+                <div className="flex shrink-0 justify-end border-t border-border px-6 py-4">
                     <button
                         type="button"
                         onClick={onClose}
-                        className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-primary-hover"
+                        className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-all hover:bg-primary-hover"
                     >
                         Done
                     </button>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-/* =============================================================
-   LEFT RAIL ITEM
-============================================================= */
-
-const RailItem = ({ icon: Icon, label, value }) => {
-    return (
-        <div className="flex items-start gap-3">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-slate-400 shadow-sm ring-1 ring-slate-200/80">
-                <Icon size={14} strokeWidth={1.8} />
-            </div>
-
-            <div className="min-w-0 pt-0.5">
-                <p className="text-[9px] font-bold uppercase tracking-[0.1em] text-slate-400">
-                    {label}
-                </p>
-
-                <div className="mt-1 text-xs font-semibold text-slate-700">
-                    {value}
-                </div>
-            </div>
-        </div>
-    );
-};
-
-/* =============================================================
-   OPEN INFORMATION FIELD
-============================================================= */
-
-const OpenField = ({ icon: Icon, label, value, wide = false }) => {
-    return (
-        <div className={`${wide ? 'max-w-full' : ''}`}>
-            <div className="flex items-start gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-50 text-slate-400">
-                    <Icon size={15} strokeWidth={1.7} />
-                </div>
-
-                <div className="min-w-0">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-400">
-                        {label}
-                    </p>
-
-                    <p className="mt-1.5 break-words text-sm font-medium leading-5 text-slate-700">
-                        {value}
-                    </p>
                 </div>
             </div>
         </div>

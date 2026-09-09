@@ -3,6 +3,7 @@ import {
     X,
     UserRound,
     Mail,
+    Phone,
     LockKeyhole,
     ShieldCheck,
     CircleCheck,
@@ -11,6 +12,7 @@ import {
 const EMPTY_FORM = {
     name: '',
     email: '',
+    phone: '',
     password: '',
     role: '',
     status: 'active',
@@ -21,6 +23,7 @@ const getInitialForm = (mode, user) => {
         return {
             name: user.name || '',
             email: user.email || '',
+            phone: user.phone || '',
             password: '',
             role: user.role || '',
             status: user.status || 'active',
@@ -57,6 +60,19 @@ const UserFormModal = ({
         }));
     };
 
+    const handlePhoneChange = (event) => {
+        const value = event.target.value;
+
+        // Frontend UX only:
+        // allow digits and keep the value at 11 characters.
+        const digitsOnly = value.replace(/\D/g, '').slice(0, 11);
+
+        setForm((previous) => ({
+            ...previous,
+            phone: digitsOnly,
+        }));
+    };
+
     const handleSubmit = (event) => {
         event.preventDefault();
 
@@ -77,11 +93,7 @@ const UserFormModal = ({
                     <div className="flex items-start justify-between gap-4">
                         <div className="flex items-start gap-3.5">
                             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                                {isEdit ? (
-                                    <UserRound size={19} strokeWidth={1.9} />
-                                ) : (
-                                    <UserRound size={19} strokeWidth={1.9} />
-                                )}
+                                <UserRound size={19} strokeWidth={1.9} />
                             </div>
 
                             <div>
@@ -204,6 +216,49 @@ const UserFormModal = ({
                                         {fieldErrors?.email && (
                                             <p className="mt-1.5 text-xs text-red-600">
                                                 {fieldErrors.email[0]}
+                                            </p>
+                                        )}
+                                    </div>
+
+                                    {/* Phone */}
+                                    <div>
+                                        <label
+                                            htmlFor="user-form-phone"
+                                            className="mb-2 block text-xs font-semibold text-text-primary"
+                                        >
+                                            Phone Number
+                                        </label>
+
+                                        <div className="relative">
+                                            <Phone
+                                                size={17}
+                                                strokeWidth={1.8}
+                                                className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary"
+                                            />
+
+                                            <input
+                                                id="user-form-phone"
+                                                name="phone"
+                                                type="tel"
+                                                inputMode="numeric"
+                                                autoComplete="tel"
+                                                value={form.phone}
+                                                onChange={handlePhoneChange}
+                                                placeholder="01XXXXXXXXX"
+                                                maxLength={11}
+                                                disabled={loading}
+                                                className="h-11 w-full rounded-xl border border-border bg-white pl-10 pr-3 text-sm text-text-primary outline-none transition-all placeholder:text-text-secondary/70 hover:border-border focus:border-primary focus:ring-4 focus:ring-primary/10 disabled:cursor-not-allowed disabled:bg-background-alt"
+                                            />
+                                        </div>
+
+                                        <p className="mt-1.5 text-[11px] text-text-secondary">
+                                            Enter an 11-digit Bangladesh phone
+                                            number starting with 01.
+                                        </p>
+
+                                        {fieldErrors?.phone && (
+                                            <p className="mt-1.5 text-xs text-red-600">
+                                                {fieldErrors.phone[0]}
                                             </p>
                                         )}
                                     </div>

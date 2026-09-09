@@ -277,6 +277,10 @@ class AdminController extends Controller
                 'email_verified_at',
                 'created_at',
             ]);
+
+        return response()->json([
+            'users' => $users,
+        ]);
     }
 
     /*

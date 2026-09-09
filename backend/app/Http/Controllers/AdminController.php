@@ -128,7 +128,6 @@ class AdminController extends Controller
                     ->get([
                         'id',
                         'amount',
-                        'status',
                         'created_at',
                     ])
                     ->map(function ($item) {
@@ -207,10 +206,7 @@ class AdminController extends Controller
                     Campaign::STATUS_ACTIVE
                 )->count(),
 
-                'totalDonations' => Donation::where(
-                    'status',
-                    'completed'
-                )->sum('amount'),
+                'totalDonations' => Donation::sum('amount'),
 
                 'totalVolunteers' => Volunteer::count(),
 
@@ -2421,10 +2417,7 @@ class AdminController extends Controller
                     Campaign::STATUS_ACTIVE
                 )->count(),
 
-                'totalDonations' => Donation::where(
-                    'status',
-                    'completed'
-                )->sum('amount'),
+                'totalDonations' => Donation::sum('amount'),
 
                 'totalVolunteers' => Volunteer::count(),
 

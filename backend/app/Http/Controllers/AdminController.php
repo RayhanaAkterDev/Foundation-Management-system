@@ -54,10 +54,10 @@ class AdminController extends Controller
         }
 
         /*
-        |--------------------------------------------------------------------------
-        | Recent Activity
-        |--------------------------------------------------------------------------
-        */
+    |--------------------------------------------------------------------------
+    | Recent Activity
+    |--------------------------------------------------------------------------
+    */
 
         $recentActivity = collect()
             ->merge(
@@ -142,64 +142,19 @@ class AdminController extends Controller
                         ];
                     })
             )
-            ->merge(
-                Volunteer::latest()
-                    ->take(5)
-                    ->get([
-                        'id',
-                        'status',
-                        'created_at',
-                    ])
-                    ->map(function ($item) {
-                        return [
-                            'id' => 'volunteer-' . $item->id,
-                            'type' => 'volunteer',
-                            'text' => "A volunteer application was {$item->status}.",
-                            'time' => $item->created_at->diffForHumans(),
-                            'created_at' => $item->created_at,
-                        ];
-                    })
-            )
-            ->merge(
-                Campaign::latest()
-                    ->take(5)
-                    ->get([
-                        'id',
-                        'title',
-                        'status',
-                        'created_at',
-                    ])
-                    ->map(function ($item) {
-                        return [
-                            'id' => 'campaign-' . $item->id,
-                            'type' => 'campaign',
-                            'text' => "Campaign \"{$item->title}\" was created.",
-                            'time' => $item->created_at->diffForHumans(),
-                            'created_at' => $item->created_at,
-                        ];
-                    })
-            )
             ->sortByDesc('created_at')
-            ->take(8)
+            ->take(10)
             ->values();
+
+        /*
+    |--------------------------------------------------------------------------
+    | Dashboard Statistics
+    |--------------------------------------------------------------------------
+    */
 
         return response()->json([
             'stats' => [
                 'totalUsers' => User::count(),
-
-                'totalOrganizations' => Organization::count(),
-
-                'pendingVerification' => Organization::where(
-                    'verification_status',
-                    'pending'
-                )->count(),
-
-                'totalHelpRequests' => HelpRequest::count(),
-
-                'pendingHelpRequests' => HelpRequest::where(
-                    'status',
-                    HelpRequest::STATUS_PENDING
-                )->count(),
 
                 'activeCampaigns' => Campaign::where(
                     'status',
@@ -235,6 +190,7 @@ class AdminController extends Controller
                     'id',
                     'name',
                     'email',
+                    'phone',
                     'role',
                     'status',
                     'created_at',

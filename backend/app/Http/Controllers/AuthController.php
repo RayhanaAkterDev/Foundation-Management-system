@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 
 class AuthController extends Controller
 {
@@ -19,8 +20,13 @@ class AuthController extends Controller
             'credentials.email' => 'required|email|unique:users,email',
             'credentials.password' => 'required|string|min:8|confirmed',
 
-            // Common profile fields
-            'profile.phone' => 'nullable|string|max:30',
+            // Common account-level field
+            'profile.phone' => [
+                'required',
+                'string',
+                'regex:/^01[0-9]{9}$/',
+                Rule::unique('users', 'phone'),
+            ],
             'profile.address' => 'nullable|string|max:500',
 
             // Individual profile
@@ -57,7 +63,6 @@ class AuthController extends Controller
         ]);
 
         return DB::transaction(function () use ($validated) {
-
             $role = $validated['accountType'];
 
             /*
@@ -69,6 +74,7 @@ class AuthController extends Controller
             $user = User::create([
                 'name' => $validated['credentials']['name'],
                 'email' => $validated['credentials']['email'],
+                'phone' => $validated['profile']['phone'],
                 'password' => Hash::make(
                     $validated['credentials']['password']
                 ),
@@ -84,14 +90,9 @@ class AuthController extends Controller
             if ($role === 'individual') {
 
                 $user->individualProfile()->create([
-                    'phone' => $validated['profile']['phone'] ?? null,
-
                     'district' => $validated['profile']['district'] ?? null,
-
                     'address' => $validated['profile']['address'] ?? null,
-
                     'date_of_birth' => $validated['profile']['dob'] ?? null,
-
                     'profile_photo' =>
                     $validated['profile']['profilePhoto'] ?? null,
                 ]);
@@ -116,9 +117,6 @@ class AuthController extends Controller
                     'registration_number' =>
                     $validated['profile']['registrationNumber'] ?? null,
 
-                    'phone' =>
-                    $validated['profile']['phone'] ?? null,
-
                     'website' =>
                     $validated['profile']['website'] ?? null,
 
@@ -129,18 +127,21 @@ class AuthController extends Controller
                     $validated['details']['mission'] ?? null,
 
                     // Database columns are TEXT
-                    'focus_areas' => !empty($validated['details']['focusAreas'])
+                    'focus_areas' =>
+                    !empty($validated['details']['focusAreas'])
                         ? json_encode($validated['details']['focusAreas'])
                         : null,
 
-                    'communities_served' => !empty($validated['details']['communitiesServed'])
+                    'communities_served' =>
+                    !empty($validated['details']['communitiesServed'])
                         ? json_encode($validated['details']['communitiesServed'])
                         : null,
 
                     'team_size' =>
                     $validated['details']['teamSize'] ?? null,
 
-                    'primary_activities' => !empty($validated['details']['primaryActivities'])
+                    'primary_activities' =>
+                    !empty($validated['details']['primaryActivities'])
                         ? json_encode($validated['details']['primaryActivities'])
                         : null,
 

@@ -88,7 +88,9 @@ async function submitRegistration(payload) {
 // ---------------------------------------------------------------------------
 // Validation helpers
 // ---------------------------------------------------------------------------
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const BD_PHONE_RE = /^01[0-9]{9}$/;
 
 function validateStep(step, accountType, formData) {
     const errs = {};
@@ -101,16 +103,19 @@ function validateStep(step, accountType, formData) {
     if (step === 2) {
         if (!formData.credentials.name?.trim())
             errs.name = 'This field is required.';
+
         if (!formData.credentials.email?.trim()) {
             errs.email = 'Email address is required.';
         } else if (!EMAIL_RE.test(formData.credentials.email)) {
             errs.email = 'Please enter a valid email address.';
         }
+
         if (!formData.credentials.password) {
             errs.password = 'Password is required.';
         } else if (formData.credentials.password.length < 8) {
             errs.password = 'Password must be at least 8 characters.';
         }
+
         if (!formData.credentials.confirmPassword) {
             errs.confirmPassword = 'Please confirm your password.';
         } else if (
@@ -124,28 +129,54 @@ function validateStep(step, accountType, formData) {
     if (step === 3) {
         if (accountType === 'individual') {
             const p = formData.individualProfile;
-            if (!p.phone?.trim()) errs.phone = 'Phone number is required.';
-            if (!p.district?.trim()) errs.district = 'District is required.';
-            if (!p.address?.trim()) errs.address = 'Address is required.';
+
+            if (!p.phone?.trim()) {
+                errs.phone = 'Phone number is required.';
+            } else if (!BD_PHONE_RE.test(p.phone.trim())) {
+                errs.phone =
+                    'Enter a valid Bangladesh phone number (11 digits starting with 01).';
+            }
+
+            if (!p.district?.trim())
+                errs.district = 'District is required.';
+
+            if (!p.address?.trim())
+                errs.address = 'Address is required.';
         } else {
             const p = formData.organizationProfile;
-            if (!p.phone?.trim()) errs.phone = 'Phone number is required.';
+
+            if (!p.phone?.trim()) {
+                errs.phone = 'Phone number is required.';
+            } else if (!BD_PHONE_RE.test(p.phone.trim())) {
+                errs.phone =
+                    'Enter a valid Bangladesh phone number (11 digits starting with 01).';
+            }
+
             if (!p.organizationType)
                 errs.organizationType = 'Please select an organization type.';
+
             if (!p.registrationNumber?.trim())
                 errs.registrationNumber = 'Registration number is required.';
-            if (!p.address?.trim()) errs.address = 'Address is required.';
+
+            if (!p.address?.trim())
+                errs.address = 'Address is required.';
         }
     }
 
     if (step === 4 && accountType === 'organization') {
         const d = formData.organizationDetails;
-        if (!d.mission?.trim()) errs.mission = 'Please describe your mission.';
+
+        if (!d.mission?.trim())
+            errs.mission = 'Please describe your mission.';
+
         if (!d.focusAreas?.length)
             errs.focusAreas = 'Please select at least one area of focus.';
+
         if (!d.communitiesServed?.length)
-            errs.communitiesServed = 'Please select at least one community.';
+            errs.communitiesServed =
+                'Please select at least one community.';
     }
+
     // Individual step 4 is all-optional — no validation required
 
     return errs;
@@ -154,6 +185,7 @@ function validateStep(step, accountType, formData) {
 // ---------------------------------------------------------------------------
 // Main Register component
 // ---------------------------------------------------------------------------
+
 const Register = () => {
     const navigate = useNavigate();
 
@@ -172,6 +204,7 @@ const Register = () => {
             password: '',
             confirmPassword: '',
         },
+
         individualProfile: {
             phone: '',
             district: '',
@@ -180,10 +213,12 @@ const Register = () => {
             profilePhoto: null,
             profilePhotoPreview: null,
         },
+
         individualPreferences: {
             participationTypes: [],
             causes: [],
         },
+
         organizationProfile: {
             phone: '',
             organizationType: '',
@@ -193,6 +228,7 @@ const Register = () => {
             organizationLogo: null,
             organizationLogoPreview: null,
         },
+
         organizationDetails: {
             mission: '',
             focusAreas: [],
@@ -208,8 +244,12 @@ const Register = () => {
     const handleChange = useCallback((slice, key, value) => {
         setFormData((prev) => ({
             ...prev,
-            [slice]: { ...prev[slice], [key]: value },
+            [slice]: {
+                ...prev[slice],
+                [key]: value,
+            },
         }));
+
         // Clear that field's error on change
         setStepErrors((prev) => {
             const next = { ...prev };
@@ -220,10 +260,12 @@ const Register = () => {
 
     const handleContinue = async () => {
         const errs = validateStep(step, accountType, formData);
+
         if (Object.keys(errs).length > 0) {
             setStepErrors(errs);
             return;
         }
+
         setStepErrors({});
 
         if (step < TOTAL_STEPS) {
@@ -288,7 +330,8 @@ const Register = () => {
     };
 
     // Determine if the Continue button should be enabled
-    const canContinue = !isSubmitting && (step !== 1 || accountType !== null);
+    const canContinue =
+        !isSubmitting && (step !== 1 || accountType !== null);
 
     const showSkip = step === 4 && accountType === 'individual';
 
@@ -301,10 +344,12 @@ const Register = () => {
                         <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-white">
                             <HeartHandshake className="h-5 w-5" />
                         </span>
+
                         <span className="font-['Fraunces'] text-xl font-semibold text-text-primary">
                             Stand For People
                         </span>
                     </div>
+
                     <p className="mt-2 text-sm text-[#6b7280]">
                         Helping people. Building stronger communities.
                     </p>
@@ -321,6 +366,7 @@ const Register = () => {
                                 <h1 className="font-['Fraunces'] text-3xl font-semibold text-text-primary md:text-4xl">
                                     Create your account
                                 </h1>
+
                                 <p className="text-[#6b7280]">
                                     Join a community working together to support
                                     people in need.
@@ -361,19 +407,22 @@ const Register = () => {
                                     />
                                 )}
 
-                                {step === 3 && accountType === 'individual' && (
-                                    <StepIndividualProfile
-                                        formData={formData.individualProfile}
-                                        onChange={(key, value) =>
-                                            handleChange(
-                                                'individualProfile',
-                                                key,
-                                                value,
-                                            )
-                                        }
-                                        errors={stepErrors}
-                                    />
-                                )}
+                                {step === 3 &&
+                                    accountType === 'individual' && (
+                                        <StepIndividualProfile
+                                            formData={
+                                                formData.individualProfile
+                                            }
+                                            onChange={(key, value) =>
+                                                handleChange(
+                                                    'individualProfile',
+                                                    key,
+                                                    value,
+                                                )
+                                            }
+                                            errors={stepErrors}
+                                        />
+                                    )}
 
                                 {step === 3 &&
                                     accountType === 'organization' && (
@@ -392,20 +441,21 @@ const Register = () => {
                                         />
                                     )}
 
-                                {step === 4 && accountType === 'individual' && (
-                                    <StepIndividualPreferences
-                                        formData={
-                                            formData.individualPreferences
-                                        }
-                                        onChange={(key, value) =>
-                                            handleChange(
-                                                'individualPreferences',
-                                                key,
-                                                value,
-                                            )
-                                        }
-                                    />
-                                )}
+                                {step === 4 &&
+                                    accountType === 'individual' && (
+                                        <StepIndividualPreferences
+                                            formData={
+                                                formData.individualPreferences
+                                            }
+                                            onChange={(key, value) =>
+                                                handleChange(
+                                                    'individualPreferences',
+                                                    key,
+                                                    value,
+                                                )
+                                            }
+                                        />
+                                    )}
 
                                 {step === 4 &&
                                     accountType === 'organization' && (
@@ -460,6 +510,7 @@ const Register = () => {
                                 Sign in
                             </button>
                         </p>
+
                         <p className="text-xs text-[#6b7280]">
                             By creating an account, you agree to our{' '}
                             <button

@@ -8,7 +8,7 @@ import {
     Upload,
 } from 'lucide-react';
 
-import { ORGANIZATION_TYPES } from '@/dashboard/admin/organizations/organizationTypes';
+import { ORGANIZATION_TYPES } from '@/dashboard/admin/organizations/data/organizationTypes';
 
 const FieldWrapper = ({ label, htmlFor, error, required, children }) => (
     <div className="space-y-1.5">

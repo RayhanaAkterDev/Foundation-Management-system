@@ -1,0 +1,85 @@
+import React from 'react';
+import { Users, UserRound, Building2, ShieldCheck } from 'lucide-react';
+
+const Stats = ({ total, individuals, organizations, administrators }) => {
+    return (
+        <section className="overflow-hidden rounded-2xl border border-primary/15 bg-white shadow-sm">
+            <div className="grid grid-cols-1 lg:grid-cols-[1.15fr_2.85fr]">
+                {/* Primary metric */}
+                <div className="relative overflow-hidden bg-primary px-6 py-7 text-white sm:px-7">
+                    <div className="absolute -right-10 -top-10 h-36 w-36 rounded-full bg-white/5" />
+                    <div className="absolute -bottom-16 right-8 h-40 w-40 rounded-full bg-white/5" />
+
+                    <div className="relative">
+                        <div className="flex items-center justify-between">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/12">
+                                <Users size={20} strokeWidth={1.8} />
+                            </div>
+
+                            <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/60">
+                                All accounts
+                            </span>
+                        </div>
+
+                        <p className="mt-7 text-[11px] font-bold uppercase tracking-[0.12em] text-white/65">
+                            Total users
+                        </p>
+
+                        <p className="mt-1 text-4xl font-bold tracking-tight sm:text-5xl">
+                            {total}
+                        </p>
+
+                        <p className="mt-2 max-w-55 text-xs leading-5 text-white/65">
+                            Total registered accounts across the platform.
+                        </p>
+                    </div>
+                </div>
+
+                {/* Supporting metrics */}
+                <div className="grid grid-cols-1 divide-y divide-border sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+                    <StatItem
+                        label="Individuals"
+                        value={individuals}
+                        icon={UserRound}
+                    />
+
+                    <StatItem
+                        label="Organizations"
+                        value={organizations}
+                        icon={Building2}
+                    />
+
+                    <StatItem
+                        label="Administrators"
+                        value={administrators}
+                        icon={ShieldCheck}
+                    />
+                </div>
+            </div>
+        </section>
+    );
+};
+
+const StatItem = ({ label, value, icon: Icon }) => {
+    return (
+        <div className="flex min-h-35 items-center px-6 py-6 transition-colors hover:bg-background-alt/35">
+            <div className="flex w-full items-start justify-between gap-4">
+                <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-text-secondary">
+                        {label}
+                    </p>
+
+                    <p className="mt-2 text-3xl font-bold tracking-tight text-text-primary">
+                        {value}
+                    </p>
+                </div>
+
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/8 text-primary">
+                    <Icon size={17} strokeWidth={1.8} />
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default Stats;

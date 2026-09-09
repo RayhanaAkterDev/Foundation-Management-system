@@ -38,15 +38,15 @@ import IndividualDashboard from '@/dashboard/individual/IndividualDashboard';
 import OrganizationDashboard from '@/dashboard/organization/OrgDashboard';
 
 // Admin dashboard routes
-import AdminDashboard from '@/dashboard/admin/AdminDashboard';
-import AdminUsers from '@/dashboard/admin/AdminUsers';
-import AdminOrganizations from '@/dashboard/admin/AdminOrganizations';
-import AdminHelpRequests from '@/dashboard/admin/AdminHelpRequests';
-import AdminDonations from '@/dashboard/admin/AdminDonations';
-import AdminVolunteers from '@/dashboard/admin/AdminVolunteers';
-import AdminCampaigns from '@/dashboard/admin/AdminCampaigns';
-import AdminReports from '@/dashboard/admin/AdminReports';
-import AdminSettings from '@/dashboard/admin/AdminSettings';
+import AdminDashboard from '@/dashboard/admin/Dashboard';
+import AdminUsers from '@/dashboard/admin/users/Users';
+import AdminOrganizations from '@/dashboard/admin/organizations/Organizations';
+import AdminHelpRequests from '@/dashboard/admin/helpRequests/HelpRequests';
+import AdminDonations from '@/dashboard/admin/donations/Donations';
+import AdminVolunteers from '@/dashboard/admin/volunteers/Volunteers';
+import AdminCampaigns from '@/dashboard/admin/campaigns/Campaigns';
+import AdminReports from '@/dashboard/admin/reports/AdminReports';
+import AdminSettings from '@/dashboard/admin/settings/Settings';
 
 // Organization dashboard routes
 import OrgDashboard from '@/dashboard/organization/OrgDashboard';

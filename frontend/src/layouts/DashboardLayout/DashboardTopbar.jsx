@@ -1,56 +1,44 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { NavLink, useNavigate } from 'react-router-dom';
 
 import {
-    Menu,
     Bell,
     ChevronDown,
-    LogOut,
-    UserRound,
-    Settings,
     CircleHelp,
+    LogOut,
+    Menu,
+    Settings,
+    UserRound,
 } from 'lucide-react';
-
-import { ROLE_LABELS } from '@/routes/dashboardNav';
-
-// ============================================================
-// TOPBAR
-// ============================================================
 
 const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
     const navigate = useNavigate();
 
     const [userMenuOpen, setUserMenuOpen] = useState(false);
 
-    // ========================================================
-    // LOGGED-IN USER
-    // ========================================================
+    // =========================================================
+    // USER
+    // =========================================================
 
-    const user = useMemo(() => {
+    const getStoredUser = () => {
         try {
             const storedUser =
-                localStorage.getItem('user') || sessionStorage.getItem('user');
+                localStorage.getItem('user') ||
+                sessionStorage.getItem('user');
 
-            if (!storedUser) {
-                return null;
-            }
+            if (!storedUser) return null;
 
             const parsedUser = JSON.parse(storedUser);
 
-            // Supports both:
-            // { name, role, ... }
-            // and { user: { name, role, ... } }
             return parsedUser?.user || parsedUser;
         } catch (error) {
-            console.error('Failed to read logged-in user:', error);
+            console.error('Failed to parse stored user:', error);
             return null;
         }
-    }, []);
+    };
 
-    // ========================================================
-    // USER INFORMATION
-    // ========================================================
+    const user = getStoredUser();
 
     const userName =
         user?.name ||
@@ -59,6 +47,8 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
         user?.fullName ||
         user?.email?.split('@')[0] ||
         'User';
+
+    const userEmail = user?.email || '';
 
     const userAvatar =
         user?.avatar ||
@@ -69,394 +59,478 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
 
     const userRole = user?.role || role || 'individual';
 
-    const roleLabel = ROLE_LABELS[userRole] || userRole;
+    const roleLabelMap = {
+        individual: 'Individual',
+        organization: 'Organization',
+        admin: 'Administrator',
+    };
 
-    // ========================================================
-    // INITIALS
-    // ========================================================
+    const roleLabel = roleLabelMap[userRole] || userRole;
 
-    const initials = userName
-        .trim()
-        .split(/\s+/)
-        .filter(Boolean)
-        .slice(0, 2)
-        .map((word) => word.charAt(0))
-        .join('')
-        .toUpperCase();
+    const initials =
+        userName
+            .trim()
+            .split(/\s+/)
+            .filter(Boolean)
+            .slice(0, 2)
+            .map((part) => part.charAt(0))
+            .join('')
+            .toUpperCase() || 'U';
 
-    // ========================================================
+    // =========================================================
+    // CLOSE MENU
+    // =========================================================
+
+    const closeUserMenu = () => {
+        setUserMenuOpen(false);
+    };
+
+    // =========================================================
+    // ESCAPE KEY
+    // =========================================================
+
+    useEffect(() => {
+        if (!userMenuOpen) return;
+
+        const handleKeyDown = (event) => {
+            if (event.key === 'Escape') {
+                closeUserMenu();
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [userMenuOpen]);
+
+    // =========================================================
     // SIGN OUT
-    // ========================================================
+    // =========================================================
 
     const handleSignOut = () => {
         localStorage.removeItem('auth_token');
         localStorage.removeItem('user');
-
-        // In case your application also uses these keys
         localStorage.removeItem('token');
         localStorage.removeItem('authToken');
 
-        setUserMenuOpen(false);
+        sessionStorage.removeItem('user');
+        sessionStorage.removeItem('auth_token');
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('authToken');
+
+        closeUserMenu();
 
         navigate('/');
     };
 
-    // ========================================================
-    // RENDER
-    // ========================================================
+    // =========================================================
+    // QUICK ACTION
+    // =========================================================
+
+    const quickActions = [
+        {
+            label: 'Profile',
+            description: 'Account',
+            icon: UserRound,
+            to: '/profile',
+        },
+        {
+            label: 'Settings',
+            description: 'Preferences',
+            icon: Settings,
+            to: '/settings',
+        },
+        {
+            label: 'Support',
+            description: 'Get help',
+            icon: CircleHelp,
+            to: '/help',
+        },
+    ];
 
     return (
-        <header
-            className="
-                sticky
-                top-0
-                z-30
-                h-18
-                shrink-0
-                border-b
-                border-border
-                bg-surface
-                backdrop-blur-xl
-            "
-        >
+        <header className="sticky top-0 z-30 border-b border-border bg-surface">
             <div
                 className="
-                    flex
-                    h-full
-                    items-center
-                    gap-4
-                    px-4
-                    sm:px-6
+                    flex min-h-19 items-center justify-between
+                    gap-3 px-4
+                    sm:min-h-20 sm:px-6
                     lg:px-8
                 "
             >
-                {/* ==================================================
-                    MOBILE MENU
-                ================================================== */}
+                {/* =====================================================
+                    LEFT
+                ====================================================== */}
 
-                <button
-                    type="button"
-                    onClick={onMenuOpen}
-                    className="
-                        flex
-                        h-9
-                        w-9
-                        shrink-0
-                        items-center
-                        justify-center
-                        rounded-lg
-                        text-text-secondary
-                        transition-colors
-                        hover:bg-surface-soft
-                        hover:text-primary
-                        md:hidden
-                    "
-                    aria-label="Open navigation"
-                >
-                    <Menu className="h-5 w-5" strokeWidth={1.8} />
-                </button>
+                <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+                    {/* Mobile menu */}
 
-                {/* ==================================================
-                    PAGE CONTEXT
-                ================================================== */}
+                    <button
+                        type="button"
+                        onClick={onMenuOpen}
+                        aria-label="Open navigation menu"
+                        className="
+                            flex h-10 w-10 shrink-0 items-center justify-center
+                            rounded-lg
+                            border border-border
+                            bg-surface
+                            text-text-secondary
+                            transition-all duration-200
+                            hover:border-primary/25
+                            hover:bg-primary/4
+                            hover:text-primary
+                            focus:outline-none
+                            focus-visible:ring-2
+                            focus-visible:ring-primary/20
+                            lg:hidden
+                        "
+                    >
+                        <Menu size={19} strokeWidth={1.9} />
+                    </button>
 
-                <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
+                    {/* Page heading */}
+
+                    <div className="min-w-0">
+                        <div className="mb-1 flex items-center gap-2">
+                            <span
+                                className="
+                                    truncate
+                                    text-[9px] font-semibold
+                                    uppercase tracking-[0.17em]
+                                    text-primary
+                                    sm:text-[10px]
+                                "
+                            >
+                                {roleLabel}
+                            </span>
+
+                            <span className="h-px w-4 shrink-0 bg-border sm:w-5" />
+
+                            <span
+                                className="
+                                    text-[9px] font-medium
+                                    uppercase tracking-[0.15em]
+                                    text-text-secondary
+                                    sm:text-[10px]
+                                "
+                            >
+                                SP
+                            </span>
+                        </div>
+
                         <h1
                             className="
+                                max-w-[calc(100vw-170px)]
                                 truncate
-                                font-fraunces
-                                text-5
-                                font-semibold
+                                text-[19px] font-medium
                                 leading-tight
-                                tracking-tight
+                                tracking-[-0.02em]
                                 text-text-primary
-                                sm:text-[21px]
+                                sm:max-w-125
+                                sm:text-[22px]
                             "
                         >
                             {pageTitle}
                         </h1>
                     </div>
-
-                    <div
-                        className="
-                            mt-1
-                            hidden
-                            items-center
-                            gap-2
-                            sm:flex
-                        "
-                    >
-                        <span
-                            className="
-                                h-1.5
-                                w-1.5
-                                rounded-full
-                                bg-primary/40
-                            "
-                        />
-
-                        <span
-                            className="
-                                text-[10px]
-                                font-medium
-                                text-text-secondary
-                            "
-                        >
-                            Stand For People 💚
-                        </span>
-                    </div>
                 </div>
 
-                {/* ==================================================
-                    ACTIONS
-                ================================================== */}
+                {/* =====================================================
+                    RIGHT
+                ====================================================== */}
 
-                <div className="flex items-center gap-1.5">
-                    {/* ==================================================
-                        NOTIFICATIONS
-                    ================================================== */}
+                <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+                    {/* Notification */}
 
                     <button
                         type="button"
-                        className="
-                            group
-                            relative
-                            flex
-                            h-10
-                            w-10
-                            items-center
-                            justify-center
-                            rounded-xl
-                            text-text-secondary
-                            transition-all
-                            duration-200
-                            hover:bg-surface-soft
-                            hover:text-primary
-                        "
                         aria-label="Notifications"
+                        className="
+                            relative
+                            flex h-10 w-10 items-center justify-center
+                            rounded-lg
+                            text-text-secondary
+                            transition-all duration-200
+                            hover:bg-primary/4
+                            hover:text-text-primary
+                            focus:outline-none
+                            focus-visible:ring-2
+                            focus-visible:ring-primary/20
+                        "
                     >
-                        <Bell
-                            className="
-                                h-4.5
-                                w-4.5
-                                transition-transform
-                                duration-200
-                                group-hover:-rotate-6
-                            "
-                            strokeWidth={1.8}
-                        />
+                        <Bell size={19} strokeWidth={1.8} />
 
                         <span
                             className="
-                                absolute
-                                right-2.5
-                                top-2
-                                h-1.5
-                                w-1.5
+                                absolute right-2 top-1.75
+                                h-1.5 w-1.5
                                 rounded-full
                                 bg-accent
-                                ring-2
-                                ring-surface
+                                ring-2 ring-surface
                             "
                         />
                     </button>
 
                     {/* Divider */}
 
-                    <div
-                        className="
-                            mx-1.5
-                            hidden
-                            h-7
-                            w-px
-                            bg-border
-                            sm:block
-                        "
-                    />
+                    <div className="mx-1 hidden h-7 w-px bg-border sm:block" />
 
-                    {/* ==================================================
+                    {/* =================================================
                         ACCOUNT
                     ================================================== */}
 
                     <div className="relative">
+                        {/* Account trigger */}
+
                         <button
                             type="button"
-                            onClick={() => setUserMenuOpen((value) => !value)}
-                            className={`
-                                group
-                                flex
-                                items-center
-                                gap-2.5
-                                rounded-xl
-                                px-1.5
-                                py-1.5
-                                transition-all
-                                duration-200
-                                ${
-                                    userMenuOpen
-                                        ? 'bg-surface-soft'
-                                        : 'hover:bg-surface-soft'
-                                }
-                            `}
-                            aria-haspopup="true"
+                            onClick={() =>
+                                setUserMenuOpen((open) => !open)
+                            }
                             aria-expanded={userMenuOpen}
+                            aria-haspopup="menu"
+                            aria-controls="account-menu"
+                            className="
+                                group
+                                flex items-center gap-2
+                                rounded-xl
+                                px-1 py-1
+                                transition-colors duration-200
+                                hover:bg-primary/4
+                                focus:outline-none
+                                focus-visible:ring-2
+                                focus-visible:ring-primary/20
+                                sm:gap-2.5
+                            "
                         >
                             {/* Avatar */}
 
-                            <span
+                            <div
                                 className="
-                                    flex
-                                    h-9
-                                    w-9
-                                    shrink-0
-                                    items-center
-                                    justify-center
+                                    relative
+                                    flex h-9 w-9 shrink-0
+                                    items-center justify-center
                                     overflow-hidden
-                                    rounded-full
-                                    bg-primary/10
-                                    text-[11px]
-                                    font-bold
-                                    text-primary
+                                    rounded-[10px]
+                                    bg-primary
+                                    text-[11px] font-semibold
+                                    text-white
+                                    ring-1 ring-primary/10
+                                    transition-all duration-200
+                                    group-hover:ring-primary/20
                                 "
                             >
                                 {userAvatar ? (
                                     <img
                                         src={userAvatar}
                                         alt={userName}
-                                        className="
-                                            h-full
-                                            w-full
-                                            object-cover
-                                        "
+                                        className="h-full w-full object-cover"
+                                        onError={(event) => {
+                                            event.currentTarget.style.display =
+                                                'none';
+                                        }}
                                     />
                                 ) : (
                                     initials
                                 )}
-                            </span>
+                            </div>
 
-                            {/* User information */}
+                            {/* Name */}
 
-                            <span
-                                className="
-                                    hidden
-                                    text-left
-                                    sm:block
-                                "
-                            >
-                                <span
+                            <div className="hidden min-w-0 text-left sm:block">
+                                <p
                                     className="
-                                        block
                                         max-w-37.5
                                         truncate
-                                        text-[11.5px]
-                                        font-semibold
-                                        leading-tight
+                                        text-[13px] font-semibold
+                                        leading-4
                                         text-text-primary
                                     "
                                 >
                                     {userName}
-                                </span>
+                                </p>
 
-                                <span
+                                <p
                                     className="
-                                        mt-1
-                                        block
-                                        text-[9px]
-                                        font-medium
+                                        mt-0.5
+                                        max-w-37.5
+                                        truncate
+                                        text-[10px] font-medium
+                                        leading-3
                                         text-text-secondary
                                     "
                                 >
                                     {roleLabel}
-                                </span>
-                            </span>
+                                </p>
+                            </div>
 
                             {/* Chevron */}
 
                             <ChevronDown
+                                size={15}
+                                strokeWidth={1.9}
                                 className={`
                                     hidden
-                                    h-3.75
-                                    w-3.75
                                     text-text-secondary
-                                    transition-transform
-                                    duration-200
+                                    transition-transform duration-200
                                     sm:block
-                                    ${userMenuOpen ? 'rotate-180' : ''}
+                                    ${
+                                        userMenuOpen
+                                            ? 'rotate-180 text-primary'
+                                            : ''
+                                    }
                                 `}
-                                strokeWidth={1.8}
                             />
                         </button>
 
-                        {/* ==================================================
-                            DROPDOWN
+                        {/* =================================================
+                            ACCOUNT DROPDOWN
                         ================================================== */}
 
                         {userMenuOpen && (
                             <>
-                                {/* Outside click */}
+                                {/* Backdrop */}
 
                                 <button
                                     type="button"
+                                    aria-label="Close account menu"
+                                    onClick={closeUserMenu}
                                     className="
-                                        fixed
-                                        inset-0
-                                        z-40
+                                        fixed inset-0 z-40
+                                        h-full w-full
                                         cursor-default
                                     "
-                                    onClick={() => setUserMenuOpen(false)}
-                                    aria-label="Close account menu"
                                 />
 
+                                {/* Dropdown */}
+
                                 <div
+                                    id="account-menu"
+                                    role="menu"
+                                    aria-label="Account menu"
                                     className="
-                                        absolute
-                                        right-0
+                                        absolute right-0
+                                        top-[calc(100%+10px)]
                                         z-50
-                                        mt-2.5
-                                        w-62
+                                        w-[min(330px,calc(100vw-24px))]
                                         overflow-hidden
                                         rounded-2xl
-                                        border
-                                        border-border
+                                        border border-border
                                         bg-surface
-                                        shadow-[0_18px_45px_rgba(15,23,42,0.14)]
+                                        shadow-[0_20px_55px_rgba(15,23,42,0.14)]
                                     "
                                 >
-                                    {/* ==================================================
-                                        ACCOUNT HEADER
+                                    {/* =================================================
+                                        ACCOUNT HERO
                                     ================================================== */}
 
                                     <div
                                         className="
-                                            bg-surface-soft
-                                            px-4
-                                            py-4
+                                            relative
+                                            bg-primary
+                                            px-5
+                                            pb-9
+                                            pt-4
                                         "
                                     >
+                                        {/* Meta */}
+
+                                        <div className="flex items-center justify-between">
+                                            <span
+                                                className="
+                                                    text-[9px] font-semibold
+                                                    uppercase
+                                                    tracking-[0.18em]
+                                                    text-white/55
+                                                "
+                                            >
+                                                Account
+                                            </span>
+
+                                            <span
+                                                className="
+                                                    inline-flex items-center gap-1.5
+                                                    text-[9px] font-medium
+                                                    text-white/70
+                                                "
+                                            >
+                                                <span
+                                                    className="
+                                                        h-1.5 w-1.5
+                                                        rounded-full
+                                                        bg-emerald-300
+                                                    "
+                                                />
+
+                                                Active
+                                            </span>
+                                        </div>
+
+                                        {/* Welcome + Identity */}
+
+                                        <div className="mt-6 pr-16">
+                                            <p
+                                                className="
+                                                    text-[9px] font-medium
+                                                    uppercase
+                                                    tracking-[0.14em]
+                                                    text-white/50
+                                                "
+                                            >
+                                                Welcome back
+                                            </p>
+
+                                            <p
+                                                className="
+                                                    mt-1.5
+                                                    truncate
+                                                    text-[20px] font-semibold
+                                                    leading-6
+                                                    tracking-tight
+                                                    text-white
+                                                "
+                                            >
+                                                {userName}
+                                            </p>
+
+                                            <p
+                                                className="
+                                                    mt-1.5
+                                                    truncate
+                                                    text-[11px]
+                                                    leading-4
+                                                    tracking-widest
+                                                    text-white/80
+                                                "
+                                            >
+                                                {userEmail || 'Account'}
+                                            </p>
+                                        </div>
+
+                                        {/* Floating avatar */}
+
                                         <div
                                             className="
-                                                flex
-                                                items-center
-                                                gap-3
+                                                absolute
+                                                -bottom-6
+                                                left-5
                                             "
                                         >
-                                            {/* Avatar */}
-
                                             <div
                                                 className="
-                                                    flex
-                                                    h-10
-                                                    w-10
-                                                    shrink-0
-                                                    items-center
-                                                    justify-center
+                                                    flex h-12 w-12
+                                                    items-center justify-center
                                                     overflow-hidden
-                                                    rounded-full
-                                                    bg-primary/10
-                                                    text-[11px]
-                                                    font-bold
-                                                    text-primary
+                                                    rounded-xl
+                                                    border-[3px]
+                                                    border-surface
+                                                    bg-primary-hover
+                                                    text-[14px]
+                                                    font-semibold
+                                                    text-white
+                                                    shadow-[0_5px_16px_rgba(15,23,42,0.18)]
                                                 "
                                             >
                                                 {userAvatar ? (
@@ -464,279 +538,265 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                                         src={userAvatar}
                                                         alt={userName}
                                                         className="
-                                                            h-full
-                                                            w-full
+                                                            h-full w-full
                                                             object-cover
                                                         "
+                                                        onError={(event) => {
+                                                            event.currentTarget.style.display =
+                                                                'none';
+                                                        }}
                                                     />
                                                 ) : (
                                                     initials
                                                 )}
                                             </div>
+                                        </div>
 
-                                            {/* User information */}
+                                        {/* Role / Brand */}
 
-                                            <div className="min-w-0">
-                                                <p
-                                                    className="
-                                                        truncate
-                                                        text-[12px]
-                                                        font-semibold
-                                                        text-text-primary
-                                                    "
-                                                >
-                                                    {userName} 💚
-                                                </p>
+                                        <div
+                                            className="
+                                                absolute
+                                                bottom-3
+                                                right-4
+                                                flex items-center gap-2
+                                            "
+                                        >
+                                            <span
+                                                className="
+                                                    max-w-30
+                                                    truncate
+                                                    text-[9px] font-semibold
+                                                    uppercase
+                                                    tracking-[0.13em]
+                                                    text-white/65
+                                                "
+                                            >
+                                                {roleLabel}
+                                            </span>
 
-                                                <p
-                                                    className="
-                                                        mt-1
-                                                        text-[9px]
-                                                        font-medium
-                                                        uppercase
-                                                        tracking-[0.06em]
-                                                        text-text-secondary
-                                                    "
-                                                >
-                                                    {roleLabel}
-                                                </p>
-                                            </div>
+                                            <span
+                                                className="
+                                                    h-1 w-1
+                                                    shrink-0
+                                                    rounded-full
+                                                    bg-white/25
+                                                "
+                                            />
+
+                                            <span
+                                                className="
+                                                    text-[9px] font-medium
+                                                    uppercase
+                                                    tracking-[0.08em]
+                                                    text-white/40
+                                                "
+                                            >
+                                                SP
+                                            </span>
                                         </div>
                                     </div>
 
-                                    {/* ==================================================
-                                        ACCOUNT LINKS
+                                    {/* =================================================
+                                        QUICK ACTIONS
                                     ================================================== */}
 
-                                    <div className="p-2">
-                                        {/* Profile */}
+                                    <div className="pt-7">
+                                        {/* Section heading */}
 
-                                        <NavLink
-                                            to={`/dashboard/${userRole}/profile`}
-                                            onClick={() =>
-                                                setUserMenuOpen(false)
-                                            }
+                                        <div
                                             className="
-                                                group
-                                                flex
-                                                items-center
-                                                gap-3
-                                                rounded-xl
-                                                px-3
-                                                py-2.5
-                                                text-[11.5px]
-                                                font-medium
-                                                text-text-primary
-                                                transition-colors
-                                                hover:bg-surface-soft
+                                                border-b border-border
+                                                px-5 py-3
                                             "
                                         >
-                                            <span
+                                            <p
                                                 className="
-                                                    flex
-                                                    h-8
-                                                    w-8
-                                                    shrink-0
-                                                    items-center
-                                                    justify-center
-                                                    rounded-lg
-                                                    bg-surface-soft
-                                                    text-text-secondary
-                                                    transition-colors
-                                                    group-hover:bg-primary/10
-                                                    group-hover:text-primary
+                                                    text-[9px]
+                                                    font-semibold
+                                                    uppercase
+                                                    tracking-[0.14em]
+                                                    text-text-primary
                                                 "
                                             >
-                                                <UserRound
-                                                    className="h-4 w-4"
-                                                    strokeWidth={1.8}
-                                                />
-                                            </span>
+                                                Quick actions
+                                            </p>
 
-                                            <span className="flex-1">
-                                                Profile
-                                            </span>
-
-                                            <ChevronDown
+                                            <p
                                                 className="
-                                                    h-3.5
-                                                    w-3.5
-                                                    -rotate-90
-                                                    text-border
-                                                    transition-colors
-                                                    group-hover:text-text-secondary
-                                                "
-                                            />
-                                        </NavLink>
-
-                                        {/* Account Settings */}
-
-                                        <NavLink
-                                            to={`/dashboard/${userRole}/settings`}
-                                            onClick={() =>
-                                                setUserMenuOpen(false)
-                                            }
-                                            className="
-                                                group
-                                                flex
-                                                items-center
-                                                gap-3
-                                                rounded-xl
-                                                px-3
-                                                py-2.5
-                                                text-[11.5px]
-                                                font-medium
-                                                text-text-primary
-                                                transition-colors
-                                                hover:bg-surface-soft
-                                            "
-                                        >
-                                            <span
-                                                className="
-                                                    flex
-                                                    h-8
-                                                    w-8
-                                                    shrink-0
-                                                    items-center
-                                                    justify-center
-                                                    rounded-lg
-                                                    bg-surface-soft
+                                                    mt-0.5
+                                                    text-[9px]
+                                                    leading-3
                                                     text-text-secondary
-                                                    transition-colors
-                                                    group-hover:bg-primary/10
-                                                    group-hover:text-primary
                                                 "
                                             >
-                                                <Settings
-                                                    className="h-4 w-4"
-                                                    strokeWidth={1.8}
-                                                />
-                                            </span>
+                                                Manage your account
+                                            </p>
+                                        </div>
 
-                                            <span className="flex-1">
-                                                Account settings
-                                            </span>
+                                        {/* Actions */}
 
-                                            <ChevronDown
-                                                className="
-                                                    h-3.5
-                                                    w-3.5
-                                                    -rotate-90
-                                                    text-border
-                                                    transition-colors
-                                                    group-hover:text-text-secondary
-                                                "
-                                            />
-                                        </NavLink>
+                                        <div className="grid grid-cols-3">
+                                            {quickActions.map(
+                                                ({
+                                                    label,
+                                                    description,
+                                                    icon: Icon,
+                                                    to,
+                                                }) => (
+                                                    <NavLink
+                                                        key={to}
+                                                        to={to}
+                                                        onClick={closeUserMenu}
+                                                        role="menuitem"
+                                                        className="
+                                                            group
+                                                            relative
+                                                            flex min-w-0
+                                                            flex-col
+                                                            items-center
+                                                            px-2
+                                                            py-4
+                                                            text-center
+                                                            transition-colors
+                                                            duration-150
+                                                            hover:bg-primary/4
+                                                            focus:outline-none
+                                                            focus-visible:bg-primary/5
+                                                            [&+a]:border-l
+                                                            [&+a]:border-border
+                                                        "
+                                                    >
+                                                        {/* Icon */}
 
-                                        {/* Help */}
+                                                        <div
+                                                            className="
+                                                                flex h-8 w-8
+                                                                items-center
+                                                                justify-center
+                                                                rounded-[9px]
+                                                                bg-primary/7
+                                                                transition-all
+                                                                duration-150
+                                                                group-hover:bg-primary/11
+                                                                group-hover:scale-[1.03]
+                                                            "
+                                                        >
+                                                            <Icon
+                                                                size={16}
+                                                                strokeWidth={1.8}
+                                                                className="text-primary"
+                                                            />
+                                                        </div>
 
-                                        <NavLink
-                                            to="/help"
-                                            onClick={() =>
-                                                setUserMenuOpen(false)
-                                            }
-                                            className="
-                                                group
-                                                flex
-                                                items-center
-                                                gap-3
-                                                rounded-xl
-                                                px-3
-                                                py-2.5
-                                                text-[11.5px]
-                                                font-medium
-                                                text-text-primary
-                                                transition-colors
-                                                hover:bg-surface-soft
-                                            "
-                                        >
-                                            <span
-                                                className="
-                                                    flex
-                                                    h-8
-                                                    w-8
-                                                    shrink-0
-                                                    items-center
-                                                    justify-center
-                                                    rounded-lg
-                                                    bg-surface-soft
-                                                    text-text-secondary
-                                                    transition-colors
-                                                    group-hover:bg-primary/10
-                                                    group-hover:text-primary
-                                                "
-                                            >
-                                                <CircleHelp
-                                                    className="h-4 w-4"
-                                                    strokeWidth={1.8}
-                                                />
-                                            </span>
+                                                        {/* Label */}
 
-                                            <span className="flex-1">
-                                                Help & support
-                                            </span>
+                                                        <span
+                                                            className="
+                                                                mt-2
+                                                                max-w-full
+                                                                truncate
+                                                                text-[10px]
+                                                                font-semibold
+                                                                leading-3
+                                                                text-text-primary
+                                                            "
+                                                        >
+                                                            {label}
+                                                        </span>
 
-                                            <ChevronDown
-                                                className="
-                                                    h-3.5
-                                                    w-3.5
-                                                    -rotate-90
-                                                    text-border
-                                                    transition-colors
-                                                    group-hover:text-text-secondary
-                                                "
-                                            />
-                                        </NavLink>
+                                                        {/* Description */}
 
-                                        {/* Divider */}
+                                                        {description && (
+                                                            <span
+                                                                className="
+                                                                    mt-1
+                                                                    max-w-full
+                                                                    truncate
+                                                                    text-[8px]
+                                                                    leading-3
+                                                                    text-text-secondary
+                                                                "
+                                                            >
+                                                                {description}
+                                                            </span>
+                                                        )}
+                                                    </NavLink>
+                                                ),
+                                            )}
+                                        </div>
+                                    </div>
 
-                                        <div className="my-2 h-px bg-border" />
+                                    {/* =================================================
+                                        SIGN OUT
+                                    ================================================== */}
 
-                                        {/* Sign Out */}
-
+                                    <div
+                                        className="
+                                            border-t border-border
+                                            px-4 py-3
+                                        "
+                                    >
                                         <button
                                             type="button"
                                             onClick={handleSignOut}
+                                            role="menuitem"
                                             className="
                                                 group
-                                                flex
-                                                w-full
+                                                flex w-full
                                                 items-center
                                                 gap-3
-                                                rounded-xl
-                                                px-3
-                                                py-2.5
+                                                rounded-lg
+                                                px-2 py-2
                                                 text-left
-                                                text-[11.5px]
-                                                font-medium
-                                                text-text-secondary
                                                 transition-colors
-                                                hover:bg-red-50
-                                                hover:text-red-600
+                                                duration-150
+                                                hover:bg-primary/4
+                                                focus:outline-none
+                                                focus-visible:ring-2
+                                                focus-visible:ring-primary/20
                                             "
                                         >
-                                            <span
+                                            {/* Icon */}
+
+                                            <div
                                                 className="
-                                                    flex
-                                                    h-8
-                                                    w-8
-                                                    shrink-0
+                                                    flex h-8 w-8 shrink-0
                                                     items-center
                                                     justify-center
-                                                    rounded-lg
-                                                    bg-surface-soft
+                                                    rounded-[9px]
+                                                    bg-primary/6
                                                     transition-colors
-                                                    group-hover:bg-red-100
+                                                    duration-150
+                                                    group-hover:bg-primary/10
                                                 "
                                             >
                                                 <LogOut
-                                                    className="h-4 w-4"
+                                                    size={15}
                                                     strokeWidth={1.8}
+                                                    className="
+                                                        text-text-secondary
+                                                        transition-colors
+                                                        duration-150
+                                                        group-hover:text-primary
+                                                    "
                                                 />
-                                            </span>
+                                            </div>
 
-                                            <span>Sign out</span>
+                                            {/* Label */}
+
+                                            <span
+                                                className="
+                                                    text-[11px]
+                                                    font-semibold
+                                                    text-text-primary
+                                                    transition-colors
+                                                    duration-150
+                                                    group-hover:text-primary
+                                                "
+                                            >
+                                                Sign out
+                                            </span>
                                         </button>
                                     </div>
                                 </div>

@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-
 import { Outlet, useLocation } from 'react-router-dom';
 
 import DashboardSidebar from './DashboardSidebar';
@@ -36,6 +35,7 @@ function getPageTitle(pathname, role) {
     const nav = NAV_CONFIG[role] || [];
 
     const segments = pathname.split('/').filter(Boolean);
+
     const lastSegment = segments[segments.length - 1];
 
     if (lastSegment === role || lastSegment === 'dashboard') {
@@ -43,7 +43,9 @@ function getPageTitle(pathname, role) {
     }
 
     const match = nav.find((item) => {
-        if (!item.path) return false;
+        if (!item.path) {
+            return false;
+        }
 
         const itemSegments = item.path.split('/').filter(Boolean);
 
@@ -71,6 +73,9 @@ const DashboardLayout = () => {
 
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
+    // Desktop sidebar state
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
     const role = getRoleFromPath(location.pathname);
 
     const pageTitle = getPageTitle(location.pathname, role);
@@ -87,7 +92,12 @@ const DashboardLayout = () => {
                 DESKTOP SIDEBAR
             ================================================== */}
 
-            <DashboardSidebar role={role} currentPath={location.pathname} />
+            <DashboardSidebar
+                role={role}
+                currentPath={location.pathname}
+                collapsed={sidebarCollapsed}
+                onCollapsedChange={setSidebarCollapsed}
+            />
 
             {/* ==================================================
                 MOBILE NAV
@@ -102,16 +112,26 @@ const DashboardLayout = () => {
 
             {/* ==================================================
                 MAIN SHELL
+
+                IMPORTANT:
+                The left padding changes together with the
+                desktop sidebar width.
+
+                Expanded  = 288px
+                Collapsed = 60px
             ================================================== */}
 
             <div
-                className="
+                className={`
                     flex
                     min-h-screen
                     min-w-0
                     flex-col
-                    md:pl-66
-                "
+                    transition-[padding-left]
+                    duration-300
+                    ease-in-out
+                    ${sidebarCollapsed ? 'lg:pl-15' : 'lg:pl-72'}
+                `}
             >
                 {/* ==================================================
                     TOPBAR

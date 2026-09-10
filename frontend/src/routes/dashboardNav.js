@@ -166,6 +166,7 @@ export const NAV_CONFIG = {
             icon: UserCheck,
             path: '/admin/dashboard/volunteers',
         },
+        { type: 'divider' },
         {
             key: 'verification',
             label: 'Verification',
@@ -178,7 +179,6 @@ export const NAV_CONFIG = {
             icon: BarChart3,
             path: '/admin/dashboard/reports',
         },
-        { type: 'divider' },
         {
             key: 'settings',
             label: 'Settings',

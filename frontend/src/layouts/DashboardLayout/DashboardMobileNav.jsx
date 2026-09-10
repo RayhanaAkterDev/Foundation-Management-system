@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from 'react';
-
 import { NavLink, useNavigate } from 'react-router-dom';
 
 import logo from '@/assets/shared/footerLogo.png';
 
 import {
-    HeartHandshake,
     X,
     LogOut,
     UserRound,
@@ -38,19 +36,20 @@ const MOCK_USERS = {
 };
 
 // ============================================================
-// HELPERS
+// ROUTES
+// Keep these identical to DashboardSidebar
 // ============================================================
 
-const ROOT_PATHS = [
-    '/individual/dashboard',
-    '/organization/dashboard',
-    '/admin/dashboard',
-];
+const ROOT_PATHS = {
+    individual: '/individual/dashboard',
+    organization: '/organization/dashboard',
+    admin: '/admin/dashboard',
+};
 
 const PROFILE_PATHS = {
     individual: '/individual/dashboard/profile',
     organization: '/organization/dashboard/profile',
-    admin: '/admin/dashboard',
+    admin: null,
 };
 
 const SETTINGS_PATHS = {
@@ -59,7 +58,117 @@ const SETTINGS_PATHS = {
     admin: '/admin/dashboard/settings',
 };
 
-const isRootDashboard = (path) => ROOT_PATHS.includes(path);
+// ============================================================
+// HELPERS
+// ============================================================
+
+const getInitials = (name = '') =>
+    name
+        .trim()
+        .split(/\s+/)
+        .slice(0, 2)
+        .map((word) => word.charAt(0))
+        .join('')
+        .toUpperCase();
+
+const isRootDashboard = (path) => Object.values(ROOT_PATHS).includes(path);
+
+const isItemActive = (item, currentPath) => {
+    if (!item?.path) {
+        return false;
+    }
+
+    if (isRootDashboard(item.path)) {
+        return currentPath === item.path;
+    }
+
+    return currentPath === item.path || currentPath.startsWith(`${item.path}/`);
+};
+
+// ============================================================
+// ACCOUNT AVATAR
+// ============================================================
+
+const AccountAvatar = ({ user, initials, size = 'normal' }) => (
+    <div
+        className={`
+            flex
+            shrink-0
+            items-center
+            justify-center
+            overflow-hidden
+            rounded-full
+            bg-[#e6f1ef]
+            font-bold
+            text-[#0b5f5b]
+            ${size === 'small' ? 'h-8 w-8 text-[9px]' : 'h-9 w-9 text-[10px]'}
+        `}
+    >
+        {user.avatar ? (
+            <img
+                src={user.avatar}
+                alt={user.name}
+                className="h-full w-full object-cover"
+            />
+        ) : (
+            initials
+        )}
+    </div>
+);
+
+// ============================================================
+// ACCOUNT MENU LINK
+// ============================================================
+
+const AccountMenuLink = ({ to, icon: Icon, children, onClick }) => (
+    <NavLink
+        to={to}
+        onClick={onClick}
+        className="
+            group
+            flex
+            w-full
+            items-center
+            gap-3
+            rounded-xl
+            px-3
+            py-2.5
+            text-[12px]
+            font-medium
+            text-white/65
+            whitespace-nowrap
+            transition-colors
+            duration-200
+            hover:bg-white/8
+            hover:text-white
+        "
+    >
+        <Icon
+            className="
+                h-4
+                w-4
+                shrink-0
+                text-white/40
+                transition-colors
+                duration-200
+                group-hover:text-white
+            "
+            strokeWidth={1.8}
+        />
+
+        <span className="min-w-0 flex-1 truncate">{children}</span>
+
+        <ChevronRight
+            className="
+                h-3.5
+                w-3.5
+                shrink-0
+                text-white/20
+            "
+            strokeWidth={1.8}
+        />
+    </NavLink>
+);
 
 // ============================================================
 // MOBILE NAV
@@ -80,13 +189,20 @@ const DashboardMobileNav = ({ role, currentPath, open, onClose }) => {
 
     const settingsPath = SETTINGS_PATHS[role];
 
+    const rootPath = ROOT_PATHS[role] || ROOT_PATHS.individual;
+
+    const initials = getInitials(user.name);
+
     // ========================================================
     // CLOSE AFTER ROUTE CHANGE
     // ========================================================
 
     useEffect(() => {
-        onClose();
+        if (open) {
+            onClose();
+        }
 
+        // currentPath intentionally controls this behavior.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentPath]);
 
@@ -95,23 +211,30 @@ const DashboardMobileNav = ({ role, currentPath, open, onClose }) => {
     // ========================================================
 
     useEffect(() => {
-        if (open) {
-            document.body.style.overflow = 'hidden';
-        } else {
+        if (!open) {
             document.body.style.overflow = '';
+            return undefined;
         }
 
+        const previousOverflow = document.body.style.overflow;
+
+        document.body.style.overflow = 'hidden';
+
         return () => {
-            document.body.style.overflow = '';
+            document.body.style.overflow = previousOverflow;
         };
     }, [open]);
 
     // ========================================================
-    // CLOSE ACCOUNT MENU
+    // ACCOUNT
     // ========================================================
 
     const closeAccountMenu = () => {
         setAccountOpen(false);
+    };
+
+    const toggleAccountMenu = () => {
+        setAccountOpen((previous) => !previous);
     };
 
     // ========================================================
@@ -119,42 +242,43 @@ const DashboardMobileNav = ({ role, currentPath, open, onClose }) => {
     // ========================================================
 
     const handleSignOut = () => {
-        closeAccountMenu();
+        setAccountOpen(false);
         onClose();
         navigate('/');
     };
 
     // ========================================================
-    // INITIALS
+    // CLOSED STATE
     // ========================================================
-
-    const initials = user.name
-        .split(' ')
-        .slice(0, 2)
-        .map((word) => word.charAt(0))
-        .join('')
-        .toUpperCase();
 
     if (!open) {
         return null;
     }
 
     return (
-        <div className="fixed inset-0 z-50 md:hidden">
+        <div
+            className="
+                fixed
+                inset-0
+                z-50
+                lg:hidden
+            "
+        >
             {/* ==================================================
                 BACKDROP
             ================================================== */}
 
             <button
                 type="button"
+                aria-label="Close navigation"
+                onClick={onClose}
                 className="
                     absolute
                     inset-0
-                    bg-text-primary/40
+                    cursor-default
+                    bg-text-primary/45
                     backdrop-blur-[2px]
                 "
-                onClick={onClose}
-                aria-label="Close navigation"
             />
 
             {/* ==================================================
@@ -162,116 +286,193 @@ const DashboardMobileNav = ({ role, currentPath, open, onClose }) => {
             ================================================== */}
 
             <aside
+                aria-label="Mobile dashboard navigation"
                 className="
                     absolute
                     inset-y-0
                     left-0
                     flex
-                    w-69
-                    max-w-[calc(100%-1.5rem)]
+                    w-[288px]
+                    max-w-[calc(100vw-20px)]
                     flex-col
                     overflow-hidden
-                    bg-primary
+                    bg-[#0d625d]
                     shadow-[12px_0_35px_rgba(15,23,42,0.22)]
                 "
             >
                 {/* ==================================================
-                    BRAND HEADER
+                    HEADER
+                ================================================== */}
+
+                <header
+                    className="
+                        flex
+                        shrink-0
+                        items-center
+                        justify-between
+                        border-b
+                        border-white/9
+                        px-5
+                        py-5
+                    "
+                >
+                    {/* Brand */}
+
+                    <NavLink
+                        to={rootPath}
+                        onClick={onClose}
+                        className="
+                            flex
+                            min-w-0
+                            items-center
+                            gap-3
+                        "
+                    >
+                        {/* Logo */}
+
+                        <div
+                            className="
+                                flex
+                                h-10
+                                w-10
+                                shrink-0
+                                items-center
+                                justify-center
+                                rounded-[11px]
+                                bg-white
+                                shadow-[0_3px_10px_rgba(0,0,0,0.10)]
+                            "
+                        >
+                            <img
+                                src={logo}
+                                alt="Stand For People"
+                                className="
+                                    h-7
+                                    w-7
+                                    object-contain
+                                "
+                            />
+                        </div>
+
+                        {/* Brand text */}
+
+                        <div className="min-w-0">
+                            <div
+                                className="
+                                    whitespace-nowrap
+                                    font-fraunces
+                                    text-[18px]
+                                    font-semibold
+                                    leading-[0.92]
+                                    tracking-[-0.04em]
+                                    text-white
+                                "
+                            >
+                                Stand
+                                <span className="text-accent"> For</span>
+                                <br />
+                                People
+                            </div>
+
+                            <p
+                                className="
+                                    mt-1.5
+                                    whitespace-nowrap
+                                    text-[7px]
+                                    font-semibold
+                                    uppercase
+                                    tracking-[0.15em]
+                                    text-white/35
+                                "
+                            >
+                                Social Impact Platform
+                            </p>
+                        </div>
+                    </NavLink>
+
+                    {/* Close */}
+
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        aria-label="Close navigation"
+                        className="
+                            ml-3
+                            flex
+                            h-9
+                            w-9
+                            shrink-0
+                            items-center
+                            justify-center
+                            rounded-lg
+                            text-white/45
+                            transition-colors
+                            duration-200
+                            hover:bg-white/8
+                            hover:text-white
+                        "
+                    >
+                        <X className="h-5 w-5" strokeWidth={1.7} />
+                    </button>
+                </header>
+
+                {/* ==================================================
+                    ROLE / WORKSPACE CONTEXT
                 ================================================== */}
 
                 <div
                     className="
+                        flex
                         shrink-0
+                        items-center
+                        justify-between
                         px-6
-                        pb-6
-                        pt-7
+                        py-4
                     "
                 >
-                    <div className="flex items-center justify-between">
-                        <NavLink
-                            to={
-                                role === 'admin'
-                                    ? '/admin/dashboard'
-                                    : role === 'organization'
-                                      ? '/organization/dashboard'
-                                      : '/individual/dashboard'
-                            }
-                            onClick={onClose}
+                    <div className="flex items-center gap-2">
+                        <span
                             className="
-                                flex
-                                min-w-0
-                                items-center
-                                gap-3.5
+                                h-1.5
+                                w-1.5
+                                shrink-0
+                                rounded-full
+                                bg-accent
+                            "
+                        />
+
+                        <span
+                            className="
+                                whitespace-nowrap
+                                text-[8px]
+                                font-medium
+                                uppercase
+                                tracking-[0.15em]
+                                text-white/35
                             "
                         >
-                            <div
-                                className="
-                                    flex
-                                    h-11
-                                    w-11
-                                    shrink-0
-                                    items-center
-                                    justify-center
-                                    rounded-[13px]
-                                    bg-white
-                                    text-primary
-                                    shadow-sm
-                                "
-                            >
-                                <img src={logo} alt="sp" />
-                            </div>
-
-                            <div className="min-w-0">
-                                <div
-                                    className="
-                                        font-fraunces
-                                        text-lg
-                                        font-semibold
-                                        leading-[0.95]
-                                        tracking-[-0.04em]
-                                        text-white
-                                    "
-                                >
-                                    Stand
-                                    <span className="text-accent"> For</span>
-                                    <br />
-                                    People
-                                </div>
-
-                                <p
-                                    className="
-                                        mt-1.5
-                                        text-[8px]
-                                        font-semibold
-                                        uppercase
-                                        tracking-[0.16em]
-                                        text-white/40
-                                    "
-                                >
-                                    Social Impact Platform
-                                </p>
-                            </div>
-                        </NavLink>
-
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="
-                                hidden
-                                h-8
-                                w-8
-                                items-center
-                                justify-center
-                                rounded-lg
-                                text-white/50
-                                hover:bg-white/10
-                                hover:text-white
-                            "
-                            aria-label="Close navigation"
-                        >
-                            <X className="h-4 w-4" />
-                        </button>
+                            Workspace
+                        </span>
                     </div>
+
+                    <span
+                        className="
+                            shrink-0
+                            whitespace-nowrap
+                            rounded-full
+                            border
+                            border-white/10
+                            px-2
+                            py-1
+                            text-[7px]
+                            font-bold
+                            uppercase
+                            tracking-widest
+                            text-white/40
+                        "
+                    >
+                        {roleLabel}
+                    </span>
                 </div>
 
                 {/* ==================================================
@@ -279,49 +480,45 @@ const DashboardMobileNav = ({ role, currentPath, open, onClose }) => {
                 ================================================== */}
 
                 <nav
+                    aria-label="Dashboard navigation"
                     className="
                         min-h-0
                         flex-1
+                        overflow-x-hidden
                         overflow-y-auto
                         px-4
                         pb-5
-                        pt-3
                         scrollbar-thin
                     "
                 >
-                    <div className="mb-3 px-3">
-                        <span
-                            className="
-                                text-[9px]
-                                font-bold
-                                uppercase
-                                tracking-[0.19em]
-                                text-white/30
-                            "
-                        >
-                            Workspace
-                        </span>
-                    </div>
-
                     <div className="space-y-1">
                         {navItems.map((item, index) => {
+                            {
+                                /* Divider */
+                            }
+
                             if (item.type === 'divider') {
                                 return (
                                     <div
                                         key={`divider-${index}`}
                                         className="my-5 px-3"
                                     >
-                                        <div className="h-px bg-white/10" />
+                                        <div className="h-px bg-white/8" />
                                     </div>
                                 );
                             }
 
+                            {
+                                /* Invalid item */
+                            }
+
+                            if (!item.path || !item.icon) {
+                                return null;
+                            }
+
                             const Icon = item.icon;
 
-                            const active = isRootDashboard(item.path)
-                                ? currentPath === item.path
-                                : currentPath === item.path ||
-                                  currentPath.startsWith(`${item.path}/`);
+                            const active = isItemActive(item, currentPath);
 
                             return (
                                 <NavLink
@@ -329,84 +526,115 @@ const DashboardMobileNav = ({ role, currentPath, open, onClose }) => {
                                     to={item.path}
                                     end={isRootDashboard(item.path)}
                                     onClick={onClose}
+                                    aria-current={active ? 'page' : undefined}
                                     className={`
-                                        group
-                                        relative
-                                        flex
-                                        min-h-11.5
-                                        items-center
-                                        gap-3
-                                        rounded-xl
-                                        px-3
-                                        text-[13px]
-                                        transition-all
-                                        duration-200
-                                        ${
-                                            active
-                                                ? `
-                                                    bg-white/13
-                                                    font-semibold
-                                                    text-white
-                                                `
-                                                : `
-                                                    font-medium
-                                                    text-white/55
-                                                    hover:bg-white/6.5
-                                                    hover:text-white/90
-                                                `
-                                        }
-                                    `}
+                                            group
+                                            relative
+                                            flex
+                                            h-11.5
+                                            w-full
+                                            shrink-0
+                                            items-center
+                                            gap-3
+                                            rounded-xl
+                                            px-3
+                                            whitespace-nowrap
+                                            transition-all
+                                            duration-200
+                                            ${
+                                                active
+                                                    ? `
+                                                        bg-white/10
+                                                        font-semibold
+                                                        text-white
+                                                    `
+                                                    : `
+                                                        font-medium
+                                                        text-white/50
+                                                        hover:bg-white/6
+                                                        hover:text-white/90
+                                                    `
+                                            }
+                                        `}
                                 >
-                                    {active && (
-                                        <span
-                                            className="
+                                    {/* Active indicator */}
+
+                                    <span
+                                        className={`
                                                 absolute
-                                                -left-4
+                                                left-0
                                                 top-1/2
-                                                h-7
+                                                h-6
                                                 w-0.75
                                                 -translate-y-1/2
                                                 rounded-r-full
                                                 bg-accent
-                                            "
-                                        />
-                                    )}
+                                                transition-opacity
+                                                duration-200
+                                                ${
+                                                    active
+                                                        ? 'opacity-100'
+                                                        : 'opacity-0'
+                                                }
+                                            `}
+                                    />
+
+                                    {/* Icon */}
 
                                     <span
                                         className={`
-                                            flex
-                                            h-8
-                                            w-8
-                                            shrink-0
-                                            items-center
-                                            justify-center
-                                            rounded-lg
-                                            ${
-                                                active
-                                                    ? 'bg-white/10 text-white'
-                                                    : 'text-white/40 group-hover:text-white/80'
-                                            }
-                                        `}
+                                                flex
+                                                h-8
+                                                w-8
+                                                shrink-0
+                                                items-center
+                                                justify-center
+                                                rounded-lg
+                                                transition-colors
+                                                duration-200
+                                                ${
+                                                    active
+                                                        ? 'bg-white/10 text-white'
+                                                        : 'text-white/40 group-hover:text-white/80'
+                                                }
+                                            `}
                                     >
                                         <Icon
-                                            className="h-4.25 w-4.25"
+                                            className="
+                                                    h-4.25
+                                                    w-4.25
+                                                    shrink-0
+                                                "
                                             strokeWidth={active ? 2.05 : 1.8}
                                         />
                                     </span>
 
-                                    <span className="min-w-0 flex-1 truncate">
+                                    {/* Label */}
+
+                                    <span
+                                        className="
+                                                min-w-0
+                                                flex-1
+                                                truncate
+                                                whitespace-nowrap
+                                                text-[12px]
+                                                tracking-[-0.01em]
+                                            "
+                                    >
                                         {item.label}
                                     </span>
+
+                                    {/* Active arrow */}
 
                                     {active && (
                                         <ChevronRight
                                             className="
-                                                h-3.5
-                                                w-3.5
-                                                shrink-0
-                                                text-white/30
-                                            "
-                                            strokeWidth={2}
+                                                    h-3.5
+                                                    w-3.5
+                                                    shrink-0
+                                                    text-white/30
+                                                "
+                                            strokeWidth={1.9}
                                         />
                                     )}
                                 </NavLink>
@@ -419,203 +647,116 @@ const DashboardMobileNav = ({ role, currentPath, open, onClose }) => {
                     ACCOUNT AREA
                 ================================================== */}
 
-                <div className="relative shrink-0 px-4 pb-5">
+                <div
+                    className="
+                        relative
+                        shrink-0
+                        border-t
+                        border-white/9
+                        px-4
+                        py-4
+                    "
+                >
                     {/* ==================================================
-                        ACCOUNT MENU
+                        ACCOUNT POPUP
                     ================================================== */}
 
                     {accountOpen && (
                         <div
                             className="
                                 absolute
-                                bottom-19.5
+                                bottom-[calc(100%-8px)]
                                 left-4
                                 right-4
+                                z-30
                                 overflow-hidden
-                                rounded-2xl
+                                rounded-xl
                                 border
                                 border-white/10
-                                bg-[#0d6863]
+                                bg-[#084c49]
                                 p-2
-                                shadow-[0_16px_40px_rgba(0,0,0,0.28)]
+                                shadow-[0_20px_45px_rgba(0,0,0,0.28)]
                             "
                         >
-                            {/* Account identity */}
+                            {/* Identity */}
 
-                            <div className="px-3 pb-2 pt-2">
-                                <p
-                                    className="
-                                        truncate
-                                        text-[12px]
-                                        font-semibold
-                                        text-white
-                                    "
-                                >
-                                    {user.name}
-                                </p>
+                            <div className="px-3 pb-3 pt-2">
+                                <div className="flex items-center gap-3">
+                                    <AccountAvatar
+                                        user={user}
+                                        initials={initials}
+                                        size="small"
+                                    />
 
-                                <p
-                                    className="
-                                        mt-0.5
-                                        text-[9px]
-                                        font-medium
-                                        uppercase
-                                        tracking-[0.08em]
-                                        text-white/40
-                                    "
-                                >
-                                    {roleLabel}
-                                </p>
+                                    <div className="min-w-0">
+                                        <p
+                                            className="
+                                                truncate
+                                                whitespace-nowrap
+                                                text-[11px]
+                                                font-semibold
+                                                text-white
+                                            "
+                                        >
+                                            {user.name}
+                                        </p>
+
+                                        <p
+                                            className="
+                                                mt-0.5
+                                                whitespace-nowrap
+                                                text-[7px]
+                                                font-bold
+                                                uppercase
+                                                tracking-[0.12em]
+                                                text-white/30
+                                            "
+                                        >
+                                            {roleLabel}
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div className="my-1.5 h-px bg-white/10" />
+                            <div className="mx-1 h-px bg-white/8" />
 
-                            {/* ==================================================
-                                PROFILE
-                            ================================================== */}
+                            {/* Profile */}
 
                             {profilePath && (
-                                <NavLink
+                                <AccountMenuLink
                                     to={profilePath}
-                                    onClick={onClose}
-                                    className="
-                                        group
-                                        flex
-                                        items-center
-                                        gap-3
-                                        rounded-xl
-                                        px-3
-                                        py-2.5
-                                        text-[12px]
-                                        font-medium
-                                        text-white/65
-                                        transition-colors
-                                        hover:bg-white/8
-                                        hover:text-white
-                                    "
+                                    icon={UserRound}
+                                    onClick={closeAccountMenu}
                                 >
-                                    <UserRound
-                                        className="
-                                            h-4
-                                            w-4
-                                            text-white/40
-                                            group-hover:text-white
-                                        "
-                                        strokeWidth={1.8}
-                                    />
-
-                                    <span className="flex-1">Profile</span>
-
-                                    <ChevronRight
-                                        className="
-                                            h-3.5
-                                            w-3.5
-                                            text-white/20
-                                        "
-                                        strokeWidth={1.8}
-                                    />
-                                </NavLink>
+                                    Profile
+                                </AccountMenuLink>
                             )}
 
-                            {/* ==================================================
-                                SETTINGS
-                            ================================================== */}
+                            {/* Settings */}
 
                             {settingsPath && (
-                                <NavLink
+                                <AccountMenuLink
                                     to={settingsPath}
-                                    onClick={onClose}
-                                    className="
-                                        group
-                                        flex
-                                        items-center
-                                        gap-3
-                                        rounded-xl
-                                        px-3
-                                        py-2.5
-                                        text-[12px]
-                                        font-medium
-                                        text-white/65
-                                        transition-colors
-                                        hover:bg-white/8
-                                        hover:text-white
-                                    "
+                                    icon={Settings}
+                                    onClick={closeAccountMenu}
                                 >
-                                    <Settings
-                                        className="
-                                            h-4
-                                            w-4
-                                            text-white/40
-                                            group-hover:text-white
-                                        "
-                                        strokeWidth={1.8}
-                                    />
-
-                                    <span className="flex-1">
-                                        Account settings
-                                    </span>
-
-                                    <ChevronRight
-                                        className="
-                                            h-3.5
-                                            w-3.5
-                                            text-white/20
-                                        "
-                                        strokeWidth={1.8}
-                                    />
-                                </NavLink>
+                                    Account settings
+                                </AccountMenuLink>
                             )}
 
-                            {/* ==================================================
-                                HELP
-                            ================================================== */}
+                            {/* Help */}
 
-                            <NavLink
+                            <AccountMenuLink
                                 to="/help"
-                                onClick={onClose}
-                                className="
-                                    group
-                                    flex
-                                    items-center
-                                    gap-3
-                                    rounded-xl
-                                    px-3
-                                    py-2.5
-                                    text-[12px]
-                                    font-medium
-                                    text-white/65
-                                    transition-colors
-                                    hover:bg-white/8
-                                    hover:text-white
-                                "
+                                icon={CircleHelp}
+                                onClick={closeAccountMenu}
                             >
-                                <CircleHelp
-                                    className="
-                                        h-4
-                                        w-4
-                                        text-white/40
-                                        group-hover:text-white
-                                    "
-                                    strokeWidth={1.8}
-                                />
+                                Help & support
+                            </AccountMenuLink>
 
-                                <span className="flex-1">Help & support</span>
+                            <div className="mx-1 my-1 h-px bg-white/8" />
 
-                                <ChevronRight
-                                    className="
-                                        h-3.5
-                                        w-3.5
-                                        text-white/20
-                                    "
-                                    strokeWidth={1.8}
-                                />
-                            </NavLink>
-
-                            <div className="my-1.5 h-px bg-white/10" />
-
-                            {/* ==================================================
-                                SIGN OUT
-                            ================================================== */}
+                            {/* Sign out */}
 
                             <button
                                 type="button"
@@ -633,7 +774,9 @@ const DashboardMobileNav = ({ role, currentPath, open, onClose }) => {
                                     text-[12px]
                                     font-medium
                                     text-white/60
+                                    whitespace-nowrap
                                     transition-colors
+                                    duration-200
                                     hover:bg-red-400/10
                                     hover:text-red-200
                                 "
@@ -642,7 +785,10 @@ const DashboardMobileNav = ({ role, currentPath, open, onClose }) => {
                                     className="
                                         h-4
                                         w-4
+                                        shrink-0
                                         text-white/40
+                                        transition-colors
+                                        duration-200
                                         group-hover:text-red-200
                                     "
                                     strokeWidth={1.8}
@@ -659,7 +805,9 @@ const DashboardMobileNav = ({ role, currentPath, open, onClose }) => {
 
                     <button
                         type="button"
-                        onClick={() => setAccountOpen((previous) => !previous)}
+                        onClick={toggleAccountMenu}
+                        aria-expanded={accountOpen}
+                        aria-haspopup="menu"
                         className={`
                             group
                             flex
@@ -676,41 +824,28 @@ const DashboardMobileNav = ({ role, currentPath, open, onClose }) => {
                             ${
                                 accountOpen
                                     ? 'border-white/15 bg-white/10'
-                                    : 'border-transparent hover:bg-white/[0.07]'
+                                    : 'border-transparent hover:bg-white/6'
                             }
                         `}
                     >
                         {/* Avatar */}
 
-                        <div
-                            className="
-                                flex
-                                h-9
-                                w-9
-                                shrink-0
-                                items-center
-                                justify-center
-                                overflow-hidden
-                                rounded-full
-                                bg-white
-                                text-[11px]
-                                font-bold
-                                text-primary
-                            "
-                        >
-                            {user.avatar ? (
-                                <img
-                                    src={user.avatar}
-                                    alt={user.name}
-                                    className="
-                                        h-full
-                                        w-full
-                                        object-cover
-                                    "
-                                />
-                            ) : (
-                                initials
-                            )}
+                        <div className="relative shrink-0">
+                            <AccountAvatar user={user} initials={initials} />
+
+                            <span
+                                className="
+                                    absolute
+                                    bottom-0
+                                    right-0
+                                    h-2
+                                    w-2
+                                    rounded-full
+                                    border-2
+                                    border-[#0d625d]
+                                    bg-[#72c6a2]
+                                "
+                            />
                         </div>
 
                         {/* User */}
@@ -719,7 +854,8 @@ const DashboardMobileNav = ({ role, currentPath, open, onClose }) => {
                             <p
                                 className="
                                     truncate
-                                    text-[12px]
+                                    whitespace-nowrap
+                                    text-[11px]
                                     font-semibold
                                     text-white
                                 "
@@ -731,9 +867,12 @@ const DashboardMobileNav = ({ role, currentPath, open, onClose }) => {
                                 className="
                                     mt-0.5
                                     truncate
-                                    text-[9px]
-                                    font-medium
-                                    text-white/40
+                                    whitespace-nowrap
+                                    text-[7px]
+                                    font-bold
+                                    uppercase
+                                    tracking-[0.12em]
+                                    text-white/30
                                 "
                             >
                                 {roleLabel}
@@ -747,12 +886,12 @@ const DashboardMobileNav = ({ role, currentPath, open, onClose }) => {
                                 h-4
                                 w-4
                                 shrink-0
-                                text-white/30
+                                text-white/25
                                 transition-transform
                                 duration-200
                                 ${accountOpen ? 'rotate-90' : ''}
                             `}
-                            strokeWidth={1.8}
+                            strokeWidth={1.7}
                         />
                     </button>
                 </div>

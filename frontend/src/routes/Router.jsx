@@ -36,7 +36,7 @@ import DashboardLayout from '@/layouts/DashboardLayout/DashboardLayout';
 // ADMIN DASHBOARD
 // =========================
 
-import AdminDashboard from '@/dashboard/admin/Dashboard';
+import AdminDashboard from '@/dashboard/admin/dashboard/Dashboard';
 import AdminUsers from '@/dashboard/admin/users/Users';
 import AdminOrganizations from '@/dashboard/admin/organizations/Organizations';
 import AdminHelpRequests from '@/dashboard/admin/helpRequests/HelpRequests';

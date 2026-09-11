@@ -54,10 +54,10 @@ class AdminController extends Controller
         }
 
         /*
-    |--------------------------------------------------------------------------
-    | Recent Activity
-    |--------------------------------------------------------------------------
-    */
+        |--------------------------------------------------------------------------
+        | Recent Activity
+        |--------------------------------------------------------------------------
+        */
 
         $recentActivity = collect()
             ->merge(
@@ -147,10 +147,48 @@ class AdminController extends Controller
             ->values();
 
         /*
-    |--------------------------------------------------------------------------
-    | Dashboard Statistics
-    |--------------------------------------------------------------------------
-    */
+        |--------------------------------------------------------------------------
+        | Pending Campaigns
+        |--------------------------------------------------------------------------
+        |
+        | These are the latest campaigns that still require
+        | admin verification.
+        |
+        */
+
+        $pendingCampaigns = Campaign::with([
+            'organization:id,user_id,name',
+            'organization.user:id,name,email',
+            'creator:id,name,email',
+        ])
+            ->where(
+                'status',
+                Campaign::STATUS_UNVERIFIED
+            )
+            ->latest()
+            ->take(5)
+            ->get([
+                'id',
+                'organization_id',
+                'help_request_id',
+                'type',
+                'created_by',
+                'title',
+                'description',
+                'category',
+                'scope',
+                'district',
+                'location',
+                'proposal_date',
+                'status',
+                'created_at',
+            ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Dashboard Statistics
+        |--------------------------------------------------------------------------
+        */
 
         return response()->json([
             'stats' => [
@@ -183,6 +221,14 @@ class AdminController extends Controller
                 ->latest()
                 ->take(5)
                 ->get(),
+
+            /*
+            |--------------------------------------------------------------------------
+            | Pending Campaigns
+            |--------------------------------------------------------------------------
+            */
+
+            'pendingCampaigns' => $pendingCampaigns,
 
             'recentUsers' => User::latest()
                 ->take(5)
@@ -310,20 +356,21 @@ class AdminController extends Controller
             ],
 
             /*
-        |--------------------------------------------------------------------------
-        | Account-level phone
-        |--------------------------------------------------------------------------
-        |
-        | Phone belongs to users.phone for every account type.
-        |
-        | Rules:
-        | - Required
-        | - Bangladesh number
-        | - Exactly 11 digits
-        | - Must start with 01
-        | - Unique across all users
-        |
-        */
+            |--------------------------------------------------------------------------
+            | Account-level phone
+            |--------------------------------------------------------------------------
+            |
+            | Phone belongs to users.phone for every account type.
+            |
+            | Rules:
+            | - Required
+            | - Bangladesh number
+            | - Exactly 11 digits
+            | - Must start with 01
+            | - Unique across all users
+            |
+            */
+
             'phone' => [
                 'required',
                 'string',
@@ -332,15 +379,16 @@ class AdminController extends Controller
             ],
 
             /*
-        |--------------------------------------------------------------------------
-        | Organization-specific fields
-        |--------------------------------------------------------------------------
-        |
-        | These are only used when the selected role is organization.
-        | Phone is intentionally NOT included here because phone belongs
-        | to the users table.
-        |
-        */
+            |--------------------------------------------------------------------------
+            | Organization-specific fields
+            |--------------------------------------------------------------------------
+            |
+            | These are only used when the selected role is organization.
+            | Phone is intentionally NOT included here because phone belongs
+            | to the users table.
+            |
+            */
+
             'organization_type' => [
                 'nullable',
                 'string',
@@ -390,10 +438,10 @@ class AdminController extends Controller
 
         $result = DB::transaction(function () use ($validated) {
             /*
-        |--------------------------------------------------------------------------
-        | Create user account
-        |--------------------------------------------------------------------------
-        */
+            |--------------------------------------------------------------------------
+            | Create user account
+            |--------------------------------------------------------------------------
+            */
 
             $newUser = User::create([
                 'name' => $validated['name'],
@@ -408,14 +456,14 @@ class AdminController extends Controller
             $organization = null;
 
             /*
-        |--------------------------------------------------------------------------
-        | Individual
-        |--------------------------------------------------------------------------
-        |
-        | Phone is stored in users.phone.
-        | Do NOT store it in individual_profiles.phone.
-        |
-        */
+            |--------------------------------------------------------------------------
+            | Individual
+            |--------------------------------------------------------------------------
+            |
+            | Phone is stored in users.phone.
+            | Do NOT store it in individual_profiles.phone.
+            |
+            */
 
             if ($validated['role'] === 'individual') {
                 $individualProfile = IndividualProfile::create([
@@ -424,14 +472,14 @@ class AdminController extends Controller
             }
 
             /*
-        |--------------------------------------------------------------------------
-        | Organization
-        |--------------------------------------------------------------------------
-        |
-        | Phone is stored in users.phone.
-        | Do NOT store it in organizations.phone.
-        |
-        */
+            |--------------------------------------------------------------------------
+            | Organization
+            |--------------------------------------------------------------------------
+            |
+            | Phone is stored in users.phone.
+            | Do NOT store it in organizations.phone.
+            |
+            */
 
             if ($validated['role'] === 'organization') {
                 $organization = Organization::create([
@@ -518,14 +566,14 @@ class AdminController extends Controller
         }
 
         /*
-    |--------------------------------------------------------------------------
-    | Phone number permission
-    |--------------------------------------------------------------------------
-    |
-    | Admin can update only their own phone number.
-    | Admin can view another user's phone number, but cannot modify it.
-    |
-    */
+        |--------------------------------------------------------------------------
+        | Phone number permission
+        |--------------------------------------------------------------------------
+        |
+        | Admin can update only their own phone number.
+        | Admin can view another user's phone number, but cannot modify it.
+        |
+        */
 
         if (
             $targetUser->id !== $user->id &&
@@ -537,10 +585,10 @@ class AdminController extends Controller
         }
 
         /*
-    |--------------------------------------------------------------------------
-    | Validation
-    |--------------------------------------------------------------------------
-    */
+        |--------------------------------------------------------------------------
+        | Validation
+        |--------------------------------------------------------------------------
+        */
 
         $validationRules = [
             'name' => [
@@ -574,20 +622,20 @@ class AdminController extends Controller
         ];
 
         /*
-    |--------------------------------------------------------------------------
-    | Phone validation
-    |--------------------------------------------------------------------------
-    |
-    | Only the logged-in admin can update their own phone.
-    |
-    | Rules:
-    | - Optional during an update
-    | - Bangladesh number
-    | - Exactly 11 digits
-    | - Must start with 01
-    | - Must be unique across users
-    |
-    */
+        |--------------------------------------------------------------------------
+        | Phone validation
+        |--------------------------------------------------------------------------
+        |
+        | Only the logged-in admin can update their own phone.
+        |
+        | Rules:
+        | - Optional during an update
+        | - Bangladesh number
+        | - Exactly 11 digits
+        | - Must start with 01
+        | - Must be unique across users
+        |
+        */
 
         if ($targetUser->id === $user->id) {
             $validationRules['phone'] = [
@@ -601,10 +649,10 @@ class AdminController extends Controller
         $validated = $request->validate($validationRules);
 
         /*
-    |--------------------------------------------------------------------------
-    | Role cannot be changed
-    |--------------------------------------------------------------------------
-    */
+        |--------------------------------------------------------------------------
+        | Role cannot be changed
+        |--------------------------------------------------------------------------
+        */
 
         if ($validated['role'] !== $targetUser->role) {
             return response()->json([
@@ -614,10 +662,10 @@ class AdminController extends Controller
         }
 
         /*
-    |--------------------------------------------------------------------------
-    | Admin cannot remove their own admin role
-    |--------------------------------------------------------------------------
-    */
+        |--------------------------------------------------------------------------
+        | Admin cannot remove their own admin role
+        |--------------------------------------------------------------------------
+        */
 
         if (
             $targetUser->id === $user->id &&
@@ -629,20 +677,20 @@ class AdminController extends Controller
         }
 
         /*
-    |--------------------------------------------------------------------------
-    | Update basic user information
-    |--------------------------------------------------------------------------
-    */
+        |--------------------------------------------------------------------------
+        | Update basic user information
+        |--------------------------------------------------------------------------
+        */
 
         $targetUser->name = $validated['name'];
         $targetUser->email = $validated['email'];
         $targetUser->status = $validated['status'];
 
         /*
-    |--------------------------------------------------------------------------
-    | Update phone only when editing own account
-    |--------------------------------------------------------------------------
-    */
+        |--------------------------------------------------------------------------
+        | Update phone only when editing own account
+        |--------------------------------------------------------------------------
+        */
 
         if (
             $targetUser->id === $user->id &&
@@ -652,10 +700,10 @@ class AdminController extends Controller
         }
 
         /*
-    |--------------------------------------------------------------------------
-    | Update password when provided
-    |--------------------------------------------------------------------------
-    */
+        |--------------------------------------------------------------------------
+        | Update password when provided
+        |--------------------------------------------------------------------------
+        */
 
         if (!empty($validated['password'])) {
             $targetUser->password = $validated['password'];
@@ -664,10 +712,10 @@ class AdminController extends Controller
         $targetUser->save();
 
         /*
-    |--------------------------------------------------------------------------
-    | Keep organization name synchronized
-    |--------------------------------------------------------------------------
-    */
+        |--------------------------------------------------------------------------
+        | Keep organization name synchronized
+        |--------------------------------------------------------------------------
+        */
 
         if ($targetUser->role === 'organization') {
             Organization::where(

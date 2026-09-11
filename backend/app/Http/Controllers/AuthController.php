@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -16,8 +17,19 @@ class AuthController extends Controller
             'accountType' => 'required|in:individual,organization',
 
             'credentials.name' => 'required|string|max:255',
-            'credentials.email' => 'required|email|unique:users,email',
-            'credentials.password' => 'required|string|min:8|confirmed',
+
+            'credentials.email' => [
+                'required',
+                'email',
+                'unique:users,email',
+            ],
+
+            'credentials.password' => [
+                'required',
+                'string',
+                'min:8',
+                'confirmed',
+            ],
 
             'profile.phone' => [
                 'required',
@@ -29,48 +41,48 @@ class AuthController extends Controller
             'profile.address' => 'nullable|string|max:500',
 
             'profile.district' =>
-                'required_if:accountType,individual|nullable|string|max:100',
+            'required_if:accountType,individual|nullable|string|max:100',
 
             'profile.dob' => 'nullable|date',
 
             'profile.profilePhoto' =>
-                'nullable|string|max:255',
+            'nullable|string|max:255',
 
             'preferences.participationTypes' =>
-                'nullable|array',
+            'nullable|array',
 
             'preferences.causes' =>
-                'nullable|array',
+            'nullable|array',
 
             'profile.organizationType' =>
-                'required_if:accountType,organization|nullable|string|max:100',
+            'required_if:accountType,organization|nullable|string|max:100',
 
             'profile.registrationNumber' =>
-                'required_if:accountType,organization|nullable|string|max:100',
+            'required_if:accountType,organization|nullable|string|max:100',
 
             'profile.website' =>
-                'nullable|url|max:255',
+            'nullable|url|max:255',
 
             'details.mission' =>
-                'required_if:accountType,organization|nullable|string|max:1000',
+            'required_if:accountType,organization|nullable|string|max:1000',
 
             'details.focusAreas' =>
-                'nullable|array',
+            'nullable|array',
 
             'details.communitiesServed' =>
-                'nullable|array',
+            'nullable|array',
 
             'details.teamSize' =>
-                'nullable|string|max:20',
+            'nullable|string|max:20',
 
             'details.primaryActivities' =>
-                'nullable|array',
+            'nullable|array',
 
             'profile.organizationLogo' =>
-                'nullable|string|max:255',
+            'nullable|string|max:255',
         ]);
 
-        return DB::transaction(function () use ($validated) {
+        $user = DB::transaction(function () use ($validated) {
             $role = $validated['accountType'];
 
             $user = User::create([
@@ -80,86 +92,98 @@ class AuthController extends Controller
                     $validated['credentials']['password']
                 ),
                 'role' => $role,
+
+                // Account remains inactive until email verification.
+                'status' => 'inactive',
+
                 'phone' => $validated['profile']['phone'],
             ]);
 
             if ($role === 'individual') {
                 $user->individualProfile()->create([
                     'district' =>
-                        $validated['profile']['district'] ?? null,
+                    $validated['profile']['district'] ?? null,
 
                     'address' =>
-                        $validated['profile']['address'] ?? null,
+                    $validated['profile']['address'] ?? null,
 
                     'date_of_birth' =>
-                        $validated['profile']['dob'] ?? null,
+                    $validated['profile']['dob'] ?? null,
 
                     'profile_photo' =>
-                        $validated['profile']['profilePhoto'] ?? null,
+                    $validated['profile']['profilePhoto'] ?? null,
                 ]);
             }
 
             if ($role === 'organization') {
                 $user->organization()->create([
                     'name' =>
-                        $validated['credentials']['name'],
+                    $validated['credentials']['name'],
 
                     'organization_type' =>
-                        $validated['profile']['organizationType'] ?? null,
+                    $validated['profile']['organizationType'] ?? null,
 
                     'registration_number' =>
-                        $validated['profile']['registrationNumber'] ?? null,
+                    $validated['profile']['registrationNumber'] ?? null,
 
                     'website' =>
-                        $validated['profile']['website'] ?? null,
+                    $validated['profile']['website'] ?? null,
 
                     'address' =>
-                        $validated['profile']['address'] ?? null,
+                    $validated['profile']['address'] ?? null,
 
                     'mission' =>
-                        $validated['details']['mission'] ?? null,
+                    $validated['details']['mission'] ?? null,
 
                     'focus_areas' =>
-                        !empty($validated['details']['focusAreas'])
-                            ? json_encode(
-                                $validated['details']['focusAreas']
-                            )
-                            : null,
+                    !empty($validated['details']['focusAreas'])
+                        ? json_encode(
+                            $validated['details']['focusAreas']
+                        )
+                        : null,
 
                     'communities_served' =>
-                        !empty(
+                    !empty($validated['details']['communitiesServed'])
+                        ? json_encode(
                             $validated['details']['communitiesServed']
                         )
-                            ? json_encode(
-                                $validated['details']['communitiesServed']
-                            )
-                            : null,
+                        : null,
 
                     'team_size' =>
-                        $validated['details']['teamSize'] ?? null,
+                    $validated['details']['teamSize'] ?? null,
 
                     'primary_activities' =>
-                        !empty(
+                    !empty($validated['details']['primaryActivities'])
+                        ? json_encode(
                             $validated['details']['primaryActivities']
                         )
-                            ? json_encode(
-                                $validated['details']['primaryActivities']
-                            )
-                            : null,
+                        : null,
 
                     'logo' =>
-                        $validated['profile']['organizationLogo'] ?? null,
+                    $validated['profile']['organizationLogo'] ?? null,
                 ]);
             }
 
-            $token = $user->createToken('auth_token')->plainTextToken;
-
-            return response()->json([
-                'message' => 'Registration successful.',
-                'user' => $user,
-                'token' => $token,
-            ], 201);
+            return $user;
         });
+
+        /*
+        |--------------------------------------------------------------------------
+        | Send email verification
+        |--------------------------------------------------------------------------
+        |
+        | User implements MustVerifyEmail, so Laravel's Registered event
+        | will trigger the standard verification notification.
+        |
+        */
+
+        event(new Registered($user));
+
+        return response()->json([
+            'message' =>
+            'Registration successful. Please verify your email address to activate your account.',
+            'user' => $user,
+        ], 201);
     }
 
     public function login(Request $request)
@@ -190,7 +214,28 @@ class AuthController extends Controller
         if ($user->role !== $validated['role']) {
             return response()->json([
                 'message' =>
-                    'This account does not belong to the selected account type.',
+                'This account does not belong to the selected account type.',
+            ], 403);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Email verification / account activation
+        |--------------------------------------------------------------------------
+        |
+        | An account cannot be active until its email has been verified.
+        |
+        */
+
+        if (
+            !$user->hasVerifiedEmail() ||
+            $user->status !== 'active'
+        ) {
+            return response()->json([
+                'message' =>
+                'Please verify your email address before logging in.',
+                'email_verified' => $user->hasVerifiedEmail(),
+                'status' => $user->status,
             ], 403);
         }
 
@@ -229,7 +274,7 @@ class AuthController extends Controller
 
         $validated = $request->validate([
             'name' =>
-                'required|string|max:255',
+            'required|string|max:255',
 
             'email' => [
                 'required',
@@ -248,58 +293,70 @@ class AuthController extends Controller
             ],
 
             'district' =>
-                'nullable|string|max:255',
+            'nullable|string|max:255',
 
             'address' =>
-                'nullable|string',
+            'nullable|string',
 
             'date_of_birth' =>
-                'nullable|date',
+            'nullable|date',
         ]);
+
+        $emailChanged = $user->email !== $validated['email'];
 
         /*
         |--------------------------------------------------------------------------
         | Update account-level information
         |--------------------------------------------------------------------------
-        |
-        | Phone belongs to users now.
-        | It must NOT be stored in individual_profiles anymore.
-        |
         */
-        $user->update([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'phone' => $validated['phone'],
-        ]);
+
+        $user->name = $validated['name'];
+        $user->phone = $validated['phone'];
+
+        if ($emailChanged) {
+            $user->email = $validated['email'];
+
+            // New email must be verified again.
+            $user->email_verified_at = null;
+            $user->status = 'inactive';
+        }
+
+        $user->save();
 
         /*
         |--------------------------------------------------------------------------
         | Update individual profile information
         |--------------------------------------------------------------------------
         |
-        | Phone is intentionally excluded because users.phone
-        | is now the single source of truth for the account phone.
+        | Phone is intentionally excluded because users.phone is the
+        | single source of truth for the account phone.
         |
         */
+
         $user->individualProfile()->updateOrCreate(
             ['user_id' => $user->id],
             [
                 'district' =>
-                    $validated['district'] ?? null,
+                $validated['district'] ?? null,
 
                 'address' =>
-                    $validated['address'] ?? null,
+                $validated['address'] ?? null,
 
                 'date_of_birth' =>
-                    $validated['date_of_birth'] ?? null,
+                $validated['date_of_birth'] ?? null,
             ]
         );
 
         /*
         |--------------------------------------------------------------------------
-        | Reload relationships so the frontend receives fresh data
+        | Send verification again when email changes
         |--------------------------------------------------------------------------
         */
+
+        if ($emailChanged) {
+            event(new Registered($user));
+        }
+
         $user->load([
             'individualProfile',
             'organization',
@@ -307,7 +364,10 @@ class AuthController extends Controller
         ]);
 
         return response()->json([
-            'message' => 'Profile updated successfully.',
+            'message' => $emailChanged
+                ? 'Profile updated. Please verify your new email address to reactivate your account.'
+                : 'Profile updated successfully.',
+
             'user' => $user,
         ]);
     }

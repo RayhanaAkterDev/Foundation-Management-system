@@ -9,6 +9,7 @@ use App\Http\Controllers\VolunteerController;
 use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\DonationController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\EmailVerificationController;
 use Illuminate\Support\Facades\Route;
 
 // =============================================================
@@ -24,6 +25,16 @@ Route::get('/campaigns', [CampaignController::class, 'index']);
 Route::get('/campaigns/{id}', [CampaignController::class, 'show']);
 
 Route::post('/donations', [DonationController::class, 'store']);
+
+// -------------------------------------------------------------
+// Email Verification
+// -------------------------------------------------------------
+
+Route::get(
+    '/email/verify/{id}/{hash}',
+    [EmailVerificationController::class, 'verify']
+)->middleware(['signed', 'throttle:6,1'])
+    ->name('verification.verify');
 
 // -------------------------------------------------------------
 // SSLCOMMERZ Payment Callbacks
@@ -64,6 +75,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
 
     Route::put('/profile', [AuthController::class, 'updateProfile']);
+
+    Route::post(
+        '/email/verification-notification',
+        [EmailVerificationController::class, 'resend']
+    )->middleware('throttle:6,1')
+        ->name('verification.send');
 
     // ---------------------------------------------------------
     // Notifications

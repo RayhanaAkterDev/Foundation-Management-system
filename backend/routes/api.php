@@ -36,6 +36,12 @@ Route::get(
 )->middleware(['signed', 'throttle:6,1'])
     ->name('verification.verify');
 
+Route::get(
+    '/email/verify-demo/{id}',
+    [EmailVerificationController::class, 'verifyDemo']
+)->middleware('throttle:6,1')
+    ->name('verification.demo');
+
 // -------------------------------------------------------------
 // SSLCOMMERZ Payment Callbacks
 // -------------------------------------------------------------

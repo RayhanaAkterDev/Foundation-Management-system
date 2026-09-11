@@ -230,13 +230,20 @@ class AuthController extends Controller
         |
         */
 
-        if (
-            !$user->hasVerifiedEmail() ||
-            $user->status !== 'active'
-        ) {
+        if (!$user->hasVerifiedEmail() || $user->status !== 'active') {
+            if ($user->verification_method === 'demo') {
+                return response()->json([
+                    'message' => 'Please verify this demo account before logging in.',
+                    'verification_method' => 'demo',
+                    'user_id' => $user->id,
+                    'email_verified' => $user->hasVerifiedEmail(),
+                    'status' => $user->status,
+                ], 403);
+            }
+
             return response()->json([
-                'message' =>
-                'Please verify your email address before logging in.',
+                'message' => 'Please verify your email address before logging in.',
+                'verification_method' => 'email',
                 'email_verified' => $user->hasVerifiedEmail(),
                 'status' => $user->status,
             ], 403);

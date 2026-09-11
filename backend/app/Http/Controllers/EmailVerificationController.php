@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\URL;
 
 class EmailVerificationController extends Controller
 {
-    public function verify(Request $request, $id, $hash)
+    public function verify(Request $request, int $id, int $hash)
     {
         if (! URL::hasValidSignature($request)) {
             return response()->json([
@@ -41,6 +41,34 @@ class EmailVerificationController extends Controller
 
         return response()->json([
             'message' => 'Email address verified successfully. Your account is now active.',
+            'user' => $user,
+        ]);
+    }
+
+    public function verifyDemo(Request $request, int $id)
+    {
+        $user = User::findOrFail($id);
+
+        if ($user->verification_method !== 'demo') {
+            return response()->json([
+                'message' => 'This account does not use demo verification.',
+            ], 403);
+        }
+
+        if ($user->hasVerifiedEmail()) {
+            return response()->json([
+                'message' => 'This demo account is already verified.',
+            ]);
+        }
+
+        $user->markEmailAsVerified();
+
+        $user->update([
+            'status' => 'active',
+        ]);
+
+        return response()->json([
+            'message' => 'Demo account verified successfully. Your account is now active.',
             'user' => $user,
         ]);
     }

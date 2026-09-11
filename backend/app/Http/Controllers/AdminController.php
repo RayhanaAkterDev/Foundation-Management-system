@@ -150,10 +150,6 @@ class AdminController extends Controller
         |--------------------------------------------------------------------------
         | Pending Campaigns
         |--------------------------------------------------------------------------
-        |
-        | These are the latest campaigns that still require
-        | admin verification.
-        |
         */
 
         $pendingCampaigns = Campaign::with([
@@ -222,12 +218,6 @@ class AdminController extends Controller
                 ->take(5)
                 ->get(),
 
-            /*
-            |--------------------------------------------------------------------------
-            | Pending Campaigns
-            |--------------------------------------------------------------------------
-            */
-
             'pendingCampaigns' => $pendingCampaigns,
 
             'recentUsers' => User::latest()
@@ -239,6 +229,8 @@ class AdminController extends Controller
                     'phone',
                     'role',
                     'status',
+                    'email_verified_at',
+                    'verification_method',
                     'created_at',
                 ]),
 
@@ -273,6 +265,7 @@ class AdminController extends Controller
                 'role',
                 'status',
                 'email_verified_at',
+                'verification_method',
                 'created_at',
             ]);
 
@@ -315,6 +308,16 @@ class AdminController extends Controller
     |--------------------------------------------------------------------------
     | Users - Add
     |--------------------------------------------------------------------------
+    |
+    | Every newly created account:
+    |
+    | - starts inactive
+    | - must have a verification method
+    | - cannot choose active/inactive status
+    |
+    | email -> real email verification
+    | demo  -> demo verification
+    |
     */
 
     public function storeUser(Request $request)
@@ -350,43 +353,33 @@ class AdminController extends Controller
                 'in:individual,organization,admin',
             ],
 
-            'status' => [
-                'nullable',
-                'in:active,inactive,suspended',
+            /*
+            |--------------------------------------------------------------------------
+            | Verification Method
+            |--------------------------------------------------------------------------
+            */
+
+            'verification_method' => [
+                'required',
+                'in:email,demo',
             ],
 
             /*
             |--------------------------------------------------------------------------
             | Account-level phone
             |--------------------------------------------------------------------------
-            |
-            | Phone belongs to users.phone for every account type.
-            |
-            | Rules:
-            | - Required
-            | - Bangladesh number
-            | - Exactly 11 digits
-            | - Must start with 01
-            | - Unique across all users
-            |
             */
 
             'phone' => [
-                'required',
+                'nullable',
                 'string',
                 'regex:/^01[0-9]{9}$/',
                 Rule::unique('users', 'phone'),
             ],
-
             /*
             |--------------------------------------------------------------------------
             | Organization-specific fields
             |--------------------------------------------------------------------------
-            |
-            | These are only used when the selected role is organization.
-            | Phone is intentionally NOT included here because phone belongs
-            | to the users table.
-            |
             */
 
             'organization_type' => [
@@ -437,19 +430,29 @@ class AdminController extends Controller
         ]);
 
         $result = DB::transaction(function () use ($validated) {
-            /*
-            |--------------------------------------------------------------------------
-            | Create user account
-            |--------------------------------------------------------------------------
-            */
-
             $newUser = User::create([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'phone' => $validated['phone'],
                 'password' => $validated['password'],
                 'role' => $validated['role'],
-                'status' => $validated['status'] ?? 'active',
+
+                /*
+                |--------------------------------------------------------------------------
+                | Verification
+                |--------------------------------------------------------------------------
+                */
+
+                'verification_method' =>
+                $validated['verification_method'],
+
+                /*
+                |--------------------------------------------------------------------------
+                | Every new account starts inactive.
+                |--------------------------------------------------------------------------
+                */
+
+                'status' => 'inactive',
             ]);
 
             $individualProfile = null;
@@ -459,10 +462,6 @@ class AdminController extends Controller
             |--------------------------------------------------------------------------
             | Individual
             |--------------------------------------------------------------------------
-            |
-            | Phone is stored in users.phone.
-            | Do NOT store it in individual_profiles.phone.
-            |
             */
 
             if ($validated['role'] === 'individual') {
@@ -475,10 +474,6 @@ class AdminController extends Controller
             |--------------------------------------------------------------------------
             | Organization
             |--------------------------------------------------------------------------
-            |
-            | Phone is stored in users.phone.
-            | Do NOT store it in organizations.phone.
-            |
             */
 
             if ($validated['role'] === 'organization') {
@@ -524,8 +519,24 @@ class AdminController extends Controller
             ];
         });
 
+        /*
+        |--------------------------------------------------------------------------
+        | Send real verification email only for email verification.
+        |--------------------------------------------------------------------------
+        */
+
+        if ($result['user']->verification_method === 'email') {
+            event(
+                new \Illuminate\Auth\Events\Registered(
+                    $result['user']
+                )
+            );
+        }
+
         return response()->json([
-            'message' => 'User created successfully.',
+            'message' => $result['user']->verification_method === 'email'
+                ? 'User created successfully. A verification email has been sent.'
+                : 'Demo user created successfully. The account remains inactive until demo verification.',
 
             'user' => $result['user']
                 ->fresh()
@@ -545,7 +556,14 @@ class AdminController extends Controller
     | Users - Edit
     |--------------------------------------------------------------------------
     |
-    | Existing user roles cannot be changed.
+    | Unverified users cannot be edited.
+    |
+    | Admin can:
+    | - view unverified users
+    | - delete unverified users
+    |
+    | Admin cannot:
+    | - edit unverified user information
     |
     */
 
@@ -567,12 +585,21 @@ class AdminController extends Controller
 
         /*
         |--------------------------------------------------------------------------
+        | Unverified users cannot be edited.
+        |--------------------------------------------------------------------------
+        */
+
+        if (!$targetUser->hasVerifiedEmail()) {
+            return response()->json([
+                'message' =>
+                'This user cannot be edited until the account has been verified.',
+            ], 403);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
         | Phone number permission
         |--------------------------------------------------------------------------
-        |
-        | Admin can update only their own phone number.
-        | Admin can view another user's phone number, but cannot modify it.
-        |
         */
 
         if (
@@ -625,16 +652,6 @@ class AdminController extends Controller
         |--------------------------------------------------------------------------
         | Phone validation
         |--------------------------------------------------------------------------
-        |
-        | Only the logged-in admin can update their own phone.
-        |
-        | Rules:
-        | - Optional during an update
-        | - Bangladesh number
-        | - Exactly 11 digits
-        | - Must start with 01
-        | - Must be unique across users
-        |
         */
 
         if ($targetUser->id === $user->id) {
@@ -642,7 +659,8 @@ class AdminController extends Controller
                 'sometimes',
                 'nullable',
                 'regex:/^01[0-9]{9}$/',
-                Rule::unique('users', 'phone')->ignore($targetUser->id),
+                Rule::unique('users', 'phone')
+                    ->ignore($targetUser->id),
             ];
         }
 
@@ -678,13 +696,34 @@ class AdminController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Update basic user information
+        | Detect email change
+        |--------------------------------------------------------------------------
+        */
+
+        $emailChanged =
+            $targetUser->email !== $validated['email'];
+
+        /*
+        |--------------------------------------------------------------------------
+        | Update basic information
         |--------------------------------------------------------------------------
         */
 
         $targetUser->name = $validated['name'];
-        $targetUser->email = $validated['email'];
-        $targetUser->status = $validated['status'];
+
+        /*
+        |--------------------------------------------------------------------------
+        | Email change resets verification.
+        |--------------------------------------------------------------------------
+        */
+
+        if ($emailChanged) {
+            $targetUser->email = $validated['email'];
+            $targetUser->email_verified_at = null;
+            $targetUser->status = 'inactive';
+        } else {
+            $targetUser->status = $validated['status'];
+        }
 
         /*
         |--------------------------------------------------------------------------
@@ -726,8 +765,31 @@ class AdminController extends Controller
             ]);
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Email verification must be restarted after email change.
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            $emailChanged &&
+            $targetUser->verification_method === 'email'
+        ) {
+            event(
+                new \Illuminate\Auth\Events\Registered(
+                    $targetUser
+                )
+            );
+        }
+
         return response()->json([
-            'message' => 'User updated successfully.',
+            'message' => $emailChanged
+                ? (
+                    $targetUser->verification_method === 'email'
+                    ? 'User updated successfully. A new verification email has been sent.'
+                    : 'User updated successfully. The account is inactive until demo verification.'
+                )
+                : 'User updated successfully.',
 
             'user' => $targetUser
                 ->fresh()
@@ -784,6 +846,14 @@ class AdminController extends Controller
     |--------------------------------------------------------------------------
     | Organizations - Add
     |--------------------------------------------------------------------------
+    |
+    | Kept as a separate endpoint for compatibility.
+    |
+    | Organization accounts created here also:
+    | - use users.phone
+    | - start inactive
+    | - use email verification
+    |
     */
 
     public function storeOrganization(Request $request)
@@ -814,9 +884,10 @@ class AdminController extends Controller
             ],
 
             'phone' => [
-                'nullable',
+                'required',
                 'string',
-                'max:50',
+                'regex:/^01[0-9]{9}$/',
+                Rule::unique('users', 'phone'),
             ],
 
             'website' => [
@@ -847,9 +918,25 @@ class AdminController extends Controller
             $organizationUser = User::create([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
+                'phone' => $validated['phone'],
                 'password' => $temporaryPassword,
                 'role' => 'organization',
-                'status' => 'active',
+
+                /*
+                |--------------------------------------------------------------------------
+                | Real email verification
+                |--------------------------------------------------------------------------
+                */
+
+                'verification_method' => 'email',
+
+                /*
+                |--------------------------------------------------------------------------
+                | All new accounts start inactive.
+                |--------------------------------------------------------------------------
+                */
+
+                'status' => 'inactive',
             ]);
 
             $organization = Organization::create([
@@ -862,8 +949,11 @@ class AdminController extends Controller
                 'registration_number' =>
                 $validated['registration_number'] ?? null,
 
-                'phone' =>
-                $validated['phone'] ?? null,
+                /*
+                |--------------------------------------------------------------------------
+                | Phone belongs to users.phone.
+                |--------------------------------------------------------------------------
+                */
 
                 'website' =>
                 $validated['website'] ?? null,
@@ -880,8 +970,15 @@ class AdminController extends Controller
             ];
         });
 
+        event(
+            new \Illuminate\Auth\Events\Registered(
+                $result['user']
+            )
+        );
+
         return response()->json([
-            'message' => 'Organization added successfully.',
+            'message' =>
+            'Organization added successfully. A verification email has been sent.',
 
             'organization' => $result['organization']
                 ->fresh()
@@ -982,11 +1079,11 @@ class AdminController extends Controller
                 'max:255',
             ],
 
-            'phone' => [
-                'nullable',
-                'string',
-                'max:50',
-            ],
+            /*
+            |--------------------------------------------------------------------------
+            | Phone is managed through users.phone.
+            |--------------------------------------------------------------------------
+            */
 
             'website' => [
                 'nullable',
@@ -1056,7 +1153,7 @@ class AdminController extends Controller
             return $user;
         }
 
-        $organization = Organization::find($id);
+        $organization = Organization::with('user')->find($id);
 
         if (!$organization) {
             return response()->json([
@@ -1071,20 +1168,50 @@ class AdminController extends Controller
             ],
         ]);
 
-        DB::transaction(function () use ($organization, $validated) {
-            $verificationStatus = $validated['verification_status'];
+        DB::transaction(function () use (
+            $organization,
+            $validated
+        ) {
+            $verificationStatus =
+                $validated['verification_status'];
 
             $organization->update([
-                'verification_status' => $verificationStatus,
+                'verification_status' =>
+                $verificationStatus,
             ]);
 
-            $accountStatus = $verificationStatus === 'rejected'
-                ? 'inactive'
-                : 'active';
+            /*
+            |--------------------------------------------------------------------------
+            | Organization verification must not bypass account
+            | email/demo verification.
+            |--------------------------------------------------------------------------
+            */
 
-            User::where('id', $organization->user_id)->update([
-                'status' => $accountStatus,
-            ]);
+            if ($verificationStatus === 'rejected') {
+                User::where(
+                    'id',
+                    $organization->user_id
+                )->update([
+                    'status' => 'inactive',
+                ]);
+
+                return;
+            }
+
+            if ($verificationStatus === 'verified') {
+                $organizationUser = User::find(
+                    $organization->user_id
+                );
+
+                if (
+                    $organizationUser &&
+                    $organizationUser->hasVerifiedEmail()
+                ) {
+                    $organizationUser->update([
+                        'status' => 'active',
+                    ]);
+                }
+            }
         });
 
         $organization = $organization
@@ -1172,14 +1299,6 @@ class AdminController extends Controller
     |--------------------------------------------------------------------------
     | Help Requests - Verify / Reject
     |--------------------------------------------------------------------------
-    |
-    | FINAL HELP REQUEST LIFECYCLE
-    |
-    | pending -> verified
-    | pending -> rejected
-    |
-    | Assignment does not change this status.
-    |
     */
 
     public function updateHelpRequestVerification(
@@ -1305,22 +1424,6 @@ class AdminController extends Controller
     |--------------------------------------------------------------------------
     | Help Requests - Assign Organization
     |--------------------------------------------------------------------------
-    |
-    | Volunteers are NEVER assigned directly to Help Requests.
-    |
-    | Help Request assignment is exclusively for organizations.
-    |
-    | HelpRequest lifecycle:
-    |
-    | pending -> verified -> in_progress -> completed
-    | pending -> rejected
-    |
-    | Organization assignment:
-    |
-    | pending -> accepted
-    | pending -> rejected
-    | accepted -> withdrawn
-    |
     */
 
     public function assignHelpRequest(
@@ -1376,12 +1479,6 @@ class AdminController extends Controller
             ], 422);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Prevent Invalid Organization Reassignment
-        |--------------------------------------------------------------------------
-        */
-
         $organizationPreviouslyRejected =
             HelpRequestAssignment::where(
                 'help_request_id',
@@ -1403,12 +1500,6 @@ class AdminController extends Controller
                 'This organization has already rejected this help request and cannot be assigned to it again.',
             ], 422);
         }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Prevent Duplicate Active Assignment
-        |--------------------------------------------------------------------------
-        */
 
         $organizationAlreadyAssigned =
             HelpRequestAssignment::where(
@@ -1961,17 +2052,6 @@ class AdminController extends Controller
                         $validated['verification_note'] ?? null
                     );
 
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Local Case -> Start Linked Help Request
-                    |--------------------------------------------------------------------------
-                    |
-                    | A local-case campaign becomes active only for a
-                    | verified help request. Once the campaign is activated,
-                    | the linked help request moves to in_progress.
-                    |
-                    */
-
                     if (
                         $campaign->type === Campaign::TYPE_LOCAL_CASE &&
                         $campaign->help_request_id
@@ -2118,31 +2198,6 @@ class AdminController extends Controller
     |--------------------------------------------------------------------------
     | Campaigns - Assign Volunteer
     |--------------------------------------------------------------------------
-    |
-    | ONLY ADMIN can assign volunteers to campaigns.
-    |
-    | Volunteers are NEVER assigned directly to Help Requests.
-    |
-    | Campaign assignment lifecycle:
-    |
-    | assigned
-    |     -> accepted
-    |     -> in_progress
-    |     -> completed
-    |
-    | assigned
-    |     -> rejected
-    |
-    | accepted / in_progress
-    |     -> withdrawal_requested
-    |     -> withdrawn
-    |     OR
-    |     -> in_progress after admin rejects withdrawal
-    |
-    | The volunteer is occupied from the moment the assignment
-    | is created, including the assigned and withdrawal_requested
-    | states.
-    |
     */
 
     public function assignCampaignVolunteer(
@@ -2177,24 +2232,12 @@ class AdminController extends Controller
             ], 404);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Only Active Campaigns
-        |--------------------------------------------------------------------------
-        */
-
         if ($campaign->status !== Campaign::STATUS_ACTIVE) {
             return response()->json([
                 'message' =>
                 'Only active campaigns can have volunteers assigned.',
             ], 422);
         }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Validate Volunteer User
-        |--------------------------------------------------------------------------
-        */
 
         $volunteerUser = User::find(
             $validated['volunteer_id']
@@ -2220,12 +2263,6 @@ class AdminController extends Controller
             ], 422);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Validate Volunteer Profile
-        |--------------------------------------------------------------------------
-        */
-
         $volunteer = Volunteer::where(
             'user_id',
             $volunteerUser->id
@@ -2242,17 +2279,6 @@ class AdminController extends Controller
                 "{$volunteerUser->name} is not an active SP volunteer.",
             ], 422);
         }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Sync Availability Before Checking
-        |--------------------------------------------------------------------------
-        |
-        | Availability is derived from the actual campaign assignments.
-        | This prevents stale availability values from allowing an
-        | already-occupied volunteer to be assigned again.
-        |
-        */
 
         $hasActiveAssignment =
             CampaignVolunteerAssignment::where(
@@ -2276,28 +2302,12 @@ class AdminController extends Controller
             ], 422);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Volunteer Must Be Available
-        |--------------------------------------------------------------------------
-        */
-
         if ($volunteer->availability !== 'available') {
             return response()->json([
                 'message' =>
                 "{$volunteerUser->name} is currently unavailable.",
             ], 422);
         }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Prevent Duplicate Historical/Active Assignment
-        |--------------------------------------------------------------------------
-        |
-        | Rejected/completed/withdrawn assignments are historical records
-        | and do not occupy the volunteer.
-        |
-        */
 
         $duplicateActiveAssignment =
             CampaignVolunteerAssignment::where(
@@ -2321,12 +2331,6 @@ class AdminController extends Controller
             ], 422);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Create Campaign Assignment
-        |--------------------------------------------------------------------------
-        */
-
         try {
             $assignment = DB::transaction(function () use (
                 $campaign,
@@ -2336,54 +2340,21 @@ class AdminController extends Controller
             ) {
                 $assignment = CampaignVolunteerAssignment::create([
                     'campaign_id' => $campaign->id,
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | IMPORTANT
-                    |--------------------------------------------------------------------------
-                    |
-                    | campaign_volunteer_assignments.volunteer_id points
-                    | to users.id, not volunteers.id.
-                    |
-                    */
-
                     'volunteer_id' => $volunteerUser->id,
-
                     'assigned_by' => $user->id,
-
                     'status' =>
                     CampaignVolunteerAssignment::STATUS_ASSIGNED,
-
                     'assignment_note' =>
                     $validated['assignment_note'] ?? null,
-
                     'assigned_at' => now(),
-
                     'rejection_reason' => null,
-
                     'rejection_validated' => null,
-
                     'completed_at' => null,
-
                     'withdrawal_reason' => null,
-
                     'withdrawal_requested_at' => null,
-
                     'withdrawal_reviewed_at' => null,
-
                     'withdrawal_reviewed_by' => null,
                 ]);
-
-                /*
-                |--------------------------------------------------------------------------
-                | Reserve Volunteer
-                |--------------------------------------------------------------------------
-                |
-                | assigned already occupies the volunteer.
-                | This prevents another campaign offer while the volunteer
-                | has not yet responded to this assignment.
-                |
-                */
 
                 Volunteer::where(
                     'user_id',
@@ -2395,16 +2366,6 @@ class AdminController extends Controller
                 return $assignment;
             });
         } catch (\Illuminate\Database\QueryException $e) {
-            /*
-            |--------------------------------------------------------------------------
-            | Database Safety Net
-            |--------------------------------------------------------------------------
-            |
-            | The PostgreSQL partial unique index also protects the
-            | one-active-campaign rule against concurrent requests.
-            |
-            */
-
             if (
                 str_contains(
                     $e->getMessage(),

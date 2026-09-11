@@ -93,6 +93,9 @@ class AuthController extends Controller
                 ),
                 'role' => $role,
 
+                // Self-registered accounts always use real email verification.
+                'verification_method' => 'email',
+
                 // Account remains inactive until email verification.
                 'status' => 'inactive',
 

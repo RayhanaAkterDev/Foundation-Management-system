@@ -1,7 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
+
 import {
     Plus,
     Download,
+    Search,
     ArrowDown,
     ArrowUp,
     ChevronsUpDown,
@@ -37,7 +39,6 @@ const Users = () => {
 
     const [activeCategory, setActiveCategory] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
-    const [roleFilter, setRoleFilter] = useState('all');
     const [statusFilter, setStatusFilter] = useState('all');
 
     const [sortConfig, setSortConfig] = useState({
@@ -70,6 +71,10 @@ const Users = () => {
         message: '',
     });
 
+    // --------------------------------
+    // Success toast
+    // --------------------------------
+
     const showSuccessToast = (message) => {
         setToast({
             show: true,
@@ -83,6 +88,10 @@ const Users = () => {
             });
         }, 3000);
     };
+
+    // --------------------------------
+    // Load users
+    // --------------------------------
 
     const loadUsers = async () => {
         try {
@@ -306,14 +315,21 @@ const Users = () => {
     const statistics = useMemo(() => {
         return {
             total: users.length,
+
             individuals: users.filter((user) => user.role === 'individual')
                 .length,
+
             organizations: users.filter((user) => user.role === 'organization')
                 .length,
+
             administrators: users.filter((user) => user.role === 'admin')
                 .length,
         };
     }, [users]);
+
+    // --------------------------------
+    // Category tabs
+    // --------------------------------
 
     const categoryTabs = useMemo(
         () => [
@@ -350,10 +366,6 @@ const Users = () => {
 
         if (activeCategory !== 'all') {
             result = result.filter((user) => user.role === activeCategory);
-        }
-
-        if (roleFilter !== 'all') {
-            result = result.filter((user) => user.role === roleFilter);
         }
 
         if (statusFilter !== 'all') {
@@ -403,14 +415,7 @@ const Users = () => {
         });
 
         return result;
-    }, [
-        users,
-        activeCategory,
-        roleFilter,
-        statusFilter,
-        searchTerm,
-        sortConfig,
-    ]);
+    }, [users, activeCategory, statusFilter, searchTerm, sortConfig]);
 
     // --------------------------------
     // Pagination
@@ -438,11 +443,6 @@ const Users = () => {
         setCurrentPage(1);
     };
 
-    const handleRoleChange = (event) => {
-        setRoleFilter(event.target.value);
-        setCurrentPage(1);
-    };
-
     const handleStatusChange = (event) => {
         setStatusFilter(event.target.value);
         setCurrentPage(1);
@@ -450,6 +450,11 @@ const Users = () => {
 
     const handleSearchChange = (event) => {
         setSearchTerm(event.target.value);
+        setCurrentPage(1);
+    };
+
+    const handleClearSearch = () => {
+        setSearchTerm('');
         setCurrentPage(1);
     };
 
@@ -547,7 +552,9 @@ const Users = () => {
 
     const rows = paginatedUsers.map((user, index) => ({
         ...user,
+
         serialNumber: (safeCurrentPage - 1) * USERS_PER_PAGE + index + 1,
+
         joinedDate: new Date(user.created_at).toLocaleDateString(),
     }));
 
@@ -592,6 +599,7 @@ const Users = () => {
             key: 'id',
             header: 'Actions',
             align: 'right',
+
             render: (_, row) => (
                 <div className="flex items-center justify-end gap-4">
                     <button
@@ -676,123 +684,299 @@ const Users = () => {
                 {/* Header */}
                 <PageHeader
                     title="Users"
-                    subtitle="Manage all registered users on the Stand For People platform."
+                    subtitle="Review and manage everyone connected to Stand For People, including their roles, account status, and platform access."
                     action={
-                        <div className="flex items-center gap-2.5">
+                        <div className="flex w-full items-center justify-end gap-3">
                             <button
                                 type="button"
                                 onClick={handleExportCSV}
                                 disabled={filteredUsers.length === 0}
-                                className="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-white px-4 text-sm font-medium text-text-primary transition-colors hover:border-primary/30 hover:bg-background-alt disabled:cursor-not-allowed disabled:opacity-50"
+                                className="
+                                    group inline-flex h-10
+                                    items-center gap-2
+                                    border border-border
+                                    bg-surface
+                                    px-4
+                                    text-sm font-medium
+                                    text-text-primary
+                                    transition-all
+                                    hover:border-primary/30
+                                    hover:bg-background-alt
+                                    disabled:cursor-not-allowed
+                                    disabled:opacity-50
+                                "
                             >
-                                <Download size={16} />
-                                Export
+                                <Download
+                                    size={15}
+                                    strokeWidth={1.8}
+                                    className="
+                                        text-text-secondary
+                                        transition-colors
+                                        group-hover:text-primary
+                                    "
+                                />
+
+                                <span>Export CSV</span>
                             </button>
 
                             <button
                                 type="button"
                                 onClick={openAddModal}
-                                className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-hover"
+                                className="
+                                    inline-flex h-10
+                                    items-center gap-2
+                                    bg-primary
+                                    px-4
+                                    text-sm font-semibold
+                                    text-white
+                                    shadow-sm
+                                    transition-all
+                                    hover:bg-primary-hover
+                                "
                             >
-                                <Plus size={17} />
-                                Add User
+                                <Plus size={17} strokeWidth={2} />
+
+                                <span>Add User</span>
                             </button>
                         </div>
                     }
                 />
 
-                {/* --------------------------------
-                    USER OVERVIEW
-                -------------------------------- */}
-                <section>
-                    <div className="mb-4 flex items-end justify-between">
-                        <div>
-                            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
-                                Platform overview
-                            </p>
-
-                            <h2 className="mt-1 text-lg font-bold tracking-tight text-text-primary">
-                                User base
-                            </h2>
-                        </div>
-
-                        <p className="hidden text-xs text-text-secondary sm:block">
-                            Registered account distribution
-                        </p>
-                    </div>
-
-                    <UserStats
-                        total={statistics.total}
-                        individuals={statistics.individuals}
-                        organizations={statistics.organizations}
-                        administrators={statistics.administrators}
-                    />
-                </section>
+                {/* User overview */}
+                <UserStats
+                    total={statistics.total}
+                    individuals={statistics.individuals}
+                    organizations={statistics.organizations}
+                    administrators={statistics.administrators}
+                />
 
                 {/* --------------------------------
                     USER MANAGEMENT
-                -------------------------------- */}
-                <section className="border-t border-border pt-8">
-                    <div className="mb-5">
-                        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
-                            Administration
-                        </p>
+                --------------------------------- */}
+                <section>
+                    {/* Section heading */}
+                    <div className="mb-6">
+                        <div className="flex flex-col gap-4 border-b border-border pb-5 sm:flex-row sm:items-end sm:justify-between">
+                            <div className="min-w-0">
+                                <div className="mb-2 flex items-center gap-2.5">
+                                    <span className="h-1.5 w-1.5 bg-primary" />
 
-                        <div className="mt-1 flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
-                            <div>
-                                <h2 className="text-lg font-bold tracking-tight text-text-primary">
+                                    <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary">
+                                        Administration
+                                    </span>
+                                </div>
+
+                                <h2 className="font-fraunces text-[25px] font-semibold leading-tight tracking-tight text-text-primary">
                                     User management
                                 </h2>
+
+                                <p className="mt-1.5 max-w-xl text-[13px] leading-5 text-text-secondary">
+                                    Review accounts, roles, and access across
+                                    the platform.
+                                </p>
                             </div>
 
-                            <p className="text-xs font-medium text-text-secondary">
-                                {filteredUsers.length}{' '}
-                                {filteredUsers.length === 1 ? 'user' : 'users'}{' '}
-                                shown
-                            </p>
+                            <div className="flex shrink-0 items-center gap-2.5">
+                                <span className="h-8 border-l border-border" />
+
+                                <div>
+                                    <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-text-secondary">
+                                        Showing
+                                    </p>
+
+                                    <p className="mt-0.5 text-sm font-semibold text-text-primary">
+                                        {filteredUsers.length}{' '}
+                                        <span className="font-normal text-text-secondary">
+                                            {filteredUsers.length === 1
+                                                ? 'user'
+                                                : 'users'}
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    {/* Categories */}
-                    <UserCategoryTabs
-                        tabs={categoryTabs}
-                        activeCategory={activeCategory}
-                        onChange={handleCategoryChange}
-                    />
+                    {/* Management workspace */}
+                    <div className="grid items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_280px]">
+                        {/* LEFT — USER TABLE WORKSPACE */}
+                        <div className="flex min-h-0 min-w-0 flex-col border border-border bg-surface">
+                            {/* Workspace toolbar */}
+                            <div className="shrink-0 border-b border-border px-5 py-4">
+                                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                                    {/* Search */}
+                                    <div className="min-w-0 flex-1 lg:max-w-full">
+                                        <div className="relative">
+                                            <Search
+                                                size={17}
+                                                strokeWidth={1.8}
+                                                className="
+                                                    pointer-events-none
+                                                    absolute left-3.5 top-1/2
+                                                    -translate-y-1/2
+                                                    text-text-secondary
+                                                "
+                                            />
 
-                    {/* Filters */}
-                    <div className="mt-4">
-                        <UserFilters
-                            searchTerm={searchTerm}
-                            roleFilter={roleFilter}
-                            statusFilter={statusFilter}
-                            onSearchChange={handleSearchChange}
-                            onRoleChange={handleRoleChange}
-                            onStatusChange={handleStatusChange}
-                        />
+                                            <input
+                                                type="text"
+                                                value={searchTerm}
+                                                onChange={handleSearchChange}
+                                                placeholder="Search by name or email"
+                                                className="
+                                                    h-10 w-full
+                                                    border border-border
+                                                    bg-background
+                                                    pl-10 pr-16
+                                                    text-[13px]
+                                                    font-medium
+                                                    text-text-primary
+                                                    outline-none
+                                                    transition-colors
+                                                    placeholder:text-text-secondary/70
+                                                    focus:border-primary/50
+                                                    focus:bg-surface
+                                                "
+                                            />
+
+                                            {searchTerm && (
+                                                <button
+                                                    type="button"
+                                                    onClick={handleClearSearch}
+                                                    className="
+                                                        absolute right-3
+                                                        top-1/2
+                                                        -translate-y-1/2
+                                                        text-[10px]
+                                                        font-semibold
+                                                        uppercase
+                                                        tracking-wide
+                                                        text-text-secondary
+                                                        transition-colors
+                                                        hover:text-text-primary
+                                                    "
+                                                >
+                                                    Clear
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Table context */}
+                                    <div className="flex shrink-0 items-center gap-5">
+                                        <div className="hidden h-7 border-l border-border lg:block" />
+
+                                        <div>
+                                            <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-text-secondary">
+                                                Directory
+                                            </p>
+
+                                            <p className="mt-0.5 text-xs font-medium text-text-primary">
+                                                {filteredUsers.length} results
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Table heading */}
+                            <div className="flex shrink-0 items-center justify-between border-b border-border bg-white px-5 py-3.5">
+                                <div>
+                                    <p className="text-sm font-semibold text-text-primary">
+                                        Registered users
+                                    </p>
+
+                                    <p className="mt-0.5 text-xs text-text-secondary">
+                                        Browse and review platform accounts
+                                    </p>
+                                </div>
+
+                                <span className="text-[11px] font-medium text-text-secondary">
+                                    Sorted by account
+                                </span>
+                            </div>
+
+                            {/* Scrollable table */}
+                            <div className="min-h-0 max-h-130 flex-1 overflow-y-auto">
+                                <UserTable
+                                    columns={columns}
+                                    rows={rows}
+                                    onSort={handleSort}
+                                    getSortIcon={getSortIcon}
+                                    resultCount={filteredUsers.length}
+                                />
+                            </div>
+
+                            {/* Pagination */}
+                            {filteredUsers.length > 0 && (
+                                <div className="shrink-0 border-t border-border">
+                                    <UserPagination
+                                        currentPage={safeCurrentPage}
+                                        totalPages={totalPages}
+                                        totalItems={filteredUsers.length}
+                                        itemsPerPage={USERS_PER_PAGE}
+                                        onPageChange={setCurrentPage}
+                                    />
+                                </div>
+                            )}
+                        </div>
+
+                        {/* RIGHT — CATEGORY + FILTER SIDEBAR */}
+                        <aside className="flex min-h-0 flex-col border border-primary/90 bg-primary">
+                            {/* Sidebar heading */}
+                            <div className="shrink-0 px-5 pb-5 pt-6">
+                                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/45">
+                                    Directory controls
+                                </p>
+
+                                <h2 className="mt-1.5 font-fraunces text-[21px] leading-tight text-white">
+                                    Refine users
+                                </h2>
+
+                                <p className="mt-2 max-w-55 text-[12px] leading-5 text-white/50">
+                                    Narrow the directory by account type and
+                                    current status.
+                                </p>
+                            </div>
+
+                            {/* User role */}
+                            <div className="border-y border-white/10 bg-black/4 px-4 py-5">
+                                <div className="mb-3 flex items-center justify-between px-1">
+                                    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/45">
+                                        User role
+                                    </p>
+
+                                    <span className="text-[10px] font-medium tabular-nums text-white/30">
+                                        {categoryTabs.length}
+                                    </span>
+                                </div>
+
+                                <UserCategoryTabs
+                                    tabs={categoryTabs}
+                                    activeCategory={activeCategory}
+                                    onChange={handleCategoryChange}
+                                />
+                            </div>
+
+                            {/* Status */}
+                            <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5">
+                                <div className="mb-3 px-1">
+                                    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/45">
+                                        Account status
+                                    </p>
+
+                                    <p className="mt-1 text-[11px] leading-4 text-white/30">
+                                        Filter accounts by their current state.
+                                    </p>
+                                </div>
+
+                                <UserFilters
+                                    statusFilter={statusFilter}
+                                    onStatusChange={handleStatusChange}
+                                />
+                            </div>
+                        </aside>
                     </div>
-
-                    {/* Table */}
-                    <div className="mt-5">
-                        <UserTable
-                            columns={columns}
-                            rows={rows}
-                            onSort={handleSort}
-                            getSortIcon={getSortIcon}
-                            resultCount={filteredUsers.length}
-                        />
-                    </div>
-
-                    {/* Pagination */}
-                    {filteredUsers.length > 0 && (
-                        <UserPagination
-                            currentPage={safeCurrentPage}
-                            totalPages={totalPages}
-                            totalItems={filteredUsers.length}
-                            itemsPerPage={USERS_PER_PAGE}
-                            onPageChange={setCurrentPage}
-                        />
-                    )}
                 </section>
             </div>
 

@@ -12,6 +12,8 @@ import {
     UserPlus,
     Building2,
     UserCog,
+    AtSign,
+    MonitorCheck,
 } from 'lucide-react';
 
 // ============================================================
@@ -24,7 +26,8 @@ const EMPTY_FORM = {
     phone: '',
     password: '',
     role: '',
-    status: 'active',
+    verification_method: 'email',
+    status: 'inactive',
 };
 
 const ROLE_OPTIONS = [
@@ -69,6 +72,21 @@ const STATUS_OPTIONS = [
     },
 ];
 
+const VERIFICATION_OPTIONS = [
+    {
+        value: 'email',
+        label: 'Real email',
+        description: 'Send a verification link to the email address',
+        icon: AtSign,
+    },
+    {
+        value: 'demo',
+        label: 'Demo account',
+        description: 'Verify through the SP demo verification page',
+        icon: MonitorCheck,
+    },
+];
+
 // ============================================================
 // HELPERS
 // ============================================================
@@ -81,6 +99,7 @@ const getInitialForm = (mode, user) => {
             phone: user.phone || '',
             password: '',
             role: user.role || '',
+            verification_method: user.verification_method || 'email',
             status: user.status || 'active',
         };
     }
@@ -112,6 +131,12 @@ const getRoleLabel = (role) => {
 
 const getStatusLabel = (status) => {
     const option = STATUS_OPTIONS.find((item) => item.value === status);
+
+    return option?.label || 'Not selected';
+};
+
+const getVerificationLabel = (method) => {
+    const option = VERIFICATION_OPTIONS.find((item) => item.value === method);
 
     return option?.label || 'Not selected';
 };
@@ -413,6 +438,134 @@ const RoleSelector = ({ value, onChange, disabled, fieldErrors }) => {
 };
 
 // ============================================================
+// VERIFICATION SELECTOR
+// ============================================================
+
+const VerificationSelector = ({
+    value,
+    onChange,
+    disabled,
+    fieldErrors,
+    readOnly = false,
+}) => {
+    const hasError = Boolean(fieldErrors?.verification_method?.length);
+
+    return (
+        <div className="min-w-0">
+            <div className="mb-2.5 flex items-center justify-between gap-3">
+                <label className="font-jost text-[12px] font-semibold text-text-primary">
+                    Verification method
+                    {!readOnly && <span className="ml-1 text-primary">*</span>}
+                </label>
+
+                <span className="shrink-0 font-jost text-[11px] text-text-secondary">
+                    {readOnly ? 'Current method' : 'Select one'}
+                </span>
+            </div>
+
+            <div
+                className={`
+                    divide-y border
+                    ${
+                        hasError
+                            ? 'border-red-200 divide-red-100'
+                            : 'border-border divide-border'
+                    }
+                `}
+            >
+                {VERIFICATION_OPTIONS.map((option) => {
+                    const Icon = option.icon;
+                    const selected = value === option.value;
+
+                    return (
+                        <button
+                            key={option.value}
+                            type="button"
+                            disabled={disabled || readOnly}
+                            onClick={() => onChange(option.value)}
+                            className={`
+                                group relative flex min-w-0 w-full
+                                items-center gap-3
+                                px-3 py-3
+                                text-left
+                                transition-colors duration-150
+                                sm:gap-3.5 sm:px-4 sm:py-3.5
+                                ${
+                                    selected
+                                        ? 'bg-primary/4.5'
+                                        : 'bg-surface hover:bg-background-alt'
+                                }
+                                ${
+                                    readOnly
+                                        ? 'cursor-default'
+                                        : 'disabled:cursor-not-allowed'
+                                }
+                                disabled:opacity-100
+                            `}
+                        >
+                            {selected && (
+                                <span className="absolute left-0 top-0 h-full w-0.75 bg-primary" />
+                            )}
+
+                            <span
+                                className={`
+                                    flex h-9 w-9 shrink-0 items-center justify-center
+                                    transition-colors
+                                    ${
+                                        selected
+                                            ? 'bg-primary text-white'
+                                            : 'bg-background-alt text-text-secondary'
+                                    }
+                                `}
+                            >
+                                <Icon size={17} strokeWidth={1.7} />
+                            </span>
+
+                            <span className="min-w-0 flex-1">
+                                <span
+                                    className={`
+                                        block truncate font-jost text-[13px] font-semibold
+                                        ${
+                                            selected
+                                                ? 'text-primary'
+                                                : 'text-text-primary'
+                                        }
+                                    `}
+                                >
+                                    {option.label}
+                                </span>
+
+                                <span className="mt-0.5 block truncate font-jost text-[11px] leading-4 text-text-secondary">
+                                    {option.description}
+                                </span>
+                            </span>
+
+                            <span
+                                className={`
+                                    flex h-4.5 w-4.5 shrink-0
+                                    items-center justify-center border
+                                    ${
+                                        selected
+                                            ? 'border-primary bg-primary'
+                                            : 'border-slate-300 bg-white'
+                                    }
+                                `}
+                            >
+                                {selected && (
+                                    <span className="h-1.5 w-1.5 bg-white" />
+                                )}
+                            </span>
+                        </button>
+                    );
+                })}
+            </div>
+
+            <FieldError name="verification_method" fieldErrors={fieldErrors} />
+        </div>
+    );
+};
+
+// ============================================================
 // STATUS SELECTOR
 // ============================================================
 
@@ -569,6 +722,7 @@ const FormModalContent = ({
 
     const handleSubmit = (event) => {
         event.preventDefault();
+
         onSubmit(form);
     };
 
@@ -787,7 +941,6 @@ const FormModalContent = ({
                                             disabled={loading}
                                             autoComplete="tel"
                                             fieldErrors={fieldErrors}
-                                            required
                                         />
                                     </div>
 
@@ -850,7 +1003,11 @@ const FormModalContent = ({
                                 <SectionHeader
                                     number="02"
                                     title="Account access"
-                                    description="Choose the account role and determine its current platform access."
+                                    description={
+                                        isEdit
+                                            ? 'Review the account role, verification method, and current platform access.'
+                                            : 'Choose the account role and how this new account will be verified.'
+                                    }
                                 />
 
                                 <div className="space-y-6 sm:space-y-7">
@@ -866,19 +1023,40 @@ const FormModalContent = ({
                                         fieldErrors={fieldErrors}
                                     />
 
+                                    {/* Verification method */}
+
                                     <div className="border-t border-border pt-6 sm:pt-7">
-                                        <StatusSelector
-                                            value={form.status}
-                                            onChange={(status) =>
+                                        <VerificationSelector
+                                            value={form.verification_method}
+                                            onChange={(verification_method) =>
                                                 setForm((previous) => ({
                                                     ...previous,
-                                                    status,
+                                                    verification_method,
                                                 }))
                                             }
                                             disabled={loading}
                                             fieldErrors={fieldErrors}
+                                            readOnly={isEdit}
                                         />
                                     </div>
+
+                                    {/* Status is editable only in edit mode */}
+
+                                    {isEdit && (
+                                        <div className="border-t border-border pt-6 sm:pt-7">
+                                            <StatusSelector
+                                                value={form.status}
+                                                onChange={(status) =>
+                                                    setForm((previous) => ({
+                                                        ...previous,
+                                                        status,
+                                                    }))
+                                                }
+                                                disabled={loading}
+                                                fieldErrors={fieldErrors}
+                                            />
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Access summary */}
@@ -899,6 +1077,20 @@ const FormModalContent = ({
 
                                         <span className="truncate font-jost text-[11px] font-semibold text-primary">
                                             {getRoleLabel(form.role)}
+                                        </span>
+                                    </div>
+
+                                    <div className="mt-3 h-px bg-border" />
+
+                                    <div className="mt-3 flex min-w-0 items-center justify-between gap-4">
+                                        <span className="font-jost text-[11px] text-text-secondary">
+                                            Verification
+                                        </span>
+
+                                        <span className="truncate font-jost text-[11px] font-semibold text-text-primary">
+                                            {getVerificationLabel(
+                                                form.verification_method,
+                                            )}
                                         </span>
                                     </div>
 

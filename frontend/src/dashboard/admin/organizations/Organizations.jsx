@@ -890,31 +890,12 @@ const Organizations = () => {
                 {/* --------------------------------
                     ORGANIZATION OVERVIEW
                 -------------------------------- */}
-
-                <section>
-                    <div className="mb-4 flex items-end justify-between">
-                        <div>
-                            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
-                                Platform overview
-                            </p>
-
-                            <h2 className="mt-1 text-lg font-bold tracking-tight text-text-primary">
-                                Organization base
-                            </h2>
-                        </div>
-
-                        <p className="hidden text-xs text-text-secondary sm:block">
-                            Registered organization distribution
-                        </p>
-                    </div>
-
-                    <Stats
-                        total={statistics.total}
-                        verified={statistics.verified}
-                        pending={statistics.pending}
-                        rejected={statistics.rejected}
-                    />
-                </section>
+                <Stats
+                    total={statistics.total}
+                    verified={statistics.verified}
+                    pending={statistics.pending}
+                    rejected={statistics.rejected}
+                />
 
                 {/* --------------------------------
                     ORGANIZATION MANAGEMENT
@@ -951,28 +932,25 @@ const Organizations = () => {
                     />
 
                     {/* Filters */}
-                    <div className="mt-4">
-                        <Filters
-                            searchTerm={searchTerm}
-                            typeFilter={typeFilter}
-                            statusFilter={statusFilter}
-                            organizations={organizations}
-                            onSearchChange={handleSearchChange}
-                            onTypeChange={handleTypeChange}
-                            onStatusChange={handleStatusChange}
-                        />
-                    </div>
+
+                    <Filters
+                        searchTerm={searchTerm}
+                        typeFilter={typeFilter}
+                        statusFilter={statusFilter}
+                        organizations={organizations}
+                        onSearchChange={handleSearchChange}
+                        onTypeChange={handleTypeChange}
+                        onStatusChange={handleStatusChange}
+                    />
 
                     {/* Table */}
-                    <div className="mt-5">
-                        <Table
-                            columns={columns}
-                            rows={rows}
-                            onSort={handleSort}
-                            getSortIcon={getSortIcon}
-                            resultCount={filteredOrganizations.length}
-                        />
-                    </div>
+                    <Table
+                        columns={columns}
+                        rows={rows}
+                        onSort={handleSort}
+                        getSortIcon={getSortIcon}
+                        resultCount={filteredOrganizations.length}
+                    />
 
                     {/* Pagination */}
                     {filteredOrganizations.length > 0 && (

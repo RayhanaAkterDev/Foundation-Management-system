@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\URL;
 
 class EmailVerificationController extends Controller
 {
-    public function verify(Request $request, int $id, int $hash)
+    public function verify(Request $request, int $id, string $hash)
     {
         if (! URL::hasValidSignature($request)) {
             return response()->json([

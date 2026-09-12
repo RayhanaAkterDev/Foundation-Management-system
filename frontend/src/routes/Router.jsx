@@ -28,6 +28,7 @@ import AccountSelection from '@/auth/AccountSelection/AccountSelection';
 import Login from '@/auth/Login/Login';
 import Register from '@/auth/Register/Register';
 import AdminLogin from '@/auth/AdminLogin/AdminLogin';
+import EmailVerification from '@/auth/EmailVerification/EmailVerification';
 
 // Dashboard layout
 import DashboardLayout from '@/layouts/DashboardLayout/DashboardLayout';
@@ -186,6 +187,15 @@ const router = createBrowserRouter([
             //     element: <VerifyEmail />,
             // },
         ],
+    },
+
+    // =====================================================
+    // EMAIL VERIFICATION
+    // =====================================================
+
+    {
+        path: '/email-verification',
+        element: <EmailVerification />,
     },
 
     // =====================================================

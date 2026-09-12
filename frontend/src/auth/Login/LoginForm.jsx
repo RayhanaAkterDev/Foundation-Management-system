@@ -6,7 +6,6 @@ import { useState } from 'react';
 
 const LoginForm = ({ loginRole = null }) => {
     const navigate = useNavigate();
-
     const [searchParams] = useSearchParams();
 
     // Public login gets its role from the URL.
@@ -14,14 +13,10 @@ const LoginForm = ({ loginRole = null }) => {
     const role = loginRole || searchParams.get('role');
 
     const [showPassword, setShowPassword] = useState(false);
-
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-
     const [rememberMe, setRememberMe] = useState(false);
-
     const [isSubmitting, setIsSubmitting] = useState(false);
-
     const [loginError, setLoginError] = useState('');
 
     const handleSubmit = async (e) => {
@@ -82,16 +77,6 @@ const LoginForm = ({ loginRole = null }) => {
 
     return (
         <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Login Error */}
-            {loginError && (
-                <div
-                    role="alert"
-                    className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-700"
-                >
-                    {loginError}
-                </div>
-            )}
-
             {/* Email */}
             <div>
                 <label
@@ -105,7 +90,14 @@ const LoginForm = ({ loginRole = null }) => {
                     <Mail
                         size={17}
                         strokeWidth={1.8}
-                        className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary/70"
+                        className="
+                            pointer-events-none
+                            absolute
+                            left-4
+                            top-1/2
+                            -translate-y-1/2
+                            text-text-secondary/70
+                        "
                     />
 
                     <input
@@ -156,7 +148,14 @@ const LoginForm = ({ loginRole = null }) => {
 
                     <Link
                         to="/account/forgot-password"
-                        className="text-xs font-semibold text-primary transition-colors hover:text-primary-hover sm:text-sm"
+                        className="
+                            text-xs
+                            font-semibold
+                            text-primary
+                            transition-colors
+                            hover:text-primary-hover
+                            sm:text-sm
+                        "
                     >
                         Forgot password?
                     </Link>
@@ -166,7 +165,14 @@ const LoginForm = ({ loginRole = null }) => {
                     <LockKeyhole
                         size={17}
                         strokeWidth={1.8}
-                        className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-text-secondary/70"
+                        className="
+                            pointer-events-none
+                            absolute
+                            left-4
+                            top-1/2
+                            -translate-y-1/2
+                            text-text-secondary/70
+                        "
                     />
 
                     <input
@@ -236,6 +242,52 @@ const LoginForm = ({ loginRole = null }) => {
                 </div>
             </div>
 
+            {/* Login Error */}
+            {loginError && (
+                <div
+                    role="alert"
+                    className={`
+                        flex
+                        items-center
+                        gap-3
+                        rounded-lg
+                        border
+                        px-4
+                        py-3.5
+                        ${
+                            loginError
+                                .toLowerCase()
+                                .includes('verify your email')
+                                ? 'border-amber-200 bg-amber-50 text-amber-900'
+                                : 'border-red-200 bg-red-50 text-red-700'
+                        }
+                    `}
+                >
+                    {loginError.toLowerCase().includes('verify your email') && (
+                        <div
+                            className="
+                                mt-0.5
+                                flex
+                                h-7
+                                w-7
+                                shrink-0
+                                items-center
+                                justify-center
+                                rounded-md
+                                bg-amber-100
+                                text-amber-700
+                            "
+                        >
+                            <Mail size={14} strokeWidth={2} />
+                        </div>
+                    )}
+
+                    <p className="text-[12px] leading-5 sm:text-[13px]">
+                        {loginError}
+                    </p>
+                </div>
+            )}
+
             {/* Remember me */}
             <div className="flex items-center">
                 <label className="flex cursor-pointer items-center gap-2.5">
@@ -299,7 +351,17 @@ const LoginForm = ({ loginRole = null }) => {
                 </div>
 
                 <div className="relative flex justify-center">
-                    <span className="bg-surface px-4 text-[10px] font-medium uppercase tracking-[0.2em] text-text-secondary">
+                    <span
+                        className="
+                            bg-surface
+                            px-4
+                            text-[10px]
+                            font-medium
+                            uppercase
+                            tracking-[0.2em]
+                            text-text-secondary
+                        "
+                    >
                         Or
                     </span>
                 </div>

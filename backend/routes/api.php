@@ -12,6 +12,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\EmailVerificationController;
 use Illuminate\Support\Facades\Route;
 
+
 // =============================================================
 // PUBLIC
 // =============================================================
@@ -20,11 +21,20 @@ Route::post('/register', [AuthController::class, 'register']);
 
 Route::post('/login', [AuthController::class, 'login']);
 
-Route::get('/campaigns', [CampaignController::class, 'index']);
+Route::get(
+    '/campaigns',
+    [CampaignController::class, 'index']
+);
 
-Route::get('/campaigns/{id}', [CampaignController::class, 'show']);
+Route::get(
+    '/campaigns/{id}',
+    [CampaignController::class, 'show']
+);
 
-Route::post('/donations', [DonationController::class, 'store']);
+Route::post(
+    '/donations',
+    [DonationController::class, 'store']
+);
 
 
 // =============================================================
@@ -35,15 +45,25 @@ Route::get(
     '/email/verify/{id}/{hash}',
     [EmailVerificationController::class, 'verify']
 )
-    ->middleware(['signed', 'throttle:6,1'])
-    ->name('verification.verify');
+    ->name('verification.verify')
+    ->middleware('throttle:6,1');
 
 Route::get(
     '/email/verify-demo/{id}',
     [EmailVerificationController::class, 'verifyDemo']
 )
-    ->middleware('throttle:6,1')
     ->name('verification.demo');
+
+
+// IMPORTANT:
+// This route MUST remain outside auth:sanctum.
+// An unverified user does not have an authentication token.
+Route::post(
+    '/email/verification-notification',
+    [EmailVerificationController::class, 'resend']
+)
+    ->name('verification.send')
+    ->middleware('throttle:6,1');
 
 
 // =============================================================
@@ -53,22 +73,26 @@ Route::get(
 Route::post(
     '/donations/payment/success',
     [DonationController::class, 'success']
-)->name('donations.payment.success');
+)
+    ->name('donations.payment.success');
 
 Route::post(
     '/donations/payment/fail',
     [DonationController::class, 'fail']
-)->name('donations.payment.fail');
+)
+    ->name('donations.payment.fail');
 
 Route::post(
     '/donations/payment/cancel',
     [DonationController::class, 'cancel']
-)->name('donations.payment.cancel');
+)
+    ->name('donations.payment.cancel');
 
 Route::post(
     '/donations/payment/ipn',
     [DonationController::class, 'ipn']
-)->name('donations.payment.ipn');
+)
+    ->name('donations.payment.ipn');
 
 
 // =============================================================
@@ -81,23 +105,20 @@ Route::middleware('auth:sanctum')->group(function () {
     // AUTHENTICATION / PROFILE
     // ---------------------------------------------------------
 
-    Route::post('/logout', [AuthController::class, 'logout']);
-
-    Route::get('/user', [AuthController::class, 'user']);
-
-    Route::put('/profile', [AuthController::class, 'updateProfile']);
-
-
-    // ---------------------------------------------------------
-    // EMAIL VERIFICATION
-    // ---------------------------------------------------------
-
     Route::post(
-        '/email/verification-notification',
-        [EmailVerificationController::class, 'resend']
-    )
-        ->middleware('throttle:6,1')
-        ->name('verification.send');
+        '/logout',
+        [AuthController::class, 'logout']
+    );
+
+    Route::get(
+        '/user',
+        [AuthController::class, 'user']
+    );
+
+    Route::put(
+        '/profile',
+        [AuthController::class, 'updateProfile']
+    );
 
 
     // ---------------------------------------------------------
@@ -125,12 +146,15 @@ Route::middleware('auth:sanctum')->group(function () {
     // =========================================================
 
     // Individual dashboard
+
     Route::get(
         '/individual/dashboard',
         [IndividualDashboardController::class, 'index']
     );
 
+
     // Individual help requests
+
     Route::get(
         '/help-requests',
         [HelpRequestController::class, 'myRequests']

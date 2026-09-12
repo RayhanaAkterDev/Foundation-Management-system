@@ -351,7 +351,7 @@ const Profile = () => {
                         <Field label="Full Name">
                             <div className="group relative">
                                 <UserRound
-                                    className="pointer-events-none absolute left-3.5 top-1/2 h-[17px] w-[17px] -translate-y-1/2 text-[#87928d] transition-colors group-focus-within:text-primary"
+                                    className="pointer-events-none absolute left-3.5 top-1/2 h-4.25 w-4.25 -translate-y-1/2 text-[#87928d] transition-colors group-focus-within:text-primary"
                                     strokeWidth={1.8}
                                 />
 
@@ -369,7 +369,7 @@ const Profile = () => {
                         <Field label="Email Address">
                             <div className="group relative">
                                 <Mail
-                                    className="pointer-events-none absolute left-3.5 top-1/2 h-[17px] w-[17px] -translate-y-1/2 text-[#87928d] transition-colors group-focus-within:text-primary"
+                                    className="pointer-events-none absolute left-3.5 top-1/2 h-4.25 w-4.25 -translate-y-1/2 text-[#87928d] transition-colors group-focus-within:text-primary"
                                     strokeWidth={1.8}
                                 />
 
@@ -387,7 +387,7 @@ const Profile = () => {
                         <Field label="Phone Number">
                             <div className="group relative">
                                 <Phone
-                                    className="pointer-events-none absolute left-3.5 top-1/2 h-[17px] w-[17px] -translate-y-1/2 text-[#87928d] transition-colors group-focus-within:text-primary"
+                                    className="pointer-events-none absolute left-3.5 top-1/2 h-4.25 w-4.25 -translate-y-1/2 text-[#87928d] transition-colors group-focus-within:text-primary"
                                     strokeWidth={1.8}
                                 />
 
@@ -405,7 +405,7 @@ const Profile = () => {
                         <Field label="Member Since">
                             <div className="relative">
                                 <CalendarDays
-                                    className="pointer-events-none absolute left-3.5 top-1/2 h-[17px] w-[17px] -translate-y-1/2 text-[#87928d]"
+                                    className="pointer-events-none absolute left-3.5 top-1/2 h-4.25 w-4.25 -translate-y-1/2 text-[#87928d]"
                                     strokeWidth={1.8}
                                 />
 

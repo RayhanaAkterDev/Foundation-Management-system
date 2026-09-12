@@ -44,6 +44,28 @@ const LoginForm = ({ loginRole = null }) => {
 
             const data = await response.json();
 
+            /*
+            |--------------------------------------------------------------------------
+            | Demo account requires verification
+            |--------------------------------------------------------------------------
+            |
+            | Admin-created demo accounts do not use a real email inbox.
+            | The backend provides a demo verification endpoint instead.
+            |
+            */
+
+            if (
+                response.status === 403 &&
+                data.verification_method === 'demo' &&
+                data.user_id
+            ) {
+                navigate(
+                    `/email-verification?status=demo&user_id=${data.user_id}&email=${encodeURIComponent(email)}`,
+                );
+
+                return;
+            }
+
             if (!response.ok) {
                 throw new Error(
                     data.message || 'Unable to sign in. Please try again.',
@@ -54,6 +76,7 @@ const LoginForm = ({ loginRole = null }) => {
             const storage = rememberMe ? localStorage : sessionStorage;
 
             storage.setItem('auth_token', data.token);
+
             storage.setItem('user', JSON.stringify(data.user));
 
             // Redirect based on authenticated account role

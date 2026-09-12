@@ -18,7 +18,6 @@ const Field = ({ label, children, className = '' }) => (
         <label className="mb-2 block text-[13px] font-medium text-text-primary">
             {label}
         </label>
-
         {children}
     </div>
 );
@@ -55,10 +54,8 @@ const IndividualProfile = () => {
     });
 
     const [memberSince, setMemberSince] = useState(null);
-
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
@@ -109,7 +106,6 @@ const IndividualProfile = () => {
                 setMemberSince(user?.created_at || null);
             } catch (err) {
                 console.error('Individual profile error:', err);
-
                 setError(err.message || 'Unable to load your profile.');
             } finally {
                 setLoading(false);
@@ -143,6 +139,18 @@ const IndividualProfile = () => {
                 );
             }
 
+            const currentStoredUser = JSON.parse(
+                localStorage.getItem('user') ||
+                    sessionStorage.getItem('user') ||
+                    'null',
+            );
+
+            const currentEmail = currentStoredUser?.email || '';
+            const newEmail = form.email.trim();
+
+            const emailChanged =
+                currentEmail.toLowerCase() !== newEmail.toLowerCase();
+
             const response = await fetch(`${API_URL}/profile`, {
                 method: 'PUT',
                 headers: {
@@ -152,7 +160,7 @@ const IndividualProfile = () => {
                 },
                 body: JSON.stringify({
                     name: form.name.trim(),
-                    email: form.email.trim(),
+                    email: newEmail,
                     phone: form.phone.trim(),
                     date_of_birth: form.date_of_birth,
                     district: form.district.trim(),
@@ -213,10 +221,40 @@ const IndividualProfile = () => {
                 }),
             );
 
+            if (emailChanged) {
+                // The backend has made the account inactive
+                // until the new email is verified.
+
+                const verificationMethod =
+                    updatedUser?.verification_method ||
+                    currentStoredUser?.verification_method ||
+                    'email';
+
+                const userId = updatedUser?.id || currentStoredUser?.id;
+
+                storage.removeItem('auth_token');
+                storage.removeItem('user');
+
+                if (storage === localStorage) {
+                    sessionStorage.removeItem('auth_token');
+                    sessionStorage.removeItem('user');
+                } else {
+                    localStorage.removeItem('auth_token');
+                    localStorage.removeItem('user');
+                }
+
+                if (verificationMethod === 'demo' && userId) {
+                    window.location.href = `/email-verification?status=demo&user_id=${userId}`;
+                } else {
+                    window.location.href = '/email-verification?status=email';
+                }
+
+                return;
+            }
+
             setSuccess('Your profile has been updated successfully.');
         } catch (err) {
             console.error('Profile update error:', err);
-
             setError(err.message || 'Unable to update your profile.');
         } finally {
             setSaving(false);
@@ -443,9 +481,9 @@ const IndividualProfile = () => {
                                 Account Details
                             </label>
 
-                            <div className="flex h-11 items-center border border-border bg-background-alt px-3.5 rounded-lg">
+                            <div className="flex h-11 items-center rounded-lg border border-border bg-background-alt px-3.5">
                                 <span className="text-sm text-text-secondary">
-                                    Member since{' '}
+                                    Member since
                                 </span>
 
                                 <span className="ml-1.5 text-sm font-medium text-text-primary">
@@ -471,8 +509,9 @@ const IndividualProfile = () => {
                                     }
                                     className="
                                         w-full resize-none
+                                        rounded-lg
                                         border border-border
-                                        rounded-lg bg-surface
+                                        bg-surface
                                         py-3 pl-10.5 pr-3.5
                                         text-[14px] text-text-primary
                                         outline-none
@@ -512,7 +551,6 @@ const IndividualProfile = () => {
                         "
                     >
                         <Save size={16} strokeWidth={1.9} />
-
                         {saving ? 'Saving...' : 'Save Changes'}
                     </button>
                 </div>

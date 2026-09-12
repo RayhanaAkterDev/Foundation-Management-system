@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+
 import {
     Save,
     MapPin,
@@ -7,13 +8,14 @@ import {
     UserRound,
     CalendarDays,
 } from 'lucide-react';
+
 import PageHeader from '@/components/dashboard/PageHeader';
 
 const API_URL = 'http://127.0.0.1:8000/api';
 
-const Field = ({ label, children }) => (
-    <div className="space-y-2">
-        <label className="block text-[13px] font-medium tracking-[0.01em] text-[#334155]">
+const Field = ({ label, children, className = '' }) => (
+    <div className={`min-w-0 ${className}`}>
+        <label className="mb-2 block text-[13px] font-medium text-text-primary">
             {label}
         </label>
 
@@ -22,7 +24,7 @@ const Field = ({ label, children }) => (
 );
 
 const inputCls =
-    'h-11 w-full rounded-[8px] border border-[#dfe5e2] bg-[#fbfcfb] px-3.5 text-[14px] text-[#17211e] placeholder-[#8b9691] outline-none transition-all focus:border-primary focus:bg-white focus:ring-[3px] focus:ring-primary/10';
+    'h-11 w-full rounded-[7px] border border-[#d9e1dd] bg-[#fcfdfc] px-3.5 text-[14px] text-[#17211e] placeholder-[#8b9691] outline-none transition-all duration-200 hover:border-[#cbd6d1] focus:border-primary focus:bg-white focus:ring-[3px] focus:ring-primary/10';
 
 const getToken = () =>
     localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
@@ -98,14 +100,9 @@ const IndividualProfile = () => {
                 setForm({
                     name: user?.name || '',
                     email: user?.email || '',
-
-                    // Phone now comes from users.phone.
                     phone: user?.phone || '',
-
                     date_of_birth: profile.date_of_birth || '',
-
                     district: profile.district || '',
-
                     address: profile.address || '',
                 });
 
@@ -193,20 +190,14 @@ const IndividualProfile = () => {
             setForm({
                 name: updatedUser?.name || '',
                 email: updatedUser?.email || '',
-
-                // Phone now comes from users.phone.
                 phone: updatedUser?.phone || '',
-
                 date_of_birth: updatedProfile.date_of_birth || '',
-
                 district: updatedProfile.district || '',
-
                 address: updatedProfile.address || '',
             });
 
             setMemberSince(updatedUser?.created_at || memberSince);
 
-            // Keep the locally stored logged-in user synchronized.
             const storage = localStorage.getItem('auth_token')
                 ? localStorage
                 : sessionStorage;
@@ -218,7 +209,6 @@ const IndividualProfile = () => {
                 JSON.stringify({
                     ...existingUser,
                     ...updatedUser,
-
                     individualProfile: updatedProfile,
                 }),
             );
@@ -241,24 +231,29 @@ const IndividualProfile = () => {
                     subtitle="Manage your personal information and account details."
                 />
 
-                <div className="border-y border-[#e2e8e5] bg-white">
-                    <div className="px-5 py-8 sm:px-8">
+                <div className="border-y border-border bg-surface">
+                    <div className="px-5 py-7 sm:px-8">
                         <div className="flex items-center gap-4">
-                            <div className="h-14 w-14 animate-pulse rounded-full bg-[#e8eeeb]" />
+                            <div className="h-16 w-16 animate-pulse rounded-full bg-background-alt" />
 
                             <div className="space-y-2">
-                                <div className="h-4 w-36 animate-pulse rounded bg-[#e8eeeb]" />
-                                <div className="h-3 w-52 animate-pulse rounded bg-[#eef2f0]" />
+                                <div className="h-5 w-40 animate-pulse bg-background-alt" />
+                                <div className="h-3 w-32 animate-pulse bg-background-alt" />
                             </div>
                         </div>
 
-                        <div className="mt-8 grid gap-5 md:grid-cols-2">
+                        <div className="mt-9 grid gap-x-8 gap-y-6 md:grid-cols-2">
                             {[1, 2, 3, 4].map((item) => (
                                 <div key={item} className="space-y-2">
-                                    <div className="h-3 w-20 animate-pulse rounded bg-[#e8eeeb]" />
-                                    <div className="h-11 animate-pulse rounded-lg bg-[#f1f4f2]" />
+                                    <div className="h-3 w-20 animate-pulse bg-background-alt" />
+                                    <div className="h-11 animate-pulse bg-background-alt" />
                                 </div>
                             ))}
+
+                            <div className="space-y-2 md:col-span-2">
+                                <div className="h-3 w-20 animate-pulse bg-background-alt" />
+                                <div className="h-24 animate-pulse bg-background-alt" />
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -275,40 +270,78 @@ const IndividualProfile = () => {
                 subtitle="Manage your personal information and account details."
             />
 
-            <div className="border-y border-[#e2e8e5] bg-white">
-                <div className="px-5 py-8 sm:px-8">
-                    <div className="flex items-center gap-4">
-                        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-xl font-semibold text-primary">
-                            {firstLetter}
+            <div className="border-y border-border bg-surface">
+                {/* Profile summary */}
+                <div className="border-b border-border px-5 py-7 sm:px-8">
+                    <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex min-w-0 items-center gap-4">
+                            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-primary text-xl font-semibold text-white shadow-sm">
+                                {firstLetter}
+                            </div>
+
+                            <div className="min-w-0">
+                                <h2 className="truncate text-xl font-semibold tracking-[-0.02em] text-text-primary">
+                                    {form.name || 'User'}
+                                </h2>
+
+                                <p className="mt-1 text-sm text-text-secondary">
+                                    Member since{' '}
+                                    {formatMemberSince(memberSince)}
+                                </p>
+                            </div>
                         </div>
 
-                        <div>
-                            <h2 className="text-lg font-semibold text-[#17211e]">
-                                {form.name || 'User'}
-                            </h2>
+                        <div className="flex items-center gap-2 text-sm text-text-secondary">
+                            <CalendarDays
+                                size={16}
+                                strokeWidth={1.8}
+                                className="text-primary"
+                            />
 
-                            <p className="text-sm text-[#6b7280]">
-                                Member since {formatMemberSince(memberSince)}
-                            </p>
+                            <span>Personal account</span>
                         </div>
                     </div>
+                </div>
 
-                    {error && (
-                        <div className="mt-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                            {error}
-                        </div>
-                    )}
+                {/* Alerts */}
+                {(error || success) && (
+                    <div className="px-5 pt-6 sm:px-8">
+                        {error && (
+                            <div className="border-l-[3px] border-red-500 bg-red-50 px-4 py-3 text-sm text-red-700">
+                                {error}
+                            </div>
+                        )}
 
-                    {success && (
-                        <div className="mt-6 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-                            {success}
-                        </div>
-                    )}
+                        {success && (
+                            <div className="border-l-[3px] border-green-500 bg-green-50 px-4 py-3 text-sm text-green-700">
+                                {success}
+                            </div>
+                        )}
+                    </div>
+                )}
 
-                    <div className="mt-8 grid gap-5 md:grid-cols-2">
+                {/* Profile information */}
+                <div className="px-5 py-8 sm:px-8">
+                    <div className="mb-7 max-w-2xl">
+                        <h3 className="text-base font-semibold text-text-primary">
+                            Personal information
+                        </h3>
+
+                        <p className="mt-1 text-sm leading-6 text-text-secondary">
+                            Update the information associated with your Stand
+                            For People account.
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-x-8 gap-y-6 lg:grid-cols-2">
+                        {/* Name */}
                         <Field label="Full Name">
                             <div className="relative">
-                                <UserRound className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6b7280]" />
+                                <UserRound
+                                    size={17}
+                                    strokeWidth={1.8}
+                                    className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary"
+                                />
 
                                 <input
                                     type="text"
@@ -316,14 +349,19 @@ const IndividualProfile = () => {
                                     onChange={(e) =>
                                         handleChange('name', e.target.value)
                                     }
-                                    className={`${inputCls} pl-10`}
+                                    className={`${inputCls} pl-10.5`}
                                 />
                             </div>
                         </Field>
 
-                        <Field label="Email">
+                        {/* Email */}
+                        <Field label="Email Address">
                             <div className="relative">
-                                <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6b7280]" />
+                                <Mail
+                                    size={17}
+                                    strokeWidth={1.8}
+                                    className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary"
+                                />
 
                                 <input
                                     type="email"
@@ -331,14 +369,19 @@ const IndividualProfile = () => {
                                     onChange={(e) =>
                                         handleChange('email', e.target.value)
                                     }
-                                    className={`${inputCls} pl-10`}
+                                    className={`${inputCls} pl-10.5`}
                                 />
                             </div>
                         </Field>
 
-                        <Field label="Phone">
+                        {/* Phone */}
+                        <Field label="Phone Number">
                             <div className="relative">
-                                <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6b7280]" />
+                                <Phone
+                                    size={17}
+                                    strokeWidth={1.8}
+                                    className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary"
+                                />
 
                                 <input
                                     type="tel"
@@ -346,14 +389,19 @@ const IndividualProfile = () => {
                                     onChange={(e) =>
                                         handleChange('phone', e.target.value)
                                     }
-                                    className={`${inputCls} pl-10`}
+                                    className={`${inputCls} pl-10.5`}
                                 />
                             </div>
                         </Field>
 
+                        {/* Date of birth */}
                         <Field label="Date of Birth">
                             <div className="relative">
-                                <CalendarDays className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6b7280]" />
+                                <CalendarDays
+                                    size={17}
+                                    strokeWidth={1.8}
+                                    className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary"
+                                />
 
                                 <input
                                     type="date"
@@ -364,14 +412,19 @@ const IndividualProfile = () => {
                                             e.target.value,
                                         )
                                     }
-                                    className={`${inputCls} pl-10`}
+                                    className={`${inputCls} pl-10.5`}
                                 />
                             </div>
                         </Field>
 
+                        {/* District */}
                         <Field label="District">
                             <div className="relative">
-                                <MapPin className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6b7280]" />
+                                <MapPin
+                                    size={17}
+                                    strokeWidth={1.8}
+                                    className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary"
+                                />
 
                                 <input
                                     type="text"
@@ -379,35 +432,89 @@ const IndividualProfile = () => {
                                     onChange={(e) =>
                                         handleChange('district', e.target.value)
                                     }
-                                    className={`${inputCls} pl-10`}
+                                    className={`${inputCls} pl-10.5`}
                                 />
                             </div>
                         </Field>
 
-                        <Field label="Address">
-                            <textarea
-                                rows={3}
-                                value={form.address}
-                                onChange={(e) =>
-                                    handleChange('address', e.target.value)
-                                }
-                                className="w-full resize-none rounded-lg border border-[#dfe5e2] bg-[#fbfcfb] px-3.5 py-3 text-[14px] text-[#17211e] placeholder-[#8b9691] outline-none transition-all focus:border-primary focus:bg-white focus:ring-[3px] focus:ring-primary/10"
-                            />
+                        {/* Account info */}
+                        <div>
+                            <label className="mb-2 block text-[13px] font-medium text-text-primary">
+                                Account Details
+                            </label>
+
+                            <div className="flex h-11 items-center border border-border bg-background-alt px-3.5 rounded-lg">
+                                <span className="text-sm text-text-secondary">
+                                    Member since{' '}
+                                </span>
+
+                                <span className="ml-1.5 text-sm font-medium text-text-primary">
+                                    {formatMemberSince(memberSince)}
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Address */}
+                        <Field label="Address" className="lg:col-span-2">
+                            <div className="relative">
+                                <MapPin
+                                    size={17}
+                                    strokeWidth={1.8}
+                                    className="pointer-events-none absolute left-3.5 top-4 text-text-secondary"
+                                />
+
+                                <textarea
+                                    rows={4}
+                                    value={form.address}
+                                    onChange={(e) =>
+                                        handleChange('address', e.target.value)
+                                    }
+                                    className="
+                                        w-full resize-none
+                                        border border-border
+                                        rounded-lg bg-surface
+                                        py-3 pl-10.5 pr-3.5
+                                        text-[14px] text-text-primary
+                                        outline-none
+                                        transition-all
+                                        placeholder:text-text-secondary/60
+                                        hover:border-slate-300
+                                        focus:border-primary
+                                        focus:ring-[3px]
+                                        focus:ring-primary/10
+                                    "
+                                />
+                            </div>
                         </Field>
                     </div>
+                </div>
 
-                    <div className="mt-8 border-t border-[#e2e8e5] pt-5">
-                        <button
-                            type="button"
-                            onClick={handleSave}
-                            disabled={saving}
-                            className="inline-flex h-10 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-medium text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                            <Save className="h-4 w-4" />
+                {/* Save area */}
+                <div className="flex flex-col gap-4 border-t border-border bg-background-alt/50 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+                    <p className="text-sm text-text-secondary">
+                        Make sure your information is correct before saving your
+                        changes.
+                    </p>
 
-                            {saving ? 'Saving...' : 'Save Changes'}
-                        </button>
-                    </div>
+                    <button
+                        type="button"
+                        onClick={handleSave}
+                        disabled={saving}
+                        className="
+                            inline-flex h-10 items-center justify-center gap-2
+                            bg-primary px-5
+                            text-sm font-semibold text-white
+                            shadow-sm
+                            transition-all
+                            hover:bg-primary-hover
+                            disabled:cursor-not-allowed
+                            disabled:opacity-60
+                        "
+                    >
+                        <Save size={16} strokeWidth={1.9} />
+
+                        {saving ? 'Saving...' : 'Save Changes'}
+                    </button>
                 </div>
             </div>
         </div>

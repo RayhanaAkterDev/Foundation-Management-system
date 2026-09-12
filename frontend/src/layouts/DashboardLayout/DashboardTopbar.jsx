@@ -24,8 +24,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
     const getStoredUser = () => {
         try {
             const storedUser =
-                localStorage.getItem('user') ||
-                sessionStorage.getItem('user');
+                localStorage.getItem('user') || sessionStorage.getItem('user');
 
             if (!storedUser) return null;
 
@@ -129,18 +128,20 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
     // QUICK ACTION
     // =========================================================
 
+    const dashboardBase = `/${userRole}/dashboard`;
+
     const quickActions = [
         {
             label: 'Profile',
             description: 'Account',
             icon: UserRound,
-            to: '/profile',
+            to: `${dashboardBase}/profile`,
         },
         {
             label: 'Settings',
             description: 'Preferences',
             icon: Settings,
-            to: '/settings',
+            to: `${dashboardBase}/settings`,
         },
         {
             label: 'Support',
@@ -286,9 +287,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
 
                         <button
                             type="button"
-                            onClick={() =>
-                                setUserMenuOpen((open) => !open)
-                            }
+                            onClick={() => setUserMenuOpen((open) => !open)}
                             aria-expanded={userMenuOpen}
                             aria-haspopup="menu"
                             aria-controls="account-menu"
@@ -463,7 +462,6 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                                         bg-emerald-300
                                                     "
                                                 />
-
                                                 Active
                                             </span>
                                         </div>
@@ -684,7 +682,9 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                                         >
                                                             <Icon
                                                                 size={16}
-                                                                strokeWidth={1.8}
+                                                                strokeWidth={
+                                                                    1.8
+                                                                }
                                                                 className="text-primary"
                                                             />
                                                         </div>

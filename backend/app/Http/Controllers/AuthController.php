@@ -32,7 +32,7 @@ class AuthController extends Controller
             ],
 
             'profile.phone' => [
-                'required',
+                'nullable',
                 'string',
                 'regex:/^01[0-9]{9}$/',
                 Rule::unique('users', 'phone'),
@@ -295,7 +295,7 @@ class AuthController extends Controller
             ],
 
             'phone' => [
-                'required',
+                'nullable',
                 'string',
                 'regex:/^01[0-9]{9}$/',
                 Rule::unique('users', 'phone')

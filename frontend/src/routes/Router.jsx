@@ -43,6 +43,7 @@ import AdminHelpRequests from '@/dashboard/admin/helpRequests/HelpRequests';
 import AdminDonations from '@/dashboard/admin/donations/Donations';
 import AdminVolunteers from '@/dashboard/admin/volunteers/Volunteers';
 import AdminCampaigns from '@/dashboard/admin/campaigns/Campaigns';
+import AdminProfile from '@/dashboard/admin/profile/Profile';
 import AdminReports from '@/dashboard/admin/reports/AdminReports';
 import AdminSettings from '@/dashboard/admin/settings/Settings';
 
@@ -234,6 +235,10 @@ const router = createBrowserRouter([
                     {
                         path: 'campaigns',
                         element: <AdminCampaigns />,
+                    },
+                    {
+                        path: 'profile',
+                        element: <AdminProfile />,
                     },
                     {
                         path: 'reports',

@@ -88,8 +88,7 @@ class IndividualDashboardController extends Controller
         // ---------------------------------------------------------
         // DONATION SUMMARY
         // ---------------------------------------------------------
-        $donations = Donation::where('user_id', $user->id)
-            ->where('status', 'completed');
+        $donations = Donation::where('user_id', $user->id);
 
         $donationSummary = [
             'totalDonated' => (float) $donations->sum('amount'),
@@ -162,7 +161,6 @@ class IndividualDashboardController extends Controller
         // Donation activity
         foreach (
             Donation::where('user_id', $user->id)
-                ->where('status', 'completed')
                 ->latest('created_at')
                 ->take(5)
                 ->get()

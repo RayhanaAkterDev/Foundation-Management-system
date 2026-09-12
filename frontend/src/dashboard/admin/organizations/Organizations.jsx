@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
     Plus,
     Download,
+    Search,
     ArrowDown,
     ArrowUp,
     ChevronsUpDown,
@@ -38,14 +39,14 @@ const Organizations = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
-    // --------------------------------
-    // Filters / Search / Sorting
-    // --------------------------------
+    // ============================================================
+    // FILTERS / SEARCH / SORTING
+    // ============================================================
 
     const [activeCategory, setActiveCategory] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter] = useState('all');
     const [typeFilter, setTypeFilter] = useState('all');
-    const [statusFilter, setStatusFilter] = useState('all');
 
     const [sortConfig, setSortConfig] = useState({
         key: 'created_at',
@@ -54,17 +55,17 @@ const Organizations = () => {
 
     const [currentPage, setCurrentPage] = useState(1);
 
-    // --------------------------------
-    // View organization
-    // --------------------------------
+    // ============================================================
+    // VIEW ORGANIZATION
+    // ============================================================
 
     const [selectedOrganization, setSelectedOrganization] = useState(null);
     const [viewLoading, setViewLoading] = useState(false);
     const [viewError, setViewError] = useState('');
 
-    // --------------------------------
-    // Review / Verification organization
-    // --------------------------------
+    // ============================================================
+    // REVIEW / VERIFICATION ORGANIZATION
+    // ============================================================
 
     const [selectedReviewOrganization, setSelectedReviewOrganization] =
         useState(null);
@@ -72,18 +73,18 @@ const Organizations = () => {
     const [reviewLoading, setReviewLoading] = useState(false);
     const [reviewError, setReviewError] = useState('');
 
-    // --------------------------------
-    // Add organization
-    // --------------------------------
+    // ============================================================
+    // ADD ORGANIZATION
+    // ============================================================
 
     const [showAddModal, setShowAddModal] = useState(false);
     const [addLoading, setAddLoading] = useState(false);
     const [addError, setAddError] = useState('');
     const [addFieldErrors, setAddFieldErrors] = useState({});
 
-    // --------------------------------
-    // Edit organization
-    // --------------------------------
+    // ============================================================
+    // EDIT ORGANIZATION
+    // ============================================================
 
     const [selectedEditOrganization, setSelectedEditOrganization] =
         useState(null);
@@ -92,9 +93,9 @@ const Organizations = () => {
     const [editError, setEditError] = useState('');
     const [editFieldErrors, setEditFieldErrors] = useState({});
 
-    // --------------------------------
-    // Delete organization
-    // --------------------------------
+    // ============================================================
+    // DELETE ORGANIZATION
+    // ============================================================
 
     const [selectedDeleteOrganization, setSelectedDeleteOrganization] =
         useState(null);
@@ -102,9 +103,9 @@ const Organizations = () => {
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [deleteError, setDeleteError] = useState('');
 
-    // --------------------------------
-    // Success toast
-    // --------------------------------
+    // ============================================================
+    // SUCCESS TOAST
+    // ============================================================
 
     const [toast, setToast] = useState({
         show: false,
@@ -117,7 +118,7 @@ const Organizations = () => {
             message,
         });
 
-        setTimeout(() => {
+        window.setTimeout(() => {
             setToast({
                 show: false,
                 message: '',
@@ -125,9 +126,9 @@ const Organizations = () => {
         }, 3000);
     };
 
-    // --------------------------------
-    // Load organizations
-    // --------------------------------
+    // ============================================================
+    // LOAD ORGANIZATIONS
+    // ============================================================
 
     const loadOrganizations = async () => {
         try {
@@ -152,11 +153,13 @@ const Organizations = () => {
 
         const loadInitialOrganizations = async () => {
             try {
+                setLoading(true);
+                setError('');
+
                 const data = await fetchOrganizations();
 
                 if (!cancelled) {
                     setOrganizations(data.organizations || []);
-                    setError('');
                 }
             } catch (err) {
                 if (!cancelled) {
@@ -179,9 +182,9 @@ const Organizations = () => {
         };
     }, []);
 
-    // --------------------------------
-    // View organization
-    // --------------------------------
+    // ============================================================
+    // VIEW ORGANIZATION
+    // ============================================================
 
     const handleViewOrganization = async (organizationId) => {
         setViewLoading(true);
@@ -200,13 +203,17 @@ const Organizations = () => {
     };
 
     const closeViewModal = () => {
+        if (viewLoading) {
+            return;
+        }
+
         setSelectedOrganization(null);
         setViewError('');
     };
 
-    // --------------------------------
-    // Review organization
-    // --------------------------------
+    // ============================================================
+    // REVIEW / VERIFICATION ORGANIZATION
+    // ============================================================
 
     const handleReviewOrganization = (organization) => {
         setReviewError('');
@@ -256,9 +263,9 @@ const Organizations = () => {
         }
     };
 
-    // --------------------------------
-    // Add organization
-    // --------------------------------
+    // ============================================================
+    // ADD ORGANIZATION
+    // ============================================================
 
     const openAddModal = () => {
         setAddError('');
@@ -302,9 +309,9 @@ const Organizations = () => {
         }
     };
 
-    // --------------------------------
-    // Edit organization
-    // --------------------------------
+    // ============================================================
+    // EDIT ORGANIZATION
+    // ============================================================
 
     const openEditModal = async (organizationId) => {
         setEditLoading(true);
@@ -316,7 +323,6 @@ const Organizations = () => {
             const data = await fetchOrganization(organizationId);
             const organization = data.organization;
 
-            // Rejected organizations cannot be edited.
             if (organization?.verification_status === 'rejected') {
                 setEditError('Rejected organizations cannot be edited.');
                 return;
@@ -345,10 +351,8 @@ const Organizations = () => {
             return;
         }
 
-        // Additional safety check.
         if (selectedEditOrganization.verification_status === 'rejected') {
             setEditError('Rejected organizations cannot be edited.');
-
             return;
         }
 
@@ -375,9 +379,9 @@ const Organizations = () => {
         }
     };
 
-    // --------------------------------
-    // Delete organization
-    // --------------------------------
+    // ============================================================
+    // DELETE ORGANIZATION
+    // ============================================================
 
     const openDeleteModal = (organization) => {
         setDeleteError('');
@@ -408,6 +412,8 @@ const Organizations = () => {
 
             await loadOrganizations();
 
+            setCurrentPage(1);
+
             showSuccessToast('Organization deleted successfully.');
         } catch (err) {
             setDeleteError(err.message || 'Unable to delete organization.');
@@ -416,9 +422,9 @@ const Organizations = () => {
         }
     };
 
-    // --------------------------------
-    // Statistics
-    // --------------------------------
+    // ============================================================
+    // STATISTICS
+    // ============================================================
 
     const statistics = useMemo(() => {
         return {
@@ -441,9 +447,9 @@ const Organizations = () => {
         };
     }, [organizations]);
 
-    // --------------------------------
-    // Category tabs
-    // --------------------------------
+    // ============================================================
+    // CATEGORY TABS
+    // ============================================================
 
     const categoryTabs = useMemo(
         () => [
@@ -471,13 +477,14 @@ const Organizations = () => {
         [statistics],
     );
 
-    // --------------------------------
-    // Filtering + sorting
-    // --------------------------------
+    // ============================================================
+    // FILTERING + SORTING
+    // ============================================================
 
     const filteredOrganizations = useMemo(() => {
         let result = [...organizations];
 
+        // Category filter
         if (activeCategory !== 'all') {
             result = result.filter(
                 (organization) =>
@@ -485,12 +492,7 @@ const Organizations = () => {
             );
         }
 
-        if (typeFilter !== 'all') {
-            result = result.filter(
-                (organization) => organization.organization_type === typeFilter,
-            );
-        }
-
+        // Verification status filter
         if (statusFilter !== 'all') {
             result = result.filter(
                 (organization) =>
@@ -498,30 +500,54 @@ const Organizations = () => {
             );
         }
 
-        const search = searchTerm.trim().toLowerCase();
-
-        if (search) {
+        // Organization type filter
+        if (typeFilter !== 'all') {
             result = result.filter(
-                (organization) =>
-                    organization.name?.toLowerCase().includes(search) ||
-                    organization.user?.email?.toLowerCase().includes(search) ||
-                    organization.registration_number
-                        ?.toLowerCase()
-                        .includes(search),
+                (organization) => organization.organization_type === typeFilter,
             );
         }
 
+        // Search
+        const search = searchTerm.trim().toLowerCase();
+
+        if (search) {
+            result = result.filter((organization) => {
+                const name = organization.name?.toLowerCase() || '';
+                const email = organization.user?.email?.toLowerCase() || '';
+                const registrationNumber =
+                    organization.registration_number?.toLowerCase() || '';
+                const type =
+                    organization.organization_type?.toLowerCase() || '';
+
+                return (
+                    name.includes(search) ||
+                    email.includes(search) ||
+                    registrationNumber.includes(search) ||
+                    type.includes(search)
+                );
+            });
+        }
+
+        // Sorting
         if (!sortConfig.key || !sortConfig.direction) {
             return result;
         }
 
-        result.sort((a, b) => {
-            let first = a[sortConfig.key];
-            let second = b[sortConfig.key];
+        result.sort((firstOrganization, secondOrganization) => {
+            let first = firstOrganization[sortConfig.key];
+            let second = secondOrganization[sortConfig.key];
 
             if (sortConfig.key === 'created_at') {
                 first = new Date(first).getTime();
                 second = new Date(second).getTime();
+
+                if (Number.isNaN(first)) {
+                    first = 0;
+                }
+
+                if (Number.isNaN(second)) {
+                    second = 0;
+                }
             }
 
             first = first ?? '';
@@ -529,6 +555,9 @@ const Organizations = () => {
 
             if (typeof first === 'string') {
                 first = first.toLowerCase();
+            }
+
+            if (typeof second === 'string') {
                 second = second.toLowerCase();
             }
 
@@ -547,15 +576,15 @@ const Organizations = () => {
     }, [
         organizations,
         activeCategory,
-        typeFilter,
         statusFilter,
+        typeFilter,
         searchTerm,
         sortConfig,
     ]);
 
-    // --------------------------------
-    // Pagination
-    // --------------------------------
+    // ============================================================
+    // PAGINATION
+    // ============================================================
 
     const totalPages = Math.max(
         1,
@@ -573,27 +602,27 @@ const Organizations = () => {
         );
     }, [filteredOrganizations, safeCurrentPage]);
 
-    // --------------------------------
-    // Controls
-    // --------------------------------
+    // ============================================================
+    // CONTROLS
+    // ============================================================
 
     const handleCategoryChange = (category) => {
         setActiveCategory(category);
         setCurrentPage(1);
     };
 
-    const handleTypeChange = (event) => {
-        setTypeFilter(event.target.value);
-        setCurrentPage(1);
-    };
-
-    const handleStatusChange = (event) => {
-        setStatusFilter(event.target.value);
+    const handleTypeChange = (type) => {
+        setTypeFilter(type);
         setCurrentPage(1);
     };
 
     const handleSearchChange = (event) => {
         setSearchTerm(event.target.value);
+        setCurrentPage(1);
+    };
+
+    const handleClearSearch = () => {
+        setSearchTerm('');
         setCurrentPage(1);
     };
 
@@ -636,9 +665,9 @@ const Organizations = () => {
         return <ChevronsUpDown size={14} strokeWidth={1.8} />;
     };
 
-    // --------------------------------
-    // CSV Export
-    // --------------------------------
+    // ============================================================
+    // CSV EXPORT
+    // ============================================================
 
     const handleExportCSV = () => {
         if (filteredOrganizations.length === 0) {
@@ -695,9 +724,9 @@ const Organizations = () => {
         showSuccessToast('Organizations exported successfully.');
     };
 
-    // --------------------------------
-    // Table rows
-    // --------------------------------
+    // ============================================================
+    // TABLE ROWS
+    // ============================================================
 
     const rows = paginatedOrganizations.map((organization, index) => ({
         ...organization,
@@ -712,105 +741,49 @@ const Organizations = () => {
             (safeCurrentPage - 1) * ORGANIZATIONS_PER_PAGE + index + 1,
     }));
 
-    // --------------------------------
-    // Table columns
-    // --------------------------------
+    // ============================================================
+    // TABLE COLUMNS
+    // ============================================================
 
     const columns = [
         {
             key: 'serialNumber',
             header: '#',
-            align: 'center',
-            width: '60px',
         },
-
         {
             key: 'name',
             header: 'Organization',
             sortable: true,
-            sortKey: 'name',
         },
-
+        {
+            key: 'registration_number',
+            header: 'Reg. No.',
+            sortable: true,
+        },
         {
             key: 'organization_type',
             header: 'Type',
             sortable: true,
-            sortKey: 'organization_type',
         },
-
-        {
-            key: 'contactEmail',
-            header: 'Contact',
-        },
-
-        {
-            key: 'registeredDate',
-            header: 'Registered',
-            sortable: true,
-            sortKey: 'created_at',
-        },
-
         {
             key: 'verification_status',
             header: 'Verification',
             sortable: true,
-            sortKey: 'verification_status',
         },
-
         {
-            key: 'id',
+            key: 'registeredDate',
+            header: 'Registered',
+            sortable: true,
+        },
+        {
+            key: 'actions',
             header: 'Actions',
-            align: 'right',
-
-            render: (_, row) => (
-                <div className="flex items-center justify-end gap-4">
-                    {/* Verify - Pending only */}
-                    {row.verification_status === 'pending' && (
-                        <button
-                            type="button"
-                            onClick={() => handleReviewOrganization(row)}
-                            className="text-xs font-semibold text-primary transition-colors hover:text-primary-hover"
-                        >
-                            Verify
-                        </button>
-                    )}
-
-                    {/* View - Always available */}
-                    <button
-                        type="button"
-                        onClick={() => handleViewOrganization(row.id)}
-                        className="text-xs font-semibold text-text-secondary transition-colors hover:text-primary"
-                    >
-                        View
-                    </button>
-
-                    {/* Edit - Available except for rejected organizations */}
-                    {row.verification_status !== 'rejected' && (
-                        <button
-                            type="button"
-                            onClick={() => openEditModal(row.id)}
-                            className="text-xs font-semibold text-text-secondary transition-colors hover:text-primary"
-                        >
-                            Edit
-                        </button>
-                    )}
-
-                    {/* Delete - Always available */}
-                    <button
-                        type="button"
-                        onClick={() => openDeleteModal(row)}
-                        className="text-xs font-semibold text-red-600 transition-colors hover:text-red-700"
-                    >
-                        Delete
-                    </button>
-                </div>
-            ),
         },
     ];
 
-    // --------------------------------
-    // Loading
-    // --------------------------------
+    // ============================================================
+    // LOADING STATE
+    // ============================================================
 
     if (loading) {
         return (
@@ -822,7 +795,19 @@ const Organizations = () => {
 
                 <div className="flex min-h-70 items-center justify-center border-y border-border bg-white">
                     <div className="text-center">
-                        <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-border border-t-primary" />
+                        <div
+                            className="
+                                mx-auto
+                                mb-4
+                                h-8
+                                w-8
+                                animate-spin
+                                rounded-full
+                                border-2
+                                border-border
+                                border-t-primary
+                            "
+                        />
 
                         <p className="text-sm font-semibold text-text-primary">
                             Loading organizations...
@@ -837,9 +822,9 @@ const Organizations = () => {
         );
     }
 
-    // --------------------------------
-    // Error
-    // --------------------------------
+    // ============================================================
+    // ERROR STATE
+    // ============================================================
 
     if (error) {
         return (
@@ -856,40 +841,79 @@ const Organizations = () => {
         );
     }
 
+    // ============================================================
+    // PAGE
+    // ============================================================
+
     return (
         <>
             <div className="space-y-9">
-                {/* Header */}
+                {/* ==================================================
+                    PAGE HEADER
+                ================================================== */}
+
                 <PageHeader
                     title="Organizations"
                     subtitle="Manage organizations registered on the Stand For People platform."
                     action={
-                        <div className="flex items-center gap-2.5">
+                        <div className="flex w-full items-center justify-end gap-3">
                             <button
                                 type="button"
                                 onClick={handleExportCSV}
                                 disabled={filteredOrganizations.length === 0}
-                                className="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-white px-4 text-sm font-medium text-text-primary transition-colors hover:border-primary/30 hover:bg-background-alt disabled:cursor-not-allowed disabled:opacity-50"
+                                className="
+            group inline-flex h-10
+            items-center gap-2
+            border border-border
+            bg-surface
+            px-4
+            text-sm font-medium
+            text-text-primary
+            transition-all
+            hover:border-primary/30
+            hover:bg-background-alt
+            disabled:cursor-not-allowed
+            disabled:opacity-50
+        "
                             >
-                                <Download size={16} />
-                                Export
+                                <Download
+                                    size={15}
+                                    strokeWidth={1.8}
+                                    className="
+                text-text-secondary
+                transition-colors
+                group-hover:text-primary
+            "
+                                />
+                                <span>Export CSV</span>
                             </button>
 
                             <button
                                 type="button"
                                 onClick={openAddModal}
-                                className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-hover"
+                                className="
+            inline-flex h-10
+            items-center gap-2
+            bg-primary
+            px-4
+            text-sm font-semibold
+            text-white
+            shadow-sm
+            transition-all
+            hover:bg-primary-hover
+        "
                             >
-                                <Plus size={17} />
-                                Add Organization
+                                <Plus size={17} strokeWidth={2} />
+                                <span>Add Organization</span>
                             </button>
                         </div>
                     }
                 />
 
-                {/* --------------------------------
+                {/* ==================================================
                     ORGANIZATION OVERVIEW
-                -------------------------------- */}
+                ================================================== */}
+
                 <Stats
                     total={statistics.total}
                     verified={statistics.verified}
@@ -897,78 +921,491 @@ const Organizations = () => {
                     rejected={statistics.rejected}
                 />
 
-                {/* --------------------------------
+                {/* ==================================================
                     ORGANIZATION MANAGEMENT
-                -------------------------------- */}
+                ================================================== */}
 
-                <section className="border-t border-border pt-8">
-                    <div className="mb-5">
-                        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
-                            Administration
-                        </p>
+                <section className="mt-24">
+                    <div className="mb-6">
+                        <div
+                            className="
+                                flex
+                                flex-col
+                                gap-4
+                                border-b
+                                border-border
+                                pb-5
+                                sm:flex-row
+                                sm:items-end
+                                sm:justify-between
+                            "
+                        >
+                            <div className="min-w-0">
+                                <div className="mb-2 flex items-center gap-2.5 px-2">
+                                    <span className="h-1.5 w-1.5 bg-primary" />
 
-                        <div className="mt-1 flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
-                            <div>
-                                <h2 className="text-lg font-bold tracking-tight text-text-primary">
+                                    <span
+                                        className="
+                                            text-[10px]
+                                            font-bold
+                                            uppercase
+                                            tracking-[0.18em]
+                                            text-primary
+                                        "
+                                    >
+                                        Administration
+                                    </span>
+                                </div>
+
+                                <h2
+                                    className="
+                                        font-fraunces
+                                        text-[25px]
+                                        font-semibold
+                                        leading-tight
+                                        tracking-tight
+                                        text-text-primary
+                                    "
+                                >
                                     Organization management
                                 </h2>
+
+                                <p
+                                    className="
+                                        mt-1.5
+                                        max-w-xl
+                                        text-[13px]
+                                        leading-5
+                                        text-text-secondary
+                                    "
+                                >
+                                    Review registered organizations,
+                                    verification status, and organization
+                                    details across the platform.
+                                </p>
                             </div>
 
-                            <p className="text-xs font-medium text-text-secondary">
-                                {filteredOrganizations.length}{' '}
-                                {filteredOrganizations.length === 1
-                                    ? 'organization'
-                                    : 'organizations'}{' '}
-                                shown
-                            </p>
+                            <div className="flex shrink-0 items-center gap-2.5">
+                                <span className="h-8 border-l border-border" />
+
+                                <div>
+                                    <p
+                                        className="
+                                            text-[9px]
+                                            font-semibold
+                                            uppercase
+                                            tracking-[0.16em]
+                                            text-text-secondary
+                                        "
+                                    >
+                                        Showing
+                                    </p>
+
+                                    <p className="mt-0.5 text-sm font-semibold text-text-primary">
+                                        {filteredOrganizations.length}{' '}
+                                        <span className="font-normal text-text-secondary">
+                                            {filteredOrganizations.length === 1
+                                                ? 'organization'
+                                                : 'organizations'}
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    {/* Categories */}
-                    <CategoryTabs
-                        tabs={categoryTabs}
-                        activeCategory={activeCategory}
-                        onChange={handleCategoryChange}
-                    />
+                    {/* ==================================================
+    MANAGEMENT WORKSPACE
+================================================== */}
 
-                    {/* Filters */}
+                    <div
+                        className="
+        grid
+        items-stretch
+        gap-6
+        xl:grid-cols-[minmax(0,1fr)_280px]
+    "
+                    >
+                        {/* ==================================================
+        LEFT — ORGANIZATION TABLE WORKSPACE
+    ================================================== */}
 
-                    <Filters
-                        searchTerm={searchTerm}
-                        typeFilter={typeFilter}
-                        statusFilter={statusFilter}
-                        organizations={organizations}
-                        onSearchChange={handleSearchChange}
-                        onTypeChange={handleTypeChange}
-                        onStatusChange={handleStatusChange}
-                    />
+                        <div
+                            className="
+            flex
+            min-h-0
+            min-w-0
+            flex-col
+            border
+            border-border
+            bg-surface
+        "
+                        >
+                            {/* Workspace toolbar */}
 
-                    {/* Table */}
-                    <Table
-                        columns={columns}
-                        rows={rows}
-                        onSort={handleSort}
-                        getSortIcon={getSortIcon}
-                        resultCount={filteredOrganizations.length}
-                    />
+                            <div
+                                className="
+                shrink-0
+                border-b
+                border-border
+                px-5
+                py-4
+            "
+                            >
+                                <div
+                                    className="
+                    flex
+                    flex-col
+                    gap-4
+                    lg:flex-row
+                    lg:items-center
+                    lg:justify-between
+                "
+                                >
+                                    {/* Search */}
 
-                    {/* Pagination */}
-                    {filteredOrganizations.length > 0 && (
-                        <Pagination
-                            currentPage={safeCurrentPage}
-                            totalPages={totalPages}
-                            totalItems={filteredOrganizations.length}
-                            itemsPerPage={ORGANIZATIONS_PER_PAGE}
-                            onPageChange={setCurrentPage}
-                        />
-                    )}
+                                    <div className="min-w-0 flex-1">
+                                        <div className="relative">
+                                            <Search
+                                                size={17}
+                                                strokeWidth={1.8}
+                                                className="
+                                pointer-events-none
+                                absolute
+                                left-3.5
+                                top-1/2
+                                -translate-y-1/2
+                                text-text-secondary
+                            "
+                                            />
+
+                                            <input
+                                                type="text"
+                                                value={searchTerm}
+                                                onChange={handleSearchChange}
+                                                placeholder="Search by organization name, email, registration number"
+                                                className="
+                                h-10
+                                w-full
+                                border
+                                border-border
+                                bg-background
+                                pl-10
+                                pr-16
+                                text-[13px]
+                                font-medium
+                                text-text-primary
+                                outline-none
+                                transition-colors
+                                placeholder:text-text-secondary/70
+                                hover:border-text-secondary/30
+                                focus:border-primary/50
+                                focus:bg-surface
+                            "
+                                            />
+
+                                            {searchTerm && (
+                                                <button
+                                                    type="button"
+                                                    onClick={handleClearSearch}
+                                                    className="
+                                    absolute
+                                    right-3
+                                    top-1/2
+                                    -translate-y-1/2
+                                    text-[10px]
+                                    font-semibold
+                                    uppercase
+                                    tracking-wide
+                                    text-text-secondary
+                                    transition-colors
+                                    hover:text-primary
+                                "
+                                                >
+                                                    Clear
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Directory context */}
+
+                                    <div
+                                        className="
+                        flex
+                        shrink-0
+                        items-center
+                        gap-5
+                    "
+                                    >
+                                        <div
+                                            className="
+                            hidden
+                            h-7
+                            border-l
+                            border-border
+                            lg:block
+                        "
+                                        />
+
+                                        <div>
+                                            <p
+                                                className="
+                                text-[9px]
+                                font-bold
+                                uppercase
+                                tracking-[0.16em]
+                                text-text-secondary
+                            "
+                                            >
+                                                Directory
+                                            </p>
+
+                                            <p className="mt-0.5 text-xs font-medium text-text-primary">
+                                                {filteredOrganizations.length}{' '}
+                                                {filteredOrganizations.length ===
+                                                1
+                                                    ? 'result'
+                                                    : 'results'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Table heading */}
+
+                            <div
+                                className="
+                flex
+                shrink-0
+                flex-col
+                gap-2
+                border-b
+                border-border
+                bg-white
+                px-5
+                py-3.5
+                sm:flex-row
+                sm:items-center
+                sm:justify-between
+            "
+                            >
+                                <div>
+                                    <p className="text-sm font-semibold text-text-primary">
+                                        Registered organizations
+                                    </p>
+
+                                    <p className="mt-0.5 text-xs text-text-secondary">
+                                        Browse and review organizations in the
+                                        platform directory
+                                    </p>
+                                </div>
+
+                                <span className="text-[11px] font-medium text-text-secondary">
+                                    Sorted by organization
+                                </span>
+                            </div>
+
+                            {/* Table — ONLY this area scrolls */}
+
+                            <div
+                                className="
+                min-h-0
+                flex-1
+                overflow-x-auto
+                overflow-y-auto
+            "
+                            >
+                                <div className="min-w-190">
+                                    <Table
+                                        columns={columns}
+                                        rows={rows}
+                                        onSort={handleSort}
+                                        getSortIcon={getSortIcon}
+                                        resultCount={
+                                            filteredOrganizations.length
+                                        }
+                                        onView={handleViewOrganization}
+                                        onReview={handleReviewOrganization}
+                                        onEdit={openEditModal}
+                                        onDelete={openDeleteModal}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Pagination */}
+
+                            {filteredOrganizations.length > 0 && (
+                                <div className="shrink-0 border-t border-border">
+                                    <Pagination
+                                        currentPage={safeCurrentPage}
+                                        totalPages={totalPages}
+                                        totalItems={
+                                            filteredOrganizations.length
+                                        }
+                                        itemsPerPage={ORGANIZATIONS_PER_PAGE}
+                                        onPageChange={setCurrentPage}
+                                    />
+                                </div>
+                            )}
+                        </div>
+
+                        {/* ==================================================
+        RIGHT — ORGANIZATION FILTER SIDEBAR
+        Height comes naturally from its content.
+        NO overflow / NO fixed height.
+    ================================================== */}
+
+                        <aside
+                            className="
+            flex
+            flex-col
+            self-start
+            border
+            border-primary/90
+            bg-primary
+        "
+                        >
+                            {/* Sidebar heading */}
+
+                            <div className="shrink-0 px-5 pb-5 pt-6">
+                                <p
+                                    className="
+                    text-[10px]
+                    font-bold
+                    uppercase
+                    tracking-[0.18em]
+                    text-white/45
+                "
+                                >
+                                    Directory controls
+                                </p>
+
+                                <h2
+                                    className="
+                    mt-1.5
+                    font-fraunces
+                    text-[21px]
+                    leading-tight
+                    text-white
+                "
+                                >
+                                    Refine organizations
+                                </h2>
+
+                                <p
+                                    className="
+                    mt-2
+                    max-w-55
+                    text-[12px]
+                    leading-5
+                    text-white/50
+                "
+                                >
+                                    Narrow the organization directory by
+                                    verification state and organization type.
+                                </p>
+                            </div>
+
+                            {/* Organization category */}
+
+                            <div
+                                className="
+                border-y
+                border-white/10
+                bg-black/4
+                px-4
+                py-5
+            "
+                            >
+                                <div className="mb-3 flex items-center justify-between px-1">
+                                    <p
+                                        className="
+                        text-[10px]
+                        font-bold
+                        uppercase
+                        tracking-[0.16em]
+                        text-white/45
+                    "
+                                    >
+                                        Organization status
+                                    </p>
+
+                                    <span
+                                        className="
+                        text-[10px]
+                        font-medium
+                        tabular-nums
+                        text-white/30
+                    "
+                                    >
+                                        {categoryTabs.length}
+                                    </span>
+                                </div>
+
+                                <CategoryTabs
+                                    tabs={categoryTabs}
+                                    activeCategory={activeCategory}
+                                    onChange={handleCategoryChange}
+                                />
+                            </div>
+
+                            {/* Filters */}
+
+                            <div className="bg-black/4 px-4 py-5">
+                                {/* Organization type */}
+
+                                <Filters
+                                    typeFilter={typeFilter}
+                                    onTypeChange={handleTypeChange}
+                                />
+
+                                {/* Verification status */}
+
+                                <div className="mt-7">
+                                    <div className="mb-3 px-1">
+                                        <p
+                                            className="
+                            text-[10px]
+                            font-bold
+                            uppercase
+                            tracking-[0.16em]
+                            text-white/45
+                        "
+                                        >
+                                            Verification filter
+                                        </p>
+
+                                        <p
+                                            className="
+                            mt-1
+                            text-[11px]
+                            leading-4
+                            text-white/30
+                        "
+                                        >
+                                            Filter organizations by their
+                                            current verification state.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </aside>
+                    </div>
                 </section>
             </div>
 
-            {/* Toast */}
+            {/* ============================================================
+                SUCCESS TOAST
+            ============================================================ */}
+
             <SuccessToast show={toast.show} message={toast.message} />
 
-            {/* View */}
+            {/* ============================================================
+                VIEW MODAL
+            ============================================================ */}
+
             <ViewModal
                 organization={selectedOrganization}
                 loading={viewLoading}
@@ -976,7 +1413,10 @@ const Organizations = () => {
                 onClose={closeViewModal}
             />
 
-            {/* Review / Verification */}
+            {/* ============================================================
+                VERIFICATION MODAL
+            ============================================================ */}
+
             <VerificationModal
                 organization={selectedReviewOrganization}
                 loading={reviewLoading}
@@ -985,7 +1425,10 @@ const Organizations = () => {
                 onConfirm={handleVerificationChange}
             />
 
-            {/* Add */}
+            {/* ============================================================
+                ADD ORGANIZATION MODAL
+            ============================================================ */}
+
             <FormModal
                 key={showAddModal ? 'add-open' : 'add-closed'}
                 mode="add"
@@ -997,7 +1440,10 @@ const Organizations = () => {
                 onSubmit={handleAddOrganization}
             />
 
-            {/* Edit */}
+            {/* ============================================================
+                EDIT ORGANIZATION MODAL
+            ============================================================ */}
+
             <FormModal
                 key={selectedEditOrganization?.id || 'edit-organization'}
                 mode="edit"
@@ -1010,18 +1456,116 @@ const Organizations = () => {
                 onSubmit={handleEditOrganization}
             />
 
-            {/* Edit loading */}
+            {/* ============================================================
+                EDIT LOADING
+            ============================================================ */}
+
             {editLoading && !selectedEditOrganization && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-                    <div className="rounded-xl bg-white px-6 py-5 shadow-xl">
-                        <p className="text-sm text-text-secondary">
-                            Loading organization details...
-                        </p>
+                <div
+                    className="
+                        fixed
+                        inset-0
+                        z-50
+                        flex
+                        items-center
+                        justify-center
+                        bg-black/40
+                        p-4
+                    "
+                >
+                    <div
+                        className="
+                            w-full
+                            max-w-sm
+                            border
+                            border-border
+                            bg-white
+                            px-6
+                            py-5
+                            shadow-xl
+                        "
+                    >
+                        <div className="flex items-center gap-3">
+                            <div
+                                className="
+                                    h-5
+                                    w-5
+                                    animate-spin
+                                    rounded-full
+                                    border-2
+                                    border-border
+                                    border-t-primary
+                                "
+                            />
+
+                            <p className="text-sm font-semibold text-text-primary">
+                                Loading organization details...
+                            </p>
+                        </div>
                     </div>
                 </div>
             )}
 
-            {/* Delete */}
+            {/* ============================================================
+                EDIT ERROR
+            ============================================================ */}
+
+            {editError && !selectedEditOrganization && !editLoading && (
+                <div
+                    className="
+                            fixed
+                            inset-0
+                            z-50
+                            flex
+                            items-center
+                            justify-center
+                            bg-black/30
+                            p-4
+                        "
+                >
+                    <div
+                        className="
+                                w-full
+                                max-w-sm
+                                border
+                                border-border
+                                bg-white
+                                p-6
+                                shadow-xl
+                            "
+                    >
+                        <p className="text-sm font-semibold text-text-primary">
+                            Unable to edit organization
+                        </p>
+
+                        <p className="mt-2 text-xs leading-5 text-text-secondary">
+                            {editError}
+                        </p>
+
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setEditError('');
+                            }}
+                            className="
+                                    mt-5
+                                    text-xs
+                                    font-semibold
+                                    text-primary
+                                    transition-colors
+                                    hover:text-primary-hover
+                                "
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* ============================================================
+                DELETE MODAL
+            ============================================================ */}
+
             <DeleteModal
                 organization={selectedDeleteOrganization}
                 loading={deleteLoading}

@@ -959,7 +959,7 @@ const Users = () => {
                             </div>
 
                             {/* Status */}
-                            <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5">
+                            <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5 bg-black/4 ">
                                 <div className="mb-3 px-1">
                                     <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/45">
                                         Account status

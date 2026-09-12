@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
+
 import { Link, useSearchParams } from 'react-router-dom';
+
 import {
     CheckCircle2,
     CircleAlert,
@@ -14,6 +16,7 @@ const EmailVerification = () => {
     const [searchParams] = useSearchParams();
 
     const status = searchParams.get('status');
+    const verifiedRole = searchParams.get('role') || '';
 
     const [email, setEmail] = useState('');
     const [role, setRole] = useState('');
@@ -24,6 +27,16 @@ const EmailVerification = () => {
     const isSuccess = status === 'success';
     const isAlreadyVerified = status === 'already-verified';
     const isExpired = status === 'expired';
+
+    /*
+     * Keep the role when going back to login.
+     *
+     * Example:
+     * /account/login?role=individual
+     */
+    const loginPath = verifiedRole
+        ? `/account/login?role=${encodeURIComponent(verifiedRole)}`
+        : '/account/login';
 
     const handleResend = async (event) => {
         event.preventDefault();
@@ -77,6 +90,12 @@ const EmailVerification = () => {
         }
     };
 
+    /*
+    |--------------------------------------------------------------------------
+    | Email verified successfully
+    |--------------------------------------------------------------------------
+    */
+
     if (isSuccess) {
         return (
             <div className="mx-auto flex w-full max-w-md flex-col items-center text-center">
@@ -98,7 +117,7 @@ const EmailVerification = () => {
                 </p>
 
                 <Link
-                    to="/account/login"
+                    to={loginPath}
                     className="mt-8 inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-medium text-white transition hover:bg-primary-hover"
                 >
                     Continue to Sign In
@@ -108,9 +127,15 @@ const EmailVerification = () => {
         );
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Already verified
+    |--------------------------------------------------------------------------
+    */
+
     if (isAlreadyVerified) {
         return (
-            <div className="mx-auto flex w-full max-w-md flex-col items-center text-center">
+            <div className="mx-auto flex h-screen w-full max-w-md flex-col items-center justify-center text-center">
                 <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
                     <CheckCircle2
                         size={32}
@@ -129,7 +154,7 @@ const EmailVerification = () => {
                 </p>
 
                 <Link
-                    to="/account/login"
+                    to={loginPath}
                     className="mt-8 inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-medium text-white transition hover:bg-primary-hover"
                 >
                     Continue to Sign In
@@ -138,6 +163,12 @@ const EmailVerification = () => {
             </div>
         );
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Expired verification link
+    |--------------------------------------------------------------------------
+    */
 
     if (isExpired) {
         return (
@@ -211,10 +242,13 @@ const EmailVerification = () => {
                                 className="h-11 w-full appearance-none rounded-lg border border-slate-200 bg-white px-3 pr-10 text-sm text-slate-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10"
                             >
                                 <option value="">Select account type</option>
+
                                 <option value="individual">Individual</option>
+
                                 <option value="organization">
                                     Organization
                                 </option>
+
                                 <option value="admin">Admin</option>
                             </select>
 

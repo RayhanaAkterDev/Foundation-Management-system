@@ -569,12 +569,23 @@ class AdminController extends Controller
 
     public function updateUser(Request $request, int $id)
     {
-        // Only admins can access this endpoint.
+        /*
+    |--------------------------------------------------------------------------
+    | Admin authorization
+    |--------------------------------------------------------------------------
+    */
+
         $admin = $this->authorizeAdmin($request);
 
         if ($admin instanceof \Illuminate\Http\JsonResponse) {
             return $admin;
         }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Find target user
+    |--------------------------------------------------------------------------
+    */
 
         $targetUser = User::find($id);
 
@@ -589,14 +600,20 @@ class AdminController extends Controller
     | Validation
     |--------------------------------------------------------------------------
     |
-    | Admin can update ONLY these 5 fields:
-    | - name
-    | - email
-    | - phone
-    | - status
-    | - verification_method
+    | Admin can update ONLY:
     |
-    | role and password are intentionally NOT accepted.
+    | 1. name
+    | 2. email
+    | 3. phone
+    | 4. status
+    | 5. verification_method
+    |
+    | role and password are intentionally excluded.
+    |
+    | verification_method values:
+    |
+    | email = Real email verification
+    | demo  = Demo verification
     |
     */
 
@@ -630,7 +647,7 @@ class AdminController extends Controller
 
             'verification_method' => [
                 'required',
-                'in:demo,real',
+                'in:email,demo',
             ],
         ]);
 
@@ -649,23 +666,27 @@ class AdminController extends Controller
 
         /*
     |--------------------------------------------------------------------------
-    | Update ONLY the 5 permitted fields
+    | Update ONLY the five permitted fields
     |--------------------------------------------------------------------------
     */
 
         $targetUser->name = $validated['name'];
+
         $targetUser->email = $validated['email'];
+
         $targetUser->phone = $validated['phone'];
+
         $targetUser->status = $validated['status'];
+
         $targetUser->verification_method =
             $validated['verification_method'];
 
         /*
     |--------------------------------------------------------------------------
-    | Email address changed
+    | Email changed
     |--------------------------------------------------------------------------
     |
-    | A changed email must be verified again.
+    | A new email address must be verified again.
     |
     */
 
@@ -675,10 +696,10 @@ class AdminController extends Controller
 
         /*
     |--------------------------------------------------------------------------
-    | Verification method changed to DEMO
+    | Changed to DEMO verification
     |--------------------------------------------------------------------------
     |
-    | Demo accounts are considered verified immediately.
+    | Demo accounts are immediately considered verified.
     |
     */
 
@@ -691,19 +712,25 @@ class AdminController extends Controller
 
         /*
     |--------------------------------------------------------------------------
-    | Verification method changed to REAL
+    | Changed to REAL EMAIL verification
     |--------------------------------------------------------------------------
     |
-    | Real-email accounts must verify their email again.
+    | "email" is the database value for real email verification.
     |
     */
 
         if (
             $verificationMethodChanged &&
-            $validated['verification_method'] === 'real'
+            $validated['verification_method'] === 'email'
         ) {
             $targetUser->email_verified_at = null;
         }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Save user
+    |--------------------------------------------------------------------------
+    */
 
         $targetUser->save();
 
@@ -724,18 +751,18 @@ class AdminController extends Controller
 
         /*
     |--------------------------------------------------------------------------
-    | Send verification email
+    | Send real verification email
     |--------------------------------------------------------------------------
     |
     | Send a new verification email when:
     |
-    | - email address changed, OR
-    | - verification method changed to real
+    | - the email address changed while using real verification
+    | - verification method changed from demo to real email
     |
     */
 
         if (
-            $targetUser->verification_method === 'real' &&
+            $targetUser->verification_method === 'email' &&
             (
                 $emailChanged ||
                 $verificationMethodChanged
@@ -747,6 +774,12 @@ class AdminController extends Controller
                 )
             );
         }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Response
+    |--------------------------------------------------------------------------
+    */
 
         return response()->json([
             'message' => 'User updated successfully.',

@@ -92,6 +92,10 @@ return [
     |
     */
 
+    'verification' => [
+        'expire' => 1,
+    ],
+
     'passwords' => [
         'users' => [
             'provider' => 'users',

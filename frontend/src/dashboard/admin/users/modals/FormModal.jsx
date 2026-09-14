@@ -26,7 +26,7 @@ const EMPTY_FORM = {
     phone: '',
     password: '',
     role: '',
-    verification_method: 'real',
+    verification_method: 'email',
     status: 'inactive',
 };
 
@@ -74,7 +74,7 @@ const STATUS_OPTIONS = [
 
 const VERIFICATION_OPTIONS = [
     {
-        value: 'real',
+        value: 'email',
         label: 'Real email',
         description: 'Send a verification link to the email address',
         icon: AtSign,
@@ -99,7 +99,7 @@ const getInitialForm = (mode, user) => {
             phone: user.phone || '',
             password: '',
             role: user.role || '',
-            verification_method: user.verification_method || 'real',
+            verification_method: user.verification_method || 'email',
             status: user.status || 'active',
         };
     }

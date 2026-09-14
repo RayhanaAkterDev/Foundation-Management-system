@@ -674,10 +674,7 @@ class AdminController extends Controller
 
         return response()->json([
             'message' => 'User updated successfully.',
-            'user' => $targetUser->fresh([
-                'individual',
-                'organization',
-            ]),
+            'user' => $targetUser->fresh(),
         ]);
     }
 

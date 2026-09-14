@@ -584,40 +584,12 @@ class AdminController extends Controller
         }
 
         /*
-        |--------------------------------------------------------------------------
-        | Unverified users cannot be edited.
-        |--------------------------------------------------------------------------
-        */
+    |--------------------------------------------------------------------------
+    | Validation
+    |--------------------------------------------------------------------------
+    */
 
-        if (!$targetUser->hasVerifiedEmail()) {
-            return response()->json([
-                'message' =>
-                'This user cannot be edited until the account has been verified.',
-            ], 403);
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Phone number permission
-        |--------------------------------------------------------------------------
-        */
-
-        if (
-            $targetUser->id !== $user->id &&
-            $request->exists('phone')
-        ) {
-            return response()->json([
-                'message' => 'You cannot change another user\'s phone number.',
-            ], 403);
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Validation
-        |--------------------------------------------------------------------------
-        */
-
-        $validationRules = [
+        $validated = $request->validate([
             'name' => [
                 'required',
                 'string',
@@ -628,12 +600,16 @@ class AdminController extends Controller
                 'required',
                 'email',
                 'max:255',
-                'unique:users,email,' . $targetUser->id,
+                Rule::unique('users', 'email')
+                    ->ignore($targetUser->id),
             ],
 
-            'role' => [
-                'required',
-                'in:individual,organization,admin',
+            'phone' => [
+                'nullable',
+                'string',
+                'regex:/^01[0-9]{9}$/',
+                Rule::unique('users', 'phone')
+                    ->ignore($targetUser->id),
             ],
 
             'status' => [
@@ -641,120 +617,95 @@ class AdminController extends Controller
                 'in:active,inactive,suspended',
             ],
 
-            'password' => [
-                'nullable',
-                'string',
-                'min:8',
+            'verification_method' => [
+                'required',
+                'in:email,demo',
             ],
-        ];
+        ]);
 
         /*
-        |--------------------------------------------------------------------------
-        | Phone validation
-        |--------------------------------------------------------------------------
-        */
-
-        if ($targetUser->id === $user->id) {
-            $validationRules['phone'] = [
-                'sometimes',
-                'nullable',
-                'regex:/^01[0-9]{9}$/',
-                Rule::unique('users', 'phone')
-                    ->ignore($targetUser->id),
-            ];
-        }
-
-        $validated = $request->validate($validationRules);
-
-        /*
-        |--------------------------------------------------------------------------
-        | Role cannot be changed
-        |--------------------------------------------------------------------------
-        */
-
-        if ($validated['role'] !== $targetUser->role) {
-            return response()->json([
-                'message' =>
-                'User role cannot be changed after account creation.',
-            ], 422);
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Admin cannot remove their own admin role
-        |--------------------------------------------------------------------------
-        */
-
-        if (
-            $targetUser->id === $user->id &&
-            $validated['role'] !== 'admin'
-        ) {
-            return response()->json([
-                'message' => 'You cannot change your own admin role.',
-            ], 422);
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Detect email change
-        |--------------------------------------------------------------------------
-        */
+    |--------------------------------------------------------------------------
+    | Detect changes
+    |--------------------------------------------------------------------------
+    */
 
         $emailChanged =
             $targetUser->email !== $validated['email'];
 
+        $verificationMethodChanged =
+            $targetUser->verification_method !==
+            $validated['verification_method'];
+
         /*
-        |--------------------------------------------------------------------------
-        | Update basic information
-        |--------------------------------------------------------------------------
-        */
+    |--------------------------------------------------------------------------
+    | Update allowed user information
+    |--------------------------------------------------------------------------
+    */
 
         $targetUser->name = $validated['name'];
+        $targetUser->email = $validated['email'];
+        $targetUser->phone = $validated['phone'];
+        $targetUser->status = $validated['status'];
+        $targetUser->verification_method =
+            $validated['verification_method'];
 
         /*
-        |--------------------------------------------------------------------------
-        | Email change resets verification.
-        |--------------------------------------------------------------------------
-        */
+    |--------------------------------------------------------------------------
+    | Email verification handling
+    |--------------------------------------------------------------------------
+    |
+    | If the email address changes, the old verification
+    | can no longer be considered valid.
+    |
+    */
 
         if ($emailChanged) {
-            $targetUser->email = $validated['email'];
             $targetUser->email_verified_at = null;
-            $targetUser->status = 'inactive';
-        } else {
-            $targetUser->status = $validated['status'];
         }
 
         /*
-        |--------------------------------------------------------------------------
-        | Update phone only when editing own account
-        |--------------------------------------------------------------------------
-        */
+    |--------------------------------------------------------------------------
+    | Demo verification handling
+    |--------------------------------------------------------------------------
+    |
+    | If admin changes the verification method to demo,
+    | this is treated as a verified demo account.
+    |
+    | This keeps the university/demo workflow simple.
+    |
+    */
 
         if (
-            $targetUser->id === $user->id &&
-            array_key_exists('phone', $validated)
+            $verificationMethodChanged &&
+            $validated['verification_method'] === 'demo'
         ) {
-            $targetUser->phone = $validated['phone'];
+            $targetUser->email_verified_at = now();
         }
 
         /*
-        |--------------------------------------------------------------------------
-        | Update password when provided
-        |--------------------------------------------------------------------------
-        */
+    |--------------------------------------------------------------------------
+    | Real email verification handling
+    |--------------------------------------------------------------------------
+    |
+    | If admin changes the verification method to email,
+    | the account must go through real email verification.
+    |
+    */
 
-        if (!empty($validated['password'])) {
-            $targetUser->password = $validated['password'];
+        if (
+            $verificationMethodChanged &&
+            $validated['verification_method'] === 'email'
+        ) {
+            $targetUser->email_verified_at = null;
         }
 
         $targetUser->save();
 
         /*
-        |--------------------------------------------------------------------------
-        | Keep organization name synchronized
-        |--------------------------------------------------------------------------
-        */
+    |--------------------------------------------------------------------------
+    | Keep organization name synchronized
+    |--------------------------------------------------------------------------
+    */
 
         if ($targetUser->role === 'organization') {
             Organization::where(
@@ -766,14 +717,22 @@ class AdminController extends Controller
         }
 
         /*
-        |--------------------------------------------------------------------------
-        | Email verification must be restarted after email change.
-        |--------------------------------------------------------------------------
-        */
+    |--------------------------------------------------------------------------
+    | Send verification email
+    |--------------------------------------------------------------------------
+    |
+    | Send a new email when:
+    | - the email address changed, OR
+    | - verification method was changed to email
+    |
+    */
 
         if (
-            $emailChanged &&
-            $targetUser->verification_method === 'email'
+            $targetUser->verification_method === 'email' &&
+            (
+                $emailChanged ||
+                $verificationMethodChanged
+            )
         ) {
             event(
                 new \Illuminate\Auth\Events\Registered(
@@ -783,13 +742,7 @@ class AdminController extends Controller
         }
 
         return response()->json([
-            'message' => $emailChanged
-                ? (
-                    $targetUser->verification_method === 'email'
-                    ? 'User updated successfully. A new verification email has been sent.'
-                    : 'User updated successfully. The account is inactive until demo verification.'
-                )
-                : 'User updated successfully.',
+            'message' => 'User updated successfully.',
 
             'user' => $targetUser
                 ->fresh()

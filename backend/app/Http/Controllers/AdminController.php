@@ -569,10 +569,11 @@ class AdminController extends Controller
 
     public function updateUser(Request $request, int $id)
     {
-        $user = $this->authorizeAdmin($request);
+        // Only admins can access this endpoint.
+        $admin = $this->authorizeAdmin($request);
 
-        if ($user instanceof \Illuminate\Http\JsonResponse) {
-            return $user;
+        if ($admin instanceof \Illuminate\Http\JsonResponse) {
+            return $admin;
         }
 
         $targetUser = User::find($id);
@@ -587,6 +588,16 @@ class AdminController extends Controller
     |--------------------------------------------------------------------------
     | Validation
     |--------------------------------------------------------------------------
+    |
+    | Admin can update ONLY these 5 fields:
+    | - name
+    | - email
+    | - phone
+    | - status
+    | - verification_method
+    |
+    | role and password are intentionally NOT accepted.
+    |
     */
 
         $validated = $request->validate([
@@ -619,7 +630,7 @@ class AdminController extends Controller
 
             'verification_method' => [
                 'required',
-                'in:email,demo',
+                'in:demo,real',
             ],
         ]);
 
@@ -638,7 +649,7 @@ class AdminController extends Controller
 
         /*
     |--------------------------------------------------------------------------
-    | Update allowed user information
+    | Update ONLY the 5 permitted fields
     |--------------------------------------------------------------------------
     */
 
@@ -651,11 +662,10 @@ class AdminController extends Controller
 
         /*
     |--------------------------------------------------------------------------
-    | Email verification handling
+    | Email address changed
     |--------------------------------------------------------------------------
     |
-    | If the email address changes, the old verification
-    | can no longer be considered valid.
+    | A changed email must be verified again.
     |
     */
 
@@ -665,13 +675,10 @@ class AdminController extends Controller
 
         /*
     |--------------------------------------------------------------------------
-    | Demo verification handling
+    | Verification method changed to DEMO
     |--------------------------------------------------------------------------
     |
-    | If admin changes the verification method to demo,
-    | this is treated as a verified demo account.
-    |
-    | This keeps the university/demo workflow simple.
+    | Demo accounts are considered verified immediately.
     |
     */
 
@@ -684,17 +691,16 @@ class AdminController extends Controller
 
         /*
     |--------------------------------------------------------------------------
-    | Real email verification handling
+    | Verification method changed to REAL
     |--------------------------------------------------------------------------
     |
-    | If admin changes the verification method to email,
-    | the account must go through real email verification.
+    | Real-email accounts must verify their email again.
     |
     */
 
         if (
             $verificationMethodChanged &&
-            $validated['verification_method'] === 'email'
+            $validated['verification_method'] === 'real'
         ) {
             $targetUser->email_verified_at = null;
         }
@@ -721,14 +727,15 @@ class AdminController extends Controller
     | Send verification email
     |--------------------------------------------------------------------------
     |
-    | Send a new email when:
-    | - the email address changed, OR
-    | - verification method was changed to email
+    | Send a new verification email when:
+    |
+    | - email address changed, OR
+    | - verification method changed to real
     |
     */
 
         if (
-            $targetUser->verification_method === 'email' &&
+            $targetUser->verification_method === 'real' &&
             (
                 $emailChanged ||
                 $verificationMethodChanged

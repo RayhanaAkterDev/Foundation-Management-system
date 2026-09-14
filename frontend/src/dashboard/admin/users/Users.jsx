@@ -40,6 +40,7 @@ const Users = () => {
     const [activeCategory, setActiveCategory] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
+    const [verificationFilter, setVerificationFilter] = useState('all');
 
     const [sortConfig, setSortConfig] = useState({
         key: 'created_at',
@@ -372,6 +373,16 @@ const Users = () => {
             result = result.filter((user) => user.status === statusFilter);
         }
 
+        if (verificationFilter !== 'all') {
+            result = result.filter((user) => {
+                const isVerified = Boolean(user.email_verified_at);
+
+                return verificationFilter === 'verified'
+                    ? isVerified
+                    : !isVerified;
+            });
+        }
+
         const search = searchTerm.trim().toLowerCase();
 
         if (search) {
@@ -415,7 +426,14 @@ const Users = () => {
         });
 
         return result;
-    }, [users, activeCategory, statusFilter, searchTerm, sortConfig]);
+    }, [
+        users,
+        activeCategory,
+        statusFilter,
+        verificationFilter,
+        searchTerm,
+        sortConfig,
+    ]);
 
     // --------------------------------
     // Pagination
@@ -445,6 +463,11 @@ const Users = () => {
 
     const handleStatusChange = (event) => {
         setStatusFilter(event.target.value);
+        setCurrentPage(1);
+    };
+
+    const handleVerificationChange = (event) => {
+        setVerificationFilter(event.target.value);
         setCurrentPage(1);
     };
 
@@ -532,6 +555,7 @@ const Users = () => {
         });
 
         const url = URL.createObjectURL(blob);
+
         const link = document.createElement('a');
 
         link.href = url;
@@ -565,36 +589,42 @@ const Users = () => {
             align: 'center',
             width: '60px',
         },
+
         {
             key: 'name',
             header: 'Name',
             sortable: true,
             sortKey: 'name',
         },
+
         {
             key: 'email',
             header: 'Email',
             sortable: true,
             sortKey: 'email',
         },
+
         {
             key: 'role',
             header: 'Role',
             sortable: true,
             sortKey: 'role',
         },
+
         {
-            key: 'joinedDate',
-            header: 'Joined',
+            key: 'emailVerification',
+            header: 'Email Verification',
             sortable: true,
-            sortKey: 'created_at',
+            sortKey: 'emailVerification',
         },
+
         {
             key: 'status',
             header: 'Status',
             sortable: true,
             sortKey: 'status',
         },
+
         {
             key: 'id',
             header: 'Actions',
@@ -682,6 +712,7 @@ const Users = () => {
         <>
             <div className="space-y-9">
                 {/* Header */}
+
                 <PageHeader
                     title="Users"
                     subtitle="Review and manage everyone connected to Stand For People, including their roles, account status, and platform access."
@@ -743,6 +774,7 @@ const Users = () => {
                 />
 
                 {/* User overview */}
+
                 <UserStats
                     total={statistics.total}
                     individuals={statistics.individuals}
@@ -750,11 +782,11 @@ const Users = () => {
                     administrators={statistics.administrators}
                 />
 
-                {/* --------------------------------
-                    USER MANAGEMENT
-                --------------------------------- */}
+                {/* USER MANAGEMENT */}
+
                 <section>
                     {/* Section heading */}
+
                     <div className="mb-6">
                         <div className="flex flex-col gap-4 border-b border-border pb-5 sm:flex-row sm:items-end sm:justify-between">
                             <div className="min-w-0">
@@ -798,13 +830,17 @@ const Users = () => {
                     </div>
 
                     {/* Management workspace */}
+
                     <div className="grid items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_280px]">
                         {/* LEFT — USER TABLE WORKSPACE */}
-                        <div className="flex min-h-0 min-w-0 flex-col border border-border bg-surface">
+
+                        <div className="flex min-h-0 min-w-0 flex-col overflow-hidden border border-border bg-surface">
                             {/* Workspace toolbar */}
+
                             <div className="shrink-0 border-b border-border px-5 py-4">
                                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                                     {/* Search */}
+
                                     <div className="min-w-0 flex-1 lg:max-w-full">
                                         <div className="relative">
                                             <Search
@@ -863,6 +899,7 @@ const Users = () => {
                                     </div>
 
                                     {/* Table context */}
+
                                     <div className="flex shrink-0 items-center gap-5">
                                         <div className="hidden h-7 border-l border-border lg:block" />
 
@@ -880,6 +917,7 @@ const Users = () => {
                             </div>
 
                             {/* Table heading */}
+
                             <div className="flex shrink-0 items-center justify-between border-b border-border bg-white px-5 py-3.5">
                                 <div>
                                     <p className="text-sm font-semibold text-text-primary">
@@ -896,8 +934,9 @@ const Users = () => {
                                 </span>
                             </div>
 
-                            {/* Scrollable table */}
-                            <div className="min-h-0 max-h-130 flex-1 overflow-y-auto">
+                            {/* ONLY TABLE CONTENT SCROLLS */}
+
+                            <div className="min-h-0 flex-1 overflow-y-auto">
                                 <UserTable
                                     columns={columns}
                                     rows={rows}
@@ -907,9 +946,10 @@ const Users = () => {
                                 />
                             </div>
 
-                            {/* Pagination */}
+                            {/* PAGINATION ALWAYS STAYS AT BOTTOM */}
+
                             {filteredUsers.length > 0 && (
-                                <div className="shrink-0 border-t border-border">
+                                <div className="shrink-0 border-t border-border bg-surface">
                                     <UserPagination
                                         currentPage={safeCurrentPage}
                                         totalPages={totalPages}
@@ -922,8 +962,10 @@ const Users = () => {
                         </div>
 
                         {/* RIGHT — CATEGORY + FILTER SIDEBAR */}
-                        <aside className="flex min-h-0 flex-col border border-primary/90 bg-primary">
+
+                        <aside className="flex min-h-0 flex-col self-stretch border border-primary/90 bg-primary">
                             {/* Sidebar heading */}
+
                             <div className="shrink-0 px-5 pb-5 pt-6">
                                 <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/45">
                                     Directory controls
@@ -934,12 +976,13 @@ const Users = () => {
                                 </h2>
 
                                 <p className="mt-2 max-w-55 text-[12px] leading-5 text-white/50">
-                                    Narrow the directory by account type and
-                                    current status.
+                                    Narrow the directory by account type,
+                                    account status, and email verification.
                                 </p>
                             </div>
 
                             {/* User role */}
+
                             <div className="border-y border-white/10 bg-black/4 px-4 py-5">
                                 <div className="mb-3 flex items-center justify-between px-1">
                                     <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/45">
@@ -958,21 +1001,27 @@ const Users = () => {
                                 />
                             </div>
 
-                            {/* Status */}
-                            <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5 bg-black/4 ">
+                            {/* Filters — NATURAL HEIGHT, NO SCROLLBAR */}
+
+                            <div className="px-4 py-5 bg-black/4">
                                 <div className="mb-3 px-1">
                                     <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/45">
-                                        Account status
+                                        Account filters
                                     </p>
 
                                     <p className="mt-1 text-[11px] leading-4 text-white/30">
-                                        Filter accounts by their current state.
+                                        Filter accounts by their current state
+                                        and email verification.
                                     </p>
                                 </div>
 
                                 <UserFilters
                                     statusFilter={statusFilter}
                                     onStatusChange={handleStatusChange}
+                                    verificationFilter={verificationFilter}
+                                    onVerificationChange={
+                                        handleVerificationChange
+                                    }
                                 />
                             </div>
                         </aside>
@@ -981,9 +1030,11 @@ const Users = () => {
             </div>
 
             {/* Toast */}
+
             <UserSuccessToast show={toast.show} message={toast.message} />
 
             {/* View */}
+
             <UserViewModal
                 user={selectedUser}
                 loading={viewLoading}
@@ -992,6 +1043,7 @@ const Users = () => {
             />
 
             {/* Add */}
+
             <UserFormModal
                 mode="add"
                 open={showAddModal}
@@ -1003,6 +1055,7 @@ const Users = () => {
             />
 
             {/* Edit */}
+
             <UserFormModal
                 key={selectedEditUser?.id || 'edit-user'}
                 mode="edit"
@@ -1026,6 +1079,7 @@ const Users = () => {
             )}
 
             {/* Delete */}
+
             <UserDeleteModal
                 user={selectedDeleteUser}
                 loading={deleteLoading}

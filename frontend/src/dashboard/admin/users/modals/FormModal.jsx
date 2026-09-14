@@ -26,7 +26,7 @@ const EMPTY_FORM = {
     phone: '',
     password: '',
     role: '',
-    verification_method: 'email',
+    verification_method: 'real',
     status: 'inactive',
 };
 
@@ -74,7 +74,7 @@ const STATUS_OPTIONS = [
 
 const VERIFICATION_OPTIONS = [
     {
-        value: 'email',
+        value: 'real',
         label: 'Real email',
         description: 'Send a verification link to the email address',
         icon: AtSign,
@@ -99,7 +99,7 @@ const getInitialForm = (mode, user) => {
             phone: user.phone || '',
             password: '',
             role: user.role || '',
-            verification_method: user.verification_method || 'email',
+            verification_method: user.verification_method || 'real',
             status: user.status || 'active',
         };
     }
@@ -237,7 +237,7 @@ const TextField = ({
                 <div
                     className={`
                         flex h-full w-11 shrink-0 items-center justify-center
-                        transition-colors duration-200
+                        transition-colors
                         sm:w-12
                         ${
                             hasError
@@ -320,7 +320,7 @@ const SectionHeader = ({ number, title, description }) => (
 );
 
 // ============================================================
-// ROLE SELECTOR
+// ROLE SELECTOR — CREATE ONLY
 // ============================================================
 
 const RoleSelector = ({ value, onChange, disabled, fieldErrors }) => {
@@ -438,16 +438,10 @@ const RoleSelector = ({ value, onChange, disabled, fieldErrors }) => {
 };
 
 // ============================================================
-// VERIFICATION SELECTOR
+// VERIFICATION SELECTOR — CREATE + EDIT
 // ============================================================
 
-const VerificationSelector = ({
-    value,
-    onChange,
-    disabled,
-    fieldErrors,
-    readOnly = false,
-}) => {
+const VerificationSelector = ({ value, onChange, disabled, fieldErrors }) => {
     const hasError = Boolean(fieldErrors?.verification_method?.length);
 
     return (
@@ -455,11 +449,11 @@ const VerificationSelector = ({
             <div className="mb-2.5 flex items-center justify-between gap-3">
                 <label className="font-jost text-[12px] font-semibold text-text-primary">
                     Verification method
-                    {!readOnly && <span className="ml-1 text-primary">*</span>}
+                    <span className="ml-1 text-primary">*</span>
                 </label>
 
                 <span className="shrink-0 font-jost text-[11px] text-text-secondary">
-                    {readOnly ? 'Current method' : 'Select one'}
+                    Select one
                 </span>
             </div>
 
@@ -481,7 +475,7 @@ const VerificationSelector = ({
                         <button
                             key={option.value}
                             type="button"
-                            disabled={disabled || readOnly}
+                            disabled={disabled}
                             onClick={() => onChange(option.value)}
                             className={`
                                 group relative flex min-w-0 w-full
@@ -495,12 +489,8 @@ const VerificationSelector = ({
                                         ? 'bg-primary/4.5'
                                         : 'bg-surface hover:bg-background-alt'
                                 }
-                                ${
-                                    readOnly
-                                        ? 'cursor-default'
-                                        : 'disabled:cursor-not-allowed'
-                                }
-                                disabled:opacity-100
+                                disabled:cursor-not-allowed
+                                disabled:opacity-50
                             `}
                         >
                             {selected && (
@@ -514,7 +504,7 @@ const VerificationSelector = ({
                                     ${
                                         selected
                                             ? 'bg-primary text-white'
-                                            : 'bg-background-alt text-text-secondary'
+                                            : 'bg-background-alt text-text-secondary group-hover:text-primary'
                                     }
                                 `}
                             >
@@ -566,7 +556,7 @@ const VerificationSelector = ({
 };
 
 // ============================================================
-// STATUS SELECTOR
+// STATUS SELECTOR — EDIT ONLY
 // ============================================================
 
 const StatusSelector = ({ value, onChange, disabled, fieldErrors }) => {
@@ -642,6 +632,32 @@ const StatusSelector = ({ value, onChange, disabled, fieldErrors }) => {
         </div>
     );
 };
+
+// ============================================================
+// READ-ONLY ACCOUNT DETAIL
+// ============================================================
+
+const ReadOnlyAccountDetail = ({ label, value, icon: Icon }) => (
+    <div className="flex min-w-0 items-center justify-between gap-4 border-b border-border py-3 last:border-b-0">
+        <div className="flex min-w-0 items-center gap-2.5">
+            {Icon && (
+                <Icon
+                    size={16}
+                    strokeWidth={1.7}
+                    className="shrink-0 text-text-secondary"
+                />
+            )}
+
+            <span className="font-jost text-[11px] font-medium text-text-secondary">
+                {label}
+            </span>
+        </div>
+
+        <span className="truncate text-right font-jost text-[11px] font-semibold text-text-primary">
+            {value}
+        </span>
+    </div>
+);
 
 // ============================================================
 // FORM MODAL
@@ -723,13 +739,43 @@ const FormModalContent = ({
     const handleSubmit = (event) => {
         event.preventDefault();
 
+        // ====================================================
+        // EDIT MODE
+        //
+        // Admin can update ONLY:
+        // - name
+        // - email
+        // - phone
+        // - status
+        // - verification_method
+        //
+        // Role and password are intentionally excluded.
+        // ====================================================
+
+        if (isEdit) {
+            const editPayload = {
+                name: form.name,
+                email: form.email,
+                phone: form.phone,
+                status: form.status,
+                verification_method: form.verification_method,
+            };
+
+            onSubmit(editPayload);
+            return;
+        }
+
+        // ====================================================
+        // CREATE MODE
+        // ====================================================
+
         onSubmit(form);
     };
 
     const title = isEdit ? 'Edit user account' : 'Create user account';
 
     const description = isEdit
-        ? 'Update the account details and access settings for this user.'
+        ? 'Update the basic information, verification method, and current access status for this account.'
         : 'Add a new person or organization to Stand For People.';
 
     return (
@@ -871,7 +917,7 @@ const FormModalContent = ({
                             scrollbar-thin
                         "
                     >
-                        {/* General error */}
+                        {/* GENERAL ERROR */}
 
                         {error && (
                             <div className="border-b border-red-100 bg-red-50 px-5 py-3.5 sm:px-7 lg:px-9">
@@ -894,10 +940,16 @@ const FormModalContent = ({
                                 <SectionHeader
                                     number="01"
                                     title="Personal information"
-                                    description="Basic details used to identify and contact this account."
+                                    description={
+                                        isEdit
+                                            ? 'Update the basic information used to identify and contact this account.'
+                                            : 'Basic details used to identify and contact this account.'
+                                    }
                                 />
 
                                 <div className="grid gap-5 sm:grid-cols-2 sm:gap-6">
+                                    {/* FULL NAME */}
+
                                     <TextField
                                         id="user-form-name"
                                         name="name"
@@ -911,6 +963,8 @@ const FormModalContent = ({
                                         fieldErrors={fieldErrors}
                                         required
                                     />
+
+                                    {/* EMAIL */}
 
                                     <TextField
                                         id="user-form-email"
@@ -926,6 +980,8 @@ const FormModalContent = ({
                                         fieldErrors={fieldErrors}
                                         required
                                     />
+
+                                    {/* PHONE */}
 
                                     <div className="sm:col-span-2">
                                         <TextField
@@ -944,55 +1000,83 @@ const FormModalContent = ({
                                         />
                                     </div>
 
-                                    <div className="sm:col-span-2">
-                                        <TextField
-                                            id="user-form-password"
-                                            name="password"
-                                            label="Password"
-                                            icon={LockKeyhole}
-                                            type="password"
-                                            value={form.password}
-                                            onChange={handleChange}
-                                            placeholder={
-                                                isEdit
-                                                    ? 'Leave blank to keep current password'
-                                                    : 'Enter a secure password'
-                                            }
-                                            disabled={loading}
-                                            autoComplete="new-password"
-                                            fieldErrors={fieldErrors}
-                                            hint={
-                                                isEdit ? 'Optional' : 'Required'
-                                            }
-                                            required={!isEdit}
-                                        />
-                                    </div>
+                                    {/* PASSWORD — CREATE ONLY */}
+
+                                    {!isEdit && (
+                                        <div className="sm:col-span-2">
+                                            <TextField
+                                                id="user-form-password"
+                                                name="password"
+                                                label="Password"
+                                                icon={LockKeyhole}
+                                                type="password"
+                                                value={form.password}
+                                                onChange={handleChange}
+                                                placeholder="Enter a secure password"
+                                                disabled={loading}
+                                                autoComplete="new-password"
+                                                fieldErrors={fieldErrors}
+                                                hint="Required"
+                                                required
+                                            />
+                                        </div>
+                                    )}
                                 </div>
 
-                                {/* Security note */}
+                                {/* CREATE SECURITY NOTE */}
 
-                                <div className="mt-7 border-t border-border pt-5 sm:mt-8">
-                                    <div className="flex items-start gap-3">
-                                        <span className="flex h-8 w-8 shrink-0 items-center justify-center bg-background-alt text-text-secondary">
-                                            <LockKeyhole
-                                                size={15}
-                                                strokeWidth={1.7}
-                                            />
-                                        </span>
+                                {!isEdit && (
+                                    <div className="mt-7 border-t border-border pt-5 sm:mt-8">
+                                        <div className="flex items-start gap-3">
+                                            <span className="flex h-8 w-8 shrink-0 items-center justify-center bg-background-alt text-text-secondary">
+                                                <LockKeyhole
+                                                    size={15}
+                                                    strokeWidth={1.7}
+                                                />
+                                            </span>
 
-                                        <div className="min-w-0">
-                                            <p className="font-jost text-[12px] font-semibold text-text-primary">
-                                                Password protection
-                                            </p>
+                                            <div className="min-w-0">
+                                                <p className="font-jost text-[12px] font-semibold text-text-primary">
+                                                    Password protection
+                                                </p>
 
-                                            <p className="mt-1 max-w-lg font-jost text-[11px] leading-[1.6] text-text-secondary">
-                                                {isEdit
-                                                    ? 'Leave this field empty to keep the current password.'
-                                                    : 'Use a strong password to protect this account.'}
-                                            </p>
+                                                <p className="mt-1 max-w-lg font-jost text-[11px] leading-[1.6] text-text-secondary">
+                                                    Use a strong password to
+                                                    protect this account.
+                                                </p>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
+                                )}
+
+                                {/* EDIT PERMISSION NOTE */}
+
+                                {isEdit && (
+                                    <div className="mt-7 border-t border-border pt-5 sm:mt-8">
+                                        <div className="flex items-start gap-3">
+                                            <span className="flex h-8 w-8 shrink-0 items-center justify-center bg-background-alt text-text-secondary">
+                                                <ShieldCheck
+                                                    size={15}
+                                                    strokeWidth={1.7}
+                                                />
+                                            </span>
+
+                                            <div className="min-w-0">
+                                                <p className="font-jost text-[12px] font-semibold text-text-primary">
+                                                    Edit permissions
+                                                </p>
+
+                                                <p className="mt-1 max-w-lg font-jost text-[11px] leading-[1.6] text-text-secondary">
+                                                    Only name, email, phone,
+                                                    account status, and
+                                                    verification method can be
+                                                    changed. Role and password
+                                                    remain unchanged.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </section>
 
                             {/* =================================================
@@ -1005,61 +1089,114 @@ const FormModalContent = ({
                                     title="Account access"
                                     description={
                                         isEdit
-                                            ? 'Review the account role, verification method, and current platform access.'
+                                            ? 'Manage the verification method and current platform access status for this account.'
                                             : 'Choose the account role and how this new account will be verified.'
                                     }
                                 />
 
                                 <div className="space-y-6 sm:space-y-7">
-                                    <RoleSelector
-                                        value={form.role}
-                                        onChange={(role) =>
-                                            setForm((previous) => ({
-                                                ...previous,
-                                                role,
-                                            }))
-                                        }
-                                        disabled={loading}
-                                        fieldErrors={fieldErrors}
-                                    />
+                                    {/* =================================================
+                                        CREATE MODE
+                                    ================================================== */}
 
-                                    {/* Verification method */}
-
-                                    <div className="border-t border-border pt-6 sm:pt-7">
-                                        <VerificationSelector
-                                            value={form.verification_method}
-                                            onChange={(verification_method) =>
-                                                setForm((previous) => ({
-                                                    ...previous,
-                                                    verification_method,
-                                                }))
-                                            }
-                                            disabled={loading}
-                                            fieldErrors={fieldErrors}
-                                            readOnly={isEdit}
-                                        />
-                                    </div>
-
-                                    {/* Status is editable only in edit mode */}
-
-                                    {isEdit && (
-                                        <div className="border-t border-border pt-6 sm:pt-7">
-                                            <StatusSelector
-                                                value={form.status}
-                                                onChange={(status) =>
+                                    {!isEdit && (
+                                        <>
+                                            <RoleSelector
+                                                value={form.role}
+                                                onChange={(role) =>
                                                     setForm((previous) => ({
                                                         ...previous,
-                                                        status,
+                                                        role,
                                                     }))
                                                 }
                                                 disabled={loading}
                                                 fieldErrors={fieldErrors}
                                             />
-                                        </div>
+
+                                            <div className="border-t border-border pt-6 sm:pt-7">
+                                                <VerificationSelector
+                                                    value={
+                                                        form.verification_method
+                                                    }
+                                                    onChange={(
+                                                        verification_method,
+                                                    ) =>
+                                                        setForm((previous) => ({
+                                                            ...previous,
+                                                            verification_method,
+                                                        }))
+                                                    }
+                                                    disabled={loading}
+                                                    fieldErrors={fieldErrors}
+                                                />
+                                            </div>
+                                        </>
+                                    )}
+
+                                    {/* =================================================
+                                        EDIT MODE
+
+                                        Role = READ ONLY
+                                        Verification = EDITABLE
+                                        Status = EDITABLE
+                                    ================================================== */}
+
+                                    {isEdit && (
+                                        <>
+                                            {/* ROLE — READ ONLY */}
+
+                                            <div className="border border-border bg-surface px-4">
+                                                <ReadOnlyAccountDetail
+                                                    label="Account role"
+                                                    value={getRoleLabel(
+                                                        form.role,
+                                                    )}
+                                                    icon={ShieldCheck}
+                                                />
+                                            </div>
+
+                                            {/* VERIFICATION METHOD — EDITABLE */}
+
+                                            <div className="border-t border-border pt-6 sm:pt-7">
+                                                <VerificationSelector
+                                                    value={
+                                                        form.verification_method
+                                                    }
+                                                    onChange={(
+                                                        verification_method,
+                                                    ) =>
+                                                        setForm((previous) => ({
+                                                            ...previous,
+                                                            verification_method,
+                                                        }))
+                                                    }
+                                                    disabled={loading}
+                                                    fieldErrors={fieldErrors}
+                                                />
+                                            </div>
+
+                                            {/* STATUS — EDITABLE */}
+
+                                            <div className="border-t border-border pt-6 sm:pt-7">
+                                                <StatusSelector
+                                                    value={form.status}
+                                                    onChange={(status) =>
+                                                        setForm((previous) => ({
+                                                            ...previous,
+                                                            status,
+                                                        }))
+                                                    }
+                                                    disabled={loading}
+                                                    fieldErrors={fieldErrors}
+                                                />
+                                            </div>
+                                        </>
                                     )}
                                 </div>
 
-                                {/* Access summary */}
+                                {/* =================================================
+                                    ACCESS SUMMARY
+                                ================================================== */}
 
                                 <div className="mt-6 border-t border-border pt-5 sm:mt-7 sm:pt-6">
                                     <div className="flex min-w-0 items-center justify-between gap-4">
@@ -1101,7 +1238,16 @@ const FormModalContent = ({
                                             Account status
                                         </span>
 
-                                        <span className="truncate font-jost text-[11px] font-semibold text-text-primary">
+                                        <span
+                                            className={`
+                                                truncate font-jost text-[11px] font-semibold
+                                                ${
+                                                    isEdit
+                                                        ? 'text-primary'
+                                                        : 'text-text-primary'
+                                                }
+                                            `}
+                                        >
                                             {getStatusLabel(form.status)}
                                         </span>
                                     </div>
@@ -1131,7 +1277,7 @@ const FormModalContent = ({
 
                             <p className="truncate font-jost text-[11px] font-medium text-text-secondary">
                                 {isEdit
-                                    ? 'Review the changes before saving.'
+                                    ? 'Review the five editable fields before saving.'
                                     : 'Review the details before creating this account.'}
                             </p>
                         </div>

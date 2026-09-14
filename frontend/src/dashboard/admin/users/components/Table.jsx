@@ -1,11 +1,14 @@
 import React from 'react';
+
 import DataTable from '@/components/dashboard/DataTable';
 import StatusBadge from '@/components/dashboard/StatusBadge';
 import { Users } from 'lucide-react';
 
 const Table = ({ columns, rows, onSort, getSortIcon, resultCount }) => {
     const enhancedColumns = columns
-        .filter((column) => column.key !== 'email')
+        .filter(
+            (column) => column.key !== 'email' && column.key !== 'joinedDate',
+        )
         .map((column) => {
             if (column.key === 'name') {
                 return {
@@ -36,6 +39,12 @@ const Table = ({ columns, rows, onSort, getSortIcon, resultCount }) => {
                                             {row.email}
                                         </p>
                                     )}
+
+                                    {row.joinedDate && (
+                                        <p className="mt-0.5 text-[11px] text-text-secondary">
+                                            Joined {row.joinedDate}
+                                        </p>
+                                    )}
                                 </div>
                             </div>
                         );
@@ -61,12 +70,18 @@ const Table = ({ columns, rows, onSort, getSortIcon, resultCount }) => {
                 };
             }
 
-            if (column.key === 'joinedDate') {
+            if (column.key === 'emailVerification') {
                 return {
                     ...column,
-                    render: (value) => (
-                        <span className="text-text-secondary">{value}</span>
-                    ),
+                    render: (_, row) => {
+                        const isVerified = Boolean(row.email_verified_at);
+
+                        return (
+                            <StatusBadge
+                                status={isVerified ? 'verified' : 'unverified'}
+                            />
+                        );
+                    },
                 };
             }
 

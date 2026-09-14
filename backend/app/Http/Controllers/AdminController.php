@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Validation\Rule;
 
 use App\Models\User;
@@ -569,54 +570,12 @@ class AdminController extends Controller
 
     public function updateUser(Request $request, int $id)
     {
-        /*
-    |--------------------------------------------------------------------------
-    | Admin authorization
-    |--------------------------------------------------------------------------
-    */
+        $this->authorizeAdmin($request);
 
-        $admin = $this->authorizeAdmin($request);
+        $targetUser = User::findOrFail($id);
 
-        if ($admin instanceof \Illuminate\Http\JsonResponse) {
-            return $admin;
-        }
-
-        /*
-    |--------------------------------------------------------------------------
-    | Find target user
-    |--------------------------------------------------------------------------
-    */
-
-        $targetUser = User::find($id);
-
-        if (!$targetUser) {
-            return response()->json([
-                'message' => 'User not found.',
-            ], 404);
-        }
-
-        /*
-    |--------------------------------------------------------------------------
-    | Validation
-    |--------------------------------------------------------------------------
-    |
-    | Admin can update ONLY:
-    |
-    | 1. name
-    | 2. email
-    | 3. phone
-    | 4. status
-    | 5. verification_method
-    |
-    | role and password are intentionally excluded.
-    |
-    | verification_method values:
-    |
-    | email = Real email verification
-    | demo  = Demo verification
-    |
-    */
-
+        // Admin can update only these 5 fields.
+        // Role and password are intentionally not accepted.
         $validated = $request->validate([
             'name' => [
                 'required',
@@ -628,16 +587,14 @@ class AdminController extends Controller
                 'required',
                 'email',
                 'max:255',
-                Rule::unique('users', 'email')
-                    ->ignore($targetUser->id),
+                Rule::unique('users', 'email')->ignore($targetUser->id),
             ],
 
             'phone' => [
                 'nullable',
                 'string',
                 'regex:/^01[0-9]{9}$/',
-                Rule::unique('users', 'phone')
-                    ->ignore($targetUser->id),
+                Rule::unique('users', 'phone')->ignore($targetUser->id),
             ],
 
             'status' => [
@@ -651,145 +608,76 @@ class AdminController extends Controller
             ],
         ]);
 
-        /*
-    |--------------------------------------------------------------------------
-    | Detect changes
-    |--------------------------------------------------------------------------
-    */
-
-        $emailChanged =
-            $targetUser->email !== $validated['email'];
+        $emailChanged = $targetUser->email !== $validated['email'];
 
         $verificationMethodChanged =
-            $targetUser->verification_method !==
-            $validated['verification_method'];
+            $targetUser->verification_method !== $validated['verification_method'];
 
-        /*
-    |--------------------------------------------------------------------------
-    | Update ONLY the five permitted fields
-    |--------------------------------------------------------------------------
-    */
+        // ---------------------------------------------------------
+        // Update only the 5 allowed fields
+        // ---------------------------------------------------------
 
         $targetUser->name = $validated['name'];
-
         $targetUser->email = $validated['email'];
-
         $targetUser->phone = $validated['phone'];
-
         $targetUser->status = $validated['status'];
+        $targetUser->verification_method = $validated['verification_method'];
 
-        $targetUser->verification_method =
-            $validated['verification_method'];
+        // ---------------------------------------------------------
+        // Email verification state
+        // ---------------------------------------------------------
 
-        /*
-    |--------------------------------------------------------------------------
-    | Email changed
-    |--------------------------------------------------------------------------
-    |
-    | A new email address must be verified again.
-    |
-    */
+        if ($validated['verification_method'] === 'demo') {
 
-        if ($emailChanged) {
-            $targetUser->email_verified_at = null;
-        }
-
-        /*
-    |--------------------------------------------------------------------------
-    | Changed to DEMO verification
-    |--------------------------------------------------------------------------
-    |
-    | Demo accounts are immediately considered verified.
-    |
-    */
-
-        if (
-            $verificationMethodChanged &&
-            $validated['verification_method'] === 'demo'
-        ) {
+            // Demo accounts are considered verified immediately.
             $targetUser->email_verified_at = now();
+        } else {
+
+            // Real-email accounts must verify their email.
+            // If email or verification method changed, previous
+            // verification is no longer valid.
+            if ($emailChanged || $verificationMethodChanged) {
+                $targetUser->email_verified_at = null;
+            }
         }
-
-        /*
-    |--------------------------------------------------------------------------
-    | Changed to REAL EMAIL verification
-    |--------------------------------------------------------------------------
-    |
-    | "email" is the database value for real email verification.
-    |
-    */
-
-        if (
-            $verificationMethodChanged &&
-            $validated['verification_method'] === 'email'
-        ) {
-            $targetUser->email_verified_at = null;
-        }
-
-        /*
-    |--------------------------------------------------------------------------
-    | Save user
-    |--------------------------------------------------------------------------
-    */
 
         $targetUser->save();
 
-        /*
-    |--------------------------------------------------------------------------
-    | Keep organization name synchronized
-    |--------------------------------------------------------------------------
-    */
+        // ---------------------------------------------------------
+        // Keep organization name synchronized
+        // ---------------------------------------------------------
 
         if ($targetUser->role === 'organization') {
-            Organization::where(
-                'user_id',
-                $targetUser->id
-            )->update([
-                'name' => $targetUser->name,
-            ]);
+            $organization = $targetUser->organization;
+
+            if ($organization) {
+                $organization->update([
+                    'name' => $targetUser->name,
+                ]);
+            }
         }
 
-        /*
-    |--------------------------------------------------------------------------
-    | Send real verification email
-    |--------------------------------------------------------------------------
-    |
-    | Send a new verification email when:
-    |
-    | - the email address changed while using real verification
-    | - verification method changed from demo to real email
-    |
-    */
+        // ---------------------------------------------------------
+        // Send verification email when needed
+        // ---------------------------------------------------------
 
         if (
-            $targetUser->verification_method === 'email' &&
-            (
-                $emailChanged ||
-                $verificationMethodChanged
-            )
+            $validated['verification_method'] === 'email' &&
+            ($emailChanged || $verificationMethodChanged)
         ) {
-            event(
-                new \Illuminate\Auth\Events\Registered(
-                    $targetUser
-                )
-            );
+            event(new Registered($targetUser));
         }
 
-        /*
-    |--------------------------------------------------------------------------
-    | Response
-    |--------------------------------------------------------------------------
-    */
+        // ---------------------------------------------------------
+        // Return updated user
+        // ---------------------------------------------------------
 
         return response()->json([
             'message' => 'User updated successfully.',
-
-            'user' => $targetUser
-                ->fresh()
-                ->load([
-                    'individualProfile',
-                    'organization',
-                ]),
+            'user' => $targetUser->fresh([
+                'individual',
+                'organization',
+            ]),
         ]);
     }
 

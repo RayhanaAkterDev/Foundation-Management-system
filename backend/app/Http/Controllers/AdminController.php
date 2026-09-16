@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Log;
 
 use App\Models\User;
 use App\Models\Organization;
@@ -527,7 +528,18 @@ class AdminController extends Controller
         */
 
         if ($result['user']->verification_method === 'email') {
+
+            Log::info('ADMIN USER VERIFICATION: sending email', [
+                'user_id' => $result['user']->id,
+                'email' => $result['user']->email,
+            ]);
+
             $result['user']->sendEmailVerificationNotification();
+
+            Log::info('ADMIN USER VERIFICATION: email notification called', [
+                'user_id' => $result['user']->id,
+                'email' => $result['user']->email,
+            ]);
         }
 
         return response()->json([

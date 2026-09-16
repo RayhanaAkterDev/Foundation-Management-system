@@ -562,7 +562,9 @@ const Users = () => {
         link.download = 'stand-for-people-users.csv';
 
         document.body.appendChild(link);
+
         link.click();
+
         document.body.removeChild(link);
 
         URL.revokeObjectURL(url);
@@ -589,42 +591,36 @@ const Users = () => {
             align: 'center',
             width: '60px',
         },
-
         {
             key: 'name',
             header: 'Name',
             sortable: true,
             sortKey: 'name',
         },
-
         {
             key: 'email',
             header: 'Email',
             sortable: true,
             sortKey: 'email',
         },
-
         {
             key: 'role',
             header: 'Role',
             sortable: true,
             sortKey: 'role',
         },
-
         {
             key: 'emailVerification',
             header: 'Email Verification',
             sortable: true,
             sortKey: 'emailVerification',
         },
-
         {
             key: 'status',
             header: 'Status',
             sortable: true,
             sortKey: 'status',
         },
-
         {
             key: 'id',
             header: 'Actions',
@@ -708,6 +704,10 @@ const Users = () => {
         );
     }
 
+    // --------------------------------
+    // Main
+    // --------------------------------
+
     return (
         <>
             <div className="space-y-9">
@@ -782,27 +782,63 @@ const Users = () => {
                     administrators={statistics.administrators}
                 />
 
-                {/* USER MANAGEMENT */}
-
-                <section>
-                    {/* Section heading */}
-
+                {/* ==================================================
+    USER MANAGEMENT
+================================================== */}
+                <section className="mt-24">
                     <div className="mb-6">
-                        <div className="flex flex-col gap-4 border-b border-border pb-5 sm:flex-row sm:items-end sm:justify-between">
+                        <div
+                            className="
+                flex
+                flex-col
+                gap-4
+                border-b
+                border-border
+                pb-5
+                sm:flex-row
+                sm:items-end
+                sm:justify-between
+            "
+                        >
                             <div className="min-w-0">
-                                <div className="mb-2 flex items-center gap-2.5">
+                                <div className="mb-2 flex items-center gap-2.5 px-2">
                                     <span className="h-1.5 w-1.5 bg-primary" />
 
-                                    <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary">
+                                    <span
+                                        className="
+                            text-[10px]
+                            font-bold
+                            uppercase
+                            tracking-[0.18em]
+                            text-primary
+                        "
+                                    >
                                         Administration
                                     </span>
                                 </div>
 
-                                <h2 className="font-fraunces text-[25px] font-semibold leading-tight tracking-tight text-text-primary">
+                                <h2
+                                    className="
+                        font-fraunces
+                        text-[25px]
+                        font-semibold
+                        leading-tight
+                        tracking-tight
+                        text-text-primary
+                    "
+                                >
                                     User management
                                 </h2>
 
-                                <p className="mt-1.5 max-w-xl text-[13px] leading-5 text-text-secondary">
+                                <p
+                                    className="
+                        mt-1.5
+                        max-w-xl
+                        text-[13px]
+                        leading-5
+                        text-text-secondary
+                    "
+                                >
                                     Review accounts, roles, and access across
                                     the platform.
                                 </p>
@@ -812,7 +848,15 @@ const Users = () => {
                                 <span className="h-8 border-l border-border" />
 
                                 <div>
-                                    <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-text-secondary">
+                                    <p
+                                        className="
+                            text-[9px]
+                            font-semibold
+                            uppercase
+                            tracking-[0.16em]
+                            text-text-secondary
+                        "
+                                    >
                                         Showing
                                     </p>
 
@@ -829,29 +873,65 @@ const Users = () => {
                         </div>
                     </div>
 
-                    {/* Management workspace */}
-
-                    <div className="grid items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_280px]">
-                        {/* LEFT — USER TABLE WORKSPACE */}
-
-                        <div className="flex min-h-0 min-w-0 flex-col overflow-hidden border border-border bg-surface">
+                    {/* ==================================================
+        MANAGEMENT WORKSPACE
+    ================================================== */}
+                    <div
+                        className="
+            grid
+            items-stretch
+            gap-6
+            xl:grid-cols-[minmax(0,1fr)_280px]
+        "
+                    >
+                        {/* ==================================================
+            LEFT — USER TABLE WORKSPACE
+        ================================================== */}
+                        <div
+                            className="
+                flex
+                min-h-0
+                min-w-0
+                flex-col
+                border
+                border-border
+                bg-surface
+            "
+                        >
                             {/* Workspace toolbar */}
-
-                            <div className="shrink-0 border-b border-border px-5 py-4">
-                                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                            <div
+                                className="
+                    shrink-0
+                    border-b
+                    border-border
+                    px-5
+                    py-4
+                "
+                            >
+                                <div
+                                    className="
+                        flex
+                        flex-col
+                        gap-4
+                        lg:flex-row
+                        lg:items-center
+                        lg:justify-between
+                    "
+                                >
                                     {/* Search */}
-
-                                    <div className="min-w-0 flex-1 lg:max-w-full">
+                                    <div className="min-w-0 flex-1">
                                         <div className="relative">
                                             <Search
                                                 size={17}
                                                 strokeWidth={1.8}
                                                 className="
-                                                    pointer-events-none
-                                                    absolute left-3.5 top-1/2
-                                                    -translate-y-1/2
-                                                    text-text-secondary
-                                                "
+                                    pointer-events-none
+                                    absolute
+                                    left-3.5
+                                    top-1/2
+                                    -translate-y-1/2
+                                    text-text-secondary
+                                "
                                             />
 
                                             <input
@@ -860,19 +940,23 @@ const Users = () => {
                                                 onChange={handleSearchChange}
                                                 placeholder="Search by name or email"
                                                 className="
-                                                    h-10 w-full
-                                                    border border-border
-                                                    bg-background
-                                                    pl-10 pr-16
-                                                    text-[13px]
-                                                    font-medium
-                                                    text-text-primary
-                                                    outline-none
-                                                    transition-colors
-                                                    placeholder:text-text-secondary/70
-                                                    focus:border-primary/50
-                                                    focus:bg-surface
-                                                "
+                                    h-10
+                                    w-full
+                                    border
+                                    border-border
+                                    bg-background
+                                    pl-10
+                                    pr-16
+                                    text-[13px]
+                                    font-medium
+                                    text-text-primary
+                                    outline-none
+                                    transition-colors
+                                    placeholder:text-text-secondary/70
+                                    hover:border-text-secondary/30
+                                    focus:border-primary/50
+                                    focus:bg-surface
+                                "
                                             />
 
                                             {searchTerm && (
@@ -880,17 +964,18 @@ const Users = () => {
                                                     type="button"
                                                     onClick={handleClearSearch}
                                                     className="
-                                                        absolute right-3
-                                                        top-1/2
-                                                        -translate-y-1/2
-                                                        text-[10px]
-                                                        font-semibold
-                                                        uppercase
-                                                        tracking-wide
-                                                        text-text-secondary
-                                                        transition-colors
-                                                        hover:text-text-primary
-                                                    "
+                                        absolute
+                                        right-3
+                                        top-1/2
+                                        -translate-y-1/2
+                                        text-[10px]
+                                        font-semibold
+                                        uppercase
+                                        tracking-wide
+                                        text-text-secondary
+                                        transition-colors
+                                        hover:text-primary
+                                    "
                                                 >
                                                     Clear
                                                 </button>
@@ -898,18 +983,43 @@ const Users = () => {
                                         </div>
                                     </div>
 
-                                    {/* Table context */}
-
-                                    <div className="flex shrink-0 items-center gap-5">
-                                        <div className="hidden h-7 border-l border-border lg:block" />
+                                    {/* Directory context */}
+                                    <div
+                                        className="
+                            flex
+                            shrink-0
+                            items-center
+                            gap-5
+                        "
+                                    >
+                                        <div
+                                            className="
+                                hidden
+                                h-7
+                                border-l
+                                border-border
+                                lg:block
+                            "
+                                        />
 
                                         <div>
-                                            <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-text-secondary">
+                                            <p
+                                                className="
+                                    text-[9px]
+                                    font-bold
+                                    uppercase
+                                    tracking-[0.16em]
+                                    text-text-secondary
+                                "
+                                            >
                                                 Directory
                                             </p>
 
                                             <p className="mt-0.5 text-xs font-medium text-text-primary">
-                                                {filteredUsers.length} results
+                                                {filteredUsers.length}{' '}
+                                                {filteredUsers.length === 1
+                                                    ? 'result'
+                                                    : 'results'}
                                             </p>
                                         </div>
                                     </div>
@@ -917,8 +1027,22 @@ const Users = () => {
                             </div>
 
                             {/* Table heading */}
-
-                            <div className="flex shrink-0 items-center justify-between border-b border-border bg-white px-5 py-3.5">
+                            <div
+                                className="
+                    flex
+                    shrink-0
+                    flex-col
+                    gap-2
+                    border-b
+                    border-border
+                    bg-white
+                    px-5
+                    py-3.5
+                    sm:flex-row
+                    sm:items-center
+                    sm:justify-between
+                "
+                            >
                                 <div>
                                     <p className="text-sm font-semibold text-text-primary">
                                         Registered users
@@ -934,22 +1058,34 @@ const Users = () => {
                                 </span>
                             </div>
 
-                            {/* ONLY TABLE CONTENT SCROLLS */}
-
-                            <div className="min-h-0 flex-1 overflow-y-auto">
-                                <UserTable
-                                    columns={columns}
-                                    rows={rows}
-                                    onSort={handleSort}
-                                    getSortIcon={getSortIcon}
-                                    resultCount={filteredUsers.length}
-                                />
+                            {/* ==================================================
+                TABLE — ONLY THIS AREA SCROLLS
+            ================================================== */}
+                            <div
+                                className="
+                    min-h-0
+                    flex-1
+                    overflow-x-auto
+                    overflow-y-auto
+                "
+                            >
+                                <div className="min-w-190">
+                                    <UserTable
+                                        columns={columns}
+                                        rows={rows}
+                                        onSort={handleSort}
+                                        getSortIcon={getSortIcon}
+                                        resultCount={filteredUsers.length}
+                                        onView={handleViewUser}
+                                        onEdit={openEditModal}
+                                        onDelete={openDeleteModal}
+                                    />
+                                </div>
                             </div>
 
-                            {/* PAGINATION ALWAYS STAYS AT BOTTOM */}
-
+                            {/* Pagination */}
                             {filteredUsers.length > 0 && (
-                                <div className="shrink-0 border-t border-border bg-surface">
+                                <div className="shrink-0 border-t border-border">
                                     <UserPagination
                                         currentPage={safeCurrentPage}
                                         totalPages={totalPages}
@@ -961,35 +1097,93 @@ const Users = () => {
                             )}
                         </div>
 
-                        {/* RIGHT — CATEGORY + FILTER SIDEBAR */}
+                        {/* ==================================================
+            RIGHT — USER FILTER SIDEBAR
 
-                        <aside className="flex min-h-0 flex-col self-stretch border border-primary/90 bg-primary">
+            Height comes naturally from its content.
+            No fixed height / no overflow.
+        ================================================== */}
+                        <aside
+                            className="
+                flex
+                flex-col
+                self-start
+                border
+                border-primary/90
+                bg-primary
+            "
+                        >
                             {/* Sidebar heading */}
-
                             <div className="shrink-0 px-5 pb-5 pt-6">
-                                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/45">
+                                <p
+                                    className="
+                        text-[10px]
+                        font-bold
+                        uppercase
+                        tracking-[0.18em]
+                        text-white/45
+                    "
+                                >
                                     Directory controls
                                 </p>
 
-                                <h2 className="mt-1.5 font-fraunces text-[21px] leading-tight text-white">
+                                <h2
+                                    className="
+                        mt-1.5
+                        font-fraunces
+                        text-[21px]
+                        leading-tight
+                        text-white
+                    "
+                                >
                                     Refine users
                                 </h2>
 
-                                <p className="mt-2 max-w-55 text-[12px] leading-5 text-white/50">
-                                    Narrow the directory by account type,
+                                <p
+                                    className="
+                        mt-2
+                        max-w-55
+                        text-[12px]
+                        leading-5
+                        text-white/50
+                    "
+                                >
+                                    Narrow the user directory by account role,
                                     account status, and email verification.
                                 </p>
                             </div>
 
                             {/* User role */}
-
-                            <div className="border-y border-white/10 bg-black/4 px-4 py-5">
+                            <div
+                                className="
+                    border-y
+                    border-white/10
+                    bg-black/4
+                    px-4
+                    py-5
+                "
+                            >
                                 <div className="mb-3 flex items-center justify-between px-1">
-                                    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/45">
+                                    <p
+                                        className="
+                            text-[10px]
+                            font-bold
+                            uppercase
+                            tracking-[0.16em]
+                            text-white/45
+                        "
+                                    >
                                         User role
                                     </p>
 
-                                    <span className="text-[10px] font-medium tabular-nums text-white/30">
+                                    <span
+                                        className="
+                            text-[10px]
+                            font-medium
+                            tabular-nums
+                            text-white/30
+                        "
+                                    >
                                         {categoryTabs.length}
                                     </span>
                                 </div>
@@ -1001,15 +1195,29 @@ const Users = () => {
                                 />
                             </div>
 
-                            {/* Filters — NATURAL HEIGHT, NO SCROLLBAR */}
-
-                            <div className="px-4 py-5 bg-black/4">
+                            {/* Account filters */}
+                            <div className="bg-black/4 px-4 py-5">
                                 <div className="mb-3 px-1">
-                                    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/45">
+                                    <p
+                                        className="
+                            text-[10px]
+                            font-bold
+                            uppercase
+                            tracking-[0.16em]
+                            text-white/45
+                        "
+                                    >
                                         Account filters
                                     </p>
 
-                                    <p className="mt-1 text-[11px] leading-4 text-white/30">
+                                    <p
+                                        className="
+                            mt-1
+                            text-[11px]
+                            leading-4
+                            text-white/30
+                        "
+                                    >
                                         Filter accounts by their current state
                                         and email verification.
                                     </p>

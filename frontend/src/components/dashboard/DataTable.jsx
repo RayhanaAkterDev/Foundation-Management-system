@@ -19,7 +19,7 @@ const DataTable = ({
     };
 
     return (
-        <section className="overflow-hidden bg-surface flex flex-col justify-center items-center h-full">
+        <section className="overflow-hidden border border-border bg-surface">
             {rows.length === 0 ? (
                 <div className="px-5 py-14 sm:px-6 sm:py-16">
                     <EmptyState {...(empty || {})} />

@@ -286,7 +286,7 @@ const ViewModal = ({ user, loading, error, onClose }) => {
                     sm:max-h-[94vh]
                     sm:rounded-xl
                     lg:max-h-[92vh]
-                    lg:max-w-4xl
+                    lg:max-w-5xl
                 "
             >
                 {/* ========================================================

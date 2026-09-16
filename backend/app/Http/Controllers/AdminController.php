@@ -527,11 +527,7 @@ class AdminController extends Controller
         */
 
         if ($result['user']->verification_method === 'email') {
-            event(
-                new \Illuminate\Auth\Events\Registered(
-                    $result['user']
-                )
-            );
+            $result['user']->sendEmailVerificationNotification();
         }
 
         return response()->json([

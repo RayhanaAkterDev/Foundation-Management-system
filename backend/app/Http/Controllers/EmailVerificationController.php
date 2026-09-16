@@ -9,9 +9,7 @@ use Illuminate\Support\Facades\URL;
 class EmailVerificationController extends Controller
 {
     /**
-     * Verify email address.
-     *
-     * Verification links are valid for 60 minutes.
+     * Verify real email address.
      */
     public function verify(Request $request, int $id, string $hash)
     {
@@ -24,18 +22,12 @@ class EmailVerificationController extends Controller
         |--------------------------------------------------------------------------
         | Check signature
         |--------------------------------------------------------------------------
-        |
-        | First check whether the signature itself is correct.
-        | This ignores expiration so we can distinguish:
-        |
-        | - Invalid/tampered link
-        | - Expired link
-        |
         */
 
-        if (! URL::hasCorrectSignature($request)) {
+        if (!URL::hasCorrectSignature($request)) {
             return redirect(
-                $frontendUrl . '/email-verification?status=error&message=' .
+                $frontendUrl .
+                    '/email-verification?status=error&message=' .
                     urlencode(
                         'This email verification link is invalid.'
                     )
@@ -56,7 +48,8 @@ class EmailVerificationController extends Controller
             now()->timestamp >= (int) $expires
         ) {
             return redirect(
-                $frontendUrl . '/email-verification?status=expired'
+                $frontendUrl .
+                    '/email-verification?status=expired'
             );
         }
 
@@ -70,20 +63,35 @@ class EmailVerificationController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Verify email hash
+        | Make sure this is a real-email account
         |--------------------------------------------------------------------------
-        |
-        | This makes sure the verification link belongs to this
-        | user's current email address.
-        |
         */
 
-        if (! hash_equals(
-            sha1($user->getEmailForVerification()),
-            $hash
-        )) {
+        if ($user->verification_method !== 'email') {
             return redirect(
-                $frontendUrl . '/email-verification?status=error&message=' .
+                $frontendUrl .
+                    '/email-verification?status=error&message=' .
+                    urlencode(
+                        'This account does not use email verification.'
+                    )
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Make sure hash belongs to current email
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            !hash_equals(
+                sha1($user->getEmailForVerification()),
+                $hash
+            )
+        ) {
+            return redirect(
+                $frontendUrl .
+                    '/email-verification?status=error&message=' .
                     urlencode(
                         'This email verification link is invalid.'
                     )
@@ -98,13 +106,14 @@ class EmailVerificationController extends Controller
 
         if ($user->hasVerifiedEmail()) {
             return redirect(
-                $frontendUrl . '/email-verification?status=already-verified'
+                $frontendUrl .
+                    '/email-verification?status=already-verified'
             );
         }
 
         /*
         |--------------------------------------------------------------------------
-        | Mark email as verified
+        | Verify email
         |--------------------------------------------------------------------------
         */
 
@@ -114,28 +123,24 @@ class EmailVerificationController extends Controller
         |--------------------------------------------------------------------------
         | Activate account
         |--------------------------------------------------------------------------
+        |
+        | Email verification is what makes the account eligible
+        | to become active.
+        |
         */
 
-        $user->update([
-            'status' => 'active',
-        ]);
-
-        /*
-        |--------------------------------------------------------------------------
-        | Redirect to frontend
-        |--------------------------------------------------------------------------
-        */
+        $user->status = 'active';
+        $user->verification_email_sent_at = null;
+        $user->save();
 
         return redirect(
-            $frontendUrl . '/email-verification?status=success'
+            $frontendUrl .
+                '/email-verification?status=success'
         );
     }
 
-
     /**
      * Demo verification.
-     *
-     * Kept separate from real email verification.
      */
     public function verifyDemo(Request $request, int $id)
     {
@@ -148,13 +153,14 @@ class EmailVerificationController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Make sure this is a demo account
+        | Must be a demo account
         |--------------------------------------------------------------------------
         */
 
         if ($user->verification_method !== 'demo') {
             return redirect(
-                $frontendUrl . '/email-verification?status=error&message=' .
+                $frontendUrl .
+                    '/email-verification?status=error&message=' .
                     urlencode(
                         'This account does not use demo verification.'
                     )
@@ -169,7 +175,8 @@ class EmailVerificationController extends Controller
 
         if ($user->hasVerifiedEmail()) {
             return redirect(
-                $frontendUrl . '/email-verification?status=already-verified'
+                $frontendUrl .
+                    '/email-verification?status=already-verified'
             );
         }
 
@@ -181,26 +188,20 @@ class EmailVerificationController extends Controller
 
         $user->markEmailAsVerified();
 
-        $user->update([
-            'status' => 'active',
-        ]);
+        $user->status = 'active';
+        $user->verification_email_sent_at = null;
+        $user->save();
 
         return redirect(
-            $frontendUrl . '/email-verification?status=success&method=demo'
+            $frontendUrl .
+                '/email-verification?status=success&method=demo'
         );
     }
-
 
     /**
      * Resend verification email.
      *
-     * This endpoint is intentionally PUBLIC because the user
-     * is not authenticated yet.
-     *
-     * Works for:
-     * - individual
-     * - organization
-     * - admin
+     * Public endpoint because the user is not authenticated.
      */
     public function resend(Request $request)
     {
@@ -222,13 +223,19 @@ class EmailVerificationController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $user = User::where('email', $validated['email'])
-            ->where('role', $validated['role'])
+        $user = User::where(
+            'email',
+            $validated['email']
+        )
+            ->where(
+                'role',
+                $validated['role']
+            )
             ->first();
 
         /*
         |--------------------------------------------------------------------------
-        | Do not reveal whether an account exists
+        | Do not reveal whether account exists
         |--------------------------------------------------------------------------
         */
 
@@ -249,6 +256,7 @@ class EmailVerificationController extends Controller
             return response()->json([
                 'message' =>
                 'Your email address is already verified.',
+
                 'already_verified' => true,
             ], 400);
         }
@@ -263,26 +271,37 @@ class EmailVerificationController extends Controller
             return response()->json([
                 'message' =>
                 'This account uses demo verification.',
+
                 'verification_method' => 'demo',
+
+                'user_id' => $user->id,
             ], 400);
         }
 
         /*
         |--------------------------------------------------------------------------
-        | Send fresh email verification link
+        | Send fresh verification email
         |--------------------------------------------------------------------------
-        |
-        | Laravel's verification notification will generate a
-        | fresh signed verification URL.
-        |
         */
 
         $user->sendEmailVerificationNotification();
 
+        /*
+        |--------------------------------------------------------------------------
+        | Record that a verification email was sent.
+        |--------------------------------------------------------------------------
+        */
+
+        $user->verification_email_sent_at = now();
+        $user->save();
+
         return response()->json([
             'message' =>
             'A new verification email has been sent to your email address.',
+
             'verification_method' => 'email',
+
+            'verification_email_sent' => true,
         ]);
     }
 }

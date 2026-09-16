@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -40,46 +39,53 @@ class AuthController extends Controller
 
             'profile.address' => 'nullable|string|max:500',
 
-            'profile.district' =>
-            'required_if:accountType,individual|nullable|string|max:100',
+            'profile.district' => [
+                'required_if:accountType,individual',
+                'nullable',
+                'string',
+                'max:100',
+            ],
 
             'profile.dob' => 'nullable|date',
 
-            'profile.profilePhoto' =>
-            'nullable|string|max:255',
+            'profile.profilePhoto' => 'nullable|string|max:255',
 
-            'preferences.participationTypes' =>
-            'nullable|array',
+            'preferences.participationTypes' => 'nullable|array',
 
-            'preferences.causes' =>
-            'nullable|array',
+            'preferences.causes' => 'nullable|array',
 
-            'profile.organizationType' =>
-            'required_if:accountType,organization|nullable|string|max:100',
+            'profile.organizationType' => [
+                'required_if:accountType,organization',
+                'nullable',
+                'string',
+                'max:100',
+            ],
 
-            'profile.registrationNumber' =>
-            'required_if:accountType,organization|nullable|string|max:100',
+            'profile.registrationNumber' => [
+                'required_if:accountType,organization',
+                'nullable',
+                'string',
+                'max:100',
+            ],
 
-            'profile.website' =>
-            'nullable|url|max:255',
+            'profile.website' => 'nullable|url|max:255',
 
-            'details.mission' =>
-            'required_if:accountType,organization|nullable|string|max:1000',
+            'details.mission' => [
+                'required_if:accountType,organization',
+                'nullable',
+                'string',
+                'max:1000',
+            ],
 
-            'details.focusAreas' =>
-            'nullable|array',
+            'details.focusAreas' => 'nullable|array',
 
-            'details.communitiesServed' =>
-            'nullable|array',
+            'details.communitiesServed' => 'nullable|array',
 
-            'details.teamSize' =>
-            'nullable|string|max:20',
+            'details.teamSize' => 'nullable|string|max:20',
 
-            'details.primaryActivities' =>
-            'nullable|array',
+            'details.primaryActivities' => 'nullable|array',
 
-            'profile.organizationLogo' =>
-            'nullable|string|max:255',
+            'profile.organizationLogo' => 'nullable|string|max:255',
         ]);
 
         $user = DB::transaction(function () use ($validated) {
@@ -92,15 +98,20 @@ class AuthController extends Controller
                     $validated['credentials']['password']
                 ),
                 'role' => $role,
-
-                // Self-registered accounts always use real email verification.
                 'verification_method' => 'email',
-
-                // Account remains inactive until email verification.
                 'status' => 'inactive',
-
-                'phone' => $validated['profile']['phone'],
+                'phone' => $validated['profile']['phone'] ?? null,
             ]);
+
+            /*
+            |--------------------------------------------------------------------------
+            | Explicitly reset verification state.
+            |--------------------------------------------------------------------------
+            */
+
+            $user->email_verified_at = null;
+            $user->verification_email_sent_at = null;
+            $user->save();
 
             if ($role === 'individual') {
                 $user->individualProfile()->create([
@@ -172,19 +183,18 @@ class AuthController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Send email verification
+        | IMPORTANT:
+        |
+        | Do NOT send verification email here.
+        |
+        | The first login attempt triggers verification email.
         |--------------------------------------------------------------------------
-        |
-        | User implements MustVerifyEmail, so Laravel's Registered event
-        | will trigger the standard verification notification.
-        |
         */
-
-        event(new Registered($user));
 
         return response()->json([
             'message' =>
-            'Registration successful. Please verify your email address to activate your account.',
+            'Registration successful. Please sign in to receive your email verification link.',
+
             'user' => $user,
         ], 201);
     }
@@ -193,7 +203,9 @@ class AuthController extends Controller
     {
         $validated = $request->validate([
             'email' => 'required|email',
+
             'password' => 'required|string',
+
             'role' => 'required|in:individual,organization,admin',
         ]);
 
@@ -225,31 +237,104 @@ class AuthController extends Controller
         |--------------------------------------------------------------------------
         | Email verification / account activation
         |--------------------------------------------------------------------------
-        |
-        | An account cannot be active until its email has been verified.
-        |
         */
 
-        if (!$user->hasVerifiedEmail() || $user->status !== 'active') {
+        if (
+            !$user->hasVerifiedEmail() ||
+            $user->status !== 'active'
+        ) {
+            /*
+            |--------------------------------------------------------------------------
+            | Demo verification
+            |--------------------------------------------------------------------------
+            */
+
             if ($user->verification_method === 'demo') {
                 return response()->json([
-                    'message' => 'Please verify this demo account before logging in.',
+                    'message' =>
+                    'Please verify this demo account before logging in.',
+
                     'verification_method' => 'demo',
+
                     'user_id' => $user->id,
-                    'email_verified' => $user->hasVerifiedEmail(),
+
+                    'email' => $user->email,
+
+                    'email_verified' =>
+                    $user->hasVerifiedEmail(),
+
                     'status' => $user->status,
+
+                    'verification_email_sent' => false,
                 ], 403);
             }
 
+            /*
+            |--------------------------------------------------------------------------
+            | Real email verification
+            |--------------------------------------------------------------------------
+            */
+
+            $verificationEmailSent = false;
+
+            /*
+            |--------------------------------------------------------------------------
+            | FIRST LOGIN:
+            |
+            | No verification email has ever been sent.
+            | Send it now.
+            |--------------------------------------------------------------------------
+            */
+
+            if (!$user->verification_email_sent_at) {
+                $user->sendEmailVerificationNotification();
+
+                $user->verification_email_sent_at = now();
+                $user->save();
+
+                $verificationEmailSent = true;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Existing unverified account:
+            |
+            | Do NOT automatically send another email.
+            | User must use Resend Verification.
+            |--------------------------------------------------------------------------
+            */
+
             return response()->json([
-                'message' => 'Please verify your email address before logging in.',
+                'message' =>
+                'Please verify your email address before logging in.',
+
                 'verification_method' => 'email',
-                'email_verified' => $user->hasVerifiedEmail(),
+
+                'user_id' => $user->id,
+
+                'email' => $user->email,
+
+                'email_verified' =>
+                $user->hasVerifiedEmail(),
+
                 'status' => $user->status,
+
+                'verification_email_sent' =>
+                $verificationEmailSent,
+
+                'can_resend' => true,
             ], 403);
         }
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        /*
+        |--------------------------------------------------------------------------
+        | Verified + active account
+        |--------------------------------------------------------------------------
+        */
+
+        $token = $user
+            ->createToken('auth_token')
+            ->plainTextToken;
 
         return response()->json([
             'message' => 'Login successful.',
@@ -260,7 +345,9 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        $request->user()
+            ->currentAccessToken()
+            ->delete();
 
         return response()->json([
             'message' => 'Logout successful.',
@@ -283,8 +370,11 @@ class AuthController extends Controller
         $user = $request->user();
 
         $validated = $request->validate([
-            'name' =>
-            'required|string|max:255',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+            ],
 
             'email' => [
                 'required',
@@ -302,69 +392,75 @@ class AuthController extends Controller
                     ->ignore($user->id),
             ],
 
-            'district' =>
-            'nullable|string|max:255',
+            'district' => 'nullable|string|max:255',
 
-            'address' =>
-            'nullable|string',
+            'address' => 'nullable|string',
 
-            'date_of_birth' =>
-            'nullable|date',
+            'date_of_birth' => 'nullable|date',
         ]);
 
-        $emailChanged = $user->email !== $validated['email'];
+        $emailChanged =
+            $user->email !== $validated['email'];
 
         /*
         |--------------------------------------------------------------------------
-        | Update account-level information
+        | Update account information
         |--------------------------------------------------------------------------
         */
 
         $user->name = $validated['name'];
-        $user->phone = $validated['phone'];
+
+        $user->phone = $validated['phone'] ?? null;
 
         if ($emailChanged) {
             $user->email = $validated['email'];
 
-            // New email must be verified again.
+            /*
+            |--------------------------------------------------------------------------
+            | New email must be verified again.
+            |
+            | Keep the current verification method.
+            |--------------------------------------------------------------------------
+            */
+
             $user->email_verified_at = null;
+
             $user->status = 'inactive';
+
+            /*
+            |--------------------------------------------------------------------------
+            | A new email means the previous verification email
+            | is no longer relevant.
+            |--------------------------------------------------------------------------
+            */
+
+            $user->verification_email_sent_at = null;
         }
 
         $user->save();
 
         /*
         |--------------------------------------------------------------------------
-        | Update individual profile information
-        |--------------------------------------------------------------------------
-        |
-        | Phone is intentionally excluded because users.phone is the
-        | single source of truth for the account phone.
-        |
-        */
-
-        $user->individualProfile()->updateOrCreate(
-            ['user_id' => $user->id],
-            [
-                'district' =>
-                $validated['district'] ?? null,
-
-                'address' =>
-                $validated['address'] ?? null,
-
-                'date_of_birth' =>
-                $validated['date_of_birth'] ?? null,
-            ]
-        );
-
-        /*
-        |--------------------------------------------------------------------------
-        | Send verification again when email changes
+        | Individual profile
         |--------------------------------------------------------------------------
         */
 
-        if ($emailChanged) {
-            event(new Registered($user));
+        if ($user->role === 'individual') {
+            $user->individualProfile()->updateOrCreate(
+                [
+                    'user_id' => $user->id,
+                ],
+                [
+                    'district' =>
+                    $validated['district'] ?? null,
+
+                    'address' =>
+                    $validated['address'] ?? null,
+
+                    'date_of_birth' =>
+                    $validated['date_of_birth'] ?? null,
+                ]
+            );
         }
 
         $user->load([
@@ -375,7 +471,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => $emailChanged
-                ? 'Profile updated. Please verify your new email address to reactivate your account.'
+                ? 'Profile updated. Please sign in to receive a verification link for your new email address.'
                 : 'Profile updated successfully.',
 
             'user' => $user,

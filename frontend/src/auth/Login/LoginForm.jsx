@@ -6,6 +6,7 @@ import { useState } from 'react';
 
 const LoginForm = ({ loginRole = null }) => {
     const navigate = useNavigate();
+
     const [searchParams] = useSearchParams();
 
     // Public login gets its role from the URL.
@@ -13,10 +14,15 @@ const LoginForm = ({ loginRole = null }) => {
     const role = loginRole || searchParams.get('role');
 
     const [showPassword, setShowPassword] = useState(false);
+
     const [email, setEmail] = useState('');
+
     const [password, setPassword] = useState('');
+
     const [rememberMe, setRememberMe] = useState(false);
+
     const [isSubmitting, setIsSubmitting] = useState(false);
+
     const [loginError, setLoginError] = useState('');
 
     const handleSubmit = async (e) => {
@@ -35,7 +41,7 @@ const LoginForm = ({ loginRole = null }) => {
                         Accept: 'application/json',
                     },
                     body: JSON.stringify({
-                        email,
+                        email: email.trim(),
                         password,
                         role,
                     }),
@@ -46,7 +52,7 @@ const LoginForm = ({ loginRole = null }) => {
 
             /*
             |--------------------------------------------------------------------------
-            | Demo account requires verification
+            | Demo account requires demo verification
             |--------------------------------------------------------------------------
             |
             | Admin-created demo accounts do not use a real email inbox.
@@ -60,11 +66,42 @@ const LoginForm = ({ loginRole = null }) => {
                 data.user_id
             ) {
                 navigate(
-                    `/email-verification?status=demo&user_id=${data.user_id}&email=${encodeURIComponent(email)}`,
+                    `/email-verification?status=demo&user_id=${data.user_id}&email=${encodeURIComponent(email.trim())}`,
                 );
 
                 return;
             }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Real email verification required
+            |--------------------------------------------------------------------------
+            |
+            | The backend sends the verification email on the user's
+            | first login attempt.
+            |
+            | We send the user to the verification page so they can
+            | see the verification instructions and use Resend if needed.
+            |
+            */
+
+            if (
+                response.status === 403 &&
+                data.verification_method === 'email' &&
+                data.user_id
+            ) {
+                navigate(
+                    `/email-verification?status=email&user_id=${data.user_id}&email=${encodeURIComponent(email.trim())}&role=${encodeURIComponent(role)}`,
+                );
+
+                return;
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Other login errors
+            |--------------------------------------------------------------------------
+            */
 
             if (!response.ok) {
                 throw new Error(
@@ -72,14 +109,24 @@ const LoginForm = ({ loginRole = null }) => {
                 );
             }
 
-            // Store authentication data
+            /*
+            |--------------------------------------------------------------------------
+            | Store authentication data
+            |--------------------------------------------------------------------------
+            */
+
             const storage = rememberMe ? localStorage : sessionStorage;
 
             storage.setItem('auth_token', data.token);
 
             storage.setItem('user', JSON.stringify(data.user));
 
-            // Redirect based on authenticated account role
+            /*
+            |--------------------------------------------------------------------------
+            | Redirect based on authenticated account role
+            |--------------------------------------------------------------------------
+            */
+
             if (data.user.role === 'individual') {
                 navigate('/individual/dashboard');
             } else if (data.user.role === 'organization') {

@@ -2,9 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Auth\Events\Registered;
 use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Log;
 
 use App\Models\User;
 use App\Models\Organization;
@@ -320,6 +318,11 @@ class AdminController extends Controller
     | email -> real email verification
     | demo  -> demo verification
     |
+    | IMPORTANT:
+    | The verification email is NOT sent here.
+    | The first login attempt is responsible for triggering
+    | the email verification flow.
+    |
     */
 
     public function storeUser(Request $request)
@@ -378,6 +381,7 @@ class AdminController extends Controller
                 'regex:/^01[0-9]{9}$/',
                 Rule::unique('users', 'phone'),
             ],
+
             /*
             |--------------------------------------------------------------------------
             | Organization-specific fields
@@ -455,6 +459,14 @@ class AdminController extends Controller
                 */
 
                 'status' => 'inactive',
+
+                /*
+                |--------------------------------------------------------------------------
+                | Email must start unverified.
+                |--------------------------------------------------------------------------
+                */
+
+                'email_verified_at' => null,
             ]);
 
             $individualProfile = null;
@@ -523,28 +535,19 @@ class AdminController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Send real verification email only for email verification.
+        | IMPORTANT:
+        |
+        | Do NOT send the verification email here.
+        |
+        | Admin-created users follow the same workflow as publicly
+        | registered users. Their first login attempt will trigger
+        | the verification email from AuthController.
         |--------------------------------------------------------------------------
         */
 
-        if ($result['user']->verification_method === 'email') {
-
-            Log::info('ADMIN USER VERIFICATION: sending email', [
-                'user_id' => $result['user']->id,
-                'email' => $result['user']->email,
-            ]);
-
-            $result['user']->sendEmailVerificationNotification();
-
-            Log::info('ADMIN USER VERIFICATION: email notification called', [
-                'user_id' => $result['user']->id,
-                'email' => $result['user']->email,
-            ]);
-        }
-
         return response()->json([
             'message' => $result['user']->verification_method === 'email'
-                ? 'User created successfully. A verification email has been sent.'
+                ? 'User created successfully. The account is inactive until email verification.'
                 : 'Demo user created successfully. The account remains inactive until demo verification.',
 
             'user' => $result['user']
@@ -561,29 +564,36 @@ class AdminController extends Controller
     }
 
     /*
-    |--------------------------------------------------------------------------
-    | Users - Edit
-    |--------------------------------------------------------------------------
-    |
-    | Unverified users cannot be edited.
-    |
-    | Admin can:
-    | - view unverified users
-    | - delete unverified users
-    |
-    | Admin cannot:
-    | - edit unverified user information
-    |
-    */
+|--------------------------------------------------------------------------
+| Users - Edit
+|--------------------------------------------------------------------------
+|
+| Admin can update:
+| - name
+| - email
+| - phone
+| - status
+| - verification method
+|
+| If a real email verification needs to be restarted:
+| - email_verified_at is cleared
+| - verification_email_sent_at is cleared
+| - account becomes inactive
+| - verification email is NOT sent here
+| - the user's next login triggers the verification email
+|
+*/
 
     public function updateUser(Request $request, int $id)
     {
-        $this->authorizeAdmin($request);
+        $user = $this->authorizeAdmin($request);
+
+        if ($user instanceof \Illuminate\Http\JsonResponse) {
+            return $user;
+        }
 
         $targetUser = User::findOrFail($id);
 
-        // Admin can update only these 5 fields.
-        // Role and password are intentionally not accepted.
         $validated = $request->validate([
             'name' => [
                 'required',
@@ -594,15 +604,16 @@ class AdminController extends Controller
             'email' => [
                 'required',
                 'email',
-                'max:255',
-                Rule::unique('users', 'email')->ignore($targetUser->id),
+                Rule::unique('users', 'email')
+                    ->ignore($targetUser->id),
             ],
 
             'phone' => [
                 'nullable',
                 'string',
                 'regex:/^01[0-9]{9}$/',
-                Rule::unique('users', 'phone')->ignore($targetUser->id),
+                Rule::unique('users', 'phone')
+                    ->ignore($targetUser->id),
             ],
 
             'status' => [
@@ -616,46 +627,87 @@ class AdminController extends Controller
             ],
         ]);
 
-        $emailChanged = $targetUser->email !== $validated['email'];
+        $emailChanged =
+            $targetUser->email !== $validated['email'];
 
         $verificationMethodChanged =
-            $targetUser->verification_method !== $validated['verification_method'];
+            $targetUser->verification_method !==
+            $validated['verification_method'];
 
-        // ---------------------------------------------------------
-        // Update only the 5 allowed fields
-        // ---------------------------------------------------------
+        /*
+    |--------------------------------------------------------------------------
+    | Update the allowed account fields
+    |--------------------------------------------------------------------------
+    */
 
         $targetUser->name = $validated['name'];
         $targetUser->email = $validated['email'];
         $targetUser->phone = $validated['phone'];
         $targetUser->status = $validated['status'];
-        $targetUser->verification_method = $validated['verification_method'];
+        $targetUser->verification_method =
+            $validated['verification_method'];
 
-        // ---------------------------------------------------------
-        // Email verification state
-        // ---------------------------------------------------------
+        /*
+    |--------------------------------------------------------------------------
+    | Verification state
+    |--------------------------------------------------------------------------
+    */
 
         if ($validated['verification_method'] === 'demo') {
 
-            // Demo accounts are considered verified immediately.
+            /*
+        |--------------------------------------------------------------------------
+        | Demo accounts are considered verified immediately.
+        |--------------------------------------------------------------------------
+        */
+
             $targetUser->email_verified_at = now();
+
+            /*
+        | Any previous real-email verification attempt is no longer
+        | relevant because this account is now using demo verification.
+        */
+            $targetUser->verification_email_sent_at = null;
         } else {
 
-            // Real-email accounts must verify their email.
-            // If email or verification method changed, previous
-            // verification is no longer valid.
+            /*
+        |--------------------------------------------------------------------------
+        | Real email verification
+        |--------------------------------------------------------------------------
+        */
+
             if ($emailChanged || $verificationMethodChanged) {
+
+                /*
+            | Changing the email or switching demo -> email invalidates
+            | the previous verification.
+            */
                 $targetUser->email_verified_at = null;
+
+                /*
+            | Reset this so the next login is treated as the first
+            | verification attempt and sends a new email.
+            */
+                $targetUser->verification_email_sent_at = null;
+
+                /*
+            | The account must remain inactive until the new email
+            | address is verified.
+            */
+                $targetUser->status = 'inactive';
             }
         }
 
         $targetUser->save();
 
-        // ---------------------------------------------------------
-        // Keep organization name synchronized
-        // ---------------------------------------------------------
+        /*
+    |--------------------------------------------------------------------------
+    | Keep organization name synchronized
+    |--------------------------------------------------------------------------
+    */
 
         if ($targetUser->role === 'organization') {
+
             $organization = $targetUser->organization;
 
             if ($organization) {
@@ -665,24 +717,26 @@ class AdminController extends Controller
             }
         }
 
-        // ---------------------------------------------------------
-        // Send verification email when needed
-        // ---------------------------------------------------------
-
-        if (
-            $validated['verification_method'] === 'email' &&
-            ($emailChanged || $verificationMethodChanged)
-        ) {
-            event(new Registered($targetUser));
-        }
-
-        // ---------------------------------------------------------
-        // Return updated user
-        // ---------------------------------------------------------
+        /*
+    |--------------------------------------------------------------------------
+    | IMPORTANT:
+    |
+    | No verification email is sent here.
+    |
+    | For email verification, the user's next login attempt
+    | triggers the verification email from AuthController@login().
+    |--------------------------------------------------------------------------
+    */
 
         return response()->json([
             'message' => 'User updated successfully.',
-            'user' => $targetUser->fresh(),
+
+            'user' => $targetUser
+                ->fresh()
+                ->load([
+                    'individualProfile',
+                    'organization',
+                ]),
         ]);
     }
 
@@ -823,6 +877,14 @@ class AdminController extends Controller
                 */
 
                 'status' => 'inactive',
+
+                /*
+                |--------------------------------------------------------------------------
+                | Email starts unverified.
+                |--------------------------------------------------------------------------
+                */
+
+                'email_verified_at' => null,
             ]);
 
             $organization = Organization::create([
@@ -856,15 +918,18 @@ class AdminController extends Controller
             ];
         });
 
-        event(
-            new \Illuminate\Auth\Events\Registered(
-                $result['user']
-            )
-        );
+        /*
+        |--------------------------------------------------------------------------
+        | IMPORTANT:
+        |
+        | Do not send the verification email here.
+        | The first login attempt will trigger the email.
+        |--------------------------------------------------------------------------
+        */
 
         return response()->json([
             'message' =>
-            'Organization added successfully. A verification email has been sent.',
+            'Organization added successfully. The account is inactive until email verification.',
 
             'organization' => $result['organization']
                 ->fresh()

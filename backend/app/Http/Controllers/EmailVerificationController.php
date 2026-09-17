@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
 
 class EmailVerificationController extends Controller
@@ -187,7 +188,6 @@ class EmailVerificationController extends Controller
         */
 
         $user->markEmailAsVerified();
-
         $user->status = 'active';
         $user->verification_email_sent_at = null;
         $user->save();
@@ -210,7 +210,6 @@ class EmailVerificationController extends Controller
                 'required',
                 'email',
             ],
-
             'role' => [
                 'required',
                 'in:individual,organization,admin',
@@ -256,7 +255,6 @@ class EmailVerificationController extends Controller
             return response()->json([
                 'message' =>
                 'Your email address is already verified.',
-
                 'already_verified' => true,
             ], 400);
         }
@@ -271,9 +269,7 @@ class EmailVerificationController extends Controller
             return response()->json([
                 'message' =>
                 'This account uses demo verification.',
-
                 'verification_method' => 'demo',
-
                 'user_id' => $user->id,
             ], 400);
         }
@@ -284,23 +280,27 @@ class EmailVerificationController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $user->sendEmailVerificationNotification();
+        try {
+            $user->sendEmailVerificationNotification();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Record that a verification email was sent.
-        |--------------------------------------------------------------------------
-        */
+            $user->verification_email_sent_at = now();
+            $user->save();
+        } catch (\Throwable $e) {
+            Log::error('Verification email failed', [
+                'user_id' => $user->id,
+                'message' => $e->getMessage(),
+                'exception' => get_class($e),
+            ]);
 
-        $user->verification_email_sent_at = now();
-        $user->save();
+            return response()->json([
+                'message' => 'Failed to send verification email.',
+            ], 500);
+        }
 
         return response()->json([
             'message' =>
             'A new verification email has been sent to your email address.',
-
             'verification_method' => 'email',
-
             'verification_email_sent' => true,
         ]);
     }

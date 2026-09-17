@@ -98,20 +98,31 @@ class AuthController extends Controller
                     $validated['credentials']['password']
                 ),
                 'role' => $role,
+
+                // All public registrations use real email verification.
                 'verification_method' => 'email',
+
+                // Account remains inactive until email is verified.
                 'status' => 'inactive',
+
                 'phone' => $validated['profile']['phone'] ?? null,
             ]);
 
             /*
-            |--------------------------------------------------------------------------
-            | Explicitly reset verification state.
-            |--------------------------------------------------------------------------
-            */
+        |--------------------------------------------------------------------------
+        | Explicitly reset verification state.
+        |--------------------------------------------------------------------------
+        */
 
             $user->email_verified_at = null;
             $user->verification_email_sent_at = null;
             $user->save();
+
+            /*
+        |--------------------------------------------------------------------------
+        | Individual Profile
+        |--------------------------------------------------------------------------
+        */
 
             if ($role === 'individual') {
                 $user->individualProfile()->create([
@@ -128,6 +139,12 @@ class AuthController extends Controller
                     $validated['profile']['profilePhoto'] ?? null,
                 ]);
             }
+
+            /*
+        |--------------------------------------------------------------------------
+        | Organization Profile
+        |--------------------------------------------------------------------------
+        */
 
             if ($role === 'organization') {
                 $user->organization()->create([
@@ -182,14 +199,14 @@ class AuthController extends Controller
         });
 
         /*
-        |--------------------------------------------------------------------------
-        | IMPORTANT:
-        |
-        | Do NOT send verification email here.
-        |
-        | The first login attempt triggers verification email.
-        |--------------------------------------------------------------------------
-        */
+    |--------------------------------------------------------------------------
+    | IMPORTANT:
+    |
+    | Do NOT send verification email here.
+    |
+    | The first login attempt triggers verification email.
+    |--------------------------------------------------------------------------
+    */
 
         return response()->json([
             'message' =>

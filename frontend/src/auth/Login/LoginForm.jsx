@@ -105,7 +105,9 @@ const LoginForm = ({ loginRole = null }) => {
 
             if (!response.ok) {
                 throw new Error(
-                    data.message || 'Unable to sign in. Please try again.',
+                    data.error ||
+                        data.message ||
+                        'Unable to sign in. Please try again.',
                 );
             }
 

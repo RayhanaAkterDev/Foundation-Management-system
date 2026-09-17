@@ -304,12 +304,27 @@ class AuthController extends Controller
             */
 
             if (!$user->verification_email_sent_at) {
-                $user->sendEmailVerificationNotification();
+                try {
+                    $user->sendEmailVerificationNotification();
 
-                $user->verification_email_sent_at = now();
-                $user->save();
+                    $user->verification_email_sent_at = now();
+                    $user->save();
 
-                $verificationEmailSent = true;
+                    $verificationEmailSent = true;
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::error(
+                        'Login verification email failed',
+                        [
+                            'user_id' => $user->id,
+                            'message' => $e->getMessage(),
+                            'exception' => get_class($e),
+                        ]
+                    );
+
+                    return response()->json([
+                        'message' => 'Failed to send verification email.',
+                    ], 500);
+                }
             }
 
             /*

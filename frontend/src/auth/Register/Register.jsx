@@ -1,407 +1,604 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
+
 import { useNavigate } from 'react-router-dom';
 
+import { HeartHandshake } from 'lucide-react';
+
+import RegisterProgress from './RegisterProgress';
+
+import RegisterNavigation from './RegisterNavigation';
+
+import RegisterSuccess from './RegisterSuccess';
+
+import StepAccountType from './steps/StepAccountType';
+
 import StepCredentials from './steps/StepCredentials';
-import StepProfile from './steps/StepProfile';
-import StepDetails from './steps/StepDetails';
-import StepReview from './steps/StepReview';
+
+import StepIndividualProfile from './steps/StepIndividualProfile';
+
+import StepIndividualPreferences from './steps/StepIndividualPreferences';
+
+import StepOrganizationProfile from './steps/StepOrganizationProfile';
+
+import StepOrganizationDetails from './steps/StepOrganizationDetails';
+
+// ---------------------------------------------------------------------------
+// API layer
+// ---------------------------------------------------------------------------
+
+async function submitRegistration(payload) {
+    const requestData = {
+        accountType: payload.accountType,
+
+        credentials: {
+            name: payload.credentials.name,
+            email: payload.credentials.email,
+            password: payload.credentials.password,
+            password_confirmation: payload.credentials.confirmPassword,
+        },
+
+        ...(payload.accountType === 'individual'
+            ? {
+                  profile: {
+                      phone: payload.profile.phone,
+                      district: payload.profile.district,
+                      address: payload.profile.address,
+                      dob: payload.profile.dob || null,
+                      profilePhoto: null,
+                  },
+
+                  preferences: payload.preferences,
+              }
+            : {
+                  profile: {
+                      phone: payload.profile.phone,
+                      organizationType: payload.profile.organizationType,
+                      registrationNumber: payload.profile.registrationNumber,
+                      address: payload.profile.address,
+                      website: payload.profile.website || null,
+                      organizationLogo: null,
+                  },
+
+                  details: {
+                      ...payload.details,
+                      teamSize: payload.details.teamSize || null,
+                  },
+              }),
+    };
+
+    console.log('Sending registration data:', requestData);
+
+    console.log('Password:', requestData.credentials.password);
+
+    console.log(
+        'Password confirmation:',
+        requestData.credentials.password_confirmation,
+    );
+
+    const response = await fetch(
+        'https://stand-for-people-api.onrender.com/api/register',
+        {
+            method: 'POST',
+
+            headers: {
+                'Content-Type': 'application/json',
+                Accept: 'application/json',
+            },
+
+            body: JSON.stringify(requestData),
+        },
+    );
+
+    let data = {};
+
+    const contentType = response.headers.get('content-type') || '';
+
+    if (contentType.includes('application/json')) {
+        data = await response.json();
+    } else {
+        const text = await response.text();
+
+        console.error('Registration returned a non-JSON response:', text);
+
+        throw new Error(
+            `Server returned an unexpected response (${response.status}).`,
+        );
+    }
+
+    console.log('Registration status:', response.status);
+
+    console.log('Registration response:', data);
+
+    if (!response.ok) {
+        if (data.errors) {
+            const firstError = Object.values(data.errors).flat().find(Boolean);
+
+            throw new Error(
+                firstError ||
+                    data.message ||
+                    'Registration failed. Please try again.',
+            );
+        }
+
+        throw new Error(
+            data.message || 'Registration failed. Please try again.',
+        );
+    }
+
+    return data;
+}
+
+// ---------------------------------------------------------------------------
+// Validation helpers
+// ---------------------------------------------------------------------------
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const BD_PHONE_RE = /^01[0-9]{9}$/;
+
+function validateStep(step, accountType, formData) {
+    const errs = {};
+
+    if (step === 1) {
+        if (!accountType) {
+            errs.accountType = 'Please select an account type to continue.';
+        }
+    }
+
+    if (step === 2) {
+        if (!formData.credentials.name?.trim()) {
+            errs.name = 'This field is required.';
+        }
+
+        if (!formData.credentials.email?.trim()) {
+            errs.email = 'Email address is required.';
+        } else if (!EMAIL_RE.test(formData.credentials.email)) {
+            errs.email = 'Please enter a valid email address.';
+        }
+
+        if (!formData.credentials.password) {
+            errs.password = 'Password is required.';
+        } else if (formData.credentials.password.length < 8) {
+            errs.password = 'Password must be at least 8 characters.';
+        }
+
+        if (!formData.credentials.confirmPassword) {
+            errs.confirmPassword = 'Please confirm your password.';
+        } else if (
+            formData.credentials.password !==
+            formData.credentials.confirmPassword
+        ) {
+            errs.confirmPassword = 'Passwords do not match.';
+        }
+    }
+
+    if (step === 3) {
+        if (accountType === 'individual') {
+            const p = formData.individualProfile;
+
+            if (!p.phone?.trim()) {
+                errs.phone = 'Phone number is required.';
+            } else if (!BD_PHONE_RE.test(p.phone.trim())) {
+                errs.phone =
+                    'Enter a valid Bangladesh phone number (11 digits starting with 01).';
+            }
+
+            if (!p.district?.trim()) {
+                errs.district = 'District is required.';
+            }
+
+            if (!p.address?.trim()) {
+                errs.address = 'Address is required.';
+            }
+        } else {
+            const p = formData.organizationProfile;
+
+            if (!p.phone?.trim()) {
+                errs.phone = 'Phone number is required.';
+            } else if (!BD_PHONE_RE.test(p.phone.trim())) {
+                errs.phone =
+                    'Enter a valid Bangladesh phone number (11 digits starting with 01).';
+            }
+
+            if (!p.organizationType) {
+                errs.organizationType = 'Please select an organization type.';
+            }
+
+            if (!p.registrationNumber?.trim()) {
+                errs.registrationNumber = 'Registration number is required.';
+            }
+
+            if (!p.address?.trim()) {
+                errs.address = 'Address is required.';
+            }
+        }
+    }
+
+    if (step === 4 && accountType === 'organization') {
+        const d = formData.organizationDetails;
+
+        if (!d.mission?.trim()) {
+            errs.mission = 'Please describe your mission.';
+        }
+
+        if (!d.focusAreas?.length) {
+            errs.focusAreas = 'Please select at least one area of focus.';
+        }
+
+        if (!d.communitiesServed?.length) {
+            errs.communitiesServed = 'Please select at least one community.';
+        }
+    }
+
+    // Individual step 4 is all-optional — no validation required
+
+    return errs;
+}
+
+// ---------------------------------------------------------------------------
+// Main Register component
+// ---------------------------------------------------------------------------
 
 const Register = () => {
     const navigate = useNavigate();
 
-    const [currentStep, setCurrentStep] = useState(1);
+    const [step, setStep] = useState(1);
+
+    const [accountType, setAccountType] = useState(null);
+
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [error, setError] = useState('');
 
+    const [isSuccess, setIsSuccess] = useState(false);
+
+    const [submitError, setSubmitError] = useState('');
+
+    const [stepErrors, setStepErrors] = useState({});
+
+    // Consolidated form data — each slice belongs to one step
     const [formData, setFormData] = useState({
-        accountType: 'individual',
-
         credentials: {
             name: '',
             email: '',
             password: '',
             confirmPassword: '',
-            verification_method: 'email',
         },
 
-        profile: {
+        individualProfile: {
             phone: '',
             district: '',
             address: '',
             dob: '',
-            organizationType: '',
-            registrationNumber: '',
-            website: '',
+            profilePhoto: null,
+            profilePhotoPreview: null,
         },
 
-        details: {
-            description: '',
+        individualPreferences: {
+            participationTypes: [],
+            causes: [],
+        },
+
+        organizationProfile: {
+            phone: '',
+            organizationType: '',
+            registrationNumber: '',
+            address: '',
+            website: '',
+            organizationLogo: null,
+            organizationLogoPreview: null,
+        },
+
+        organizationDetails: {
+            mission: '',
+            focusAreas: [],
+            communitiesServed: [],
             teamSize: '',
+            primaryActivities: [],
         },
     });
 
-    const handleChange = (section, field, value) => {
+    const TOTAL_STEPS = 4;
+
+    // Patch a nested slice of formData
+    const handleChange = useCallback((slice, key, value) => {
         setFormData((prev) => ({
             ...prev,
-            [section]: {
-                ...prev[section],
-                [field]: value,
+
+            [slice]: {
+                ...prev[slice],
+                [key]: value,
             },
         }));
-    };
 
-    const handleAccountTypeChange = (value) => {
-        setFormData((prev) => ({
-            ...prev,
-            accountType: value,
-        }));
-    };
+        // Clear that field's error on change
+        setStepErrors((prev) => {
+            const next = { ...prev };
 
-    const validateStep = () => {
-        setError('');
+            delete next[key];
 
-        if (currentStep === 1) {
-            const { name, email, password, confirmPassword } =
-                formData.credentials;
+            return next;
+        });
+    }, []);
 
-            if (!name.trim()) {
-                setError('Please enter your name.');
-                return false;
-            }
+    const handleContinue = async () => {
+        const errs = validateStep(step, accountType, formData);
 
-            if (!email.trim()) {
-                setError('Please enter your email address.');
-                return false;
-            }
+        if (Object.keys(errs).length > 0) {
+            setStepErrors(errs);
 
-            if (!password) {
-                setError('Please enter a password.');
-                return false;
-            }
-
-            if (password.length < 8) {
-                setError('Password must be at least 8 characters.');
-                return false;
-            }
-
-            if (password !== confirmPassword) {
-                setError('Passwords do not match.');
-                return false;
-            }
-        }
-
-        if (currentStep === 2) {
-            if (!formData.profile.phone.trim()) {
-                setError('Please enter your phone number.');
-                return false;
-            }
-
-            if (!/^01[0-9]{9}$/.test(formData.profile.phone)) {
-                setError('Please enter a valid Bangladeshi phone number.');
-                return false;
-            }
-
-            if (!formData.profile.address.trim()) {
-                setError('Please enter your address.');
-                return false;
-            }
-
-            if (
-                formData.accountType === 'individual' &&
-                !formData.profile.district.trim()
-            ) {
-                setError('Please select your district.');
-                return false;
-            }
-
-            if (
-                formData.accountType === 'organization' &&
-                !formData.profile.organizationType.trim()
-            ) {
-                setError('Please select your organization type.');
-                return false;
-            }
-
-            if (
-                formData.accountType === 'organization' &&
-                !formData.profile.registrationNumber.trim()
-            ) {
-                setError('Please enter your registration number.');
-                return false;
-            }
-        }
-
-        if (currentStep === 3) {
-            if (
-                formData.accountType === 'organization' &&
-                !formData.details.description.trim()
-            ) {
-                setError('Please enter your organization description.');
-                return false;
-            }
-        }
-
-        return true;
-    };
-
-    const nextStep = () => {
-        if (!validateStep()) {
             return;
         }
 
-        setCurrentStep((prev) => Math.min(prev + 1, 4));
+        setStepErrors({});
+
+        if (step < TOTAL_STEPS) {
+            setStep((s) => s + 1);
+
+            return;
+        }
+
+        // Final step — submit
+        await handleSubmit(false);
     };
 
-    const previousStep = () => {
-        setError('');
-        setCurrentStep((prev) => Math.max(prev - 1, 1));
+    const handleSkip = async () => {
+        // Only valid on individual step 4 — skip preferences and submit
+        setStepErrors({});
+
+        await handleSubmit(true);
     };
 
-    const submitRegistration = async (payload) => {
-        const requestData = {
-            accountType: payload.accountType,
+    const handleSubmit = async (skipped) => {
+        setIsSubmitting(true);
 
-            verification_method: payload.credentials.verification_method,
+        setSubmitError('');
+
+        const payload = {
+            accountType,
 
             credentials: {
-                name: payload.credentials.name,
-                email: payload.credentials.email,
-                password: payload.credentials.password,
-                password_confirmation: payload.credentials.confirmPassword,
+                name: formData.credentials.name,
+                email: formData.credentials.email,
+                password: formData.credentials.password,
+                confirmPassword: formData.credentials.confirmPassword,
             },
 
-            ...(payload.accountType === 'individual'
+            ...(accountType === 'individual'
                 ? {
-                      profile: {
-                          phone: payload.profile.phone,
-                          district: payload.profile.district,
-                          address: payload.profile.address,
-                          dob: payload.profile.dob || null,
-                      },
+                      profile: formData.individualProfile,
+
+                      preferences: skipped
+                          ? null
+                          : formData.individualPreferences,
                   }
                 : {
-                      profile: {
-                          phone: payload.profile.phone,
-                          address: payload.profile.address,
-                          organizationType: payload.profile.organizationType,
-                          registrationNumber:
-                              payload.profile.registrationNumber,
-                          website: payload.profile.website || null,
-                      },
+                      profile: formData.organizationProfile,
 
-                      details: {
-                          description: payload.details.description,
-                          teamSize: payload.details.teamSize || null,
-                      },
+                      details: formData.organizationDetails,
                   }),
         };
 
-        const response = await fetch(
-            'https://stand-for-people-api.onrender.com/api/register',
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Accept: 'application/json',
-                },
-                body: JSON.stringify(requestData),
-            },
-        );
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            if (data.errors) {
-                const firstError = Object.values(data.errors)
-                    .flat()
-                    .find(Boolean);
-
-                throw new Error(
-                    firstError || data.message || 'Registration failed.',
-                );
-            }
-
-            throw new Error(data.message || 'Registration failed.');
-        }
-
-        return data;
-    };
-
-    const handleSubmit = async () => {
-        if (!validateStep()) {
-            return;
-        }
-
-        setIsSubmitting(true);
-        setError('');
-
         try {
-            const payload = {
-                accountType: formData.accountType,
-
-                credentials: {
-                    name: formData.credentials.name,
-                    email: formData.credentials.email,
-                    password: formData.credentials.password,
-                    confirmPassword: formData.credentials.confirmPassword,
-                    verification_method:
-                        formData.credentials.verification_method,
-                },
-
-                profile: {
-                    phone: formData.profile.phone,
-                    district: formData.profile.district,
-                    address: formData.profile.address,
-                    dob: formData.profile.dob,
-                    organizationType: formData.profile.organizationType,
-                    registrationNumber: formData.profile.registrationNumber,
-                    website: formData.profile.website,
-                },
-
-                details: {
-                    description: formData.details.description,
-                    teamSize: formData.details.teamSize,
-                },
-            };
-
             await submitRegistration(payload);
 
-            navigate(`/account/login?role=${formData.accountType}`, {
-                state: {
-                    registrationSuccess: true,
-                    email: formData.credentials.email,
-                },
-            });
-        } catch (err) {
-            setError(err.message || 'Something went wrong. Please try again.');
+            setIsSuccess(true);
+        } catch (error) {
+            console.error('Registration error:', error);
+
+            setSubmitError(
+                error.message || 'Something went wrong. Please try again.',
+            );
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    return (
-        <div className="min-h-screen bg-[#f6f8fb]">
-            <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-                <div className="mb-8">
-                    <div className="flex items-center justify-between">
-                        {[1, 2, 3, 4].map((step) => (
-                            <div
-                                key={step}
-                                className="flex flex-1 items-center"
-                            >
-                                <div
-                                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${
-                                        currentStep >= step
-                                            ? 'bg-[#0f766e] text-white'
-                                            : 'bg-[#e2e8f0] text-[#64748b]'
-                                    }`}
-                                >
-                                    {step}
-                                </div>
+    const handleBack = () => {
+        if (step > 1) {
+            setStepErrors({});
 
-                                {step < 4 && (
-                                    <div
-                                        className={`mx-2 h-1 flex-1 rounded ${
-                                            currentStep > step
-                                                ? 'bg-[#0f766e]'
-                                                : 'bg-[#e2e8f0]'
-                                        }`}
+            setStep((s) => s - 1);
+        }
+    };
+
+    // Determine if the Continue button should be enabled
+    const canContinue = !isSubmitting && (step !== 1 || accountType !== null);
+
+    const showSkip = step === 4 && accountType === 'individual';
+
+    return (
+        <div className="min-h-screen w-full bg-[#eef3f6] px-4 py-8 md:py-12">
+            <div className="mx-auto w-full max-w-240">
+                {/* Branding */}
+                <div className="mb-8 flex flex-col items-center text-center">
+                    <div className="flex items-center gap-2">
+                        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-white">
+                            <HeartHandshake className="h-5 w-5" />
+                        </span>
+
+                        <span className="font-['Fraunces'] text-xl font-semibold text-text-primary">
+                            Stand For People
+                        </span>
+                    </div>
+
+                    <p className="mt-2 text-sm text-[#6b7280]">
+                        Helping people. Building stronger communities.
+                    </p>
+                </div>
+
+                {/* Registration surface */}
+                <div className="rounded-[28px] border border-[#e5e7eb] bg-white p-6 shadow-[0_8px_40px_-12px_rgba(15,23,42,0.08)] md:p-10">
+                    {isSuccess ? (
+                        <RegisterSuccess accountType={accountType} />
+                    ) : (
+                        <>
+                            {/* Page header */}
+                            <div className="mb-8 space-y-2 text-center">
+                                <h1 className="font-['Fraunces'] text-3xl font-semibold text-text-primary md:text-4xl">
+                                    Create your account
+                                </h1>
+
+                                <p className="text-[#6b7280]">
+                                    Join a community working together to support
+                                    people in need.
+                                </p>
+                            </div>
+
+                            {/* Progress */}
+                            <RegisterProgress
+                                currentStep={step}
+                                accountType={accountType}
+                            />
+
+                            {/* Step content */}
+                            <div className="min-h-65">
+                                {step === 1 && (
+                                    <StepAccountType
+                                        accountType={accountType}
+                                        onSelect={(type) => {
+                                            setAccountType(type);
+
+                                            setStepErrors({});
+                                        }}
+                                        error={stepErrors.accountType}
                                     />
                                 )}
+
+                                {step === 2 && (
+                                    <StepCredentials
+                                        accountType={accountType}
+                                        formData={formData.credentials}
+                                        onChange={(key, value) =>
+                                            handleChange(
+                                                'credentials',
+                                                key,
+                                                value,
+                                            )
+                                        }
+                                        errors={stepErrors}
+                                    />
+                                )}
+
+                                {step === 3 && accountType === 'individual' && (
+                                    <StepIndividualProfile
+                                        formData={formData.individualProfile}
+                                        onChange={(key, value) =>
+                                            handleChange(
+                                                'individualProfile',
+                                                key,
+                                                value,
+                                            )
+                                        }
+                                        errors={stepErrors}
+                                    />
+                                )}
+
+                                {step === 3 &&
+                                    accountType === 'organization' && (
+                                        <StepOrganizationProfile
+                                            formData={
+                                                formData.organizationProfile
+                                            }
+                                            onChange={(key, value) =>
+                                                handleChange(
+                                                    'organizationProfile',
+                                                    key,
+                                                    value,
+                                                )
+                                            }
+                                            errors={stepErrors}
+                                        />
+                                    )}
+
+                                {step === 4 && accountType === 'individual' && (
+                                    <StepIndividualPreferences
+                                        formData={
+                                            formData.individualPreferences
+                                        }
+                                        onChange={(key, value) =>
+                                            handleChange(
+                                                'individualPreferences',
+                                                key,
+                                                value,
+                                            )
+                                        }
+                                    />
+                                )}
+
+                                {step === 4 &&
+                                    accountType === 'organization' && (
+                                        <StepOrganizationDetails
+                                            formData={
+                                                formData.organizationDetails
+                                            }
+                                            onChange={(key, value) =>
+                                                handleChange(
+                                                    'organizationDetails',
+                                                    key,
+                                                    value,
+                                                )
+                                            }
+                                            errors={stepErrors}
+                                        />
+                                    )}
                             </div>
-                        ))}
-                    </div>
+
+                            {/* Global submit error */}
+                            {submitError && (
+                                <p className="mt-4 text-center text-sm text-red-600">
+                                    {submitError}
+                                </p>
+                            )}
+
+                            {/* Navigation */}
+                            <RegisterNavigation
+                                currentStep={step}
+                                totalSteps={TOTAL_STEPS}
+                                onBack={handleBack}
+                                onContinue={handleContinue}
+                                onSkip={handleSkip}
+                                isSubmitting={isSubmitting}
+                                canContinue={canContinue}
+                                showSkip={showSkip}
+                            />
+                        </>
+                    )}
                 </div>
 
-                {error && (
-                    <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                        {error}
+                {/* Footer */}
+                {!isSuccess && (
+                    <div className="mt-8 space-y-3 text-center">
+                        <p className="text-sm text-text-primary">
+                            Already have an account?{' '}
+                            <button
+                                type="button"
+                                onClick={() => navigate('/login')}
+                                className="font-semibold text-primary hover:underline"
+                            >
+                                Sign in
+                            </button>
+                        </p>
+
+                        <p className="text-xs text-[#6b7280]">
+                            By creating an account, you agree to our{' '}
+                            <button
+                                type="button"
+                                onClick={() => navigate('/terms')}
+                                className="text-primary hover:underline"
+                            >
+                                Terms of Service
+                            </button>{' '}
+                            and{' '}
+                            <button
+                                type="button"
+                                onClick={() => navigate('/privacy')}
+                                className="text-primary hover:underline"
+                            >
+                                Privacy Policy
+                            </button>
+                            .
+                        </p>
                     </div>
                 )}
-
-                <div className="rounded-2xl bg-white p-6 shadow-sm sm:p-8">
-                    {currentStep === 1 && (
-                        <StepCredentials
-                            formData={formData.credentials}
-                            accountType={formData.accountType}
-                            onChange={(field, value) =>
-                                handleChange('credentials', field, value)
-                            }
-                            onAccountTypeChange={handleAccountTypeChange}
-                        />
-                    )}
-
-                    {currentStep === 2 && (
-                        <StepProfile
-                            formData={formData.profile}
-                            accountType={formData.accountType}
-                            onChange={(field, value) =>
-                                handleChange('profile', field, value)
-                            }
-                        />
-                    )}
-
-                    {currentStep === 3 && (
-                        <StepDetails
-                            formData={formData.details}
-                            accountType={formData.accountType}
-                            onChange={(field, value) =>
-                                handleChange('details', field, value)
-                            }
-                        />
-                    )}
-
-                    {currentStep === 4 && (
-                        <StepReview
-                            formData={formData}
-                            onEditStep={setCurrentStep}
-                        />
-                    )}
-
-                    <div className="mt-8 flex items-center justify-between border-t border-[#e2e8f0] pt-6">
-                        {currentStep > 1 ? (
-                            <button
-                                type="button"
-                                onClick={previousStep}
-                                disabled={isSubmitting}
-                                className="rounded-lg border border-[#e2e8f0] px-5 py-2.5 text-sm font-medium text-[#334155] transition hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                Previous
-                            </button>
-                        ) : (
-                            <button
-                                type="button"
-                                onClick={() => navigate('/account/login')}
-                                disabled={isSubmitting}
-                                className="rounded-lg border border-[#e2e8f0] px-5 py-2.5 text-sm font-medium text-[#334155] transition hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                Back to Login
-                            </button>
-                        )}
-
-                        {currentStep < 4 ? (
-                            <button
-                                type="button"
-                                onClick={nextStep}
-                                disabled={isSubmitting}
-                                className="rounded-lg bg-[#0f766e] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#115e59] disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                Continue
-                            </button>
-                        ) : (
-                            <button
-                                type="button"
-                                onClick={handleSubmit}
-                                disabled={isSubmitting}
-                                className="rounded-lg bg-[#0f766e] px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-[#115e59] disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                                {isSubmitting
-                                    ? 'Creating Account...'
-                                    : 'Create Account'}
-                            </button>
-                        )}
-                    </div>
-                </div>
             </div>
         </div>
     );

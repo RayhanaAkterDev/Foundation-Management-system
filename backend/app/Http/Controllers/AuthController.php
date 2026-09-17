@@ -312,17 +312,10 @@ class AuthController extends Controller
 
                     $verificationEmailSent = true;
                 } catch (\Throwable $e) {
-                    \Illuminate\Support\Facades\Log::error(
-                        'Login verification email failed',
-                        [
-                            'user_id' => $user->id,
-                            'message' => $e->getMessage(),
-                            'exception' => get_class($e),
-                        ]
-                    );
-
                     return response()->json([
                         'message' => 'Failed to send verification email.',
+                        'error' => $e->getMessage(),
+                        'exception' => get_class($e),
                     ], 500);
                 }
             }

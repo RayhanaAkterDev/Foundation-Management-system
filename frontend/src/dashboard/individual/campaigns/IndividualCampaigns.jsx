@@ -45,7 +45,7 @@ const CampaignCard = ({ campaign }) => {
             </div>
 
             {campaign.description && (
-                <p className="mt-3 line-clamp-2 text-sm leading-6 text-[#64748b]">
+                <p className="mt-3 line-clamp-2 text-sm leading-6 text-text-secondary">
                     {campaign.description}
                 </p>
             )}
@@ -147,8 +147,8 @@ const IndividualCampaigns = () => {
     return (
         <div className="space-y-6">
             <PageHeader
-                title="BACKEND CAMPAIGNS TEST"
-                subtitle="This confirms which IndividualCampaigns component is deployed."
+                title="Campaigns"
+                subtitle="Discover and support active campaigns from Stand For People and its partner organizations."
             />
 
             {loading ? (

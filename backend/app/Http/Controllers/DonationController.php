@@ -97,9 +97,17 @@ class DonationController extends Controller
                 'status' => DonationAttempt::STATUS_FAILED,
             ]);
 
+            /*
+             * TEMPORARY DEBUG RESPONSE
+             *
+             * This exposes the actual payment gateway/service
+             * exception so we can identify why SSLCOMMERZ
+             * initiation is failing in production.
+             */
             return response()->json([
-                'message' =>
-                'Unable to start the payment process.',
+                'message' => 'Unable to start the payment process.',
+                'error' => $exception->getMessage(),
+                'exception' => get_class($exception),
             ], 502);
         }
 
@@ -111,9 +119,16 @@ class DonationController extends Controller
                 'status' => DonationAttempt::STATUS_FAILED,
             ]);
 
+            /*
+             * The service did not throw an exception, but
+             * SSLCOMMERZ did not return a usable gateway URL.
+             *
+             * Include the service response temporarily so we
+             * can see exactly what SSLCOMMERZ returned.
+             */
             return response()->json([
-                'message' =>
-                'Unable to start the payment process.',
+                'message' => 'Unable to start the payment process.',
+                'payment_response' => $payment,
             ], 502);
         }
 
@@ -147,10 +162,8 @@ class DonationController extends Controller
     /**
      * SSLCOMMERZ failure callback.
      */
-    public function fail(
-        Request $request,
-        SSLCOMMERZService $paymentService
-    ) {
+    public function fail(Request $request)
+    {
         $attempt = DonationAttempt::where(
             'transaction_id',
             $request->input('tran_id')
@@ -236,10 +249,14 @@ class DonationController extends Controller
 
         /*
          * Idempotency:
+         *
          * If the IPN/callback is received more than once,
          * do not create another donation.
          */
-        if ($attempt->status !== DonationAttempt::STATUS_PENDING) {
+        if (
+            $attempt->status !==
+            DonationAttempt::STATUS_PENDING
+        ) {
             return response()->json([
                 'message' => 'Donation attempt already processed.',
             ], 200);
@@ -278,6 +295,7 @@ class DonationController extends Controller
 
         /*
          * Donation has now increased collected_amount.
+         *
          * Let CampaignService determine whether the campaign
          * has become eligible for completion.
          */

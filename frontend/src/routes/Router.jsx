@@ -70,7 +70,7 @@ import IndividualCampaigns from '@/dashboard/individual/campaigns/IndividualCamp
 import IndividualNotifications from '@/dashboard/individual/IndividualNotifications';
 import IndividualProfile from '@/dashboard/individual/IndividualProfile';
 import IndividualSettings from '@/dashboard/individual/IndividualSettings';
-import MyDonations from '@/dashboard/individual/MyDonations';
+import MyDonations from '@/dashboard/individual/myDonations/MyDonations';
 import MyHelpRequests from '@/dashboard/individual/myHelpRequests/MyHelpRequests';
 import MyVolunteerActivities from '@/dashboard/individual/myVolunteerActivities/MyVolunteerActivities';
 

@@ -437,10 +437,10 @@ class VolunteerController extends Controller
         }
 
         /*
-        |--------------------------------------------------------------------------
-        | Registered volunteer
-        |--------------------------------------------------------------------------
-        */
+    |--------------------------------------------------------------------------
+    | Registered volunteer
+    |--------------------------------------------------------------------------
+    */
 
         $volunteer = Volunteer::with([
             'user:id,name,email,phone,status,email_verified_at',
@@ -450,10 +450,10 @@ class VolunteerController extends Controller
             ->first();
 
         /*
-        |--------------------------------------------------------------------------
-        | Latest volunteer request
-        |--------------------------------------------------------------------------
-        */
+    |--------------------------------------------------------------------------
+    | Latest volunteer request
+    |--------------------------------------------------------------------------
+    */
 
         $volunteerRequest = VolunteerRequest::query()
             ->where('user_id', $user->id)
@@ -461,23 +461,28 @@ class VolunteerController extends Controller
             ->first();
 
         /*
-        |--------------------------------------------------------------------------
-        | Campaign assignment history
-        |--------------------------------------------------------------------------
-        */
+    |--------------------------------------------------------------------------
+    | Campaign assignments
+    |--------------------------------------------------------------------------
+    |
+    | IMPORTANT:
+    | campaign_volunteer_assignments.volunteer_id stores users.id,
+    | NOT volunteers.id.
+    |
+    | Therefore we query directly using the authenticated user's ID.
+    |
+    */
 
-        $assignments = collect();
-
-        if ($volunteer) {
-            $assignments = $volunteer
-                ->campaignVolunteerAssignments()
-                ->with([
-                    'campaign',
-                    'assignedBy:id,name,email',
-                ])
-                ->latest()
-                ->get();
-        }
+        $assignments = CampaignVolunteerAssignment::query()
+            ->where('volunteer_id', $user->id)
+            ->with([
+                'campaign',
+                'assignedBy:id,name,email',
+                'volunteer:id,name,email',
+                'withdrawalReviewedBy:id,name,email',
+            ])
+            ->latest()
+            ->get();
 
         return response()->json([
             'is_volunteer' => (bool) $volunteer,
@@ -849,8 +854,8 @@ class VolunteerController extends Controller
     /**
      * Individual: View own campaign assignments.
      *
-     * Volunteers are connected to campaigns, not directly
-     * to Help Requests.
+     * CampaignVolunteerAssignment.volunteer_id stores users.id,
+     * not volunteers.id.
      */
     public function assignments(Request $request)
     {
@@ -863,20 +868,8 @@ class VolunteerController extends Controller
             ], 403);
         }
 
-        $volunteer = Volunteer::where(
-            'user_id',
-            $user->id
-        )->first();
-
-        if (!$volunteer) {
-            return response()->json([
-                'message' =>
-                'You are not registered as a volunteer.',
-            ], 404);
-        }
-
-        $assignments = $volunteer
-            ->campaignVolunteerAssignments()
+        $assignments = CampaignVolunteerAssignment::query()
+            ->where('volunteer_id', $user->id)
             ->with([
                 'campaign',
                 'assignedBy:id,name,email',

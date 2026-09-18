@@ -95,10 +95,16 @@ const Volunteers = () => {
 
             const response = await fetchVolunteers();
 
+            console.log('VOLUNTEER API RESPONSE:', response);
+
             const volunteerList = normalizeVolunteersResponse(response);
+
+            console.log('NORMALIZED VOLUNTEERS:', volunteerList);
 
             setVolunteers(volunteerList);
         } catch (err) {
+            console.error('VOLUNTEER LOAD ERROR:', err);
+
             setError(err?.message || 'Unable to load the volunteer directory.');
         } finally {
             setLoading(false);
@@ -110,16 +116,23 @@ const Volunteers = () => {
 
         const loadInitialVolunteers = async () => {
             try {
+                setLoading(true);
                 setError('');
 
                 const response = await fetchVolunteers();
 
+                console.log('VOLUNTEER API RESPONSE:', response);
+
                 const volunteerList = normalizeVolunteersResponse(response);
+
+                console.log('NORMALIZED VOLUNTEERS:', volunteerList);
 
                 if (!cancelled) {
                     setVolunteers(volunteerList);
                 }
             } catch (err) {
+                console.error('VOLUNTEER LOAD ERROR:', err);
+
                 if (!cancelled) {
                     setError(
                         err?.message ||

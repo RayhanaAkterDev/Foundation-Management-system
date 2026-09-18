@@ -52,6 +52,14 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(Volunteer::class);
     }
 
+    public function volunteerRequests(): HasMany
+    {
+        return $this->hasMany(
+            VolunteerRequest::class,
+            'user_id'
+        );
+    }
+
     public function donations(): HasMany
     {
         return $this->hasMany(Donation::class);
@@ -72,6 +80,9 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function createdCampaigns()
     {
-        return $this->hasMany(Campaign::class, 'created_by');
+        return $this->hasMany(
+            Campaign::class,
+            'created_by'
+        );
     }
 }

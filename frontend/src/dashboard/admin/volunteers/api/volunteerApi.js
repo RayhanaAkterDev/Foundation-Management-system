@@ -1,7 +1,7 @@
 import { apiRequest } from '@/api/client';
 
 export const fetchVolunteers = async () => {
-    return apiRequest('/admin/volunteers-test');
+    return apiRequest('/admin/volunteers');
 };
 
 export const fetchVolunteerCandidates = async () => {

@@ -385,17 +385,18 @@ Route::middleware('auth:sanctum')
         // ---------------------------------------------------------
 
         Route::get(
-            '/volunteers-test',
-            function () {
-                return response()->json([
-                    'message' => 'Volunteer endpoint is reachable.',
-                ]);
-            }
+            '/volunteers',
+            [VolunteerController::class, 'index']
         );
 
         Route::get(
-            '/volunteers',
-            [VolunteerController::class, 'index']
+            '/volunteers/candidates',
+            [VolunteerController::class, 'candidates']
+        );
+
+        Route::post(
+            '/volunteers/requests',
+            [VolunteerController::class, 'sendRequests']
         );
 
         Route::get(

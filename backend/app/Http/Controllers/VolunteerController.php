@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\CampaignVolunteerAssignment;
-use App\Models\Volunteer;
 use App\Models\User;
+use App\Models\Volunteer;
+use App\Models\VolunteerRequest;
+use App\Models\CampaignVolunteerAssignment;
 use App\Services\Campaign\CampaignService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -70,6 +71,41 @@ class VolunteerController extends Controller
 
         return response()->json([
             'volunteers' => $volunteers,
+        ]);
+    }
+
+    public function candidates(Request $request)
+    {
+        $user = $request->user();
+
+        if (!$user || $user->role !== 'admin') {
+            return response()->json([
+                'message' => 'Unauthorized.',
+            ], 403);
+        }
+
+        $candidates = User::query()
+            ->where('role', 'individual')
+            ->where('status', 'active')
+            ->whereNotNull('email_verified_at')
+            ->whereDoesntHave('volunteer')
+            ->whereDoesntHave('volunteerRequests', function ($query) {
+                $query->where(
+                    'status',
+                    VolunteerRequest::STATUS_PENDING
+                );
+            })
+            ->select([
+                'id',
+                'name',
+                'email',
+                'status',
+            ])
+            ->latest()
+            ->get();
+
+        return response()->json([
+            'users' => $candidates,
         ]);
     }
 

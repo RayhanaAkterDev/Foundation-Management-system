@@ -184,7 +184,6 @@ Route::middleware('auth:sanctum')->group(function () {
     // ---------------------------------------------------------
     // INDIVIDUAL VOLUNTEER
     // ---------------------------------------------------------
-
     Route::post(
         '/volunteer',
         [VolunteerController::class, 'store']
@@ -195,6 +194,18 @@ Route::middleware('auth:sanctum')->group(function () {
         [VolunteerController::class, 'show']
     );
 
+    // Volunteer invitation response
+    Route::patch(
+        '/volunteer/requests/{id}/accept',
+        [VolunteerController::class, 'acceptVolunteerRequest']
+    );
+
+    Route::patch(
+        '/volunteer/requests/{id}/reject',
+        [VolunteerController::class, 'rejectVolunteerRequest']
+    );
+
+    // Campaign assignment response
     Route::patch(
         '/volunteer/campaign-assignments/{id}/accept',
         [VolunteerController::class, 'acceptCampaignAssignment']
@@ -214,7 +225,6 @@ Route::middleware('auth:sanctum')->group(function () {
         '/volunteer/campaign-assignments/{id}/complete',
         [VolunteerController::class, 'completeCampaignAssignment']
     );
-
 
     // =========================================================
     // ORGANIZATION

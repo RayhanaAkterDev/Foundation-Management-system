@@ -147,8 +147,8 @@ const IndividualCampaigns = () => {
     return (
         <div className="space-y-6">
             <PageHeader
-                title="Campaigns"
-                subtitle="Discover and support active campaigns from Stand For People and its partner organizations."
+                title="BACKEND CAMPAIGNS TEST"
+                subtitle="This confirms which IndividualCampaigns component is deployed."
             />
 
             {loading ? (

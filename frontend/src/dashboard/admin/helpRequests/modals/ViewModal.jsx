@@ -239,54 +239,43 @@ const ViewModal = ({ request, loading, error, onClose }) => {
     const urgencyStyle = getUrgencyStyle(request?.urgency);
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-3 backdrop-blur-md sm:p-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/65 p-3 backdrop-blur-sm sm:p-6">
             {/* Backdrop */}
-
             <div
                 className="absolute inset-0"
                 onClick={!loading ? onClose : undefined}
             />
 
             {/* Modal */}
-
-            <div className="relative z-10 flex max-h-[94vh] w-full max-w-5xl flex-col overflow-hidden rounded-3xl border border-white/80 bg-white shadow-[0_30px_100px_rgba(15,23,42,0.28)]">
+            <div className="relative z-10 flex max-h-[94vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_28px_90px_rgba(15,23,42,0.25)]">
                 {/* ==================================================
                     HEADER
                     ================================================== */}
+                <header className="relative shrink-0 border-b border-slate-200 bg-white">
+                    <div className="h-1 bg-primary" />
 
-                <header className="relative shrink-0 overflow-hidden border-b border-slate-200 bg-white">
-                    {/* Accent line */}
-
-                    <div className="absolute inset-x-0 top-0 h-0.75 bg-primary" />
-
-                    <div className="px-6 pb-6 pt-7 sm:px-8">
+                    <div className="px-6 py-6 sm:px-8">
                         <button
                             type="button"
                             onClick={onClose}
                             disabled={loading}
-                            className="absolute right-5 top-5 flex h-9 w-9 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="absolute right-5 top-5 flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400 transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
                             aria-label="Close"
                         >
                             <X size={18} strokeWidth={1.8} />
                         </button>
 
-                        <div className="max-w-3xl pr-10">
+                        <div className="max-w-3xl pr-12">
                             {/* Eyebrow */}
-
-                            <div className="flex items-center gap-2">
-                                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                                    <FileText size={15} strokeWidth={1.9} />
-                                </span>
-
-                                <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary">
+                            <div className="mb-3 flex items-center gap-2">
+                                <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
                                     Help request
                                 </span>
 
                                 {request?.id && (
                                     <>
                                         <span className="h-1 w-1 rounded-full bg-slate-300" />
-
-                                        <span className="font-mono text-[10px] font-medium text-slate-400">
+                                        <span className="font-mono text-[11px] font-medium text-slate-400">
                                             #{request.id}
                                         </span>
                                     </>
@@ -294,13 +283,11 @@ const ViewModal = ({ request, loading, error, onClose }) => {
                             </div>
 
                             {/* Title */}
-
-                            <h2 className="mt-4 text-[23px] font-bold leading-tight tracking-tight text-slate-900 sm:text-[26px]">
+                            <h2 className="max-w-2xl text-[25px] font-bold leading-[1.25] tracking-tight text-slate-900 sm:text-[29px]">
                                 {request?.title || 'Request details'}
                             </h2>
 
                             {/* Status row */}
-
                             {request && (
                                 <div className="mt-4 flex flex-wrap items-center gap-2">
                                     {request.status && (
@@ -308,9 +295,8 @@ const ViewModal = ({ request, loading, error, onClose }) => {
                                     )}
 
                                     {request.verification_status && (
-                                        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-200">
+                                        <span className="inline-flex items-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-[11px] font-semibold text-emerald-700">
                                             <ShieldCheck size={13} />
-
                                             {formatValue(
                                                 request.verification_status,
                                             )}
@@ -318,7 +304,7 @@ const ViewModal = ({ request, loading, error, onClose }) => {
                                     )}
 
                                     {hasAssignment && (
-                                        <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary ring-1 ring-inset ring-primary/20">
+                                        <span className="inline-flex items-center gap-1.5 rounded-md border border-primary/20 bg-primary/5 px-2.5 py-1.5 text-[11px] font-semibold text-primary">
                                             <Users size={13} />
                                             Assigned
                                         </span>
@@ -332,13 +318,11 @@ const ViewModal = ({ request, loading, error, onClose }) => {
                 {/* ==================================================
                     CONTENT
                     ================================================== */}
-
-                <div className="min-h-0 flex-1 overflow-y-auto bg-[#f5f8f7]">
+                <div className="min-h-0 flex-1 overflow-y-auto bg-[#f4f7f6]">
                     {/* Loading */}
-
                     {loading && (
                         <div className="flex min-h-105 flex-col items-center justify-center text-center">
-                            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+                            <div className="flex h-12 w-12 items-center justify-center border border-slate-200 bg-white">
                                 <div className="h-6 w-6 animate-spin rounded-full border-2 border-slate-200 border-t-primary" />
                             </div>
 
@@ -353,31 +337,39 @@ const ViewModal = ({ request, loading, error, onClose }) => {
                     )}
 
                     {/* Error */}
-
                     {!loading && error && (
                         <div className="mx-auto max-w-4xl px-6 py-8 sm:px-8">
-                            <div className="border-l-4 border-red-500 bg-white px-5 py-5 shadow-sm ring-1 ring-red-100">
-                                <p className="text-sm font-bold text-red-700">
-                                    Unable to load this request
-                                </p>
+                            <div className="border border-red-200 bg-red-50 px-5 py-5">
+                                <div className="flex items-start gap-3">
+                                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-white text-red-600 ring-1 ring-red-200">
+                                        <ShieldCheck
+                                            size={16}
+                                            strokeWidth={1.8}
+                                        />
+                                    </div>
 
-                                <p className="mt-1.5 text-sm leading-6 text-red-600">
-                                    {error}
-                                </p>
+                                    <div>
+                                        <p className="text-sm font-bold text-red-800">
+                                            Unable to load this request
+                                        </p>
+
+                                        <p className="mt-1 text-sm leading-6 text-red-700">
+                                            {error}
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     )}
 
                     {/* Request */}
-
                     {!loading && !error && request && (
                         <div className="mx-auto max-w-5xl">
                             {/* ==================================================
                                 QUICK INFORMATION
                                 ================================================== */}
-
                             <section className="border-b border-slate-200 bg-white">
-                                <div className="grid grid-cols-2 divide-x divide-slate-200 sm:grid-cols-4">
+                                <div className="grid grid-cols-2 sm:grid-cols-4">
                                     <InfoCell
                                         icon={Tag}
                                         label="Category"
@@ -420,7 +412,6 @@ const ViewModal = ({ request, loading, error, onClose }) => {
                             {/* ==================================================
                                 ASSIGNMENT
                                 ================================================== */}
-
                             <section className="border-b border-slate-200 bg-white px-6 py-7 sm:px-8">
                                 <SectionHeading
                                     icon={Users}
@@ -429,8 +420,8 @@ const ViewModal = ({ request, loading, error, onClose }) => {
                                 />
 
                                 {!hasAssignment ? (
-                                    <div className="mt-5 flex items-center gap-4 border border-dashed border-slate-300 bg-slate-50 px-5 py-4">
-                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-slate-400 ring-1 ring-slate-200">
+                                    <div className="mt-5 flex items-center border border-dashed border-slate-300 bg-slate-50 px-5 py-4">
+                                        <div className="mr-4 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-400">
                                             <Users size={17} />
                                         </div>
 
@@ -447,7 +438,7 @@ const ViewModal = ({ request, loading, error, onClose }) => {
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="mt-5 grid grid-cols-1 divide-y divide-slate-200 border-y border-slate-200 sm:grid-cols-2 sm:divide-x sm:divide-y-0">
+                                    <div className="mt-5 grid grid-cols-1 border border-slate-200 sm:grid-cols-2">
                                         <AssignmentRow
                                             icon={Building2}
                                             label="Assigned organization"
@@ -467,8 +458,8 @@ const ViewModal = ({ request, loading, error, onClose }) => {
                                 {hasAssignment &&
                                     allOrganizationNames.length === 0 &&
                                     allVolunteerNames.length === 0 && (
-                                        <div className="mt-4 border-l-2 border-slate-300 bg-slate-50 px-4 py-3">
-                                            <p className="text-xs font-medium leading-5 text-slate-500">
+                                        <div className="mt-4 border-l-2 border-amber-400 bg-amber-50 px-4 py-3">
+                                            <p className="text-xs font-medium leading-5 text-amber-700">
                                                 Assignment exists, but detailed
                                                 organization/volunteer
                                                 information was not included in
@@ -481,32 +472,30 @@ const ViewModal = ({ request, loading, error, onClose }) => {
                             {/* ==================================================
                                 DETAILS + SIDEBAR
                                 ================================================== */}
-
                             <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_270px]">
                                 {/* Main */}
-
-                                <main className="bg-white px-6 py-8 sm:px-8 lg:border-r lg:border-slate-200">
+                                <main className="min-w-0 bg-white px-6 py-8 sm:px-8 lg:border-r lg:border-slate-200">
                                     <div className="max-w-2xl">
-                                        <div className="flex items-center justify-between">
-                                            <SectionHeading
-                                                icon={FileText}
-                                                eyebrow="Request details"
-                                                title="Description"
-                                            />
+                                        <SectionHeading
+                                            icon={FileText}
+                                            eyebrow="Request details"
+                                            title="Description"
+                                        />
 
-                                            <span className="hidden text-[10px] font-medium uppercase tracking-wider text-slate-400 sm:block">
-                                                Full description
-                                            </span>
-                                        </div>
+                                        <div className="mt-6 border border-slate-200 bg-white">
+                                            <div className="border-b border-slate-200 bg-slate-50 px-5 py-3">
+                                                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                                                    Full description
+                                                </p>
+                                            </div>
 
-                                        <div className="relative mt-6 overflow-hidden border border-slate-200 bg-slate-50/70 px-6 py-6">
-                                            <div className="absolute bottom-0 left-0 top-0 w-0.75 bg-primary" />
-
-                                            <p className="whitespace-pre-line text-[15px] leading-8 text-slate-700">
-                                                {request.description ||
-                                                    request.details ||
-                                                    'No description provided.'}
-                                            </p>
+                                            <div className="px-6 py-6">
+                                                <p className="whitespace-pre-line text-[15px] leading-8 text-slate-700">
+                                                    {request.description ||
+                                                        request.details ||
+                                                        'No description provided.'}
+                                                </p>
+                                            </div>
                                         </div>
                                     </div>
                                 </main>
@@ -514,10 +503,8 @@ const ViewModal = ({ request, loading, error, onClose }) => {
                                 {/* ==================================================
                                     SIDEBAR
                                     ================================================== */}
-
                                 <aside className="border-t border-slate-200 bg-[#f8faf9] px-6 py-7 lg:border-t-0 lg:px-6">
                                     {/* Current State */}
-
                                     {(request.status ||
                                         request.verification_status) && (
                                         <div className="pb-7">
@@ -526,7 +513,7 @@ const ViewModal = ({ request, loading, error, onClose }) => {
                                                 icon={ShieldCheck}
                                             />
 
-                                            <div className="mt-4 divide-y divide-slate-200 border-y border-slate-200">
+                                            <div className="mt-4 overflow-hidden border border-slate-200 bg-white">
                                                 {request.status && (
                                                     <SideStatus
                                                         icon={RefreshCw}
@@ -561,11 +548,11 @@ const ViewModal = ({ request, loading, error, onClose }) => {
                                                     label="Assignment"
                                                     value={
                                                         hasAssignment ? (
-                                                            <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary ring-1 ring-inset ring-primary/20">
+                                                            <span className="inline-flex items-center rounded-md border border-primary/20 bg-primary/5 px-2.5 py-1 text-[11px] font-semibold text-primary">
                                                                 Assigned
                                                             </span>
                                                         ) : (
-                                                            <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-500 ring-1 ring-inset ring-slate-200">
+                                                            <span className="inline-flex items-center rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-semibold text-slate-500">
                                                                 Not assigned
                                                             </span>
                                                         )
@@ -576,7 +563,6 @@ const ViewModal = ({ request, loading, error, onClose }) => {
                                     )}
 
                                     {/* Timeline */}
-
                                     <div className="border-t border-slate-200 pt-7">
                                         <SideHeading
                                             title="Timeline"
@@ -625,7 +611,6 @@ const ViewModal = ({ request, loading, error, onClose }) => {
                 {/* ==================================================
                     FOOTER
                     ================================================== */}
-
                 <footer className="flex shrink-0 items-center justify-between border-t border-slate-200 bg-white px-6 py-4 sm:px-7">
                     <div className="hidden items-center gap-2 sm:flex">
                         <span className="h-1.5 w-1.5 rounded-full bg-primary" />
@@ -639,7 +624,7 @@ const ViewModal = ({ request, loading, error, onClose }) => {
                         type="button"
                         onClick={onClose}
                         disabled={loading}
-                        className="ml-auto rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-primary-hover hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
+                        className="ml-auto rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         Done
                     </button>
@@ -653,49 +638,68 @@ const ViewModal = ({ request, loading, error, onClose }) => {
    INFO CELL
    ================================================================ */
 
-const InfoCell = ({ icon: Icon, label, value, accent, urgencyStyle }) => {
+const InfoCell = ({
+    icon: Icon,
+    label,
+    value,
+    accent,
+    urgencyStyle,
+}) => {
     const styles = {
         teal: {
             icon: 'bg-primary/10 text-primary',
             label: 'text-primary',
+            border: 'border-primary',
         },
 
         blue: {
             icon: 'bg-sky-50 text-sky-600',
             label: 'text-sky-600',
+            border: 'border-sky-500',
         },
 
         slate: {
             icon: 'bg-slate-100 text-slate-500',
             label: 'text-slate-500',
+            border: 'border-slate-400',
         },
 
         urgency: {
             icon: urgencyStyle?.icon || 'bg-slate-100 text-slate-500',
             label: urgencyStyle?.text || 'text-slate-500',
+            border: urgencyStyle?.text?.replace(
+                'text-',
+                'border-',
+            ) || 'border-slate-300',
         },
     };
 
     const style = styles[accent] || styles.slate;
 
     return (
-        <div className="min-w-0 px-4 py-4 sm:px-5">
-            <div className="flex min-w-0 items-center gap-3">
+        <div
+            className={`relative min-w-0 border-r border-slate-200 px-4 py-5 last:border-r-0 sm:px-5`}
+        >
+            <div
+                className={`absolute inset-x-0 bottom-0 h-0.5 ${style.border}`}
+            />
+
+            <div className="flex min-w-0 items-start gap-3">
                 <span
-                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${style.icon}`}
+                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${style.icon}`}
                 >
-                    <Icon size={14} strokeWidth={1.9} />
+                    <Icon size={15} strokeWidth={1.9} />
                 </span>
 
-                <div className="min-w-0">
+                <div className="min-w-0 pt-0.5">
                     <p
-                        className={`text-[9px] font-bold uppercase tracking-[0.12em] ${style.label}`}
+                        className={`text-[9px] font-bold uppercase tracking-widest ${style.label}`}
                     >
                         {label}
                     </p>
 
                     <p
-                        className="mt-1 truncate text-xs font-bold text-slate-800"
+                        className="mt-1.5 truncate text-[13px] font-semibold text-slate-800"
                         title={String(value)}
                     >
                         {value}
@@ -712,17 +716,17 @@ const InfoCell = ({ icon: Icon, label, value, accent, urgencyStyle }) => {
 
 const SectionHeading = ({ icon: Icon, eyebrow, title }) => {
     return (
-        <div className="flex items-center gap-2.5">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <Icon size={14} strokeWidth={1.9} />
+        <div className="flex items-center gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-white shadow-sm">
+                <Icon size={15} strokeWidth={1.9} />
             </span>
 
             <div>
-                <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-primary">
+                <p className="text-[9px] font-bold uppercase tracking-widest text-primary">
                     {eyebrow}
                 </p>
 
-                <h3 className="mt-0.5 text-sm font-bold text-slate-800">
+                <h3 className="mt-0.5 text-[17px] font-bold text-slate-900">
                     {title}
                 </h3>
             </div>
@@ -736,28 +740,28 @@ const SectionHeading = ({ icon: Icon, eyebrow, title }) => {
 
 const AssignmentRow = ({ icon: Icon, label, names, emptyText }) => {
     return (
-        <div className="px-1 py-4 sm:px-5 sm:py-5">
-            <div className="flex items-start gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                    <Icon size={16} strokeWidth={1.8} />
+        <div className="min-w-0 px-5 py-5 sm:px-6">
+            <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-50 text-primary ring-1 ring-slate-200">
+                    <Icon size={17} strokeWidth={1.8} />
                 </div>
 
                 <div className="min-w-0 flex-1">
-                    <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-slate-400">
+                    <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400">
                         {label}
                     </p>
 
                     {names.length > 0 ? (
-                        <div className="mt-2 space-y-1.5">
+                        <div className="mt-2.5 space-y-2">
                             {names.map((name, index) => (
                                 <div
                                     key={`${name}-${index}`}
-                                    className="flex min-w-0 items-center gap-2"
+                                    className="flex min-w-0 items-center gap-2.5"
                                 >
                                     <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
 
                                     <p
-                                        className="min-w-0 truncate text-sm font-semibold text-slate-700"
+                                        className="min-w-0 truncate text-[13px] font-semibold text-slate-800"
                                         title={name}
                                     >
                                         {name}
@@ -766,7 +770,7 @@ const AssignmentRow = ({ icon: Icon, label, names, emptyText }) => {
                             ))}
                         </div>
                     ) : (
-                        <p className="mt-2 text-xs font-medium text-slate-400">
+                        <p className="mt-2.5 text-xs font-medium text-slate-400">
                             {emptyText}
                         </p>
                     )}
@@ -782,12 +786,12 @@ const AssignmentRow = ({ icon: Icon, label, names, emptyText }) => {
 
 const SideHeading = ({ title, icon: Icon }) => {
     return (
-        <div className="flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
+        <div className="flex items-center gap-2.5">
+            <span className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-white">
                 <Icon size={13} strokeWidth={1.9} />
             </span>
 
-            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-600">
                 {title}
             </p>
         </div>
@@ -798,26 +802,31 @@ const SideHeading = ({ title, icon: Icon }) => {
    SIDE STATUS
    ================================================================ */
 
-const SideStatus = ({ icon: Icon, label, value, success = false }) => {
+const SideStatus = ({
+    icon: Icon,
+    label,
+    value,
+    success = false,
+}) => {
     return (
-        <div className="py-3">
-            <div className="flex items-center gap-3">
+        <div className="border-b border-slate-200 px-4 py-4 last:border-b-0">
+            <div className="flex items-start gap-3">
                 <div
-                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${
                         success
-                            ? 'bg-emerald-100 text-emerald-600'
-                            : 'bg-white text-slate-400 ring-1 ring-slate-200'
+                            ? 'bg-emerald-50 text-emerald-600'
+                            : 'bg-slate-50 text-slate-400'
                     }`}
                 >
                     <Icon size={14} strokeWidth={1.8} />
                 </div>
 
                 <div className="min-w-0 flex-1">
-                    <p className="text-[9px] font-bold uppercase tracking-[0.08em] text-slate-400">
+                    <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400">
                         {label}
                     </p>
 
-                    <div className="mt-1.5">{value}</div>
+                    <div className="mt-2">{value}</div>
                 </div>
             </div>
         </div>
@@ -828,7 +837,12 @@ const SideStatus = ({ icon: Icon, label, value, success = false }) => {
    TIMELINE ITEM
    ================================================================ */
 
-const TimelineItem = ({ label, value, last = false, active = false }) => {
+const TimelineItem = ({
+    label,
+    value,
+    last = false,
+    active = false,
+}) => {
     return (
         <div className={`relative ${last ? '' : 'pb-6'}`}>
             <span
@@ -840,7 +854,7 @@ const TimelineItem = ({ label, value, last = false, active = false }) => {
             />
 
             <p
-                className={`text-[9px] font-bold uppercase tracking-[0.08em] ${
+                className={`text-[9px] font-bold uppercase tracking-widest ${
                     active ? 'text-primary' : 'text-slate-400'
                 }`}
             >

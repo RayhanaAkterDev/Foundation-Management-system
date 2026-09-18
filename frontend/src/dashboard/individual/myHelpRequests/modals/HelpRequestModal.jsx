@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+
 import {
     X,
     Loader2,
@@ -208,9 +209,9 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                 ====================================================== */}
                 <aside className="relative hidden shrink-0 overflow-hidden bg-primary lg:block">
                     {/* Decorative circles */}
-                    <div className="absolute -right-28 -top-28 h-87.5 w-87.5 rounded-full border border-white/[0.07]" />
-                    <div className="absolute -right-10 top-16 h-45 w-45 rounded-full border border-white/[0.05]" />
-                    <div className="absolute -bottom-40 -left-40 h-97.5 w-97.5 rounded-full border border-white/[0.05]" />
+                    <div className="absolute -right-28 -top-28 h-87.5 w-87.5 rounded-full border border-white/7" />
+                    <div className="absolute -right-10 top-16 h-45 w-45 rounded-full border border-white/5" />
+                    <div className="absolute -bottom-40 -left-40 h-97.5 w-97.5 rounded-full border border-white/5" />
 
                     <div className="relative flex h-full flex-col px-8 py-8">
                         {/* BRAND */}
@@ -252,7 +253,7 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                                 <span className="text-accent">need.</span>
                             </h2>
 
-                            <p className="mt-6 max-w-[220px] text-[12px] leading-6 text-white/50">
+                            <p className="mt-6 max-w-55 text-[12px] leading-6 text-white/50">
                                 Tell us what is happening and what kind of
                                 support would make a difference.
                             </p>
@@ -262,7 +263,7 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                                     Your information matters
                                 </p>
 
-                                <p className="mt-1.5 max-w-[215px] text-[10px] leading-5 text-white/35">
+                                <p className="mt-1.5 max-w-53.75 text-[10px] leading-5 text-white/35">
                                     Clear and accurate details help us
                                     understand your request better.
                                 </p>
@@ -290,13 +291,13 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                         HEADER
                     ================================================== */}
                     <header className="relative shrink-0 border-b border-slate-200/80 bg-white">
-                        <div className="absolute right-0 top-0 h-full w-[42%] bg-gradient-to-l from-primary/[0.055] to-transparent" />
+                        <div className="absolute right-0 top-0 h-full w-[42%] bg-linear-to-l from-primary/5.5 to-transparent" />
 
                         <div className="relative px-4 py-5 sm:px-6 sm:py-6 md:px-9 md:py-7">
                             <div className="flex items-start justify-between gap-3 sm:gap-5">
                                 <div className="min-w-0 flex-1">
                                     <div className="mb-2.5 flex flex-wrap items-center gap-2 sm:mb-3">
-                                        <span className="inline-flex h-6 items-center rounded-md bg-primary/[0.07] px-2.5 text-[9px] font-extrabold uppercase tracking-[0.16em] text-primary">
+                                        <span className="inline-flex h-6 items-center rounded-md bg-primary/7 px-2.5 text-[9px] font-extrabold uppercase tracking-[0.16em] text-primary">
                                             New request
                                         </span>
 
@@ -311,7 +312,7 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                                         Tell us about your situation
                                     </h3>
 
-                                    <p className="mt-2 max-w-[600px] text-[11px] leading-5 text-slate-500 sm:text-[12px]">
+                                    <p className="mt-2 max-w-150 text-[11px] leading-5 text-slate-500 sm:text-[12px]">
                                         Share the details below so we can
                                         understand your needs and determine the
                                         right kind of support.
@@ -367,7 +368,7 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                                                 Unable to submit request
                                             </p>
 
-                                            <p className="mt-0.5 break-words text-[11px] leading-5 text-red-600">
+                                            <p className="mt-0.5 wrap-break-word text-[11px] leading-5 text-red-600">
                                                 {submitError}
                                             </p>
                                         </div>
@@ -422,7 +423,7 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                                             placeholder="Briefly describe what help is needed"
                                             className={getInputClass(
                                                 errors.title,
-                                                'h-[50px] sm:h-[54px]',
+                                                'h-12.5 sm:h-13.5',
                                             )}
                                         />
 
@@ -453,10 +454,10 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                                                     name="category"
                                                     value={form.category}
                                                     onChange={handleChange}
-                                                    className={`${getInputClass(
+                                                    className={getInputClass(
                                                         errors.category,
-                                                        'h-[50px] appearance-none pr-10 sm:h-[54px]',
-                                                    )}`}
+                                                        'h-12.5 appearance-none pr-10 sm:h-13.5',
+                                                    )}
                                                 >
                                                     <option value="">
                                                         Select category
@@ -507,7 +508,7 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                                                     name="urgency"
                                                     value={form.urgency}
                                                     onChange={handleChange}
-                                                    className={`h-[50px] w-full appearance-none bg-transparent px-4 pl-10 pr-10 text-[13px] font-bold outline-none sm:h-[54px] ${selectedUrgency.text}`}
+                                                    className={`h-12.5 w-full appearance-none bg-transparent px-4 pl-10 pr-10 text-[13px] font-bold outline-none sm:h-13.5 ${selectedUrgency.text}`}
                                                 >
                                                     {urgencyOptions.map(
                                                         (option) => (
@@ -577,7 +578,7 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                                                 placeholder="e.g. Dhaka"
                                                 className={getInputClass(
                                                     errors.district,
-                                                    'h-[50px] sm:h-[54px]',
+                                                    'h-12.5 sm:h-13.5',
                                                 )}
                                             />
 
@@ -614,7 +615,7 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                                                 placeholder="Enter relevant location"
                                                 className={getInputClass(
                                                     false,
-                                                    'h-[50px] sm:h-[54px]',
+                                                    'h-12.5 sm:h-13.5',
                                                 )}
                                             />
 
@@ -681,7 +682,7 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                                             placeholder="Please describe your situation and what kind of help you need..."
                                             className={getInputClass(
                                                 errors.description,
-                                                'min-h-[140px] resize-none px-4 py-4 text-[13px] leading-6 sm:min-h-[155px]',
+                                                'min-h-35 resize-none px-4 py-4 text-[13px] leading-6 sm:min-h-38.75',
                                             )}
                                         />
 
@@ -734,7 +735,7 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                                     <button
                                         type="submit"
                                         disabled={submitting}
-                                        className="inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-[12px] font-bold text-white shadow-[0_6px_18px_rgba(15,118,110,0.16)] transition-all hover:bg-primary-hover hover:shadow-[0_8px_22px_rgba(15,118,110,0.22)] focus:outline-none focus:ring-4 focus:ring-primary/15 disabled:cursor-not-allowed disabled:opacity-60 sm:min-w-[165px] sm:flex-none sm:px-7"
+                                        className="inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-[12px] font-bold text-white shadow-[0_6px_18px_rgba(15,118,110,0.16)] transition-all hover:bg-primary-hover hover:shadow-[0_8px_22px_rgba(15,118,110,0.22)] focus:outline-none focus:ring-4 focus:ring-primary/15 disabled:cursor-not-allowed disabled:opacity-60 sm:min-w-41.25 sm:flex-none sm:px-7"
                                     >
                                         {submitting ? (
                                             <>

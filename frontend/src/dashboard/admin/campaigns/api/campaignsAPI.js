@@ -89,6 +89,39 @@ export const fetchCampaigns = async () => {
 
 /*
 |--------------------------------------------------------------------------
+| Create Campaign
+|--------------------------------------------------------------------------
+|
+| Admin creates a new campaign.
+|
+| New campaigns are created as:
+|
+| unverified
+|
+| Backend endpoint:
+|
+| POST /api/admin/campaigns
+|
+*/
+
+export const createCampaign = async (payload) => {
+    if (!payload || typeof payload !== 'object') {
+        throw new Error('Campaign creation data is required.');
+    }
+
+    const response = await fetch(`${API_BASE_URL}/admin/campaigns`, {
+        method: 'POST',
+        headers: getHeaders({
+            json: true,
+        }),
+        body: JSON.stringify(payload),
+    });
+
+    return parseResponse(response);
+};
+
+/*
+|--------------------------------------------------------------------------
 | Verify / Reject Campaign
 |--------------------------------------------------------------------------
 |

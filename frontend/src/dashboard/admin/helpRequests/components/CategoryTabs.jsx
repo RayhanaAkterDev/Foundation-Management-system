@@ -2,8 +2,8 @@ import React from 'react';
 
 const CategoryTabs = ({ tabs, activeCategory, onChange }) => {
     return (
-        <div className="flex overflow-x-auto border-b border-border">
-            {tabs.map((tab) => {
+        <nav className="space-y-1">
+            {tabs.map((tab, index) => {
                 const active = activeCategory === tab.key;
 
                 return (
@@ -11,33 +11,66 @@ const CategoryTabs = ({ tabs, activeCategory, onChange }) => {
                         key={tab.key}
                         type="button"
                         onClick={() => onChange(tab.key)}
-                        className={`relative shrink-0 px-4 pb-3 text-sm font-semibold transition-colors ${
-                            active
-                                ? 'text-primary'
-                                : 'text-text-secondary hover:text-text-primary'
-                        }`}
+                        className={`
+                            group relative flex w-full items-center
+                            gap-3 px-3.5 py-3
+                            text-left transition-colors duration-150
+                            ${
+                                active
+                                    ? 'bg-white text-primary'
+                                    : 'text-white/65 hover:bg-white/[0.07] hover:text-white'
+                            }
+                        `}
                     >
-                        <span className="flex items-center gap-2">
-                            {tab.label}
-
-                            <span
-                                className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                        {/* Number */}
+                        <span
+                            className={`
+                                flex h-7 w-7 shrink-0 items-center justify-center
+                                text-[9px] font-bold tracking-wide
+                                ${
                                     active
                                         ? 'bg-primary/10 text-primary'
-                                        : 'bg-background-alt text-text-secondary'
-                                }`}
+                                        : 'bg-white/8 text-white/40 group-hover:bg-white/10 group-hover:text-white/70'
+                                }
+                            `}
+                        >
+                            {String(index + 1).padStart(2, '0')}
+                        </span>
+
+                        {/* Label */}
+                        <span className="min-w-0 flex-1">
+                            <span
+                                className={`
+                                    block truncate text-[13px] leading-5
+                                    ${active ? 'font-semibold' : 'font-medium'}
+                                `}
                             >
-                                {tab.count}
+                                {tab.label}
                             </span>
                         </span>
 
+                        {/* Count */}
+                        <span
+                            className={`
+                                shrink-0 text-[11px] tabular-nums
+                                ${
+                                    active
+                                        ? 'font-bold text-primary'
+                                        : 'font-medium text-white/35 group-hover:text-white/65'
+                                }
+                            `}
+                        >
+                            {tab.count}
+                        </span>
+
+                        {/* Active marker */}
                         {active && (
-                            <span className="absolute inset-x-0 bottom-0 h-0.5 bg-primary" />
+                            <span className="absolute bottom-0 left-0 top-0 w-0.5 bg-accent" />
                         )}
                     </button>
                 );
             })}
-        </div>
+        </nav>
     );
 };
 

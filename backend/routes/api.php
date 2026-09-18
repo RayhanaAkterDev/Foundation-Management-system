@@ -54,10 +54,10 @@ Route::get(
 )
     ->name('verification.demo');
 
-
 // IMPORTANT:
 // This route MUST remain outside auth:sanctum.
 // An unverified user does not have an authentication token.
+
 Route::post(
     '/email/verification-notification',
     [EmailVerificationController::class, 'resend']
@@ -385,6 +385,15 @@ Route::middleware('auth:sanctum')
         // ---------------------------------------------------------
 
         Route::get(
+            '/volunteers-test',
+            function () {
+                return response()->json([
+                    'message' => 'Volunteer endpoint is reachable.',
+                ]);
+            }
+        );
+
+        Route::get(
             '/volunteers',
             [VolunteerController::class, 'index']
         );
@@ -403,6 +412,12 @@ Route::middleware('auth:sanctum')
         // ---------------------------------------------------------
         // Campaigns
         // ---------------------------------------------------------
+
+        // Admin can create Global Situation campaigns.
+        Route::post(
+            '/campaigns',
+            [AdminController::class, 'storeCampaign']
+        );
 
         Route::get(
             '/campaigns',

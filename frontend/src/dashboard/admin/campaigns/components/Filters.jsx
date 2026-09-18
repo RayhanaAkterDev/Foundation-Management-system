@@ -1,23 +1,20 @@
 import React, { useMemo } from 'react';
 
-import { Search, SlidersHorizontal, ChevronDown } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 
 const Filters = ({
-    searchTerm,
     typeFilter,
     categoryFilter,
     organizationFilter,
-    statusFilter,
     campaigns,
-    onSearchChange,
     onTypeChange,
     onCategoryChange,
     onOrganizationChange,
-    onStatusChange,
 }) => {
     // --------------------------------
     // Categories
     // --------------------------------
+
     const categories = useMemo(() => {
         return [
             ...new Set(
@@ -29,6 +26,7 @@ const Filters = ({
     // --------------------------------
     // Organizations
     // --------------------------------
+
     const organizations = useMemo(() => {
         const organizationMap = new Map();
 
@@ -46,125 +44,164 @@ const Filters = ({
         }));
     }, [campaigns]);
 
+    // --------------------------------
+    // Shared select styles
+    // --------------------------------
+
+    const selectClassName = `
+        h-10 w-full appearance-none
+        border border-white/10
+        bg-white
+        px-3.5 pr-9
+        text-[12px] font-medium text-slate-800
+        outline-none transition-colors
+        hover:border-white/20
+        focus:border-white/30
+        focus:bg-white
+    `;
+
+    const optionClassName = 'bg-white text-slate-800';
+
     return (
-        <div className="flex flex-col gap-3 border-b border-border pb-5 lg:flex-row lg:items-center">
-            {/* Search */}
-            <div className="relative min-w-0 flex-1">
-                <Search
-                    size={17}
-                    className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary"
-                />
+        <div className="space-y-6">
+            {/* ================================================
+                CAMPAIGN TYPE
+            ================================================= */}
 
-                <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={onSearchChange}
-                    placeholder="Search campaigns by title or organization..."
-                    className="h-10 w-full rounded-lg border border-border bg-white pl-10 pr-4 text-sm text-text-primary outline-none transition-colors placeholder:text-text-secondary/65 focus:border-primary/40 focus:ring-4 focus:ring-primary/8"
-                />
-            </div>
+            <div>
+                <div className="mb-2.5 px-1">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/45">
+                        Campaign type
+                    </p>
+                </div>
 
-            <div className="hidden h-6 w-px bg-border lg:block" />
-
-            {/* Filter label */}
-            <div className="hidden items-center gap-2 px-1 text-text-secondary sm:flex">
-                <SlidersHorizontal size={15} />
-
-                <span className="text-xs font-semibold">Filters</span>
-            </div>
-
-            {/* Campaign Type */}
-            <div className="relative">
-                <select
-                    value={typeFilter}
-                    onChange={onTypeChange}
-                    className="h-10 w-full min-w-40 appearance-none rounded-lg border border-border bg-white px-3.5 pr-9 text-sm font-medium text-text-primary outline-none transition-colors hover:border-primary/30 focus:border-primary focus:ring-4 focus:ring-primary/8 sm:w-auto"
-                >
-                    <option value="all">All types</option>
-
-                    <option value="local_case">Local Case</option>
-
-                    <option value="organization_proposed">
-                        Organization Proposed
-                    </option>
-
-                    <option value="global_situation">Global Situation</option>
-                </select>
-
-                <ChevronDown
-                    size={14}
-                    className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary"
-                />
-            </div>
-
-            {/* Category */}
-            <div className="relative">
-                <select
-                    value={categoryFilter}
-                    onChange={onCategoryChange}
-                    className="h-10 w-full min-w-36 appearance-none rounded-lg border border-border bg-white px-3.5 pr-9 text-sm font-medium text-text-primary outline-none transition-colors hover:border-primary/30 focus:border-primary focus:ring-4 focus:ring-primary/8 sm:w-auto"
-                >
-                    <option value="all">All categories</option>
-
-                    {categories.map((category) => (
-                        <option key={category} value={category}>
-                            {category}
+                <div className="relative">
+                    <select
+                        value={typeFilter}
+                        onChange={onTypeChange}
+                        className={selectClassName}
+                    >
+                        <option value="all" className={optionClassName}>
+                            All campaign types
                         </option>
-                    ))}
-                </select>
 
-                <ChevronDown
-                    size={14}
-                    className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary"
-                />
-            </div>
-
-            {/* Organization */}
-            <div className="relative">
-                <select
-                    value={organizationFilter}
-                    onChange={onOrganizationChange}
-                    className="h-10 w-full min-w-40 appearance-none rounded-lg border border-border bg-white px-3.5 pr-9 text-sm font-medium text-text-primary outline-none transition-colors hover:border-primary/30 focus:border-primary focus:ring-4 focus:ring-primary/8 sm:w-auto"
-                >
-                    <option value="all">All organizations</option>
-
-                    {organizations.map((organization) => (
-                        <option key={organization.id} value={organization.id}>
-                            {organization.name}
+                        <option value="local_case" className={optionClassName}>
+                            Local Case
                         </option>
-                    ))}
-                </select>
 
-                <ChevronDown
-                    size={14}
-                    className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary"
-                />
+                        <option
+                            value="organization_proposed"
+                            className={optionClassName}
+                        >
+                            Organization Proposed
+                        </option>
+
+                        <option
+                            value="global_situation"
+                            className={optionClassName}
+                        >
+                            Global Situation
+                        </option>
+                    </select>
+
+                    <ChevronDown
+                        size={14}
+                        strokeWidth={2}
+                        className="
+                            pointer-events-none absolute right-3
+                            top-1/2 -translate-y-1/2
+                            text-slate-500
+                        "
+                    />
+                </div>
             </div>
 
-            {/* Status */}
-            <div className="relative">
-                <select
-                    value={statusFilter}
-                    onChange={onStatusChange}
-                    className="h-10 w-full min-w-36 appearance-none rounded-lg border border-border bg-white px-3.5 pr-9 text-sm font-medium text-text-primary outline-none transition-colors hover:border-primary/30 focus:border-primary focus:ring-4 focus:ring-primary/8 sm:w-auto"
-                >
-                    <option value="all">All status</option>
+            {/* ================================================
+                CATEGORY
+            ================================================= */}
 
-                    <option value="unverified">Unverified</option>
+            <div>
+                <div className="mb-2.5 px-1">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/45">
+                        Category
+                    </p>
+                </div>
 
-                    <option value="active">Active</option>
+                <div className="relative">
+                    <select
+                        value={categoryFilter}
+                        onChange={onCategoryChange}
+                        className={selectClassName}
+                    >
+                        <option value="all" className={optionClassName}>
+                            All categories
+                        </option>
 
-                    <option value="completed">Completed</option>
+                        {categories.map((category) => (
+                            <option
+                                key={category}
+                                value={category}
+                                className={optionClassName}
+                            >
+                                {category}
+                            </option>
+                        ))}
+                    </select>
 
-                    <option value="rejected">Rejected</option>
+                    <ChevronDown
+                        size={14}
+                        strokeWidth={2}
+                        className="
+                            pointer-events-none absolute right-3
+                            top-1/2 -translate-y-1/2
+                            text-slate-500
+                        "
+                    />
+                </div>
+            </div>
 
-                    <option value="cancelled">Cancelled</option>
-                </select>
+            {/* ================================================
+                ORGANIZATION
+            ================================================= */}
 
-                <ChevronDown
-                    size={14}
-                    className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary"
-                />
+            <div>
+                <div className="mb-2.5 px-1">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/45">
+                        Organization
+                    </p>
+                </div>
+
+                <div className="relative">
+                    <select
+                        value={organizationFilter}
+                        onChange={onOrganizationChange}
+                        className={selectClassName}
+                    >
+                        <option value="all" className={optionClassName}>
+                            All organizations
+                        </option>
+
+                        {organizations.map((organization) => (
+                            <option
+                                key={organization.id}
+                                value={organization.id}
+                                className={optionClassName}
+                            >
+                                {organization.name}
+                            </option>
+                        ))}
+                    </select>
+
+                    <ChevronDown
+                        size={14}
+                        strokeWidth={2}
+                        className="
+                            pointer-events-none absolute right-3
+                            top-1/2 -translate-y-1/2
+                            text-slate-500
+                        "
+                    />
+                </div>
             </div>
         </div>
     );

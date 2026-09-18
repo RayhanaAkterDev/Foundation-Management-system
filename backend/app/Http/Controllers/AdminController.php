@@ -308,21 +308,6 @@ class AdminController extends Controller
     |--------------------------------------------------------------------------
     | Users - Add
     |--------------------------------------------------------------------------
-    |
-    | Every newly created account:
-    |
-    | - starts inactive
-    | - must have a verification method
-    | - cannot choose active/inactive status
-    |
-    | email -> real email verification
-    | demo  -> demo verification
-    |
-    | IMPORTANT:
-    | The verification email is NOT sent here.
-    | The first login attempt is responsible for triggering
-    | the email verification flow.
-    |
     */
 
     public function storeUser(Request $request)
@@ -358,22 +343,10 @@ class AdminController extends Controller
                 'in:individual,organization,admin',
             ],
 
-            /*
-            |--------------------------------------------------------------------------
-            | Verification Method
-            |--------------------------------------------------------------------------
-            */
-
             'verification_method' => [
                 'required',
                 'in:email,demo',
             ],
-
-            /*
-            |--------------------------------------------------------------------------
-            | Account-level phone
-            |--------------------------------------------------------------------------
-            */
 
             'phone' => [
                 'nullable',
@@ -381,12 +354,6 @@ class AdminController extends Controller
                 'regex:/^01[0-9]{9}$/',
                 Rule::unique('users', 'phone'),
             ],
-
-            /*
-            |--------------------------------------------------------------------------
-            | Organization-specific fields
-            |--------------------------------------------------------------------------
-            */
 
             'organization_type' => [
                 'nullable',
@@ -442,53 +409,20 @@ class AdminController extends Controller
                 'phone' => $validated['phone'],
                 'password' => $validated['password'],
                 'role' => $validated['role'],
-
-                /*
-                |--------------------------------------------------------------------------
-                | Verification
-                |--------------------------------------------------------------------------
-                */
-
                 'verification_method' =>
                 $validated['verification_method'],
-
-                /*
-                |--------------------------------------------------------------------------
-                | Every new account starts inactive.
-                |--------------------------------------------------------------------------
-                */
-
                 'status' => 'inactive',
-
-                /*
-                |--------------------------------------------------------------------------
-                | Email must start unverified.
-                |--------------------------------------------------------------------------
-                */
-
                 'email_verified_at' => null,
             ]);
 
             $individualProfile = null;
             $organization = null;
 
-            /*
-            |--------------------------------------------------------------------------
-            | Individual
-            |--------------------------------------------------------------------------
-            */
-
             if ($validated['role'] === 'individual') {
                 $individualProfile = IndividualProfile::create([
                     'user_id' => $newUser->id,
                 ]);
             }
-
-            /*
-            |--------------------------------------------------------------------------
-            | Organization
-            |--------------------------------------------------------------------------
-            */
 
             if ($validated['role'] === 'organization') {
                 $organization = Organization::create([
@@ -533,18 +467,6 @@ class AdminController extends Controller
             ];
         });
 
-        /*
-        |--------------------------------------------------------------------------
-        | IMPORTANT:
-        |
-        | Do NOT send the verification email here.
-        |
-        | Admin-created users follow the same workflow as publicly
-        | registered users. Their first login attempt will trigger
-        | the verification email from AuthController.
-        |--------------------------------------------------------------------------
-        */
-
         return response()->json([
             'message' => $result['user']->verification_method === 'email'
                 ? 'User created successfully. The account is inactive until email verification.'
@@ -564,25 +486,10 @@ class AdminController extends Controller
     }
 
     /*
-|--------------------------------------------------------------------------
-| Users - Edit
-|--------------------------------------------------------------------------
-|
-| Admin can update:
-| - name
-| - email
-| - phone
-| - status
-| - verification method
-|
-| If a real email verification needs to be restarted:
-| - email_verified_at is cleared
-| - verification_email_sent_at is cleared
-| - account becomes inactive
-| - verification email is NOT sent here
-| - the user's next login triggers the verification email
-|
-*/
+    |--------------------------------------------------------------------------
+    | Users - Edit
+    |--------------------------------------------------------------------------
+    */
 
     public function updateUser(Request $request, int $id)
     {
@@ -634,12 +541,6 @@ class AdminController extends Controller
             $targetUser->verification_method !==
             $validated['verification_method'];
 
-        /*
-    |--------------------------------------------------------------------------
-    | Update the allowed account fields
-    |--------------------------------------------------------------------------
-    */
-
         $targetUser->name = $validated['name'];
         $targetUser->email = $validated['email'];
         $targetUser->phone = $validated['phone'];
@@ -647,67 +548,20 @@ class AdminController extends Controller
         $targetUser->verification_method =
             $validated['verification_method'];
 
-        /*
-    |--------------------------------------------------------------------------
-    | Verification state
-    |--------------------------------------------------------------------------
-    */
-
         if ($validated['verification_method'] === 'demo') {
-
-            /*
-        |--------------------------------------------------------------------------
-        | Demo accounts are considered verified immediately.
-        |--------------------------------------------------------------------------
-        */
-
             $targetUser->email_verified_at = now();
-
-            /*
-        | Any previous real-email verification attempt is no longer
-        | relevant because this account is now using demo verification.
-        */
             $targetUser->verification_email_sent_at = null;
         } else {
-
-            /*
-        |--------------------------------------------------------------------------
-        | Real email verification
-        |--------------------------------------------------------------------------
-        */
-
             if ($emailChanged || $verificationMethodChanged) {
-
-                /*
-            | Changing the email or switching demo -> email invalidates
-            | the previous verification.
-            */
                 $targetUser->email_verified_at = null;
-
-                /*
-            | Reset this so the next login is treated as the first
-            | verification attempt and sends a new email.
-            */
                 $targetUser->verification_email_sent_at = null;
-
-                /*
-            | The account must remain inactive until the new email
-            | address is verified.
-            */
                 $targetUser->status = 'inactive';
             }
         }
 
         $targetUser->save();
 
-        /*
-    |--------------------------------------------------------------------------
-    | Keep organization name synchronized
-    |--------------------------------------------------------------------------
-    */
-
         if ($targetUser->role === 'organization') {
-
             $organization = $targetUser->organization;
 
             if ($organization) {
@@ -716,17 +570,6 @@ class AdminController extends Controller
                 ]);
             }
         }
-
-        /*
-    |--------------------------------------------------------------------------
-    | IMPORTANT:
-    |
-    | No verification email is sent here.
-    |
-    | For email verification, the user's next login attempt
-    | triggers the verification email from AuthController@login().
-    |--------------------------------------------------------------------------
-    */
 
         return response()->json([
             'message' => 'User updated successfully.',
@@ -786,14 +629,6 @@ class AdminController extends Controller
     |--------------------------------------------------------------------------
     | Organizations - Add
     |--------------------------------------------------------------------------
-    |
-    | Kept as a separate endpoint for compatibility.
-    |
-    | Organization accounts created here also:
-    | - use users.phone
-    | - start inactive
-    | - use email verification
-    |
     */
 
     public function storeOrganization(Request $request)
@@ -861,29 +696,8 @@ class AdminController extends Controller
                 'phone' => $validated['phone'],
                 'password' => $temporaryPassword,
                 'role' => 'organization',
-
-                /*
-                |--------------------------------------------------------------------------
-                | Real email verification
-                |--------------------------------------------------------------------------
-                */
-
                 'verification_method' => 'email',
-
-                /*
-                |--------------------------------------------------------------------------
-                | All new accounts start inactive.
-                |--------------------------------------------------------------------------
-                */
-
                 'status' => 'inactive',
-
-                /*
-                |--------------------------------------------------------------------------
-                | Email starts unverified.
-                |--------------------------------------------------------------------------
-                */
-
                 'email_verified_at' => null,
             ]);
 
@@ -896,12 +710,6 @@ class AdminController extends Controller
 
                 'registration_number' =>
                 $validated['registration_number'] ?? null,
-
-                /*
-                |--------------------------------------------------------------------------
-                | Phone belongs to users.phone.
-                |--------------------------------------------------------------------------
-                */
 
                 'website' =>
                 $validated['website'] ?? null,
@@ -917,15 +725,6 @@ class AdminController extends Controller
                 'organization' => $organization,
             ];
         });
-
-        /*
-        |--------------------------------------------------------------------------
-        | IMPORTANT:
-        |
-        | Do not send the verification email here.
-        | The first login attempt will trigger the email.
-        |--------------------------------------------------------------------------
-        */
 
         return response()->json([
             'message' =>
@@ -1030,12 +829,6 @@ class AdminController extends Controller
                 'max:255',
             ],
 
-            /*
-            |--------------------------------------------------------------------------
-            | Phone is managed through users.phone.
-            |--------------------------------------------------------------------------
-            */
-
             'website' => [
                 'nullable',
                 'string',
@@ -1130,13 +923,6 @@ class AdminController extends Controller
                 'verification_status' =>
                 $verificationStatus,
             ]);
-
-            /*
-            |--------------------------------------------------------------------------
-            | Organization verification must not bypass account
-            | email/demo verification.
-            |--------------------------------------------------------------------------
-            */
 
             if ($verificationStatus === 'rejected') {
                 User::where(
@@ -1916,6 +1702,241 @@ class AdminController extends Controller
         return response()->json([
             'volunteers' => $volunteers,
         ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Campaigns - Create Global Situation Campaign
+    |--------------------------------------------------------------------------
+    |
+    | Admin campaign creation is intentionally restricted to:
+    |
+    | type  = global_situation
+    | scope = global
+    |
+    | Admin does NOT create:
+    | - local_case campaigns
+    | - organization_proposed campaigns
+    |
+    | Local case campaigns are created by organizations from their
+    | assigned help requests.
+    |
+    */
+
+    public function storeCampaign(Request $request)
+    {
+        $user = $this->authorizeAdmin($request);
+
+        if ($user instanceof \Illuminate\Http\JsonResponse) {
+            return $user;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Categories shared with Help Request system
+        |--------------------------------------------------------------------------
+        */
+
+        $categories = [
+            'Education',
+            'Healthcare',
+            'Food Assistance',
+            'Shelter',
+            'Livelihood',
+            'Disaster Relief',
+            'Other',
+        ];
+
+        $validated = $request->validate([
+            'title' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'description' => [
+                'required',
+                'string',
+            ],
+
+            'category' => [
+                'required',
+                'string',
+                Rule::in($categories),
+            ],
+
+            /*
+            |--------------------------------------------------------------------------
+            | Global campaign only
+            |--------------------------------------------------------------------------
+            */
+
+            'scope' => [
+                'nullable',
+                'string',
+                'in:global',
+            ],
+
+            /*
+            |--------------------------------------------------------------------------
+            | Global campaigns do not belong to a district,
+            | but these remain nullable for compatibility with the
+            | existing campaigns table.
+            |--------------------------------------------------------------------------
+            */
+
+            'district' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
+            'location' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
+            'affected_areas' => [
+                'nullable',
+                'string',
+            ],
+
+            'target_amount' => [
+                'required',
+                'numeric',
+                'min:0',
+            ],
+
+            'start_date' => [
+                'nullable',
+                'date',
+            ],
+
+            'end_date' => [
+                'nullable',
+                'date',
+                'after_or_equal:start_date',
+            ],
+
+            /*
+            |--------------------------------------------------------------------------
+            | Cover image
+            |--------------------------------------------------------------------------
+            */
+
+            'cover_image' => [
+                'nullable',
+                'image',
+                'mimes:jpg,jpeg,png,webp',
+                'max:5120',
+            ],
+        ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Store uploaded cover image
+        |--------------------------------------------------------------------------
+        */
+
+        $coverImagePath = null;
+
+        if ($request->hasFile('cover_image')) {
+            $coverImagePath = $request
+                ->file('cover_image')
+                ->store('campaigns', 'public');
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Create campaign
+        |--------------------------------------------------------------------------
+        |
+        | Important:
+        |
+        | - organization_id = null
+        | | help_request_id = null
+        | | type = global_situation
+        | | scope = global
+        | | created_by = current admin
+        | | status = unverified
+        |
+        |--------------------------------------------------------------------------
+        */
+
+        $campaign = DB::transaction(function () use (
+            $validated,
+            $user,
+            $coverImagePath
+        ) {
+            return Campaign::create([
+                'organization_id' => null,
+
+                'help_request_id' => null,
+
+                'type' => Campaign::TYPE_GLOBAL_SITUATION,
+
+                'created_by' => $user->id,
+
+                'title' => $validated['title'],
+
+                'description' => $validated['description'],
+
+                'category' => $validated['category'],
+
+                /*
+                |--------------------------------------------------------------------------
+                | Admin-created campaigns are always global.
+                |--------------------------------------------------------------------------
+                */
+
+                'scope' => 'global',
+
+                'district' =>
+                $validated['district'] ?? null,
+
+                'location' =>
+                $validated['location'] ?? null,
+
+                'affected_areas' =>
+                $validated['affected_areas'] ?? null,
+
+                'target_amount' =>
+                $validated['target_amount'],
+
+                'start_date' =>
+                $validated['start_date'] ?? null,
+
+                'end_date' =>
+                $validated['end_date'] ?? null,
+
+                'cover_image' => $coverImagePath,
+
+                /*
+                |--------------------------------------------------------------------------
+                | New admin campaigns must be reviewed before activation.
+                |--------------------------------------------------------------------------
+                */
+
+                'status' => Campaign::STATUS_UNVERIFIED,
+
+                'proposal_date' => now(),
+            ]);
+        });
+
+        return response()->json([
+            'message' =>
+            'Global situation campaign created successfully and is awaiting verification.',
+
+            'campaign' => $campaign
+                ->fresh()
+                ->load([
+                    'organization:id,name',
+                    'creator:id,name,email',
+                    'verifier:id,name,email',
+                    'helpRequest:id,title,status',
+                ]),
+        ], 201);
     }
 
     /*

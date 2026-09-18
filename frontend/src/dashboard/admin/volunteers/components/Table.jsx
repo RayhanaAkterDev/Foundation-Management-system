@@ -10,6 +10,7 @@ const statusStyles = {
         border: 'border-emerald-200',
         dot: 'bg-emerald-500',
     },
+
     pending: {
         label: 'Pending',
         text: 'text-amber-700',
@@ -17,8 +18,33 @@ const statusStyles = {
         border: 'border-amber-200',
         dot: 'bg-amber-500',
     },
+
     inactive: {
         label: 'Inactive',
+        text: 'text-slate-600',
+        bg: 'bg-slate-50',
+        border: 'border-slate-200',
+        dot: 'bg-slate-400',
+    },
+
+    rejected: {
+        label: 'Rejected',
+        text: 'text-red-700',
+        bg: 'bg-red-50',
+        border: 'border-red-200',
+        dot: 'bg-red-500',
+    },
+
+    suspended: {
+        label: 'Suspended',
+        text: 'text-orange-700',
+        bg: 'bg-orange-50',
+        border: 'border-orange-200',
+        dot: 'bg-orange-500',
+    },
+
+    removed: {
+        label: 'Removed',
         text: 'text-slate-600',
         bg: 'bg-slate-50',
         border: 'border-slate-200',
@@ -73,7 +99,9 @@ const Table = ({ columns = [], rows = [], resultCount = 0 }) => {
 
                         <div className="min-w-0">
                             <p className="truncate text-[13px] font-semibold text-text-primary">
-                                {row.volunteerName || 'Unnamed volunteer'}
+                                {row.volunteerName ||
+                                    row.user?.name ||
+                                    'Unnamed volunteer'}
                             </p>
 
                             {row.organization && (
@@ -89,6 +117,12 @@ const Table = ({ columns = [], rows = [], resultCount = 0 }) => {
                                     </span>
                                 </div>
                             )}
+
+                            {row.status === 'pending' && (
+                                <p className="mt-1 text-[10px] font-medium text-amber-700">
+                                    Volunteer invitation sent
+                                </p>
+                            )}
                         </div>
                     </div>
                 );
@@ -103,7 +137,9 @@ const Table = ({ columns = [], rows = [], resultCount = 0 }) => {
                         />
 
                         <span className="truncate text-xs font-medium text-text-primary">
-                            {row.email || 'No email available'}
+                            {row.email ||
+                                row.user?.email ||
+                                'No email available'}
                         </span>
                     </div>
                 );
@@ -118,7 +154,9 @@ const Table = ({ columns = [], rows = [], resultCount = 0 }) => {
                         />
 
                         <span className="truncate text-xs font-medium text-text-primary">
-                            {row.district || 'Not provided'}
+                            {row.district ||
+                                row.user?.district ||
+                                'Not provided'}
                         </span>
                     </div>
                 );
@@ -146,25 +184,33 @@ const Table = ({ columns = [], rows = [], resultCount = 0 }) => {
                 const status = getStatus(row.status);
 
                 return (
-                    <span
-                        className={`
-                            inline-flex items-center gap-2
-                            border px-2.5 py-1.5
-                            text-[10px] font-bold uppercase tracking-[0.08em]
-                            ${status.bg}
-                            ${status.border}
-                            ${status.text}
-                        `}
-                    >
+                    <div className="flex flex-col items-start gap-1.5">
                         <span
                             className={`
-                                h-1.5 w-1.5 rounded-full
-                                ${status.dot}
+                                inline-flex items-center gap-2
+                                border px-2.5 py-1.5
+                                text-[10px] font-bold uppercase tracking-[0.08em]
+                                ${status.bg}
+                                ${status.border}
+                                ${status.text}
                             `}
-                        />
+                        >
+                            <span
+                                className={`
+                                    h-1.5 w-1.5 rounded-full
+                                    ${status.dot}
+                                `}
+                            />
 
-                        {status.label}
-                    </span>
+                            {status.label}
+                        </span>
+
+                        {row.status === 'pending' && (
+                            <span className="text-[10px] font-medium text-text-secondary">
+                                Awaiting response
+                            </span>
+                        )}
+                    </div>
                 );
             }
 
@@ -178,7 +224,7 @@ const Table = ({ columns = [], rows = [], resultCount = 0 }) => {
                         />
 
                         <span className="text-xs font-medium text-text-primary">
-                            {formatDate(row.joinedDate)}
+                            {formatDate(row.joinedDate || row.created_at)}
                         </span>
                     </div>
                 );
@@ -195,6 +241,7 @@ const Table = ({ columns = [], rows = [], resultCount = 0 }) => {
     return (
         <div className="min-w-270">
             {/* Table header */}
+
             <div
                 className="
                     grid
@@ -219,6 +266,7 @@ const Table = ({ columns = [], rows = [], resultCount = 0 }) => {
             </div>
 
             {/* Table body */}
+
             {rows.length > 0 ? (
                 <div className="divide-y divide-border">
                     {rows.map((row, index) => (
@@ -227,6 +275,7 @@ const Table = ({ columns = [], rows = [], resultCount = 0 }) => {
                                 row.id ||
                                 row.userId ||
                                 row.volunteerId ||
+                                row.requestId ||
                                 `${row.email}-${index}`
                             }
                             className="
@@ -266,7 +315,7 @@ const Table = ({ columns = [], rows = [], resultCount = 0 }) => {
 
                         <p className="mt-1.5 text-xs leading-5 text-text-secondary">
                             {resultCount === 0
-                                ? 'No volunteer records match the current search and filter settings.'
+                                ? 'No volunteer records or pending invitations match the current search and filter settings.'
                                 : 'No volunteers are available on this page.'}
                         </p>
                     </div>

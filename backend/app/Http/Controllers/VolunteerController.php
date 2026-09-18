@@ -62,6 +62,12 @@ class VolunteerController extends Controller
             ], 403);
         }
 
+        /*
+    |--------------------------------------------------------------------------
+    | Existing volunteer records
+    |--------------------------------------------------------------------------
+    */
+
         $volunteers = Volunteer::with([
             'user:id,name,email,status',
             'organization:id,name',
@@ -69,8 +75,76 @@ class VolunteerController extends Controller
             ->latest()
             ->get();
 
+        /*
+    |--------------------------------------------------------------------------
+    | Pending volunteer requests
+    |--------------------------------------------------------------------------
+    |
+    | A pending request does not create a Volunteer record yet.
+    | Include those invited users in the same directory response.
+    |
+    */
+
+        $existingVolunteerUserIds = $volunteers
+            ->pluck('user_id')
+            ->filter()
+            ->unique()
+            ->values();
+
+        $pendingRequests = \App\Models\VolunteerRequest::with([
+            'user:id,name,email,status',
+        ])
+            ->where(
+                'status',
+                \App\Models\VolunteerRequest::STATUS_PENDING
+            )
+            ->whereNotIn('user_id', $existingVolunteerUserIds)
+            ->latest()
+            ->get()
+            ->unique('user_id')
+            ->values();
+
+        /*
+    |--------------------------------------------------------------------------
+    | Normalize pending requests
+    |--------------------------------------------------------------------------
+    */
+
+        $pendingVolunteers = $pendingRequests->map(function ($request) {
+            return [
+                'id' => null,
+                'request_id' => $request->id,
+                'user_id' => $request->user_id,
+                'user' => $request->user,
+                'organization' => null,
+                'phone' => $request->user?->phone,
+                'district' => null,
+                'address' => null,
+                'skills' => null,
+                'availability' => null,
+                'status' => \App\Models\VolunteerRequest::STATUS_PENDING,
+                'created_at' => null,
+                'updated_at' => $request->updated_at,
+            ];
+        });
+
+        /*
+    |--------------------------------------------------------------------------
+    | Merge existing volunteers + pending invitations
+    |--------------------------------------------------------------------------
+    */
+
+        $directory = $volunteers
+            ->concat($pendingVolunteers)
+            ->sortByDesc(function ($item) {
+                return $item['created_at']
+                    ?? $item['updated_at']
+                    ?? now();
+            })
+            ->values();
+
         return response()->json([
-            'volunteers' => $volunteers,
+            'volunteers' => $directory,
         ]);
     }
 

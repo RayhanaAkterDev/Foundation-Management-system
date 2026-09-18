@@ -7,9 +7,13 @@ import PageHeader from '@/components/dashboard/PageHeader';
 import VolunteerRequestModal from './modals/VolunteerRequestModal';
 
 import VolunteerStats from './components/Stats';
+
 import VolunteerFilters from './components/Filters';
+
 import VolunteerTable from './components/Table';
+
 import VolunteerPagination from './components/Pagination';
+
 import VolunteerSuccessToast from './components/SuccessToast';
 
 import {
@@ -22,11 +26,15 @@ const VOLUNTEERS_PER_PAGE = 25;
 
 const Volunteers = () => {
     const [volunteers, setVolunteers] = useState([]);
+
     const [loading, setLoading] = useState(true);
+
     const [error, setError] = useState('');
 
     const [searchTerm, setSearchTerm] = useState('');
+
     const [statusFilter, setStatusFilter] = useState('all');
+
     const [currentPage, setCurrentPage] = useState(1);
 
     // --------------------------------
@@ -34,11 +42,17 @@ const Volunteers = () => {
     // --------------------------------
 
     const [showRequestModal, setShowRequestModal] = useState(false);
+
     const [candidateUsers, setCandidateUsers] = useState([]);
+
     const [candidateLoading, setCandidateLoading] = useState(false);
+
     const [candidateError, setCandidateError] = useState('');
+
     const [selectedUsers, setSelectedUsers] = useState([]);
+
     const [requestLoading, setRequestLoading] = useState(false);
+
     const [requestError, setRequestError] = useState('');
 
     // --------------------------------
@@ -88,29 +102,6 @@ const Volunteers = () => {
     // Load volunteers
     // --------------------------------
 
-    const loadVolunteers = async () => {
-        try {
-            setLoading(true);
-            setError('');
-
-            const response = await fetchVolunteers();
-
-            console.log('VOLUNTEER API RESPONSE:', response);
-
-            const volunteerList = normalizeVolunteersResponse(response);
-
-            console.log('NORMALIZED VOLUNTEERS:', volunteerList);
-
-            setVolunteers(volunteerList);
-        } catch (err) {
-            console.error('VOLUNTEER LOAD ERROR:', err);
-
-            setError(err?.message || 'Unable to load the volunteer directory.');
-        } finally {
-            setLoading(false);
-        }
-    };
-
     useEffect(() => {
         let cancelled = false;
 
@@ -159,9 +150,13 @@ const Volunteers = () => {
 
     const openRequestModal = async () => {
         setShowRequestModal(true);
+
         setCandidateLoading(true);
+
         setCandidateError('');
+
         setRequestError('');
+
         setSelectedUsers([]);
 
         try {
@@ -189,9 +184,13 @@ const Volunteers = () => {
         }
 
         setShowRequestModal(false);
+
         setCandidateUsers([]);
+
         setSelectedUsers([]);
+
         setCandidateError('');
+
         setRequestError('');
     };
 
@@ -212,6 +211,7 @@ const Volunteers = () => {
     const handleSelectAll = () => {
         if (selectedUsers.length === candidateUsers.length) {
             setSelectedUsers([]);
+
             return;
         }
 
@@ -230,12 +230,16 @@ const Volunteers = () => {
         const selectedCount = selectedUsers.length;
 
         setRequestLoading(true);
+
         setRequestError('');
 
         try {
             await sendVolunteerRequests(selectedUsers);
 
             setShowRequestModal(false);
+
+            setCandidateUsers([]);
+
             setSelectedUsers([]);
 
             showSuccessToast(
@@ -243,8 +247,6 @@ const Volunteers = () => {
                     ? 'Volunteer request sent successfully.'
                     : `${selectedCount} volunteer requests sent successfully.`,
             );
-
-            await loadVolunteers();
         } catch (err) {
             setRequestError(
                 err?.message || 'Unable to send volunteer requests.',
@@ -259,20 +261,24 @@ const Volunteers = () => {
     // --------------------------------
 
     const statistics = useMemo(() => {
+        const active = volunteers.filter(
+            (volunteer) => volunteer.status === 'active',
+        ).length;
+
+        const pending = volunteers.filter(
+            (volunteer) => volunteer.status === 'pending',
+        ).length;
+
+        const inactive = volunteers.filter(
+            (volunteer) =>
+                volunteer.status !== 'active' && volunteer.status !== 'pending',
+        ).length;
+
         return {
             total: volunteers.length,
-
-            active: volunteers.filter(
-                (volunteer) => volunteer.status === 'active',
-            ).length,
-
-            pending: volunteers.filter(
-                (volunteer) => volunteer.status === 'pending',
-            ).length,
-
-            inactive: volunteers.filter(
-                (volunteer) => volunteer.status === 'inactive',
-            ).length,
+            active,
+            pending,
+            inactive,
         };
     }, [volunteers]);
 
@@ -351,11 +357,13 @@ const Volunteers = () => {
 
     const handleSearchChange = (event) => {
         setSearchTerm(event.target.value);
+
         setCurrentPage(1);
     };
 
     const handleStatusChange = (event) => {
         setStatusFilter(event.target.value);
+
         setCurrentPage(1);
     };
 
@@ -415,10 +423,13 @@ const Volunteers = () => {
         const link = document.createElement('a');
 
         link.href = url;
+
         link.download = 'stand-for-people-volunteers.csv';
 
         document.body.appendChild(link);
+
         link.click();
+
         document.body.removeChild(link);
 
         URL.revokeObjectURL(url);
@@ -438,6 +449,8 @@ const Volunteers = () => {
         volunteerName: volunteer.user?.name || volunteer.name || 'Unknown',
 
         email: volunteer.user?.email || volunteer.email || 'N/A',
+
+        district: volunteer.district || volunteer.user?.district || 'N/A',
 
         organization:
             volunteer.organization?.name ||

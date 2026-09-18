@@ -8,6 +8,10 @@ export const fetchVolunteerCandidates = async () => {
     return apiRequest('/admin/volunteers/candidates');
 };
 
+export const fetchVolunteerRequests = async () => {
+    return apiRequest('/admin/volunteers/requests');
+};
+
 export const sendVolunteerRequests = async (userIds) => {
     return apiRequest('/admin/volunteers/requests', {
         method: 'POST',

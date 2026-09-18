@@ -5,6 +5,10 @@
             "destination": "https://stand-for-people-api.onrender.com/api/:path*"
         },
         {
+            "source": "/donation/payment-result",
+            "destination": "/index.html"
+        },
+        {
             "source": "/(.*)",
             "destination": "/index.html"
         }

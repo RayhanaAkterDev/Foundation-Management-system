@@ -50,20 +50,27 @@ class SSLCOMMERZService
      */
     public function initiatePayment(array $data): array
     {
+        if (
+            $this->storeId === ''
+            || $this->storePassword === ''
+            || $this->initiationUrl === ''
+            || $this->callbackUrl === ''
+        ) {
+            throw new RuntimeException(
+                'SSLCOMMERZ configuration is incomplete.'
+            );
+        }
+
         $payload = [
             'store_id' => $this->storeId,
-
             'store_passwd' => $this->storePassword,
-
             'total_amount' => number_format(
                 (float) $data['amount'],
                 2,
                 '.',
                 ''
             ),
-
             'currency' => 'BDT',
-
             'tran_id' => $data['transaction_id'],
 
             'success_url' =>
@@ -83,61 +90,66 @@ class SSLCOMMERZService
                 '/api/donations/payment/ipn',
 
             'cus_name' => $data['donor_name'],
-
             'cus_email' => $data['donor_email'],
 
             'cus_add1' => 'Bangladesh',
-
             'cus_city' => 'Dhaka',
-
             'cus_country' => 'Bangladesh',
 
             'shipping_method' => 'NO',
 
             'product_name' => $data['campaign_title'],
-
             'product_category' => 'donation',
-
             'product_profile' => 'general',
 
-            /*
-             * These values allow us to carry SP-specific
-             * information through the gateway request.
-             */
             'value_a' => (string) $data['campaign_id'],
-
             'value_b' => (string) $data['transaction_id'],
         ];
 
-        $response = Http::asForm()
-            ->timeout(30)
-            ->post(
-                $this->initiationUrl,
-                $payload
+        try {
+            $response = Http::asForm()
+                ->acceptJson()
+                ->timeout(30)
+                ->post(
+                    $this->initiationUrl,
+                    $payload
+                );
+        } catch (\Throwable $exception) {
+            throw new RuntimeException(
+                'Unable to connect to SSLCOMMERZ: ' .
+                    $exception->getMessage(),
+                0,
+                $exception
             );
+        }
 
         if (!$response->successful()) {
             throw new RuntimeException(
-                'SSLCOMMERZ payment initiation failed.'
+                'SSLCOMMERZ payment initiation failed. ' .
+                    'HTTP ' . $response->status() .
+                    '. Response: ' . $response->body()
             );
         }
 
         $result = $response->json();
 
-        if (
-            !is_array($result)
-            || empty($result['GatewayPageURL'])
-        ) {
+        if (!is_array($result)) {
             throw new RuntimeException(
-                'SSLCOMMERZ did not return a payment gateway URL.'
+                'SSLCOMMERZ returned an invalid response. ' .
+                    'Raw response: ' . $response->body()
+            );
+        }
+
+        if (empty($result['GatewayPageURL'])) {
+            throw new RuntimeException(
+                'SSLCOMMERZ did not return a payment gateway URL. ' .
+                    'Response: ' . json_encode($result)
             );
         }
 
         return [
             'success' => true,
-
             'gateway_url' => $result['GatewayPageURL'],
-
             'session_key' => $result['sessionkey'] ?? null,
         ];
     }

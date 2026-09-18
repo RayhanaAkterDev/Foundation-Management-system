@@ -21,6 +21,7 @@ const ACTIVE_ASSIGNMENT_STATUSES = [
 const AssignmentModal = ({
     campaign,
     volunteers = [],
+    assignments = [],
     loading = false,
     error = '',
     onClose,
@@ -31,118 +32,49 @@ const AssignmentModal = ({
     | Campaign assignment history
     |--------------------------------------------------------------------------
     |
-    | We need the complete assignment history for THIS campaign.
+    | `assignments` comes directly from:
     |
-    | Anyone who already has an assignment record for this campaign must
-    | never appear in the new volunteer selection again.
+    | GET /admin/campaigns/{id}/assignments
     |
-    | That includes:
-    |
-    | assigned
-    | accepted
-    | in_progress
-    | withdrawal_requested
-    | completed
-    | rejected
-    | withdrawn
+    | It contains every assignment ever created for this campaign.
     |
     */
 
     const existingAssignments = useMemo(() => {
-        if (!campaign) {
+        if (!Array.isArray(assignments)) {
             return [];
         }
 
-        const records = [];
+        return assignments
+            .filter(Boolean)
+            .map((assignment) => {
+                const volunteerId =
+                    assignment?.volunteer_id ??
+                    assignment?.volunteer?.id ??
+                    assignment?.user_id ??
+                    assignment?.user?.id;
 
-        /*
-         * Preferred API structure:
-         *
-         * campaign.assignment.assignments
-         */
-        if (Array.isArray(campaign.assignment?.assignments)) {
-            records.push(...campaign.assignment.assignments);
-        }
+                if (volunteerId === undefined || volunteerId === null) {
+                    return null;
+                }
 
-        /*
-         * Alternative structure:
-         *
-         * campaign.assignment.volunteers
-         *
-         * Only use this if those records actually represent
-         * campaign assignment records.
-         */
-        if (Array.isArray(campaign.assignment?.volunteers)) {
-            records.push(...campaign.assignment.volunteers);
-        }
-
-        /*
-         * Another possible API structure:
-         *
-         * campaign.assignments
-         */
-        if (Array.isArray(campaign.assignments)) {
-            records.push(...campaign.assignments);
-        }
-
-        /*
-         * Backward compatibility with a direct campaign.volunteers
-         * response.
-         */
-        if (Array.isArray(campaign.volunteers)) {
-            records.push(...campaign.volunteers);
-        }
-
-        /*
-         * Deduplicate records.
-         *
-         * Prefer assignment ID when available.
-         * Otherwise use volunteer ID.
-         */
-        const uniqueRecords = new Map();
-
-        records.forEach((record) => {
-            if (!record) {
-                return;
-            }
-
-            const volunteerId =
-                record?.volunteer_id ??
-                record?.user_id ??
-                record?.volunteer?.user_id ??
-                record?.volunteer?.id ??
-                record?.user?.id;
-
-            if (volunteerId === undefined || volunteerId === null) {
-                return;
-            }
-
-            const assignmentId =
-                record?.assignment_id ?? record?.assignment?.id ?? record?.id;
-
-            const key = assignmentId
-                ? `assignment-${assignmentId}`
-                : `volunteer-${volunteerId}`;
-
-            if (!uniqueRecords.has(key)) {
-                uniqueRecords.set(key, {
-                    ...record,
+                return {
+                    ...assignment,
                     _volunteerId: String(volunteerId),
-                });
-            }
-        });
-
-        return Array.from(uniqueRecords.values());
-    }, [campaign]);
+                };
+            })
+            .filter(Boolean);
+    }, [assignments]);
 
     /*
     |--------------------------------------------------------------------------
-    | Volunteers already connected to THIS campaign
+    | Volunteers already assigned to THIS campaign
     |--------------------------------------------------------------------------
     |
-    | This is the most important list for the selection logic.
+    | Every historical assignment is included here.
     |
-    | Rejected volunteers are included here too.
+    | Therefore a volunteer cannot be selected again even if their previous
+    | assignment was rejected, completed, or withdrawn.
     |
     */
 
@@ -156,13 +88,8 @@ const AssignmentModal = ({
 
     /*
     |--------------------------------------------------------------------------
-    | Currently connected / accepted volunteers
+    | Currently connected volunteers
     |--------------------------------------------------------------------------
-    |
-    | "assigned" means the request is still waiting for the volunteer.
-    | "accepted", "in_progress", and "withdrawal_requested" are also
-    | active connections to the campaign.
-    |
     */
 
     const connectedVolunteers = useMemo(() => {
@@ -187,12 +114,6 @@ const AssignmentModal = ({
     |--------------------------------------------------------------------------
     | Completed / withdrawn history
     |--------------------------------------------------------------------------
-    |
-    | These volunteers are also excluded from selection because they
-    | already participated in this campaign.
-    |
-    | We keep them in a separate history section only when present.
-    |
     */
 
     const completedVolunteers = useMemo(() => {
@@ -206,13 +127,11 @@ const AssignmentModal = ({
     | New volunteer selection
     |--------------------------------------------------------------------------
     |
-    | `volunteers` comes from the admin candidate endpoint.
+    | The backend candidate endpoint already removes volunteers who currently
+    | have an active assignment on ANY campaign.
     |
-    | That endpoint already removes volunteers who currently have an
-    | active assignment on ANY campaign.
-    |
-    | Here we additionally remove anyone who has EVER received an
-    | assignment for THIS campaign.
+    | We additionally remove anyone who has EVER had an assignment for THIS
+    | campaign.
     |
     */
 
@@ -221,6 +140,8 @@ const AssignmentModal = ({
             const volunteerId = String(
                 volunteer?.user_id ??
                     volunteer?.user?.id ??
+                    volunteer?.volunteer_id ??
+                    volunteer?.volunteer?.id ??
                     volunteer?.id ??
                     '',
             );
@@ -370,6 +291,7 @@ const AssignmentModal = ({
     };
 
     const selectedCount = selectedVolunteers.length;
+
     const hasSelectedVolunteers = selectedCount > 0;
 
     if (!campaign) {

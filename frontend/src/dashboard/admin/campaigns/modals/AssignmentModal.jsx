@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+
 import {
     X,
     Users,
@@ -18,32 +19,61 @@ const AssignmentModal = ({
 }) => {
     /*
     |--------------------------------------------------------------------------
-    | Existing campaign assignment
+    | Existing campaign assignments
     |--------------------------------------------------------------------------
     |
-    | The backend assigns ONE volunteer per request.
-    | Therefore this modal also allows only one volunteer to be selected.
+    | A campaign can have multiple volunteers assigned to it.
+    | Therefore we collect all currently assigned volunteer IDs so they
+    | can remain selected when the modal is opened again.
     |
     */
 
-    const existingVolunteerId = useMemo(() => {
+    const existingVolunteerIds = useMemo(() => {
         if (!campaign) {
-            return '';
+            return [];
         }
 
+        const ids = [];
+
+        if (Array.isArray(campaign.assignment?.volunteers)) {
+            campaign.assignment.volunteers.forEach((volunteer) => {
+                const id =
+                    volunteer?.user_id ?? volunteer?.id ?? volunteer?.user?.id;
+
+                if (id !== undefined && id !== null) {
+                    ids.push(String(id));
+                }
+            });
+        }
+
+        if (Array.isArray(campaign.volunteers)) {
+            campaign.volunteers.forEach((volunteer) => {
+                const id =
+                    volunteer?.user_id ?? volunteer?.id ?? volunteer?.user?.id;
+
+                if (id !== undefined && id !== null) {
+                    ids.push(String(id));
+                }
+            });
+        }
+
+        /*
+         * Backward compatibility with the previous single-assignment
+         * response structure.
+         */
         if (campaign.assignment?.volunteer_id) {
-            return String(campaign.assignment.volunteer_id);
+            ids.push(String(campaign.assignment.volunteer_id));
         }
 
         if (campaign.volunteer_id) {
-            return String(campaign.volunteer_id);
+            ids.push(String(campaign.volunteer_id));
         }
 
         if (campaign.assignment?.volunteer?.id) {
-            return String(campaign.assignment.volunteer.id);
+            ids.push(String(campaign.assignment.volunteer.id));
         }
 
-        return '';
+        return [...new Set(ids)];
     }, [campaign]);
 
     /*
@@ -52,8 +82,8 @@ const AssignmentModal = ({
     |--------------------------------------------------------------------------
     */
 
-    const [selectedVolunteer, setSelectedVolunteer] =
-        useState(existingVolunteerId);
+    const [selectedVolunteers, setSelectedVolunteers] =
+        useState(existingVolunteerIds);
 
     const [assignmentNote, setAssignmentNote] = useState('');
 
@@ -70,8 +100,12 @@ const AssignmentModal = ({
 
         const id = String(volunteerId);
 
-        setSelectedVolunteer((current) => {
-            return current === id ? '' : id;
+        setSelectedVolunteers((current) => {
+            if (current.includes(id)) {
+                return current.filter((selectedId) => selectedId !== id);
+            }
+
+            return [...current, id];
         });
     };
 
@@ -84,12 +118,12 @@ const AssignmentModal = ({
     const handleSubmit = (event) => {
         event.preventDefault();
 
-        if (!selectedVolunteer || loading) {
+        if (selectedVolunteers.length === 0 || loading) {
             return;
         }
 
         onConfirm({
-            volunteer_id: Number(selectedVolunteer),
+            volunteer_ids: selectedVolunteers.map(Number),
             assignment_note: assignmentNote.trim() || null,
         });
     };
@@ -112,7 +146,8 @@ const AssignmentModal = ({
         return null;
     }
 
-    const hasSelectedVolunteer = Boolean(selectedVolunteer);
+    const selectedCount = selectedVolunteers.length;
+    const hasSelectedVolunteers = selectedCount > 0;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/65 p-3 backdrop-blur-md sm:p-6">
@@ -127,15 +162,10 @@ const AssignmentModal = ({
                 ========================================================= */}
 
                 <aside className="relative hidden w-72.5 shrink-0 overflow-hidden bg-primary text-white lg:flex lg:flex-col">
-                    {/* Decorative shapes */}
-
                     <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full bg-white/[0.07]" />
-
                     <div className="absolute -bottom-28 -left-28 h-72 w-72 rounded-full bg-black/[0.07]" />
 
                     <div className="relative flex h-full flex-col p-7">
-                        {/* Top */}
-
                         <div>
                             <div className="flex items-center gap-2.5">
                                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/20">
@@ -173,8 +203,6 @@ const AssignmentModal = ({
                             </div>
                         </div>
 
-                        {/* Campaign state */}
-
                         <div className="mt-auto">
                             {campaign.status && (
                                 <div className="mb-6 border-t border-white/10 pt-5">
@@ -205,22 +233,21 @@ const AssignmentModal = ({
                                     </div>
 
                                     <span className="text-[11px] text-white/80">
-                                        SP volunteer
+                                        SP volunteers
                                     </span>
 
-                                    {hasSelectedVolunteer && (
-                                        <Check
-                                            size={13}
-                                            className="ml-auto text-emerald-200"
-                                        />
+                                    {hasSelectedVolunteers && (
+                                        <span className="ml-auto text-[10px] font-bold text-emerald-200">
+                                            {selectedCount} selected
+                                        </span>
                                     )}
                                 </div>
                             </div>
 
                             <p className="mt-5 text-[10px] leading-5 text-white/45">
-                                Assigning a volunteer gives an approved SP
-                                volunteer responsibility for supporting this
-                                campaign.
+                                Assign one or more approved SP volunteers to
+                                support this campaign. Each volunteer can only
+                                have one active campaign assignment at a time.
                             </p>
                         </div>
                     </div>
@@ -254,12 +281,12 @@ const AssignmentModal = ({
                             </div>
 
                             <h1 className="mt-2 text-xl font-bold tracking-tight text-slate-900">
-                                Assign volunteer
+                                Assign volunteers
                             </h1>
 
                             <p className="mt-1 text-xs leading-5 text-slate-500">
-                                Select one approved and available SP volunteer
-                                for this campaign.
+                                Select one or more approved and available SP
+                                volunteers for this campaign.
                             </p>
                         </div>
                     </div>
@@ -289,24 +316,28 @@ const AssignmentModal = ({
                                 )}
 
                                 {/* =================================================
-                                    VOLUNTEER
+                                    VOLUNTEERS
                                 ================================================= */}
 
                                 <section>
                                     <div className="mb-3 flex items-end justify-between">
                                         <div>
                                             <p className="text-sm font-bold text-slate-900">
-                                                SP volunteer
+                                                SP volunteers
                                             </p>
 
                                             <p className="mt-0.5 text-[10px] text-slate-400">
-                                                Select one available volunteer
+                                                Select one or more available
+                                                volunteers
                                             </p>
                                         </div>
 
-                                        {hasSelectedVolunteer && (
+                                        {hasSelectedVolunteers && (
                                             <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[9px] font-bold text-primary">
-                                                1 selected
+                                                {selectedCount}{' '}
+                                                {selectedCount === 1
+                                                    ? 'selected'
+                                                    : 'selected'}
                                             </span>
                                         )}
                                     </div>
@@ -321,8 +352,9 @@ const AssignmentModal = ({
                                                 );
 
                                                 const checked =
-                                                    selectedVolunteer ===
-                                                    volunteerId;
+                                                    selectedVolunteers.includes(
+                                                        volunteerId,
+                                                    );
 
                                                 const volunteerName =
                                                     volunteer.name ||
@@ -347,8 +379,8 @@ const AssignmentModal = ({
                                                         }`}
                                                     >
                                                         <input
-                                                            type="radio"
-                                                            name="campaign-volunteer"
+                                                            type="checkbox"
+                                                            name="campaign-volunteers"
                                                             value={volunteerId}
                                                             checked={checked}
                                                             onChange={() =>
@@ -395,7 +427,7 @@ const AssignmentModal = ({
                                                         </div>
 
                                                         <div
-                                                            className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border transition-all ${
+                                                            className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border transition-all ${
                                                                 checked
                                                                     ? 'border-primary bg-primary text-white'
                                                                     : 'border-slate-200 bg-white text-transparent'
@@ -421,7 +453,7 @@ const AssignmentModal = ({
                                             </p>
 
                                             <p className="mx-auto mt-1 max-w-xs text-[10px] leading-5 text-slate-400">
-                                                Only active, approved and
+                                                Only active, verified and
                                                 available volunteers without an
                                                 active campaign assignment can
                                                 be assigned.
@@ -436,19 +468,19 @@ const AssignmentModal = ({
 
                                 <div
                                     className={`relative overflow-hidden rounded-2xl p-4 transition-all ${
-                                        hasSelectedVolunteer
+                                        hasSelectedVolunteers
                                             ? 'bg-primary text-white'
                                             : 'bg-slate-100 text-slate-500'
                                     }`}
                                 >
-                                    {hasSelectedVolunteer && (
+                                    {hasSelectedVolunteers && (
                                         <div className="absolute -right-10 -top-16 h-32 w-32 rounded-full bg-white/8" />
                                     )}
 
                                     <div className="relative flex items-center gap-3">
                                         <div
                                             className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
-                                                hasSelectedVolunteer
+                                                hasSelectedVolunteers
                                                     ? 'bg-white/15 text-white'
                                                     : 'bg-white text-slate-400'
                                             }`}
@@ -459,7 +491,7 @@ const AssignmentModal = ({
                                         <div className="min-w-0 flex-1">
                                             <p
                                                 className={`text-[9px] font-bold uppercase tracking-[0.13em] ${
-                                                    hasSelectedVolunteer
+                                                    hasSelectedVolunteers
                                                         ? 'text-white/55'
                                                         : 'text-slate-400'
                                                 }`}
@@ -469,18 +501,22 @@ const AssignmentModal = ({
 
                                             <p
                                                 className={`mt-1 truncate text-xs font-bold ${
-                                                    hasSelectedVolunteer
+                                                    hasSelectedVolunteers
                                                         ? 'text-white'
                                                         : 'text-slate-600'
                                                 }`}
                                             >
-                                                {hasSelectedVolunteer
-                                                    ? '1 SP volunteer selected'
+                                                {hasSelectedVolunteers
+                                                    ? `${selectedCount} ${
+                                                          selectedCount === 1
+                                                              ? 'SP volunteer'
+                                                              : 'SP volunteers'
+                                                      } selected`
                                                     : 'No volunteer selected'}
                                             </p>
                                         </div>
 
-                                        {hasSelectedVolunteer && (
+                                        {hasSelectedVolunteers && (
                                             <Check
                                                 size={18}
                                                 className="shrink-0 text-emerald-200"
@@ -524,7 +560,7 @@ const AssignmentModal = ({
                                         disabled={loading}
                                         rows={3}
                                         maxLength={1000}
-                                        placeholder="Add anything the volunteer should know about this campaign..."
+                                        placeholder="Add anything the volunteers should know about this campaign..."
                                         className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs leading-5 text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/10 disabled:cursor-not-allowed disabled:opacity-60"
                                     />
                                 </section>
@@ -548,11 +584,13 @@ const AssignmentModal = ({
                                             </p>
 
                                             <p className="mt-1 text-[10px] leading-5 text-slate-400">
-                                                The volunteer must be an active
-                                                individual user with an approved
-                                                SP volunteer profile, currently
-                                                available and without an active
-                                                campaign assignment.
+                                                Each volunteer must be an active
+                                                individual user with a verified
+                                                email, an active SP volunteer
+                                                profile, and current
+                                                availability. A volunteer cannot
+                                                be assigned to another active
+                                                campaign at the same time.
                                             </p>
                                         </div>
                                     </div>
@@ -576,7 +614,7 @@ const AssignmentModal = ({
 
                             <button
                                 type="submit"
-                                disabled={loading || !hasSelectedVolunteer}
+                                disabled={loading || !hasSelectedVolunteers}
                                 className="inline-flex h-10 min-w-38.75 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-white shadow-sm shadow-primary/20 transition-all hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-45"
                             >
                                 {loading && (
@@ -585,7 +623,11 @@ const AssignmentModal = ({
 
                                 {loading
                                     ? 'Assigning...'
-                                    : 'Confirm assignment'}
+                                    : `Assign ${
+                                          selectedCount > 1
+                                              ? `${selectedCount} volunteers`
+                                              : 'volunteer'
+                                      }`}
                             </button>
                         </div>
                     </form>

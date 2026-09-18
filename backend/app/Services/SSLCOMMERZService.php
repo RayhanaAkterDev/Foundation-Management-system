@@ -142,8 +142,8 @@ class SSLCOMMERZService
 
         if (empty($result['GatewayPageURL'])) {
             throw new RuntimeException(
-                'SSLCOMMERZ did not return a payment gateway URL. ' .
-                    'Response: ' . json_encode($result)
+                'LIVE-DIAGNOSTIC-53A7F1B: ' .
+                    json_encode($result)
             );
         }
 

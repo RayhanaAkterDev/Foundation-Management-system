@@ -16,6 +16,7 @@ import Campaigns from '@/pages/public/campaignsPage/Campaigns';
 import CampaignDetails from '@/pages/public/campaignsPage/campaignDetails/CampaignDetails';
 import Donate from '@/pages/public/donationPage/Donate';
 import DonateHub from '@/pages/public/donationPage/DonateHub/DonateHub';
+import PaymentResult from '@/pages/public/donationPage/PaymentResult';
 import Volunteer from '@/pages/public/volunteerPage/Volunteer';
 import RequestHelp from '@/pages/public/requestHelpPage/RequestHelp';
 import Partner from '@/pages/public/partnersPage/Partner';
@@ -132,6 +133,10 @@ const router = createBrowserRouter([
             {
                 path: 'donate/:id',
                 element: <Donate />,
+            },
+            {
+                path: 'donation/payment-result',
+                element: <PaymentResult />,
             },
 
             // VOLUNTEER

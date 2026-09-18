@@ -28,25 +28,21 @@ class DonationController extends Controller
                 'integer',
                 'exists:campaigns,id',
             ],
-
             'amount' => [
                 'required',
                 'numeric',
                 'min:10',
             ],
-
             'donor_name' => [
                 'nullable',
                 'string',
                 'max:255',
             ],
-
             'donor_email' => [
                 'nullable',
                 'email',
                 'max:255',
             ],
-
             'donor_phone' => [
                 'nullable',
                 'string',
@@ -82,7 +78,8 @@ class DonationController extends Controller
 
         if (!$donorPhone) {
             return response()->json([
-                'message' => 'A valid donor phone number is required to start the payment.',
+                'message' =>
+                'A valid donor phone number is required to start the payment.',
             ], 422);
         }
 
@@ -105,7 +102,6 @@ class DonationController extends Controller
             'status' => DonationAttempt::STATUS_PENDING,
             'payment_method' => 'sslcommerz',
             'transaction_id' => $transactionId,
-
             'donor_name' => $donorName,
             'donor_email' => $donorEmail,
         ]);
@@ -114,11 +110,9 @@ class DonationController extends Controller
             $payment = $paymentService->initiatePayment([
                 'transaction_id' => $transactionId,
                 'amount' => $validated['amount'],
-
                 'donor_name' => $donorName,
                 'donor_email' => $donorEmail,
                 'donor_phone' => $donorPhone,
-
                 'campaign_id' => $campaign->id,
                 'campaign_title' => $campaign->title,
             ]);
@@ -129,10 +123,6 @@ class DonationController extends Controller
 
             /*
              * TEMPORARY DEBUG RESPONSE
-             *
-             * Keep this for the current production test so we can
-             * see the actual SSLCOMMERZ/service error if initiation
-             * fails again.
              */
             return response()->json([
                 'message' => 'Unable to start the payment process.',
@@ -151,9 +141,6 @@ class DonationController extends Controller
 
             /*
              * TEMPORARY DEBUG RESPONSE
-             *
-             * The service did not throw an exception, but
-             * SSLCOMMERZ did not return a usable gateway URL.
              */
             return response()->json([
                 'message' => 'Unable to start the payment process.',
@@ -172,19 +159,35 @@ class DonationController extends Controller
     /**
      * SSLCOMMERZ success callback.
      *
-     * The browser redirect itself is NOT trusted as proof of payment.
-     * The payment service validates the transaction with SSLCOMMERZ.
+     * The payment is still validated server-side before
+     * the user is redirected to the frontend.
      */
     public function success(
         Request $request,
         SSLCOMMERZService $paymentService,
         CampaignService $campaignService
     ) {
-        return $this->processGatewayResult(
+        $response = $this->processGatewayResult(
             $request,
             $paymentService,
             $campaignService,
             'success'
+        );
+
+        /*
+         * Do not redirect if payment processing failed.
+         */
+        if ($response->getStatusCode() !== 200) {
+            return $response;
+        }
+
+        /*
+         * Payment was successfully confirmed and the
+         * Donation record was created.
+         */
+        return $this->frontendPaymentRedirect(
+            'success',
+            $request->input('tran_id')
         );
     }
 
@@ -204,9 +207,10 @@ class DonationController extends Controller
             ]);
         }
 
-        return response()->json([
-            'message' => 'Donation payment failed.',
-        ], 200);
+        return $this->frontendPaymentRedirect(
+            'failed',
+            $request->input('tran_id')
+        );
     }
 
     /**
@@ -225,9 +229,10 @@ class DonationController extends Controller
             ]);
         }
 
-        return response()->json([
-            'message' => 'Donation payment cancelled.',
-        ], 200);
+        return $this->frontendPaymentRedirect(
+            'cancelled',
+            $request->input('tran_id')
+        );
     }
 
     /**
@@ -336,5 +341,30 @@ class DonationController extends Controller
             'message' => 'Donation payment confirmed successfully.',
             'donation' => $donation->load('campaign'),
         ], 200);
+    }
+
+    /**
+     * Redirect the browser back to the frontend after
+     * the payment callback has been processed.
+     */
+    private function frontendPaymentRedirect(
+        string $status,
+        ?string $transactionId = null
+    ) {
+        $frontendUrl = rtrim(
+            (string) config('app.frontend_url'),
+            '/'
+        );
+
+        $url = $frontendUrl .
+            '/donation/payment-result?status=' .
+            urlencode($status);
+
+        if ($transactionId) {
+            $url .= '&transaction_id=' .
+                urlencode($transactionId);
+        }
+
+        return redirect()->away($url);
     }
 }

@@ -452,7 +452,7 @@ Route::middleware('auth:sanctum')
         */
 
         Route::get(
-            '/campaign-volunteers',
+            '/campaign-volunteers/candidates',
             [AdminController::class, 'campaignVolunteerCandidates']
         );
 

@@ -488,6 +488,11 @@ Route::middleware('auth:sanctum')
             [AdminController::class, 'assignCampaignVolunteer']
         );
 
+        Route::get(
+            '/campaigns/{id}/assignments',
+            [AdminController::class, 'campaignVolunteerAssignments']
+        );
+
 
         // ---------------------------------------------------------
         // Donations

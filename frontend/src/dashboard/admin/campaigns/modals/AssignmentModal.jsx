@@ -7,7 +7,16 @@ import {
     Check,
     UserRound,
     ArrowRight,
+    CheckCircle2,
+    XCircle,
 } from 'lucide-react';
+
+const ACTIVE_ASSIGNMENT_STATUSES = [
+    'assigned',
+    'accepted',
+    'in_progress',
+    'withdrawal_requested',
+];
 
 const AssignmentModal = ({
     campaign,
@@ -19,62 +28,210 @@ const AssignmentModal = ({
 }) => {
     /*
     |--------------------------------------------------------------------------
-    | Existing campaign assignments
+    | Campaign assignment history
     |--------------------------------------------------------------------------
     |
-    | A campaign can have multiple volunteers assigned to it.
-    | Therefore we collect all currently assigned volunteer IDs so they
-    | can remain selected when the modal is opened again.
+    | We need the complete assignment history for THIS campaign.
+    |
+    | Anyone who already has an assignment record for this campaign must
+    | never appear in the new volunteer selection again.
+    |
+    | That includes:
+    |
+    | assigned
+    | accepted
+    | in_progress
+    | withdrawal_requested
+    | completed
+    | rejected
+    | withdrawn
     |
     */
 
-    const existingVolunteerIds = useMemo(() => {
+    const existingAssignments = useMemo(() => {
         if (!campaign) {
             return [];
         }
 
-        const ids = [];
+        const records = [];
 
-        if (Array.isArray(campaign.assignment?.volunteers)) {
-            campaign.assignment.volunteers.forEach((volunteer) => {
-                const id =
-                    volunteer?.user_id ?? volunteer?.id ?? volunteer?.user?.id;
-
-                if (id !== undefined && id !== null) {
-                    ids.push(String(id));
-                }
-            });
-        }
-
-        if (Array.isArray(campaign.volunteers)) {
-            campaign.volunteers.forEach((volunteer) => {
-                const id =
-                    volunteer?.user_id ?? volunteer?.id ?? volunteer?.user?.id;
-
-                if (id !== undefined && id !== null) {
-                    ids.push(String(id));
-                }
-            });
+        /*
+         * Preferred API structure:
+         *
+         * campaign.assignment.assignments
+         */
+        if (Array.isArray(campaign.assignment?.assignments)) {
+            records.push(...campaign.assignment.assignments);
         }
 
         /*
-         * Backward compatibility with the previous single-assignment
-         * response structure.
+         * Alternative structure:
+         *
+         * campaign.assignment.volunteers
+         *
+         * Only use this if those records actually represent
+         * campaign assignment records.
          */
-        if (campaign.assignment?.volunteer_id) {
-            ids.push(String(campaign.assignment.volunteer_id));
+        if (Array.isArray(campaign.assignment?.volunteers)) {
+            records.push(...campaign.assignment.volunteers);
         }
 
-        if (campaign.volunteer_id) {
-            ids.push(String(campaign.volunteer_id));
+        /*
+         * Another possible API structure:
+         *
+         * campaign.assignments
+         */
+        if (Array.isArray(campaign.assignments)) {
+            records.push(...campaign.assignments);
         }
 
-        if (campaign.assignment?.volunteer?.id) {
-            ids.push(String(campaign.assignment.volunteer.id));
+        /*
+         * Backward compatibility with a direct campaign.volunteers
+         * response.
+         */
+        if (Array.isArray(campaign.volunteers)) {
+            records.push(...campaign.volunteers);
         }
 
-        return [...new Set(ids)];
+        /*
+         * Deduplicate records.
+         *
+         * Prefer assignment ID when available.
+         * Otherwise use volunteer ID.
+         */
+        const uniqueRecords = new Map();
+
+        records.forEach((record) => {
+            if (!record) {
+                return;
+            }
+
+            const volunteerId =
+                record?.volunteer_id ??
+                record?.user_id ??
+                record?.volunteer?.user_id ??
+                record?.volunteer?.id ??
+                record?.user?.id;
+
+            if (volunteerId === undefined || volunteerId === null) {
+                return;
+            }
+
+            const assignmentId =
+                record?.assignment_id ?? record?.assignment?.id ?? record?.id;
+
+            const key = assignmentId
+                ? `assignment-${assignmentId}`
+                : `volunteer-${volunteerId}`;
+
+            if (!uniqueRecords.has(key)) {
+                uniqueRecords.set(key, {
+                    ...record,
+                    _volunteerId: String(volunteerId),
+                });
+            }
+        });
+
+        return Array.from(uniqueRecords.values());
     }, [campaign]);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Volunteers already connected to THIS campaign
+    |--------------------------------------------------------------------------
+    |
+    | This is the most important list for the selection logic.
+    |
+    | Rejected volunteers are included here too.
+    |
+    */
+
+    const campaignAssignmentVolunteerIds = useMemo(() => {
+        return new Set(
+            existingAssignments
+                .map((assignment) => assignment?._volunteerId)
+                .filter(Boolean),
+        );
+    }, [existingAssignments]);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Currently connected / accepted volunteers
+    |--------------------------------------------------------------------------
+    |
+    | "assigned" means the request is still waiting for the volunteer.
+    | "accepted", "in_progress", and "withdrawal_requested" are also
+    | active connections to the campaign.
+    |
+    */
+
+    const connectedVolunteers = useMemo(() => {
+        return existingAssignments.filter((assignment) =>
+            ACTIVE_ASSIGNMENT_STATUSES.includes(assignment?.status),
+        );
+    }, [existingAssignments]);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Rejected volunteers
+    |--------------------------------------------------------------------------
+    */
+
+    const rejectedVolunteers = useMemo(() => {
+        return existingAssignments.filter(
+            (assignment) => assignment?.status === 'rejected',
+        );
+    }, [existingAssignments]);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Completed / withdrawn history
+    |--------------------------------------------------------------------------
+    |
+    | These volunteers are also excluded from selection because they
+    | already participated in this campaign.
+    |
+    | We keep them in a separate history section only when present.
+    |
+    */
+
+    const completedVolunteers = useMemo(() => {
+        return existingAssignments.filter((assignment) =>
+            ['completed', 'withdrawn'].includes(assignment?.status),
+        );
+    }, [existingAssignments]);
+
+    /*
+    |--------------------------------------------------------------------------
+    | New volunteer selection
+    |--------------------------------------------------------------------------
+    |
+    | `volunteers` comes from the admin candidate endpoint.
+    |
+    | That endpoint already removes volunteers who currently have an
+    | active assignment on ANY campaign.
+    |
+    | Here we additionally remove anyone who has EVER received an
+    | assignment for THIS campaign.
+    |
+    */
+
+    const selectableVolunteers = useMemo(() => {
+        return volunteers.filter((volunteer) => {
+            const volunteerId = String(
+                volunteer?.user_id ??
+                    volunteer?.user?.id ??
+                    volunteer?.id ??
+                    '',
+            );
+
+            if (!volunteerId) {
+                return false;
+            }
+
+            return !campaignAssignmentVolunteerIds.has(volunteerId);
+        });
+    }, [volunteers, campaignAssignmentVolunteerIds]);
 
     /*
     |--------------------------------------------------------------------------
@@ -82,8 +239,7 @@ const AssignmentModal = ({
     |--------------------------------------------------------------------------
     */
 
-    const [selectedVolunteers, setSelectedVolunteers] =
-        useState(existingVolunteerIds);
+    const [selectedVolunteers, setSelectedVolunteers] = useState([]);
 
     const [assignmentNote, setAssignmentNote] = useState('');
 
@@ -142,12 +298,83 @@ const AssignmentModal = ({
         onClose();
     };
 
-    if (!campaign) {
-        return null;
-    }
+    /*
+    |--------------------------------------------------------------------------
+    | Display helpers
+    |--------------------------------------------------------------------------
+    */
+
+    const getVolunteerName = (volunteer) => {
+        return (
+            volunteer?.name ||
+            volunteer?.user?.name ||
+            volunteer?.volunteer?.name ||
+            'SP Volunteer'
+        );
+    };
+
+    const getVolunteerEmail = (volunteer) => {
+        return (
+            volunteer?.email ||
+            volunteer?.user?.email ||
+            volunteer?.volunteer?.email ||
+            null
+        );
+    };
+
+    const getVolunteerDistrict = (volunteer) => {
+        return volunteer?.district || volunteer?.volunteer?.district || null;
+    };
+
+    const getVolunteerId = (volunteer) => {
+        return String(
+            volunteer?.user_id ??
+                volunteer?.user?.id ??
+                volunteer?.volunteer_id ??
+                volunteer?.volunteer?.id ??
+                volunteer?.id ??
+                '',
+        );
+    };
+
+    const getAssignmentVolunteer = (assignment) => {
+        return assignment?.volunteer || assignment?.user || assignment;
+    };
+
+    const getAssignmentStatusLabel = (status) => {
+        switch (status) {
+            case 'assigned':
+                return 'Awaiting response';
+
+            case 'accepted':
+                return 'Accepted';
+
+            case 'in_progress':
+                return 'In progress';
+
+            case 'withdrawal_requested':
+                return 'Withdrawal pending';
+
+            case 'completed':
+                return 'Completed';
+
+            case 'withdrawn':
+                return 'Withdrawn';
+
+            case 'rejected':
+                return 'Rejected';
+
+            default:
+                return status ? status.replace(/_/g, ' ') : 'Assigned';
+        }
+    };
 
     const selectedCount = selectedVolunteers.length;
     const hasSelectedVolunteers = selectedCount > 0;
+
+    if (!campaign) {
+        return null;
+    }
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/65 p-3 backdrop-blur-md sm:p-6">
@@ -163,6 +390,7 @@ const AssignmentModal = ({
 
                 <aside className="relative hidden w-72.5 shrink-0 overflow-hidden bg-primary text-white lg:flex lg:flex-col">
                     <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full bg-white/[0.07]" />
+
                     <div className="absolute -bottom-28 -left-28 h-72 w-72 rounded-full bg-black/[0.07]" />
 
                     <div className="relative flex h-full flex-col p-7">
@@ -220,8 +448,6 @@ const AssignmentModal = ({
                                 </div>
                             )}
 
-                            {/* Assignment visual */}
-
                             <div className="rounded-2xl bg-black/12 p-4 ring-1 ring-white/8">
                                 <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-white/50">
                                     Assignment
@@ -242,12 +468,45 @@ const AssignmentModal = ({
                                         </span>
                                     )}
                                 </div>
+
+                                {connectedVolunteers.length > 0 && (
+                                    <div className="mt-3 border-t border-white/10 pt-3">
+                                        <p className="text-[9px] text-white/45">
+                                            Connected
+                                        </p>
+
+                                        <p className="mt-0.5 text-xs font-semibold text-white">
+                                            {connectedVolunteers.length}{' '}
+                                            volunteer
+                                            {connectedVolunteers.length !== 1
+                                                ? 's'
+                                                : ''}
+                                        </p>
+                                    </div>
+                                )}
+
+                                {rejectedVolunteers.length > 0 && (
+                                    <div className="mt-3 border-t border-white/10 pt-3">
+                                        <p className="text-[9px] text-white/45">
+                                            Rejected
+                                        </p>
+
+                                        <p className="mt-0.5 text-xs font-semibold text-white">
+                                            {rejectedVolunteers.length}{' '}
+                                            volunteer
+                                            {rejectedVolunteers.length !== 1
+                                                ? 's'
+                                                : ''}
+                                        </p>
+                                    </div>
+                                )}
                             </div>
 
                             <p className="mt-5 text-[10px] leading-5 text-white/45">
                                 Assign one or more approved SP volunteers to
-                                support this campaign. Each volunteer can only
-                                have one active campaign assignment at a time.
+                                support this campaign. Volunteers who already
+                                received an assignment for this campaign cannot
+                                be selected again.
                             </p>
                         </div>
                     </div>
@@ -285,8 +544,9 @@ const AssignmentModal = ({
                             </h1>
 
                             <p className="mt-1 text-xs leading-5 text-slate-500">
-                                Select one or more approved and available SP
-                                volunteers for this campaign.
+                                Select approved and available volunteers who
+                                have not already been connected to this
+                                campaign.
                             </p>
                         </div>
                     </div>
@@ -316,131 +576,146 @@ const AssignmentModal = ({
                                 )}
 
                                 {/* =================================================
-                                    VOLUNTEERS
+                                    AVAILABLE VOLUNTEERS
                                 ================================================= */}
 
                                 <section>
                                     <div className="mb-3 flex items-end justify-between">
                                         <div>
                                             <p className="text-sm font-bold text-slate-900">
-                                                SP volunteers
+                                                Available volunteers
                                             </p>
 
                                             <p className="mt-0.5 text-[10px] text-slate-400">
-                                                Select one or more available
-                                                volunteers
+                                                Select volunteers who are
+                                                available for a new campaign
+                                                assignment
                                             </p>
                                         </div>
 
                                         {hasSelectedVolunteers && (
                                             <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[9px] font-bold text-primary">
-                                                {selectedCount}{' '}
-                                                {selectedCount === 1
-                                                    ? 'selected'
-                                                    : 'selected'}
+                                                {selectedCount} selected
                                             </span>
                                         )}
                                     </div>
 
-                                    {volunteers.length > 0 ? (
+                                    {selectableVolunteers.length > 0 ? (
                                         <div className="space-y-2">
-                                            {volunteers.map((volunteer) => {
-                                                const volunteerId = String(
-                                                    volunteer.user_id ??
-                                                        volunteer.user?.id ??
-                                                        volunteer.id,
-                                                );
+                                            {selectableVolunteers.map(
+                                                (volunteer) => {
+                                                    const volunteerId =
+                                                        getVolunteerId(
+                                                            volunteer,
+                                                        );
 
-                                                const checked =
-                                                    selectedVolunteers.includes(
-                                                        volunteerId,
+                                                    const checked =
+                                                        selectedVolunteers.includes(
+                                                            volunteerId,
+                                                        );
+
+                                                    const volunteerName =
+                                                        getVolunteerName(
+                                                            volunteer,
+                                                        );
+
+                                                    const volunteerEmail =
+                                                        getVolunteerEmail(
+                                                            volunteer,
+                                                        );
+
+                                                    const district =
+                                                        getVolunteerDistrict(
+                                                            volunteer,
+                                                        );
+
+                                                    return (
+                                                        <label
+                                                            key={volunteerId}
+                                                            className={`group relative flex cursor-pointer items-center gap-3 overflow-hidden rounded-2xl border px-3.5 py-3 transition-all ${
+                                                                checked
+                                                                    ? 'border-primary/30 bg-primary/[0.035]'
+                                                                    : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
+                                                            } ${
+                                                                loading
+                                                                    ? 'cursor-not-allowed opacity-60'
+                                                                    : ''
+                                                            }`}
+                                                        >
+                                                            <input
+                                                                type="checkbox"
+                                                                name="campaign-volunteers"
+                                                                value={
+                                                                    volunteerId
+                                                                }
+                                                                checked={
+                                                                    checked
+                                                                }
+                                                                onChange={() =>
+                                                                    handleVolunteerSelect(
+                                                                        volunteerId,
+                                                                    )
+                                                                }
+                                                                disabled={
+                                                                    loading
+                                                                }
+                                                                className="sr-only"
+                                                            />
+
+                                                            <div
+                                                                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all ${
+                                                                    checked
+                                                                        ? 'bg-primary text-white'
+                                                                        : 'bg-slate-100 text-slate-400 group-hover:bg-slate-200'
+                                                                }`}
+                                                            >
+                                                                <UserRound
+                                                                    size={17}
+                                                                />
+                                                            </div>
+
+                                                            <div className="min-w-0 flex-1">
+                                                                <p className="truncate text-xs font-bold text-slate-900">
+                                                                    {
+                                                                        volunteerName
+                                                                    }
+                                                                </p>
+
+                                                                {volunteerEmail && (
+                                                                    <p className="mt-0.5 truncate text-[10px] text-slate-400">
+                                                                        {
+                                                                            volunteerEmail
+                                                                        }
+                                                                    </p>
+                                                                )}
+
+                                                                {district && (
+                                                                    <p className="mt-0.5 truncate text-[10px] text-slate-400">
+                                                                        {
+                                                                            district
+                                                                        }
+                                                                    </p>
+                                                                )}
+                                                            </div>
+
+                                                            <div
+                                                                className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border transition-all ${
+                                                                    checked
+                                                                        ? 'border-primary bg-primary text-white'
+                                                                        : 'border-slate-200 bg-white text-transparent'
+                                                                }`}
+                                                            >
+                                                                <Check
+                                                                    size={12}
+                                                                    strokeWidth={
+                                                                        3
+                                                                    }
+                                                                />
+                                                            </div>
+                                                        </label>
                                                     );
-
-                                                const volunteerName =
-                                                    volunteer.name ||
-                                                    volunteer.user?.name ||
-                                                    'SP Volunteer';
-
-                                                const volunteerEmail =
-                                                    volunteer.email ||
-                                                    volunteer.user?.email;
-
-                                                return (
-                                                    <label
-                                                        key={volunteerId}
-                                                        className={`group relative flex cursor-pointer items-center gap-3 overflow-hidden rounded-2xl border px-3.5 py-3 transition-all ${
-                                                            checked
-                                                                ? 'border-primary/30 bg-primary/[0.035]'
-                                                                : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
-                                                        } ${
-                                                            loading
-                                                                ? 'cursor-not-allowed opacity-60'
-                                                                : ''
-                                                        }`}
-                                                    >
-                                                        <input
-                                                            type="checkbox"
-                                                            name="campaign-volunteers"
-                                                            value={volunteerId}
-                                                            checked={checked}
-                                                            onChange={() =>
-                                                                handleVolunteerSelect(
-                                                                    volunteerId,
-                                                                )
-                                                            }
-                                                            disabled={loading}
-                                                            className="sr-only"
-                                                        />
-
-                                                        <div
-                                                            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all ${
-                                                                checked
-                                                                    ? 'bg-primary text-white'
-                                                                    : 'bg-slate-100 text-slate-400 group-hover:bg-slate-200'
-                                                            }`}
-                                                        >
-                                                            <UserRound
-                                                                size={17}
-                                                            />
-                                                        </div>
-
-                                                        <div className="min-w-0 flex-1">
-                                                            <p className="truncate text-xs font-bold text-slate-900">
-                                                                {volunteerName}
-                                                            </p>
-
-                                                            {volunteerEmail && (
-                                                                <p className="mt-0.5 truncate text-[10px] text-slate-400">
-                                                                    {
-                                                                        volunteerEmail
-                                                                    }
-                                                                </p>
-                                                            )}
-
-                                                            {volunteer.district && (
-                                                                <p className="mt-0.5 truncate text-[10px] text-slate-400">
-                                                                    {
-                                                                        volunteer.district
-                                                                    }
-                                                                </p>
-                                                            )}
-                                                        </div>
-
-                                                        <div
-                                                            className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border transition-all ${
-                                                                checked
-                                                                    ? 'border-primary bg-primary text-white'
-                                                                    : 'border-slate-200 bg-white text-transparent'
-                                                            }`}
-                                                        >
-                                                            <Check
-                                                                size={12}
-                                                                strokeWidth={3}
-                                                            />
-                                                        </div>
-                                                    </label>
-                                                );
-                                            })}
+                                                },
+                                            )}
                                         </div>
                                     ) : (
                                         <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-5 py-8 text-center">
@@ -449,18 +724,277 @@ const AssignmentModal = ({
                                             </div>
 
                                             <p className="mt-3 text-xs font-bold text-slate-700">
-                                                No available SP volunteers
+                                                No volunteers available
                                             </p>
 
                                             <p className="mx-auto mt-1 max-w-xs text-[10px] leading-5 text-slate-400">
-                                                Only active, verified and
-                                                available volunteers without an
-                                                active campaign assignment can
-                                                be assigned.
+                                                There are currently no eligible
+                                                volunteers available for a new
+                                                assignment. Volunteers already
+                                                connected to this campaign are
+                                                also excluded.
                                             </p>
                                         </div>
                                     )}
                                 </section>
+
+                                {/* =================================================
+                                    CONNECTED VOLUNTEERS
+                                ================================================= */}
+
+                                {connectedVolunteers.length > 0 && (
+                                    <section>
+                                        <div className="mb-3 flex items-end justify-between">
+                                            <div>
+                                                <p className="text-sm font-bold text-slate-900">
+                                                    Connected volunteers
+                                                </p>
+
+                                                <p className="mt-0.5 text-[10px] text-slate-400">
+                                                    Volunteers currently
+                                                    connected to this campaign
+                                                </p>
+                                            </div>
+
+                                            <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[9px] font-bold text-emerald-700">
+                                                {connectedVolunteers.length}{' '}
+                                                connected
+                                            </span>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            {connectedVolunteers.map(
+                                                (assignment, index) => {
+                                                    const volunteer =
+                                                        getAssignmentVolunteer(
+                                                            assignment,
+                                                        );
+
+                                                    const name =
+                                                        getVolunteerName(
+                                                            volunteer,
+                                                        );
+
+                                                    const email =
+                                                        getVolunteerEmail(
+                                                            volunteer,
+                                                        );
+
+                                                    const status =
+                                                        assignment?.status;
+
+                                                    return (
+                                                        <div
+                                                            key={
+                                                                assignment?.id ??
+                                                                `connected-${index}`
+                                                            }
+                                                            className="flex items-center gap-3 rounded-2xl border border-emerald-100 bg-emerald-50/45 px-3.5 py-3"
+                                                        >
+                                                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-emerald-600 ring-1 ring-emerald-100">
+                                                                <CheckCircle2
+                                                                    size={17}
+                                                                />
+                                                            </div>
+
+                                                            <div className="min-w-0 flex-1">
+                                                                <p className="truncate text-xs font-bold text-slate-900">
+                                                                    {name}
+                                                                </p>
+
+                                                                {email && (
+                                                                    <p className="mt-0.5 truncate text-[10px] text-slate-400">
+                                                                        {email}
+                                                                    </p>
+                                                                )}
+                                                            </div>
+
+                                                            <span className="shrink-0 rounded-full bg-white px-2.5 py-1.5 text-[9px] font-bold capitalize text-emerald-700 ring-1 ring-emerald-100">
+                                                                {getAssignmentStatusLabel(
+                                                                    status,
+                                                                )}
+                                                            </span>
+                                                        </div>
+                                                    );
+                                                },
+                                            )}
+                                        </div>
+                                    </section>
+                                )}
+
+                                {/* =================================================
+                                    REJECTED VOLUNTEERS
+                                ================================================= */}
+
+                                {rejectedVolunteers.length > 0 && (
+                                    <section>
+                                        <div className="mb-3 flex items-end justify-between">
+                                            <div>
+                                                <p className="text-sm font-bold text-slate-900">
+                                                    Rejected volunteers
+                                                </p>
+
+                                                <p className="mt-0.5 text-[10px] text-slate-400">
+                                                    Volunteers who declined this
+                                                    campaign assignment
+                                                </p>
+                                            </div>
+
+                                            <span className="rounded-full bg-red-50 px-2.5 py-1 text-[9px] font-bold text-red-700">
+                                                {rejectedVolunteers.length}{' '}
+                                                rejected
+                                            </span>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            {rejectedVolunteers.map(
+                                                (assignment, index) => {
+                                                    const volunteer =
+                                                        getAssignmentVolunteer(
+                                                            assignment,
+                                                        );
+
+                                                    const name =
+                                                        getVolunteerName(
+                                                            volunteer,
+                                                        );
+
+                                                    const email =
+                                                        getVolunteerEmail(
+                                                            volunteer,
+                                                        );
+
+                                                    return (
+                                                        <div
+                                                            key={
+                                                                assignment?.id ??
+                                                                `rejected-${index}`
+                                                            }
+                                                            className="rounded-2xl border border-red-100 bg-red-50/40 px-3.5 py-3"
+                                                        >
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-red-500 ring-1 ring-red-100">
+                                                                    <XCircle
+                                                                        size={
+                                                                            17
+                                                                        }
+                                                                    />
+                                                                </div>
+
+                                                                <div className="min-w-0 flex-1">
+                                                                    <p className="truncate text-xs font-bold text-slate-900">
+                                                                        {name}
+                                                                    </p>
+
+                                                                    {email && (
+                                                                        <p className="mt-0.5 truncate text-[10px] text-slate-400">
+                                                                            {
+                                                                                email
+                                                                            }
+                                                                        </p>
+                                                                    )}
+                                                                </div>
+
+                                                                <span className="shrink-0 rounded-full bg-white px-2.5 py-1.5 text-[9px] font-bold text-red-700 ring-1 ring-red-100">
+                                                                    Rejected
+                                                                </span>
+                                                            </div>
+
+                                                            {assignment?.rejection_reason && (
+                                                                <div className="mt-3 border-t border-red-100 pt-2.5">
+                                                                    <p className="text-[9px] font-bold uppercase tracking-wider text-red-400">
+                                                                        Reason
+                                                                    </p>
+
+                                                                    <p className="mt-1 text-[10px] leading-5 text-red-600">
+                                                                        {
+                                                                            assignment.rejection_reason
+                                                                        }
+                                                                    </p>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                },
+                                            )}
+                                        </div>
+                                    </section>
+                                )}
+
+                                {/* =================================================
+                                    COMPLETED / WITHDRAWN HISTORY
+                                ================================================= */}
+
+                                {completedVolunteers.length > 0 && (
+                                    <section>
+                                        <div className="mb-3">
+                                            <p className="text-sm font-bold text-slate-900">
+                                                Previous campaign volunteers
+                                            </p>
+
+                                            <p className="mt-0.5 text-[10px] text-slate-400">
+                                                Volunteers who previously
+                                                completed or withdrew from this
+                                                campaign
+                                            </p>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            {completedVolunteers.map(
+                                                (assignment, index) => {
+                                                    const volunteer =
+                                                        getAssignmentVolunteer(
+                                                            assignment,
+                                                        );
+
+                                                    const name =
+                                                        getVolunteerName(
+                                                            volunteer,
+                                                        );
+
+                                                    const email =
+                                                        getVolunteerEmail(
+                                                            volunteer,
+                                                        );
+
+                                                    return (
+                                                        <div
+                                                            key={
+                                                                assignment?.id ??
+                                                                `previous-${index}`
+                                                            }
+                                                            className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-3"
+                                                        >
+                                                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-slate-400 ring-1 ring-slate-200">
+                                                                <UserRound
+                                                                    size={17}
+                                                                />
+                                                            </div>
+
+                                                            <div className="min-w-0 flex-1">
+                                                                <p className="truncate text-xs font-bold text-slate-900">
+                                                                    {name}
+                                                                </p>
+
+                                                                {email && (
+                                                                    <p className="mt-0.5 truncate text-[10px] text-slate-400">
+                                                                        {email}
+                                                                    </p>
+                                                                )}
+                                                            </div>
+
+                                                            <span className="shrink-0 rounded-full bg-white px-2.5 py-1.5 text-[9px] font-bold capitalize text-slate-500 ring-1 ring-slate-200">
+                                                                {getAssignmentStatusLabel(
+                                                                    assignment?.status,
+                                                                )}
+                                                            </span>
+                                                        </div>
+                                                    );
+                                                },
+                                            )}
+                                        </div>
+                                    </section>
+                                )}
 
                                 {/* =================================================
                                     LIVE ASSIGNMENT BAR
@@ -545,7 +1079,8 @@ const AssignmentModal = ({
                                         </div>
 
                                         <span className="text-[10px] text-slate-400">
-                                            {assignmentNote.length}/1000
+                                            {assignmentNote.length}
+                                            /1000
                                         </span>
                                     </div>
 
@@ -588,9 +1123,10 @@ const AssignmentModal = ({
                                                 individual user with a verified
                                                 email, an active SP volunteer
                                                 profile, and current
-                                                availability. A volunteer cannot
-                                                be assigned to another active
-                                                campaign at the same time.
+                                                availability. A volunteer
+                                                already connected to this
+                                                campaign cannot be assigned
+                                                again.
                                             </p>
                                         </div>
                                     </div>

@@ -28,6 +28,7 @@ import CampaignAssignmentModal from './modals/AssignmentModal';
 import {
     fetchCampaigns,
     fetchCampaignVolunteerCandidates,
+    fetchCampaignVolunteerAssignments,
     assignCampaignVolunteer,
     verifyCampaign,
     updateCampaignStatus,
@@ -183,9 +184,7 @@ const Campaigns = () => {
     // =========================================================
 
     const [verificationCampaign, setVerificationCampaign] = useState(null);
-
     const [verificationLoading, setVerificationLoading] = useState(false);
-
     const [verificationError, setVerificationError] = useState('');
 
     // =========================================================
@@ -193,9 +192,7 @@ const Campaigns = () => {
     // =========================================================
 
     const [statusCampaign, setStatusCampaign] = useState(null);
-
     const [statusLoading, setStatusLoading] = useState(false);
-
     const [statusError, setStatusError] = useState('');
 
     // =========================================================
@@ -203,9 +200,7 @@ const Campaigns = () => {
     // =========================================================
 
     const [editCampaign, setEditCampaign] = useState(null);
-
     const [editLoading, setEditLoading] = useState(false);
-
     const [editError, setEditError] = useState('');
 
     // =========================================================
@@ -213,13 +208,10 @@ const Campaigns = () => {
     // =========================================================
 
     const [assignmentCampaign, setAssignmentCampaign] = useState(null);
-
     const [assignmentVolunteers, setAssignmentVolunteers] = useState([]);
-
+    const [assignmentHistory, setAssignmentHistory] = useState([]);
     const [assignmentLoading, setAssignmentLoading] = useState(false);
-
     const [assignmentSubmitting, setAssignmentSubmitting] = useState(false);
-
     const [assignmentError, setAssignmentError] = useState('');
 
     // =========================================================
@@ -227,15 +219,10 @@ const Campaigns = () => {
     // =========================================================
 
     const [activeCategory, setActiveCategory] = useState('all');
-
     const [searchTerm, setSearchTerm] = useState('');
-
     const [typeFilter, setTypeFilter] = useState('all');
-
     const [categoryFilter, setCategoryFilter] = useState('all');
-
     const [organizationFilter, setOrganizationFilter] = useState('all');
-
     const [statusFilter, setStatusFilter] = useState('all');
 
     // =========================================================
@@ -865,20 +852,31 @@ const Campaigns = () => {
 
         setAssignmentCampaign(campaign);
         setAssignmentVolunteers([]);
+        setAssignmentHistory([]);
         setAssignmentError('');
         setAssignmentLoading(true);
 
         try {
-            const data = await fetchCampaignVolunteerCandidates();
+            const [candidateData, assignmentData] = await Promise.all([
+                fetchCampaignVolunteerCandidates(),
+                fetchCampaignVolunteerAssignments(campaign.id),
+            ]);
 
-            const volunteers = data?.volunteers || data?.data || [];
+            const volunteers =
+                candidateData?.volunteers || candidateData?.data || [];
+
+            const assignments =
+                assignmentData?.assignments || assignmentData?.data || [];
 
             setAssignmentVolunteers(
                 Array.isArray(volunteers) ? volunteers : [],
             );
+
+            setAssignmentHistory(Array.isArray(assignments) ? assignments : []);
         } catch (err) {
             setAssignmentError(
-                err?.message || 'Unable to load available volunteers.',
+                err?.message ||
+                    'Unable to load campaign volunteer information.',
             );
         } finally {
             setAssignmentLoading(false);
@@ -892,32 +890,28 @@ const Campaigns = () => {
 
         try {
             setAssignmentSubmitting(true);
-
             setAssignmentError('');
 
             await assignCampaignVolunteer(assignmentCampaign.id, payload);
 
-            setAssignmentCampaign(null);
-            setAssignmentVolunteers([]);
-            setAssignmentError('');
+            const [candidateData, assignmentData] = await Promise.all([
+                fetchCampaignVolunteerCandidates(),
+                fetchCampaignVolunteerAssignments(assignmentCampaign.id),
+            ]);
+
+            const volunteers =
+                candidateData?.volunteers || candidateData?.data || [];
+
+            const assignments =
+                assignmentData?.assignments || assignmentData?.data || [];
+
+            setAssignmentVolunteers(
+                Array.isArray(volunteers) ? volunteers : [],
+            );
+
+            setAssignmentHistory(Array.isArray(assignments) ? assignments : []);
 
             showSuccessToast('Volunteer assigned to campaign successfully.');
-
-            /*
-             * Refresh the campaign list so any
-             * assignment-related campaign data
-             * returned by the backend is reflected.
-             */
-            try {
-                const data = await fetchCampaigns();
-
-                const fetchedCampaigns = data?.campaigns || data?.data || [];
-
-                setCampaigns(normalizeCampaigns(fetchedCampaigns));
-            } catch {
-                // Assignment succeeded.
-                // Keep current campaign state if refresh fails.
-            }
         } catch (err) {
             setAssignmentError(
                 err?.message || 'Campaign volunteer assignment failed.',
@@ -934,6 +928,7 @@ const Campaigns = () => {
 
         setAssignmentCampaign(null);
         setAssignmentVolunteers([]);
+        setAssignmentHistory([]);
         setAssignmentError('');
         setAssignmentLoading(false);
     };
@@ -1619,6 +1614,7 @@ const Campaigns = () => {
                 <CampaignAssignmentModal
                     campaign={assignmentCampaign}
                     volunteers={assignmentVolunteers}
+                    assignments={assignmentHistory}
                     loading={assignmentLoading || assignmentSubmitting}
                     error={assignmentError}
                     onClose={handleAssignmentClose}

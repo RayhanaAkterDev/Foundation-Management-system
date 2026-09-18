@@ -117,6 +117,34 @@ export const fetchCampaignVolunteerCandidates = async () => {
 
 /**
  * --------------------------------------------------------------------------
+ * Fetch campaign volunteer assignment history
+ * --------------------------------------------------------------------------
+ *
+ * Returns every volunteer assignment for the selected campaign.
+ *
+ * GET /api/admin/campaigns/{id}/assignments
+ *
+ */
+export const fetchCampaignVolunteerAssignments = async (
+    campaignId,
+) => {
+    if (!campaignId) {
+        throw new Error('Campaign ID is required.');
+    }
+
+    const response = await fetch(
+        `${API_BASE_URL}/admin/campaigns/${campaignId}/assignments`,
+        {
+            method: 'GET',
+            headers: getHeaders(),
+        },
+    );
+
+    return parseResponse(response);
+};
+
+/**
+ * --------------------------------------------------------------------------
  * Assign volunteers to campaign
  * --------------------------------------------------------------------------
  *

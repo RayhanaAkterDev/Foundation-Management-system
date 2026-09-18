@@ -23,13 +23,24 @@ export const apiRequest = async (url, options = {}) => {
         ...(options.headers || {}),
     };
 
-    if (!isFormData) {
+    let body = options.body;
+
+    if (isFormData) {
+        // Let the browser set the multipart boundary.
+        delete headers['Content-Type'];
+    } else if (body !== undefined && body !== null) {
         headers['Content-Type'] = 'application/json';
+
+        // Convert JS objects into JSON before sending.
+        if (typeof body !== 'string') {
+            body = JSON.stringify(body);
+        }
     }
 
     const response = await fetch(`${API_BASE_URL}${url}`, {
         ...options,
         headers,
+        body,
     });
 
     const contentType = response.headers.get('content-type') || '';
@@ -43,7 +54,8 @@ export const apiRequest = async (url, options = {}) => {
                 data = JSON.parse(responseText);
             } catch {
                 data = {
-                    message: 'The server returned an invalid JSON response.',
+                    message:
+                        'The server returned an invalid JSON response.',
                 };
             }
         } else {

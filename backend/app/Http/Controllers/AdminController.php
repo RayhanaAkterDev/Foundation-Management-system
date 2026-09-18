@@ -2044,6 +2044,59 @@ class AdminController extends Controller
         ]);
     }
 
+    /**
+     * --------------------------------------------------------------------------
+     * Admin: Get volunteer assignment history for a campaign.
+     * --------------------------------------------------------------------------
+     *
+     * Returns every volunteer assignment for the campaign, including:
+     *
+     * - assigned
+     * - accepted
+     * - rejected
+     * - in_progress
+     * - completed
+     * - withdrawal_requested
+     * - withdrawn
+     *
+     * IMPORTANT:
+     * campaign_volunteer_assignments.volunteer_id stores users.id.
+     *
+     */
+    public function campaignVolunteerAssignments(
+        Request $request,
+        int $id
+    ) {
+        $user = $this->authorizeAdmin($request);
+
+        if ($user instanceof \Illuminate\Http\JsonResponse) {
+            return $user;
+        }
+
+        $campaign = Campaign::find($id);
+
+        if (!$campaign) {
+            return response()->json([
+                'message' => 'Campaign not found.',
+            ], 404);
+        }
+
+        $assignments = CampaignVolunteerAssignment::query()
+            ->where('campaign_id', $campaign->id)
+            ->with([
+                'volunteer:id,name,email,phone,status,email_verified_at',
+                'assignedBy:id,name,email',
+                'withdrawalReviewedBy:id,name,email',
+            ])
+            ->latest()
+            ->get();
+
+        return response()->json([
+            'campaign_id' => $campaign->id,
+            'assignments' => $assignments,
+        ]);
+    }
+
     /*
     |--------------------------------------------------------------------------
     | Campaigns - Verify / Reject

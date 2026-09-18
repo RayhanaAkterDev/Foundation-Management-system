@@ -57,11 +57,17 @@ export const acceptCampaignAssignment = async (id) => {
 // Reject campaign assignment
 // =========================================================
 
-export const rejectCampaignAssignment = async (id) => {
+export const rejectCampaignAssignment = async (
+    id,
+    rejectionReason,
+) => {
     return apiRequest(
         `/volunteer/campaign-assignments/${id}/reject`,
         {
             method: 'PATCH',
+            body: {
+                rejection_reason: rejectionReason,
+            },
         },
     );
 };

@@ -1746,23 +1746,21 @@ class AdminController extends Controller
         ]);
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Volunteers - Campaign Assignment Candidates
-    |--------------------------------------------------------------------------
-    |
-    | Only volunteers who satisfy ALL campaign assignment requirements
-    | are returned:
-    |
-    | - Active Volunteer record
-    | - Available
-    | - Individual user
-    | - Active user account
-    | - Verified email
-    | - No active campaign assignment
-    |
-    */
-
+    /**
+     * Admin: Get eligible volunteers for campaign assignment.
+     *
+     * Eligible volunteer:
+     * - individual user
+     * - active user account
+     * - verified email
+     * - active volunteer record
+     * - available
+     * - no active campaign assignment
+     *
+     * IMPORTANT:
+     * campaign_volunteer_assignments.volunteer_id stores users.id,
+     * NOT volunteers.id.
+     */
     public function campaignVolunteerCandidates(Request $request)
     {
         $user = $this->authorizeAdmin($request);
@@ -1793,19 +1791,62 @@ class AdminController extends Controller
                     ->where('status', 'active')
                     ->whereNotNull('email_verified_at');
             })
-            ->whereDoesntHave(
-                'campaignVolunteerAssignments',
-                function ($query) use (
-                    $activeAssignmentStatuses
-                ) {
-                    $query->whereIn(
-                        'status',
+            /*
+         * IMPORTANT:
+         * Do not rely on the Volunteer model relationship here.
+         *
+         * campaign_volunteer_assignments.volunteer_id
+         * contains users.id.
+         *
+         * Therefore we explicitly check the volunteer's user_id.
+         */
+            ->whereNotExists(function ($query) use (
+                $activeAssignmentStatuses
+            ) {
+                $query
+                    ->select(\Illuminate\Support\Facades\DB::raw(1))
+                    ->from('campaign_volunteer_assignments')
+                    ->whereColumn(
+                        'campaign_volunteer_assignments.volunteer_id',
+                        'volunteers.user_id'
+                    )
+                    ->whereIn(
+                        'campaign_volunteer_assignments.status',
                         $activeAssignmentStatuses
                     );
-                }
-            )
+            })
             ->latest()
             ->get();
+
+        /*
+     * Return both IDs explicitly.
+     *
+     * `id` and `user_id` are the ID that must be sent to the
+     * campaign assignment endpoint.
+     *
+     * `volunteer_id` is the actual volunteers table ID and should
+     * NOT be used when creating CampaignVolunteerAssignment.
+     */
+        $volunteers = $volunteers->map(function ($volunteer) {
+            return [
+                'id' => $volunteer->user_id,
+                'user_id' => $volunteer->user_id,
+                'volunteer_id' => $volunteer->id,
+
+                'user' => $volunteer->user,
+                'organization' => $volunteer->organization,
+
+                'district' => $volunteer->district,
+                'address' => $volunteer->address,
+                'skills' => $volunteer->skills,
+
+                'availability' => $volunteer->availability,
+                'status' => $volunteer->status,
+
+                'created_at' => $volunteer->created_at,
+                'updated_at' => $volunteer->updated_at,
+            ];
+        });
 
         return response()->json([
             'volunteers' => $volunteers,
@@ -2204,12 +2245,18 @@ class AdminController extends Controller
         }
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Campaigns - Assign Volunteer
-    |--------------------------------------------------------------------------
-    */
-
+    /**
+     * Admin: Assign one or more volunteers to an active campaign.
+     *
+     * IMPORTANT:
+     * volunteer_ids contains users.id values.
+     *
+     * campaign_volunteer_assignments.volunteer_id also stores users.id,
+     * NOT volunteers.id.
+     *
+     * Multiple volunteers may be assigned to the same campaign.
+     * Each volunteer may have only one active campaign assignment.
+     */
     public function assignCampaignVolunteer(
         Request $request,
         int $id
@@ -2250,6 +2297,17 @@ class AdminController extends Controller
             'A volunteer cannot be selected more than once.',
         ]);
 
+        /*
+     * Normalize selected user IDs.
+     */
+        $volunteerIds = collect($validated['volunteer_ids'])
+            ->map(fn($id) => (int) $id)
+            ->unique()
+            ->values();
+
+        /*
+     * Find campaign before opening the transaction.
+     */
         $campaign = Campaign::find($id);
 
         if (!$campaign) {
@@ -2265,115 +2323,170 @@ class AdminController extends Controller
             ], 422);
         }
 
-        $volunteerIds = collect($validated['volunteer_ids'])
-            ->map(fn($id) => (int) $id)
-            ->unique()
-            ->values();
-
-        /*
-    |--------------------------------------------------------------------------
-    | Validate every selected volunteer before creating anything
-    |--------------------------------------------------------------------------
-    */
-
-        $volunteerUsers = User::query()
-            ->whereIn('id', $volunteerIds)
-            ->get()
-            ->keyBy('id');
-
-        $volunteers = Volunteer::query()
-            ->whereIn('user_id', $volunteerIds)
-            ->where('status', Volunteer::STATUS_ACTIVE)
-            ->get()
-            ->keyBy('user_id');
-
         $activeAssignmentStatuses =
             CampaignVolunteerAssignment::activeStatuses();
-
-        foreach ($volunteerIds as $volunteerId) {
-            $volunteerUser = $volunteerUsers->get($volunteerId);
-
-            if (!$volunteerUser) {
-                return response()->json([
-                    'message' =>
-                    'One or more selected volunteers could not be found.',
-                ], 422);
-            }
-
-            if ($volunteerUser->role !== 'individual') {
-                return response()->json([
-                    'message' =>
-                    "{$volunteerUser->name} is not an individual user.",
-                ], 422);
-            }
-
-            if ($volunteerUser->status !== 'active') {
-                return response()->json([
-                    'message' =>
-                    "{$volunteerUser->name} is not an active user.",
-                ], 422);
-            }
-
-            if ($volunteerUser->email_verified_at === null) {
-                return response()->json([
-                    'message' =>
-                    "{$volunteerUser->name} must verify their email before being assigned to a campaign.",
-                ], 422);
-            }
-
-            $volunteer = $volunteers->get($volunteerId);
-
-            if (!$volunteer) {
-                return response()->json([
-                    'message' =>
-                    "{$volunteerUser->name} is not an active SP volunteer.",
-                ], 422);
-            }
-
-            if ($volunteer->availability !== 'available') {
-                return response()->json([
-                    'message' =>
-                    "{$volunteerUser->name} is currently unavailable.",
-                ], 422);
-            }
-
-            $hasActiveAssignment =
-                CampaignVolunteerAssignment::query()
-                ->where('volunteer_id', $volunteerId)
-                ->whereIn(
-                    'status',
-                    $activeAssignmentStatuses
-                )
-                ->exists();
-
-            if ($hasActiveAssignment) {
-                return response()->json([
-                    'message' =>
-                    "{$volunteerUser->name} is already assigned to another active campaign.",
-                ], 422);
-            }
-        }
-
-        /*
-    |--------------------------------------------------------------------------
-    | Create all assignments atomically
-    |--------------------------------------------------------------------------
-    */
 
         try {
             $assignments = DB::transaction(function () use (
                 $campaign,
                 $volunteerIds,
                 $validated,
-                $user
+                $user,
+                $activeAssignmentStatuses
             ) {
+                /*
+             * Lock the selected user rows.
+             *
+             * This prevents concurrent assignment operations from
+             * validating the same users simultaneously.
+             */
+                $volunteerUsers = User::query()
+                    ->whereIn('id', $volunteerIds)
+                    ->lockForUpdate()
+                    ->get()
+                    ->keyBy('id');
+
+                /*
+             * Lock the corresponding volunteer rows.
+             */
+                $volunteers = Volunteer::query()
+                    ->whereIn('user_id', $volunteerIds)
+                    ->lockForUpdate()
+                    ->get()
+                    ->keyBy('user_id');
+
+                /*
+             * Validate every selected volunteer before creating
+             * any assignment.
+             */
+                foreach ($volunteerIds as $volunteerId) {
+                    $volunteerUser = $volunteerUsers->get($volunteerId);
+
+                    if (!$volunteerUser) {
+                        abort(
+                            response()->json([
+                                'message' =>
+                                'One or more selected volunteers could not be found.',
+                            ], 422)
+                        );
+                    }
+
+                    /*
+                 * Only individual users can be volunteers.
+                 */
+                    if ($volunteerUser->role !== 'individual') {
+                        abort(
+                            response()->json([
+                                'message' =>
+                                "{$volunteerUser->name} is not an individual user.",
+                            ], 422)
+                        );
+                    }
+
+                    /*
+                 * User account must be active.
+                 */
+                    if ($volunteerUser->status !== 'active') {
+                        abort(
+                            response()->json([
+                                'message' =>
+                                "{$volunteerUser->name} is not an active user.",
+                            ], 422)
+                        );
+                    }
+
+                    /*
+                 * Email must be verified.
+                 */
+                    if ($volunteerUser->email_verified_at === null) {
+                        abort(
+                            response()->json([
+                                'message' =>
+                                "{$volunteerUser->name} must verify their email before being assigned to a campaign.",
+                            ], 422)
+                        );
+                    }
+
+                    /*
+                 * Volunteer profile must exist and be active.
+                 */
+                    $volunteer = $volunteers->get($volunteerId);
+
+                    if (!$volunteer) {
+                        abort(
+                            response()->json([
+                                'message' =>
+                                "{$volunteerUser->name} is not a registered SP volunteer.",
+                            ], 422)
+                        );
+                    }
+
+                    if ($volunteer->status !== Volunteer::STATUS_ACTIVE) {
+                        abort(
+                            response()->json([
+                                'message' =>
+                                "{$volunteerUser->name} is not an active SP volunteer.",
+                            ], 422)
+                        );
+                    }
+
+                    /*
+                 * Volunteer must currently be available.
+                 */
+                    if ($volunteer->availability !== 'available') {
+                        abort(
+                            response()->json([
+                                'message' =>
+                                "{$volunteerUser->name} is currently unavailable.",
+                            ], 422)
+                        );
+                    }
+
+                    /*
+                 * IMPORTANT:
+                 *
+                 * volunteer_id in campaign_volunteer_assignments
+                 * stores users.id.
+                 */
+                    $hasActiveAssignment =
+                        CampaignVolunteerAssignment::query()
+                        ->where(
+                            'volunteer_id',
+                            $volunteerUser->id
+                        )
+                        ->whereIn(
+                            'status',
+                            $activeAssignmentStatuses
+                        )
+                        ->exists();
+
+                    if ($hasActiveAssignment) {
+                        abort(
+                            response()->json([
+                                'message' =>
+                                "{$volunteerUser->name} is already assigned to another active campaign.",
+                            ], 422)
+                        );
+                    }
+                }
+
+                /*
+             * All selected volunteers are valid.
+             *
+             * Now create every assignment.
+             */
                 $createdAssignments = [];
 
                 foreach ($volunteerIds as $volunteerId) {
                     $assignment =
                         CampaignVolunteerAssignment::create([
                             'campaign_id' => $campaign->id,
+
+                            /*
+                         * THIS MUST BE users.id.
+                         */
                             'volunteer_id' => $volunteerId,
+
                             'assigned_by' => $user->id,
 
                             'status' =>
@@ -2386,6 +2499,7 @@ class AdminController extends Controller
 
                             'rejection_reason' => null,
                             'rejection_validated' => null,
+
                             'completed_at' => null,
 
                             'withdrawal_reason' => null,
@@ -2394,6 +2508,9 @@ class AdminController extends Controller
                             'withdrawal_reviewed_by' => null,
                         ]);
 
+                    /*
+                 * Once assigned, the volunteer is unavailable.
+                 */
                     Volunteer::where(
                         'user_id',
                         $volunteerId
@@ -2407,6 +2524,15 @@ class AdminController extends Controller
                 return $createdAssignments;
             });
         } catch (\Illuminate\Database\QueryException $e) {
+            /*
+         * PostgreSQL partial unique index:
+         *
+         * campaign_volunteer_assignments_one_active_campaign
+         *
+         * protects against a race condition where the same
+         * volunteer is assigned to another active campaign at
+         * almost the same time.
+         */
             if (
                 str_contains(
                     $e->getMessage(),
@@ -2423,27 +2549,25 @@ class AdminController extends Controller
         }
 
         /*
-    |--------------------------------------------------------------------------
-    | Load relationships for response
-    |--------------------------------------------------------------------------
-    */
+     * Reload created assignments with the relationships required
+     * by the frontend.
+     */
+        $assignmentIds = collect($assignments)
+            ->pluck('id')
+            ->values();
 
         $assignments = CampaignVolunteerAssignment::query()
-            ->whereIn(
-                'id',
-                collect($assignments)
-                    ->pluck('id')
-            )
+            ->whereIn('id', $assignmentIds)
             ->with([
                 'campaign:id,title',
                 'volunteer:id,name,email',
                 'assignedBy:id,name,email',
             ])
+            ->latest()
             ->get();
 
         return response()->json([
-            'message' =>
-            $assignments->count() === 1
+            'message' => $assignments->count() === 1
                 ? 'Volunteer assigned to campaign successfully.'
                 : "{$assignments->count()} volunteers assigned to campaign successfully.",
 

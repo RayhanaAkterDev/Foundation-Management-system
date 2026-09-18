@@ -39,3 +39,55 @@ export const rejectVolunteerRequest = async (id) => {
         method: 'PATCH',
     });
 };
+
+// =========================================================
+// Accept campaign assignment
+// =========================================================
+
+export const acceptCampaignAssignment = async (id) => {
+    return apiRequest(
+        `/volunteer/campaign-assignments/${id}/accept`,
+        {
+            method: 'PATCH',
+        },
+    );
+};
+
+// =========================================================
+// Reject campaign assignment
+// =========================================================
+
+export const rejectCampaignAssignment = async (id) => {
+    return apiRequest(
+        `/volunteer/campaign-assignments/${id}/reject`,
+        {
+            method: 'PATCH',
+        },
+    );
+};
+
+// =========================================================
+// Start campaign assignment
+// =========================================================
+
+export const startCampaignAssignment = async (id) => {
+    return apiRequest(
+        `/volunteer/campaign-assignments/${id}/start`,
+        {
+            method: 'PATCH',
+        },
+    );
+};
+
+// =========================================================
+// Complete campaign assignment
+// =========================================================
+
+export const completeCampaignAssignment = async (id) => {
+    return apiRequest(
+        `/volunteer/campaign-assignments/${id}/complete`,
+        {
+            method: 'PATCH',
+        },
+    );
+};

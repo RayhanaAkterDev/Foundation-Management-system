@@ -1,11 +1,11 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
 import {
     AlertCircle,
+    ArrowRight,
     CalendarDays,
     CheckCircle2,
     Clock3,
-    Mail,
     MapPin,
     Send,
     ShieldCheck,
@@ -13,6 +13,7 @@ import {
     UserPlus,
     Users,
     XCircle,
+    Mail
 } from 'lucide-react';
 
 import PageHeader from '@/components/dashboard/PageHeader';
@@ -21,10 +22,14 @@ import DataTable from '@/components/dashboard/DataTable';
 import StatusBadge from '@/components/dashboard/StatusBadge';
 
 import {
+    acceptCampaignAssignment,
     acceptVolunteerRequest,
+    completeCampaignAssignment,
     getMyVolunteer,
+    rejectCampaignAssignment,
     rejectVolunteerRequest,
     sendVolunteerRequest,
+    startCampaignAssignment,
 } from './api/volunteerApi';
 
 /*
@@ -57,16 +62,202 @@ const getCampaignLocation = (campaign) => {
 
 const getAssignmentStatusLabel = (status) => {
     const labels = {
-        assigned: 'Assigned',
+        assigned: 'Assignment Pending',
         accepted: 'Accepted',
         in_progress: 'In Progress',
         completed: 'Completed',
-        rejected: 'Rejected',
+        rejected: 'Declined',
         withdrawal_requested: 'Withdrawal Requested',
         withdrawn: 'Withdrawn',
     };
 
     return labels[status] || status || 'Unknown';
+};
+
+/*
+|--------------------------------------------------------------------------
+| Campaign Assignment Request
+|--------------------------------------------------------------------------
+*/
+
+const CampaignAssignmentRequest = ({
+    assignment,
+    loading,
+    onAccept,
+    onReject,
+    onStart,
+    onComplete,
+}) => {
+    const campaign = assignment?.campaign;
+
+    const title =
+        campaign?.title || assignment?.campaign_title || 'Untitled campaign';
+
+    const category = campaign?.category || assignment?.category || null;
+
+    const location = getCampaignLocation(campaign);
+
+    const startDate =
+        campaign?.start_date ||
+        campaign?.date ||
+        assignment?.start_date ||
+        null;
+
+    const isAssigned = assignment?.status === 'assigned';
+    const isAccepted = assignment?.status === 'accepted';
+    const isInProgress = assignment?.status === 'in_progress';
+
+    return (
+        <section className="overflow-hidden rounded-2xl border border-primary/20 bg-white">
+            <div className="border-b border-primary/10 bg-primary/[0.035] px-6 py-5 sm:px-7">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="flex min-w-0 items-start gap-4">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                            {isAssigned ? (
+                                <UserPlus className="h-5 w-5 text-primary" />
+                            ) : isAccepted ? (
+                                <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                            ) : (
+                                <Clock3 className="h-5 w-5 text-amber-600" />
+                            )}
+                        </div>
+
+                        <div className="min-w-0">
+                            <div className="flex flex-wrap items-center gap-3">
+                                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary">
+                                    Campaign Assignment
+                                </p>
+
+                                <StatusBadge
+                                    status={assignment?.status}
+                                    label={getAssignmentStatusLabel(
+                                        assignment?.status,
+                                    )}
+                                />
+                            </div>
+
+                            <h2 className="mt-1 text-xl font-semibold text-slate-900">
+                                {isAssigned
+                                    ? 'You have a new campaign assignment'
+                                    : isAccepted
+                                      ? 'You accepted this campaign assignment'
+                                      : 'Campaign activity in progress'}
+                            </h2>
+
+                            <p className="mt-1.5 max-w-2xl text-sm leading-6 text-slate-500">
+                                {isAssigned
+                                    ? 'The administration has assigned you to this campaign. Review the details and accept or decline the assignment.'
+                                    : isAccepted
+                                      ? 'This campaign is waiting for you to start the assigned activity.'
+                                      : 'You are currently participating in this campaign.'}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="px-6 py-6 sm:px-7">
+                <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
+                    <div className="min-w-0">
+                        <h3 className="text-lg font-semibold text-slate-900">
+                            {title}
+                        </h3>
+
+                        <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-500">
+                            {category && (
+                                <span className="inline-flex items-center gap-2">
+                                    <ShieldCheck className="h-4 w-4 text-slate-400" />
+                                    {category}
+                                </span>
+                            )}
+
+                            {startDate && (
+                                <span className="inline-flex items-center gap-2">
+                                    <CalendarDays className="h-4 w-4 text-slate-400" />
+                                    {formatDate(startDate)}
+                                </span>
+                            )}
+
+                            <span className="inline-flex items-center gap-2">
+                                <MapPin className="h-4 w-4 text-slate-400" />
+                                {location}
+                            </span>
+                        </div>
+
+                        {assignment?.assignment_note && (
+                            <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                                <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">
+                                    Assignment Note
+                                </p>
+
+                                <p className="mt-1.5 text-sm leading-6 text-slate-600">
+                                    {assignment.assignment_note}
+                                </p>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="flex shrink-0 flex-col gap-2 sm:flex-row lg:flex-col">
+                        {isAssigned && (
+                            <>
+                                <button
+                                    type="button"
+                                    onClick={() => onReject(assignment.id)}
+                                    disabled={loading}
+                                    className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 text-sm font-medium text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    <XCircle className="h-4 w-4" />
+
+                                    {loading ? 'Processing...' : 'Decline'}
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => onAccept(assignment.id)}
+                                    disabled={loading}
+                                    className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-medium text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    <CheckCircle2 className="h-4 w-4" />
+
+                                    {loading
+                                        ? 'Processing...'
+                                        : 'Accept Assignment'}
+                                </button>
+                            </>
+                        )}
+
+                        {isAccepted && (
+                            <button
+                                type="button"
+                                onClick={() => onStart(assignment.id)}
+                                disabled={loading}
+                                className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-medium text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                <ArrowRight className="h-4 w-4" />
+
+                                {loading ? 'Starting...' : 'Start Activity'}
+                            </button>
+                        )}
+
+                        {isInProgress && (
+                            <button
+                                type="button"
+                                onClick={() => onComplete(assignment.id)}
+                                disabled={loading}
+                                className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-medium text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                <CheckCircle2 className="h-4 w-4" />
+
+                                {loading
+                                    ? 'Completing...'
+                                    : 'Complete Activity'}
+                            </button>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </section>
+    );
 };
 
 /*
@@ -109,20 +300,8 @@ const VolunteerStatusPanel = ({
                         </div>
                     </div>
 
-                    <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center">
-                        <StatusBadge
-                            status={state === 'volunteer' ? 'active' : 'active'}
-                        />
-
-                        <button
-                            type="button"
-                            onClick={onSendRequest}
-                            disabled={loading}
-                            className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-4 text-sm font-medium text-primary transition-colors hover:border-primary/30 hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                            <Send className="h-4 w-4" />
-                            Send Volunteer Request
-                        </button>
+                    <div className="flex shrink-0 items-center">
+                        <StatusBadge status="active" />
                     </div>
                 </div>
             </section>
@@ -142,7 +321,7 @@ const VolunteerStatusPanel = ({
                 <div
                     className={`border-b px-6 py-5 sm:px-7 ${
                         isInvitation
-                            ? 'border-primary/10 bg-primary/4'
+                            ? 'border-primary/10 bg-primary/[0.035]'
                             : 'border-amber-100 bg-amber-50/50'
                     }`}
                 >
@@ -214,6 +393,7 @@ const VolunteerStatusPanel = ({
                                     className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                                 >
                                     <XCircle className="h-4 w-4" />
+
                                     {loading ? 'Processing...' : 'Decline'}
                                 </button>
 
@@ -224,6 +404,7 @@ const VolunteerStatusPanel = ({
                                     className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-medium text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
                                 >
                                     <CheckCircle2 className="h-4 w-4" />
+
                                     {loading
                                         ? 'Processing...'
                                         : 'Accept Invitation'}
@@ -277,6 +458,7 @@ const VolunteerStatusPanel = ({
                         className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-medium text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         <Send className="h-4 w-4" />
+
                         {loading ? 'Sending...' : 'Send New Request'}
                     </button>
                 </div>
@@ -331,6 +513,7 @@ const VolunteerStatusPanel = ({
                         className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-medium text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         <Send className="h-4 w-4" />
+
                         {loading ? 'Sending...' : 'Send Volunteer Request'}
                     </button>
                 </div>
@@ -363,6 +546,7 @@ const assignmentColumns = [
             </div>
         ),
     },
+
     {
         key: 'date',
         header: 'Date',
@@ -373,6 +557,7 @@ const assignmentColumns = [
             </div>
         ),
     },
+
     {
         key: 'location',
         header: 'Location',
@@ -384,6 +569,7 @@ const assignmentColumns = [
             </div>
         ),
     },
+
     {
         key: 'status',
         header: 'Status',
@@ -409,6 +595,7 @@ const MyVolunteerActivities = () => {
 
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(false);
+    const [assignmentActionId, setAssignmentActionId] = useState(null);
 
     const [error, setError] = useState('');
     const [requestMessage, setRequestMessage] = useState('');
@@ -418,6 +605,16 @@ const MyVolunteerActivities = () => {
     | Load volunteer information
     |--------------------------------------------------------------------------
     */
+
+    const loadVolunteerData = useCallback(async () => {
+        const response = await getMyVolunteer();
+
+        setVolunteer(response?.volunteer ?? null);
+        setRequest(response?.request ?? null);
+        setAssignments(response?.assignments ?? []);
+
+        return response;
+    }, []);
 
     useEffect(() => {
         let cancelled = false;
@@ -482,30 +679,11 @@ const MyVolunteerActivities = () => {
     */
 
     const handleSendRequest = async () => {
-        /*
-        |--------------------------------------------------------------------------
-        | Already a registered volunteer
-        |--------------------------------------------------------------------------
-        |
-        | The backend also protects this case, but handling it here prevents
-        | an unnecessary POST request and gives the user the exact message.
-        |
-        */
-
         if (volunteer) {
             setError('');
             setRequestMessage('You are already a registered SP volunteer.');
             return;
         }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Existing pending request
-        |--------------------------------------------------------------------------
-        |
-        | Prevent duplicate requests from the UI.
-        |
-        */
 
         if (request?.status === 'pending') {
             setError('');
@@ -537,7 +715,7 @@ const MyVolunteerActivities = () => {
 
     /*
     |--------------------------------------------------------------------------
-    | Accept admin invitation
+    | Accept admin volunteer invitation
     |--------------------------------------------------------------------------
     */
 
@@ -553,12 +731,6 @@ const MyVolunteerActivities = () => {
             setRequestMessage('');
 
             const response = await acceptVolunteerRequest(request.id);
-
-            /*
-            |--------------------------------------------------------------------------
-            | Backend creates the Volunteer record and returns it.
-            |--------------------------------------------------------------------------
-            */
 
             setVolunteer(response?.volunteer ?? null);
 
@@ -586,7 +758,7 @@ const MyVolunteerActivities = () => {
 
     /*
     |--------------------------------------------------------------------------
-    | Reject admin invitation
+    | Reject admin volunteer invitation
     |--------------------------------------------------------------------------
     */
 
@@ -624,6 +796,180 @@ const MyVolunteerActivities = () => {
             setActionLoading(false);
         }
     };
+
+    /*
+    |--------------------------------------------------------------------------
+    | Refresh after campaign assignment action
+    |--------------------------------------------------------------------------
+    */
+
+    const refreshAfterAssignmentAction = async (message) => {
+        try {
+            setError('');
+            setRequestMessage('');
+
+            await loadVolunteerData();
+
+            setRequestMessage(message);
+        } catch (err) {
+            setError(
+                err?.message ||
+                    'The action succeeded, but your volunteer data could not be refreshed.',
+            );
+        }
+    };
+
+    /*
+    |--------------------------------------------------------------------------
+    | Accept campaign assignment
+    |--------------------------------------------------------------------------
+    */
+
+    const handleAcceptCampaignAssignment = async (id) => {
+        if (!id) {
+            setError('Campaign assignment could not be identified.');
+            return;
+        }
+
+        try {
+            setAssignmentActionId(id);
+            setError('');
+            setRequestMessage('');
+
+            const response = await acceptCampaignAssignment(id);
+
+            await refreshAfterAssignmentAction(
+                response?.message ||
+                    'Campaign assignment accepted successfully.',
+            );
+        } catch (err) {
+            setError(
+                err?.message || 'Unable to accept the campaign assignment.',
+            );
+        } finally {
+            setAssignmentActionId(null);
+        }
+    };
+
+    /*
+    |--------------------------------------------------------------------------
+    | Reject campaign assignment
+    |--------------------------------------------------------------------------
+    */
+
+    const handleRejectCampaignAssignment = async (id) => {
+        if (!id) {
+            setError('Campaign assignment could not be identified.');
+            return;
+        }
+
+        try {
+            setAssignmentActionId(id);
+            setError('');
+            setRequestMessage('');
+
+            const response = await rejectCampaignAssignment(id);
+
+            await refreshAfterAssignmentAction(
+                response?.message || 'Campaign assignment declined.',
+            );
+        } catch (err) {
+            setError(
+                err?.message || 'Unable to decline the campaign assignment.',
+            );
+        } finally {
+            setAssignmentActionId(null);
+        }
+    };
+
+    /*
+    |--------------------------------------------------------------------------
+    | Start campaign assignment
+    |--------------------------------------------------------------------------
+    */
+
+    const handleStartCampaignAssignment = async (id) => {
+        if (!id) {
+            setError('Campaign assignment could not be identified.');
+            return;
+        }
+
+        try {
+            setAssignmentActionId(id);
+            setError('');
+            setRequestMessage('');
+
+            const response = await startCampaignAssignment(id);
+
+            await refreshAfterAssignmentAction(
+                response?.message || 'Campaign activity started successfully.',
+            );
+        } catch (err) {
+            setError(err?.message || 'Unable to start the campaign activity.');
+        } finally {
+            setAssignmentActionId(null);
+        }
+    };
+
+    /*
+    |--------------------------------------------------------------------------
+    | Complete campaign assignment
+    |--------------------------------------------------------------------------
+    */
+
+    const handleCompleteCampaignAssignment = async (id) => {
+        if (!id) {
+            setError('Campaign assignment could not be identified.');
+            return;
+        }
+
+        try {
+            setAssignmentActionId(id);
+            setError('');
+            setRequestMessage('');
+
+            const response = await completeCampaignAssignment(id);
+
+            await refreshAfterAssignmentAction(
+                response?.message ||
+                    'Campaign activity completed successfully.',
+            );
+        } catch (err) {
+            setError(
+                err?.message || 'Unable to complete the campaign activity.',
+            );
+        } finally {
+            setAssignmentActionId(null);
+        }
+    };
+
+    /*
+    |--------------------------------------------------------------------------
+    | Pending campaign assignments
+    |--------------------------------------------------------------------------
+    */
+
+    const pendingAssignments = useMemo(
+        () =>
+            assignments.filter(
+                (assignment) => assignment.status === 'assigned',
+            ),
+        [assignments],
+    );
+
+    /*
+    |--------------------------------------------------------------------------
+    | Active campaign assignments
+    |--------------------------------------------------------------------------
+    */
+
+    const activeAssignments = useMemo(
+        () =>
+            assignments.filter((assignment) =>
+                ['accepted', 'in_progress'].includes(assignment.status),
+            ),
+        [assignments],
+    );
 
     /*
     |--------------------------------------------------------------------------
@@ -679,6 +1025,7 @@ const MyVolunteerActivities = () => {
                 icon: Clock3,
                 subtext: 'hours volunteered',
             },
+
             {
                 label: 'Activities',
                 value: completedAssignments.length,
@@ -686,6 +1033,7 @@ const MyVolunteerActivities = () => {
                 iconColor: 'bg-blue-50',
                 subtext: 'completed',
             },
+
             {
                 label: 'Next Activity',
                 value: nextAssignment
@@ -792,18 +1140,98 @@ const MyVolunteerActivities = () => {
             />
 
             {volunteerState === 'volunteer' && (
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                    {stats.map((stat) => (
-                        <StatCard
-                            key={stat.label}
-                            label={stat.label}
-                            value={stat.value}
-                            icon={stat.icon}
-                            iconColor={stat.iconColor}
-                            subtext={stat.subtext}
-                        />
-                    ))}
-                </div>
+                <>
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                        {stats.map((stat) => (
+                            <StatCard
+                                key={stat.label}
+                                label={stat.label}
+                                value={stat.value}
+                                icon={stat.icon}
+                                iconColor={stat.iconColor}
+                                subtext={stat.subtext}
+                            />
+                        ))}
+                    </div>
+
+                    {pendingAssignments.length > 0 && (
+                        <div className="space-y-4">
+                            <div className="flex items-end justify-between gap-4">
+                                <div>
+                                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary">
+                                        Requires Your Response
+                                    </p>
+
+                                    <h2 className="mt-1 text-xl font-semibold text-slate-900">
+                                        Campaign Assignments
+                                    </h2>
+                                </div>
+
+                                <span className="shrink-0 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                                    {pendingAssignments.length} pending
+                                </span>
+                            </div>
+
+                            <div className="space-y-4">
+                                {pendingAssignments.map((assignment) => (
+                                    <CampaignAssignmentRequest
+                                        key={assignment.id}
+                                        assignment={assignment}
+                                        loading={
+                                            assignmentActionId === assignment.id
+                                        }
+                                        onAccept={
+                                            handleAcceptCampaignAssignment
+                                        }
+                                        onReject={
+                                            handleRejectCampaignAssignment
+                                        }
+                                        onStart={handleStartCampaignAssignment}
+                                        onComplete={
+                                            handleCompleteCampaignAssignment
+                                        }
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {activeAssignments.length > 0 && (
+                        <div className="space-y-4">
+                            <div>
+                                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-emerald-600">
+                                    Your Current Activity
+                                </p>
+
+                                <h2 className="mt-1 text-xl font-semibold text-slate-900">
+                                    Active Campaigns
+                                </h2>
+                            </div>
+
+                            <div className="space-y-4">
+                                {activeAssignments.map((assignment) => (
+                                    <CampaignAssignmentRequest
+                                        key={assignment.id}
+                                        assignment={assignment}
+                                        loading={
+                                            assignmentActionId === assignment.id
+                                        }
+                                        onAccept={
+                                            handleAcceptCampaignAssignment
+                                        }
+                                        onReject={
+                                            handleRejectCampaignAssignment
+                                        }
+                                        onStart={handleStartCampaignAssignment}
+                                        onComplete={
+                                            handleCompleteCampaignAssignment
+                                        }
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </>
             )}
 
             <DataTable

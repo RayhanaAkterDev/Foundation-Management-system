@@ -115,14 +115,16 @@ export const fetchCampaignVolunteerCandidates = async () => {
     return parseResponse(response);
 };
 
-/*
-|--------------------------------------------------------------------------
-| Assign volunteer to campaign
-|--------------------------------------------------------------------------
-|
-| PATCH /api/admin/campaigns/{id}/assignment
-|
-*/
+/**
+ * --------------------------------------------------------------------------
+ * Assign volunteers to campaign
+ * --------------------------------------------------------------------------
+ *
+ * Multiple volunteers can be assigned to the same campaign at once.
+ *
+ * PATCH /api/admin/campaigns/{id}/assignment
+ *
+ */
 
 export const assignCampaignVolunteer = async (
     campaignId,
@@ -138,8 +140,18 @@ export const assignCampaignVolunteer = async (
         );
     }
 
-    if (!payload.volunteer_id) {
-        throw new Error('Volunteer selection is required.');
+    const volunteerIds = Array.isArray(
+        payload.volunteer_ids,
+    )
+        ? payload.volunteer_ids
+              .map((id) => Number(id))
+              .filter((id) => Number.isInteger(id) && id > 0)
+        : [];
+
+    if (volunteerIds.length === 0) {
+        throw new Error(
+            'Volunteer selection is required.',
+        );
     }
 
     const response = await fetch(
@@ -150,19 +162,15 @@ export const assignCampaignVolunteer = async (
                 json: true,
             }),
             body: JSON.stringify({
-                volunteer_id: Number(
-                    payload.volunteer_id,
-                ),
+                volunteer_ids: volunteerIds,
                 assignment_note:
-                    payload.assignment_note ??
-                    null,
+                    payload.assignment_note ?? null,
             }),
         },
     );
 
     return parseResponse(response);
 };
-
 /*
 |--------------------------------------------------------------------------
 | Create Campaign

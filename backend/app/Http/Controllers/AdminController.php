@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Validation\Rule;
-
 use App\Models\User;
 use App\Models\Organization;
 use App\Models\IndividualProfile;
@@ -12,10 +10,12 @@ use App\Models\HelpRequestAssignment;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\Volunteer;
+use App\Models\VolunteerRequest;
 use App\Models\CampaignVolunteerAssignment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class AdminController extends Controller
@@ -52,12 +52,6 @@ class AdminController extends Controller
         if ($user instanceof \Illuminate\Http\JsonResponse) {
             return $user;
         }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Recent Activity
-        |--------------------------------------------------------------------------
-        */
 
         $recentActivity = collect()
             ->merge(
@@ -134,7 +128,8 @@ class AdminController extends Controller
                         return [
                             'id' => 'donation-' . $item->id,
                             'type' => 'donation',
-                            'text' => 'Donation of ৳' .
+                            'text' =>
+                            'Donation of ৳' .
                                 number_format((float) $item->amount, 2) .
                                 ' was recorded.',
                             'time' => $item->created_at->diffForHumans(),
@@ -145,12 +140,6 @@ class AdminController extends Controller
             ->sortByDesc('created_at')
             ->take(10)
             ->values();
-
-        /*
-        |--------------------------------------------------------------------------
-        | Pending Campaigns
-        |--------------------------------------------------------------------------
-        */
 
         $pendingCampaigns = Campaign::with([
             'organization:id,user_id,name',
@@ -179,12 +168,6 @@ class AdminController extends Controller
                 'status',
                 'created_at',
             ]);
-
-        /*
-        |--------------------------------------------------------------------------
-        | Dashboard Statistics
-        |--------------------------------------------------------------------------
-        */
 
         return response()->json([
             'stats' => [
@@ -406,7 +389,7 @@ class AdminController extends Controller
             $newUser = User::create([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
-                'phone' => $validated['phone'],
+                'phone' => $validated['phone'] ?? null,
                 'password' => $validated['password'],
                 'role' => $validated['role'],
                 'verification_method' =>
@@ -468,7 +451,8 @@ class AdminController extends Controller
         });
 
         return response()->json([
-            'message' => $result['user']->verification_method === 'email'
+            'message' =>
+            $result['user']->verification_method === 'email'
                 ? 'User created successfully. The account is inactive until email verification.'
                 : 'Demo user created successfully. The account remains inactive until demo verification.',
 
@@ -543,7 +527,7 @@ class AdminController extends Controller
 
         $targetUser->name = $validated['name'];
         $targetUser->email = $validated['email'];
-        $targetUser->phone = $validated['phone'];
+        $targetUser->phone = $validated['phone'] ?? null;
         $targetUser->status = $validated['status'];
         $targetUser->verification_method =
             $validated['verification_method'];
@@ -693,7 +677,7 @@ class AdminController extends Controller
             $organizationUser = User::create([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
-                'phone' => $validated['phone'],
+                'phone' => $validated['phone'] ?? null,
                 'password' => $temporaryPassword,
                 'role' => 'organization',
                 'verification_method' => 'email',
@@ -1679,10 +1663,10 @@ class AdminController extends Controller
     }
 
     /*
-|--------------------------------------------------------------------------
-| Volunteers
-|--------------------------------------------------------------------------
-*/
+    |--------------------------------------------------------------------------
+    | Volunteers - Directory
+    |--------------------------------------------------------------------------
+    */
 
     public function volunteers(Request $request)
     {
@@ -1692,12 +1676,6 @@ class AdminController extends Controller
             return $user;
         }
 
-        /*
-    |--------------------------------------------------------------------------
-    | Existing volunteer records
-    |--------------------------------------------------------------------------
-    */
-
         $volunteers = Volunteer::with([
             'user:id,name,email,phone',
             'organization:id,name',
@@ -1705,41 +1683,24 @@ class AdminController extends Controller
             ->latest()
             ->get();
 
-        /*
-    |--------------------------------------------------------------------------
-    | Pending volunteer requests
-    |--------------------------------------------------------------------------
-    |
-    | A pending request does not create a Volunteer record.
-    | We therefore include the invited user in the same directory
-    | response with status = pending.
-    |
-    */
-
         $existingVolunteerUserIds = $volunteers
             ->pluck('user_id')
             ->filter()
             ->unique()
             ->values();
 
-        $pendingRequests = \App\Models\VolunteerRequest::with([
+        $pendingRequests = VolunteerRequest::with([
             'user:id,name,email,phone',
         ])
             ->where(
                 'status',
-                \App\Models\VolunteerRequest::STATUS_PENDING
+                VolunteerRequest::STATUS_PENDING
             )
             ->whereNotIn('user_id', $existingVolunteerUserIds)
             ->latest()
             ->get()
             ->unique('user_id')
             ->values();
-
-        /*
-    |--------------------------------------------------------------------------
-    | Normalize pending requests for the same table
-    |--------------------------------------------------------------------------
-    */
 
         $pendingVolunteers = $pendingRequests->map(function ($request) {
             return [
@@ -1763,19 +1724,13 @@ class AdminController extends Controller
 
                 'availability' => null,
 
-                'status' => \App\Models\VolunteerRequest::STATUS_PENDING,
+                'status' => VolunteerRequest::STATUS_PENDING,
 
                 'created_at' => null,
 
                 'updated_at' => $request->updated_at,
             ];
         });
-
-        /*
-    |--------------------------------------------------------------------------
-    | Merge actual volunteers + pending invitations
-    |--------------------------------------------------------------------------
-    */
 
         $directory = $volunteers
             ->concat($pendingVolunteers)
@@ -1793,21 +1748,74 @@ class AdminController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | Campaigns - Create Global Situation Campaign
+    | Volunteers - Campaign Assignment Candidates
     |--------------------------------------------------------------------------
     |
-    | Admin campaign creation is intentionally restricted to:
+    | Only volunteers who satisfy ALL campaign assignment requirements
+    | are returned:
     |
-    | type  = global_situation
-    | scope = global
+    | - Active Volunteer record
+    | - Available
+    | - Individual user
+    | - Active user account
+    | - Verified email
+    | - No active campaign assignment
     |
-    | Admin does NOT create:
-    | - local_case campaigns
-    | - organization_proposed campaigns
-    |
-    | Local case campaigns are created by organizations from their
-    | assigned help requests.
-    |
+    */
+
+    public function campaignVolunteerCandidates(Request $request)
+    {
+        $user = $this->authorizeAdmin($request);
+
+        if ($user instanceof \Illuminate\Http\JsonResponse) {
+            return $user;
+        }
+
+        $activeAssignmentStatuses =
+            CampaignVolunteerAssignment::activeStatuses();
+
+        $volunteers = Volunteer::query()
+            ->with([
+                'user:id,name,email,phone,status,email_verified_at',
+                'organization:id,name',
+            ])
+            ->where(
+                'status',
+                Volunteer::STATUS_ACTIVE
+            )
+            ->where(
+                'availability',
+                'available'
+            )
+            ->whereHas('user', function ($query) {
+                $query
+                    ->where('role', 'individual')
+                    ->where('status', 'active')
+                    ->whereNotNull('email_verified_at');
+            })
+            ->whereDoesntHave(
+                'campaignVolunteerAssignments',
+                function ($query) use (
+                    $activeAssignmentStatuses
+                ) {
+                    $query->whereIn(
+                        'status',
+                        $activeAssignmentStatuses
+                    );
+                }
+            )
+            ->latest()
+            ->get();
+
+        return response()->json([
+            'volunteers' => $volunteers,
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Campaigns - Create Global Situation Campaign
+    |--------------------------------------------------------------------------
     */
 
     public function storeCampaign(Request $request)
@@ -1817,12 +1825,6 @@ class AdminController extends Controller
         if ($user instanceof \Illuminate\Http\JsonResponse) {
             return $user;
         }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Categories shared with Help Request system
-        |--------------------------------------------------------------------------
-        */
 
         $categories = [
             'Education',
@@ -1852,25 +1854,11 @@ class AdminController extends Controller
                 Rule::in($categories),
             ],
 
-            /*
-            |--------------------------------------------------------------------------
-            | Global campaign only
-            |--------------------------------------------------------------------------
-            */
-
             'scope' => [
                 'nullable',
                 'string',
                 'in:global',
             ],
-
-            /*
-            |--------------------------------------------------------------------------
-            | Global campaigns do not belong to a district,
-            | but these remain nullable for compatibility with the
-            | existing campaigns table.
-            |--------------------------------------------------------------------------
-            */
 
             'district' => [
                 'nullable',
@@ -1906,12 +1894,6 @@ class AdminController extends Controller
                 'after_or_equal:start_date',
             ],
 
-            /*
-            |--------------------------------------------------------------------------
-            | Cover image
-            |--------------------------------------------------------------------------
-            */
-
             'cover_image' => [
                 'nullable',
                 'image',
@@ -1920,12 +1902,6 @@ class AdminController extends Controller
             ],
         ]);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Store uploaded cover image
-        |--------------------------------------------------------------------------
-        */
-
         $coverImagePath = null;
 
         if ($request->hasFile('cover_image')) {
@@ -1933,23 +1909,6 @@ class AdminController extends Controller
                 ->file('cover_image')
                 ->store('campaigns', 'public');
         }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Create campaign
-        |--------------------------------------------------------------------------
-        |
-        | Important:
-        |
-        | - organization_id = null
-        | | help_request_id = null
-        | | type = global_situation
-        | | scope = global
-        | | created_by = current admin
-        | | status = unverified
-        |
-        |--------------------------------------------------------------------------
-        */
 
         $campaign = DB::transaction(function () use (
             $validated,
@@ -1970,12 +1929,6 @@ class AdminController extends Controller
                 'description' => $validated['description'],
 
                 'category' => $validated['category'],
-
-                /*
-                |--------------------------------------------------------------------------
-                | Admin-created campaigns are always global.
-                |--------------------------------------------------------------------------
-                */
 
                 'scope' => 'global',
 
@@ -1998,12 +1951,6 @@ class AdminController extends Controller
                 $validated['end_date'] ?? null,
 
                 'cover_image' => $coverImagePath,
-
-                /*
-                |--------------------------------------------------------------------------
-                | New admin campaigns must be reviewed before activation.
-                |--------------------------------------------------------------------------
-                */
 
                 'status' => Campaign::STATUS_UNVERIFIED,
 
@@ -2098,7 +2045,10 @@ class AdminController extends Controller
                 \App\Services\Campaign\CampaignService::class
             );
 
-            if ($validated['status'] === Campaign::STATUS_ACTIVE) {
+            if (
+                $validated['status'] ===
+                Campaign::STATUS_ACTIVE
+            ) {
                 $campaign = DB::transaction(function () use (
                     $campaignService,
                     $campaign,
@@ -2112,7 +2062,8 @@ class AdminController extends Controller
                     );
 
                     if (
-                        $campaign->type === Campaign::TYPE_LOCAL_CASE &&
+                        $campaign->type ===
+                        Campaign::TYPE_LOCAL_CASE &&
                         $campaign->help_request_id
                     ) {
                         $helpRequest = HelpRequest::find(
@@ -2291,6 +2242,12 @@ class AdminController extends Controller
             ], 404);
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Only active campaigns can receive a volunteer.
+        |--------------------------------------------------------------------------
+        */
+
         if ($campaign->status !== Campaign::STATUS_ACTIVE) {
             return response()->json([
                 'message' =>
@@ -2308,6 +2265,12 @@ class AdminController extends Controller
             ], 422);
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Volunteer must be an individual user.
+        |--------------------------------------------------------------------------
+        */
+
         if ($volunteerUser->role !== 'individual') {
             return response()->json([
                 'message' =>
@@ -2315,12 +2278,37 @@ class AdminController extends Controller
             ], 422);
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Volunteer user must be active.
+        |--------------------------------------------------------------------------
+        */
+
         if ($volunteerUser->status !== 'active') {
             return response()->json([
                 'message' =>
                 "Volunteer {$volunteerUser->name} is not an active user.",
             ], 422);
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Volunteer MUST have a verified email.
+        |--------------------------------------------------------------------------
+        */
+
+        if (!$volunteerUser->hasVerifiedEmail()) {
+            return response()->json([
+                'message' =>
+                "Volunteer {$volunteerUser->name} has not verified their email address.",
+            ], 422);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Volunteer profile must exist and be active.
+        |--------------------------------------------------------------------------
+        */
 
         $volunteer = Volunteer::where(
             'user_id',
@@ -2338,6 +2326,12 @@ class AdminController extends Controller
                 "{$volunteerUser->name} is not an active SP volunteer.",
             ], 422);
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Volunteer cannot already have an active campaign assignment.
+        |--------------------------------------------------------------------------
+        */
 
         $hasActiveAssignment =
             CampaignVolunteerAssignment::where(
@@ -2361,12 +2355,29 @@ class AdminController extends Controller
             ], 422);
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Volunteer must currently be available.
+        |--------------------------------------------------------------------------
+        */
+
         if ($volunteer->availability !== 'available') {
             return response()->json([
                 'message' =>
                 "{$volunteerUser->name} is currently unavailable.",
             ], 422);
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Prevent duplicate active assignment for this campaign.
+        |--------------------------------------------------------------------------
+        |
+        | This is technically covered by hasActiveAssignment(), but keeping
+        | this explicit makes the business rule clear and protects against
+        | future changes to the active-status logic.
+        |--------------------------------------------------------------------------
+        */
 
         $duplicateActiveAssignment =
             CampaignVolunteerAssignment::where(
@@ -2390,6 +2401,12 @@ class AdminController extends Controller
             ], 422);
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Create assignment + reserve volunteer atomically.
+        |--------------------------------------------------------------------------
+        */
+
         try {
             $assignment = DB::transaction(function () use (
                 $campaign,
@@ -2399,19 +2416,34 @@ class AdminController extends Controller
             ) {
                 $assignment = CampaignVolunteerAssignment::create([
                     'campaign_id' => $campaign->id,
+
+                    /*
+                    | volunteer_id intentionally stores users.id.
+                    */
                     'volunteer_id' => $volunteerUser->id,
+
                     'assigned_by' => $user->id,
+
                     'status' =>
                     CampaignVolunteerAssignment::STATUS_ASSIGNED,
+
                     'assignment_note' =>
                     $validated['assignment_note'] ?? null,
+
                     'assigned_at' => now(),
+
                     'rejection_reason' => null,
+
                     'rejection_validated' => null,
+
                     'completed_at' => null,
+
                     'withdrawal_reason' => null,
+
                     'withdrawal_requested_at' => null,
+
                     'withdrawal_reviewed_at' => null,
+
                     'withdrawal_reviewed_by' => null,
                 ]);
 
@@ -2425,6 +2457,12 @@ class AdminController extends Controller
                 return $assignment;
             });
         } catch (\Illuminate\Database\QueryException $e) {
+            /*
+            |--------------------------------------------------------------------------
+            | PostgreSQL partial unique index protection.
+            |--------------------------------------------------------------------------
+            */
+
             if (
                 str_contains(
                     $e->getMessage(),

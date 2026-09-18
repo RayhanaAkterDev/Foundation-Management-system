@@ -3,10 +3,8 @@ import React, { useMemo, useState } from 'react';
 import {
     X,
     Building2,
-    Users,
     ClipboardCheck,
     Check,
-    UserRound,
     ChevronDown,
     ArrowRight,
 } from 'lucide-react';
@@ -14,7 +12,6 @@ import {
 const AssignmentModal = ({
     request,
     organizations = [],
-    volunteers = [],
     loading = false,
     error = '',
     onClose,
@@ -22,7 +19,7 @@ const AssignmentModal = ({
 }) => {
     /*
     |--------------------------------------------------------------------------
-    | Existing assignment values
+    | Existing organization assignment
     |--------------------------------------------------------------------------
     */
 
@@ -34,39 +31,12 @@ const AssignmentModal = ({
         );
     }, [request]);
 
-    const existingVolunteerIds = useMemo(() => {
-        if (!request) {
-            return [];
-        }
-
-        if (Array.isArray(request.assignment?.volunteer_ids)) {
-            return request.assignment.volunteer_ids.map(String);
-        }
-
-        if (Array.isArray(request.volunteer_ids)) {
-            return request.volunteer_ids.map(String);
-        }
-
-        if (request.assignment?.volunteer_id) {
-            return [String(request.assignment.volunteer_id)];
-        }
-
-        if (request.volunteer_id) {
-            return [String(request.volunteer_id)];
-        }
-
-        return [];
-    }, [request]);
-
     /*
     |--------------------------------------------------------------------------
     | Verified organizations
     |
-    | IMPORTANT:
-    | We intentionally DO NOT check whether the organization already has
-    | assignments on other help requests.
-    |
-    | A verified organization can receive multiple assignment requests.
+    | Organizations are allowed to receive multiple help-request assignments.
+    | We only exclude an organization that has already rejected this request.
     |--------------------------------------------------------------------------
     */
 
@@ -94,10 +64,6 @@ const AssignmentModal = ({
                 organization?.id ?? organization?.organization_id ?? '',
             );
 
-            /*
-             * An organization that already rejected this help request
-             * must never be shown as available for reassignment.
-             */
             if (organizationId && rejectedOrganizationIds.has(organizationId)) {
                 return false;
             }
@@ -109,7 +75,7 @@ const AssignmentModal = ({
 
             /*
              * If the API does not provide a verification field,
-             * keep the organization visible rather than hiding it.
+             * keep the organization visible.
              */
             if (!verificationStatus) {
                 return true;
@@ -121,33 +87,18 @@ const AssignmentModal = ({
 
     /*
     |--------------------------------------------------------------------------
-    | Initial form values
-    |
-    | No useEffect is used here.
+    | Initial form value
     |--------------------------------------------------------------------------
     */
 
     const initialOrganization = String(existingOrganizationId || '');
-
-    const initialVolunteers = existingVolunteerIds;
-
-    /*
-    |--------------------------------------------------------------------------
-    | Form state
-    |
-    | The key is tied to the request ID so React creates fresh state when
-    | the modal is opened for another request.
-    |--------------------------------------------------------------------------
-    */
 
     return (
         <AssignmentForm
             key={request?.id ?? 'new-request'}
             request={request}
             availableOrganizations={availableOrganizations}
-            volunteers={volunteers}
             initialOrganization={initialOrganization}
-            initialVolunteers={initialVolunteers}
             loading={loading}
             error={error}
             onClose={onClose}
@@ -165,9 +116,7 @@ const AssignmentModal = ({
 const AssignmentForm = ({
     request,
     availableOrganizations,
-    volunteers,
     initialOrganization,
-    initialVolunteers,
     loading,
     error,
     onClose,
@@ -176,28 +125,7 @@ const AssignmentForm = ({
     const [selectedOrganization, setSelectedOrganization] =
         useState(initialOrganization);
 
-    const [selectedVolunteers, setSelectedVolunteers] =
-        useState(initialVolunteers);
-
     const [assignmentNote, setAssignmentNote] = useState('');
-
-    /*
-    |--------------------------------------------------------------------------
-    | Volunteer selection
-    |--------------------------------------------------------------------------
-    */
-
-    const handleVolunteerToggle = (volunteerId) => {
-        const id = String(volunteerId);
-
-        setSelectedVolunteers((current) => {
-            if (current.includes(id)) {
-                return current.filter((item) => item !== id);
-            }
-
-            return [...current, id];
-        });
-    };
 
     /*
     |--------------------------------------------------------------------------
@@ -208,17 +136,12 @@ const AssignmentForm = ({
     const handleSubmit = (event) => {
         event.preventDefault();
 
-        if (!selectedOrganization && selectedVolunteers.length === 0) {
+        if (!selectedOrganization) {
             return;
         }
 
         onConfirm({
-            organization_id: selectedOrganization
-                ? Number(selectedOrganization)
-                : null,
-
-            volunteer_ids: selectedVolunteers.map(Number),
-
+            organization_id: Number(selectedOrganization),
             assignment_note: assignmentNote.trim() || null,
         });
     };
@@ -241,8 +164,7 @@ const AssignmentForm = ({
         return null;
     }
 
-    const hasAssignmentTarget =
-        Boolean(selectedOrganization) || selectedVolunteers.length > 0;
+    const hasAssignmentTarget = Boolean(selectedOrganization);
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/65 p-3 backdrop-blur-md sm:p-6">
@@ -258,7 +180,6 @@ const AssignmentForm = ({
 
                 <aside className="relative hidden w-72.5 shrink-0 overflow-hidden bg-primary text-white lg:flex lg:flex-col">
                     <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full bg-white/[0.07]" />
-
                     <div className="absolute -bottom-28 -left-28 h-72 w-72 rounded-full bg-black/[0.07]" />
 
                     <div className="relative flex h-full flex-col p-7">
@@ -322,7 +243,7 @@ const AssignmentForm = ({
                                     Assignment
                                 </p>
 
-                                <div className="mt-3 space-y-2.5">
+                                <div className="mt-3">
                                     <div className="flex items-center gap-2.5">
                                         <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/10">
                                             <Building2 size={13} />
@@ -337,22 +258,6 @@ const AssignmentForm = ({
                                                 size={13}
                                                 className="ml-auto text-emerald-200"
                                             />
-                                        )}
-                                    </div>
-
-                                    <div className="flex items-center gap-2.5">
-                                        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/10">
-                                            <Users size={13} />
-                                        </div>
-
-                                        <span className="text-[11px] text-white/80">
-                                            SP Volunteers
-                                        </span>
-
-                                        {selectedVolunteers.length > 0 && (
-                                            <span className="ml-auto rounded-full bg-white/15 px-2 py-0.5 text-[9px] font-bold">
-                                                {selectedVolunteers.length}
-                                            </span>
                                         )}
                                     </div>
                                 </div>
@@ -399,15 +304,13 @@ const AssignmentForm = ({
                             </h1>
 
                             <p className="mt-1 text-xs leading-5 text-slate-500">
-                                Select an organization or SP volunteer to
-                                receive an assignment request.
+                                Send this help request to a verified
+                                organization for coordination.
                             </p>
                         </div>
                     </div>
 
-                    {/* =====================================================
-                        FORM
-                    ===================================================== */}
+                    {/* Form */}
 
                     <form
                         onSubmit={handleSubmit}
@@ -492,7 +395,8 @@ const AssignmentForm = ({
                                                         className="w-full appearance-none bg-transparent pr-7 text-sm font-bold text-slate-800 outline-none disabled:cursor-not-allowed"
                                                     >
                                                         <option value="">
-                                                            No organization
+                                                            Select an
+                                                            organization
                                                         </option>
 
                                                         {availableOrganizations.map(
@@ -530,145 +434,13 @@ const AssignmentForm = ({
                                                 </p>
 
                                                 <p className="mt-1 text-[10px] leading-5 text-slate-400">
-                                                    Organizations with existing
-                                                    assignments are still
-                                                    allowed. The organization
-                                                    list should contain every
-                                                    verified organization.
+                                                    The organization list should
+                                                    contain every verified
+                                                    organization.
                                                 </p>
                                             </div>
                                         )}
                                     </div>
-                                </section>
-
-                                {/* =================================================
-                                    VOLUNTEERS
-                                ================================================= */}
-
-                                <section>
-                                    <div className="mb-3 flex items-end justify-between">
-                                        <div>
-                                            <p className="text-sm font-bold text-slate-900">
-                                                SP volunteers
-                                            </p>
-
-                                            <p className="mt-0.5 text-[10px] text-slate-400">
-                                                Select one or more volunteers
-                                            </p>
-                                        </div>
-
-                                        {selectedVolunteers.length > 0 && (
-                                            <span className="rounded-full bg-primary/10 px-2.5 py-1 text-[9px] font-bold text-primary">
-                                                {selectedVolunteers.length}{' '}
-                                                selected
-                                            </span>
-                                        )}
-                                    </div>
-
-                                    {volunteers.length > 0 ? (
-                                        <div className="space-y-2">
-                                            {volunteers.map((volunteer) => {
-                                                const volunteerId = String(
-                                                    volunteer.user_id ??
-                                                        volunteer.user?.id ??
-                                                        volunteer.id,
-                                                );
-
-                                                const checked =
-                                                    selectedVolunteers.includes(
-                                                        volunteerId,
-                                                    );
-
-                                                return (
-                                                    <label
-                                                        key={volunteerId}
-                                                        className={`group relative flex cursor-pointer items-center gap-3 overflow-hidden rounded-2xl border px-3.5 py-3 transition-all ${
-                                                            checked
-                                                                ? 'border-primary/30 bg-primary/[0.035]'
-                                                                : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
-                                                        } ${
-                                                            loading
-                                                                ? 'cursor-not-allowed opacity-60'
-                                                                : ''
-                                                        }`}
-                                                    >
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={checked}
-                                                            onChange={() =>
-                                                                handleVolunteerToggle(
-                                                                    volunteerId,
-                                                                )
-                                                            }
-                                                            disabled={loading}
-                                                            className="sr-only"
-                                                        />
-
-                                                        <div
-                                                            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all ${
-                                                                checked
-                                                                    ? 'bg-primary text-white'
-                                                                    : 'bg-slate-100 text-slate-400 group-hover:bg-slate-200'
-                                                            }`}
-                                                        >
-                                                            <UserRound
-                                                                size={17}
-                                                            />
-                                                        </div>
-
-                                                        <div className="min-w-0 flex-1">
-                                                            <p className="truncate text-xs font-bold text-slate-900">
-                                                                {volunteer.name ||
-                                                                    volunteer
-                                                                        .user
-                                                                        ?.name ||
-                                                                    'SP Volunteer'}
-                                                            </p>
-
-                                                            {(volunteer.email ||
-                                                                volunteer.user
-                                                                    ?.email) && (
-                                                                <p className="mt-0.5 truncate text-[10px] text-slate-400">
-                                                                    {volunteer.email ||
-                                                                        volunteer
-                                                                            .user
-                                                                            ?.email}
-                                                                </p>
-                                                            )}
-                                                        </div>
-
-                                                        <div
-                                                            className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border transition-all ${
-                                                                checked
-                                                                    ? 'border-primary bg-primary text-white'
-                                                                    : 'border-slate-200 bg-white text-transparent'
-                                                            }`}
-                                                        >
-                                                            <Check
-                                                                size={12}
-                                                                strokeWidth={3}
-                                                            />
-                                                        </div>
-                                                    </label>
-                                                );
-                                            })}
-                                        </div>
-                                    ) : (
-                                        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-5 py-8 text-center">
-                                            <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-white text-slate-400 shadow-sm ring-1 ring-slate-200">
-                                                <Users size={19} />
-                                            </div>
-
-                                            <p className="mt-3 text-xs font-bold text-slate-700">
-                                                No available SP volunteers
-                                            </p>
-
-                                            <p className="mx-auto mt-1 max-w-xs text-[10px] leading-5 text-slate-400">
-                                                Only approved and available
-                                                volunteers can be assigned.
-                                            </p>
-                                        </div>
-                                    )}
                                 </section>
 
                                 {/* =================================================
@@ -715,20 +487,9 @@ const AssignmentForm = ({
                                                         : 'text-slate-600'
                                                 }`}
                                             >
-                                                {selectedOrganization &&
-                                                selectedVolunteers.length > 0
-                                                    ? 'Organization + volunteers'
-                                                    : selectedOrganization
-                                                      ? 'Organization only'
-                                                      : selectedVolunteers.length >
-                                                          0
-                                                        ? `${selectedVolunteers.length} volunteer${
-                                                              selectedVolunteers.length >
-                                                              1
-                                                                  ? 's'
-                                                                  : ''
-                                                          } selected`
-                                                        : 'Nothing selected yet'}
+                                                {selectedOrganization
+                                                    ? 'Organization selected'
+                                                    : 'Select an organization'}
                                             </p>
                                         </div>
 
@@ -777,16 +538,14 @@ const AssignmentForm = ({
                                         disabled={loading}
                                         rows={3}
                                         maxLength={1000}
-                                        placeholder="Add anything the assigned organization or volunteer should know..."
+                                        placeholder="Add anything the assigned organization should know..."
                                         className="w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs leading-5 text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/10 disabled:cursor-not-allowed disabled:opacity-60"
                                     />
                                 </section>
                             </div>
                         </div>
 
-                        {/* =====================================================
-                            FOOTER
-                        ===================================================== */}
+                        {/* Footer */}
 
                         <div className="flex shrink-0 items-center justify-end gap-2.5 border-t border-slate-100 bg-white px-5 py-4 sm:px-7">
                             <button

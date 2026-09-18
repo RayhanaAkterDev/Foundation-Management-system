@@ -184,6 +184,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // ---------------------------------------------------------
     // INDIVIDUAL VOLUNTEER
     // ---------------------------------------------------------
+
     Route::post(
         '/volunteer',
         [VolunteerController::class, 'store']
@@ -194,7 +195,9 @@ Route::middleware('auth:sanctum')->group(function () {
         [VolunteerController::class, 'show']
     );
 
+
     // Volunteer invitation response
+
     Route::patch(
         '/volunteer/requests/{id}/accept',
         [VolunteerController::class, 'acceptVolunteerRequest']
@@ -205,7 +208,9 @@ Route::middleware('auth:sanctum')->group(function () {
         [VolunteerController::class, 'rejectVolunteerRequest']
     );
 
+
     // Campaign assignment response
+
     Route::patch(
         '/volunteer/campaign-assignments/{id}/accept',
         [VolunteerController::class, 'acceptCampaignAssignment']
@@ -225,6 +230,7 @@ Route::middleware('auth:sanctum')->group(function () {
         '/volunteer/campaign-assignments/{id}/complete',
         [VolunteerController::class, 'completeCampaignAssignment']
     );
+
 
     // =========================================================
     // ORGANIZATION
@@ -429,12 +435,34 @@ Route::middleware('auth:sanctum')
             [VolunteerController::class, 'updateStatus']
         );
 
+        /*
+        |--------------------------------------------------------------------------
+        | Campaign Assignment Candidates
+        |--------------------------------------------------------------------------
+        |
+        | Returns only volunteers who are actually eligible to be assigned
+        | to an active campaign:
+        |
+        | - active individual user
+        | - verified email
+        | - active volunteer profile
+        | - available
+        | - no active campaign assignment
+        |
+        */
+
+        Route::get(
+            '/campaign-volunteers',
+            [AdminController::class, 'campaignVolunteerCandidates']
+        );
+
 
         // ---------------------------------------------------------
         // Campaigns
         // ---------------------------------------------------------
 
         // Admin can create Global Situation campaigns.
+
         Route::post(
             '/campaigns',
             [AdminController::class, 'storeCampaign']

@@ -79,10 +79,86 @@ const parseResponse = async (response) => {
 */
 
 export const fetchCampaigns = async () => {
-    const response = await fetch(`${API_BASE_URL}/admin/campaigns`, {
-        method: 'GET',
-        headers: getHeaders(),
-    });
+    const response = await fetch(
+        `${API_BASE_URL}/admin/campaigns`,
+        {
+            method: 'GET',
+            headers: getHeaders(),
+        },
+    );
+
+    return parseResponse(response);
+};
+
+/*
+|--------------------------------------------------------------------------
+| Fetch campaign volunteer candidates
+|--------------------------------------------------------------------------
+|
+| Returns active, available, email-verified individual
+| volunteers who are not currently assigned to another
+| active campaign.
+|
+| GET /api/admin/campaign-volunteers/candidates
+|
+*/
+
+export const fetchCampaignVolunteerCandidates = async () => {
+    const response = await fetch(
+        `${API_BASE_URL}/admin/campaign-volunteers/candidates`,
+        {
+            method: 'GET',
+            headers: getHeaders(),
+        },
+    );
+
+    return parseResponse(response);
+};
+
+/*
+|--------------------------------------------------------------------------
+| Assign volunteer to campaign
+|--------------------------------------------------------------------------
+|
+| PATCH /api/admin/campaigns/{id}/assignment
+|
+*/
+
+export const assignCampaignVolunteer = async (
+    campaignId,
+    payload,
+) => {
+    if (!campaignId) {
+        throw new Error('Campaign ID is required.');
+    }
+
+    if (!payload || typeof payload !== 'object') {
+        throw new Error(
+            'Campaign assignment data is required.',
+        );
+    }
+
+    if (!payload.volunteer_id) {
+        throw new Error('Volunteer selection is required.');
+    }
+
+    const response = await fetch(
+        `${API_BASE_URL}/admin/campaigns/${campaignId}/assignment`,
+        {
+            method: 'PATCH',
+            headers: getHeaders({
+                json: true,
+            }),
+            body: JSON.stringify({
+                volunteer_id: Number(
+                    payload.volunteer_id,
+                ),
+                assignment_note:
+                    payload.assignment_note ??
+                    null,
+            }),
+        },
+    );
 
     return parseResponse(response);
 };
@@ -106,16 +182,21 @@ export const fetchCampaigns = async () => {
 
 export const createCampaign = async (payload) => {
     if (!payload || typeof payload !== 'object') {
-        throw new Error('Campaign creation data is required.');
+        throw new Error(
+            'Campaign creation data is required.',
+        );
     }
 
-    const response = await fetch(`${API_BASE_URL}/admin/campaigns`, {
-        method: 'POST',
-        headers: getHeaders({
-            json: true,
-        }),
-        body: JSON.stringify(payload),
-    });
+    const response = await fetch(
+        `${API_BASE_URL}/admin/campaigns`,
+        {
+            method: 'POST',
+            headers: getHeaders({
+                json: true,
+            }),
+            body: JSON.stringify(payload),
+        },
+    );
 
     return parseResponse(response);
 };
@@ -135,27 +216,26 @@ export const createCampaign = async (payload) => {
 | active
 | rejected
 |
-| It does NOT send:
-|
-| pending_review
-| verified
-| unverified
-| published
-|
 | Backend endpoint:
 |
 | PATCH /api/admin/campaigns/{id}/verification
 |
 */
 
-export const verifyCampaign = async (campaignId, payload) => {
+export const verifyCampaign = async (
+    campaignId,
+    payload,
+) => {
     if (!campaignId) {
         throw new Error('Campaign ID is required.');
     }
 
     const status = payload?.status;
 
-    if (status !== 'active' && status !== 'rejected') {
+    if (
+        status !== 'active' &&
+        status !== 'rejected'
+    ) {
         throw new Error(
             'Invalid campaign verification status. Use "active" or "rejected".',
         );
@@ -163,7 +243,8 @@ export const verifyCampaign = async (campaignId, payload) => {
 
     const body = {
         status,
-        verification_note: payload?.verification_note ?? null,
+        verification_note:
+            payload?.verification_note ?? null,
     };
 
     const response = await fetch(
@@ -196,14 +277,20 @@ export const verifyCampaign = async (campaignId, payload) => {
 |
 */
 
-export const updateCampaignStatus = async (campaignId, payload) => {
+export const updateCampaignStatus = async (
+    campaignId,
+    payload,
+) => {
     if (!campaignId) {
         throw new Error('Campaign ID is required.');
     }
 
     const status = payload?.status;
 
-    if (status !== 'completed' && status !== 'cancelled') {
+    if (
+        status !== 'completed' &&
+        status !== 'cancelled'
+    ) {
         throw new Error(
             'Invalid campaign status. Use "completed" or "cancelled".',
         );
@@ -243,13 +330,18 @@ export const updateCampaignStatus = async (campaignId, payload) => {
 |
 */
 
-export const updateCampaign = async (campaignId, payload) => {
+export const updateCampaign = async (
+    campaignId,
+    payload,
+) => {
     if (!campaignId) {
         throw new Error('Campaign ID is required.');
     }
 
     if (!payload || typeof payload !== 'object') {
-        throw new Error('Campaign update data is required.');
+        throw new Error(
+            'Campaign update data is required.',
+        );
     }
 
     const response = await fetch(

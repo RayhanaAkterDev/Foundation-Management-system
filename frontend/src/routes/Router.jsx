@@ -66,7 +66,7 @@ import OrganizationSettings from '@/dashboard/organization/OrgSettings';
 // =========================
 
 import IndividualDashboard from '@/dashboard/individual/IndividualDashboard';
-import IndividualCampaigns from '@/dashboard/individual/IndividualCampaigns';
+import IndividualCampaigns from '@/dashboard/individual/campaigns/IndividualCampaigns';
 import IndividualNotifications from '@/dashboard/individual/IndividualNotifications';
 import IndividualProfile from '@/dashboard/individual/IndividualProfile';
 import IndividualSettings from '@/dashboard/individual/IndividualSettings';

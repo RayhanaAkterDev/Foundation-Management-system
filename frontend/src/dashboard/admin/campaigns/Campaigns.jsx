@@ -23,9 +23,12 @@ import CampaignEditModal from './modals/EditModal';
 import CampaignSuccessToast from './components/SuccessToast';
 import CampaignRelatedDetailsModal from './modals/RelatedDetailsModal';
 import CampaignCreateModal from './modals/CampaignCreateModal';
+import CampaignAssignmentModal from './modals/AssignmentModal';
 
 import {
     fetchCampaigns,
+    fetchCampaignVolunteerCandidates,
+    assignCampaignVolunteer,
     verifyCampaign,
     updateCampaignStatus,
     updateCampaign,
@@ -61,6 +64,7 @@ const CAMPAIGN_STATUS_TRANSITIONS = {
 };
 
 const EDITABLE_STATUSES = ['unverified', 'active'];
+
 const STATUS_CHANGEABLE_STATUSES = ['active'];
 
 /*
@@ -157,7 +161,9 @@ const Campaigns = () => {
     // =========================================================
 
     const [createCampaignOpen, setCreateCampaignOpen] = useState(false);
+
     const [createLoading, setCreateLoading] = useState(false);
+
     const [createError, setCreateError] = useState('');
 
     // =========================================================
@@ -177,7 +183,9 @@ const Campaigns = () => {
     // =========================================================
 
     const [verificationCampaign, setVerificationCampaign] = useState(null);
+
     const [verificationLoading, setVerificationLoading] = useState(false);
+
     const [verificationError, setVerificationError] = useState('');
 
     // =========================================================
@@ -185,7 +193,9 @@ const Campaigns = () => {
     // =========================================================
 
     const [statusCampaign, setStatusCampaign] = useState(null);
+
     const [statusLoading, setStatusLoading] = useState(false);
+
     const [statusError, setStatusError] = useState('');
 
     // =========================================================
@@ -193,18 +203,39 @@ const Campaigns = () => {
     // =========================================================
 
     const [editCampaign, setEditCampaign] = useState(null);
+
     const [editLoading, setEditLoading] = useState(false);
+
     const [editError, setEditError] = useState('');
+
+    // =========================================================
+    // Assignment modal
+    // =========================================================
+
+    const [assignmentCampaign, setAssignmentCampaign] = useState(null);
+
+    const [assignmentVolunteers, setAssignmentVolunteers] = useState([]);
+
+    const [assignmentLoading, setAssignmentLoading] = useState(false);
+
+    const [assignmentSubmitting, setAssignmentSubmitting] = useState(false);
+
+    const [assignmentError, setAssignmentError] = useState('');
 
     // =========================================================
     // Filters
     // =========================================================
 
     const [activeCategory, setActiveCategory] = useState('all');
+
     const [searchTerm, setSearchTerm] = useState('');
+
     const [typeFilter, setTypeFilter] = useState('all');
+
     const [categoryFilter, setCategoryFilter] = useState('all');
+
     const [organizationFilter, setOrganizationFilter] = useState('all');
+
     const [statusFilter, setStatusFilter] = useState('all');
 
     // =========================================================
@@ -240,8 +271,7 @@ const Campaigns = () => {
                     return;
                 }
 
-                const fetchedCampaigns =
-                    data?.campaigns || data?.data || [];
+                const fetchedCampaigns = data?.campaigns || data?.data || [];
 
                 setCampaigns(normalizeCampaigns(fetchedCampaigns));
             } catch (err) {
@@ -277,9 +307,8 @@ const Campaigns = () => {
                 (campaign) => campaign.status === 'unverified',
             ).length,
 
-            active: campaigns.filter(
-                (campaign) => campaign.status === 'active',
-            ).length,
+            active: campaigns.filter((campaign) => campaign.status === 'active')
+                .length,
 
             completed: campaigns.filter(
                 (campaign) => campaign.status === 'completed',
@@ -349,9 +378,7 @@ const Campaigns = () => {
         }
 
         if (typeFilter !== 'all') {
-            result = result.filter(
-                (campaign) => campaign.type === typeFilter,
-            );
+            result = result.filter((campaign) => campaign.type === typeFilter);
         }
 
         if (categoryFilter !== 'all') {
@@ -378,26 +405,20 @@ const Campaigns = () => {
 
         if (search) {
             result = result.filter((campaign) => {
-                const title = String(
-                    campaign.title || '',
-                ).toLowerCase();
+                const title = String(campaign.title || '').toLowerCase();
 
                 const description = String(
                     campaign.description || '',
                 ).toLowerCase();
 
-                const category = String(
-                    campaign.category || '',
-                ).toLowerCase();
+                const category = String(campaign.category || '').toLowerCase();
 
                 const organizationName = String(
                     campaign.organization?.name || '',
                 ).toLowerCase();
 
                 const location = String(
-                    campaign.location ||
-                        campaign.district ||
-                        '',
+                    campaign.location || campaign.district || '',
                 ).toLowerCase();
 
                 return (
@@ -416,6 +437,7 @@ const Campaigns = () => {
 
         result.sort((a, b) => {
             let first = a[sortConfig.key];
+
             let second = b[sortConfig.key];
 
             if (
@@ -427,14 +449,12 @@ const Campaigns = () => {
                 ].includes(sortConfig.key)
             ) {
                 first = first ? new Date(first).getTime() : 0;
+
                 second = second ? new Date(second).getTime() : 0;
             }
 
             if (
-                [
-                    'target_amount',
-                    'collected_amount',
-                ].includes(sortConfig.key)
+                ['target_amount', 'collected_amount'].includes(sortConfig.key)
             ) {
                 first = Number(first || 0);
                 second = Number(second || 0);
@@ -477,19 +497,13 @@ const Campaigns = () => {
 
     const totalPages = Math.max(
         1,
-        Math.ceil(
-            filteredCampaigns.length / CAMPAIGNS_PER_PAGE,
-        ),
+        Math.ceil(filteredCampaigns.length / CAMPAIGNS_PER_PAGE),
     );
 
-    const safeCurrentPage = Math.min(
-        currentPage,
-        totalPages,
-    );
+    const safeCurrentPage = Math.min(currentPage, totalPages);
 
     const paginatedCampaigns = useMemo(() => {
-        const startIndex =
-            (safeCurrentPage - 1) * CAMPAIGNS_PER_PAGE;
+        const startIndex = (safeCurrentPage - 1) * CAMPAIGNS_PER_PAGE;
 
         return filteredCampaigns.slice(
             startIndex,
@@ -508,26 +522,31 @@ const Campaigns = () => {
 
     const handleTypeChange = (event) => {
         setTypeFilter(event.target.value);
+
         setCurrentPage(1);
     };
 
     const handleCategoryFilterChange = (event) => {
         setCategoryFilter(event.target.value);
+
         setCurrentPage(1);
     };
 
     const handleOrganizationChange = (event) => {
         setOrganizationFilter(event.target.value);
+
         setCurrentPage(1);
     };
 
     const handleStatusChange = (event) => {
         setStatusFilter(event.target.value);
+
         setCurrentPage(1);
     };
 
     const handleSearchChange = (event) => {
         setSearchTerm(event.target.value);
+
         setCurrentPage(1);
     };
 
@@ -560,29 +579,14 @@ const Campaigns = () => {
 
     const getSortIcon = (key) => {
         if (sortConfig.key !== key) {
-            return (
-                <ChevronsUpDown
-                    size={14}
-                    strokeWidth={1.8}
-                />
-            );
+            return <ChevronsUpDown size={14} strokeWidth={1.8} />;
         }
 
         if (sortConfig.direction === 'asc') {
-            return (
-                <ArrowUp
-                    size={14}
-                    strokeWidth={2}
-                />
-            );
+            return <ArrowUp size={14} strokeWidth={2} />;
         }
 
-        return (
-            <ArrowDown
-                size={14}
-                strokeWidth={2}
-            />
-        );
+        return <ArrowDown size={14} strokeWidth={2} />;
     };
 
     // =========================================================
@@ -601,52 +605,31 @@ const Campaigns = () => {
 
             const data = await createCampaign(payload);
 
-            const createdCampaign =
-                data?.campaign ||
-                data?.data ||
-                data;
+            const createdCampaign = data?.campaign || data?.data || data;
 
             if (createdCampaign) {
-                const normalizedCampaign =
-                    normalizeCampaign({
-                        ...createdCampaign,
-                        status:
-                            createdCampaign.status ||
-                            'unverified',
-                    });
+                const normalizedCampaign = normalizeCampaign({
+                    ...createdCampaign,
+                    status: createdCampaign.status || 'unverified',
+                });
 
-                setCampaigns((current) => [
-                    normalizedCampaign,
-                    ...current,
-                ]);
+                setCampaigns((current) => [normalizedCampaign, ...current]);
             } else {
-                const refreshed =
-                    await fetchCampaigns();
+                const refreshed = await fetchCampaigns();
 
                 const fetchedCampaigns =
-                    refreshed?.campaigns ||
-                    refreshed?.data ||
-                    [];
+                    refreshed?.campaigns || refreshed?.data || [];
 
-                setCampaigns(
-                    normalizeCampaigns(
-                        fetchedCampaigns,
-                    ),
-                );
+                setCampaigns(normalizeCampaigns(fetchedCampaigns));
             }
 
             setCreateCampaignOpen(false);
             setCreateError('');
             setCurrentPage(1);
 
-            showSuccessToast(
-                'Campaign created successfully.',
-            );
+            showSuccessToast('Campaign created successfully.');
         } catch (err) {
-            setCreateError(
-                err?.message ||
-                    'Campaign creation failed.',
-            );
+            setCreateError(err?.message || 'Campaign creation failed.');
         } finally {
             setCreateLoading(false);
         }
@@ -694,19 +677,15 @@ const Campaigns = () => {
             setEditLoading(true);
             setEditError('');
 
-            const data = await updateCampaign(
-                editCampaign.id,
-                payload,
-            );
+            const data = await updateCampaign(editCampaign.id, payload);
 
-            const updatedCampaign =
-                normalizeCampaign(
-                    data?.campaign ||
-                        data?.data || {
-                            ...editCampaign,
-                            ...payload,
-                        },
-                );
+            const updatedCampaign = normalizeCampaign(
+                data?.campaign ||
+                    data?.data || {
+                        ...editCampaign,
+                        ...payload,
+                    },
+            );
 
             setCampaigns((current) =>
                 current.map((campaign) =>
@@ -718,14 +697,9 @@ const Campaigns = () => {
 
             setEditCampaign(null);
 
-            showSuccessToast(
-                'Campaign information updated successfully.',
-            );
+            showSuccessToast('Campaign information updated successfully.');
         } catch (err) {
-            setEditError(
-                err?.message ||
-                    'Campaign information update failed.',
-            );
+            setEditError(err?.message || 'Campaign information update failed.');
         } finally {
             setEditLoading(false);
         }
@@ -744,29 +718,18 @@ const Campaigns = () => {
         setVerificationCampaign(campaign);
     };
 
-    const handleVerificationConfirm = async ({
-        status,
-        verification_note,
-    }) => {
+    const handleVerificationConfirm = async ({ status, verification_note }) => {
         if (!verificationCampaign) {
             return;
         }
 
-        if (
-            status !== 'active' &&
-            status !== 'rejected'
-        ) {
-            setVerificationError(
-                'Invalid verification decision.',
-            );
+        if (status !== 'active' && status !== 'rejected') {
+            setVerificationError('Invalid verification decision.');
 
             return;
         }
 
-        if (
-            verificationCampaign.status !==
-            'unverified'
-        ) {
+        if (verificationCampaign.status !== 'unverified') {
             setVerificationError(
                 'Only unverified campaigns can be verified or rejected.',
             );
@@ -776,33 +739,28 @@ const Campaigns = () => {
 
         try {
             setVerificationLoading(true);
+
             setVerificationError('');
 
-            await verifyCampaign(
-                verificationCampaign.id,
-                {
-                    status,
-                    verification_note:
-                        verification_note || null,
-                },
-            );
+            await verifyCampaign(verificationCampaign.id, {
+                status,
+                verification_note: verification_note || null,
+            });
 
             setCampaigns((current) =>
                 current.map((campaign) =>
-                    campaign.id ===
-                    verificationCampaign.id
+                    campaign.id === verificationCampaign.id
                         ? {
                               ...campaign,
                               status,
-                              verification_note:
-                                  verification_note ||
-                                  null,
+                              verification_note: verification_note || null,
                           }
                         : campaign,
                 ),
             );
 
             setVerificationCampaign(null);
+
             setVerificationError('');
 
             showSuccessToast(
@@ -812,26 +770,17 @@ const Campaigns = () => {
             );
 
             try {
-                const data =
-                    await fetchCampaigns();
+                const data = await fetchCampaigns();
 
-                const fetchedCampaigns =
-                    data?.campaigns ||
-                    data?.data ||
-                    [];
+                const fetchedCampaigns = data?.campaigns || data?.data || [];
 
-                setCampaigns(
-                    normalizeCampaigns(
-                        fetchedCampaigns,
-                    ),
-                );
+                setCampaigns(normalizeCampaigns(fetchedCampaigns));
             } catch {
                 // Local state is already updated.
             }
         } catch (err) {
             setVerificationError(
-                err?.message ||
-                    'Campaign verification failed.',
+                err?.message || 'Campaign verification failed.',
             );
         } finally {
             setVerificationLoading(false);
@@ -843,11 +792,7 @@ const Campaigns = () => {
     // =========================================================
 
     const handleStatusUpdate = (campaign) => {
-        if (
-            !STATUS_CHANGEABLE_STATUSES.includes(
-                campaign.status,
-            )
-        ) {
+        if (!STATUS_CHANGEABLE_STATUSES.includes(campaign.status)) {
             return;
         }
 
@@ -855,23 +800,16 @@ const Campaigns = () => {
         setStatusCampaign(campaign);
     };
 
-    const handleStatusConfirm = async ({
-        status: newStatus,
-        status_note,
-    }) => {
+    const handleStatusConfirm = async ({ status: newStatus, status_note }) => {
         if (!statusCampaign) {
             return;
         }
 
         const allowedStatuses =
-            CAMPAIGN_STATUS_TRANSITIONS[
-                statusCampaign.status
-            ] || [];
+            CAMPAIGN_STATUS_TRANSITIONS[statusCampaign.status] || [];
 
         if (!allowedStatuses.includes(newStatus)) {
-            setStatusError(
-                'This status transition is not allowed.',
-            );
+            setStatusError('This status transition is not allowed.');
 
             return;
         }
@@ -880,31 +818,23 @@ const Campaigns = () => {
             setStatusLoading(true);
             setStatusError('');
 
-            const data =
-                await updateCampaignStatus(
-                    statusCampaign.id,
-                    {
-                        status: newStatus,
-                        status_note:
-                            status_note || null,
-                    },
-                );
+            const data = await updateCampaignStatus(statusCampaign.id, {
+                status: newStatus,
+                status_note: status_note || null,
+            });
 
-            const updatedCampaign =
-                normalizeCampaign(
-                    data?.campaign ||
-                        data?.data || {
-                            ...statusCampaign,
-                            status: newStatus,
-                            status_note:
-                                status_note || null,
-                        },
-                );
+            const updatedCampaign = normalizeCampaign(
+                data?.campaign ||
+                    data?.data || {
+                        ...statusCampaign,
+                        status: newStatus,
+                        status_note: status_note || null,
+                    },
+            );
 
             setCampaigns((current) =>
                 current.map((campaign) =>
-                    campaign.id ===
-                    statusCampaign.id
+                    campaign.id === statusCampaign.id
                         ? updatedCampaign
                         : campaign,
                 ),
@@ -918,13 +848,94 @@ const Campaigns = () => {
                     : 'Campaign cancelled successfully.',
             );
         } catch (err) {
-            setStatusError(
-                err?.message ||
-                    'Campaign status update failed.',
-            );
+            setStatusError(err?.message || 'Campaign status update failed.');
         } finally {
             setStatusLoading(false);
         }
+    };
+
+    // =========================================================
+    // Campaign volunteer assignment
+    // =========================================================
+
+    const handleAssignment = async (campaign) => {
+        if (!campaign || campaign.status !== 'active') {
+            return;
+        }
+
+        setAssignmentCampaign(campaign);
+        setAssignmentVolunteers([]);
+        setAssignmentError('');
+        setAssignmentLoading(true);
+
+        try {
+            const data = await fetchCampaignVolunteerCandidates();
+
+            const volunteers = data?.volunteers || data?.data || [];
+
+            setAssignmentVolunteers(
+                Array.isArray(volunteers) ? volunteers : [],
+            );
+        } catch (err) {
+            setAssignmentError(
+                err?.message || 'Unable to load available volunteers.',
+            );
+        } finally {
+            setAssignmentLoading(false);
+        }
+    };
+
+    const handleAssignmentConfirm = async (payload) => {
+        if (!assignmentCampaign) {
+            return;
+        }
+
+        try {
+            setAssignmentSubmitting(true);
+
+            setAssignmentError('');
+
+            await assignCampaignVolunteer(assignmentCampaign.id, payload);
+
+            setAssignmentCampaign(null);
+            setAssignmentVolunteers([]);
+            setAssignmentError('');
+
+            showSuccessToast('Volunteer assigned to campaign successfully.');
+
+            /*
+             * Refresh the campaign list so any
+             * assignment-related campaign data
+             * returned by the backend is reflected.
+             */
+            try {
+                const data = await fetchCampaigns();
+
+                const fetchedCampaigns = data?.campaigns || data?.data || [];
+
+                setCampaigns(normalizeCampaigns(fetchedCampaigns));
+            } catch {
+                // Assignment succeeded.
+                // Keep current campaign state if refresh fails.
+            }
+        } catch (err) {
+            setAssignmentError(
+                err?.message || 'Campaign volunteer assignment failed.',
+            );
+        } finally {
+            setAssignmentSubmitting(false);
+        }
+    };
+
+    const handleAssignmentClose = () => {
+        if (assignmentSubmitting) {
+            return;
+        }
+
+        setAssignmentCampaign(null);
+        setAssignmentVolunteers([]);
+        setAssignmentError('');
+        setAssignmentLoading(false);
     };
 
     // =========================================================
@@ -946,67 +957,50 @@ const Campaigns = () => {
             'Status',
         ];
 
-        const csvRows = filteredCampaigns.map(
-            (campaign) => [
-                campaign.title || '',
-                campaign.type || '',
-                campaign.target_amount ?? '',
-                campaign.collected_amount ?? 0,
+        const csvRows = filteredCampaigns.map((campaign) => [
+            campaign.title || '',
+            campaign.type || '',
+            campaign.target_amount ?? '',
+            campaign.collected_amount ?? 0,
 
-                campaign.start_date
-                    ? new Date(
-                          campaign.start_date,
-                      ).toLocaleDateString()
-                    : '',
+            campaign.start_date
+                ? new Date(campaign.start_date).toLocaleDateString()
+                : '',
 
-                campaign.end_date
-                    ? new Date(
-                          campaign.end_date,
-                      ).toLocaleDateString()
-                    : '',
+            campaign.end_date
+                ? new Date(campaign.end_date).toLocaleDateString()
+                : '',
 
-                campaign.status || '',
-            ],
-        );
+            campaign.status || '',
+        ]);
 
-        const csvContent = [
-            headers,
-            ...csvRows,
-        ]
+        const csvContent = [headers, ...csvRows]
             .map((row) =>
                 row
                     .map(
                         (value) =>
-                            `"${String(
-                                value ?? '',
-                            ).replace(
-                                /"/g,
-                                '""',
-                            )}"`,
+                            `"${String(value ?? '').replace(/"/g, '""')}"`,
                     )
                     .join(','),
             )
             .join('\n');
 
-        const blob = new Blob(
-            [csvContent],
-            {
-                type: 'text/csv;charset=utf-8;',
-            },
-        );
+        const blob = new Blob([csvContent], {
+            type: 'text/csv;charset=utf-8;',
+        });
 
-        const url =
-            URL.createObjectURL(blob);
+        const url = URL.createObjectURL(blob);
 
-        const link =
-            document.createElement('a');
+        const link = document.createElement('a');
 
         link.href = url;
-        link.download =
-            'stand-for-people-campaigns.csv';
+
+        link.download = 'stand-for-people-campaigns.csv';
 
         document.body.appendChild(link);
+
         link.click();
+
         document.body.removeChild(link);
 
         URL.revokeObjectURL(url);
@@ -1033,8 +1027,7 @@ const Campaigns = () => {
                         </p>
 
                         <p className="mt-1 text-xs text-text-secondary">
-                            Please wait while we retrieve
-                            the campaign list.
+                            Please wait while we retrieve the campaign list.
                         </p>
                     </div>
                 </div>
@@ -1065,69 +1058,42 @@ const Campaigns = () => {
     // Prepare table rows
     // =========================================================
 
-    const rows = paginatedCampaigns.map(
-        (campaign, index) => ({
-            ...campaign,
+    const rows = paginatedCampaigns.map((campaign, index) => ({
+        ...campaign,
 
-            serialNumber:
-                (safeCurrentPage - 1) *
-                    CAMPAIGNS_PER_PAGE +
-                index +
-                1,
+        serialNumber: (safeCurrentPage - 1) * CAMPAIGNS_PER_PAGE + index + 1,
 
-            campaignType:
-                getCampaignTypeLabel(
-                    campaign.type,
-                ),
+        campaignType: getCampaignTypeLabel(campaign.type),
 
-            target:
-                campaign.target_amount !==
-                    null &&
-                campaign.target_amount !==
-                    undefined
-                    ? `৳${Number(
-                          campaign.target_amount,
-                      ).toLocaleString()}`
-                    : '—',
+        target:
+            campaign.target_amount !== null &&
+            campaign.target_amount !== undefined
+                ? `৳${Number(campaign.target_amount).toLocaleString()}`
+                : '—',
 
-            collected: `৳${Number(
-                campaign.collected_amount || 0,
-            ).toLocaleString()}`,
+        collected: `৳${Number(
+            campaign.collected_amount || 0,
+        ).toLocaleString()}`,
 
-            formattedStartDate:
-                campaign.start_date
-                    ? new Date(
-                          campaign.start_date,
-                      ).toLocaleDateString(
-                          'en-GB',
-                          {
-                              day: '2-digit',
-                              month: 'short',
-                              year: 'numeric',
-                          },
-                      )
-                    : '—',
+        formattedStartDate: campaign.start_date
+            ? new Date(campaign.start_date).toLocaleDateString('en-GB', {
+                  day: '2-digit',
+                  month: 'short',
+                  year: 'numeric',
+              })
+            : '—',
 
-            formattedEndDate:
-                campaign.end_date
-                    ? new Date(
-                          campaign.end_date,
-                      ).toLocaleDateString(
-                          'en-GB',
-                          {
-                              day: '2-digit',
-                              month: 'short',
-                              year: 'numeric',
-                          },
-                      )
-                    : '—',
+        formattedEndDate: campaign.end_date
+            ? new Date(campaign.end_date).toLocaleDateString('en-GB', {
+                  day: '2-digit',
+                  month: 'short',
+                  year: 'numeric',
+              })
+            : '—',
 
-            locationName:
-                campaign.location ||
-                campaign.district ||
-                'Location not specified',
-        }),
-    );
+        locationName:
+            campaign.location || campaign.district || 'Location not specified',
+    }));
 
     // =========================================================
     // Table columns
@@ -1150,8 +1116,7 @@ const Campaigns = () => {
             render: (value, row) => (
                 <div className="min-w-0 max-w-90">
                     <p className="truncate font-semibold text-text-primary">
-                        {value ||
-                            'Untitled campaign'}
+                        {value || 'Untitled campaign'}
                     </p>
 
                     {row.description && (
@@ -1167,17 +1132,14 @@ const Campaigns = () => {
                             </span>
                         )}
 
-                        {row.locationName !==
-                            'Location not specified' && (
+                        {row.locationName !== 'Location not specified' && (
                             <>
                                 <span className="text-[10px] text-slate-300">
                                     •
                                 </span>
 
                                 <span className="truncate text-[10px] font-medium text-text-secondary">
-                                    {
-                                        row.locationName
-                                    }
+                                    {row.locationName}
                                 </span>
                             </>
                         )}
@@ -1195,18 +1157,12 @@ const Campaigns = () => {
             render: (value, row) => (
                 <button
                     type="button"
-                    onClick={() =>
-                        handleCampaignTypeClick(
-                            row,
-                        )
-                    }
+                    onClick={() => handleCampaignTypeClick(row)}
                     className="text-left text-sm font-semibold text-primary underline decoration-primary/30 underline-offset-4 transition-colors hover:text-primary-hover hover:decoration-primary"
                     title={
-                        row.type ===
-                        'local_case'
+                        row.type === 'local_case'
                             ? 'View connected help request'
-                            : row.type ===
-                                'organization_proposed'
+                            : row.type === 'organization_proposed'
                               ? 'View connected organization'
                               : 'View global campaign details'
                     }
@@ -1283,27 +1239,21 @@ const Campaigns = () => {
             align: 'right',
 
             render: (_, row) => {
-                const canEdit =
-                    EDITABLE_STATUSES.includes(
-                        row.status,
-                    );
+                const canEdit = EDITABLE_STATUSES.includes(row.status);
 
-                const canVerify =
-                    row.status ===
-                    'unverified';
+                const canVerify = row.status === 'unverified';
 
-                const canChangeStatus =
-                    STATUS_CHANGEABLE_STATUSES.includes(
-                        row.status,
-                    );
+                const canChangeStatus = STATUS_CHANGEABLE_STATUSES.includes(
+                    row.status,
+                );
+
+                const canAssign = row.status === 'active';
 
                 return (
                     <div className="flex items-center justify-end gap-4">
                         <button
                             type="button"
-                            onClick={() =>
-                                handleView(row)
-                            }
+                            onClick={() => handleView(row)}
                             className="text-xs font-semibold text-text-secondary transition-colors hover:text-primary"
                         >
                             View
@@ -1312,11 +1262,7 @@ const Campaigns = () => {
                         {canEdit && (
                             <button
                                 type="button"
-                                onClick={() =>
-                                    handleEdit(
-                                        row,
-                                    )
-                                }
+                                onClick={() => handleEdit(row)}
                                 className="text-xs font-semibold text-text-secondary transition-colors hover:text-primary"
                             >
                                 Edit
@@ -1326,25 +1272,27 @@ const Campaigns = () => {
                         {canVerify && (
                             <button
                                 type="button"
-                                onClick={() =>
-                                    handleReview(
-                                        row,
-                                    )
-                                }
+                                onClick={() => handleReview(row)}
                                 className="text-xs font-semibold text-primary transition-colors hover:text-primary-hover"
                             >
                                 Verify
                             </button>
                         )}
 
+                        {canAssign && (
+                            <button
+                                type="button"
+                                onClick={() => handleAssignment(row)}
+                                className="text-xs font-semibold text-primary transition-colors hover:text-primary-hover"
+                            >
+                                Assign
+                            </button>
+                        )}
+
                         {canChangeStatus && (
                             <button
                                 type="button"
-                                onClick={() =>
-                                    handleStatusUpdate(
-                                        row,
-                                    )
-                                }
+                                onClick={() => handleStatusUpdate(row)}
                                 className="text-xs font-semibold text-text-secondary transition-colors hover:text-primary"
                             >
                                 Change Status
@@ -1363,6 +1311,7 @@ const Campaigns = () => {
     return (
         <div className="space-y-9">
             {/* SUCCESS TOAST */}
+
             <CampaignSuccessToast
                 show={successToast.show}
                 message={successToast.message}
@@ -1379,13 +1328,8 @@ const Campaigns = () => {
                     <div className="flex w-full items-center justify-end gap-3">
                         <button
                             type="button"
-                            onClick={
-                                handleExportCSV
-                            }
-                            disabled={
-                                filteredCampaigns.length ===
-                                0
-                            }
+                            onClick={handleExportCSV}
+                            disabled={filteredCampaigns.length === 0}
                             className="
                                 group
                                 inline-flex
@@ -1416,16 +1360,12 @@ const Campaigns = () => {
                                 "
                             />
 
-                            <span>
-                                Export CSV
-                            </span>
+                            <span>Export CSV</span>
                         </button>
 
                         <button
                             type="button"
-                            onClick={
-                                handleCreate
-                            }
+                            onClick={handleCreate}
                             className="
                                 inline-flex
                                 h-10
@@ -1441,14 +1381,9 @@ const Campaigns = () => {
                                 hover:bg-primary-hover
                             "
                         >
-                            <Plus
-                                size={17}
-                                strokeWidth={2}
-                            />
+                            <Plus size={17} strokeWidth={2} />
 
-                            <span>
-                                Add Campaign
-                            </span>
+                            <span>Add Campaign</span>
                         </button>
                     </div>
                 }
@@ -1481,20 +1416,17 @@ const Campaigns = () => {
                         <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                             <div>
                                 <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
-                                    Campaign
-                                    directory
+                                    Campaign directory
                                 </p>
 
                                 <h2 className="mt-1 text-lg font-bold tracking-tight text-text-primary">
-                                    Campaign
-                                    records
+                                    Campaign records
                                 </h2>
                             </div>
 
                             <p className="text-xs font-medium text-text-secondary">
                                 {filteredCampaigns.length}{' '}
-                                {filteredCampaigns.length ===
-                                1
+                                {filteredCampaigns.length === 1
                                     ? 'campaign'
                                     : 'campaigns'}{' '}
                                 shown
@@ -1506,33 +1438,18 @@ const Campaigns = () => {
                                 columns={columns}
                                 rows={rows}
                                 onSort={handleSort}
-                                getSortIcon={
-                                    getSortIcon
-                                }
-                                resultCount={
-                                    filteredCampaigns.length
-                                }
+                                getSortIcon={getSortIcon}
+                                resultCount={filteredCampaigns.length}
                             />
                         </div>
 
-                        {filteredCampaigns.length >
-                            0 && (
+                        {filteredCampaigns.length > 0 && (
                             <CampaignPagination
-                                currentPage={
-                                    safeCurrentPage
-                                }
-                                totalPages={
-                                    totalPages
-                                }
-                                totalItems={
-                                    filteredCampaigns.length
-                                }
-                                itemsPerPage={
-                                    CAMPAIGNS_PER_PAGE
-                                }
-                                onPageChange={
-                                    setCurrentPage
-                                }
+                                currentPage={safeCurrentPage}
+                                totalPages={totalPages}
+                                totalItems={filteredCampaigns.length}
+                                itemsPerPage={CAMPAIGNS_PER_PAGE}
+                                onPageChange={setCurrentPage}
                             />
                         )}
                     </div>
@@ -1544,8 +1461,7 @@ const Campaigns = () => {
                     <aside className="h-fit bg-primary text-white">
                         <div className="border-b border-white/15 px-5 py-5">
                             <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/65">
-                                Directory
-                                controls
+                                Directory controls
                             </p>
 
                             <h3 className="mt-1 text-base font-bold tracking-tight text-white">
@@ -1553,10 +1469,8 @@ const Campaigns = () => {
                             </h3>
 
                             <p className="mt-1.5 text-xs leading-5 text-white/70">
-                                Search and filter
-                                campaign records
-                                using the available
-                                campaign criteria.
+                                Search and filter campaign records using the
+                                available campaign criteria.
                             </p>
                         </div>
 
@@ -1564,50 +1478,28 @@ const Campaigns = () => {
                             <div className="overflow-x-auto">
                                 <CampaignCategoryTabs
                                     tabs={categoryTabs}
-                                    activeCategory={
-                                        activeCategory
-                                    }
-                                    onChange={
-                                        handleCategoryChange
-                                    }
+                                    activeCategory={activeCategory}
+                                    onChange={handleCategoryChange}
                                 />
                             </div>
 
                             <div className="mt-6">
                                 <CampaignFilters
-                                    searchTerm={
-                                        searchTerm
-                                    }
-                                    typeFilter={
-                                        typeFilter
-                                    }
-                                    categoryFilter={
-                                        categoryFilter
-                                    }
-                                    organizationFilter={
-                                        organizationFilter
-                                    }
-                                    statusFilter={
-                                        statusFilter
-                                    }
-                                    campaigns={
-                                        campaigns
-                                    }
-                                    onSearchChange={
-                                        handleSearchChange
-                                    }
-                                    onTypeChange={
-                                        handleTypeChange
-                                    }
+                                    searchTerm={searchTerm}
+                                    typeFilter={typeFilter}
+                                    categoryFilter={categoryFilter}
+                                    organizationFilter={organizationFilter}
+                                    statusFilter={statusFilter}
+                                    campaigns={campaigns}
+                                    onSearchChange={handleSearchChange}
+                                    onTypeChange={handleTypeChange}
                                     onCategoryChange={
                                         handleCategoryFilterChange
                                     }
                                     onOrganizationChange={
                                         handleOrganizationChange
                                     }
-                                    onStatusChange={
-                                        handleStatusChange
-                                    }
+                                    onStatusChange={handleStatusChange}
                                 />
                             </div>
                         </div>
@@ -1625,16 +1517,12 @@ const Campaigns = () => {
                     error={createError}
                     onClose={() => {
                         if (!createLoading) {
-                            setCreateCampaignOpen(
-                                false,
-                            );
+                            setCreateCampaignOpen(false);
 
                             setCreateError('');
                         }
                     }}
-                    onConfirm={
-                        handleCreateConfirm
-                    }
+                    onConfirm={handleCreateConfirm}
                 />
             )}
 
@@ -1644,14 +1532,8 @@ const Campaigns = () => {
 
             {selectedCampaign && (
                 <CampaignViewModal
-                    campaign={
-                        selectedCampaign
-                    }
-                    onClose={() =>
-                        setSelectedCampaign(
-                            null,
-                        )
-                    }
+                    campaign={selectedCampaign}
+                    onClose={() => setSelectedCampaign(null)}
                 />
             )}
 
@@ -1661,14 +1543,8 @@ const Campaigns = () => {
 
             {relatedCampaign && (
                 <CampaignRelatedDetailsModal
-                    campaign={
-                        relatedCampaign
-                    }
-                    onClose={() =>
-                        setRelatedCampaign(
-                            null,
-                        )
-                    }
+                    campaign={relatedCampaign}
+                    onClose={() => setRelatedCampaign(null)}
                 />
             )}
 
@@ -1678,31 +1554,17 @@ const Campaigns = () => {
 
             {verificationCampaign && (
                 <CampaignVerificationModal
-                    campaign={
-                        verificationCampaign
-                    }
-                    loading={
-                        verificationLoading
-                    }
-                    error={
-                        verificationError
-                    }
+                    campaign={verificationCampaign}
+                    loading={verificationLoading}
+                    error={verificationError}
                     onClose={() => {
-                        if (
-                            !verificationLoading
-                        ) {
-                            setVerificationCampaign(
-                                null,
-                            );
+                        if (!verificationLoading) {
+                            setVerificationCampaign(null);
 
-                            setVerificationError(
-                                '',
-                            );
+                            setVerificationError('');
                         }
                     }}
-                    onConfirm={
-                        handleVerificationConfirm
-                    }
+                    onConfirm={handleVerificationConfirm}
                 />
             )}
 
@@ -1714,24 +1576,18 @@ const Campaigns = () => {
                 <CampaignStatusUpdateModal
                     campaign={statusCampaign}
                     allowedStatuses={
-                        CAMPAIGN_STATUS_TRANSITIONS[
-                            statusCampaign.status
-                        ] || []
+                        CAMPAIGN_STATUS_TRANSITIONS[statusCampaign.status] || []
                     }
                     loading={statusLoading}
                     error={statusError}
                     onClose={() => {
                         if (!statusLoading) {
-                            setStatusCampaign(
-                                null,
-                            );
+                            setStatusCampaign(null);
 
                             setStatusError('');
                         }
                     }}
-                    onConfirm={
-                        handleStatusConfirm
-                    }
+                    onConfirm={handleStatusConfirm}
                 />
             )}
 
@@ -1747,12 +1603,26 @@ const Campaigns = () => {
                     onClose={() => {
                         if (!editLoading) {
                             setEditCampaign(null);
+
                             setEditError('');
                         }
                     }}
-                    onConfirm={
-                        handleEditConfirm
-                    }
+                    onConfirm={handleEditConfirm}
+                />
+            )}
+
+            {/* =====================================================
+                ASSIGN VOLUNTEER MODAL
+            ===================================================== */}
+
+            {assignmentCampaign && (
+                <CampaignAssignmentModal
+                    campaign={assignmentCampaign}
+                    volunteers={assignmentVolunteers}
+                    loading={assignmentLoading || assignmentSubmitting}
+                    error={assignmentError}
+                    onClose={handleAssignmentClose}
+                    onConfirm={handleAssignmentConfirm}
                 />
             )}
         </div>

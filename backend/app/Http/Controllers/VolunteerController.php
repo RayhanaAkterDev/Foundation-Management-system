@@ -109,6 +109,68 @@ class VolunteerController extends Controller
         ]);
     }
 
+    public function sendRequests(Request $request)
+    {
+        $admin = $request->user();
+
+        if (!$admin || $admin->role !== 'admin') {
+            return response()->json([
+                'message' => 'Unauthorized.',
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'user_ids' => ['required', 'array', 'min:1'],
+            'user_ids.*' => ['integer', 'distinct', 'exists:users,id'],
+        ]);
+
+        $userIds = $validated['user_ids'];
+
+        $users = User::query()
+            ->whereIn('id', $userIds)
+            ->where('role', 'individual')
+            ->where('status', 'active')
+            ->whereNotNull('email_verified_at')
+            ->whereDoesntHave('volunteer')
+            ->get();
+
+        if ($users->count() !== count($userIds)) {
+            return response()->json([
+                'message' =>
+                'One or more selected users are no longer eligible for a volunteer request.',
+            ], 422);
+        }
+
+        $alreadyPending = VolunteerRequest::query()
+            ->whereIn('user_id', $userIds)
+            ->where('status', VolunteerRequest::STATUS_PENDING)
+            ->pluck('user_id');
+
+        if ($alreadyPending->isNotEmpty()) {
+            return response()->json([
+                'message' =>
+                'One or more selected users already have a pending volunteer request.',
+            ], 422);
+        }
+
+        DB::transaction(function () use ($userIds, $admin) {
+            foreach ($userIds as $userId) {
+                VolunteerRequest::create([
+                    'user_id' => $userId,
+                    'requested_by' => $admin->id,
+                    'status' => VolunteerRequest::STATUS_PENDING,
+                ]);
+            }
+        });
+
+        return response()->json([
+            'message' => count($userIds) === 1
+                ? 'Volunteer request sent successfully.'
+                : 'Volunteer requests sent successfully.',
+            'sent_count' => count($userIds),
+        ]);
+    }
+
     /**
      * Individual: Apply to become a volunteer.
      */

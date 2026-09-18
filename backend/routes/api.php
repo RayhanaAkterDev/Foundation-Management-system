@@ -31,11 +31,6 @@ Route::get(
     [CampaignController::class, 'show']
 );
 
-Route::post(
-    '/donations',
-    [DonationController::class, 'store']
-);
-
 
 // =============================================================
 // EMAIL VERIFICATION
@@ -146,7 +141,6 @@ Route::middleware('auth:sanctum')->group(function () {
     // =========================================================
 
     // Individual dashboard
-
     Route::get(
         '/individual/dashboard',
         [IndividualDashboardController::class, 'index']
@@ -154,7 +148,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     // Individual help requests
-
     Route::get(
         '/help-requests',
         [HelpRequestController::class, 'myRequests']
@@ -197,7 +190,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     // Volunteer invitation response
-
     Route::patch(
         '/volunteer/requests/{id}/accept',
         [VolunteerController::class, 'acceptVolunteerRequest']
@@ -210,7 +202,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
 
     // Campaign assignment response
-
     Route::patch(
         '/volunteer/campaign-assignments/{id}/accept',
         [VolunteerController::class, 'acceptCampaignAssignment']
@@ -269,6 +260,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post(
         '/campaigns',
         [CampaignController::class, 'store']
+    );
+
+
+    // ---------------------------------------------------------
+    // DONATIONS
+    // ---------------------------------------------------------
+
+    Route::post(
+        '/donations',
+        [DonationController::class, 'store']
     );
 });
 
@@ -435,6 +436,7 @@ Route::middleware('auth:sanctum')
             [VolunteerController::class, 'updateStatus']
         );
 
+
         /*
         |--------------------------------------------------------------------------
         | Campaign Assignment Candidates
@@ -462,7 +464,6 @@ Route::middleware('auth:sanctum')
         // ---------------------------------------------------------
 
         // Admin can create Global Situation campaigns.
-
         Route::post(
             '/campaigns',
             [AdminController::class, 'storeCampaign']

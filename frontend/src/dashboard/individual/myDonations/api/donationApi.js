@@ -5,14 +5,16 @@ export const initiateDonation = async ({
     amount,
     donorName,
     donorEmail,
+    donorPhone,
 }) => {
     return apiRequest('/donations', {
         method: 'POST',
         body: JSON.stringify({
             campaign_id: campaignId,
-            amount,
+            amount: Number(amount),
             donor_name: donorName || null,
             donor_email: donorEmail || null,
+            donor_phone: donorPhone || null,
         }),
     });
 };

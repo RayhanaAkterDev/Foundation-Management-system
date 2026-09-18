@@ -29,6 +29,21 @@ const formatDate = (date) => {
     });
 };
 
+const getStoredUser = () => {
+    try {
+        const storedUser =
+            localStorage.getItem('user') || sessionStorage.getItem('user');
+
+        if (!storedUser) {
+            return null;
+        }
+
+        return JSON.parse(storedUser);
+    } catch {
+        return null;
+    }
+};
+
 /* -------------------------------------------------------------------------- */
 /* Donation Modal                                                             */
 /* -------------------------------------------------------------------------- */
@@ -40,7 +55,6 @@ const DonationModal = ({ campaign, onClose }) => {
 
     const targetAmount = Number(campaign?.target_amount || 0);
     const collectedAmount = Number(campaign?.collected_amount || 0);
-
     const remainingAmount = Math.max(targetAmount - collectedAmount, 0);
 
     const quickAmounts = [100, 500, 1000, 5000];
@@ -60,6 +74,19 @@ const DonationModal = ({ campaign, onClose }) => {
             return;
         }
 
+        const user = getStoredUser();
+
+        const donorPhone = user?.phone || '';
+        const donorName = user?.name || '';
+        const donorEmail = user?.email || '';
+
+        if (!donorPhone) {
+            setError(
+                'Your account does not have a valid phone number. Please update your phone number before making a donation.',
+            );
+            return;
+        }
+
         try {
             setSubmitting(true);
             setError('');
@@ -67,6 +94,9 @@ const DonationModal = ({ campaign, onClose }) => {
             const response = await initiateDonation({
                 campaignId: campaign.id,
                 amount: numericAmount,
+                donorName,
+                donorEmail,
+                donorPhone,
             });
 
             console.log('Donation initiation response:', response);
@@ -95,6 +125,7 @@ const DonationModal = ({ campaign, onClose }) => {
             setSubmitting(false);
         }
     };
+
     const handleQuickAmount = (value) => {
         setAmount(String(value));
         setError('');
@@ -258,8 +289,9 @@ const DonationModal = ({ campaign, onClose }) => {
                                 </p>
 
                                 <p className="mt-1 text-xs leading-5 text-slate-500">
-                                    Your account name and email will be used
-                                    automatically for this donation.
+                                    Your account name, email and phone number
+                                    will be used automatically for this
+                                    donation.
                                 </p>
                             </div>
                         </div>
@@ -317,6 +349,7 @@ const DonationModal = ({ campaign, onClose }) => {
 
 const CampaignCard = ({ campaign, onDonate }) => {
     const targetAmount = Number(campaign.target_amount || 0);
+
     const collectedAmount = Number(campaign.collected_amount || 0);
 
     const progress =

@@ -12,7 +12,6 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\EmailVerificationController;
 use Illuminate\Support\Facades\Route;
 
-
 // =============================================================
 // PUBLIC
 // =============================================================
@@ -30,7 +29,6 @@ Route::get(
     '/campaigns/{id}',
     [CampaignController::class, 'show']
 );
-
 
 // =============================================================
 // EMAIL VERIFICATION
@@ -60,7 +58,6 @@ Route::post(
     ->name('verification.send')
     ->middleware('throttle:6,1');
 
-
 // =============================================================
 // SSLCOMMERZ PAYMENT CALLBACKS
 // =============================================================
@@ -89,7 +86,6 @@ Route::post(
 )
     ->name('donations.payment.ipn');
 
-
 // =============================================================
 // AUTHENTICATED USERS
 // =============================================================
@@ -115,7 +111,6 @@ Route::middleware('auth:sanctum')->group(function () {
         [AuthController::class, 'updateProfile']
     );
 
-
     // ---------------------------------------------------------
     // NOTIFICATIONS
     // ---------------------------------------------------------
@@ -135,19 +130,19 @@ Route::middleware('auth:sanctum')->group(function () {
         [NotificationController::class, 'markAsRead']
     );
 
-
     // =========================================================
     // INDIVIDUAL
     // =========================================================
 
     // Individual dashboard
+
     Route::get(
         '/individual/dashboard',
         [IndividualDashboardController::class, 'index']
     );
 
-
     // Individual help requests
+
     Route::get(
         '/help-requests',
         [HelpRequestController::class, 'myRequests']
@@ -173,7 +168,6 @@ Route::middleware('auth:sanctum')->group(function () {
         [HelpRequestController::class, 'destroy']
     );
 
-
     // ---------------------------------------------------------
     // INDIVIDUAL VOLUNTEER
     // ---------------------------------------------------------
@@ -188,8 +182,8 @@ Route::middleware('auth:sanctum')->group(function () {
         [VolunteerController::class, 'show']
     );
 
-
     // Volunteer invitation response
+
     Route::patch(
         '/volunteer/requests/{id}/accept',
         [VolunteerController::class, 'acceptVolunteerRequest']
@@ -200,8 +194,8 @@ Route::middleware('auth:sanctum')->group(function () {
         [VolunteerController::class, 'rejectVolunteerRequest']
     );
 
-
     // Campaign assignment response
+
     Route::patch(
         '/volunteer/campaign-assignments/{id}/accept',
         [VolunteerController::class, 'acceptCampaignAssignment']
@@ -221,7 +215,6 @@ Route::middleware('auth:sanctum')->group(function () {
         '/volunteer/campaign-assignments/{id}/complete',
         [VolunteerController::class, 'completeCampaignAssignment']
     );
-
 
     // =========================================================
     // ORGANIZATION
@@ -252,7 +245,6 @@ Route::middleware('auth:sanctum')->group(function () {
         [OrganizationController::class, 'requestWithdrawal']
     );
 
-
     // ---------------------------------------------------------
     // CAMPAIGNS
     // ---------------------------------------------------------
@@ -262,17 +254,20 @@ Route::middleware('auth:sanctum')->group(function () {
         [CampaignController::class, 'store']
     );
 
-
     // ---------------------------------------------------------
     // DONATIONS
     // ---------------------------------------------------------
+
+    Route::get(
+        '/donations/my',
+        [DonationController::class, 'myDonations']
+    );
 
     Route::post(
         '/donations',
         [DonationController::class, 'store']
     );
 });
-
 
 // =============================================================
 // ADMIN
@@ -290,7 +285,6 @@ Route::middleware('auth:sanctum')
             '/dashboard',
             [AdminController::class, 'dashboard']
         );
-
 
         // ---------------------------------------------------------
         // Users
@@ -320,7 +314,6 @@ Route::middleware('auth:sanctum')
             '/users/{id}',
             [AdminController::class, 'destroyUser']
         );
-
 
         // ---------------------------------------------------------
         // Organizations
@@ -355,7 +348,6 @@ Route::middleware('auth:sanctum')
             '/organizations/{id}',
             [AdminController::class, 'destroyOrganization']
         );
-
 
         // ---------------------------------------------------------
         // Help Requests
@@ -396,7 +388,6 @@ Route::middleware('auth:sanctum')
             [AdminController::class, 'reassignHelpRequest']
         );
 
-
         // ---------------------------------------------------------
         // Volunteers
         // ---------------------------------------------------------
@@ -436,7 +427,6 @@ Route::middleware('auth:sanctum')
             [VolunteerController::class, 'updateStatus']
         );
 
-
         /*
         |--------------------------------------------------------------------------
         | Campaign Assignment Candidates
@@ -458,12 +448,12 @@ Route::middleware('auth:sanctum')
             [AdminController::class, 'campaignVolunteerCandidates']
         );
 
-
         // ---------------------------------------------------------
         // Campaigns
         // ---------------------------------------------------------
 
         // Admin can create Global Situation campaigns.
+
         Route::post(
             '/campaigns',
             [AdminController::class, 'storeCampaign']
@@ -494,7 +484,6 @@ Route::middleware('auth:sanctum')
             [AdminController::class, 'campaignVolunteerAssignments']
         );
 
-
         // ---------------------------------------------------------
         // Donations
         // ---------------------------------------------------------
@@ -503,7 +492,6 @@ Route::middleware('auth:sanctum')
             '/donations',
             [AdminController::class, 'donations']
         );
-
 
         // ---------------------------------------------------------
         // Reports

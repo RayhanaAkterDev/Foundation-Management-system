@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Campaign;
+use App\Models\Donation;
 use App\Models\DonationAttempt;
 use App\Services\Campaign\CampaignService;
 use App\Services\SSLCOMMERZService;
@@ -65,7 +66,6 @@ class DonationController extends Controller
 
         /*
          * Admin, individual and organization accounts may donate.
-         * Guests are also allowed.
          *
          * For authenticated users, use the phone number stored
          * on users.phone unless a donor_phone was explicitly supplied.
@@ -154,6 +154,29 @@ class DonationController extends Controller
             'transaction_id' => $transactionId,
             'attempt_id' => $attempt->id,
         ], 200);
+    }
+
+    /**
+     * Return donations made by the authenticated user.
+     */
+    public function myDonations(Request $request)
+    {
+        $donations = Donation::with('campaign')
+            ->where('user_id', $request->user()->id)
+            ->latest()
+            ->get();
+
+        return response()->json([
+            'donations' => $donations,
+            'summary' => [
+                'totalDonated' => $donations->sum(
+                    fn($donation) => (float) $donation->amount
+                ),
+                'donationCount' => $donations->count(),
+                'lastDonation' => $donations->first()?->created_at
+                    ?->format('M d, Y'),
+            ],
+        ]);
     }
 
     /**

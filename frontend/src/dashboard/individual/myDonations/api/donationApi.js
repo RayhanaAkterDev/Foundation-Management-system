@@ -18,3 +18,9 @@ export const initiateDonation = async ({
         }),
     });
 };
+
+export const getMyDonations = async () => {
+    return apiRequest('/donations/my', {
+        method: 'GET',
+    });
+};

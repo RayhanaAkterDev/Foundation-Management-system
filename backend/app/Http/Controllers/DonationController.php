@@ -28,20 +28,29 @@ class DonationController extends Controller
                 'integer',
                 'exists:campaigns,id',
             ],
+
             'amount' => [
                 'required',
                 'numeric',
                 'min:10',
             ],
+
             'donor_name' => [
                 'nullable',
                 'string',
                 'max:255',
             ],
+
             'donor_email' => [
                 'nullable',
                 'email',
                 'max:255',
+            ],
+
+            'donor_phone' => [
+                'nullable',
+                'string',
+                'regex:/^01\d{9}$/',
             ],
         ]);
 
@@ -61,7 +70,30 @@ class DonationController extends Controller
         /*
          * Admin, individual and organization accounts may donate.
          * Guests are also allowed.
+         *
+         * For authenticated users, use the phone number stored
+         * on users.phone unless a donor_phone was explicitly supplied.
+         *
+         * For guests, donor_phone must be supplied because
+         * SSLCOMMERZ requires cus_phone.
          */
+        $donorPhone = $validated['donor_phone']
+            ?? $user?->phone;
+
+        if (!$donorPhone) {
+            return response()->json([
+                'message' => 'A valid donor phone number is required to start the payment.',
+            ], 422);
+        }
+
+        $donorName = $validated['donor_name']
+            ?? $user?->name
+            ?? 'Guest Donor';
+
+        $donorEmail = $validated['donor_email']
+            ?? $user?->email
+            ?? 'guest@example.com';
+
         $transactionId = 'SP-DON-' . Str::upper(
             Str::random(20)
         );
@@ -73,22 +105,20 @@ class DonationController extends Controller
             'status' => DonationAttempt::STATUS_PENDING,
             'payment_method' => 'sslcommerz',
             'transaction_id' => $transactionId,
-            'donor_name' => $validated['donor_name']
-                ?? $user?->name,
-            'donor_email' => $validated['donor_email']
-                ?? $user?->email,
+
+            'donor_name' => $donorName,
+            'donor_email' => $donorEmail,
         ]);
 
         try {
             $payment = $paymentService->initiatePayment([
                 'transaction_id' => $transactionId,
                 'amount' => $validated['amount'],
-                'donor_name' => $validated['donor_name']
-                    ?? $user?->name
-                    ?? 'Guest Donor',
-                'donor_email' => $validated['donor_email']
-                    ?? $user?->email
-                    ?? 'guest@example.com',
+
+                'donor_name' => $donorName,
+                'donor_email' => $donorEmail,
+                'donor_phone' => $donorPhone,
+
                 'campaign_id' => $campaign->id,
                 'campaign_title' => $campaign->title,
             ]);
@@ -100,9 +130,9 @@ class DonationController extends Controller
             /*
              * TEMPORARY DEBUG RESPONSE
              *
-             * This exposes the actual payment gateway/service
-             * exception so we can identify why SSLCOMMERZ
-             * initiation is failing in production.
+             * Keep this for the current production test so we can
+             * see the actual SSLCOMMERZ/service error if initiation
+             * fails again.
              */
             return response()->json([
                 'message' => 'Unable to start the payment process.',
@@ -120,11 +150,10 @@ class DonationController extends Controller
             ]);
 
             /*
+             * TEMPORARY DEBUG RESPONSE
+             *
              * The service did not throw an exception, but
              * SSLCOMMERZ did not return a usable gateway URL.
-             *
-             * Include the service response temporarily so we
-             * can see exactly what SSLCOMMERZ returned.
              */
             return response()->json([
                 'message' => 'Unable to start the payment process.',

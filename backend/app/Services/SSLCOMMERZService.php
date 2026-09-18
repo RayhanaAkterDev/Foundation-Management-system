@@ -12,13 +12,9 @@ use RuntimeException;
 class SSLCOMMERZService
 {
     private string $storeId;
-
     private string $storePassword;
-
     private string $initiationUrl;
-
     private string $validationUrl;
-
     private string $callbackUrl;
 
     public function __construct()
@@ -61,16 +57,25 @@ class SSLCOMMERZService
             );
         }
 
+        if (empty($data['donor_phone'])) {
+            throw new RuntimeException(
+                'Donor phone number is required to initiate SSLCOMMERZ payment.'
+            );
+        }
+
         $payload = [
             'store_id' => $this->storeId,
             'store_passwd' => $this->storePassword,
+
             'total_amount' => number_format(
                 (float) $data['amount'],
                 2,
                 '.',
                 ''
             ),
+
             'currency' => 'BDT',
+
             'tran_id' => $data['transaction_id'],
 
             'success_url' =>
@@ -91,6 +96,7 @@ class SSLCOMMERZService
 
             'cus_name' => $data['donor_name'],
             'cus_email' => $data['donor_email'],
+            'cus_phone' => $data['donor_phone'],
 
             'cus_add1' => 'Bangladesh',
             'cus_city' => 'Dhaka',
@@ -142,8 +148,8 @@ class SSLCOMMERZService
 
         if (empty($result['GatewayPageURL'])) {
             throw new RuntimeException(
-                'LIVE-DIAGNOSTIC-53A7F1B: ' .
-                    json_encode($result)
+                'SSLCOMMERZ did not return a payment gateway URL. ' .
+                    'Response: ' . json_encode($result)
             );
         }
 
@@ -172,9 +178,7 @@ class SSLCOMMERZService
         if ($status === 'CANCELLED') {
             return [
                 'success' => false,
-
                 'status' => DonationAttempt::STATUS_CANCELLED,
-
                 'message' => 'Payment was cancelled.',
             ];
         }
@@ -182,9 +186,7 @@ class SSLCOMMERZService
         if ($status !== 'VALID') {
             return [
                 'success' => false,
-
                 'status' => DonationAttempt::STATUS_FAILED,
-
                 'message' => 'Payment was not successful.',
             ];
         }
@@ -199,9 +201,7 @@ class SSLCOMMERZService
         ) {
             return [
                 'success' => false,
-
                 'status' => DonationAttempt::STATUS_FAILED,
-
                 'message' => 'Invalid transaction ID.',
             ];
         }
@@ -213,9 +213,7 @@ class SSLCOMMERZService
         if ($validationId === '') {
             return [
                 'success' => false,
-
                 'status' => DonationAttempt::STATUS_FAILED,
-
                 'message' => 'Payment validation ID is missing.',
             ];
         }
@@ -224,11 +222,8 @@ class SSLCOMMERZService
             $this->validationUrl,
             [
                 'val_id' => $validationId,
-
                 'store_id' => $this->storeId,
-
                 'store_passwd' => $this->storePassword,
-
                 'format' => 'json',
             ]
         );
@@ -236,9 +231,7 @@ class SSLCOMMERZService
         if (!$response->successful()) {
             return [
                 'success' => false,
-
                 'status' => DonationAttempt::STATUS_FAILED,
-
                 'message' =>
                 'Unable to validate payment with SSLCOMMERZ.',
             ];
@@ -249,9 +242,7 @@ class SSLCOMMERZService
         if (!is_array($result)) {
             return [
                 'success' => false,
-
                 'status' => DonationAttempt::STATUS_FAILED,
-
                 'message' =>
                 'Invalid validation response from SSLCOMMERZ.',
             ];
@@ -270,9 +261,7 @@ class SSLCOMMERZService
         ) {
             return [
                 'success' => false,
-
                 'status' => DonationAttempt::STATUS_FAILED,
-
                 'message' =>
                 'SSLCOMMERZ did not validate the payment.',
             ];
@@ -288,9 +277,7 @@ class SSLCOMMERZService
         ) {
             return [
                 'success' => false,
-
                 'status' => DonationAttempt::STATUS_FAILED,
-
                 'message' =>
                 'Validated transaction does not match the donation attempt.',
             ];
@@ -307,9 +294,7 @@ class SSLCOMMERZService
         ) {
             return [
                 'success' => false,
-
                 'status' => DonationAttempt::STATUS_FAILED,
-
                 'message' =>
                 'Payment amount does not match the donation amount.',
             ];
@@ -322,24 +307,17 @@ class SSLCOMMERZService
         if ($currency !== 'BDT') {
             return [
                 'success' => false,
-
                 'status' => DonationAttempt::STATUS_FAILED,
-
                 'message' => 'Invalid payment currency.',
             ];
         }
 
         return [
             'success' => true,
-
             'status' => DonationAttempt::STATUS_PENDING,
-
             'transaction_id' => $validatedTransactionId,
-
             'validation_id' => $validationId,
-
             'amount' => $gatewayAmount,
-
             'currency' => $currency,
 
             'payment_method' =>
@@ -371,7 +349,7 @@ class SSLCOMMERZService
         ) {
             $attempt->refresh();
 
-            /*
+            /**
              * Prevent duplicate IPN/callback processing.
              */
             if (
@@ -402,28 +380,22 @@ class SSLCOMMERZService
                 );
             }
 
-            /*
+            /**
              * Create the real donation.
              */
             $donation = Donation::create([
                 'user_id' => $attempt->user_id,
-
                 'donor_name' => $attempt->donor_name,
-
                 'donor_email' => $attempt->donor_email,
-
                 'campaign_id' => $attempt->campaign_id,
-
                 'amount' => $attempt->amount,
-
                 'payment_method' =>
                 $payment['payment_method'],
-
                 'transaction_id' =>
                 $attempt->transaction_id,
             ]);
 
-            /*
+            /**
              * Only confirmed payment changes campaign totals.
              */
             $campaign->increment(
@@ -431,7 +403,7 @@ class SSLCOMMERZService
                 $attempt->amount
             );
 
-            /*
+            /**
              * The unsuccessful-attempt record is no longer
              * needed once it has become a real donation.
              */

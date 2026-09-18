@@ -13,8 +13,25 @@ use Illuminate\Support\Facades\DB;
 class VolunteerController extends Controller
 {
     /**
+     * Ensure the authenticated user is an admin.
+     */
+    private function authorizeAdmin(Request $request): ?User
+    {
+        $user = $request->user();
+
+        if (!$user || $user->role !== 'admin') {
+            return null;
+        }
+
+        return $user;
+    }
+
+    /**
      * Update volunteer availability based on volunteer status
      * and active campaign assignments.
+     *
+     * CampaignVolunteerAssignment.volunteer_id stores users.id,
+     * not volunteers.id.
      */
     private function syncVolunteerAvailability(int $userId): void
     {
@@ -32,10 +49,11 @@ class VolunteerController extends Controller
             return;
         }
 
-        $hasActiveCampaignAssignment = CampaignVolunteerAssignment::where(
-            'volunteer_id',
-            $userId
-        )
+        $hasActiveCampaignAssignment =
+            CampaignVolunteerAssignment::where(
+                'volunteer_id',
+                $userId
+            )
             ->whereIn(
                 'status',
                 CampaignVolunteerAssignment::activeStatuses()
@@ -50,40 +68,38 @@ class VolunteerController extends Controller
     }
 
     /**
-     * Admin: View all volunteers.
+     * Admin: View all volunteers and pending volunteer invitations.
      */
     public function index(Request $request)
     {
-        $user = $request->user();
-
-        if (!$user || $user->role !== 'admin') {
+        if (!$this->authorizeAdmin($request)) {
             return response()->json([
                 'message' => 'Unauthorized.',
             ], 403);
         }
 
         /*
-    |--------------------------------------------------------------------------
-    | Existing volunteer records
-    |--------------------------------------------------------------------------
-    */
+        |--------------------------------------------------------------------------
+        | Existing volunteer records
+        |--------------------------------------------------------------------------
+        */
 
         $volunteers = Volunteer::with([
-            'user:id,name,email,status',
+            'user:id,name,email,phone,status,email_verified_at',
             'organization:id,name',
         ])
             ->latest()
             ->get();
 
         /*
-    |--------------------------------------------------------------------------
-    | Pending volunteer requests
-    |--------------------------------------------------------------------------
-    |
-    | A pending request does not create a Volunteer record yet.
-    | Include those invited users in the same directory response.
-    |
-    */
+        |--------------------------------------------------------------------------
+        | Pending volunteer requests
+        |--------------------------------------------------------------------------
+        |
+        | A pending request does not create a Volunteer record yet.
+        | Include those users in the same admin directory.
+        |
+        */
 
         $existingVolunteerUserIds = $volunteers
             ->pluck('user_id')
@@ -91,54 +107,74 @@ class VolunteerController extends Controller
             ->unique()
             ->values();
 
-        $pendingRequests = \App\Models\VolunteerRequest::with([
-            'user:id,name,email,status',
+        $pendingRequestsQuery = VolunteerRequest::with([
+            'user:id,name,email,phone,status,email_verified_at',
         ])
             ->where(
                 'status',
-                \App\Models\VolunteerRequest::STATUS_PENDING
-            )
-            ->whereNotIn('user_id', $existingVolunteerUserIds)
+                VolunteerRequest::STATUS_PENDING
+            );
+
+        if ($existingVolunteerUserIds->isNotEmpty()) {
+            $pendingRequestsQuery->whereNotIn(
+                'user_id',
+                $existingVolunteerUserIds
+            );
+        }
+
+        $pendingRequests = $pendingRequestsQuery
             ->latest()
             ->get()
             ->unique('user_id')
             ->values();
 
         /*
-    |--------------------------------------------------------------------------
-    | Normalize pending requests
-    |--------------------------------------------------------------------------
-    */
+        |--------------------------------------------------------------------------
+        | Normalize pending requests
+        |--------------------------------------------------------------------------
+        */
 
-        $pendingVolunteers = $pendingRequests->map(function ($request) {
-            return [
-                'id' => null,
-                'request_id' => $request->id,
-                'user_id' => $request->user_id,
-                'user' => $request->user,
-                'organization' => null,
-                'phone' => $request->user?->phone,
-                'district' => null,
-                'address' => null,
-                'skills' => null,
-                'availability' => null,
-                'status' => \App\Models\VolunteerRequest::STATUS_PENDING,
-                'created_at' => null,
-                'updated_at' => $request->updated_at,
-            ];
-        });
+        $pendingVolunteers = $pendingRequests->map(
+            function (VolunteerRequest $volunteerRequest) {
+                return [
+                    'id' => null,
+                    'request_id' => $volunteerRequest->id,
+                    'user_id' => $volunteerRequest->user_id,
+
+                    'user' => $volunteerRequest->user,
+
+                    'organization' => null,
+
+                    /*
+                    | Phone belongs to users.phone.
+                    | It is intentionally NOT stored on volunteers.
+                    */
+                    'phone' => $volunteerRequest->user?->phone,
+
+                    'district' => null,
+                    'address' => null,
+                    'skills' => null,
+                    'availability' => null,
+
+                    'status' => VolunteerRequest::STATUS_PENDING,
+
+                    'created_at' => $volunteerRequest->created_at,
+                    'updated_at' => $volunteerRequest->updated_at,
+                ];
+            }
+        );
 
         /*
-    |--------------------------------------------------------------------------
-    | Merge existing volunteers + pending invitations
-    |--------------------------------------------------------------------------
-    */
+        |--------------------------------------------------------------------------
+        | Merge existing volunteers + pending requests
+        |--------------------------------------------------------------------------
+        */
 
         $directory = $volunteers
             ->concat($pendingVolunteers)
             ->sortByDesc(function ($item) {
-                return $item['created_at']
-                    ?? $item['updated_at']
+                return data_get($item, 'created_at')
+                    ?? data_get($item, 'updated_at')
                     ?? now();
             })
             ->values();
@@ -148,11 +184,12 @@ class VolunteerController extends Controller
         ]);
     }
 
+    /**
+     * Admin: Get eligible individual users who can be invited.
+     */
     public function candidates(Request $request)
     {
-        $user = $request->user();
-
-        if (!$user || $user->role !== 'admin') {
+        if (!$this->authorizeAdmin($request)) {
             return response()->json([
                 'message' => 'Unauthorized.',
             ], 403);
@@ -173,7 +210,9 @@ class VolunteerController extends Controller
                 'id',
                 'name',
                 'email',
+                'phone',
                 'status',
+                'email_verified_at',
             ])
             ->latest()
             ->get();
@@ -183,19 +222,30 @@ class VolunteerController extends Controller
         ]);
     }
 
+    /**
+     * Admin: Send volunteer invitations to eligible individuals.
+     */
     public function sendRequests(Request $request)
     {
-        $admin = $request->user();
+        $admin = $this->authorizeAdmin($request);
 
-        if (!$admin || $admin->role !== 'admin') {
+        if (!$admin) {
             return response()->json([
                 'message' => 'Unauthorized.',
             ], 403);
         }
 
         $validated = $request->validate([
-            'user_ids' => ['required', 'array', 'min:1'],
-            'user_ids.*' => ['integer', 'distinct', 'exists:users,id'],
+            'user_ids' => [
+                'required',
+                'array',
+                'min:1',
+            ],
+            'user_ids.*' => [
+                'integer',
+                'distinct',
+                'exists:users,id',
+            ],
         ]);
 
         $userIds = $validated['user_ids'];
@@ -217,7 +267,10 @@ class VolunteerController extends Controller
 
         $alreadyPending = VolunteerRequest::query()
             ->whereIn('user_id', $userIds)
-            ->where('status', VolunteerRequest::STATUS_PENDING)
+            ->where(
+                'status',
+                VolunteerRequest::STATUS_PENDING
+            )
             ->pluck('user_id');
 
         if ($alreadyPending->isNotEmpty()) {
@@ -239,14 +292,15 @@ class VolunteerController extends Controller
 
         return response()->json([
             'message' => count($userIds) === 1
-                ? 'Volunteer request sent successfully.'
-                : 'Volunteer requests sent successfully.',
+                ? 'Volunteer invitation sent successfully.'
+                : 'Volunteer invitations sent successfully.',
+
             'sent_count' => count($userIds),
         ]);
     }
 
     /**
-     * Individual: Apply to become a volunteer.
+     * Individual: Submit a volunteer application.
      */
     public function store(Request $request)
     {
@@ -254,60 +308,122 @@ class VolunteerController extends Controller
 
         if (!$user || $user->role !== 'individual') {
             return response()->json([
-                'message' => 'Only individual users can apply as volunteers.',
+                'message' =>
+                'Only individual users can request to become volunteers.',
             ], 403);
         }
 
-        if ($user->volunteer) {
+        /*
+        |--------------------------------------------------------------------------
+        | Account eligibility
+        |--------------------------------------------------------------------------
+        */
+
+        if ($user->status !== 'active') {
             return response()->json([
-                'message' => 'You already have a volunteer application.',
+                'message' =>
+                'Only active users can request to become volunteers.',
             ], 422);
         }
 
-        $validated = $request->validate([
-            'phone' => [
-                'nullable',
-                'string',
-                'max:50',
-            ],
-            'district' => [
-                'nullable',
-                'string',
-                'max:100',
-            ],
-            'address' => [
-                'nullable',
-                'string',
-            ],
-            'skills' => [
-                'nullable',
-                'string',
-            ],
-            'availability' => [
-                'nullable',
-                'string',
-                'max:100',
-            ],
-        ]);
+        if (!$user->email_verified_at) {
+            return response()->json([
+                'message' =>
+                'Please verify your email address before requesting to become a volunteer.',
+            ], 422);
+        }
 
-        $volunteer = Volunteer::create([
-            'user_id' => $user->id,
-            'phone' => $validated['phone'] ?? null,
-            'district' => $validated['district'] ?? null,
-            'address' => $validated['address'] ?? null,
-            'skills' => $validated['skills'] ?? null,
-            'availability' => null,
-            'status' => Volunteer::STATUS_PENDING,
-        ]);
+        /*
+        |--------------------------------------------------------------------------
+        | Already registered volunteer
+        |--------------------------------------------------------------------------
+        */
+
+        if ($user->volunteer) {
+            return response()->json([
+                'message' => 'You are already a registered SP volunteer.',
+                'status' => 'already_volunteer',
+                'volunteer' => $user->volunteer,
+            ], 422);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Create application safely
+        |--------------------------------------------------------------------------
+        */
+
+        $volunteerRequest = DB::transaction(function () use ($user) {
+            /*
+            | Lock the user row so two simultaneous requests cannot
+            | create conflicting volunteer applications.
+            */
+            $lockedUser = User::whereKey($user->id)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$lockedUser) {
+                abort(
+                    response()->json([
+                        'message' => 'User account not found.',
+                    ], 404)
+                );
+            }
+
+            if ($lockedUser->volunteer) {
+                abort(
+                    response()->json([
+                        'message' =>
+                        'You are already a registered SP volunteer.',
+                    ], 422)
+                );
+            }
+
+            $pendingRequest = VolunteerRequest::where(
+                'user_id',
+                $lockedUser->id
+            )
+                ->where(
+                    'status',
+                    VolunteerRequest::STATUS_PENDING
+                )
+                ->latest()
+                ->first();
+
+            if ($pendingRequest) {
+                abort(
+                    response()->json([
+                        'message' =>
+                        'You already have a pending volunteer request.',
+                        'status' => 'pending',
+                        'request' => $pendingRequest,
+                    ], 422)
+                );
+            }
+
+            return VolunteerRequest::create([
+                'user_id' => $lockedUser->id,
+
+                /*
+                | requested_by = the applicant themselves.
+                */
+                'requested_by' => $lockedUser->id,
+
+                'status' => VolunteerRequest::STATUS_PENDING,
+            ]);
+        });
 
         return response()->json([
-            'message' => 'Volunteer application submitted successfully.',
-            'volunteer' => $volunteer->load('user'),
+            'message' => 'Volunteer request submitted successfully.',
+            'status' => 'pending',
+            'request' => $volunteerRequest->load(
+                'user:id,name,email,phone,status,email_verified_at'
+            ),
         ], 201);
     }
 
     /**
-     * Individual: View own volunteer profile/application.
+     * Individual: View own volunteer status, request, and campaign history.
      */
     public function show(Request $request)
     {
@@ -315,32 +431,426 @@ class VolunteerController extends Controller
 
         if (!$user || $user->role !== 'individual') {
             return response()->json([
-                'message' => 'Only individual users can view volunteer information.',
+                'message' =>
+                'Only individual users can view volunteer information.',
             ], 403);
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Registered volunteer
+        |--------------------------------------------------------------------------
+        */
+
         $volunteer = Volunteer::with([
-            'user:id,name,email,status',
+            'user:id,name,email,phone,status,email_verified_at',
             'organization:id,name',
         ])
             ->where('user_id', $user->id)
             ->first();
 
-        if (!$volunteer) {
-            return response()->json([
-                'message' => 'You are not registered as a volunteer.',
-            ], 404);
+        /*
+        |--------------------------------------------------------------------------
+        | Latest volunteer request
+        |--------------------------------------------------------------------------
+        */
+
+        $volunteerRequest = VolunteerRequest::query()
+            ->where('user_id', $user->id)
+            ->latest()
+            ->first();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Campaign assignment history
+        |--------------------------------------------------------------------------
+        */
+
+        $assignments = collect();
+
+        if ($volunteer) {
+            $assignments = $volunteer
+                ->campaignVolunteerAssignments()
+                ->with([
+                    'campaign',
+                    'assignedBy:id,name,email',
+                ])
+                ->latest()
+                ->get();
         }
 
         return response()->json([
+            'is_volunteer' => (bool) $volunteer,
             'volunteer' => $volunteer,
+            'request' => $volunteerRequest,
+            'assignments' => $assignments,
+        ]);
+    }
+
+    /**
+     * Individual: Accept an administrator volunteer invitation.
+     */
+    public function acceptVolunteerRequest(
+        Request $request,
+        int $id
+    ) {
+        $user = $request->user();
+
+        if (!$user || $user->role !== 'individual') {
+            return response()->json([
+                'message' =>
+                'Only individual users can accept volunteer invitations.',
+            ], 403);
+        }
+
+        if ($user->status !== 'active') {
+            return response()->json([
+                'message' =>
+                'Only active users can become volunteers.',
+            ], 422);
+        }
+
+        if (!$user->email_verified_at) {
+            return response()->json([
+                'message' =>
+                'Please verify your email address before accepting a volunteer invitation.',
+            ], 422);
+        }
+
+        $result = DB::transaction(function () use ($user, $id) {
+            $volunteerRequest = VolunteerRequest::where('id', $id)
+                ->where('user_id', $user->id)
+                ->where(
+                    'status',
+                    VolunteerRequest::STATUS_PENDING
+                )
+                ->lockForUpdate()
+                ->first();
+
+            if (!$volunteerRequest) {
+                abort(
+                    response()->json([
+                        'message' =>
+                        'Volunteer invitation not found or already responded to.',
+                    ], 404)
+                );
+            }
+
+            $requestedBy = User::find($volunteerRequest->requested_by);
+
+            if (!$requestedBy || $requestedBy->role !== 'admin') {
+                abort(
+                    response()->json([
+                        'message' =>
+                        'This request is not an administrator invitation.',
+                    ], 422)
+                );
+            }
+
+            $existingVolunteer = Volunteer::where(
+                'user_id',
+                $user->id
+            )
+                ->lockForUpdate()
+                ->first();
+
+            if ($existingVolunteer) {
+                abort(
+                    response()->json([
+                        'message' =>
+                        'You are already a registered SP volunteer.',
+                    ], 422)
+                );
+            }
+
+            $volunteer = Volunteer::create([
+                'user_id' => $user->id,
+                'organization_id' => null,
+
+                /*
+                | Phone is intentionally NOT stored on volunteers.
+                | The source of truth is users.phone.
+                */
+
+                'district' => null,
+                'address' => null,
+                'skills' => null,
+                'availability' => null,
+                'status' => Volunteer::STATUS_ACTIVE,
+            ]);
+
+            $volunteerRequest->update([
+                'status' => VolunteerRequest::STATUS_ACCEPTED,
+                'responded_at' => now(),
+            ]);
+
+            return $volunteer;
+        });
+
+        $this->syncVolunteerAvailability($user->id);
+
+        return response()->json([
+            'message' =>
+            'Volunteer invitation accepted successfully.',
+
+            'status' => 'accepted',
+
+            'volunteer' => $result->load([
+                'user:id,name,email,phone,status,email_verified_at',
+                'organization:id,name',
+            ]),
+        ]);
+    }
+
+    /**
+     * Individual: Reject an administrator volunteer invitation.
+     */
+    public function rejectVolunteerRequest(
+        Request $request,
+        int $id
+    ) {
+        $user = $request->user();
+
+        if (!$user || $user->role !== 'individual') {
+            return response()->json([
+                'message' =>
+                'Only individual users can reject volunteer invitations.',
+            ], 403);
+        }
+
+        $volunteerRequest = VolunteerRequest::where('id', $id)
+            ->where('user_id', $user->id)
+            ->where(
+                'status',
+                VolunteerRequest::STATUS_PENDING
+            )
+            ->first();
+
+        if (!$volunteerRequest) {
+            return response()->json([
+                'message' =>
+                'Volunteer invitation not found or already responded to.',
+            ], 404);
+        }
+
+        $requestedBy = User::find($volunteerRequest->requested_by);
+
+        if (!$requestedBy || $requestedBy->role !== 'admin') {
+            return response()->json([
+                'message' =>
+                'This request is not an administrator invitation.',
+            ], 422);
+        }
+
+        $volunteerRequest->update([
+            'status' => VolunteerRequest::STATUS_REJECTED,
+            'responded_at' => now(),
+        ]);
+
+        return response()->json([
+            'message' =>
+            'Volunteer invitation declined successfully.',
+
+            'status' => 'rejected',
+
+            'request' => $volunteerRequest->fresh(),
+        ]);
+    }
+
+    /**
+     * Admin: Accept an individual volunteer application.
+     */
+    public function acceptVolunteerApplication(
+        Request $request,
+        int $id
+    ) {
+        $admin = $this->authorizeAdmin($request);
+
+        if (!$admin) {
+            return response()->json([
+                'message' => 'Unauthorized.',
+            ], 403);
+        }
+
+        $volunteer = DB::transaction(function () use ($id) {
+            $volunteerRequest = VolunteerRequest::where('id', $id)
+                ->where(
+                    'status',
+                    VolunteerRequest::STATUS_PENDING
+                )
+                ->lockForUpdate()
+                ->first();
+
+            if (!$volunteerRequest) {
+                abort(
+                    response()->json([
+                        'message' =>
+                        'Volunteer request not found or already responded to.',
+                    ], 404)
+                );
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Only individual-created requests are applications.
+            |--------------------------------------------------------------------------
+            */
+
+            if (
+                $volunteerRequest->requested_by !==
+                $volunteerRequest->user_id
+            ) {
+                abort(
+                    response()->json([
+                        'message' =>
+                        'This request is an administrator invitation, not an individual application.',
+                    ], 422)
+                );
+            }
+
+            $volunteerUser = User::whereKey(
+                $volunteerRequest->user_id
+            )
+                ->lockForUpdate()
+                ->first();
+
+            if (!$volunteerUser) {
+                abort(
+                    response()->json([
+                        'message' => 'Volunteer user not found.',
+                    ], 404)
+                );
+            }
+
+            if ($volunteerUser->role !== 'individual') {
+                abort(
+                    response()->json([
+                        'message' =>
+                        'Only individual users can become volunteers.',
+                    ], 422)
+                );
+            }
+
+            if ($volunteerUser->status !== 'active') {
+                abort(
+                    response()->json([
+                        'message' =>
+                        'Only active users can become volunteers.',
+                    ], 422)
+                );
+            }
+
+            if (!$volunteerUser->email_verified_at) {
+                abort(
+                    response()->json([
+                        'message' =>
+                        'The user must verify their email before becoming a volunteer.',
+                    ], 422)
+                );
+            }
+
+            if ($volunteerUser->volunteer) {
+                abort(
+                    response()->json([
+                        'message' =>
+                        'This user is already a registered volunteer.',
+                    ], 422)
+                );
+            }
+
+            $volunteer = Volunteer::create([
+                'user_id' => $volunteerUser->id,
+                'organization_id' => null,
+
+                /*
+                | Phone is stored only on users.phone.
+                */
+
+                'district' => null,
+                'address' => null,
+                'skills' => null,
+                'availability' => null,
+                'status' => Volunteer::STATUS_ACTIVE,
+            ]);
+
+            $volunteerRequest->update([
+                'status' => VolunteerRequest::STATUS_ACCEPTED,
+                'responded_at' => now(),
+            ]);
+
+            return $volunteer;
+        });
+
+        $this->syncVolunteerAvailability($volunteer->user_id);
+
+        return response()->json([
+            'message' =>
+            'Volunteer application accepted successfully.',
+
+            'volunteer' => $volunteer->load([
+                'user:id,name,email,phone,status,email_verified_at',
+                'organization:id,name',
+            ]),
+        ]);
+    }
+
+    /**
+     * Admin: Reject an individual volunteer application.
+     */
+    public function rejectVolunteerApplication(
+        Request $request,
+        int $id
+    ) {
+        $admin = $this->authorizeAdmin($request);
+
+        if (!$admin) {
+            return response()->json([
+                'message' => 'Unauthorized.',
+            ], 403);
+        }
+
+        $volunteerRequest = VolunteerRequest::where('id', $id)
+            ->where(
+                'status',
+                VolunteerRequest::STATUS_PENDING
+            )
+            ->first();
+
+        if (!$volunteerRequest) {
+            return response()->json([
+                'message' =>
+                'Volunteer request not found or already responded to.',
+            ], 404);
+        }
+
+        if (
+            $volunteerRequest->requested_by !==
+            $volunteerRequest->user_id
+        ) {
+            return response()->json([
+                'message' =>
+                'This request is an administrator invitation, not an individual application.',
+            ], 422);
+        }
+
+        $volunteerRequest->update([
+            'status' => VolunteerRequest::STATUS_REJECTED,
+            'responded_at' => now(),
+        ]);
+
+        return response()->json([
+            'message' =>
+            'Volunteer application rejected successfully.',
+
+            'request' => $volunteerRequest->fresh(),
         ]);
     }
 
     /**
      * Individual: View own campaign assignments.
      *
-     * Volunteers are no longer directly connected to Help Requests.
+     * Volunteers are connected to campaigns, not directly
+     * to Help Requests.
      */
     public function assignments(Request $request)
     {
@@ -348,19 +858,25 @@ class VolunteerController extends Controller
 
         if (!$user || $user->role !== 'individual') {
             return response()->json([
-                'message' => 'Only individual users can view volunteer assignments.',
+                'message' =>
+                'Only individual users can view volunteer assignments.',
             ], 403);
         }
 
-        $volunteer = Volunteer::where('user_id', $user->id)->first();
+        $volunteer = Volunteer::where(
+            'user_id',
+            $user->id
+        )->first();
 
         if (!$volunteer) {
             return response()->json([
-                'message' => 'You are not registered as a volunteer.',
+                'message' =>
+                'You are not registered as a volunteer.',
             ], 404);
         }
 
-        $assignments = $volunteer->campaignVolunteerAssignments()
+        $assignments = $volunteer
+            ->campaignVolunteerAssignments()
             ->with([
                 'campaign',
                 'assignedBy:id,name,email',
@@ -378,27 +894,35 @@ class VolunteerController extends Controller
     /**
      * Individual: Accept an assigned campaign.
      */
-    public function acceptCampaignAssignment(Request $request, int $id)
-    {
+    public function acceptCampaignAssignment(
+        Request $request,
+        int $id
+    ) {
         $user = $request->user();
 
         if (!$user || $user->role !== 'individual') {
             return response()->json([
-                'message' => 'Only individual users can accept campaign assignments.',
+                'message' =>
+                'Only individual users can accept campaign assignments.',
             ], 403);
         }
 
-        $volunteer = Volunteer::where('user_id', $user->id)->first();
+        $volunteer = Volunteer::where(
+            'user_id',
+            $user->id
+        )->first();
 
         if (!$volunteer) {
             return response()->json([
-                'message' => 'You are not registered as a volunteer.',
+                'message' =>
+                'You are not registered as a volunteer.',
             ], 404);
         }
 
         if ($volunteer->status !== Volunteer::STATUS_ACTIVE) {
             return response()->json([
-                'message' => 'Only active volunteers can accept campaign assignments.',
+                'message' =>
+                'Only active volunteers can accept campaign assignments.',
             ], 422);
         }
 
@@ -409,7 +933,8 @@ class VolunteerController extends Controller
 
         if (!$assignment) {
             return response()->json([
-                'message' => 'Campaign assignment not found.',
+                'message' =>
+                'Campaign assignment not found.',
             ], 404);
         }
 
@@ -418,53 +943,64 @@ class VolunteerController extends Controller
             CampaignVolunteerAssignment::STATUS_ASSIGNED
         ) {
             return response()->json([
-                'message' => 'Only assigned campaign assignments can be accepted.',
+                'message' =>
+                'Only assigned campaign assignments can be accepted.',
             ], 422);
         }
 
         $assignment->update([
-            'status' => CampaignVolunteerAssignment::STATUS_ACCEPTED,
+            'status' =>
+            CampaignVolunteerAssignment::STATUS_ACCEPTED,
         ]);
 
         $this->syncVolunteerAvailability($user->id);
 
         return response()->json([
-            'message' => 'Campaign assignment accepted successfully.',
-            'assignment' => $assignment->fresh()->load([
-                'campaign',
-                'volunteer:id,name,email',
-                'assignedBy:id,name,email',
-            ]),
+            'message' =>
+            'Campaign assignment accepted successfully.',
+
+            'assignment' => $assignment
+                ->fresh()
+                ->load([
+                    'campaign',
+                    'volunteer:id,name,email',
+                    'assignedBy:id,name,email',
+                ]),
         ]);
     }
 
     /**
      * Individual: Reject an assigned campaign.
-     *
-     * A rejection reason is required so that the admin can determine
-     * whether the rejection is justified.
      */
-    public function rejectCampaignAssignment(Request $request, int $id)
-    {
+    public function rejectCampaignAssignment(
+        Request $request,
+        int $id
+    ) {
         $user = $request->user();
 
         if (!$user || $user->role !== 'individual') {
             return response()->json([
-                'message' => 'Only individual users can reject campaign assignments.',
+                'message' =>
+                'Only individual users can reject campaign assignments.',
             ], 403);
         }
 
-        $volunteer = Volunteer::where('user_id', $user->id)->first();
+        $volunteer = Volunteer::where(
+            'user_id',
+            $user->id
+        )->first();
 
         if (!$volunteer) {
             return response()->json([
-                'message' => 'You are not registered as a volunteer.',
+                'message' =>
+                'You are not registered as a volunteer.',
             ], 404);
         }
 
         if ($volunteer->status !== Volunteer::STATUS_ACTIVE) {
             return response()->json([
-                'message' => 'Only active volunteers can reject campaign assignments.',
+                'message' =>
+                'Only active volunteers can reject campaign assignments.',
             ], 422);
         }
 
@@ -475,7 +1011,8 @@ class VolunteerController extends Controller
 
         if (!$assignment) {
             return response()->json([
-                'message' => 'Campaign assignment not found.',
+                'message' =>
+                'Campaign assignment not found.',
             ], 404);
         }
 
@@ -484,7 +1021,8 @@ class VolunteerController extends Controller
             CampaignVolunteerAssignment::STATUS_ASSIGNED
         ) {
             return response()->json([
-                'message' => 'Only assigned campaign assignments can be rejected.',
+                'message' =>
+                'Only assigned campaign assignments can be rejected.',
             ], 422);
         }
 
@@ -497,47 +1035,63 @@ class VolunteerController extends Controller
         ]);
 
         $assignment->update([
-            'status' => CampaignVolunteerAssignment::STATUS_REJECTED,
-            'rejection_reason' => $validated['rejection_reason'],
+            'status' =>
+            CampaignVolunteerAssignment::STATUS_REJECTED,
+
+            'rejection_reason' =>
+            $validated['rejection_reason'],
+
             'rejection_validated' => null,
         ]);
 
         $this->syncVolunteerAvailability($user->id);
 
         return response()->json([
-            'message' => 'Campaign assignment rejected successfully.',
-            'assignment' => $assignment->fresh()->load([
-                'campaign',
-                'volunteer:id,name,email',
-                'assignedBy:id,name,email',
-            ]),
+            'message' =>
+            'Campaign assignment rejected successfully.',
+
+            'assignment' => $assignment
+                ->fresh()
+                ->load([
+                    'campaign',
+                    'volunteer:id,name,email',
+                    'assignedBy:id,name,email',
+                ]),
         ]);
     }
 
     /**
      * Individual: Start an accepted campaign assignment.
      */
-    public function startCampaignAssignment(Request $request, int $id)
-    {
+    public function startCampaignAssignment(
+        Request $request,
+        int $id
+    ) {
         $user = $request->user();
 
         if (!$user || $user->role !== 'individual') {
             return response()->json([
-                'message' => 'Only individual users can start campaign assignments.',
+                'message' =>
+                'Only individual users can start campaign assignments.',
             ], 403);
         }
 
-        $volunteer = Volunteer::where('user_id', $user->id)->first();
+        $volunteer = Volunteer::where(
+            'user_id',
+            $user->id
+        )->first();
 
         if (!$volunteer) {
             return response()->json([
-                'message' => 'You are not registered as a volunteer.',
+                'message' =>
+                'You are not registered as a volunteer.',
             ], 404);
         }
 
         if ($volunteer->status !== Volunteer::STATUS_ACTIVE) {
             return response()->json([
-                'message' => 'Only active volunteers can start campaign assignments.',
+                'message' =>
+                'Only active volunteers can start campaign assignments.',
             ], 422);
         }
 
@@ -548,7 +1102,8 @@ class VolunteerController extends Controller
 
         if (!$assignment) {
             return response()->json([
-                'message' => 'Campaign assignment not found.',
+                'message' =>
+                'Campaign assignment not found.',
             ], 404);
         }
 
@@ -557,23 +1112,29 @@ class VolunteerController extends Controller
             CampaignVolunteerAssignment::STATUS_ACCEPTED
         ) {
             return response()->json([
-                'message' => 'Only accepted campaign assignments can be started.',
+                'message' =>
+                'Only accepted campaign assignments can be started.',
             ], 422);
         }
 
         $assignment->update([
-            'status' => CampaignVolunteerAssignment::STATUS_IN_PROGRESS,
+            'status' =>
+            CampaignVolunteerAssignment::STATUS_IN_PROGRESS,
         ]);
 
         $this->syncVolunteerAvailability($user->id);
 
         return response()->json([
-            'message' => 'Campaign assignment marked as in progress.',
-            'assignment' => $assignment->fresh()->load([
-                'campaign',
-                'volunteer:id,name,email',
-                'assignedBy:id,name,email',
-            ]),
+            'message' =>
+            'Campaign assignment marked as in progress.',
+
+            'assignment' => $assignment
+                ->fresh()
+                ->load([
+                    'campaign',
+                    'volunteer:id,name,email',
+                    'assignedBy:id,name,email',
+                ]),
         ]);
     }
 
@@ -591,15 +1152,20 @@ class VolunteerController extends Controller
 
         if (!$user || $user->role !== 'individual') {
             return response()->json([
-                'message' => 'Only individual users can complete campaign assignments.',
+                'message' =>
+                'Only individual users can complete campaign assignments.',
             ], 403);
         }
 
-        $volunteer = Volunteer::where('user_id', $user->id)->first();
+        $volunteer = Volunteer::where(
+            'user_id',
+            $user->id
+        )->first();
 
         if (!$volunteer) {
             return response()->json([
-                'message' => 'You are not registered as a volunteer.',
+                'message' =>
+                'You are not registered as a volunteer.',
             ], 404);
         }
 
@@ -610,7 +1176,8 @@ class VolunteerController extends Controller
 
         if (!$assignment) {
             return response()->json([
-                'message' => 'Campaign assignment not found.',
+                'message' =>
+                'Campaign assignment not found.',
             ], 404);
         }
 
@@ -625,7 +1192,9 @@ class VolunteerController extends Controller
         }
 
         $assignment->update([
-            'status' => CampaignVolunteerAssignment::STATUS_COMPLETED,
+            'status' =>
+            CampaignVolunteerAssignment::STATUS_COMPLETED,
+
             'completed_at' => now(),
         ]);
 
@@ -636,12 +1205,17 @@ class VolunteerController extends Controller
         $this->syncVolunteerAvailability($user->id);
 
         return response()->json([
-            'message' => 'Campaign assignment completed successfully.',
-            'assignment' => $assignment->fresh()->load([
-                'campaign',
-                'volunteer:id,name,email',
-                'assignedBy:id,name,email',
-            ]),
+            'message' =>
+            'Campaign assignment completed successfully.',
+
+            'assignment' => $assignment
+                ->fresh()
+                ->load([
+                    'campaign',
+                    'volunteer:id,name,email',
+                    'assignedBy:id,name,email',
+                ]),
+
             'campaign' => $campaign,
         ]);
     }
@@ -649,21 +1223,28 @@ class VolunteerController extends Controller
     /**
      * Individual: Request withdrawal from an accepted/in-progress campaign.
      */
-    public function requestCampaignWithdrawal(Request $request, int $id)
-    {
+    public function requestCampaignWithdrawal(
+        Request $request,
+        int $id
+    ) {
         $user = $request->user();
 
         if (!$user || $user->role !== 'individual') {
             return response()->json([
-                'message' => 'Only individual users can request campaign withdrawal.',
+                'message' =>
+                'Only individual users can request campaign withdrawal.',
             ], 403);
         }
 
-        $volunteer = Volunteer::where('user_id', $user->id)->first();
+        $volunteer = Volunteer::where(
+            'user_id',
+            $user->id
+        )->first();
 
         if (!$volunteer) {
             return response()->json([
-                'message' => 'You are not registered as a volunteer.',
+                'message' =>
+                'You are not registered as a volunteer.',
             ], 404);
         }
 
@@ -674,14 +1255,21 @@ class VolunteerController extends Controller
 
         if (!$assignment) {
             return response()->json([
-                'message' => 'Campaign assignment not found.',
+                'message' =>
+                'Campaign assignment not found.',
             ], 404);
         }
 
-        if (!in_array($assignment->status, [
-            CampaignVolunteerAssignment::STATUS_ACCEPTED,
-            CampaignVolunteerAssignment::STATUS_IN_PROGRESS,
-        ], true)) {
+        if (
+            !in_array(
+                $assignment->status,
+                [
+                    CampaignVolunteerAssignment::STATUS_ACCEPTED,
+                    CampaignVolunteerAssignment::STATUS_IN_PROGRESS,
+                ],
+                true
+            )
+        ) {
             return response()->json([
                 'message' =>
                 'Only accepted or in-progress campaign assignments can be withdrawn.',
@@ -699,9 +1287,14 @@ class VolunteerController extends Controller
         $assignment->update([
             'status' =>
             CampaignVolunteerAssignment::STATUS_WITHDRAWAL_REQUESTED,
-            'withdrawal_reason' => $validated['withdrawal_reason'],
+
+            'withdrawal_reason' =>
+            $validated['withdrawal_reason'],
+
             'withdrawal_requested_at' => now(),
+
             'withdrawal_reviewed_at' => null,
+
             'withdrawal_reviewed_by' => null,
         ]);
 
@@ -710,27 +1303,33 @@ class VolunteerController extends Controller
         return response()->json([
             'message' =>
             'Campaign withdrawal request submitted successfully.',
-            'assignment' => $assignment->fresh()->load([
-                'campaign',
-                'volunteer:id,name,email',
-                'assignedBy:id,name,email',
-            ]),
+
+            'assignment' => $assignment
+                ->fresh()
+                ->load([
+                    'campaign',
+                    'volunteer:id,name,email',
+                    'assignedBy:id,name,email',
+                ]),
         ]);
     }
 
     /**
      * Admin: Review a volunteer campaign withdrawal request.
      *
-     * Approved -> withdrawn -> volunteer becomes available.
-     * Rejected -> in_progress -> volunteer remains occupied.
+     * Approved:
+     * withdrawal_requested -> withdrawn
+     *
+     * Rejected:
+     * withdrawal_requested -> in_progress
      */
     public function reviewCampaignWithdrawal(
         Request $request,
         int $id
     ) {
-        $user = $request->user();
+        $admin = $this->authorizeAdmin($request);
 
-        if (!$user || $user->role !== 'admin') {
+        if (!$admin) {
             return response()->json([
                 'message' => 'Unauthorized.',
             ], 403);
@@ -741,6 +1340,7 @@ class VolunteerController extends Controller
                 'required',
                 'in:approved,rejected',
             ],
+
             'review_note' => [
                 'nullable',
                 'string',
@@ -752,7 +1352,8 @@ class VolunteerController extends Controller
 
         if (!$assignment) {
             return response()->json([
-                'message' => 'Campaign assignment not found.',
+                'message' =>
+                'Campaign assignment not found.',
             ], 404);
         }
 
@@ -769,53 +1370,66 @@ class VolunteerController extends Controller
         DB::transaction(function () use (
             $assignment,
             $validated,
-            $user
+            $admin
         ) {
             if ($validated['decision'] === 'approved') {
                 $assignment->update([
                     'status' =>
                     CampaignVolunteerAssignment::STATUS_WITHDRAWN,
+
                     'withdrawal_reviewed_at' => now(),
-                    'withdrawal_reviewed_by' => $user->id,
+
+                    'withdrawal_reviewed_by' => $admin->id,
                 ]);
             } else {
                 $assignment->update([
                     'status' =>
                     CampaignVolunteerAssignment::STATUS_IN_PROGRESS,
+
                     'withdrawal_reviewed_at' => now(),
-                    'withdrawal_reviewed_by' => $user->id,
+
+                    'withdrawal_reviewed_by' => $admin->id,
                 ]);
             }
         });
 
-        $this->syncVolunteerAvailability($assignment->volunteer_id);
+        $this->syncVolunteerAvailability(
+            $assignment->volunteer_id
+        );
 
         return response()->json([
-            'message' => $validated['decision'] === 'approved'
+            'message' =>
+            $validated['decision'] === 'approved'
                 ? 'Campaign withdrawal approved successfully.'
                 : 'Campaign withdrawal rejected successfully.',
-            'assignment' => $assignment->fresh()->load([
-                'campaign',
-                'volunteer:id,name,email',
-                'assignedBy:id,name,email',
-                'withdrawalReviewedBy:id,name,email',
-            ]),
+
+            'assignment' => $assignment
+                ->fresh()
+                ->load([
+                    'campaign',
+                    'volunteer:id,name,email',
+                    'assignedBy:id,name,email',
+                    'withdrawalReviewedBy:id,name,email',
+                ]),
         ]);
     }
 
     /**
-     * Admin: Validate a volunteer's campaign rejection.
+     * Admin: Validate a volunteer campaign rejection.
      *
-     * Valid rejection -> rejection_validated = true
-     * Invalid rejection -> rejection_validated = false
+     * Valid:
+     * rejection_validated = true
+     *
+     * Invalid:
+     * rejection_validated = false
      */
     public function validateCampaignRejection(
         Request $request,
         int $id
     ) {
-        $user = $request->user();
+        $admin = $this->authorizeAdmin($request);
 
-        if (!$user || $user->role !== 'admin') {
+        if (!$admin) {
             return response()->json([
                 'message' => 'Unauthorized.',
             ], 403);
@@ -832,7 +1446,8 @@ class VolunteerController extends Controller
 
         if (!$assignment) {
             return response()->json([
-                'message' => 'Campaign assignment not found.',
+                'message' =>
+                'Campaign assignment not found.',
             ], 404);
         }
 
@@ -847,43 +1462,50 @@ class VolunteerController extends Controller
         }
 
         $assignment->update([
-            'rejection_validated' => $validated['is_valid'],
+            'rejection_validated' =>
+            $validated['is_valid'],
         ]);
 
         return response()->json([
-            'message' => $validated['is_valid']
+            'message' =>
+            $validated['is_valid']
                 ? 'Rejection marked as valid.'
                 : 'Rejection marked as invalid.',
-            'assignment' => $assignment->fresh()->load([
-                'campaign',
-                'volunteer:id,name,email',
-                'assignedBy:id,name,email',
-            ]),
+
+            'assignment' => $assignment
+                ->fresh()
+                ->load([
+                    'campaign',
+                    'volunteer:id,name,email',
+                    'assignedBy:id,name,email',
+                ]),
         ]);
     }
 
     /**
      * Admin: View a specific volunteer.
      */
-    public function adminShow(Request $request, int $id)
-    {
-        $user = $request->user();
-
-        if (!$user || $user->role !== 'admin') {
+    public function adminShow(
+        Request $request,
+        int $id
+    ) {
+        if (!$this->authorizeAdmin($request)) {
             return response()->json([
                 'message' => 'Unauthorized.',
             ], 403);
         }
 
         $volunteer = Volunteer::with([
-            'user:id,name,email,status',
+            'user:id,name,email,phone,status,email_verified_at',
             'organization:id,name',
+
             'campaignVolunteerAssignments.campaign',
         ])->find($id);
 
         if (!$volunteer) {
             return response()->json([
-                'message' => 'Volunteer not found.',
+                'message' =>
+                'Volunteer not found.',
             ], 404);
         }
 
@@ -893,13 +1515,24 @@ class VolunteerController extends Controller
     }
 
     /**
-     * Admin: Approve, reject, suspend, or remove a volunteer.
+     * Admin: Update volunteer status.
+     *
+     * Supported lifecycle:
+     *
+     * pending   -> active / rejected
+     * active    -> active / suspended / removed
+     * suspended -> active / removed
+     * rejected  -> rejected
+     * removed   -> removed
+     *
+     * A volunteer cannot be suspended or removed while they
+     * have an active campaign assignment.
      */
-    public function updateStatus(Request $request, int $id)
-    {
-        $user = $request->user();
-
-        if (!$user || $user->role !== 'admin') {
+    public function updateStatus(
+        Request $request,
+        int $id
+    ) {
+        if (!$this->authorizeAdmin($request)) {
             return response()->json([
                 'message' => 'Unauthorized.',
             ], 403);
@@ -909,7 +1542,8 @@ class VolunteerController extends Controller
 
         if (!$volunteer) {
             return response()->json([
-                'message' => 'Volunteer not found.',
+                'message' =>
+                'Volunteer not found.',
             ], 404);
         }
 
@@ -923,34 +1557,73 @@ class VolunteerController extends Controller
         $newStatus = $validated['status'];
         $currentStatus = $volunteer->status;
 
-        /**
-         * A volunteer can become active only from pending.
-         */
-        if (
-            $newStatus === Volunteer::STATUS_ACTIVE &&
-            !in_array($currentStatus, [
+        /*
+        |--------------------------------------------------------------------------
+        | Prevent invalid status transitions
+        |--------------------------------------------------------------------------
+        */
+
+        $allowedTransitions = [
+            Volunteer::STATUS_PENDING => [
                 Volunteer::STATUS_PENDING,
                 Volunteer::STATUS_ACTIVE,
-            ], true)
-        ) {
+                Volunteer::STATUS_REJECTED,
+            ],
+
+            Volunteer::STATUS_ACTIVE => [
+                Volunteer::STATUS_ACTIVE,
+                Volunteer::STATUS_SUSPENDED,
+                Volunteer::STATUS_REMOVED,
+            ],
+
+            Volunteer::STATUS_SUSPENDED => [
+                Volunteer::STATUS_SUSPENDED,
+                Volunteer::STATUS_ACTIVE,
+                Volunteer::STATUS_REMOVED,
+            ],
+
+            Volunteer::STATUS_REJECTED => [
+                Volunteer::STATUS_REJECTED,
+            ],
+
+            Volunteer::STATUS_REMOVED => [
+                Volunteer::STATUS_REMOVED,
+            ],
+        ];
+
+        $allowedStatuses = $allowedTransitions[$currentStatus] ?? [
+            $currentStatus,
+        ];
+
+        if (!in_array($newStatus, $allowedStatuses, true)) {
             return response()->json([
                 'message' =>
-                'Only pending volunteers can be approved.',
+                "Invalid volunteer status transition from {$currentStatus} to {$newStatus}.",
             ], 422);
         }
 
-        /**
-         * A volunteer cannot be suspended or removed while
-         * actively assigned to a campaign.
-         *
-         * Active campaign assignment statuses are:
-         * assigned, accepted, in_progress, withdrawal_requested.
-         */
+        /*
+        |--------------------------------------------------------------------------
+        | Prevent suspension/removal while actively assigned
+        |--------------------------------------------------------------------------
+        |
+        | Active assignment statuses:
+        | assigned
+        | accepted
+        | in_progress
+        | withdrawal_requested
+        |
+        */
+
         if (
-            in_array($newStatus, [
-                Volunteer::STATUS_SUSPENDED,
-                Volunteer::STATUS_REMOVED,
-            ], true)
+            in_array(
+                $newStatus,
+                [
+                    Volunteer::STATUS_SUSPENDED,
+                    Volunteer::STATUS_REMOVED,
+                ],
+                true
+            )
         ) {
             $hasActiveCampaignAssignment =
                 CampaignVolunteerAssignment::where(
@@ -975,29 +1648,45 @@ class VolunteerController extends Controller
             'status' => $newStatus,
         ]);
 
-        $this->syncVolunteerAvailability($volunteer->user_id);
+        /*
+        |--------------------------------------------------------------------------
+        | Keep availability synchronized
+        |--------------------------------------------------------------------------
+        */
+
+        $this->syncVolunteerAvailability(
+            $volunteer->user_id
+        );
 
         $message = match ($newStatus) {
             Volunteer::STATUS_ACTIVE =>
             'Volunteer approved successfully.',
+
             Volunteer::STATUS_REJECTED =>
             'Volunteer rejected successfully.',
+
             Volunteer::STATUS_SUSPENDED =>
             'Volunteer suspended successfully.',
+
             Volunteer::STATUS_REMOVED =>
             'Volunteer removed successfully.',
+
             Volunteer::STATUS_PENDING =>
             'Volunteer status changed to pending.',
+
             default =>
             'Volunteer status updated successfully.',
         };
 
         return response()->json([
             'message' => $message,
-            'volunteer' => $volunteer->fresh()->load([
-                'user:id,name,email,status',
-                'organization:id,name',
-            ]),
+
+            'volunteer' => $volunteer
+                ->fresh()
+                ->load([
+                    'user:id,name,email,phone,status,email_verified_at',
+                    'organization:id,name',
+                ]),
         ]);
     }
 }

@@ -399,6 +399,16 @@ Route::middleware('auth:sanctum')
             [VolunteerController::class, 'sendRequests']
         );
 
+        Route::patch(
+            '/volunteers/requests/{id}/accept',
+            [VolunteerController::class, 'acceptVolunteerApplication']
+        );
+
+        Route::patch(
+            '/volunteers/requests/{id}/reject',
+            [VolunteerController::class, 'rejectVolunteerApplication']
+        );
+
         Route::get(
             '/volunteers/{id}',
             [VolunteerController::class, 'adminShow']

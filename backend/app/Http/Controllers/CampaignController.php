@@ -23,6 +23,38 @@ class CampaignController extends Controller
         ]);
     }
 
+    public function organizationCampaigns(Request $request)
+    {
+        $user = $request->user();
+
+        if (!$user || $user->role !== 'organization') {
+            return response()->json([
+                'message' => 'Only organization users can access organization campaigns.',
+            ], 403);
+        }
+
+        $organization = $user->organization;
+
+        if (!$organization) {
+            return response()->json([
+                'message' => 'Your organization profile could not be found.',
+            ], 403);
+        }
+
+        $campaigns = Campaign::with([
+            'organization:id,name',
+            'helpRequest:id,title',
+            'creator:id,name',
+        ])
+            ->where('organization_id', $organization->id)
+            ->latest()
+            ->get();
+
+        return response()->json([
+            'campaigns' => $campaigns,
+        ]);
+    }
+
     public function show(int $id)
     {
         $campaign = Campaign::with([

@@ -489,7 +489,7 @@ const IndividualCampaigns = () => {
 
     return (
         <>
-            <div className="min-h-full bg-[#f6f8fb]">
+            <div className="min-h-full bg-background">
                 <PageHeader
                     title="Campaigns"
                     description="Support humanitarian campaigns and help communities in need."
@@ -497,7 +497,7 @@ const IndividualCampaigns = () => {
 
                 <div className="mx-auto max-w-7xl px-4 pb-10 sm:px-6 lg:px-8">
                     {loading ? (
-                        <div className="flex min-h-[320px] items-center justify-center">
+                        <div className="flex min-h-80 items-center justify-center">
                             <div className="flex items-center gap-3 text-sm font-medium text-slate-500">
                                 <Loader2 className="h-5 w-5 animate-spin text-primary" />
                                 Loading campaigns...

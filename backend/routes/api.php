@@ -246,6 +246,15 @@ Route::middleware('auth:sanctum')->group(function () {
     );
 
     // ---------------------------------------------------------
+    // ORGANIZATION CAMPAIGNS
+    // ---------------------------------------------------------
+
+    Route::get(
+        '/organization/campaigns',
+        [CampaignController::class, 'organizationCampaigns']
+    );
+
+    // ---------------------------------------------------------
     // CAMPAIGNS
     // ---------------------------------------------------------
 

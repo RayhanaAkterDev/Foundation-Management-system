@@ -50,7 +50,7 @@ const PaymentResult = () => {
                             size={42}
                             strokeWidth={1.8}
                             className={
-                                isSuccess ? 'text-[#0f766e]' : 'text-[#64748b]'
+                                isSuccess ? 'text-primary' : 'text-[#64748b]'
                             }
                         />
                     </div>
@@ -70,7 +70,7 @@ const PaymentResult = () => {
                     <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
                         <Link
                             to={content.actionTo}
-                            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-[#0f766e] px-5 text-sm font-semibold text-white transition hover:bg-[#115e59]"
+                            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-5 text-sm font-semibold text-white transition hover:bg-[#115e59]"
                         >
                             {content.actionLabel}
                             <ArrowRight size={17} />

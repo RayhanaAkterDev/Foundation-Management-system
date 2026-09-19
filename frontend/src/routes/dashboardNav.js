@@ -13,7 +13,6 @@ import {
     Building2,
     ClipboardList,
     BarChart3,
-    ShieldCheck,
     Banknote,
     UserCheck,
 } from 'lucide-react';

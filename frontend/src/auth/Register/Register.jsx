@@ -1,25 +1,15 @@
 import React, { useState, useCallback } from 'react';
-
 import { useNavigate } from 'react-router-dom';
-
 import { HeartHandshake } from 'lucide-react';
 
 import RegisterProgress from './RegisterProgress';
-
 import RegisterNavigation from './RegisterNavigation';
-
 import RegisterSuccess from './RegisterSuccess';
-
 import StepAccountType from './steps/StepAccountType';
-
 import StepCredentials from './steps/StepCredentials';
-
 import StepIndividualProfile from './steps/StepIndividualProfile';
-
 import StepIndividualPreferences from './steps/StepIndividualPreferences';
-
 import StepOrganizationProfile from './steps/StepOrganizationProfile';
-
 import StepOrganizationDetails from './steps/StepOrganizationDetails';
 
 // ---------------------------------------------------------------------------
@@ -76,7 +66,7 @@ async function submitRegistration(payload) {
     );
 
     const response = await fetch(
-        'https://stand-for-people-api.onrender.com/api/register',
+        'http://127.0.0.1:8000/api/register',
         {
             method: 'POST',
 

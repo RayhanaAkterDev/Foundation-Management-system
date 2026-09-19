@@ -14,42 +14,28 @@ import {
 } from 'lucide-react';
 
 const API_URL =
-    'https://stand-for-people-api.onrender.com/api/email/verification-notification';
+    'http://127.0.0.1:8000/api/email/verification-notification';
 
 const DEMO_VERIFICATION_URL =
-    'https://stand-for-people-api.onrender.com/api/email/verify-demo';
+    'http://127.0.0.1:8000/api/email/verify-demo';
 
 const EmailVerification = () => {
     const [searchParams] = useSearchParams();
 
     const status = searchParams.get('status');
-
     const userId = searchParams.get('user_id');
-
     const emailFromUrl = searchParams.get('email');
-
     const roleFromUrl = searchParams.get('role');
-
     const method = searchParams.get('method');
-
     const [email, setEmail] = useState(emailFromUrl || '');
-
     const [role, setRole] = useState(roleFromUrl || '');
-
     const [isResending, setIsResending] = useState(false);
-
     const [isVerifyingDemo, setIsVerifyingDemo] = useState(false);
-
     const [resendMessage, setResendMessage] = useState('');
-
     const [resendError, setResendError] = useState('');
-
     const isSuccess = status === 'success';
-
     const isAlreadyVerified = status === 'already-verified';
-
     const isExpired = status === 'expired';
-
     const isDemo = status === 'demo';
 
     /*

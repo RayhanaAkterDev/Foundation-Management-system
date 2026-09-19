@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+
 import {
     Save,
     Mail,
@@ -6,7 +7,11 @@ import {
     UserRound,
     CalendarDays,
     ShieldCheck,
+    CheckCircle2,
+    ArrowRight,
+    X,
 } from 'lucide-react';
+
 import PageHeader from '@/components/dashboard/PageHeader';
 
 const API_URL = 'http://127.0.0.1:8000/api';
@@ -16,7 +21,6 @@ const Field = ({ label, children }) => (
         <label className="block text-[12px] font-semibold uppercase tracking-[0.06em] text-[#64716c]">
             {label}
         </label>
-
         {children}
     </div>
 );
@@ -49,6 +53,7 @@ const Profile = () => {
         phone: '',
     });
 
+    const [originalEmail, setOriginalEmail] = useState('');
     const [memberSince, setMemberSince] = useState(null);
 
     const [loading, setLoading] = useState(true);
@@ -56,6 +61,8 @@ const Profile = () => {
 
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+
+    const [showEmailChangeModal, setShowEmailChangeModal] = useState(false);
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -88,17 +95,18 @@ const Profile = () => {
                 }
 
                 const user = data.user;
+                const profileEmail = user?.email || '';
 
                 setForm({
                     name: user?.name || '',
-                    email: user?.email || '',
+                    email: profileEmail,
                     phone: user?.phone || '',
                 });
 
+                setOriginalEmail(profileEmail);
                 setMemberSince(user?.created_at || null);
             } catch (err) {
                 console.error('Admin profile error:', err);
-
                 setError(err.message || 'Unable to load your profile.');
             } finally {
                 setLoading(false);
@@ -132,6 +140,12 @@ const Profile = () => {
                 );
             }
 
+            const currentEmail = form.email.trim();
+
+            const emailChanged =
+                currentEmail.toLowerCase() !==
+                originalEmail.trim().toLowerCase();
+
             const response = await fetch(`${API_URL}/profile`, {
                 method: 'PUT',
                 headers: {
@@ -141,7 +155,7 @@ const Profile = () => {
                 },
                 body: JSON.stringify({
                     name: form.name.trim(),
-                    email: form.email.trim(),
+                    email: currentEmail,
                     phone: form.phone.trim(),
                 }),
             });
@@ -176,7 +190,22 @@ const Profile = () => {
 
             setMemberSince(updatedUser?.created_at || memberSince);
 
-            // Keep the locally stored logged-in user synchronized.
+            /*
+             * EMAIL CHANGED
+             *
+             * Do not use browser alert.
+             * Show the custom modal first.
+             */
+            if (emailChanged) {
+                setShowEmailChangeModal(true);
+                return;
+            }
+
+            /*
+             * NORMAL PROFILE UPDATE
+             *
+             * Name/phone changes do not require logout.
+             */
             const storage = localStorage.getItem('auth_token')
                 ? localStorage
                 : sessionStorage;
@@ -191,6 +220,8 @@ const Profile = () => {
                 }),
             );
 
+            setOriginalEmail(updatedUser?.email || currentEmail);
+
             setSuccess('Your profile has been updated successfully.');
         } catch (err) {
             console.error('Admin profile update error:', err);
@@ -199,6 +230,20 @@ const Profile = () => {
         } finally {
             setSaving(false);
         }
+    };
+
+    const handleContinueToLogin = () => {
+        /*
+         * Clear both storage locations to guarantee
+         * the previous admin session is removed.
+         */
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('user');
+
+        sessionStorage.removeItem('auth_token');
+        sessionStorage.removeItem('user');
+
+        window.location.href = '/admin/login';
     };
 
     if (loading) {
@@ -244,218 +289,314 @@ const Profile = () => {
     const firstLetter = form.name?.trim()?.charAt(0)?.toUpperCase() || 'A';
 
     return (
-        <div className="space-y-6">
-            <PageHeader
-                title="My Profile"
-                subtitle="Manage your personal information and account details."
-            />
+        <>
+            <div className="space-y-6">
+                <PageHeader
+                    title="My Profile"
+                    subtitle="Manage your personal information and account details."
+                />
 
-            <div className="overflow-hidden border-y border-[#dfe6e2] bg-white">
-                {/* Profile Header */}
-                <div className="relative border-b border-[#e3e9e6] bg-[#f8faf9] px-5 py-7 sm:px-8">
-                    <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-center">
-                        <div className="flex items-center gap-4">
-                            <div className="relative">
-                                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-xl font-semibold text-white shadow-[0_4px_12px_rgba(15,118,110,0.16)]">
-                                    {firstLetter}
+                <div className="overflow-hidden border-y border-[#dfe6e2] bg-white">
+                    {/* Profile Header */}
+                    <div className="relative border-b border-[#e3e9e6] bg-[#f8faf9] px-5 py-7 sm:px-8">
+                        <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-center">
+                            <div className="flex items-center gap-4">
+                                <div className="relative">
+                                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-xl font-semibold text-white shadow-[0_4px_12px_rgba(15,118,110,0.16)]">
+                                        {firstLetter}
+                                    </div>
+
+                                    <div className="absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full border-2 border-[#f8faf9] bg-white">
+                                        <span className="h-2.5 w-2.5 rounded-full bg-primary" />
+                                    </div>
                                 </div>
 
-                                <div className="absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full border-2 border-[#f8faf9] bg-white">
-                                    <span className="h-2.5 w-2.5 rounded-full bg-primary" />
+                                <div className="min-w-0">
+                                    <div className="flex flex-wrap items-center gap-2.5">
+                                        <h2 className="truncate text-[18px] font-semibold tracking-[-0.01em] text-[#17211e]">
+                                            {form.name || 'Admin'}
+                                        </h2>
+
+                                        <span className="inline-flex items-center gap-1.5 border border-primary/15 bg-primary/5 px-2.5 py-1 text-[11px] font-semibold text-primary">
+                                            <ShieldCheck
+                                                size={13}
+                                                strokeWidth={2}
+                                            />
+                                            Administrator
+                                        </span>
+                                    </div>
+
+                                    <p className="mt-1 text-[13px] text-[#697570]">
+                                        Member since{' '}
+                                        <span className="font-medium text-[#4f5b56]">
+                                            {formatMemberSince(memberSince)}
+                                        </span>
+                                    </p>
                                 </div>
                             </div>
 
-                            <div className="min-w-0">
-                                <div className="flex flex-wrap items-center gap-2.5">
-                                    <h2 className="truncate text-[18px] font-semibold tracking-[-0.01em] text-[#17211e]">
-                                        {form.name || 'Admin'}
-                                    </h2>
+                            <div className="hidden border-l border-[#dfe6e2] pl-6 sm:block">
+                                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#89938f]">
+                                    Account status
+                                </p>
 
-                                    <span className="inline-flex items-center gap-1.5 border border-primary/15 bg-primary/5 px-2.5 py-1 text-[11px] font-semibold text-primary">
-                                        <ShieldCheck
-                                            size={13}
-                                            strokeWidth={2}
-                                        />
-                                        Administrator
+                                <div className="mt-1.5 flex items-center gap-2">
+                                    <span className="h-2 w-2 rounded-full bg-primary" />
+
+                                    <span className="text-[13px] font-medium text-[#34413c]">
+                                        Active
                                     </span>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
 
-                                <p className="mt-1 text-[13px] text-[#697570]">
-                                    Member since{' '}
-                                    <span className="font-medium text-[#4f5b56]">
-                                        {formatMemberSince(memberSince)}
-                                    </span>
+                    {/* Main Content */}
+                    <div className="px-5 py-8 sm:px-8">
+                        {/* Feedback */}
+                        {error && (
+                            <div className="mb-7 flex items-start gap-3 border border-red-200 bg-red-50/70 px-4 py-3.5">
+                                <div className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-red-500" />
+
+                                <p className="text-[13px] leading-5 text-red-700">
+                                    {error}
+                                </p>
+                            </div>
+                        )}
+
+                        {success && (
+                            <div className="mb-7 flex items-start gap-3 border border-green-200 bg-green-50/70 px-4 py-3.5">
+                                <div className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-green-600" />
+
+                                <p className="text-[13px] leading-5 text-green-700">
+                                    {success}
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Section Heading */}
+                        <div className="mb-6 flex items-start justify-between gap-6">
+                            <div>
+                                <div className="flex items-center gap-2.5">
+                                    <div className="h-5 w-1 bg-primary" />
+
+                                    <h3 className="text-[15px] font-semibold text-[#17211e]">
+                                        Account Information
+                                    </h3>
+                                </div>
+
+                                <p className="mt-1.5 pl-3.5 text-[12px] leading-5 text-[#7a8581]">
+                                    Keep your administrator account information
+                                    accurate and up to date.
                                 </p>
                             </div>
                         </div>
 
-                        <div className="hidden border-l border-[#dfe6e2] pl-6 sm:block">
-                            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#89938f]">
-                                Account status
-                            </p>
+                        {/* Form */}
+                        <div className="grid gap-x-7 gap-y-6 md:grid-cols-2">
+                            <Field label="Full Name">
+                                <div className="group relative">
+                                    <UserRound
+                                        className="pointer-events-none absolute left-3.5 top-1/2 h-4.25 w-4.25 -translate-y-1/2 text-[#87928d] transition-colors group-focus-within:text-primary"
+                                        strokeWidth={1.8}
+                                    />
 
-                            <div className="mt-1.5 flex items-center gap-2">
-                                <span className="h-2 w-2 rounded-full bg-primary" />
-
-                                <span className="text-[13px] font-medium text-[#34413c]">
-                                    Active
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Main Content */}
-                <div className="px-5 py-8 sm:px-8">
-                    {/* Feedback */}
-                    {error && (
-                        <div className="mb-7 flex items-start gap-3 border border-red-200 bg-red-50/70 px-4 py-3.5">
-                            <div className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-red-500" />
-
-                            <p className="text-[13px] leading-5 text-red-700">
-                                {error}
-                            </p>
-                        </div>
-                    )}
-
-                    {success && (
-                        <div className="mb-7 flex items-start gap-3 border border-green-200 bg-green-50/70 px-4 py-3.5">
-                            <div className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-green-600" />
-
-                            <p className="text-[13px] leading-5 text-green-700">
-                                {success}
-                            </p>
-                        </div>
-                    )}
-
-                    {/* Section Heading */}
-                    <div className="mb-6 flex items-start justify-between gap-6">
-                        <div>
-                            <div className="flex items-center gap-2.5">
-                                <div className="h-5 w-1 bg-primary" />
-
-                                <h3 className="text-[15px] font-semibold text-[#17211e]">
-                                    Account Information
-                                </h3>
-                            </div>
-
-                            <p className="mt-1.5 pl-3.5 text-[12px] leading-5 text-[#7a8581]">
-                                Keep your administrator account information
-                                accurate and up to date.
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* Form */}
-                    <div className="grid gap-x-7 gap-y-6 md:grid-cols-2">
-                        <Field label="Full Name">
-                            <div className="group relative">
-                                <UserRound
-                                    className="pointer-events-none absolute left-3.5 top-1/2 h-4.25 w-4.25 -translate-y-1/2 text-[#87928d] transition-colors group-focus-within:text-primary"
-                                    strokeWidth={1.8}
-                                />
-
-                                <input
-                                    type="text"
-                                    value={form.name}
-                                    onChange={(e) =>
-                                        handleChange('name', e.target.value)
-                                    }
-                                    className={`${inputCls} pl-11`}
-                                />
-                            </div>
-                        </Field>
-
-                        <Field label="Email Address">
-                            <div className="group relative">
-                                <Mail
-                                    className="pointer-events-none absolute left-3.5 top-1/2 h-4.25 w-4.25 -translate-y-1/2 text-[#87928d] transition-colors group-focus-within:text-primary"
-                                    strokeWidth={1.8}
-                                />
-
-                                <input
-                                    type="email"
-                                    value={form.email}
-                                    onChange={(e) =>
-                                        handleChange('email', e.target.value)
-                                    }
-                                    className={`${inputCls} pl-11`}
-                                />
-                            </div>
-                        </Field>
-
-                        <Field label="Phone Number">
-                            <div className="group relative">
-                                <Phone
-                                    className="pointer-events-none absolute left-3.5 top-1/2 h-4.25 w-4.25 -translate-y-1/2 text-[#87928d] transition-colors group-focus-within:text-primary"
-                                    strokeWidth={1.8}
-                                />
-
-                                <input
-                                    type="tel"
-                                    value={form.phone}
-                                    onChange={(e) =>
-                                        handleChange('phone', e.target.value)
-                                    }
-                                    className={`${inputCls} pl-11`}
-                                />
-                            </div>
-                        </Field>
-
-                        <Field label="Member Since">
-                            <div className="relative cursor-not-allowed">
-                                <CalendarDays
-                                    className="pointer-events-none absolute left-3.5 top-1/2 h-4.25 w-4.25 -translate-y-1/2 text-[#87928d]"
-                                    strokeWidth={1.8}
-                                />
-
-                                <div
-                                    className={`${inputCls} flex items-center pl-11 text-[#5f6b67]`}
-                                >
-                                    {formatMemberSince(memberSince)}
+                                    <input
+                                        type="text"
+                                        value={form.name}
+                                        onChange={(e) =>
+                                            handleChange('name', e.target.value)
+                                        }
+                                        className={`${inputCls} pl-11`}
+                                    />
                                 </div>
-                            </div>
-                        </Field>
-                    </div>
+                            </Field>
 
-                    {/* Footer */}
-                    <div className="mt-9 flex flex-col gap-4 border-t border-[#e4e9e7] pt-5 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                            <p className="text-[12px] font-medium text-[#697570]">
-                                Administrator account
-                            </p>
+                            <Field label="Email Address">
+                                <div className="group relative">
+                                    <Mail
+                                        className="pointer-events-none absolute left-3.5 top-1/2 h-4.25 w-4.25 -translate-y-1/2 text-[#87928d] transition-colors group-focus-within:text-primary"
+                                        strokeWidth={1.8}
+                                    />
 
-                            <p className="mt-0.5 text-[11px] text-[#929b97]">
-                                Your changes will be saved to your account.
-                            </p>
+                                    <input
+                                        type="email"
+                                        value={form.email}
+                                        onChange={(e) =>
+                                            handleChange(
+                                                'email',
+                                                e.target.value,
+                                            )
+                                        }
+                                        className={`${inputCls} pl-11`}
+                                    />
+                                </div>
+                            </Field>
+
+                            <Field label="Phone Number">
+                                <div className="group relative">
+                                    <Phone
+                                        className="pointer-events-none absolute left-3.5 top-1/2 h-4.25 w-4.25 -translate-y-1/2 text-[#87928d] transition-colors group-focus-within:text-primary"
+                                        strokeWidth={1.8}
+                                    />
+
+                                    <input
+                                        type="tel"
+                                        value={form.phone}
+                                        onChange={(e) =>
+                                            handleChange(
+                                                'phone',
+                                                e.target.value,
+                                            )
+                                        }
+                                        className={`${inputCls} pl-11`}
+                                    />
+                                </div>
+                            </Field>
+
+                            <Field label="Member Since">
+                                <div className="relative cursor-not-allowed">
+                                    <CalendarDays
+                                        className="pointer-events-none absolute left-3.5 top-1/2 h-4.25 w-4.25 -translate-y-1/2 text-[#87928d]"
+                                        strokeWidth={1.8}
+                                    />
+
+                                    <div
+                                        className={`${inputCls} flex items-center pl-11 text-[#5f6b67]`}
+                                    >
+                                        {formatMemberSince(memberSince)}
+                                    </div>
+                                </div>
+                            </Field>
                         </div>
 
-                        <button
-                            type="button"
-                            onClick={handleSave}
-                            disabled={saving}
-                            className="
-                                inline-flex h-10 items-center justify-center gap-2
-                                bg-primary px-5
-                                text-[13px] font-semibold text-white
-                                shadow-sm
-                                transition-all duration-200
-                                hover:bg-primary-hover
-                                hover:shadow-[0_3px_10px_rgba(15,118,110,0.14)]
-                                disabled:cursor-not-allowed
-                                disabled:opacity-60
-                                disabled:shadow-none
-                                cursor-pointer
-                            "
-                        >
-                            <Save className="h-4 w-4" strokeWidth={1.9} />
+                        {/* Footer */}
+                        <div className="mt-9 flex flex-col gap-4 border-t border-[#e4e9e7] pt-5 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <p className="text-[12px] font-medium text-[#697570]">
+                                    Administrator account
+                                </p>
 
-                            {saving ? 'Saving...' : 'Save Changes'}
-                        </button>
+                                <p className="mt-0.5 text-[11px] text-[#929b97]">
+                                    Your changes will be saved to your account.
+                                </p>
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={handleSave}
+                                disabled={saving}
+                                className="
+                                    inline-flex h-10 items-center justify-center gap-2
+                                    cursor-pointer
+                                    bg-primary px-5
+                                    text-[13px] font-semibold text-white
+                                    shadow-sm
+                                    transition-all duration-200
+                                    hover:bg-primary-hover
+                                    hover:shadow-[0_3px_10px_rgba(15,118,110,0.14)]
+                                    disabled:cursor-not-allowed
+                                    disabled:opacity-60
+                                    disabled:shadow-none
+                                "
+                            >
+                                <Save className="h-4 w-4" strokeWidth={1.9} />
+
+                                {saving ? 'Saving...' : 'Save Changes'}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+
+            {/* Email Change Confirmation Modal */}
+            {showEmailChangeModal && (
+                <div
+                    className="fixed inset-0 z-[100] flex items-center justify-center bg-[#0f172a]/45 px-4 backdrop-blur-[3px]"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="email-change-title"
+                >
+                    <div className="relative w-full max-w-[470px] overflow-hidden bg-white shadow-[0_20px_60px_rgba(15,23,42,0.18)]">
+                        {/* Close */}
+                        <button
+                            type="button"
+                            onClick={() => setShowEmailChangeModal(false)}
+                            className="absolute right-4 top-4 flex h-8 w-8 cursor-pointer items-center justify-center text-[#7b8782] transition-colors hover:bg-[#f1f4f2] hover:text-[#34413c]"
+                            aria-label="Close"
+                        >
+                            <X size={17} strokeWidth={1.8} />
+                        </button>
+
+                        <div className="px-6 pb-6 pt-7 sm:px-8 sm:pb-8 sm:pt-8">
+                            {/* Icon */}
+                            <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary">
+                                <CheckCircle2 size={23} strokeWidth={1.8} />
+                            </div>
+
+                            <h2
+                                id="email-change-title"
+                                className="text-[20px] font-semibold tracking-[-0.02em] text-[#17211e]"
+                            >
+                                Email address updated
+                            </h2>
+
+                            <p className="mt-2.5 text-[13px] leading-6 text-[#66736e]">
+                                Your administrator email has been changed
+                                successfully.
+                            </p>
+
+                            <div className="mt-5 border border-[#dfe7e3] bg-[#f8faf9] px-4 py-3.5">
+                                <div className="flex items-start gap-3">
+                                    <Mail
+                                        className="mt-0.5 shrink-0 text-primary"
+                                        size={17}
+                                        strokeWidth={1.8}
+                                    />
+
+                                    <div className="min-w-0">
+                                        <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#89938f]">
+                                            Verification required
+                                        </p>
+
+                                        <p className="mt-1 text-[13px] leading-5 text-[#4d5954]">
+                                            A verification email has been sent
+                                            to your new email address.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <p className="mt-5 text-[12px] leading-5 text-[#7a8581]">
+                                For security, you have been signed out. Verify
+                                your new email address, then log in again using
+                                the new email.
+                            </p>
+
+                            <div className="mt-7 flex justify-end">
+                                <button
+                                    type="button"
+                                    onClick={handleContinueToLogin}
+                                    className="
+                                        inline-flex h-10 items-center justify-center gap-2
+                                        cursor-pointer
+                                        bg-primary px-5
+                                        text-[13px] font-semibold text-white
+                                        shadow-sm
+                                        transition-all duration-200
+                                        hover:bg-primary-hover
+                                        hover:shadow-[0_4px_12px_rgba(15,118,110,0.16)]
+                                    "
+                                >
+                                    Continue to Login
+                                    <ArrowRight size={15} strokeWidth={2} />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </>
     );
 };
 

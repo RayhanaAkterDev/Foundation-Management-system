@@ -1,7 +1,5 @@
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-
 import { Eye, EyeOff, LockKeyhole, Mail } from 'lucide-react';
-
 import { useState } from 'react';
 
 const LoginForm = ({ loginRole = null }) => {
@@ -14,15 +12,10 @@ const LoginForm = ({ loginRole = null }) => {
     const role = loginRole || searchParams.get('role');
 
     const [showPassword, setShowPassword] = useState(false);
-
     const [email, setEmail] = useState('');
-
     const [password, setPassword] = useState('');
-
     const [rememberMe, setRememberMe] = useState(false);
-
     const [isSubmitting, setIsSubmitting] = useState(false);
-
     const [loginError, setLoginError] = useState('');
 
     const handleSubmit = async (e) => {
@@ -33,7 +26,7 @@ const LoginForm = ({ loginRole = null }) => {
 
         try {
             const response = await fetch(
-                'https://stand-for-people-api.onrender.com/api/login',
+                'http://127.0.0.1:8000/api/login',
                 {
                     method: 'POST',
                     headers: {

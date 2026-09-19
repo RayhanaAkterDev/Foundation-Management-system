@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import { NavLink, useNavigate } from 'react-router-dom';
 
@@ -103,11 +103,15 @@ const AccountAvatar = ({ user, initials }) => (
         {user?.avatar ? (
             <img
                 src={user.avatar}
-                alt={user.name}
-                className="h-full w-full object-cover"
+                alt={user.name || ''}
+                className="
+                    h-full
+                    w-full
+                    object-cover
+                "
             />
         ) : (
-            initials
+            initials || 'A'
         )}
     </div>
 );
@@ -124,7 +128,9 @@ const AccountLink = ({ to, icon: Icon, children, onClick }) => (
     >
         <Icon className={MENU_ICON} strokeWidth={1.7} />
 
-        <span className="min-w-0 flex-1 truncate">{children}</span>
+        <span className="min-w-0 flex-1 truncate whitespace-nowrap">
+            {children}
+        </span>
 
         <ChevronRight className={MENU_CHEVRON} strokeWidth={1.7} />
     </NavLink>
@@ -145,6 +151,8 @@ const DashboardSidebar = ({
 
     const [accountOpen, setAccountOpen] = useState(false);
 
+    const accountRef = useRef(null);
+
     const navItems = NAV_CONFIG[role] || [];
 
     const roleLabel = ROLE_LABELS[role] || 'User';
@@ -154,6 +162,27 @@ const DashboardSidebar = ({
     const settingsPath = SETTINGS_PATHS[role];
 
     const initials = getInitials(user?.name);
+
+    // ========================================================
+    // OUTSIDE CLICK
+    // ========================================================
+
+    useEffect(() => {
+        const handleOutsideClick = (event) => {
+            if (
+                accountRef.current &&
+                !accountRef.current.contains(event.target)
+            ) {
+                setAccountOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleOutsideClick);
+
+        return () => {
+            document.removeEventListener('mousedown', handleOutsideClick);
+        };
+    }, []);
 
     // ========================================================
     // ACCOUNT
@@ -181,16 +210,23 @@ const DashboardSidebar = ({
     // ========================================================
 
     const toggleSidebar = () => {
-        if (collapsed) {
-            onCollapsedChange(false);
-            return;
-        }
-
         setAccountOpen(false);
-        onCollapsedChange(true);
+        onCollapsedChange(!collapsed);
     };
 
     return (
+        /*
+         * IMPORTANT:
+         *
+         * The outer aside is the ONLY element whose width changes.
+         *
+         * The inner sidebar NEVER changes width.
+         * It NEVER translates.
+         * It NEVER fades.
+         *
+         * This prevents the contents from reflowing/shaking
+         * while the sidebar collapses.
+         */
         <aside
             className={`
                 fixed
@@ -203,19 +239,24 @@ const DashboardSidebar = ({
                 lg:flex
                 transition-[width]
                 duration-300
-                ease-in-out
+                ease-out
                 ${collapsed ? 'w-15' : 'w-72'}
             `}
         >
-            {/* =====================================================
-                SIDEBAR SHELL
-            ===================================================== */}
+            {/* =================================================
+                FIXED SIDEBAR CONTENT
+
+                15 + 57 = 72
+
+                This width NEVER changes.
+            ================================================= */}
 
             <div
                 className="
                     flex
                     h-full
                     w-72
+                    min-w-72
                     shrink-0
                 "
             >
@@ -226,7 +267,9 @@ const DashboardSidebar = ({
                 <div
                     className="
                         flex
+                        h-full
                         w-15
+                        min-w-15
                         shrink-0
                         flex-col
                         border-r
@@ -234,19 +277,22 @@ const DashboardSidebar = ({
                         bg-[#09534f]
                     "
                 >
-                    {/* LOGO */}
+                    {/* =================================================
+                        LOGO
+                    ================================================= */}
 
                     <div
                         className="
                             flex
                             h-16
+                            min-h-16
                             shrink-0
                             items-center
                             justify-center
-
-                            xl:h-[68px]
-
-                            2xl:h-[72px]
+                            xl:h-17
+                            xl:min-h-17
+                            2xl:h-18
+                            2xl:min-h-18
                         "
                     >
                         <div
@@ -254,6 +300,7 @@ const DashboardSidebar = ({
                                 flex
                                 h-9
                                 w-9
+                                shrink-0
                                 items-center
                                 justify-center
                                 rounded-xl
@@ -266,13 +313,16 @@ const DashboardSidebar = ({
                                 className="
                                     h-7
                                     w-7
+                                    shrink-0
                                     object-contain
                                 "
                             />
                         </div>
                     </div>
 
-                    {/* RAIL NAVIGATION */}
+                    {/* =================================================
+                        RAIL NAVIGATION
+                    ================================================= */}
 
                     <nav
                         aria-label="Quick navigation"
@@ -283,11 +333,8 @@ const DashboardSidebar = ({
                             flex-col
                             items-center
                             overflow-hidden
-
                             pt-2
-
                             xl:pt-4
-
                             2xl:pt-5
                         "
                     >
@@ -300,11 +347,10 @@ const DashboardSidebar = ({
                                             my-1.5
                                             h-px
                                             w-6
+                                            min-h-px
                                             shrink-0
                                             bg-white/8
-
                                             xl:my-2
-
                                             2xl:my-2.5
                                         "
                                     />
@@ -326,19 +372,22 @@ const DashboardSidebar = ({
                                     end={isRootDashboard(item.path)}
                                     aria-label={item.label}
                                     title={item.label}
+                                    onClick={closeAccountMenu}
                                     className="
                                         group
                                         relative
                                         flex
                                         h-9
+                                        min-h-9
                                         w-full
                                         shrink-0
                                         items-center
                                         justify-center
-
+                                        whitespace-nowrap
                                         xl:h-10
-
+                                        xl:min-h-10
                                         2xl:h-11
+                                        2xl:min-h-11
                                     "
                                 >
                                     {isActive && (
@@ -348,6 +397,7 @@ const DashboardSidebar = ({
                                                 left-0
                                                 h-5
                                                 w-0.5
+                                                shrink-0
                                                 rounded-r-full
                                                 bg-accent
                                             "
@@ -365,7 +415,6 @@ const DashboardSidebar = ({
                                             rounded-lg
                                             transition-colors
                                             duration-150
-
                                             ${
                                                 isActive
                                                     ? 'bg-[#e6f1ef] text-[#0b5f5b]'
@@ -387,19 +436,22 @@ const DashboardSidebar = ({
                         })}
                     </nav>
 
-                    {/* RAIL FOOTER */}
+                    {/* =================================================
+                        RAIL FOOTER
+                    ================================================= */}
 
                     <div
                         className="
                             flex
                             h-12
+                            min-h-12
                             shrink-0
                             items-center
                             justify-center
-
                             xl:h-14
-
+                            xl:min-h-14
                             2xl:h-16
+                            2xl:min-h-16
                         "
                     >
                         <button
@@ -432,12 +484,20 @@ const DashboardSidebar = ({
                         >
                             {collapsed ? (
                                 <PanelLeftOpen
-                                    className="h-4 w-4"
+                                    className="
+                                        h-4
+                                        w-4
+                                        shrink-0
+                                    "
                                     strokeWidth={1.7}
                                 />
                             ) : (
                                 <PanelLeftClose
-                                    className="h-4 w-4"
+                                    className="
+                                        h-4
+                                        w-4
+                                        shrink-0
+                                    "
                                     strokeWidth={1.7}
                                 />
                             )}
@@ -448,37 +508,27 @@ const DashboardSidebar = ({
                 {/* =================================================
                     MAIN PANEL
 
-                    WIDTH REMAINS w-57.
-                    ONLY SPACING CHANGES AT XL / 2XL.
+                    NEVER animate this element.
+
+                    NEVER transform it.
+
+                    NEVER change its width.
+
+                    The outer aside simply clips it.
                 ================================================= */}
 
                 <div
-                    className={`
+                    className="
                         flex
                         h-full
                         w-57
+                        min-w-57
                         shrink-0
                         flex-col
                         overflow-hidden
                         bg-[#0d625d]
-                        transition-[width,opacity,transform]
-                        duration-300
-                        ease-in-out
-
-                        ${
-                            collapsed
-                                ? `
-                                    pointer-events-none
-                                    w-0
-                                    -translate-x-2
-                                    opacity-0
-                                `
-                                : `
-                                    translate-x-0
-                                    opacity-100
-                                `
-                        }
-                    `}
+                    "
+                    aria-hidden={collapsed}
                 >
                     {/* =================================================
                         HEADER
@@ -490,11 +540,9 @@ const DashboardSidebar = ({
                             px-5
                             pt-5
                             pb-4
-
                             xl:px-6
                             xl:pt-6
                             xl:pb-5
-
                             2xl:pt-7
                             2xl:pb-6
                         "
@@ -505,9 +553,10 @@ const DashboardSidebar = ({
                                 items-center
                                 justify-between
                                 gap-3
+                                whitespace-nowrap
                             "
                         >
-                            <div className="min-w-0">
+                            <div className="min-w-0 shrink-0">
                                 <div
                                     className="
                                         whitespace-nowrap
@@ -517,7 +566,6 @@ const DashboardSidebar = ({
                                         leading-none
                                         tracking-[-0.045em]
                                         text-white
-
                                         2xl:text-[22px]
                                     "
                                 >
@@ -535,7 +583,6 @@ const DashboardSidebar = ({
                                         leading-none
                                         tracking-[-0.045em]
                                         text-white
-
                                         2xl:text-[22px]
                                     "
                                 >
@@ -557,7 +604,7 @@ const DashboardSidebar = ({
                                     text-[7px]
                                     font-bold
                                     uppercase
-                                    tracking-[0.1em]
+                                    tracking-widest
                                     text-white/65
                                 "
                             >
@@ -569,21 +616,16 @@ const DashboardSidebar = ({
                             className="
                                 mt-4
                                 h-px
+                                shrink-0
                                 bg-white/8
-
                                 xl:mt-5
-
                                 2xl:mt-6
                             "
                         />
                     </header>
 
                     {/* =================================================
-                        NAVIGATION
-
-                        LG  → compact
-                        XL  → comfortable
-                        2XL → spacious
+                        MAIN NAVIGATION
                     ================================================= */}
 
                     <nav
@@ -592,13 +634,10 @@ const DashboardSidebar = ({
                             min-h-0
                             flex-1
                             overflow-hidden
-
                             px-4
                             py-1
-
                             xl:px-4
                             xl:py-2
-
                             2xl:px-5
                             2xl:py-3
                         "
@@ -610,14 +649,13 @@ const DashboardSidebar = ({
                                         key={`divider-${index}`}
                                         className="
                                             my-2
+                                            shrink-0
                                             px-2
-
                                             xl:my-2.5
-
                                             2xl:my-3.5
                                         "
                                     >
-                                        <div className="h-px bg-white/8" />
+                                        <div className="h-px shrink-0 bg-white/8" />
                                     </div>
                                 );
                             }
@@ -634,11 +672,13 @@ const DashboardSidebar = ({
                                     to={item.path}
                                     end={isRootDashboard(item.path)}
                                     aria-current={isActive ? 'page' : undefined}
+                                    onClick={closeAccountMenu}
                                     className={`
                                         group
                                         relative
                                         flex
                                         h-9
+                                        min-h-9
                                         w-full
                                         shrink-0
                                         items-center
@@ -646,11 +686,10 @@ const DashboardSidebar = ({
                                         whitespace-nowrap
                                         transition-colors
                                         duration-150
-
                                         xl:h-10
-
+                                        xl:min-h-10
                                         2xl:h-11
-
+                                        2xl:min-h-11
                                         ${
                                             isActive
                                                 ? 'text-white'
@@ -666,13 +705,12 @@ const DashboardSidebar = ({
                                             shrink-0
                                             rounded-full
                                             bg-accent
-                                            transition-all
+                                            transition-opacity
                                             duration-150
-
                                             ${
                                                 isActive
-                                                    ? 'scale-100 opacity-100'
-                                                    : 'scale-0 opacity-0 group-hover:scale-100 group-hover:opacity-100'
+                                                    ? 'opacity-100'
+                                                    : 'opacity-0 group-hover:opacity-100'
                                             }
                                         `}
                                     />
@@ -684,11 +722,8 @@ const DashboardSidebar = ({
                                             whitespace-nowrap
                                             text-[11px]
                                             tracking-[-0.01em]
-
                                             xl:text-[11.5px]
-
                                             2xl:text-[12px]
-
                                             ${
                                                 isActive
                                                     ? 'font-semibold'
@@ -704,13 +739,21 @@ const DashboardSidebar = ({
                     </nav>
 
                     {/* =================================================
-                        ACCOUNT AREA
+                        ACCOUNT
                     ================================================= */}
 
-                    <div className="relative shrink-0">
-                        {/* ACCOUNT POPUP */}
+                    <div
+                        ref={accountRef}
+                        className="
+                            relative
+                            shrink-0
+                        "
+                    >
+                        {/* =================================================
+                            ACCOUNT POPUP
+                        ================================================= */}
 
-                        {accountOpen && (
+                        {accountOpen && !collapsed && (
                             <div
                                 className="
                                     absolute
@@ -725,6 +768,7 @@ const DashboardSidebar = ({
                                     bg-[#084c49]
                                     shadow-[0_18px_40px_rgba(0,0,0,0.25)]
                                 "
+                                role="menu"
                             >
                                 <div
                                     className="
@@ -732,16 +776,24 @@ const DashboardSidebar = ({
                                         py-3
                                     "
                                 >
-                                    <div className="flex items-center gap-3">
+                                    <div
+                                        className="
+                                            flex
+                                            items-center
+                                            gap-3
+                                            whitespace-nowrap
+                                        "
+                                    >
                                         <AccountAvatar
                                             user={user}
                                             initials={initials}
                                         />
 
-                                        <div className="min-w-0">
+                                        <div className="min-w-0 shrink-0">
                                             <p
                                                 className="
                                                     truncate
+                                                    whitespace-nowrap
                                                     text-[11px]
                                                     font-semibold
                                                     text-white
@@ -754,6 +806,7 @@ const DashboardSidebar = ({
                                                 className="
                                                     mt-0.5
                                                     truncate
+                                                    whitespace-nowrap
                                                     text-[7px]
                                                     font-bold
                                                     uppercase
@@ -767,7 +820,7 @@ const DashboardSidebar = ({
                                     </div>
                                 </div>
 
-                                <div className="h-px bg-white/8" />
+                                <div className="h-px shrink-0 bg-white/8" />
 
                                 {profilePath && (
                                     <AccountLink
@@ -797,7 +850,7 @@ const DashboardSidebar = ({
                                     Help & support
                                 </AccountLink>
 
-                                <div className="mx-4 h-px bg-white/8" />
+                                <div className="mx-4 h-px shrink-0 bg-white/8" />
 
                                 <button
                                     type="button"
@@ -818,12 +871,16 @@ const DashboardSidebar = ({
                                         strokeWidth={1.7}
                                     />
 
-                                    <span>Sign out</span>
+                                    <span className="whitespace-nowrap">
+                                        Sign out
+                                    </span>
                                 </button>
                             </div>
                         )}
 
-                        {/* ACCOUNT TRIGGER */}
+                        {/* =================================================
+                            ACCOUNT TRIGGER
+                        ================================================= */}
 
                         <div
                             className="
@@ -831,9 +888,7 @@ const DashboardSidebar = ({
                                 border-white/8
                                 px-5
                                 py-3
-
                                 xl:py-4
-
                                 2xl:px-6
                                 2xl:py-5
                             "
@@ -841,15 +896,17 @@ const DashboardSidebar = ({
                             <button
                                 type="button"
                                 onClick={toggleAccountMenu}
-                                aria-expanded={accountOpen}
+                                aria-expanded={accountOpen && !collapsed}
                                 aria-haspopup="menu"
                                 className="
                                     group
                                     flex
                                     w-full
+                                    shrink-0
                                     items-center
                                     gap-3
                                     text-left
+                                    whitespace-nowrap
                                 "
                             >
                                 <div className="relative shrink-0">
@@ -865,6 +922,7 @@ const DashboardSidebar = ({
                                             right-0
                                             h-2
                                             w-2
+                                            shrink-0
                                             rounded-full
                                             border-2
                                             border-[#0d625d]
@@ -873,10 +931,11 @@ const DashboardSidebar = ({
                                     />
                                 </div>
 
-                                <div className="min-w-0 flex-1">
+                                <div className="min-w-0 flex-1 overflow-hidden">
                                     <p
                                         className="
                                             truncate
+                                            whitespace-nowrap
                                             text-[11px]
                                             font-semibold
                                             text-white
@@ -889,6 +948,7 @@ const DashboardSidebar = ({
                                         className="
                                             mt-0.5
                                             truncate
+                                            whitespace-nowrap
                                             text-[7px]
                                             font-bold
                                             uppercase
@@ -908,7 +968,11 @@ const DashboardSidebar = ({
                                         text-white/25
                                         transition-transform
                                         duration-150
-                                        ${accountOpen ? 'rotate-90' : ''}
+                                        ${
+                                            accountOpen && !collapsed
+                                                ? 'rotate-90'
+                                                : ''
+                                        }
                                     `}
                                     strokeWidth={1.7}
                                 />

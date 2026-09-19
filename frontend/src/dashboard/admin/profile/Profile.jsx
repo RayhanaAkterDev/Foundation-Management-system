@@ -403,14 +403,14 @@ const Profile = () => {
                         </Field>
 
                         <Field label="Member Since">
-                            <div className="relative">
+                            <div className="relative cursor-not-allowed">
                                 <CalendarDays
                                     className="pointer-events-none absolute left-3.5 top-1/2 h-4.25 w-4.25 -translate-y-1/2 text-[#87928d]"
                                     strokeWidth={1.8}
                                 />
 
                                 <div
-                                    className={`${inputCls} flex cursor-default items-center pl-11 text-[#5f6b67]`}
+                                    className={`${inputCls} flex items-center pl-11 text-[#5f6b67]`}
                                 >
                                     {formatMemberSince(memberSince)}
                                 </div>
@@ -445,6 +445,7 @@ const Profile = () => {
                                 disabled:cursor-not-allowed
                                 disabled:opacity-60
                                 disabled:shadow-none
+                                cursor-pointer
                             "
                         >
                             <Save className="h-4 w-4" strokeWidth={1.9} />

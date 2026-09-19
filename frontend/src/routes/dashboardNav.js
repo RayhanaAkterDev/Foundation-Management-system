@@ -168,16 +168,10 @@ export const NAV_CONFIG = {
         },
         { type: 'divider' },
         {
-            key: 'verification',
-            label: 'Verification',
-            icon: ShieldCheck,
-            path: '/admin/dashboard/verification',
-        },
-        {
-            key: 'reports',
-            label: 'Reports',
-            icon: BarChart3,
-            path: '/admin/dashboard/reports',
+            key: 'profile',
+            label: 'Profile',
+            icon: UserCircle,
+            path: '/admin/dashboard/profile',
         },
         {
             key: 'settings',

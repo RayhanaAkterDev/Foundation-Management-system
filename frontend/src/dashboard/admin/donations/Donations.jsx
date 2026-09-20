@@ -21,7 +21,7 @@ const Donations = () => {
                 }
 
                 const response = await fetch(
-                    'http://127.0.0.1:8000/api/admin/donations',
+                    `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api'}/admin/donations`,
                     {
                         headers: {
                             Accept: 'application/json',

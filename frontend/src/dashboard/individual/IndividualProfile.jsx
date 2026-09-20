@@ -11,7 +11,8 @@ import {
 
 import PageHeader from '@/components/dashboard/PageHeader';
 
-const API_URL = 'http://127.0.0.1:8000/api';
+const API_URL =
+    import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
 
 const Field = ({ label, children, className = '' }) => (
     <div className={`min-w-0 ${className}`}>

@@ -1,7 +1,6 @@
 import React from 'react';
 
 import DataTable from '@/components/dashboard/DataTable';
-
 import StatusBadge from '@/components/dashboard/StatusBadge';
 
 import {
@@ -11,6 +10,7 @@ import {
     Trash2,
     CheckCircle2,
     CircleAlert,
+    ShieldCheck,
 } from 'lucide-react';
 
 const Table = ({
@@ -26,133 +26,139 @@ const Table = ({
     const enhancedColumns = columns
         .filter((column) => column.key !== 'email')
         .map((column) => {
+            /* =================================================
+               USER
+            ================================================= */
             if (column.key === 'name') {
                 return {
                     ...column,
 
-                    render: (value, row) => {
-                        const initials = value
-                            ? value
-                                  .split(' ')
-                                  .map((part) => part[0])
-                                  .slice(0, 2)
-                                  .join('')
-                                  .toUpperCase()
-                            : '?';
+                    render: (value, row) => (
+                        <div className="min-w-0 max-w-[clamp(170px,20vw,280px)]">
+                            <p
+                                className="
+                                    truncate
+                                    text-[13px]
+                                    font-semibold
+                                    leading-5
+                                    text-text-primary
+                                "
+                            >
+                                {value || 'Unnamed user'}
+                            </p>
 
-                        return (
-                            <div className="flex items-center gap-3">
-                                {/* Avatar */}
-                                <div
+                            {row.email && (
+                                <p
                                     className="
-                                        flex
-                                        h-9
-                                        w-9
-                                        shrink-0
-                                        items-center
-                                        justify-center
-                                        rounded-full
-                                        bg-primary/10
+                                        mt-0.5
+                                        truncate
                                         text-[11px]
-                                        font-bold
-                                        text-primary
+                                        leading-4
+                                        text-text-secondary
                                     "
                                 >
-                                    {initials}
-                                </div>
+                                    {row.email}
+                                </p>
+                            )}
+                        </div>
+                    ),
+                };
+            }
 
-                                {/* User identity */}
-                                <div className="min-w-0">
-                                    <p
-                                        className="
-                                            truncate
-                                            font-semibold
-                                            text-text-primary
-                                        "
-                                    >
-                                        {value || '—'}
-                                    </p>
+            /* =================================================
+               ROLE
+            ================================================= */
+            if (column.key === 'role') {
+                return {
+                    ...column,
 
-                                    {row.email && (
-                                        <p
-                                            className="
-                                                mt-0.5
-                                                max-w-60
-                                                truncate
-                                                text-xs
-                                                text-text-secondary
-                                            "
-                                        >
-                                            {row.email}
-                                        </p>
-                                    )}
-                                </div>
+                    render: (value) => {
+                        const isAdmin = value === 'admin';
+
+                        return (
+                            <div className="flex min-w-[110px] items-center gap-2">
+                                <ShieldCheck
+                                    size={15}
+                                    strokeWidth={1.8}
+                                    className={
+                                        isAdmin
+                                            ? 'shrink-0 text-primary'
+                                            : 'shrink-0 text-text-secondary'
+                                    }
+                                />
+
+                                <span
+                                    className="
+                                        truncate
+                                        text-[12px]
+                                        font-medium
+                                        capitalize
+                                        text-text-primary
+                                    "
+                                >
+                                    {isAdmin ? 'Administrator' : value || '—'}
+                                </span>
                             </div>
                         );
                     },
                 };
             }
 
-            if (column.key === 'role') {
-                return {
-                    ...column,
-
-                    render: (value) => (
-                        <span
-                            className="
-                                inline-flex
-                                items-center
-                                rounded-md
-                                bg-background-alt
-                                px-2.5
-                                py-1
-                                text-[11px]
-                                font-semibold
-                                capitalize
-                                text-text-secondary
-                            "
-                        >
-                            {value === 'admin'
-                                ? 'Administrator'
-                                : value || '—'}
-                        </span>
-                    ),
-                };
-            }
-
+            /* =================================================
+               STATUS
+            ================================================= */
             if (column.key === 'status') {
                 return {
                     ...column,
 
-                    render: (value) => <StatusBadge status={value} />,
+                    render: (value) => (
+                        <div className="whitespace-nowrap">
+                            <StatusBadge status={value} />
+                        </div>
+                    ),
                 };
             }
 
+            /* =================================================
+               JOINED DATE
+            ================================================= */
             if (column.key === 'joinedDate') {
                 return {
                     ...column,
 
                     render: (value) => (
-                        <span className="text-text-secondary">
-                            {value || '—'}
-                        </span>
+                        <div className="min-w-[90px]">
+                            <p
+                                className="
+                                    whitespace-nowrap
+                                    text-[12px]
+                                    font-medium
+                                    leading-5
+                                    text-text-primary
+                                "
+                            >
+                                {value || '—'}
+                            </p>
+
+                            {value && (
+                                <p
+                                    className="
+                                        text-[10px]
+                                        leading-4
+                                        text-text-secondary
+                                    "
+                                >
+                                    Joined
+                                </p>
+                            )}
+                        </div>
                     ),
                 };
             }
 
-            /*
-             * Email verification
-             *
-             * Supports:
-             * - email_verified_at
-             * - emailVerifiedAt
-             * - email_verified
-             * - emailVerified
-             *
-             * Verification method is read from:
-             * - verification_method
-             * - verificationMethod
-             */
+            /* =================================================
+               EMAIL VERIFICATION
+            ================================================= */
             if (
                 column.key === 'emailVerification' ||
                 column.key === 'email_verified_at' ||
@@ -168,9 +174,7 @@ const Table = ({
                             null;
 
                         const verifiedValue =
-                            row.email_verified ??
-                            row.emailVerified ??
-                            null;
+                            row.email_verified ?? row.emailVerified ?? null;
 
                         const isVerified =
                             Boolean(verifiedAt) ||
@@ -193,16 +197,16 @@ const Table = ({
                             : null;
 
                         return (
-                            <div className="flex items-center gap-2.5">
+                            <div className="flex min-w-[125px] items-center gap-2">
                                 {isVerified ? (
                                     <CheckCircle2
-                                        size={17}
+                                        size={16}
                                         strokeWidth={2}
                                         className="shrink-0 text-emerald-600"
                                     />
                                 ) : (
                                     <CircleAlert
-                                        size={17}
+                                        size={16}
                                         strokeWidth={2}
                                         className="shrink-0 text-amber-500"
                                     />
@@ -211,8 +215,10 @@ const Table = ({
                                 <div className="min-w-0">
                                     <p
                                         className={`
-                                            text-sm
+                                            truncate
+                                            text-[12px]
                                             font-semibold
+                                            leading-4
                                             ${
                                                 isVerified
                                                     ? 'text-emerald-700'
@@ -220,21 +226,22 @@ const Table = ({
                                             }
                                         `}
                                     >
-                                        {isVerified
-                                            ? 'Verified'
-                                            : 'Unverified'}
+                                        {isVerified ? 'Verified' : 'Unverified'}
                                     </p>
 
                                     <p
                                         className="
                                             mt-0.5
-                                            text-[11px]
+                                            truncate
+                                            text-[10px]
+                                            leading-4
                                             text-text-secondary
                                         "
                                     >
                                         {isVerified
                                             ? methodLabel || 'Email'
-                                            : methodLabel || 'Not verified'}
+                                            : methodLabel ||
+                                              'Verification pending'}
                                     </p>
                                 </div>
                             </div>
@@ -243,63 +250,75 @@ const Table = ({
                 };
             }
 
+            /* =================================================
+               ACTIONS
+            ================================================= */
             if (column.key === 'actions') {
                 return {
                     ...column,
 
                     render: (_, row) => (
-                        <div className="flex items-center justify-end gap-1">
-                            {/* View */}
+                        <div className="flex items-center justify-end gap-0.5">
                             <button
                                 type="button"
                                 onClick={() => onView(row.id)}
                                 title="View user"
+                                aria-label="View user"
                                 className="
-                                    inline-flex
+                                    flex
                                     h-8
                                     w-8
+                                    shrink-0
                                     items-center
                                     justify-center
                                     rounded-md
                                     text-text-secondary
                                     transition-colors
-                                    hover:bg-background-alt
+                                    hover:bg-primary/8
                                     hover:text-primary
+                                    focus:outline-none
+                                    focus:ring-2
+                                    focus:ring-primary/20
                                 "
                             >
-                                <Eye size={16} strokeWidth={1.8} />
+                                <Eye size={15} strokeWidth={1.8} />
                             </button>
 
-                            {/* Edit */}
                             <button
                                 type="button"
                                 onClick={() => onEdit(row.id)}
                                 title="Edit user"
+                                aria-label="Edit user"
                                 className="
-                                    inline-flex
+                                    flex
                                     h-8
                                     w-8
+                                    shrink-0
                                     items-center
                                     justify-center
                                     rounded-md
                                     text-text-secondary
                                     transition-colors
-                                    hover:bg-background-alt
+                                    hover:bg-primary/8
                                     hover:text-primary
+                                    focus:outline-none
+                                    focus:ring-2
+                                    focus:ring-primary/20
                                 "
                             >
-                                <Pencil size={16} strokeWidth={1.8} />
+                                <Pencil size={15} strokeWidth={1.8} />
                             </button>
 
-                            {/* Delete */}
                             <button
                                 type="button"
                                 onClick={() => onDelete(row)}
                                 title="Delete user"
+                                aria-label="Delete user"
                                 className="
-                                    inline-flex
+                                    flex
                                     h-8
                                     w-8
+                                    shrink-0
                                     items-center
                                     justify-center
                                     rounded-md
@@ -307,9 +326,12 @@ const Table = ({
                                     transition-colors
                                     hover:bg-red-50
                                     hover:text-red-600
+                                    focus:outline-none
+                                    focus:ring-2
+                                    focus:ring-red-200
                                 "
                             >
-                                <Trash2 size={16} strokeWidth={1.8} />
+                                <Trash2 size={15} strokeWidth={1.8} />
                             </button>
                         </div>
                     ),

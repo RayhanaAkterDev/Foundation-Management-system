@@ -34,19 +34,16 @@ const ROLE_OPTIONS = [
     {
         value: 'individual',
         label: 'Individual',
-        description: 'Personal account',
         icon: UserRound,
     },
     {
         value: 'organization',
         label: 'Organization',
-        description: 'NGO or community',
         icon: Building2,
     },
     {
         value: 'admin',
         label: 'Administrator',
-        description: 'Platform administration',
         icon: UserCog,
     },
 ];
@@ -55,19 +52,16 @@ const STATUS_OPTIONS = [
     {
         value: 'active',
         label: 'Active',
-        description: 'Platform access enabled',
         icon: CircleCheck,
     },
     {
         value: 'inactive',
         label: 'Inactive',
-        description: 'Access temporarily disabled',
         icon: CircleOff,
     },
     {
         value: 'suspended',
         label: 'Suspended',
-        description: 'Access currently restricted',
         icon: ShieldCheck,
     },
 ];
@@ -76,13 +70,11 @@ const VERIFICATION_OPTIONS = [
     {
         value: 'email',
         label: 'Real email',
-        description: 'Send a verification link to the email address',
         icon: AtSign,
     },
     {
         value: 'demo',
         label: 'Demo account',
-        description: 'Verify through the SP demo verification page',
         icon: MonitorCheck,
     },
 ];
@@ -107,38 +99,9 @@ const getInitialForm = (mode, user) => {
     return { ...EMPTY_FORM };
 };
 
-const getInitials = (name = '') => {
-    const parts = name.trim().split(/\s+/).filter(Boolean);
-
-    if (!parts.length) {
-        return 'U';
-    }
-
-    if (parts.length === 1) {
-        return parts[0].charAt(0).toUpperCase();
-    }
-
-    return `${parts[0].charAt(0)}${parts[parts.length - 1].charAt(
-        0,
-    )}`.toUpperCase();
-};
-
 const getRoleLabel = (role) => {
     const option = ROLE_OPTIONS.find((item) => item.value === role);
-
-    return option?.label || 'Not selected';
-};
-
-const getStatusLabel = (status) => {
-    const option = STATUS_OPTIONS.find((item) => item.value === status);
-
-    return option?.label || 'Not selected';
-};
-
-const getVerificationLabel = (method) => {
-    const option = VERIFICATION_OPTIONS.find((item) => item.value === method);
-
-    return option?.label || 'Not selected';
+    return option?.label || 'User';
 };
 
 // ============================================================
@@ -153,7 +116,7 @@ const FieldError = ({ name, fieldErrors }) => {
     }
 
     return (
-        <p className="mt-2 wrap-break-words font-jost text-xs font-medium leading-5 text-red-600">
+        <p className="mt-1.5 break-words font-jost text-[11px] font-medium leading-4 text-red-600">
             {error[0]}
         </p>
     );
@@ -167,15 +130,14 @@ const FieldLabel = ({ htmlFor, children, hint, required = false }) => (
     <div className="mb-2.5 flex min-w-0 items-center justify-between gap-3">
         <label
             htmlFor={htmlFor}
-            className="font-jost text-[12px] font-semibold tracking-[-0.01em] text-text-primary"
+            className="font-jost text-[11px] font-bold uppercase tracking-[0.055em] text-text-primary"
         >
             {children}
-
             {required && <span className="ml-1 text-primary">*</span>}
         </label>
 
         {hint && (
-            <span className="shrink-0 font-jost text-[11px] font-medium text-text-secondary">
+            <span className="shrink-0 font-jost text-[10px] font-medium text-text-secondary">
                 {hint}
             </span>
         )}
@@ -212,9 +174,9 @@ const TextField = ({
 
             <div
                 className={`
-                    group relative flex h-13.5 min-w-0 items-center
-                    border bg-surface
-                    transition-all duration-200
+                    group relative flex h-[50px] min-w-0 items-center
+                    overflow-hidden border bg-surface
+                    transition-all duration-150
                     ${
                         hasError
                             ? 'border-red-300 bg-red-50/20'
@@ -224,8 +186,8 @@ const TextField = ({
             >
                 <span
                     className={`
-                        absolute left-0 top-0 h-full w-0.75
-                        transition-opacity duration-200
+                        absolute inset-y-0 left-0 w-[2px]
+                        transition-opacity duration-150
                         ${
                             hasError
                                 ? 'bg-red-500 opacity-100'
@@ -234,20 +196,20 @@ const TextField = ({
                     `}
                 />
 
-                <div
+                <span
                     className={`
                         flex h-full w-11 shrink-0 items-center justify-center
-                        transition-colors
-                        sm:w-12
+                        border-r border-border/70
+                        transition-colors duration-150
                         ${
                             hasError
                                 ? 'text-red-500'
-                                : 'text-text-secondary group-focus-within:text-primary'
+                                : 'text-slate-400 group-focus-within:border-primary/10 group-focus-within:text-primary'
                         }
                     `}
                 >
-                    <Icon size={18} strokeWidth={1.7} />
-                </div>
+                    <Icon size={16} strokeWidth={1.7} />
+                </span>
 
                 <input
                     id={id}
@@ -265,23 +227,21 @@ const TextField = ({
                         min-w-0
                         w-full
                         bg-transparent
-                        pr-3
+                        px-3.5
                         font-jost
-                        text-[14px]
+                        text-[13px]
                         font-medium
-                        tracking-[-0.01em]
                         text-text-primary
                         outline-none
                         placeholder:text-slate-400
                         disabled:cursor-not-allowed
                         disabled:opacity-50
-                        sm:pr-4
                     "
                 />
             </div>
 
             {name === 'phone' && !hasError && (
-                <p className="mt-2 font-jost text-[11px] leading-4 text-text-secondary">
+                <p className="mt-1.5 font-jost text-[10px] leading-4 text-text-secondary">
                     11 digits · starts with 01
                 </p>
             )}
@@ -292,372 +252,153 @@ const TextField = ({
 };
 
 // ============================================================
-// SECTION HEADER
+// SECTION TITLE
 // ============================================================
 
-const SectionHeader = ({ number, title, description }) => (
-    <div className="mb-7">
-        <div className="mb-2.5 flex items-center gap-2.5">
-            <span className="font-jost text-[10px] font-bold tracking-[0.16em] text-primary">
-                {number}
-            </span>
+const SectionTitle = ({ number, title }) => (
+    <div className="mb-6 flex items-center gap-3">
+        <span className="flex h-6 min-w-6 items-center justify-center bg-primary/10 px-1.5 font-jost text-[9px] font-bold tracking-[0.08em] text-primary">
+            {number}
+        </span>
 
-            <span className="h-px w-8 bg-border" />
-
-            <span className="font-jost text-[10px] font-semibold uppercase tracking-[0.14em] text-text-secondary">
-                Account
-            </span>
+        <div>
+            <h3 className="font-jost text-[11px] font-bold uppercase tracking-[0.09em] text-text-primary">
+                {title}
+            </h3>
         </div>
 
-        <h3 className="font-fraunces text-[22px] font-medium leading-tight tracking-[-0.03em] text-text-primary sm:text-[23px]">
-            {title}
-        </h3>
-
-        <p className="mt-2 max-w-135 font-jost text-[12px] leading-[1.65] text-text-secondary">
-            {description}
-        </p>
+        <span className="h-px flex-1 bg-border" />
     </div>
 );
 
 // ============================================================
-// ROLE SELECTOR — CREATE ONLY
+// ACCOUNT OPTION LIST
 // ============================================================
 
-const RoleSelector = ({ value, onChange, disabled, fieldErrors }) => {
-    const hasError = Boolean(fieldErrors?.role?.length);
+const AccountOptionList = ({
+    options,
+    value,
+    onChange,
+    disabled = false,
+    fieldErrorName,
+    fieldErrors,
+    disabledValues = [],
+}) => {
+    const hasError = Boolean(fieldErrors?.[fieldErrorName]?.length);
 
     return (
-        <div className="min-w-0">
-            <div className="mb-2.5 flex items-center justify-between gap-3">
-                <label className="font-jost text-[12px] font-semibold text-text-primary">
-                    Account role
-                    <span className="ml-1 text-primary">*</span>
-                </label>
-
-                <span className="shrink-0 font-jost text-[11px] text-text-secondary">
-                    Select one
-                </span>
-            </div>
-
+        <>
             <div
                 className={`
-                    divide-y border
-                    ${
-                        hasError
-                            ? 'border-red-200 divide-red-100'
-                            : 'border-border divide-border'
-                    }
-                `}
-            >
-                {ROLE_OPTIONS.map((option) => {
-                    const Icon = option.icon;
-                    const selected = value === option.value;
-
-                    return (
-                        <button
-                            key={option.value}
-                            type="button"
-                            disabled={disabled}
-                            onClick={() => onChange(option.value)}
-                            className={`
-                                group relative flex min-w-0 w-full
-                                items-center gap-3
-                                px-3 py-3
-                                text-left
-                                transition-colors duration-150
-                                sm:gap-3.5 sm:px-4 sm:py-3.5
-                                ${
-                                    selected
-                                        ? 'bg-primary/4.5'
-                                        : 'bg-surface hover:bg-background-alt'
-                                }
-                                disabled:cursor-not-allowed
-                                disabled:opacity-50
-                            `}
-                        >
-                            {selected && (
-                                <span className="absolute left-0 top-0 h-full w-0.75 bg-primary" />
-                            )}
-
-                            <span
-                                className={`
-                                    flex h-9 w-9 shrink-0 items-center justify-center
-                                    transition-colors
-                                    ${
-                                        selected
-                                            ? 'bg-primary text-white'
-                                            : 'bg-background-alt text-text-secondary group-hover:text-primary'
-                                    }
-                                `}
-                            >
-                                <Icon size={17} strokeWidth={1.7} />
-                            </span>
-
-                            <span className="min-w-0 flex-1">
-                                <span
-                                    className={`
-                                        block truncate font-jost text-[13px] font-semibold
-                                        ${
-                                            selected
-                                                ? 'text-primary'
-                                                : 'text-text-primary'
-                                        }
-                                    `}
-                                >
-                                    {option.label}
-                                </span>
-
-                                <span className="mt-0.5 block truncate font-jost text-[11px] leading-4 text-text-secondary">
-                                    {option.description}
-                                </span>
-                            </span>
-
-                            <span
-                                className={`
-                                    flex h-4.5 w-4.5 shrink-0
-                                    items-center justify-center border
-                                    ${
-                                        selected
-                                            ? 'border-primary bg-primary'
-                                            : 'border-slate-300 bg-white'
-                                    }
-                                `}
-                            >
-                                {selected && (
-                                    <span className="h-1.5 w-1.5 bg-white" />
-                                )}
-                            </span>
-                        </button>
-                    );
-                })}
-            </div>
-
-            <FieldError name="role" fieldErrors={fieldErrors} />
-        </div>
-    );
-};
-
-// ============================================================
-// VERIFICATION SELECTOR — CREATE + EDIT
-// ============================================================
-
-const VerificationSelector = ({ value, onChange, disabled, fieldErrors }) => {
-    const hasError = Boolean(fieldErrors?.verification_method?.length);
-
-    return (
-        <div className="min-w-0">
-            <div className="mb-2.5 flex items-center justify-between gap-3">
-                <label className="font-jost text-[12px] font-semibold text-text-primary">
-                    Verification method
-                    <span className="ml-1 text-primary">*</span>
-                </label>
-
-                <span className="shrink-0 font-jost text-[11px] text-text-secondary">
-                    Select one
-                </span>
-            </div>
-
-            <div
-                className={`
-                    divide-y border
-                    ${
-                        hasError
-                            ? 'border-red-200 divide-red-100'
-                            : 'border-border divide-border'
-                    }
-                `}
-            >
-                {VERIFICATION_OPTIONS.map((option) => {
-                    const Icon = option.icon;
-                    const selected = value === option.value;
-
-                    return (
-                        <button
-                            key={option.value}
-                            type="button"
-                            disabled={disabled}
-                            onClick={() => onChange(option.value)}
-                            className={`
-                                group relative flex min-w-0 w-full
-                                items-center gap-3
-                                px-3 py-3
-                                text-left
-                                transition-colors duration-150
-                                sm:gap-3.5 sm:px-4 sm:py-3.5
-                                ${
-                                    selected
-                                        ? 'bg-primary/4.5'
-                                        : 'bg-surface hover:bg-background-alt'
-                                }
-                                disabled:cursor-not-allowed
-                                disabled:opacity-50
-                            `}
-                        >
-                            {selected && (
-                                <span className="absolute left-0 top-0 h-full w-0.75 bg-primary" />
-                            )}
-
-                            <span
-                                className={`
-                                    flex h-9 w-9 shrink-0 items-center justify-center
-                                    transition-colors
-                                    ${
-                                        selected
-                                            ? 'bg-primary text-white'
-                                            : 'bg-background-alt text-text-secondary group-hover:text-primary'
-                                    }
-                                `}
-                            >
-                                <Icon size={17} strokeWidth={1.7} />
-                            </span>
-
-                            <span className="min-w-0 flex-1">
-                                <span
-                                    className={`
-                                        block truncate font-jost text-[13px] font-semibold
-                                        ${
-                                            selected
-                                                ? 'text-primary'
-                                                : 'text-text-primary'
-                                        }
-                                    `}
-                                >
-                                    {option.label}
-                                </span>
-
-                                <span className="mt-0.5 block truncate font-jost text-[11px] leading-4 text-text-secondary">
-                                    {option.description}
-                                </span>
-                            </span>
-
-                            <span
-                                className={`
-                                    flex h-4.5 w-4.5 shrink-0
-                                    items-center justify-center border
-                                    ${
-                                        selected
-                                            ? 'border-primary bg-primary'
-                                            : 'border-slate-300 bg-white'
-                                    }
-                                `}
-                            >
-                                {selected && (
-                                    <span className="h-1.5 w-1.5 bg-white" />
-                                )}
-                            </span>
-                        </button>
-                    );
-                })}
-            </div>
-
-            <FieldError name="verification_method" fieldErrors={fieldErrors} />
-        </div>
-    );
-};
-
-// ============================================================
-// STATUS SELECTOR — EDIT ONLY
-// ============================================================
-
-const StatusSelector = ({ value, onChange, disabled, fieldErrors }) => {
-    const hasError = Boolean(fieldErrors?.status?.length);
-
-    return (
-        <div className="min-w-0">
-            <div className="mb-2.5 flex items-center justify-between gap-3">
-                <label className="font-jost text-[12px] font-semibold text-text-primary">
-                    Account status
-                </label>
-
-                <span className="shrink-0 font-jost text-[11px] text-text-secondary">
-                    Current access
-                </span>
-            </div>
-
-            <div
-                className={`
-                    grid grid-cols-3 border
+                    overflow-hidden border bg-surface
                     ${hasError ? 'border-red-300' : 'border-border'}
                 `}
             >
-                {STATUS_OPTIONS.map((option, index) => {
+                {options.map((option, index) => {
                     const Icon = option.icon;
                     const selected = value === option.value;
+
+                    const optionDisabled =
+                        disabled || disabledValues.includes(option.value);
 
                     return (
                         <button
                             key={option.value}
                             type="button"
-                            disabled={disabled}
+                            disabled={optionDisabled}
                             onClick={() => onChange(option.value)}
                             className={`
-                                relative flex min-w-0
-                                min-h-21.5
-                                flex-col items-center justify-center
-                                gap-1 px-1 py-3 text-center
-                                transition-colors duration-150
-                                ${index > 0 ? 'border-l border-border' : ''}
+                                group relative flex min-h-[56px]
+                                w-full items-center justify-between
+                                gap-3 px-3.5
+                                text-left
+                                transition-all duration-150
+                                ${index !== 0 ? 'border-t border-border' : ''}
                                 ${
                                     selected
-                                        ? 'bg-primary/4.5 text-primary'
-                                        : 'bg-surface text-text-secondary hover:bg-background-alt'
+                                        ? 'bg-primary/[0.045]'
+                                        : 'bg-surface'
                                 }
-                                disabled:cursor-not-allowed
-                                disabled:opacity-50
-                                sm:min-h-19.5
-                                sm:gap-1.5
-                                sm:px-2
-                                sm:py-4
+                                ${
+                                    optionDisabled
+                                        ? 'cursor-not-allowed opacity-55'
+                                        : 'hover:bg-background-alt/60'
+                                }
                             `}
                         >
-                            {selected && (
-                                <span className="absolute left-0 top-0 h-0.75 w-full bg-primary" />
-                            )}
+                            <span
+                                className={`
+                                    absolute inset-y-0 left-0 w-[2px]
+                                    transition-opacity
+                                    ${
+                                        selected
+                                            ? 'bg-primary opacity-100'
+                                            : 'opacity-0'
+                                    }
+                                `}
+                            />
 
-                            <Icon size={17} strokeWidth={1.7} />
+                            <div className="flex min-w-0 items-center gap-3">
+                                <span
+                                    className={`
+                                        flex h-8 w-8 shrink-0
+                                        items-center justify-center
+                                        border
+                                        transition-all duration-150
+                                        ${
+                                            selected
+                                                ? 'border-primary/20 bg-primary/10 text-primary'
+                                                : 'border-border bg-background-alt text-text-secondary'
+                                        }
+                                    `}
+                                >
+                                    <Icon size={15} strokeWidth={1.7} />
+                                </span>
 
-                            <span className="font-jost text-[11px] font-semibold sm:text-[12px]">
-                                {option.label}
-                            </span>
+                                <div className="min-w-0">
+                                    <span
+                                        className={`
+                                            block truncate
+                                            font-jost text-[12px]
+                                            font-semibold
+                                            ${
+                                                selected
+                                                    ? 'text-primary'
+                                                    : 'text-text-primary'
+                                            }
+                                        `}
+                                    >
+                                        {option.label}
+                                    </span>
+                                </div>
+                            </div>
 
-                            <span className="max-w-full truncate px-0.5 font-jost text-[9px] leading-4 text-text-secondary sm:text-[10px]">
-                                {option.description}
+                            <span
+                                className={`
+                                    flex h-[17px] w-[17px] shrink-0
+                                    items-center justify-center
+                                    rounded-full border
+                                    transition-all
+                                    ${
+                                        selected
+                                            ? 'border-primary bg-primary'
+                                            : 'border-slate-300 bg-white'
+                                    }
+                                `}
+                            >
+                                {selected && (
+                                    <span className="h-1.5 w-1.5 rounded-full bg-white" />
+                                )}
                             </span>
                         </button>
                     );
                 })}
             </div>
 
-            <FieldError name="status" fieldErrors={fieldErrors} />
-        </div>
+            <FieldError name={fieldErrorName} fieldErrors={fieldErrors} />
+        </>
     );
 };
-
-// ============================================================
-// READ-ONLY ACCOUNT DETAIL
-// ============================================================
-
-const ReadOnlyAccountDetail = ({ label, value, icon: Icon }) => (
-    <div className="flex min-w-0 items-center justify-between gap-4 border-b border-border py-3 last:border-b-0">
-        <div className="flex min-w-0 items-center gap-2.5">
-            {Icon && (
-                <Icon
-                    size={16}
-                    strokeWidth={1.7}
-                    className="shrink-0 text-text-secondary"
-                />
-            )}
-
-            <span className="font-jost text-[11px] font-medium text-text-secondary">
-                {label}
-            </span>
-        </div>
-
-        <span className="truncate text-right font-jost text-[11px] font-semibold text-text-primary">
-            {value}
-        </span>
-    </div>
-);
 
 // ============================================================
 // FORM MODAL
@@ -712,8 +453,6 @@ const FormModalContent = ({
 }) => {
     const [form, setForm] = useState(() => getInitialForm(mode, user));
 
-    const initials = getInitials(form.name);
-
     // ========================================================
     // HANDLERS
     // ========================================================
@@ -739,19 +478,6 @@ const FormModalContent = ({
     const handleSubmit = (event) => {
         event.preventDefault();
 
-        // ====================================================
-        // EDIT MODE
-        //
-        // Admin can update ONLY:
-        // - name
-        // - email
-        // - phone
-        // - status
-        // - verification_method
-        //
-        // Role and password are intentionally excluded.
-        // ====================================================
-
         if (isEdit) {
             const editPayload = {
                 name: form.name,
@@ -765,18 +491,19 @@ const FormModalContent = ({
             return;
         }
 
-        // ====================================================
-        // CREATE MODE
-        // ====================================================
-
-        onSubmit(form);
+        onSubmit({
+            ...form,
+            status: 'inactive',
+        });
     };
 
     const title = isEdit ? 'Edit user account' : 'Create user account';
 
-    const description = isEdit
-        ? 'Update the basic information, verification method, and current access status for this account.'
-        : 'Add a new person or organization to Stand For People.';
+    const roleLabel = getRoleLabel(form.role);
+
+    const RoleIcon =
+        ROLE_OPTIONS.find((item) => item.value === form.role)?.icon ||
+        UserRound;
 
     return (
         <div
@@ -784,9 +511,9 @@ const FormModalContent = ({
                 fixed inset-0 z-50
                 flex items-center justify-center
                 bg-slate-950/55
-                p-2
-                backdrop-blur-xs
-                sm:p-4
+                p-3
+                backdrop-blur-[2px]
+                sm:p-5
                 lg:p-6
             "
         >
@@ -794,84 +521,111 @@ const FormModalContent = ({
                 className="
                     flex
                     h-full
-                    max-h-[calc(100vh-1rem)]
+                    max-h-[calc(100vh-1.5rem)]
                     w-full
-                    max-w-260
+                    max-w-[900px]
                     flex-col
                     overflow-hidden
                     bg-surface
-                    shadow-[0_30px_90px_rgba(15,23,42,0.22)]
+                    shadow-[0_30px_90px_rgba(15,23,42,0.24)]
                     sm:h-auto
-                    sm:max-h-[calc(100vh-2rem)]
+                    sm:max-h-[calc(100vh-2.5rem)]
                     lg:max-h-[calc(100vh-3rem)]
                 "
             >
-                {/* =================================================
+                {/* ==================================================
                     HEADER
                 ================================================== */}
 
                 <header className="relative shrink-0 bg-primary">
-                    <div className="px-5 py-6 sm:px-7 sm:py-7 lg:px-9 lg:py-8">
-                        <div className="max-w-190 pr-8 sm:pr-10">
-                            <div className="mb-3 flex min-w-0 items-center gap-2">
-                                <span className="h-1.5 w-1.5 shrink-0 bg-accent" />
-
-                                <span className="truncate font-jost text-[9px] font-bold uppercase tracking-[0.14em] text-white/70 sm:text-[10px] sm:tracking-[0.16em]">
-                                    User administration
-                                </span>
-
-                                <span className="h-px w-5 shrink-0 bg-white/20 sm:w-7" />
-
-                                <span className="shrink-0 font-jost text-[9px] font-medium uppercase tracking-widest text-white/40 sm:text-[10px] sm:tracking-[0.12em]">
-                                    {isEdit ? 'Edit account' : 'New account'}
-                                </span>
+                    <div className="px-5 py-5 sm:px-7 sm:py-6 lg:px-8">
+                        <div className="flex items-start gap-4 pr-10">
+                            <div className="flex h-11 w-11 shrink-0 items-center justify-center border border-white/15 bg-white/10 text-white">
+                                {isEdit ? (
+                                    <UserRound size={20} strokeWidth={1.6} />
+                                ) : (
+                                    <UserPlus size={20} strokeWidth={1.6} />
+                                )}
                             </div>
 
-                            <h2 className="font-fraunces text-[27px] font-medium leading-[1.08] tracking-[-0.035em] text-white sm:text-[31px] lg:text-[35px]">
-                                {title}
-                            </h2>
+                            <div className="min-w-0 flex-1">
+                                <div className="mb-1.5 flex flex-wrap items-center gap-2">
+                                    <p className="font-jost text-[9px] font-bold uppercase tracking-[0.14em] text-white/60">
+                                        User administration
+                                    </p>
 
-                            <p className="mt-2 max-w-150 font-jost text-[11px] leading-[1.65] text-white/60 sm:text-[12px] lg:text-[13px]">
-                                {description}
-                            </p>
-                        </div>
+                                    <span className="h-1 w-1 rounded-full bg-white/30" />
 
-                        <div className="mt-5 flex min-w-0 flex-wrap items-center justify-between gap-x-5 gap-y-3 border-t border-white/10 pt-3.5 sm:mt-6 sm:pt-4">
-                            <div className="flex min-w-0 items-center gap-2.5">
-                                <span className="flex h-7 w-7 shrink-0 items-center justify-center bg-white/10">
-                                    <span className="font-fraunces text-[12px] text-white">
-                                        {initials}
+                                    <span className="font-jost text-[9px] font-bold uppercase tracking-[0.1em] text-white/65">
+                                        {isEdit
+                                            ? 'Account update'
+                                            : 'New account'}
                                     </span>
-                                </span>
-
-                                <div className="min-w-0 max-w-45 sm:max-w-65">
-                                    <p className="truncate font-jost text-[11px] font-semibold text-white">
-                                        {form.name || 'New account'}
-                                    </p>
-
-                                    <p className="truncate font-jost text-[10px] text-white/40">
-                                        {getRoleLabel(form.role)}
-                                    </p>
                                 </div>
-                            </div>
 
-                            <div className="flex shrink-0 items-center gap-2">
-                                <span
-                                    className={`
-                                        h-1.5 w-1.5
-                                        ${
-                                            form.status === 'active'
-                                                ? 'bg-emerald-300'
-                                                : form.status === 'suspended'
-                                                  ? 'bg-amber-300'
-                                                  : 'bg-slate-300'
-                                        }
-                                    `}
-                                />
+                                <div className="flex flex-wrap items-center gap-2.5">
+                                    <h2 className="font-fraunces text-[24px] font-medium leading-tight tracking-[-0.03em] text-white sm:text-[27px]">
+                                        {title}
+                                    </h2>
+                                </div>
 
-                                <span className="font-jost text-[9px] font-semibold uppercase tracking-[0.07em] text-white/55 sm:text-[10px] sm:tracking-[0.08em]">
-                                    {getStatusLabel(form.status)}
-                                </span>
+                                <p className="mt-1.5 max-w-[560px] font-jost text-[10px] leading-4 text-white/55">
+                                    {isEdit
+                                        ? 'Update the account information and access settings.'
+                                        : 'Add a new user to the Stand For People platform.'}
+                                </p>
+
+                                {/* ==================================================
+                                    HEADER INFORMATION
+                                ================================================== */}
+
+                                <div className="mt-5 flex flex-wrap gap-2">
+                                    {isEdit ? (
+                                        <div className="inline-flex items-center gap-2 border border-white/15 bg-white/[0.08] px-3 py-2">
+                                            <RoleIcon
+                                                size={13}
+                                                strokeWidth={1.7}
+                                                className="text-white/65"
+                                            />
+
+                                            <span className="font-jost text-[9px] font-semibold uppercase tracking-[0.08em] text-white/50">
+                                                Role
+                                            </span>
+
+                                            <span className="h-3 w-px bg-white/15" />
+
+                                            <span className="font-jost text-[10px] font-bold text-white">
+                                                {roleLabel}
+                                            </span>
+
+                                            <span className="font-jost text-[9px] font-medium text-white/40">
+                                                · Read only
+                                            </span>
+                                        </div>
+                                    ) : (
+                                        <div className="inline-flex items-center gap-2 border border-white/15 bg-white/[0.08] px-3 py-2">
+                                            <CircleOff
+                                                size={13}
+                                                strokeWidth={1.7}
+                                                className="text-white/65"
+                                            />
+
+                                            <span className="font-jost text-[9px] font-semibold uppercase tracking-[0.08em] text-white/50">
+                                                Initial status
+                                            </span>
+
+                                            <span className="h-3 w-px bg-white/15" />
+
+                                            <span className="font-jost text-[10px] font-bold text-white">
+                                                Inactive
+                                            </span>
+
+                                            <span className="font-jost text-[9px] font-medium text-white/40">
+                                                · Set automatically
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -882,9 +636,16 @@ const FormModalContent = ({
                         disabled={loading}
                         aria-label="Close"
                         className="
-                            absolute right-3 top-3
-                            flex h-8 w-8 items-center justify-center
-                            border border-white/15
+                            absolute
+                            right-3
+                            top-3
+                            flex
+                            h-8
+                            w-8
+                            items-center
+                            justify-center
+                            border
+                            border-white/15
                             text-white/60
                             transition-colors
                             hover:border-white/30
@@ -892,15 +653,15 @@ const FormModalContent = ({
                             hover:text-white
                             disabled:cursor-not-allowed
                             disabled:opacity-40
-                            sm:right-5 sm:top-5
-                            sm:h-9 sm:w-9
+                            sm:right-5
+                            sm:top-5
                         "
                     >
                         <X size={17} strokeWidth={1.7} />
                     </button>
                 </header>
 
-                {/* =================================================
+                {/* ==================================================
                     FORM
                 ================================================== */}
 
@@ -917,92 +678,226 @@ const FormModalContent = ({
                             scrollbar-thin
                         "
                     >
-                        {/* GENERAL ERROR */}
-
                         {error && (
-                            <div className="border-b border-red-100 bg-red-50 px-5 py-3.5 sm:px-7 lg:px-9">
-                                <div className="flex min-w-0 items-start gap-3">
-                                    <span className="mt-1 h-1.5 w-1.5 shrink-0 bg-red-500" />
+                            <div className="border-b border-red-100 bg-red-50 px-5 py-3 sm:px-7 lg:px-8">
+                                <div className="flex items-start gap-2.5">
+                                    <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-red-500" />
 
-                                    <p className="min-w-0 wrap-break-words font-jost text-xs font-medium leading-5 text-red-600">
+                                    <p className="break-words font-jost text-[11px] font-medium leading-4 text-red-600">
                                         {error}
                                     </p>
                                 </div>
                             </div>
                         )}
 
-                        <div className="grid lg:grid-cols-[1.3fr_0.9fr]">
-                            {/* =================================================
-                                PERSONAL INFORMATION
-                            ================================================== */}
+                        {/* ==================================================
+                            EDIT MODAL
+                            Role = HEADER INFORMATION
+                            Status = EDITABLE
+                        ================================================== */}
 
-                            <section className="px-5 py-7 sm:px-7 sm:py-8 lg:px-9 lg:py-9">
-                                <SectionHeader
-                                    number="01"
-                                    title="Personal information"
-                                    description={
-                                        isEdit
-                                            ? 'Update the basic information used to identify and contact this account.'
-                                            : 'Basic details used to identify and contact this account.'
-                                    }
-                                />
+                        {isEdit ? (
+                            <div className="grid lg:grid-cols-[1.18fr_0.82fr]">
+                                {/* PERSONAL INFORMATION */}
 
-                                <div className="grid gap-5 sm:grid-cols-2 sm:gap-6">
-                                    {/* FULL NAME */}
-
-                                    <TextField
-                                        id="user-form-name"
-                                        name="name"
-                                        label="Full name"
-                                        icon={UserRound}
-                                        value={form.name}
-                                        onChange={handleChange}
-                                        placeholder="Enter full name"
-                                        disabled={loading}
-                                        autoComplete="name"
-                                        fieldErrors={fieldErrors}
-                                        required
+                                <section className="px-5 py-7 sm:px-7 sm:py-8 lg:px-8 lg:py-8">
+                                    <SectionTitle
+                                        number="01"
+                                        title="Personal information"
                                     />
 
-                                    {/* EMAIL */}
-
-                                    <TextField
-                                        id="user-form-email"
-                                        name="email"
-                                        label="Email address"
-                                        icon={Mail}
-                                        type="email"
-                                        value={form.email}
-                                        onChange={handleChange}
-                                        placeholder="Enter email address"
-                                        disabled={loading}
-                                        autoComplete="email"
-                                        fieldErrors={fieldErrors}
-                                        required
-                                    />
-
-                                    {/* PHONE */}
-
-                                    <div className="sm:col-span-2">
+                                    <div className="grid gap-x-5 gap-y-5 sm:grid-cols-2">
                                         <TextField
-                                            id="user-form-phone"
-                                            name="phone"
-                                            label="Phone number"
-                                            icon={Phone}
-                                            type="tel"
-                                            value={form.phone}
+                                            id="user-form-name"
+                                            name="name"
+                                            label="Full name"
+                                            icon={UserRound}
+                                            value={form.name}
                                             onChange={handleChange}
-                                            onPhoneChange={handlePhoneChange}
-                                            placeholder="01XXXXXXXXX"
+                                            placeholder="Enter full name"
                                             disabled={loading}
-                                            autoComplete="tel"
+                                            autoComplete="name"
                                             fieldErrors={fieldErrors}
+                                            required
                                         />
+
+                                        <TextField
+                                            id="user-form-email"
+                                            name="email"
+                                            label="Email address"
+                                            icon={Mail}
+                                            type="email"
+                                            value={form.email}
+                                            onChange={handleChange}
+                                            placeholder="Enter email address"
+                                            disabled={loading}
+                                            autoComplete="email"
+                                            fieldErrors={fieldErrors}
+                                            required
+                                        />
+
+                                        <div className="sm:col-span-2">
+                                            <TextField
+                                                id="user-form-phone"
+                                                name="phone"
+                                                label="Phone number"
+                                                icon={Phone}
+                                                type="tel"
+                                                value={form.phone}
+                                                onChange={handleChange}
+                                                onPhoneChange={
+                                                    handlePhoneChange
+                                                }
+                                                placeholder="01XXXXXXXXX"
+                                                disabled={loading}
+                                                autoComplete="tel"
+                                                fieldErrors={fieldErrors}
+                                            />
+                                        </div>
                                     </div>
+                                </section>
 
-                                    {/* PASSWORD — CREATE ONLY */}
+                                {/* ACCOUNT ACCESS */}
 
-                                    {!isEdit && (
+                                <section
+                                    className="
+                                        border-t
+                                        border-border
+                                        bg-background-alt/35
+                                        px-5
+                                        py-7
+                                        sm:px-7
+                                        sm:py-8
+                                        lg:border-l
+                                        lg:border-t-0
+                                        lg:px-7
+                                        lg:py-8
+                                    "
+                                >
+                                    <SectionTitle
+                                        number="02"
+                                        title="Account access"
+                                    />
+
+                                    <div className="space-y-6">
+                                        {/* VERIFICATION METHOD */}
+
+                                        <div>
+                                            <FieldLabel required>
+                                                Verification method
+                                            </FieldLabel>
+
+                                            <AccountOptionList
+                                                options={VERIFICATION_OPTIONS}
+                                                value={form.verification_method}
+                                                onChange={(
+                                                    verification_method,
+                                                ) =>
+                                                    setForm((previous) => ({
+                                                        ...previous,
+                                                        verification_method,
+                                                    }))
+                                                }
+                                                disabled={loading}
+                                                fieldErrorName="verification_method"
+                                                fieldErrors={fieldErrors}
+                                            />
+                                        </div>
+
+                                        {/* STATUS */}
+
+                                        <div className="border-t border-border pt-6">
+                                            <div className="mb-2.5 flex min-w-0 items-center justify-between gap-3">
+                                                <label className="font-jost text-[11px] font-bold uppercase tracking-[0.055em] text-text-primary">
+                                                    Account status
+                                                </label>
+
+                                                <span className="font-jost text-[10px] font-medium text-primary">
+                                                    Editable
+                                                </span>
+                                            </div>
+
+                                            <AccountOptionList
+                                                options={STATUS_OPTIONS}
+                                                value={form.status}
+                                                onChange={(status) =>
+                                                    setForm((previous) => ({
+                                                        ...previous,
+                                                        status,
+                                                    }))
+                                                }
+                                                disabled={loading}
+                                                fieldErrorName="status"
+                                                fieldErrors={fieldErrors}
+                                            />
+                                        </div>
+                                    </div>
+                                </section>
+                            </div>
+                        ) : (
+                            /* ==================================================
+                                CREATE MODAL
+                                Status = HEADER INFORMATION
+                            ================================================== */
+
+                            <div className="grid lg:grid-cols-[1.18fr_0.82fr]">
+                                {/* PERSONAL INFORMATION */}
+
+                                <section className="px-5 py-7 sm:px-7 sm:py-8 lg:px-8 lg:py-8">
+                                    <SectionTitle
+                                        number="01"
+                                        title="Personal information"
+                                    />
+
+                                    <div className="grid gap-x-5 gap-y-5 sm:grid-cols-2">
+                                        <TextField
+                                            id="user-form-name"
+                                            name="name"
+                                            label="Full name"
+                                            icon={UserRound}
+                                            value={form.name}
+                                            onChange={handleChange}
+                                            placeholder="Enter full name"
+                                            disabled={loading}
+                                            autoComplete="name"
+                                            fieldErrors={fieldErrors}
+                                            required
+                                        />
+
+                                        <TextField
+                                            id="user-form-email"
+                                            name="email"
+                                            label="Email address"
+                                            icon={Mail}
+                                            type="email"
+                                            value={form.email}
+                                            onChange={handleChange}
+                                            placeholder="Enter email address"
+                                            disabled={loading}
+                                            autoComplete="email"
+                                            fieldErrors={fieldErrors}
+                                            required
+                                        />
+
+                                        <div className="sm:col-span-2">
+                                            <TextField
+                                                id="user-form-phone"
+                                                name="phone"
+                                                label="Phone number"
+                                                icon={Phone}
+                                                type="tel"
+                                                value={form.phone}
+                                                onChange={handleChange}
+                                                onPhoneChange={
+                                                    handlePhoneChange
+                                                }
+                                                placeholder="01XXXXXXXXX"
+                                                disabled={loading}
+                                                autoComplete="tel"
+                                                fieldErrors={fieldErrors}
+                                            />
+                                        </div>
+
                                         <div className="sm:col-span-2">
                                             <TextField
                                                 id="user-form-password"
@@ -1020,88 +915,41 @@ const FormModalContent = ({
                                                 required
                                             />
                                         </div>
-                                    )}
-                                </div>
-
-                                {/* CREATE SECURITY NOTE */}
-
-                                {!isEdit && (
-                                    <div className="mt-7 border-t border-border pt-5 sm:mt-8">
-                                        <div className="flex items-start gap-3">
-                                            <span className="flex h-8 w-8 shrink-0 items-center justify-center bg-background-alt text-text-secondary">
-                                                <LockKeyhole
-                                                    size={15}
-                                                    strokeWidth={1.7}
-                                                />
-                                            </span>
-
-                                            <div className="min-w-0">
-                                                <p className="font-jost text-[12px] font-semibold text-text-primary">
-                                                    Password protection
-                                                </p>
-
-                                                <p className="mt-1 max-w-lg font-jost text-[11px] leading-[1.6] text-text-secondary">
-                                                    Use a strong password to
-                                                    protect this account.
-                                                </p>
-                                            </div>
-                                        </div>
                                     </div>
-                                )}
+                                </section>
 
-                                {/* EDIT PERMISSION NOTE */}
+                                {/* ACCOUNT ACCESS */}
 
-                                {isEdit && (
-                                    <div className="mt-7 border-t border-border pt-5 sm:mt-8">
-                                        <div className="flex items-start gap-3">
-                                            <span className="flex h-8 w-8 shrink-0 items-center justify-center bg-background-alt text-text-secondary">
-                                                <ShieldCheck
-                                                    size={15}
-                                                    strokeWidth={1.7}
-                                                />
-                                            </span>
+                                <section
+                                    className="
+                                        border-t
+                                        border-border
+                                        bg-background-alt/35
+                                        px-5
+                                        py-7
+                                        sm:px-7
+                                        sm:py-8
+                                        lg:border-l
+                                        lg:border-t-0
+                                        lg:px-7
+                                        lg:py-8
+                                    "
+                                >
+                                    <SectionTitle
+                                        number="02"
+                                        title="Account access"
+                                    />
 
-                                            <div className="min-w-0">
-                                                <p className="font-jost text-[12px] font-semibold text-text-primary">
-                                                    Edit permissions
-                                                </p>
+                                    <div className="space-y-6">
+                                        {/* ACCOUNT ROLE */}
 
-                                                <p className="mt-1 max-w-lg font-jost text-[11px] leading-[1.6] text-text-secondary">
-                                                    Only name, email, phone,
-                                                    account status, and
-                                                    verification method can be
-                                                    changed. Role and password
-                                                    remain unchanged.
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                            </section>
+                                        <div>
+                                            <FieldLabel required>
+                                                Account role
+                                            </FieldLabel>
 
-                            {/* =================================================
-                                ACCOUNT ACCESS
-                            ================================================== */}
-
-                            <section className="border-t border-border bg-background-alt/30 px-5 py-7 sm:px-7 sm:py-8 lg:border-l lg:border-t-0 lg:px-9 lg:py-9">
-                                <SectionHeader
-                                    number="02"
-                                    title="Account access"
-                                    description={
-                                        isEdit
-                                            ? 'Manage the verification method and current platform access status for this account.'
-                                            : 'Choose the account role and how this new account will be verified.'
-                                    }
-                                />
-
-                                <div className="space-y-6 sm:space-y-7">
-                                    {/* =================================================
-                                        CREATE MODE
-                                    ================================================== */}
-
-                                    {!isEdit && (
-                                        <>
-                                            <RoleSelector
+                                            <AccountOptionList
+                                                options={ROLE_OPTIONS}
                                                 value={form.role}
                                                 onChange={(role) =>
                                                     setForm((previous) => ({
@@ -1110,200 +958,88 @@ const FormModalContent = ({
                                                     }))
                                                 }
                                                 disabled={loading}
+                                                fieldErrorName="role"
                                                 fieldErrors={fieldErrors}
                                             />
-
-                                            <div className="border-t border-border pt-6 sm:pt-7">
-                                                <VerificationSelector
-                                                    value={
-                                                        form.verification_method
-                                                    }
-                                                    onChange={(
-                                                        verification_method,
-                                                    ) =>
-                                                        setForm((previous) => ({
-                                                            ...previous,
-                                                            verification_method,
-                                                        }))
-                                                    }
-                                                    disabled={loading}
-                                                    fieldErrors={fieldErrors}
-                                                />
-                                            </div>
-                                        </>
-                                    )}
-
-                                    {/* =================================================
-                                        EDIT MODE
-
-                                        Role = READ ONLY
-                                        Verification = EDITABLE
-                                        Status = EDITABLE
-                                    ================================================== */}
-
-                                    {isEdit && (
-                                        <>
-                                            {/* ROLE — READ ONLY */}
-
-                                            <div className="border border-border bg-surface px-4">
-                                                <ReadOnlyAccountDetail
-                                                    label="Account role"
-                                                    value={getRoleLabel(
-                                                        form.role,
-                                                    )}
-                                                    icon={ShieldCheck}
-                                                />
-                                            </div>
-
-                                            {/* VERIFICATION METHOD — EDITABLE */}
-
-                                            <div className="border-t border-border pt-6 sm:pt-7">
-                                                <VerificationSelector
-                                                    value={
-                                                        form.verification_method
-                                                    }
-                                                    onChange={(
-                                                        verification_method,
-                                                    ) =>
-                                                        setForm((previous) => ({
-                                                            ...previous,
-                                                            verification_method,
-                                                        }))
-                                                    }
-                                                    disabled={loading}
-                                                    fieldErrors={fieldErrors}
-                                                />
-                                            </div>
-
-                                            {/* STATUS — EDITABLE */}
-
-                                            <div className="border-t border-border pt-6 sm:pt-7">
-                                                <StatusSelector
-                                                    value={form.status}
-                                                    onChange={(status) =>
-                                                        setForm((previous) => ({
-                                                            ...previous,
-                                                            status,
-                                                        }))
-                                                    }
-                                                    disabled={loading}
-                                                    fieldErrors={fieldErrors}
-                                                />
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
-
-                                {/* =================================================
-                                    ACCESS SUMMARY
-                                ================================================== */}
-
-                                <div className="mt-6 border-t border-border pt-5 sm:mt-7 sm:pt-6">
-                                    <div className="flex min-w-0 items-center justify-between gap-4">
-                                        <div className="flex min-w-0 items-center gap-2.5">
-                                            <ShieldCheck
-                                                size={16}
-                                                strokeWidth={1.7}
-                                                className="shrink-0 text-primary"
-                                            />
-
-                                            <span className="font-jost text-[11px] font-semibold text-text-primary">
-                                                Access level
-                                            </span>
                                         </div>
 
-                                        <span className="truncate font-jost text-[11px] font-semibold text-primary">
-                                            {getRoleLabel(form.role)}
-                                        </span>
-                                    </div>
+                                        {/* VERIFICATION METHOD */}
 
-                                    <div className="mt-3 h-px bg-border" />
+                                        <div className="border-t border-border pt-6">
+                                            <FieldLabel required>
+                                                Verification method
+                                            </FieldLabel>
 
-                                    <div className="mt-3 flex min-w-0 items-center justify-between gap-4">
-                                        <span className="font-jost text-[11px] text-text-secondary">
-                                            Verification
-                                        </span>
-
-                                        <span className="truncate font-jost text-[11px] font-semibold text-text-primary">
-                                            {getVerificationLabel(
-                                                form.verification_method,
-                                            )}
-                                        </span>
-                                    </div>
-
-                                    <div className="mt-3 h-px bg-border" />
-
-                                    <div className="mt-3 flex min-w-0 items-center justify-between gap-4">
-                                        <span className="font-jost text-[11px] text-text-secondary">
-                                            Account status
-                                        </span>
-
-                                        <span
-                                            className={`
-                                                truncate font-jost text-[11px] font-semibold
-                                                ${
-                                                    isEdit
-                                                        ? 'text-primary'
-                                                        : 'text-text-primary'
+                                            <AccountOptionList
+                                                options={VERIFICATION_OPTIONS}
+                                                value={form.verification_method}
+                                                onChange={(
+                                                    verification_method,
+                                                ) =>
+                                                    setForm((previous) => ({
+                                                        ...previous,
+                                                        verification_method,
+                                                    }))
                                                 }
-                                            `}
-                                        >
-                                            {getStatusLabel(form.status)}
-                                        </span>
+                                                disabled={loading}
+                                                fieldErrorName="verification_method"
+                                                fieldErrors={fieldErrors}
+                                            />
+                                        </div>
                                     </div>
-                                </div>
-                            </section>
-                        </div>
+                                </section>
+                            </div>
+                        )}
                     </div>
 
-                    {/* =================================================
+                    {/* ==================================================
                         FOOTER
                     ================================================== */}
 
                     <footer
                         className="
-                            flex shrink-0
-                            flex-col gap-3
-                            border-t border-border
+                            flex
+                            shrink-0
+                            items-center
+                            justify-between
+                            gap-3
+                            border-t
+                            border-border
                             bg-surface
-                            px-5 py-3.5
-                            sm:flex-row sm:items-center sm:justify-between
-                            sm:gap-4 sm:px-7 sm:py-4
-                            lg:px-9
+                            px-5
+                            py-3.5
+                            sm:px-7
+                            lg:px-8
                         "
                     >
-                        <div className="hidden min-w-0 items-center gap-2 sm:flex">
-                            <span className="h-1.5 w-1.5 shrink-0 bg-primary" />
-
-                            <p className="truncate font-jost text-[11px] font-medium text-text-secondary">
+                        <div className="hidden sm:block">
+                            <p className="font-jost text-[10px] font-medium text-text-secondary">
                                 {isEdit
-                                    ? 'Review the five editable fields before saving.'
-                                    : 'Review the details before creating this account.'}
+                                    ? 'Changes will update this account.'
+                                    : 'Review the information before creating the account.'}
                             </p>
                         </div>
 
-                        <div className="flex w-full items-center gap-2.5 sm:ml-auto sm:w-auto sm:gap-3">
+                        <div className="ml-auto flex items-center gap-2.5">
                             <button
                                 type="button"
                                 onClick={onClose}
                                 disabled={loading}
                                 className="
-                                    h-11
-                                    flex-1
-                                    border border-border
+                                    h-10
+                                    border
+                                    border-border
                                     bg-surface
                                     px-4
                                     font-jost
-                                    text-[12px]
+                                    text-[11px]
                                     font-semibold
                                     text-text-primary
-                                    transition-colors
+                                    transition-all
                                     hover:border-slate-300
                                     hover:bg-background-alt
                                     disabled:cursor-not-allowed
                                     disabled:opacity-50
-                                    sm:flex-none
-                                    sm:px-5
                                 "
                             >
                                 Cancel
@@ -1314,24 +1050,22 @@ const FormModalContent = ({
                                 disabled={loading}
                                 className="
                                     inline-flex
-                                    h-11
-                                    flex-1
+                                    h-10
+                                    min-w-32
                                     items-center
                                     justify-center
                                     gap-2
                                     bg-primary
                                     px-4
                                     font-jost
-                                    text-[12px]
+                                    text-[11px]
                                     font-bold
                                     text-white
-                                    transition-colors
+                                    shadow-sm
+                                    transition-all
                                     hover:bg-primary-hover
                                     disabled:cursor-not-allowed
                                     disabled:opacity-60
-                                    sm:min-w-37.5
-                                    sm:flex-none
-                                    sm:px-5
                                 "
                             >
                                 {loading ? (
@@ -1342,12 +1076,12 @@ const FormModalContent = ({
                                     <>
                                         {isEdit ? (
                                             <CircleCheck
-                                                size={16}
+                                                size={15}
                                                 strokeWidth={1.9}
                                             />
                                         ) : (
                                             <UserPlus
-                                                size={16}
+                                                size={15}
                                                 strokeWidth={1.9}
                                             />
                                         )}

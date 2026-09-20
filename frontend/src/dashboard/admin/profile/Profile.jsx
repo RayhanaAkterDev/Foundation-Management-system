@@ -512,12 +512,12 @@ const Profile = () => {
             {/* Email Change Confirmation Modal */}
             {showEmailChangeModal && (
                 <div
-                    className="fixed inset-0 z-[100] flex items-center justify-center bg-[#0f172a]/45 px-4 backdrop-blur-[3px]"
+                    className="fixed inset-0 z-100 flex items-center justify-center bg-text-primary/45 px-4 backdrop-blur-[3px]"
                     role="dialog"
                     aria-modal="true"
                     aria-labelledby="email-change-title"
                 >
-                    <div className="relative w-full max-w-[470px] overflow-hidden bg-white shadow-[0_20px_60px_rgba(15,23,42,0.18)]">
+                    <div className="relative w-full max-w-117.5 overflow-hidden bg-white shadow-[0_20px_60px_rgba(15,23,42,0.18)]">
                         {/* Close */}
                         <button
                             type="button"

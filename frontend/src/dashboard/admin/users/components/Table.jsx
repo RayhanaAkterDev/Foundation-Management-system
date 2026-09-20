@@ -27,14 +27,14 @@ const Table = ({
         .filter((column) => column.key !== 'email')
         .map((column) => {
             /* =================================================
-               USER
+               NAME
             ================================================= */
             if (column.key === 'name') {
                 return {
                     ...column,
 
                     render: (value, row) => (
-                        <div className="min-w-0 max-w-[clamp(170px,20vw,280px)]">
+                        <div className="min-w-0 max-w-[260px]">
                             <p
                                 className="
                                     truncate
@@ -76,7 +76,7 @@ const Table = ({
                         const isAdmin = value === 'admin';
 
                         return (
-                            <div className="flex min-w-[110px] items-center gap-2">
+                            <div className="flex items-center gap-2 whitespace-nowrap">
                                 <ShieldCheck
                                     size={15}
                                     strokeWidth={1.8}
@@ -87,15 +87,7 @@ const Table = ({
                                     }
                                 />
 
-                                <span
-                                    className="
-                                        truncate
-                                        text-[12px]
-                                        font-medium
-                                        capitalize
-                                        text-text-primary
-                                    "
-                                >
+                                <span className="text-[12px] font-medium capitalize text-text-primary">
                                     {isAdmin ? 'Administrator' : value || '—'}
                                 </span>
                             </div>
@@ -127,27 +119,13 @@ const Table = ({
                     ...column,
 
                     render: (value) => (
-                        <div className="min-w-[90px]">
-                            <p
-                                className="
-                                    whitespace-nowrap
-                                    text-[12px]
-                                    font-medium
-                                    leading-5
-                                    text-text-primary
-                                "
-                            >
+                        <div className="whitespace-nowrap">
+                            <p className="text-[12px] font-medium leading-5 text-text-primary">
                                 {value || '—'}
                             </p>
 
                             {value && (
-                                <p
-                                    className="
-                                        text-[10px]
-                                        leading-4
-                                        text-text-secondary
-                                    "
-                                >
+                                <p className="text-[10px] leading-4 text-text-secondary">
                                     Joined
                                 </p>
                             )}
@@ -229,15 +207,7 @@ const Table = ({
                                         {isVerified ? 'Verified' : 'Unverified'}
                                     </p>
 
-                                    <p
-                                        className="
-                                            mt-0.5
-                                            truncate
-                                            text-[10px]
-                                            leading-4
-                                            text-text-secondary
-                                        "
-                                    >
+                                    <p className="mt-0.5 truncate text-[10px] leading-4 text-text-secondary">
                                         {isVerified
                                             ? methodLabel || 'Email'
                                             : methodLabel ||
@@ -251,20 +221,22 @@ const Table = ({
             }
 
             /* =================================================
-               ACTIONS
+               ACTIONS — ICON ONLY
             ================================================= */
             if (column.key === 'actions') {
                 return {
                     ...column,
 
                     render: (_, row) => (
-                        <div className="flex items-center justify-end gap-0.5">
+                        <div className="flex items-center justify-end gap-1">
+                            {/* View */}
                             <button
                                 type="button"
                                 onClick={() => onView(row.id)}
                                 title="View user"
                                 aria-label="View user"
                                 className="
+                                    group
                                     flex
                                     h-8
                                     w-8
@@ -272,24 +244,34 @@ const Table = ({
                                     items-center
                                     justify-center
                                     rounded-md
+                                    border
+                                    border-transparent
                                     text-text-secondary
-                                    transition-colors
-                                    hover:bg-primary/8
+                                    transition-all
+                                    duration-150
+                                    hover:border-border
+                                    hover:bg-background-alt
                                     hover:text-primary
                                     focus:outline-none
                                     focus:ring-2
                                     focus:ring-primary/20
                                 "
                             >
-                                <Eye size={15} strokeWidth={1.8} />
+                                <Eye
+                                    size={16}
+                                    strokeWidth={1.8}
+                                    className="transition-transform duration-150 group-hover:scale-105"
+                                />
                             </button>
 
+                            {/* Edit */}
                             <button
                                 type="button"
                                 onClick={() => onEdit(row.id)}
                                 title="Edit user"
                                 aria-label="Edit user"
                                 className="
+                                    group
                                     flex
                                     h-8
                                     w-8
@@ -297,24 +279,34 @@ const Table = ({
                                     items-center
                                     justify-center
                                     rounded-md
+                                    border
+                                    border-transparent
                                     text-text-secondary
-                                    transition-colors
-                                    hover:bg-primary/8
+                                    transition-all
+                                    duration-150
+                                    hover:border-border
+                                    hover:bg-background-alt
                                     hover:text-primary
                                     focus:outline-none
                                     focus:ring-2
                                     focus:ring-primary/20
                                 "
                             >
-                                <Pencil size={15} strokeWidth={1.8} />
+                                <Pencil
+                                    size={15}
+                                    strokeWidth={1.8}
+                                    className="transition-transform duration-150 group-hover:scale-105"
+                                />
                             </button>
 
+                            {/* Delete */}
                             <button
                                 type="button"
                                 onClick={() => onDelete(row)}
                                 title="Delete user"
                                 aria-label="Delete user"
                                 className="
+                                    group
                                     flex
                                     h-8
                                     w-8
@@ -322,8 +314,12 @@ const Table = ({
                                     items-center
                                     justify-center
                                     rounded-md
+                                    border
+                                    border-transparent
                                     text-text-secondary
-                                    transition-colors
+                                    transition-all
+                                    duration-150
+                                    hover:border-red-100
                                     hover:bg-red-50
                                     hover:text-red-600
                                     focus:outline-none
@@ -331,7 +327,11 @@ const Table = ({
                                     focus:ring-red-200
                                 "
                             >
-                                <Trash2 size={15} strokeWidth={1.8} />
+                                <Trash2
+                                    size={15}
+                                    strokeWidth={1.8}
+                                    className="transition-transform duration-150 group-hover:scale-105"
+                                />
                             </button>
                         </div>
                     ),

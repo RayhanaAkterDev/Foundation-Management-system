@@ -305,6 +305,14 @@ class AuthController extends Controller
 
             if (!$user->verification_email_sent_at) {
                 try {
+                    \Illuminate\Support\Facades\Log::info('MAIL BEFORE VERIFICATION', [
+                        'default' => config('mail.default'),
+                        'host' => config('mail.mailers.smtp.host'),
+                        'port' => config('mail.mailers.smtp.port'),
+                        'scheme' => config('mail.mailers.smtp.scheme'),
+                        'url' => config('mail.mailers.smtp.url'),
+                    ]);
+
                     $user->sendEmailVerificationNotification();
 
                     $user->verification_email_sent_at = now();

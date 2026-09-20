@@ -316,6 +316,13 @@ class AuthController extends Controller
                         'message' => 'Failed to send verification email.',
                         'error' => $e->getMessage(),
                         'exception' => get_class($e),
+                        'mail_config' => [
+                            'default' => config('mail.default'),
+                            'smtp_host' => config('mail.mailers.smtp.host'),
+                            'smtp_port' => config('mail.mailers.smtp.port'),
+                            'smtp_scheme' => config('mail.mailers.smtp.scheme'),
+                            'smtp_url' => config('mail.mailers.smtp.url'),
+                        ],
                     ], 500);
                 }
             }

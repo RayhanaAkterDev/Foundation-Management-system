@@ -615,12 +615,12 @@ const Users = () => {
             sortable: true,
             sortKey: 'status',
         },
-        {
-            key: 'joinedDate',
-            header: 'Joined',
-            sortable: true,
-            sortKey: 'created_at',
-        },
+        // {
+        //     key: 'joinedDate',
+        //     header: 'Joined',
+        //     sortable: true,
+        //     sortKey: 'created_at',
+        // },
         {
             key: 'actions',
             header: 'Actions',

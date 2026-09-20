@@ -77,18 +77,18 @@ const Table = ({
                 };
             }
 
-            if (column.key === 'joinedDate') {
-                return {
-                    ...column,
-                    render: (value) => (
-                        <div className="whitespace-nowrap">
-                            <p className="text-[12px] font-medium leading-5 text-text-primary">
-                                {value || '—'}
-                            </p>
-                        </div>
-                    ),
-                };
-            }
+            // if (column.key === 'joinedDate') {
+            //     return {
+            //         ...column,
+            //         render: (value) => (
+            //             <div className="whitespace-nowrap">
+            //                 <p className="text-[12px] font-medium leading-5 text-text-primary">
+            //                     {value || '—'}
+            //                 </p>
+            //             </div>
+            //         ),
+            //     };
+            // }
 
             if (
                 column.key === 'emailVerification' ||

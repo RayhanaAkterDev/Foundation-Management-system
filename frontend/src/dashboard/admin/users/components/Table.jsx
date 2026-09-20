@@ -4,7 +4,14 @@ import DataTable from '@/components/dashboard/DataTable';
 
 import StatusBadge from '@/components/dashboard/StatusBadge';
 
-import { Users, Eye, Pencil, Trash2 } from 'lucide-react';
+import {
+    Users,
+    Eye,
+    Pencil,
+    Trash2,
+    CheckCircle2,
+    CircleAlert,
+} from 'lucide-react';
 
 const Table = ({
     columns,
@@ -105,7 +112,9 @@ const Table = ({
                                 text-text-secondary
                             "
                         >
-                            {value === 'admin' ? 'Administrator' : value || '—'}
+                            {value === 'admin'
+                                ? 'Administrator'
+                                : value || '—'}
                         </span>
                     ),
                 };
@@ -128,6 +137,109 @@ const Table = ({
                             {value || '—'}
                         </span>
                     ),
+                };
+            }
+
+            /*
+             * Email verification
+             *
+             * Supports:
+             * - email_verified_at
+             * - emailVerifiedAt
+             * - email_verified
+             * - emailVerified
+             *
+             * Verification method is read from:
+             * - verification_method
+             * - verificationMethod
+             */
+            if (
+                column.key === 'emailVerification' ||
+                column.key === 'email_verified_at' ||
+                column.key === 'emailVerified'
+            ) {
+                return {
+                    ...column,
+
+                    render: (_, row) => {
+                        const verifiedAt =
+                            row.email_verified_at ??
+                            row.emailVerifiedAt ??
+                            null;
+
+                        const verifiedValue =
+                            row.email_verified ??
+                            row.emailVerified ??
+                            null;
+
+                        const isVerified =
+                            Boolean(verifiedAt) ||
+                            verifiedValue === true ||
+                            verifiedValue === 1 ||
+                            verifiedValue === '1' ||
+                            verifiedValue === 'verified';
+
+                        const method =
+                            row.verification_method ??
+                            row.verificationMethod ??
+                            null;
+
+                        const methodLabel = method
+                            ? String(method)
+                                  .replace(/_/g, ' ')
+                                  .replace(/\b\w/g, (char) =>
+                                      char.toUpperCase(),
+                                  )
+                            : null;
+
+                        return (
+                            <div className="flex items-center gap-2.5">
+                                {isVerified ? (
+                                    <CheckCircle2
+                                        size={17}
+                                        strokeWidth={2}
+                                        className="shrink-0 text-emerald-600"
+                                    />
+                                ) : (
+                                    <CircleAlert
+                                        size={17}
+                                        strokeWidth={2}
+                                        className="shrink-0 text-amber-500"
+                                    />
+                                )}
+
+                                <div className="min-w-0">
+                                    <p
+                                        className={`
+                                            text-sm
+                                            font-semibold
+                                            ${
+                                                isVerified
+                                                    ? 'text-emerald-700'
+                                                    : 'text-amber-700'
+                                            }
+                                        `}
+                                    >
+                                        {isVerified
+                                            ? 'Verified'
+                                            : 'Unverified'}
+                                    </p>
+
+                                    <p
+                                        className="
+                                            mt-0.5
+                                            text-[11px]
+                                            text-text-secondary
+                                        "
+                                    >
+                                        {isVerified
+                                            ? methodLabel || 'Email'
+                                            : methodLabel || 'Not verified'}
+                                    </p>
+                                </div>
+                            </div>
+                        );
+                    },
                 };
             }
 

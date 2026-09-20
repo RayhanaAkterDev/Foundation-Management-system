@@ -598,12 +598,6 @@ const Users = () => {
             sortKey: 'name',
         },
         {
-            key: 'email',
-            header: 'Email',
-            sortable: true,
-            sortKey: 'email',
-        },
-        {
             key: 'role',
             header: 'Role',
             sortable: true,
@@ -622,40 +616,18 @@ const Users = () => {
             sortKey: 'status',
         },
         {
-            key: 'id',
+            key: 'joinedDate',
+            header: 'Joined',
+            sortable: true,
+            sortKey: 'created_at',
+        },
+        {
+            key: 'actions',
             header: 'Actions',
             align: 'right',
-
-            render: (_, row) => (
-                <div className="flex items-center justify-end gap-4">
-                    <button
-                        type="button"
-                        onClick={() => handleViewUser(row.id)}
-                        className="text-xs font-semibold text-primary transition-colors hover:text-primary-hover"
-                    >
-                        View
-                    </button>
-
-                    <button
-                        type="button"
-                        onClick={() => openEditModal(row.id)}
-                        className="text-xs font-semibold text-text-secondary transition-colors hover:text-primary"
-                    >
-                        Edit
-                    </button>
-
-                    <button
-                        type="button"
-                        onClick={() => openDeleteModal(row)}
-                        className="text-xs font-semibold text-red-600 transition-colors hover:text-red-700"
-                    >
-                        Delete
-                    </button>
-                </div>
-            ),
+            width: '110px',
         },
     ];
-
     // --------------------------------
     // Loading
     // --------------------------------

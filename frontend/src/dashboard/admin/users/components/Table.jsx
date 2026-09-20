@@ -85,12 +85,6 @@ const Table = ({
                             <p className="text-[12px] font-medium leading-5 text-text-primary">
                                 {value || '—'}
                             </p>
-
-                            {value && (
-                                <p className="text-[10px] leading-4 text-text-secondary">
-                                    Joined
-                                </p>
-                            )}
                         </div>
                     ),
                 };
@@ -183,65 +177,101 @@ const Table = ({
                     ...column,
 
                     render: (_, row) => (
-                        <div className="flex items-center justify-end gap-0.5">
+                        <div className="flex items-center justify-end gap-1">
+                            {/* View */}
                             <button
                                 type="button"
                                 onClick={() => onView(row.id)}
                                 title="View"
                                 aria-label="View"
                                 className="
-                                    flex h-8 w-8 shrink-0 items-center
-                                    justify-center rounded-md
-                                    text-text-secondary
-                                    transition-colors
-                                    hover:bg-primary/8
-                                    hover:text-primary
-                                    focus:outline-none
-                                    focus:ring-2
-                                    focus:ring-primary/20
-                                "
+        group
+        flex
+        h-8
+        w-8
+        shrink-0
+        items-center
+        justify-center
+        rounded-md
+        text-emerald-500
+        transition-all
+        duration-150
+        hover:bg-emerald-100
+        hover:text-emerald-700
+        focus:outline-none
+        focus:ring-2
+        focus:ring-emerald-200
+    "
                             >
-                                <Eye size={16} strokeWidth={1.8} />
+                                <Eye
+                                    size={16}
+                                    strokeWidth={1.8}
+                                    className="transition-transform duration-150 group-hover:scale-105"
+                                />
                             </button>
 
+                            {/* Edit */}
                             <button
                                 type="button"
                                 onClick={() => onEdit(row.id)}
                                 title="Edit"
                                 aria-label="Edit"
                                 className="
-                                    flex h-8 w-8 shrink-0 items-center
-                                    justify-center rounded-md
-                                    text-text-secondary
-                                    transition-colors
-                                    hover:bg-primary/8
-                                    hover:text-primary
-                                    focus:outline-none
-                                    focus:ring-2
-                                    focus:ring-primary/20
-                                "
+        group
+        flex
+        h-8
+        w-8
+        shrink-0
+        items-center
+        justify-center
+        rounded-md
+        text-cyan-600
+        transition-all
+        duration-150
+        hover:bg-cyan-50
+        hover:text-cyan-700
+        focus:outline-none
+        focus:ring-2
+        focus:ring-cyan-200
+    "
                             >
-                                <Pencil size={15} strokeWidth={1.8} />
+                                <Pencil
+                                    size={15}
+                                    strokeWidth={1.8}
+                                    className="transition-transform duration-150 group-hover:scale-105"
+                                />
                             </button>
 
+                            {/* Delete */}
                             <button
                                 type="button"
                                 onClick={() => onDelete(row)}
                                 title="Delete"
                                 aria-label="Delete"
                                 className="
-                                    flex h-8 w-8 shrink-0 items-center
-                                    justify-center rounded-md
-                                    text-text-secondary
-                                    transition-colors
-                                    hover:bg-red-50
-                                    hover:text-red-600
-                                    focus:outline-none
-                                    focus:ring-2
-                                    focus:ring-red-200
-                                "
+        group
+        flex
+        h-8
+        w-8
+        shrink-0
+        items-center
+        justify-center
+        rounded-md
+        text-rose-500
+        transition-all
+        duration-150
+        hover:bg-rose-50
+        hover:text-rose-600
+        focus:outline-none
+        focus:ring-2
+        focus:ring-rose-200
+    "
                             >
-                                <Trash2 size={15} strokeWidth={1.8} />
+                                <Trash2
+                                    size={15}
+                                    strokeWidth={1.8}
+                                    className="transition-transform duration-150 group-hover:scale-105"
+                                />
                             </button>
                         </div>
                     ),

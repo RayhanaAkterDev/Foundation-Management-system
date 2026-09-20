@@ -26,37 +26,17 @@ const Table = ({
     const enhancedColumns = columns
         .filter((column) => column.key !== 'email')
         .map((column) => {
-            /* =================================================
-               NAME
-            ================================================= */
             if (column.key === 'name') {
                 return {
                     ...column,
-
                     render: (value, row) => (
                         <div className="min-w-0 max-w-[260px]">
-                            <p
-                                className="
-                                    truncate
-                                    text-[13px]
-                                    font-semibold
-                                    leading-5
-                                    text-text-primary
-                                "
-                            >
+                            <p className="truncate text-[13px] font-semibold leading-5 text-text-primary">
                                 {value || 'Unnamed user'}
                             </p>
 
                             {row.email && (
-                                <p
-                                    className="
-                                        mt-0.5
-                                        truncate
-                                        text-[11px]
-                                        leading-4
-                                        text-text-secondary
-                                    "
-                                >
+                                <p className="mt-0.5 truncate text-[11px] leading-4 text-text-secondary">
                                     {row.email}
                                 </p>
                             )}
@@ -65,44 +45,30 @@ const Table = ({
                 };
             }
 
-            /* =================================================
-               ROLE
-            ================================================= */
             if (column.key === 'role') {
                 return {
                     ...column,
+                    render: (value) => (
+                        <div className="flex items-center gap-2 whitespace-nowrap">
+                            <ShieldCheck
+                                size={15}
+                                strokeWidth={1.8}
+                                className="shrink-0 text-text-secondary"
+                            />
 
-                    render: (value) => {
-                        const isAdmin = value === 'admin';
-
-                        return (
-                            <div className="flex items-center gap-2 whitespace-nowrap">
-                                <ShieldCheck
-                                    size={15}
-                                    strokeWidth={1.8}
-                                    className={
-                                        isAdmin
-                                            ? 'shrink-0 text-primary'
-                                            : 'shrink-0 text-text-secondary'
-                                    }
-                                />
-
-                                <span className="text-[12px] font-medium capitalize text-text-primary">
-                                    {isAdmin ? 'Administrator' : value || '—'}
-                                </span>
-                            </div>
-                        );
-                    },
+                            <span className="text-[12px] font-medium capitalize text-text-primary">
+                                {value === 'admin'
+                                    ? 'Administrator'
+                                    : value || '—'}
+                            </span>
+                        </div>
+                    ),
                 };
             }
 
-            /* =================================================
-               STATUS
-            ================================================= */
             if (column.key === 'status') {
                 return {
                     ...column,
-
                     render: (value) => (
                         <div className="whitespace-nowrap">
                             <StatusBadge status={value} />
@@ -111,13 +77,9 @@ const Table = ({
                 };
             }
 
-            /* =================================================
-               JOINED DATE
-            ================================================= */
             if (column.key === 'joinedDate') {
                 return {
                     ...column,
-
                     render: (value) => (
                         <div className="whitespace-nowrap">
                             <p className="text-[12px] font-medium leading-5 text-text-primary">
@@ -134,9 +96,6 @@ const Table = ({
                 };
             }
 
-            /* =================================================
-               EMAIL VERIFICATION
-            ================================================= */
             if (
                 column.key === 'emailVerification' ||
                 column.key === 'email_verified_at' ||
@@ -144,7 +103,6 @@ const Table = ({
             ) {
                 return {
                     ...column,
-
                     render: (_, row) => {
                         const verifiedAt =
                             row.email_verified_at ??
@@ -220,106 +178,62 @@ const Table = ({
                 };
             }
 
-            /* =================================================
-               ACTIONS — ICON ONLY
-            ================================================= */
             if (column.key === 'actions') {
                 return {
                     ...column,
 
                     render: (_, row) => (
-                        <div className="flex items-center justify-end gap-1">
-                            {/* View */}
+                        <div className="flex items-center justify-end gap-0.5">
                             <button
                                 type="button"
                                 onClick={() => onView(row.id)}
-                                title="View user"
-                                aria-label="View user"
+                                title="View"
+                                aria-label="View"
                                 className="
-                                    group
-                                    flex
-                                    h-8
-                                    w-8
-                                    shrink-0
-                                    items-center
-                                    justify-center
-                                    rounded-md
-                                    border
-                                    border-transparent
+                                    flex h-8 w-8 shrink-0 items-center
+                                    justify-center rounded-md
                                     text-text-secondary
-                                    transition-all
-                                    duration-150
-                                    hover:border-border
-                                    hover:bg-background-alt
+                                    transition-colors
+                                    hover:bg-primary/8
                                     hover:text-primary
                                     focus:outline-none
                                     focus:ring-2
                                     focus:ring-primary/20
                                 "
                             >
-                                <Eye
-                                    size={16}
-                                    strokeWidth={1.8}
-                                    className="transition-transform duration-150 group-hover:scale-105"
-                                />
+                                <Eye size={16} strokeWidth={1.8} />
                             </button>
 
-                            {/* Edit */}
                             <button
                                 type="button"
                                 onClick={() => onEdit(row.id)}
-                                title="Edit user"
-                                aria-label="Edit user"
+                                title="Edit"
+                                aria-label="Edit"
                                 className="
-                                    group
-                                    flex
-                                    h-8
-                                    w-8
-                                    shrink-0
-                                    items-center
-                                    justify-center
-                                    rounded-md
-                                    border
-                                    border-transparent
+                                    flex h-8 w-8 shrink-0 items-center
+                                    justify-center rounded-md
                                     text-text-secondary
-                                    transition-all
-                                    duration-150
-                                    hover:border-border
-                                    hover:bg-background-alt
+                                    transition-colors
+                                    hover:bg-primary/8
                                     hover:text-primary
                                     focus:outline-none
                                     focus:ring-2
                                     focus:ring-primary/20
                                 "
                             >
-                                <Pencil
-                                    size={15}
-                                    strokeWidth={1.8}
-                                    className="transition-transform duration-150 group-hover:scale-105"
-                                />
+                                <Pencil size={15} strokeWidth={1.8} />
                             </button>
 
-                            {/* Delete */}
                             <button
                                 type="button"
                                 onClick={() => onDelete(row)}
-                                title="Delete user"
-                                aria-label="Delete user"
+                                title="Delete"
+                                aria-label="Delete"
                                 className="
-                                    group
-                                    flex
-                                    h-8
-                                    w-8
-                                    shrink-0
-                                    items-center
-                                    justify-center
-                                    rounded-md
-                                    border
-                                    border-transparent
+                                    flex h-8 w-8 shrink-0 items-center
+                                    justify-center rounded-md
                                     text-text-secondary
-                                    transition-all
-                                    duration-150
-                                    hover:border-red-100
+                                    transition-colors
                                     hover:bg-red-50
                                     hover:text-red-600
                                     focus:outline-none
@@ -327,11 +241,7 @@ const Table = ({
                                     focus:ring-red-200
                                 "
                             >
-                                <Trash2
-                                    size={15}
-                                    strokeWidth={1.8}
-                                    className="transition-transform duration-150 group-hover:scale-105"
-                                />
+                                <Trash2 size={15} strokeWidth={1.8} />
                             </button>
                         </div>
                     ),

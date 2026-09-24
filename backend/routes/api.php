@@ -186,6 +186,16 @@ Route::middleware('auth:sanctum')->group(function () {
         [VolunteerController::class, 'store']
     );
 
+    // Individual requests admin to reactivate an inactive
+// volunteer profile.
+//
+// This does NOT create another Volunteer record.
+
+Route::patch(
+    '/volunteer/reactivation',
+    [VolunteerController::class, 'requestReactivation']
+);
+
     // Get current volunteer profile / request state.
     Route::get(
         '/volunteer',

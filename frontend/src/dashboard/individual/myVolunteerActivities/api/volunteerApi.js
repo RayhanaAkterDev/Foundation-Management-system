@@ -10,6 +10,12 @@ export const sendVolunteerRequest = async () => {
   });
 };
 
+export const requestVolunteerReactivation = async () => {
+  return apiRequest("/volunteer/reactivation", {
+    method: "PATCH",
+  });
+};
+
 /*
 |--------------------------------------------------------------------------
 | Volunteer Requests
@@ -108,3 +114,5 @@ export const resignVolunteer = async () => {
     method: "PATCH",
   });
 };
+
+

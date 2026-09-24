@@ -24,6 +24,7 @@ import {
   rejectCampaignAssignment,
   rejectVolunteerRequest,
   requestCampaignWithdrawal,
+  requestVolunteerReactivation,
   resignVolunteer,
   sendVolunteerRequest,
   startCampaignAssignment,
@@ -259,8 +260,13 @@ const VolunteerStatusPanel = ({
   onAcceptRequest,
   onRejectRequest,
   onCancelRequest,
+  onRequestReactivation,
   onResign,
 }) => {
+  // ===========================================================
+  // NO VOLUNTEER PROFILE
+  // ===========================================================
+
   if (!volunteer) {
     const requestDirection = getRequestDirection(request);
     const pendingRequest = request?.status === "pending";
@@ -369,6 +375,10 @@ const VolunteerStatusPanel = ({
     );
   }
 
+  // ===========================================================
+  // EXISTING VOLUNTEER PROFILE
+  // ===========================================================
+
   const status = volunteer?.status || "inactive";
 
   const availability =
@@ -378,6 +388,15 @@ const VolunteerStatusPanel = ({
     volunteerStatusCopy[status] || volunteerStatusCopy.inactive;
 
   const isActiveVolunteer = status === "active";
+  const isInactiveVolunteer = status === "inactive";
+  const isSuspendedVolunteer = status === "suspended";
+
+  // A reactivation request is a pending request created by the
+  // volunteer themselves.
+  const hasPendingReactivationRequest =
+    isInactiveVolunteer &&
+    request?.status === "pending" &&
+    Number(request?.user_id) === Number(request?.requested_by);
 
   return (
     <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -400,46 +419,167 @@ const VolunteerStatusPanel = ({
           </div>
         </div>
 
-        <div
-          className={`inline-flex w-fit items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold ${
-            isActiveVolunteer && volunteer?.availability === "available"
-              ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-              : "border-slate-200 bg-slate-50 text-slate-600"
-          }`}>
-          <span
-            className={`h-2 w-2 rounded-full ${
-              isActiveVolunteer && volunteer?.availability === "available"
-                ? "bg-emerald-500"
-                : "bg-slate-400"
-            }`}
-          />
+        {isActiveVolunteer ? (
+          <div className="inline-flex w-fit items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-700">
+            <span className="h-2 w-2 rounded-full bg-emerald-500" />
 
-          {availability}
-        </div>
+            {availability}
+          </div>
+        ) : (
+          <div className="inline-flex w-fit items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-semibold text-slate-600">
+            <span className="h-2 w-2 rounded-full bg-slate-400" />
+
+            {availability}
+          </div>
+        )}
       </div>
 
       <div className="border-t border-slate-100 bg-slate-50/60 px-5 py-4 sm:px-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="max-w-2xl text-sm leading-6 text-slate-500">
-            {statusCopy.description}
+            {isInactiveVolunteer
+              ? hasPendingReactivationRequest
+                ? "Your reactivation request has been sent to the admin and is currently awaiting review."
+                : "Your previous volunteer profile is inactive. You can request admin approval to reactivate your volunteer account."
+              : isSuspendedVolunteer
+                ? "Your volunteer account has been suspended. You cannot request reactivation yourself."
+                : statusCopy.description}
           </p>
 
-          {isActiveVolunteer && (
-            <button
-              type="button"
-              disabled={actionLoading === "resign"}
-              onClick={onResign}
-              className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-600 transition hover:border-red-200 hover:bg-red-50 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50">
-              <LogOut className="mr-2 h-4 w-4" />
+          <div className="flex shrink-0 flex-wrap gap-2">
+            {/* ACTIVE VOLUNTEER */}
+            {isActiveVolunteer && (
+              <button
+                type="button"
+                disabled={actionLoading === "resign"}
+                onClick={onResign}
+                className="inline-flex min-h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-600 transition hover:border-red-200 hover:bg-red-50 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50">
+                <LogOut className="mr-2 h-4 w-4" />
 
-              {actionLoading === "resign"
-                ? "Resigning..."
-                : "Resign as Volunteer"}
-            </button>
-          )}
+                {actionLoading === "resign"
+                  ? "Resigning..."
+                  : "Resign as Volunteer"}
+              </button>
+            )}
+
+            {/* INACTIVE + NO PENDING REACTIVATION */}
+            {isInactiveVolunteer && !hasPendingReactivationRequest && (
+              <button
+                type="button"
+                disabled={actionLoading === "reactivation"}
+                onClick={onRequestReactivation}
+                className="inline-flex min-h-10 items-center justify-center rounded-xl bg-[#0f766e] px-5 text-sm font-semibold text-white transition hover:bg-[#115e59] disabled:cursor-not-allowed disabled:opacity-50">
+                <UserRound className="mr-2 h-4 w-4" />
+
+                {actionLoading === "reactivation"
+                  ? "Sending..."
+                  : "Request Reactivation"}
+              </button>
+            )}
+
+            {/* INACTIVE + PENDING REACTIVATION */}
+            {isInactiveVolunteer && hasPendingReactivationRequest && (
+              <>
+                <div className="inline-flex min-h-10 items-center justify-center rounded-xl border border-amber-200 bg-amber-50 px-4 text-sm font-semibold text-amber-700">
+                  <Clock3 className="mr-2 h-4 w-4" />
+                  Reactivation Pending
+                </div>
+
+                <button
+                  type="button"
+                  disabled={actionLoading === "request-cancel"}
+                  onClick={onCancelRequest}
+                  className="inline-flex min-h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-600 transition hover:border-red-200 hover:bg-red-50 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-50">
+                  <XCircle className="mr-2 h-4 w-4" />
+
+                  {actionLoading === "request-cancel"
+                    ? "Cancelling..."
+                    : "Cancel Request"}
+                </button>
+              </>
+            )}
+
+            {/* SUSPENDED */}
+            {isSuspendedVolunteer && (
+              <div className="inline-flex min-h-10 items-center justify-center rounded-xl border border-red-200 bg-red-50 px-4 text-sm font-semibold text-red-700">
+                <XCircle className="mr-2 h-4 w-4" />
+                Reactivation Unavailable
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </section>
+  );
+};
+
+// =============================================================
+// RESIGN CONFIRMATION MODAL
+// =============================================================
+
+const ResignConfirmationModal = ({ open, loading, onCancel, onConfirm }) => {
+  if (!open) {
+    return null;
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/45 px-4 py-6 backdrop-blur-[2px]"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="resign-modal-title">
+      <div className="w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl">
+        <div className="border-b border-slate-100 px-6 py-5">
+          <div className="flex items-start gap-4">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-600">
+              <LogOut className="h-5 w-5" />
+            </div>
+
+            <div className="min-w-0">
+              <h2
+                id="resign-modal-title"
+                className="text-lg font-semibold text-slate-900">
+                Resign as volunteer?
+              </h2>
+
+              <p className="mt-1 text-sm leading-6 text-slate-500">
+                Are you sure you want to resign from the volunteer program?
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="px-6 py-5">
+          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+            <p className="text-sm leading-6 text-amber-800">
+              Your volunteer history will be preserved, but your current
+              volunteer status will become inactive. You can request
+              reactivation later if you want to volunteer again.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-col-reverse gap-2 border-t border-slate-100 bg-slate-50/70 px-6 py-4 sm:flex-row sm:justify-end">
+          <button
+            type="button"
+            disabled={loading}
+            onClick={onCancel}
+            className="inline-flex min-h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50">
+            Cancel
+          </button>
+
+          <button
+            type="button"
+            disabled={loading}
+            onClick={onConfirm}
+            className="inline-flex min-h-10 items-center justify-center rounded-xl bg-red-600 px-5 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50">
+            <LogOut className="mr-2 h-4 w-4" />
+
+            {loading ? "Resigning..." : "Resign as Volunteer"}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 };
 
@@ -458,6 +598,8 @@ const MyVolunteerActivities = () => {
 
   const [error, setError] = useState("");
   const [requestMessage, setRequestMessage] = useState("");
+
+  const [resignModalOpen, setResignModalOpen] = useState(false);
 
   // ===========================================================
   // LOAD DATA
@@ -539,6 +681,27 @@ const MyVolunteerActivities = () => {
     }
   };
 
+  const handleRequestReactivation = async () => {
+    try {
+      setActionLoading("reactivation");
+      setError("");
+      setRequestMessage("");
+
+      const response = await requestVolunteerReactivation();
+
+      setRequestMessage(
+        response?.message ||
+          "Your volunteer reactivation request has been sent to the admin.",
+      );
+
+      await loadVolunteerData();
+    } catch (err) {
+      setError(err?.message || "Unable to request volunteer reactivation.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleAcceptVolunteerRequest = async () => {
     if (!request?.id) return;
 
@@ -594,26 +757,36 @@ const MyVolunteerActivities = () => {
       const response = await cancelVolunteerRequest(request.id);
 
       setRequestMessage(
-        response?.message || "Your volunteer application has been cancelled.",
+        response?.message || "Your volunteer request has been cancelled.",
       );
 
       await loadVolunteerData();
     } catch (err) {
-      setError(err?.message || "Unable to cancel your volunteer application.");
+      setError(err?.message || "Unable to cancel your volunteer request.");
     } finally {
       setActionLoading(false);
     }
   };
 
-  const handleResign = async () => {
-    const confirmed = window.confirm(
-      "Are you sure you want to resign as a volunteer? Your volunteer history will be preserved, but your volunteer status will become inactive.",
-    );
+  // ===========================================================
+  // RESIGN
+  // ===========================================================
 
-    if (!confirmed) {
+  const handleOpenResignModal = () => {
+    setError("");
+    setRequestMessage("");
+    setResignModalOpen(true);
+  };
+
+  const handleCloseResignModal = () => {
+    if (actionLoading === "resign") {
       return;
     }
 
+    setResignModalOpen(false);
+  };
+
+  const handleConfirmResign = async () => {
     try {
       setActionLoading("resign");
       setError("");
@@ -624,6 +797,8 @@ const MyVolunteerActivities = () => {
       setRequestMessage(
         response?.message || "You have resigned as a volunteer successfully.",
       );
+
+      setResignModalOpen(false);
 
       await loadVolunteerData();
     } catch (err) {
@@ -1016,7 +1191,8 @@ const MyVolunteerActivities = () => {
         onAcceptRequest={handleAcceptVolunteerRequest}
         onRejectRequest={handleRejectVolunteerRequest}
         onCancelRequest={handleCancelVolunteerRequest}
-        onResign={handleResign}
+        onRequestReactivation={handleRequestReactivation}
+        onResign={handleOpenResignModal}
       />
 
       {volunteer && (
@@ -1296,6 +1472,17 @@ const MyVolunteerActivities = () => {
           </section>
         </>
       )}
+
+      {/* =====================================================
+          RESIGN CONFIRMATION MODAL
+      ===================================================== */}
+
+      <ResignConfirmationModal
+        open={resignModalOpen}
+        loading={actionLoading === "resign"}
+        onCancel={handleCloseResignModal}
+        onConfirm={handleConfirmResign}
+      />
     </div>
   );
 };

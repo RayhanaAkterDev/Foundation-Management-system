@@ -1232,7 +1232,7 @@ const Campaigns = () => {
                 type="button"
                 onClick={() => handleAssignment(row)}
                 className="text-xs font-semibold text-primary transition-colors hover:text-primary-hover">
-                Assign
+                Assign Voluteers
               </button>
             )}
             {/* 

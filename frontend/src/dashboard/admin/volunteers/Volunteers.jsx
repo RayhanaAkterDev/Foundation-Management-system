@@ -40,7 +40,7 @@ const Volunteers = () => {
   const [volunteerRequests, setVolunteerRequests] = useState([]);
   const [requestsLoading, setRequestsLoading] = useState(true);
   const [requestsError, setRequestsError] = useState("");
-  const [processingRequestId, setProcessingRequestId] = useState(null);
+  const [processingRequest, setProcessingRequest] = useState(null);
 
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [candidateUsers, setCandidateUsers] = useState([]);
@@ -375,11 +375,15 @@ const Volunteers = () => {
   const handleAcceptApplication = async (request) => {
     const requestId = request?.id;
 
-    if (!requestId || processingRequestId !== null) {
+    if (!requestId || processingRequest !== null) {
       return;
     }
 
-    setProcessingRequestId(requestId);
+    setProcessingRequest({
+      id: requestId,
+      action: "accept",
+    });
+
     setRequestsError("");
 
     try {
@@ -397,18 +401,22 @@ const Volunteers = () => {
         err?.message || "Unable to accept this volunteer application.",
       );
     } finally {
-      setProcessingRequestId(null);
+      setProcessingRequest(null);
     }
   };
 
   const handleRejectApplication = async (request) => {
     const requestId = request?.id;
 
-    if (!requestId || processingRequestId !== null) {
+    if (!requestId || processingRequest !== null) {
       return;
     }
 
-    setProcessingRequestId(requestId);
+    setProcessingRequest({
+      id: requestId,
+      action: "reject",
+    });
+
     setRequestsError("");
 
     try {
@@ -426,7 +434,7 @@ const Volunteers = () => {
         err?.message || "Unable to reject this volunteer application.",
       );
     } finally {
-      setProcessingRequestId(null);
+      setProcessingRequest(null);
     }
   };
 
@@ -549,6 +557,45 @@ const Volunteers = () => {
   };
 
   // ============================================================
+  // REQUEST FILTERING
+  // ============================================================
+
+  /*
+   * ALL pending requests.
+   *
+   * This includes:
+   *
+   * 1. user_to_admin
+   *    Individual applied / requested reactivation.
+   *
+   * 2. admin_to_user
+   *    Admin sent a volunteer invitation.
+   *
+   * This dataset is used for the Pending statistic.
+   */
+  const pendingRequests = useMemo(() => {
+    return volunteerRequests.filter((request) => {
+      const status = String(request?.status ?? "")
+        .trim()
+        .toLowerCase();
+
+      return status === "pending";
+    });
+  }, [volunteerRequests]);
+
+  /*
+   * ONLY individual applications / reactivation requests.
+   *
+   * Admin invitations are intentionally excluded from
+   * the Accept/Reject application review section.
+   */
+  const pendingApplicationRequests = useMemo(() => {
+    return pendingRequests.filter(
+      (request) => request?.request_direction === "user_to_admin",
+    );
+  }, [pendingRequests]);
+
+  // ============================================================
   // STATISTICS
   // ============================================================
 
@@ -565,14 +612,22 @@ const Volunteers = () => {
       (volunteer) => volunteer.status === "suspended",
     ).length;
 
+    /*
+     * Pending includes BOTH:
+     *
+     * - user -> admin applications
+     * - admin -> user invitations
+     */
+    const pendingApplications = pendingRequests.length;
+
     return {
       total: volunteers.length,
       active,
       inactive,
       suspended,
-      pendingApplications: volunteerRequests.length,
+      pendingApplications,
     };
-  }, [volunteers, volunteerRequests]);
+  }, [volunteers, pendingRequests]);
 
   // ============================================================
   // FILTER
@@ -852,11 +907,11 @@ const Volunteers = () => {
                 </p>
 
                 <p className="mt-0.5 text-sm font-semibold text-text-primary">
-                  {volunteerRequests.length}{" "}
+                  {statistics.pendingApplications}{" "}
                   <span className="font-normal text-text-secondary">
-                    {volunteerRequests.length === 1
-                      ? "application"
-                      : "applications"}
+                    {statistics.pendingApplications === 1
+                      ? "request"
+                      : "requests"}
                   </span>
                 </p>
               </div>
@@ -878,7 +933,7 @@ const Volunteers = () => {
                   <span>Loading volunteer applications...</span>
                 </div>
               </div>
-            ) : volunteerRequests.length === 0 ? (
+            ) : pendingApplicationRequests.length === 0 ? (
               <div className="flex min-h-35 items-center justify-center px-6">
                 <div className="text-center">
                   <p className="text-sm font-semibold text-text-primary">
@@ -892,7 +947,7 @@ const Volunteers = () => {
               </div>
             ) : (
               <div className="divide-y divide-border">
-                {volunteerRequests.map((request) => {
+                {pendingApplicationRequests.map((request) => {
                   const user = request.user || {};
 
                   const name = user.name || request.name || "Unknown applicant";
@@ -905,7 +960,13 @@ const Volunteers = () => {
                     ? new Date(request.created_at).toLocaleDateString()
                     : "N/A";
 
-                  const isProcessing = processingRequestId === request.id;
+                  const isProcessing = processingRequest?.id === request.id;
+
+                  const isAccepting =
+                    isProcessing && processingRequest?.action === "accept";
+
+                  const isRejecting =
+                    isProcessing && processingRequest?.action === "reject";
 
                   return (
                     <div
@@ -953,13 +1014,13 @@ const Volunteers = () => {
                           disabled={isProcessing}
                           onClick={() => handleRejectApplication(request)}
                           className="inline-flex h-9 items-center gap-2 border border-border bg-surface px-3.5 text-xs font-semibold text-text-secondary transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50">
-                          {isProcessing ? (
+                          {isRejecting ? (
                             <Loader2 size={14} className="animate-spin" />
                           ) : (
                             <X size={14} strokeWidth={2} />
                           )}
 
-                          <span>Reject</span>
+                          <span>{isRejecting ? "Rejecting..." : "Reject"}</span>
                         </button>
 
                         <button
@@ -967,13 +1028,13 @@ const Volunteers = () => {
                           disabled={isProcessing}
                           onClick={() => handleAcceptApplication(request)}
                           className="inline-flex h-9 items-center gap-2 bg-primary px-3.5 text-xs font-semibold text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50">
-                          {isProcessing ? (
+                          {isAccepting ? (
                             <Loader2 size={14} className="animate-spin" />
                           ) : (
                             <Check size={14} strokeWidth={2} />
                           )}
 
-                          <span>Accept</span>
+                          <span>{isAccepting ? "Accepting..." : "Accept"}</span>
                         </button>
                       </div>
                     </div>

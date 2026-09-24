@@ -380,7 +380,7 @@ class DonationController extends Controller
         );
 
         $url = $frontendUrl .
-            '/donation/payment-result?status=' .
+            '/individual/dashboard/donation/payment-result?status=' .
             urlencode($status);
 
         if ($transactionId) {

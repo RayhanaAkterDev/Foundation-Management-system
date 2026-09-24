@@ -10,6 +10,7 @@ use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\DonationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\EmailVerificationController;
+use App\Http\Controllers\PublicCampaignController;
 use Illuminate\Support\Facades\Route;
 
 // =============================================================
@@ -29,6 +30,12 @@ Route::get(
     '/campaigns/{id}',
     [CampaignController::class, 'show']
 );
+
+Route::prefix('public')->group(function () {
+    Route::get('/campaigns', [PublicCampaignController::class, 'index']);
+    Route::get('/campaigns/{id}', [PublicCampaignController::class, 'show']);
+    Route::get('/categories', [PublicCampaignController::class, 'categories']);
+});
 
 // =============================================================
 // EMAIL VERIFICATION
@@ -134,14 +141,14 @@ Route::middleware('auth:sanctum')->group(function () {
     // INDIVIDUAL
     // =========================================================
 
-    // Individual dashboard
-
     Route::get(
         '/individual/dashboard',
         [IndividualDashboardController::class, 'index']
     );
 
-    // Individual help requests
+    // ---------------------------------------------------------
+    // INDIVIDUAL HELP REQUESTS
+    // ---------------------------------------------------------
 
     Route::get(
         '/help-requests',
@@ -168,21 +175,30 @@ Route::middleware('auth:sanctum')->group(function () {
         [HelpRequestController::class, 'destroy']
     );
 
-    // ---------------------------------------------------------
+    // =========================================================
     // INDIVIDUAL VOLUNTEER
-    // ---------------------------------------------------------
+    // =========================================================
 
+    // Individual submits a volunteer application.
+    // Individual = sender.
     Route::post(
         '/volunteer',
         [VolunteerController::class, 'store']
     );
 
+    // Get current volunteer profile / request state.
     Route::get(
         '/volunteer',
         [VolunteerController::class, 'show']
     );
 
-    // Volunteer invitation response
+    // ---------------------------------------------------------
+    // VOLUNTEER REQUESTS
+    // ---------------------------------------------------------
+
+    // Individual receives an admin invitation.
+    // Individual = receiver.
+    // Receiver can accept or reject.
 
     Route::patch(
         '/volunteer/requests/{id}/accept',
@@ -194,26 +210,72 @@ Route::middleware('auth:sanctum')->group(function () {
         [VolunteerController::class, 'rejectVolunteerRequest']
     );
 
-    // Campaign assignment response
+    // Individual cancels their own application.
+    // Individual = sender.
+    // Only pending application can be cancelled.
+
+    Route::patch(
+        '/volunteer/requests/{id}/cancel',
+        [VolunteerController::class, 'cancelVolunteerRequest']
+    );
+
+    // ---------------------------------------------------------
+    // VOLUNTEER RESIGNATION
+    // ---------------------------------------------------------
+
+    // Existing active volunteer resigns.
+    // This is separate from cancelling a pending request.
+
+    Route::patch(
+        '/volunteer/resign',
+        [VolunteerController::class, 'resign']
+    );
+
+    // ---------------------------------------------------------
+    // VOLUNTEER CAMPAIGN ASSIGNMENTS
+    // ---------------------------------------------------------
+
+    // Get campaign assignments for the authenticated volunteer.
+
+    Route::get(
+        '/volunteer/campaign-assignments',
+        [VolunteerController::class, 'assignments']
+    );
+
+    // Volunteer accepts an assignment.
 
     Route::patch(
         '/volunteer/campaign-assignments/{id}/accept',
         [VolunteerController::class, 'acceptCampaignAssignment']
     );
 
+    // Volunteer rejects an assignment.
+
     Route::patch(
         '/volunteer/campaign-assignments/{id}/reject',
         [VolunteerController::class, 'rejectCampaignAssignment']
     );
+
+    // Volunteer starts an accepted assignment.
 
     Route::patch(
         '/volunteer/campaign-assignments/{id}/start',
         [VolunteerController::class, 'startCampaignAssignment']
     );
 
+    // Volunteer completes an in-progress assignment.
+
     Route::patch(
         '/volunteer/campaign-assignments/{id}/complete',
         [VolunteerController::class, 'completeCampaignAssignment']
+    );
+
+    // Volunteer requests withdrawal from an accepted/in-progress
+    // campaign assignment.
+
+    Route::patch(
+        '/volunteer/campaign-assignments/{id}/withdraw',
+        [VolunteerController::class, 'requestCampaignWithdrawal']
     );
 
     // =========================================================
@@ -287,7 +349,7 @@ Route::middleware('auth:sanctum')
     ->group(function () {
 
         // ---------------------------------------------------------
-        // Dashboard
+        // DASHBOARD
         // ---------------------------------------------------------
 
         Route::get(
@@ -296,7 +358,7 @@ Route::middleware('auth:sanctum')
         );
 
         // ---------------------------------------------------------
-        // Users
+        // USERS
         // ---------------------------------------------------------
 
         Route::get(
@@ -325,7 +387,7 @@ Route::middleware('auth:sanctum')
         );
 
         // ---------------------------------------------------------
-        // Organizations
+        // ORGANIZATIONS
         // ---------------------------------------------------------
 
         Route::get(
@@ -359,12 +421,17 @@ Route::middleware('auth:sanctum')
         );
 
         // ---------------------------------------------------------
-        // Help Requests
+        // HELP REQUESTS
         // ---------------------------------------------------------
 
         Route::get(
             '/help-requests',
             [AdminController::class, 'helpRequests']
+        );
+
+        Route::put(
+            '/help-requests/{id}',
+            [AdminController::class, 'updateHelpRequest']
         );
 
         Route::patch(
@@ -397,9 +464,9 @@ Route::middleware('auth:sanctum')
             [AdminController::class, 'reassignHelpRequest']
         );
 
-        // ---------------------------------------------------------
-        // Volunteers
-        // ---------------------------------------------------------
+        // =========================================================
+        // VOLUNTEERS
+        // =========================================================
 
         Route::get(
             '/volunteers',
@@ -411,10 +478,27 @@ Route::middleware('auth:sanctum')
             [VolunteerController::class, 'candidates']
         );
 
+        // IMPORTANT:
+        // All specific /volunteers/requests routes must remain
+        // before /volunteers/{id}.
+
+        Route::get(
+            '/volunteers/requests',
+            [VolunteerController::class, 'requests']
+        );
+
+        // Admin sends volunteer invitations.
+        // Admin = sender.
+        // Individual = receiver.
+
         Route::post(
             '/volunteers/requests',
             [VolunteerController::class, 'sendRequests']
         );
+
+        // Admin receives individual volunteer applications.
+        // Individual = sender.
+        // Admin = receiver.
 
         Route::patch(
             '/volunteers/requests/{id}/accept',
@@ -426,42 +510,47 @@ Route::middleware('auth:sanctum')
             [VolunteerController::class, 'rejectVolunteerApplication']
         );
 
+        // Admin cancels an invitation sent by admin.
+        // Admin = sender.
+
+        Route::patch(
+            '/volunteers/requests/{id}/cancel',
+            [VolunteerController::class, 'cancelVolunteerInvitation']
+        );
+
+        // ---------------------------------------------------------
+        // VOLUNTEER DETAILS / STATUS
+        // ---------------------------------------------------------
+
+        // Admin can view a volunteer profile.
+
         Route::get(
             '/volunteers/{id}',
             [VolunteerController::class, 'adminShow']
         );
+
+        // Admin can change ONLY volunteer status:
+        // active / inactive / suspended.
+        //
+        // Name/email are managed through Users.
 
         Route::patch(
             '/volunteers/{id}/status',
             [VolunteerController::class, 'updateStatus']
         );
 
-        /*
-        |--------------------------------------------------------------------------
-        | Campaign Assignment Candidates
-        |--------------------------------------------------------------------------
-        |
-        | Returns only volunteers who are actually eligible to be assigned
-        | to an active campaign:
-        |
-        | - active individual user
-        | - verified email
-        | - active volunteer profile
-        | - available
-        | - no active campaign assignment
-        |
-        */
+        // ---------------------------------------------------------
+        // CAMPAIGN VOLUNTEER CANDIDATES
+        // ---------------------------------------------------------
 
         Route::get(
             '/campaign-volunteers/candidates',
             [AdminController::class, 'campaignVolunteerCandidates']
         );
 
-        // ---------------------------------------------------------
-        // Campaigns
-        // ---------------------------------------------------------
-
-        // Admin can create Global Situation campaigns.
+        // =========================================================
+        // CAMPAIGNS
+        // =========================================================
 
         Route::post(
             '/campaigns',
@@ -471,6 +560,11 @@ Route::middleware('auth:sanctum')
         Route::get(
             '/campaigns',
             [AdminController::class, 'campaigns']
+        );
+
+        Route::put(
+            '/campaigns/{id}',
+            [AdminController::class, 'updateCampaign']
         );
 
         Route::patch(
@@ -494,17 +588,35 @@ Route::middleware('auth:sanctum')
         );
 
         // ---------------------------------------------------------
-        // Donations
+        // CAMPAIGN VOLUNTEER ASSIGNMENT REVIEW
         // ---------------------------------------------------------
+
+        // Admin reviews a volunteer withdrawal request.
+
+        Route::patch(
+            '/campaigns/assignments/{id}/withdrawal',
+            [VolunteerController::class, 'reviewCampaignWithdrawal']
+        );
+
+        // Admin validates a volunteer rejection when required.
+
+        Route::patch(
+            '/campaigns/assignments/{id}/rejection-validation',
+            [VolunteerController::class, 'validateCampaignRejection']
+        );
+
+        // =========================================================
+        // DONATIONS
+        // =========================================================
 
         Route::get(
             '/donations',
             [AdminController::class, 'donations']
         );
 
-        // ---------------------------------------------------------
-        // Reports
-        // ---------------------------------------------------------
+        // =========================================================
+        // REPORTS
+        // =========================================================
 
         Route::get(
             '/reports',

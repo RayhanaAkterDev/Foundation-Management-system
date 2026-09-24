@@ -1,204 +1,133 @@
-import React from 'react';
+import React from "react";
 
-import { ArrowUpRight, CheckCircle2, ShieldCheck } from 'lucide-react';
+import { ArrowUpRight, CheckCircle2, ShieldCheck } from "lucide-react";
 
-import { formatNumber } from '../utils/dashboardHelpers';
+import { formatNumber } from "../utils/dashboardHelpers";
 
 /* =================================================
    ATTENTION ITEM
 ================================================== */
 
 const AttentionItem = ({
-    label,
-    count,
-    suffix,
-    description,
-    footer,
-    highlight = false,
-    borderRight = false,
+  label,
+  count,
+  suffix,
+  description,
+  footer,
+  highlight = false,
+  borderRight = false,
 }) => (
-    <article
-        className={`
-            group relative overflow-hidden
-            min-h-60
-            bg-surface
+  <article
+    className={`
+            group relative flex min-h-52 flex-col
+            bg-white
             px-5 py-5
             sm:px-6
             lg:px-7 lg:py-6
-            ${borderRight ? 'xl:border-r xl:border-border' : ''}
-            ${highlight ? 'bg-accent/2.5' : ''}
+            ${borderRight ? "xl:border-r xl:border-slate-200" : ""}
             transition-colors duration-200
-            hover:bg-surface-soft
-        `}
-    >
-        {/* Decorative corner marker */}
+            hover:bg-slate-50
+        `}>
+    {/* Header */}
+    <div className="flex items-center justify-between gap-4">
+      <div className="flex items-center gap-2.5">
+        <span
+          className={`
+                        h-2 w-2 rounded-full
+                        ${highlight ? "bg-accent" : "bg-primary"}
+                    `}
+        />
 
-        <div className="absolute right-5 top-5">
-            <ArrowUpRight
-                size={15}
-                strokeWidth={1.6}
-                className="
-                    text-text-secondary/50
+        <span
+          className="
+                        font-poppins
+                        text-[10px]
+                        font-semibold
+                        uppercase
+                        tracking-[0.12em]
+                        text-slate-600
+                    ">
+          {label}
+        </span>
+      </div>
+
+      <ArrowUpRight
+        size={16}
+        strokeWidth={1.8}
+        className="
+                    text-slate-300
                     transition-all duration-200
                     group-hover:-translate-y-0.5
                     group-hover:translate-x-0.5
                     group-hover:text-primary
                 "
-            />
-        </div>
+      />
+    </div>
 
-        {/* Label */}
+    {/* Number */}
+    <div className="mt-8 flex items-end gap-3">
+      <span
+        className={`
+                    font-fraunces
+                    text-[50px]
+                    leading-[0.8]
+                    tracking-[-0.055em]
+                    sm:text-[54px]
+                    lg:text-[58px]
+                    ${highlight ? "text-accent" : "text-slate-900"}
+                `}>
+        {count}
+      </span>
 
-        <div className="flex items-center gap-3 pr-12">
-            <span
-                className={`
-                    relative flex h-8 w-8 shrink-0 items-center
-                    ${highlight ? 'text-accent' : 'text-primary'}
+      <span
+        className="
+                    mb-0.5
+                    max-w-32
+                    font-jost
+                    text-[11px]
+                    leading-[1.4]
+                    text-slate-500
+                ">
+        {suffix}
+      </span>
+    </div>
+
+    {/* Description */}
+    <p
+      className="
+                mt-4
+                max-w-72
+                font-jost
+                text-[11px]
+                leading-[1.55]
+                text-slate-500
+                sm:text-[12px]
+            ">
+      {description}
+    </p>
+
+    {/* Footer */}
+    <div className="mt-auto flex items-center gap-2 border-t border-slate-100 pt-4">
+      <span
+        className={`
+                    h-1.5 w-5
+                    ${highlight ? "bg-accent" : "bg-primary/35"}
                 `}
-            >
-                <span className="h-full w-px bg-current opacity-20" />
+      />
 
-                <span
-                    className={`
-                        ml-2 h-5 w-0.75
-                        ${highlight ? 'bg-accent' : 'bg-primary'}
-                    `}
-                />
-
-                <span
-                    className="
-                        ml-1 h-2 w-px
-                        bg-current
-                        opacity-35
-                    "
-                />
-            </span>
-
-            <span
-                className="
+      <span
+        className="
                     font-poppins
-                    text-[9px]
+                    text-[8px]
                     font-semibold
                     uppercase
-                    tracking-[0.16em]
-                    text-text-primary
-                    sm:text-[10px]
-                "
-            >
-                {label}
-            </span>
-        </div>
-
-        {/* Metric */}
-
-        <div className="mt-7 flex items-end gap-3">
-            <span
-                className={`
-                    font-fraunces
-                    text-[48px]
-                    leading-[0.82]
-                    tracking-[-0.055em]
-                    sm:text-[52px]
-                    lg:text-[56px]
-                    ${highlight ? 'text-accent' : 'text-text-primary'}
-                `}
-            >
-                {count}
-            </span>
-
-            <span
-                className="
-                    mb-0.5
-                    max-w-33.75
-                    font-jost
-                    text-[10px]
-                    leading-[1.35]
-                    text-text-secondary
-                    sm:text-[11px]
-                "
-            >
-                {suffix}
-            </span>
-        </div>
-
-        {/* Description */}
-
-        <p
-            className="
-                mt-4
-                max-w-72.5
-                font-jost
-                text-[10px]
-                leading-[1.55]
-                text-text-secondary
-                sm:text-[11px]
-                lg:text-[12px]
-            "
-        >
-            {description}
-        </p>
-
-        {/* Bottom information rail */}
-
-        <div
-            className="
-                absolute
-                bottom-0
-                left-0
-                right-0
-                flex
-                items-center
-                justify-between
-                gap-4
-                border-t
-                border-border
-                px-5
-                py-3
-                sm:px-6
-                lg:px-7
-            "
-        >
-            <div className="flex items-center gap-2">
-                <span
-                    className={`
-                        h-0.75 w-6
-                        ${highlight ? 'bg-accent' : 'bg-primary/40'}
-                    `}
-                />
-
-                <span
-                    className="
-                        font-poppins
-                        text-[8px]
-                        font-semibold
-                        uppercase
-                        tracking-[0.13em]
-                        text-text-secondary
-                    "
-                >
-                    {footer}
-                </span>
-            </div>
-        </div>
-
-        {/* Highlight wash */}
-
-        {highlight && (
-            <div
-                className="
-                    pointer-events-none
-                    absolute
-                    -right-16
-                    -top-16
-                    h-32
-                    w-32
-                    rounded-full
-                    bg-accent/4.5
-                    blur-2xl
-                "
-            />
-        )}
-    </article>
+                    tracking-[0.11em]
+                    text-slate-400
+                ">
+        {footer}
+      </span>
+    </div>
+  </article>
 );
 
 /* =================================================
@@ -206,499 +135,389 @@ const AttentionItem = ({
 ================================================== */
 
 const DashboardHero = ({
-    loading,
-    urgentRequestCount,
-    pendingVerificationCount = 0,
-    pendingCampaignCount = 0,
-    pendingVolunteerCount = 0,
+  loading,
+  urgentRequestCount,
+  pendingVerificationCount = 0,
+  pendingCampaignCount = 0,
+  pendingVolunteerCount = 0,
 }) => {
-    const urgentCount = loading ? '—' : formatNumber(urgentRequestCount);
+  const urgentCount = loading ? "—" : formatNumber(urgentRequestCount);
 
-    const organizationCount = loading
-        ? '—'
-        : formatNumber(pendingVerificationCount);
+  const organizationCount = loading
+    ? "—"
+    : formatNumber(pendingVerificationCount);
 
-    const volunteerCount = loading ? '—' : formatNumber(pendingVolunteerCount);
+  const volunteerCount = loading ? "—" : formatNumber(pendingVolunteerCount);
 
-    const campaignCount = loading ? '—' : formatNumber(pendingCampaignCount);
+  const campaignCount = loading ? "—" : formatNumber(pendingCampaignCount);
 
-    const hasUrgentRequests = !loading && Number(urgentRequestCount) > 0;
+  const hasUrgentRequests = !loading && Number(urgentRequestCount) > 0;
 
-    const attentionCards = [
-        {
-            label: 'Organizations',
-            count: organizationCount,
-            suffix: 'awaiting verification',
-            description: 'Registrations waiting for administrative review.',
-            footer: 'Organization verification',
-        },
+  const attentionCards = [
+    {
+      label: "Organizations",
+      count: organizationCount,
+      suffix: "awaiting verification",
+      description: "Registrations waiting for administrative review.",
+      footer: "Organization verification",
+    },
 
-        {
-            label: 'Volunteers',
-            count: volunteerCount,
-            suffix: 'to review',
-            description: 'Applications waiting for administrative review.',
-            footer: 'Volunteer applications',
-        },
+    {
+      label: "Volunteers",
+      count: volunteerCount,
+      suffix: "to review",
+      description: "Applications waiting for administrative review.",
+      footer: "Volunteer applications",
+    },
 
-        {
-            label: 'Campaigns',
-            count: campaignCount,
-            suffix: 'need review',
-            description:
-                'Campaign proposals waiting for administrative verification.',
-            footer: 'Campaign review',
-        },
-    ];
+    {
+      label: "Campaigns",
+      count: campaignCount,
+      suffix: "need review",
+      description:
+        "Campaign proposals waiting for administrative verification.",
+      footer: "Campaign review",
+    },
+  ];
 
-    return (
-        <header className="space-y-6 sm:space-y-7">
-            {/* =================================================
-                PRIMARY HERO
+  return (
+    <header className="space-y-6">
+      {/* =================================================
+                TEAL HERO
             ================================================== */}
 
-            <section className="border border-border bg-surface">
-                {/* System bar */}
-
-                <div className="flex items-center justify-between gap-4 border-b border-border px-4 py-3 sm:px-6">
-                    <div className="flex min-w-0 items-center gap-3">
-                        <div className="flex h-7 w-7 shrink-0 items-center justify-center bg-primary sm:h-8 sm:w-8">
-                            <span className="font-fraunces text-[10px] text-white sm:text-[11px]">
-                                SP
-                            </span>
-                        </div>
-
-                        <span
-                            className="
-                                truncate
-                                font-poppins
-                                text-[8px]
-                                font-semibold
-                                uppercase
-                                tracking-[0.17em]
-                                text-text-primary
-                                sm:text-[9px]
-                                lg:text-[10px]
-                            "
-                        >
-                            Stand For People
-                        </span>
-                    </div>
-
-                    <div className="flex shrink-0 items-center gap-2">
-                        <span className="h-1.5 w-1.5 bg-primary" />
-
-                        <span
-                            className="
-                                font-poppins
-                                text-[7px]
-                                font-semibold
-                                uppercase
-                                tracking-[0.14em]
-                                text-primary
-                                sm:text-[8px]
-                                lg:text-[9px]
-                            "
-                        >
-                            System operational
-                        </span>
-                    </div>
-                </div>
-
-                {/* Hero body */}
-
-                <div className="grid lg:grid-cols-[minmax(0,1fr)_285px]">
-                    {/* Main */}
-
-                    <div
-                        className="
-                            border-b
-                            border-border
-                            px-5
-                            py-8
+      <section className="overflow-hidden bg-primary">
+        <div className="grid lg:grid-cols-[minmax(0,1fr)_320px]">
+          {/* Main hero */}
+          <div
+            className="
+                            relative
+                            px-6
+                            py-9
                             sm:px-8
-                            sm:py-9
-                            lg:border-b-0
-                            lg:border-r
-                            lg:px-9
+                            sm:py-10
+                            lg:px-10
                             lg:py-11
-                        "
-                    >
-                        <div className="flex flex-wrap items-center gap-2.5">
-                            <span className="h-1.5 w-1.5 shrink-0 bg-primary" />
+                        ">
+            {/* Subtle vertical accent */}
+            <div className="absolute bottom-0 left-0 top-0 w-1 bg-accent" />
 
-                            <span
-                                className="
-                                    font-poppins
-                                    text-[7px]
-                                    font-semibold
-                                    uppercase
-                                    tracking-[0.18em]
-                                    text-primary
-                                    sm:text-[8px]
-                                    lg:text-[9px]
-                                "
-                            >
-                                Admin dashboard
-                            </span>
+            <div className="max-w-2xl">
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-white/80" />
 
-                            <span className="h-px w-7 bg-border" />
-
-                            <span
-                                className="
-                                    font-jost
-                                    text-[9px]
-                                    text-text-secondary
-                                    sm:text-[10px]
-                                    lg:text-[11px]
-                                "
-                            >
-                                Operational overview
-                            </span>
-                        </div>
-
-                        <h1
-                            className="
-                                mt-6
-                                max-w-150
-                                font-fraunces
-                                text-[36px]
-                                leading-[0.98]
-                                tracking-tighter
-                                text-text-primary
-                                sm:text-[43px]
-                                lg:text-[47px]
-                                xl:text-[50px]
-                            "
-                        >
-                            Here's what needs
-                            <span className="block text-primary">
-                                your attention.
-                            </span>
-                        </h1>
-
-                        <div className="mt-6 flex max-w-137.5 gap-3">
-                            <span className="h-9 w-0.5 shrink-0 bg-accent" />
-
-                            <p
-                                className="
-                                    font-jost
-                                    text-[11px]
-                                    leading-[1.65]
-                                    text-text-secondary
-                                    sm:text-[12px]
-                                    lg:text-[13px]
-                                "
-                            >
-                                Review pending decisions, active responses, and
-                                the latest activity across Stand For People.
-                            </p>
-                        </div>
-
-                        <div className="mt-7 flex items-center gap-3">
-                            <span className="h-px w-8 bg-border" />
-
-                            <span
-                                className="
-                                    font-poppins
-                                    text-[7px]
-                                    font-semibold
-                                    uppercase
-                                    tracking-[0.15em]
-                                    text-text-secondary
-                                    sm:text-[8px]
-                                    lg:text-[9px]
-                                "
-                            >
-                                Coordination starts here
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* Priority */}
-
-                    <aside
-                        className={`
-                            flex flex-col justify-between
-                            px-5 py-6
-                            sm:px-6
-                            lg:px-7
-                            ${
-                                hasUrgentRequests
-                                    ? 'bg-accent/3.5'
-                                    : 'bg-background'
-                            }
-                        `}
-                    >
-                        <div>
-                            <div className="flex items-center justify-between gap-4">
-                                <div className="flex min-w-0 items-center gap-2">
-                                    <span
-                                        className={`
-                                            flex h-6 w-6 shrink-0
-                                            items-center justify-center
-                                            sm:h-7 sm:w-7
-                                            ${
-                                                hasUrgentRequests
-                                                    ? 'bg-accent/8'
-                                                    : 'bg-primary/6'
-                                            }
-                                        `}
-                                    >
-                                        <span
-                                            className={`
-                                                h-1.5 w-1.5
-                                                ${
-                                                    hasUrgentRequests
-                                                        ? 'bg-accent'
-                                                        : 'bg-primary'
-                                                }
-                                            `}
-                                        />
-                                    </span>
-
-                                    <span
-                                        className="
-                                            truncate
-                                            font-poppins
-                                            text-[7px]
-                                            font-semibold
-                                            uppercase
-                                            tracking-[0.15em]
-                                            text-text-secondary
-                                            sm:text-[8px]
-                                            lg:text-[9px]
-                                        "
-                                    >
-                                        Admin focus
-                                    </span>
-                                </div>
-
-                                <ShieldCheck
-                                    size={15}
-                                    strokeWidth={1.6}
-                                    className={
-                                        hasUrgentRequests
-                                            ? 'shrink-0 text-accent'
-                                            : 'shrink-0 text-primary'
-                                    }
-                                />
-                            </div>
-
-                            <div className="mt-8">
-                                <p
-                                    className="
+                <span
+                  className="
                                         font-poppins
-                                        text-[7px]
+                                        text-[9px]
                                         font-semibold
                                         uppercase
                                         tracking-[0.14em]
-                                        text-text-secondary
-                                        sm:text-[8px]
-                                        lg:text-[9px]
-                                    "
-                                >
-                                    Priority help requests
-                                </p>
-
-                                <div className="mt-3 flex items-end gap-3">
-                                    <span
-                                        className={`
-                                            font-fraunces
-                                            text-[52px]
-                                            leading-[0.82]
-                                            tracking-[-0.06em]
-                                            sm:text-[56px]
-                                            lg:text-[60px]
-                                            ${
-                                                hasUrgentRequests
-                                                    ? 'text-accent'
-                                                    : 'text-text-primary'
-                                            }
-                                        `}
-                                    >
-                                        {urgentCount}
-                                    </span>
-
-                                    <span
-                                        className="
-                                            mb-0.5
-                                            max-w-25
-                                            font-jost
-                                            text-[9px]
-                                            leading-[1.4]
-                                            text-text-secondary
-                                            sm:text-[10px]
-                                            lg:max-w-28.75
-                                            lg:text-[11px]
-                                        "
-                                    >
-                                        requiring administrative attention
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="mt-7 border-t border-border pt-4">
-                            <div className="flex items-center justify-between gap-4">
-                                <span
-                                    className="
-                                        font-poppins
-                                        text-[7px]
-                                        font-semibold
-                                        uppercase
-                                        tracking-[0.13em]
-                                        text-text-secondary
-                                        sm:text-[8px]
-                                        lg:text-[9px]
-                                    "
-                                >
-                                    Queue status
-                                </span>
-
-                                <span
-                                    className={`
-                                        flex items-center gap-1.5
-                                        font-poppins
-                                        text-[7px]
-                                        font-semibold
-                                        uppercase
-                                        tracking-[0.11em]
-                                        sm:text-[8px]
-                                        ${
-                                            hasUrgentRequests
-                                                ? 'text-accent'
-                                                : 'text-primary'
-                                        }
-                                    `}
-                                >
-                                    <span
-                                        className={`
-                                            h-1.5 w-1.5
-                                            ${
-                                                hasUrgentRequests
-                                                    ? 'bg-accent'
-                                                    : 'bg-primary'
-                                            }
-                                        `}
-                                    />
-
-                                    {hasUrgentRequests
-                                        ? 'Action required'
-                                        : 'Clear'}
-                                </span>
-                            </div>
-
-                            <p
-                                className="
-                                    mt-2
-                                    font-jost
-                                    text-[9px]
-                                    leading-normal
-                                    text-text-secondary
-                                    sm:text-[10px]
-                                    lg:text-[11px]
-                                "
-                            >
-                                {hasUrgentRequests
-                                    ? 'Priority requests are waiting for administrative action.'
-                                    : 'No priority requests currently require immediate action.'}
-                            </p>
-                        </div>
-                    </aside>
-                </div>
-            </section>
-
-            {/* =================================================
-    ADMINISTRATIVE QUEUE
-================================================== */}
-<section className="border border-border bg-primary">
-    {/* Queue heading */}
-    <div className="border-b border-white/20 px-4 py-4 sm:px-6">
-        <div className="flex items-center justify-between gap-5">
-            <div className="flex min-w-0 items-center gap-3">
-                <div className="flex h-7 w-7 shrink-0 items-center justify-center bg-white/10 sm:h-8 sm:w-8">
-                    <CheckCircle2
-                        size={14}
-                        strokeWidth={1.7}
-                        className="text-white sm:size-3.75"
-                    />
-                </div>
-
-                <div className="min-w-0">
-                    <div className="flex items-center gap-2.5">
-                        <h2
-                            className="
-                                truncate
-                                font-fraunces
-                                text-[20px]
-                                leading-none
-                                tracking-[-0.035em]
-                                text-white
-                                sm:text-[21px]
-                                lg:text-[23px]
-                            "
-                        >
-                            Operational Snapshot
-                        </h2>
-
-                        <span className="hidden h-1 w-1 shrink-0 bg-white/70 sm:block" />
-
-                        <span
-                            className="
-                                hidden
-                                shrink-0
-                                font-poppins
-                                text-[7px]
-                                font-semibold
-                                uppercase
-                                tracking-[0.13em]
-                                text-white/50
-                                sm:block
-                                lg:text-[8px]
-                            "
-                        >
-                            03 areas
-                        </span>
-                    </div>
-                </div>
-            </div>
-
-            <div className="flex shrink-0 items-center gap-2">
-                <span className="h-1.5 w-1.5 bg-amber-300" />
-
-                <span
-                    className="
-                        hidden
-                        font-poppins
-                        text-[7px]
-                        font-semibold
-                        uppercase
-                        tracking-[0.13em]
-                        text-white/75
-                        sm:block
-                        lg:text-[8px]
-                    "
-                >
-                    Live queue
+                                        text-white/75
+                                    ">
+                  Admin Dashboard
                 </span>
-            </div>
-        </div>
-    </div>
+              </div>
 
-    {/* Queue grid */}
-    <div className="grid bg-primary md:grid-cols-2 xl:grid-cols-3">
-        {attentionCards.map((card, index) => (
-            <AttentionItem
-                key={card.label}
-                {...card}
-                borderRight={index < attentionCards.length - 1}
+              <h1
+                className="
+                                    mt-5
+                                    font-fraunces
+                                    text-[38px]
+                                    leading-[0.98]
+                                    tracking-[-0.045em]
+                                    text-white
+                                    sm:text-[46px]
+                                    lg:text-[52px]
+                                ">
+                Here's what needs
+                <span className="block text-white/80">your attention.</span>
+              </h1>
+
+              <p
+                className="
+                                    mt-5
+                                    max-w-xl
+                                    font-jost
+                                    text-[12px]
+                                    leading-[1.65]
+                                    text-white/70
+                                    sm:text-[13px]
+                                ">
+                Review pending decisions and priority requests across Stand For
+                People.
+              </p>
+            </div>
+          </div>
+
+          {/* Priority */}
+          <aside
+            className={`
+                            relative
+                            border-t
+                            border-white/10
+                            px-6
+                            py-7
+                            sm:px-8
+                            lg:border-l
+                            lg:border-t-0
+                            lg:px-8
+                            lg:py-8
+                            ${
+                              hasUrgentRequests
+                                ? "bg-primary-hover"
+                                : "bg-primary-hover/70"
+                            }
+                        `}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div
+                  className={`
+                                        flex h-8 w-8 items-center justify-center
+                                        ${
+                                          hasUrgentRequests
+                                            ? "bg-accent"
+                                            : "bg-white/10"
+                                        }
+                                    `}>
+                  <ShieldCheck
+                    size={16}
+                    strokeWidth={1.8}
+                    className={hasUrgentRequests ? "text-white" : "text-white"}
+                  />
+                </div>
+
+                <span className="font-poppins text-[9px] font-semibold uppercase tracking-[0.12em] text-white/70">
+                  Priority Queue
+                </span>
+              </div>
+
+              <span
+                className={`
+                                    h-2 w-2 rounded-full
+                                    ${
+                                      hasUrgentRequests
+                                        ? "bg-accent"
+                                        : "bg-white/50"
+                                    }
+                                `}
+              />
+            </div>
+
+            <div className="mt-9">
+              <p className="font-jost text-[11px] text-white/60">
+                Priority help requests
+              </p>
+
+              <div className="mt-3 flex items-end gap-3">
+                <span
+                  className={`
+                                        font-fraunces
+                                        text-[58px]
+                                        leading-[0.8]
+                                        tracking-[-0.06em]
+                                        ${
+                                          hasUrgentRequests
+                                            ? "text-accent"
+                                            : "text-white"
+                                        }
+                                    `}>
+                  {urgentCount}
+                </span>
+
+                <span className="mb-0.5 max-w-28 font-jost text-[10px] leading-[1.4] text-white/60">
+                  requiring administrative attention
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-7 border-t border-white/10 pt-4">
+              <div className="flex items-center gap-2">
+                <CheckCircle2
+                  size={14}
+                  strokeWidth={1.8}
+                  className={
+                    hasUrgentRequests ? "text-accent" : "text-white/60"
+                  }
+                />
+
+                <span className="font-jost text-[10px] text-white/65">
+                  {hasUrgentRequests
+                    ? "Priority requests are waiting for action."
+                    : "No priority requests require immediate action."}
+                </span>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      {/* =================================================
+                OPERATIONAL SNAPSHOT
+            ================================================== */}
+      <section className="overflow-hidden border border-slate-200 bg-white">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5 lg:px-8">
+          <div>
+            <h2 className="font-fraunces text-[25px] leading-none tracking-[-0.03em] text-slate-900">
+              Operational Snapshot
+            </h2>
+
+            <p className="mt-2 font-jost text-[12px] text-slate-500">
+              Current administrative workload
+            </p>
+          </div>
+
+          <div className="flex h-9 w-9 items-center justify-center bg-primary/10">
+            <CheckCircle2
+              size={18}
+              strokeWidth={1.8}
+              className="text-primary"
             />
-        ))}
-    </div>
-</section>
-        </header>
-    );
+          </div>
+        </div>
+
+        {/* Main content */}
+        <div className="grid lg:grid-cols-[260px_minmax(0,1fr)]">
+          {/* Workload visual */}
+          <div className="flex items-center justify-center border-b border-slate-200 px-6 py-9 lg:border-b-0 lg:border-r">
+            <div className="relative flex h-[168px] w-[168px] items-center justify-center">
+              {/* Progress ring */}
+              <svg
+                viewBox="0 0 168 168"
+                className="absolute inset-0 h-full w-full -rotate-90">
+                <circle
+                  cx="84"
+                  cy="84"
+                  r="72"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="8"
+                  className="text-slate-100"
+                />
+
+                <circle
+                  cx="84"
+                  cy="84"
+                  r="72"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="8"
+                  strokeLinecap="round"
+                  strokeDasharray="452"
+                  strokeDashoffset={
+                    loading
+                      ? 452
+                      : Math.max(
+                          0,
+                          452 -
+                            Math.min(
+                              452,
+                              (Number(pendingVerificationCount || 0) +
+                                Number(pendingVolunteerCount || 0) +
+                                Number(pendingCampaignCount || 0)) *
+                                18,
+                            ),
+                        )
+                  }
+                  className="text-primary"
+                />
+              </svg>
+
+              <div className="relative text-center">
+                <div className="font-fraunces text-[46px] leading-none tracking-[-0.05em] text-slate-900">
+                  {loading
+                    ? "—"
+                    : formatNumber(
+                        Number(pendingVerificationCount || 0) +
+                          Number(pendingVolunteerCount || 0) +
+                          Number(pendingCampaignCount || 0),
+                      )}
+                </div>
+
+                <div className="mt-2 font-jost text-[10px] font-semibold text-slate-400">
+                  NEEDS ATTENTION
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Workflow */}
+          <div className="px-6 py-7 lg:px-8 lg:py-8">
+            <div className="relative">
+              {/* Connecting line */}
+              <div className="absolute left-[7px] top-3 bottom-3 w-px bg-slate-200" />
+
+              {attentionCards.map((item, index) => {
+                const progressColor =
+                  index === 0
+                    ? "bg-primary"
+                    : index === 1
+                      ? "bg-amber-500"
+                      : "bg-blue-500";
+
+                const count = Number(item.count) || 0;
+
+                return (
+                  <div
+                    key={item.label}
+                    className={`relative flex gap-5 ${
+                      index !== attentionCards.length - 1 ? "pb-8" : ""
+                    }`}>
+                    {/* Timeline point */}
+                    <div className="relative z-10 mt-1.5 flex h-[15px] w-[15px] shrink-0 items-center justify-center bg-white">
+                      <span
+                        className={`h-[7px] w-[7px] rounded-full ${progressColor}`}
+                      />
+                    </div>
+
+                    {/* Content */}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                          <h3 className="font-jost text-[14px] font-semibold text-slate-900">
+                            {item.label}
+                          </h3>
+
+                          <p className="mt-1.5 max-w-lg font-jost text-[11px] leading-5 text-slate-500">
+                            {item.description}
+                          </p>
+                        </div>
+
+                        <div className="flex shrink-0 items-baseline gap-2 sm:pl-6">
+                          <span className="font-fraunces text-[32px] leading-none tracking-[-0.04em] text-slate-900">
+                            {item.count}
+                          </span>
+
+                          <span className="font-jost text-[10px] font-medium text-slate-400">
+                            {item.suffix}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Workload indicator */}
+                      <div className="mt-4 h-1 w-full overflow-hidden bg-slate-100">
+                        <div
+                          className={`h-full ${progressColor} transition-all`}
+                          style={{
+                            width: loading
+                              ? "0%"
+                              : count === 0
+                                ? "0%"
+                                : `${Math.min(100, Math.max(8, count * 8))}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </section>
+    </header>
+  );
 };
 
 export default DashboardHero;

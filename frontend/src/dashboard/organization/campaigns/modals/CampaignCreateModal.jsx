@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 
 import { apiRequest } from '@/api/client';
-import { fetchAssignments } from '@/dashboard/organization/helpRequests/helpRequestApi';
+import { fetchAssignments } from '@/dashboard/organization/helpRequests/api/helpRequestApi';
 
 const initialForm = {
     type: 'local_case',

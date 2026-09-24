@@ -30,7 +30,7 @@ const Table = ({
                 return {
                     ...column,
                     render: (value, row) => (
-                        <div className="min-w-0 max-w-[260px]">
+                        <div className="min-w-0 max-w-65">
                             <p className="truncate text-[13px] font-semibold leading-5 text-text-primary">
                                 {value || 'Unnamed user'}
                             </p>
@@ -127,7 +127,7 @@ const Table = ({
                             : null;
 
                         return (
-                            <div className="flex min-w-[125px] items-center gap-2">
+                            <div className="flex min-w-31.25 items-center gap-2">
                                 {isVerified ? (
                                     <CheckCircle2
                                         size={16}

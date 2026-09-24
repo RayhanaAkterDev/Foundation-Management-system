@@ -1,156 +1,141 @@
-import React, { useEffect, useState } from 'react';
-import { HandCoins } from 'lucide-react';
-import PageHeader from '@/components/dashboard/PageHeader';
-import DataTable from '@/components/dashboard/DataTable';
-import StatusBadge from '@/components/dashboard/StatusBadge';
+import React, { useEffect, useMemo, useState } from "react";
+import { HandCoins } from "lucide-react";
+
+import PageHeader from "@/components/dashboard/PageHeader";
+import DonationSummary from "./components/DonationSummary";
+import DonationTable from "./components/DonationTable";
+import DonationDetailsModal from "./modals/DonationDetailsModal";
+
+import { apiRequest } from "@/api/client";
 
 const Donations = () => {
-    const [donations, setDonations] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
+  const [donations, setDonations] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-    useEffect(() => {
-        const fetchDonations = async () => {
-            try {
-                const token =
-                    localStorage.getItem('auth_token') ||
-                    sessionStorage.getItem('auth_token');
+  const [modal, setModal] = useState({
+    type: null,
+    data: null,
+    donation: null,
+  });
 
-                if (!token) {
-                    throw new Error('Authentication token not found.');
-                }
+  useEffect(() => {
+    const fetchDonations = async () => {
+      try {
+        setLoading(true);
+        setError("");
 
-                const response = await fetch(
-                    'http://127.0.0.1:8000/api/admin/donations',
-                    {
-                        headers: {
-                            Accept: 'application/json',
-                            Authorization: `Bearer ${token}`,
-                        },
-                    },
-                );
+        const response = await apiRequest("/admin/donations");
 
-                const data = await response.json();
+        const donationData = Array.isArray(response)
+          ? response
+          : response?.donations || response?.data || [];
 
-                if (!response.ok) {
-                    throw new Error(
-                        data.message || 'Unable to load donations.',
-                    );
-                }
+        setDonations(donationData);
+      } catch (err) {
+        setError(err?.message || "Unable to load donations.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-                setDonations(data.donations);
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setLoading(false);
-            }
-        };
+    fetchDonations();
+  }, []);
 
-        fetchDonations();
-    }, []);
+  const summary = useMemo(() => {
+    const totalAmount = donations.reduce((sum, donation) => {
+      const amount = Number(donation?.amount);
 
-    const rows = donations.map((donation) => ({
-        ...donation,
-        donor: donation.user?.name || 'Unknown',
-        campaign: donation.campaign?.title || 'Unknown',
-        formattedAmount: `৳${Number(donation.amount).toLocaleString()}`,
-        donatedDate: new Date(donation.created_at).toLocaleDateString(),
-    }));
+      return sum + (Number.isFinite(amount) ? amount : 0);
+    }, 0);
 
-    const columns = [
-        {
-            key: 'donor',
-            header: 'Donor',
-        },
-        {
-            key: 'campaign',
-            header: 'Campaign',
-        },
-        {
-            key: 'formattedAmount',
-            header: 'Amount',
-        },
-        {
-            key: 'payment_method',
-            header: 'Payment',
-            render: (value) => (
-                <span className="capitalize">{value || 'N/A'}</span>
-            ),
-        },
-        {
-            key: 'status',
-            header: 'Status',
-            render: (value) => <StatusBadge status={value} />,
-        },
-        {
-            key: 'donatedDate',
-            header: 'Date',
-        },
-        {
-            key: 'id',
-            header: 'Actions',
-            align: 'right',
-            render: () => (
-                <button
-                    type="button"
-                    className="text-xs font-medium text-primary hover:underline"
-                >
-                    View
-                </button>
-            ),
-        },
-    ];
+    const totalDonations = donations.length;
 
-    if (loading) {
-        return (
-            <div className="space-y-6">
-                <PageHeader
-                    title="Donations"
-                    subtitle="Monitor donations made across the Stand For People platform."
-                />
+    const averageDonation =
+      totalDonations > 0 ? totalAmount / totalDonations : 0;
 
-                <div className="rounded-2xl border border-border bg-white p-8 text-center text-sm text-text-secondary">
-                    Loading donations...
-                </div>
-            </div>
-        );
+    return {
+      totalAmount,
+      totalDonations,
+      averageDonation,
+    };
+  }, [donations]);
+
+  const handleViewDonation = (donation) => {
+    setModal({
+      type: "donation",
+      data: donation,
+      donation,
+    });
+  };
+
+  const handleViewDonor = (donation) => {
+    const donor = donation?.user || donation?.donor || null;
+
+    if (!donor) {
+      return;
     }
 
-    if (error) {
-        return (
-            <div className="space-y-6">
-                <PageHeader
-                    title="Donations"
-                    subtitle="Monitor donations made across the Stand For People platform."
-                />
+    setModal({
+      type: "donor",
+      data: donor,
+      donation,
+    });
+  };
 
-                <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-sm text-red-600">
-                    {error}
-                </div>
-            </div>
-        );
+  const handleViewCampaign = (donation) => {
+    const campaign = donation?.campaign || null;
+
+    if (!campaign) {
+      return;
     }
 
-    return (
-        <div className="space-y-6">
-            <PageHeader
-                title="Donations"
-                subtitle="Monitor donations made across the Stand For People platform."
-            />
+    setModal({
+      type: "campaign",
+      data: campaign,
+      donation,
+    });
+  };
 
-            <DataTable
-                title="All Donations"
-                columns={columns}
-                rows={rows}
-                empty={{
-                    icon: HandCoins,
-                    title: 'No donations found',
-                    message:
-                        'Donations will appear here after users make contributions.',
-                }}
-            />
-        </div>
-    );
+  const handleCloseModal = () => {
+    setModal({
+      type: null,
+      data: null,
+      donation: null,
+    });
+  };
+
+  return (
+    <div className="min-h-full bg-bg">
+      <PageHeader
+        title="Donations"
+        description="Monitor contributions and the funds received through the platform."
+        icon={HandCoins}
+      />
+
+      <div className="space-y-6">
+        <DonationSummary summary={summary} />
+
+        <DonationTable
+          donations={donations}
+          loading={loading}
+          error={error}
+          onViewDonation={handleViewDonation}
+          onViewDonor={handleViewDonor}
+          onViewCampaign={handleViewCampaign}
+        />
+      </div>
+
+      {modal.type && (
+        <DonationDetailsModal
+          type={modal.type}
+          data={modal.data}
+          donation={modal.donation}
+          onClose={handleCloseModal}
+        />
+      )}
+    </div>
+  );
 };
 
 export default Donations;

@@ -49,76 +49,76 @@ class OrganizationController extends Controller
     }
 
     /**
-     * Organization: Accept a pending help request assignment.
-     *
-     * pending -> accepted
-     */
-    public function acceptAssignment(
-        Request $request,
-        int $id
-    ) {
-        $user = $request->user();
+ * Organization: Accept a help request assignment.
+ *
+ * assigned -> accepted
+ */
+public function acceptAssignment(
+    Request $request,
+    int $id
+) {
+    $user = $request->user();
 
-        if (!$user || $user->role !== 'organization') {
-            return response()->json([
-                'message' => 'Unauthorized.',
-            ], 403);
-        }
+    if (!$user || $user->role !== 'organization') {
+        return response()->json([
+            'message' => 'Unauthorized.',
+        ], 403);
+    }
 
-        $organization = Organization::where(
-            'user_id',
-            $user->id
-        )->first();
+    $organization = Organization::where(
+        'user_id',
+        $user->id
+    )->first();
 
-        if (!$organization) {
-            return response()->json([
-                'message' => 'Organization profile not found.',
-            ], 404);
-        }
+    if (!$organization) {
+        return response()->json([
+            'message' => 'Organization profile not found.',
+        ], 404);
+    }
 
-        $assignment = HelpRequestAssignment::where(
-            'id',
-            $id
+    $assignment = HelpRequestAssignment::where(
+        'id',
+        $id
+    )
+        ->where(
+            'organization_id',
+            $organization->id
         )
-            ->where(
-                'organization_id',
-                $organization->id
-            )
-            ->first();
+        ->first();
 
-        if (!$assignment) {
-            return response()->json([
-                'message' => 'Assignment not found.',
-            ], 404);
-        }
+    if (!$assignment) {
+        return response()->json([
+            'message' => 'Assignment not found.',
+        ], 404);
+    }
 
-        if (
-            $assignment->status !==
-            HelpRequestAssignment::STATUS_PENDING
-        ) {
-            return response()->json([
-                'message' =>
-                'Only pending assignments can be accepted.',
-            ], 422);
-        }
-
-        $assignment->update([
-            'status' =>
-            HelpRequestAssignment::STATUS_ACCEPTED,
-        ]);
-
+    if (
+        $assignment->status !==
+        HelpRequestAssignment::STATUS_PENDING
+    ) {
         return response()->json([
             'message' =>
+                'Only pending assignments can be accepted.',
+        ], 422);
+    }
+
+    $assignment->update([
+        'status' =>
+            HelpRequestAssignment::STATUS_ACCEPTED,
+    ]);
+
+    return response()->json([
+        'message' =>
             'Help request assignment accepted successfully.',
 
-            'assignment' => $assignment
-                ->fresh()
-                ->load([
-                    'helpRequest',
-                    'assignedBy:id,name,email',
-                ]),
-        ]);
-    }
+        'assignment' => $assignment
+            ->fresh()
+            ->load([
+                'helpRequest',
+                'assignedBy:id,name,email',
+            ]),
+    ]);
+}
 
     /**
      * Organization: Reject a pending help request assignment.

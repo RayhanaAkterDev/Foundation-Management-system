@@ -91,8 +91,6 @@ class AdminController extends Controller
 
             'user' => $volunteer->user,
 
-            'organization' => $volunteer->organization,
-
             'phone' => $volunteer->phone
                 ?? $volunteer->user?->phone,
 
@@ -1931,10 +1929,9 @@ class AdminController extends Controller
             CampaignVolunteerAssignment::activeStatuses();
 
         $volunteers = Volunteer::query()
-            ->with([
-                'user:id,name,email,phone,status,email_verified_at',
-                'organization:id,name',
-            ])
+    ->with([
+        'user:id,name,email,phone,status,email_verified_at',
+    ])
             ->where(
                 'volunteers.status',
                 Volunteer::STATUS_ACTIVE
@@ -1964,42 +1961,40 @@ class AdminController extends Controller
             ->get();
 
         $volunteers = $volunteers->map(function ($volunteer) {
-            return [
-                /*
-                 * The assignment endpoint must receive users.id.
-                 */
-                'id' => $volunteer->user_id,
+    return [
+        /*
+         * The assignment endpoint must receive users.id.
+         */
+        'id' => $volunteer->user_id,
 
-                'user_id' => $volunteer->user_id,
+        'user_id' => $volunteer->user_id,
 
-                /*
-                 * Actual volunteers.id is provided only for reference.
-                 */
-                'volunteer_id' => $volunteer->id,
+        /*
+         * Actual volunteers.id is provided only for reference.
+         */
+        'volunteer_id' => $volunteer->id,
 
-                'user' => $volunteer->user,
+        'user' => $volunteer->user,
 
-                'organization' => $volunteer->organization,
+        'district' => $volunteer->district,
 
-                'district' => $volunteer->district,
+        'address' => $volunteer->address,
 
-                'address' => $volunteer->address,
+        'skills' => $volunteer->skills,
 
-                'skills' => $volunteer->skills,
+        /*
+         * No active assignment + active volunteer
+         * means available.
+         */
+        'availability' => 'available',
 
-                /*
-                 * No active assignment + active volunteer
-                 * means available.
-                 */
-                'availability' => 'available',
+        'status' => $volunteer->status,
 
-                'status' => $volunteer->status,
+        'created_at' => $volunteer->created_at,
 
-                'created_at' => $volunteer->created_at,
-
-                'updated_at' => $volunteer->updated_at,
-            ];
-        });
+        'updated_at' => $volunteer->updated_at,
+    ];
+});
 
         return response()->json([
             'volunteers' => $volunteers,

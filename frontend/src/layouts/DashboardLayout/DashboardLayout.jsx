@@ -1,30 +1,30 @@
-import React, { useState } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import React, { useState } from "react";
+import { Outlet, useLocation } from "react-router-dom";
 
-import DashboardSidebar from './DashboardSidebar';
-import DashboardTopbar from './DashboardTopbar';
-import DashboardMobileNav from './DashboardMobileNav';
+import DashboardSidebar from "./DashboardSidebar";
+import DashboardTopbar from "./DashboardTopbar";
+import DashboardMobileNav from "./DashboardMobileNav";
 
-import { NAV_CONFIG } from '@/routes/dashboardNav';
+import { NAV_CONFIG } from "@/routes/dashboardNav";
 
 // ============================================================
 // ROLE
 // ============================================================
 
 function getRoleFromPath(pathname) {
-    if (pathname.startsWith('/admin/dashboard')) {
-        return 'admin';
-    }
+  if (pathname.startsWith("/admin/dashboard")) {
+    return "admin";
+  }
 
-    if (pathname.startsWith('/organization/dashboard')) {
-        return 'organization';
-    }
+  if (pathname.startsWith("/organization/dashboard")) {
+    return "organization";
+  }
 
-    if (pathname.startsWith('/individual/dashboard')) {
-        return 'individual';
-    }
+  if (pathname.startsWith("/individual/dashboard")) {
+    return "individual";
+  }
 
-    return 'individual';
+  return "individual";
 }
 
 // ============================================================
@@ -32,36 +32,36 @@ function getRoleFromPath(pathname) {
 // ============================================================
 
 function getPageTitle(pathname, role) {
-    const nav = NAV_CONFIG[role] || [];
+  const nav = NAV_CONFIG[role] || [];
 
-    const segments = pathname.split('/').filter(Boolean);
+  const segments = pathname.split("/").filter(Boolean);
 
-    const lastSegment = segments[segments.length - 1];
+  const lastSegment = segments[segments.length - 1];
 
-    if (lastSegment === role || lastSegment === 'dashboard') {
-        return 'Dashboard';
+  if (lastSegment === role || lastSegment === "dashboard") {
+    return "Dashboard";
+  }
+
+  const match = nav.find((item) => {
+    if (!item.path) {
+      return false;
     }
 
-    const match = nav.find((item) => {
-        if (!item.path) {
-            return false;
-        }
+    const itemSegments = item.path.split("/").filter(Boolean);
 
-        const itemSegments = item.path.split('/').filter(Boolean);
+    return itemSegments[itemSegments.length - 1] === lastSegment;
+  });
 
-        return itemSegments[itemSegments.length - 1] === lastSegment;
-    });
+  if (match) {
+    return match.label;
+  }
 
-    if (match) {
-        return match.label;
-    }
-
-    return lastSegment
-        ? lastSegment
-              .split('-')
-              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-              .join(' ')
-        : 'Dashboard';
+  return lastSegment
+    ? lastSegment
+        .split("-")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ")
+    : "Dashboard";
 }
 
 // ============================================================
@@ -69,104 +69,91 @@ function getPageTitle(pathname, role) {
 // ============================================================
 
 const DashboardLayout = () => {
-    const location = useLocation();
+  const location = useLocation();
 
-    const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
-    // Desktop sidebar state
-    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  // Desktop sidebar starts collapsed on every fresh mount.
+  // This keeps the main content aligned with the icon rail
+  // from the very first render.
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
 
-    const role = getRoleFromPath(location.pathname);
+  const role = getRoleFromPath(location.pathname);
 
-    const pageTitle = getPageTitle(location.pathname, role);
+  const pageTitle = getPageTitle(location.pathname, role);
 
-    return (
-        <div
-            className="
-                min-h-screen
-                w-full
-                text-text-primary
-            "
-        >
-            {/* ==================================================
+  return (
+    <div className="min-h-screen w-full text-text-primary">
+      {/* ==================================================
                 DESKTOP SIDEBAR
             ================================================== */}
 
-            <DashboardSidebar
-                role={role}
-                currentPath={location.pathname}
-                collapsed={sidebarCollapsed}
-                onCollapsedChange={setSidebarCollapsed}
-            />
+      <DashboardSidebar
+        role={role}
+        currentPath={location.pathname}
+        collapsed={sidebarCollapsed}
+        onCollapsedChange={setSidebarCollapsed}
+      />
 
-            {/* ==================================================
+      {/* ==================================================
                 MOBILE NAV
             ================================================== */}
 
-            <DashboardMobileNav
-                role={role}
-                currentPath={location.pathname}
-                open={sidebarOpen}
-                onClose={() => setSidebarOpen(false)}
-            />
+      <DashboardMobileNav
+        role={role}
+        currentPath={location.pathname}
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+      />
 
-            {/* ==================================================
+      {/* ==================================================
                 MAIN SHELL
-
-                IMPORTANT:
-                The left padding changes together with the
-                desktop sidebar width.
-
-                Expanded  = 288px
-                Collapsed = 60px
             ================================================== */}
 
-            <div
-                className={`
-                    flex
-                    min-h-screen
-                    min-w-0
-                    flex-col
-                    transition-[padding-left]
-                    duration-300
-                    ease-in-out
-                    ${sidebarCollapsed ? 'lg:pl-15' : 'lg:pl-72'}
-                `}
-            >
-                {/* ==================================================
+      <div
+        className={`
+        flex
+        min-h-screen
+        min-w-0
+        flex-col
+        transition-[padding-left]
+        duration-300
+        ease-out
+        ${sidebarCollapsed ? "lg:pl-[60px]" : "lg:pl-[288px]"}
+    `}>
+        {/* ==================================================
                     TOPBAR
                 ================================================== */}
 
-                <DashboardTopbar
-                    pageTitle={pageTitle}
-                    role={role}
-                    onMenuOpen={() => setSidebarOpen(true)}
-                />
+        <DashboardTopbar
+          pageTitle={pageTitle}
+          role={role}
+          onMenuOpen={() => setSidebarOpen(true)}
+        />
 
-                {/* ==================================================
+        {/* ==================================================
                     MAIN CANVAS
                 ================================================== */}
 
-                <main
-                    className="
+        <main
+          className="
                         min-w-0
                         flex-1
                         overflow-y-auto
-                    "
-                >
-                    <div
-                        className="
+                    ">
+          <div
+            className="
                             mx-auto
                             w-full
                             max-w-400
-                            p-6"
-                    >
-                        <Outlet />
-                    </div>
-                </main>
-            </div>
-        </div>
-    );
+                            p-6
+                        ">
+            <Outlet />
+          </div>
+        </main>
+      </div>
+    </div>
+  );
 };
 
 export default DashboardLayout;

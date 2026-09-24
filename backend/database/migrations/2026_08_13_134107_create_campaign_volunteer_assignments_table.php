@@ -8,50 +8,36 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('campaign_volunteer_assignments', function (Blueprint $table) {
-            $table->text('rejection_reason')
-                ->nullable()
-                ->after('assignment_note');
+        Schema::create('campaign_volunteer_assignments', function (Blueprint $table) {
+            $table->id();
 
-            $table->boolean('rejection_validated')
-                ->nullable()
-                ->after('rejection_reason');
+            $table->foreignId('campaign_id')
+                ->constrained('campaigns')
+                ->onDelete('cascade');
 
-            $table->text('withdrawal_reason')
-                ->nullable()
-                ->after('completed_at');
-
-            $table->timestamp('withdrawal_requested_at')
-                ->nullable()
-                ->after('withdrawal_reason');
-
-            $table->timestamp('withdrawal_reviewed_at')
-                ->nullable()
-                ->after('withdrawal_requested_at');
-
-            $table->foreignId('withdrawal_reviewed_by')
-                ->nullable()
-                ->after('withdrawal_reviewed_at')
+            $table->foreignId('volunteer_id')
                 ->constrained('users')
-                ->nullOnDelete();
+                ->onDelete('cascade');
+
+            $table->foreignId('assigned_by')
+                ->constrained('users')
+                ->onDelete('restrict');
+
+            $table->string('status')->default('assigned');
+
+            $table->text('assignment_note')->nullable();
+
+            $table->timestamp('assigned_at')->nullable();
+            $table->timestamp('accepted_at')->nullable();
+            $table->timestamp('started_at')->nullable();
+            $table->timestamp('completed_at')->nullable();
+
+            $table->timestamps();
         });
     }
 
     public function down(): void
     {
-        Schema::table('campaign_volunteer_assignments', function (Blueprint $table) {
-            $table->dropForeign([
-                'withdrawal_reviewed_by',
-            ]);
-
-            $table->dropColumn([
-                'rejection_reason',
-                'rejection_validated',
-                'withdrawal_reason',
-                'withdrawal_requested_at',
-                'withdrawal_reviewed_at',
-                'withdrawal_reviewed_by',
-            ]);
-        });
+        Schema::dropIfExists('campaign_volunteer_assignments');
     }
 };

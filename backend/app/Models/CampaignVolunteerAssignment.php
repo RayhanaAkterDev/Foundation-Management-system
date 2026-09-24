@@ -13,11 +13,11 @@ class CampaignVolunteerAssignment extends Model
     |--------------------------------------------------------------------------
     |
     | assigned
-    |     Admin sent the volunteer an assignment offer.
+    |     Admin assigned the volunteer to a campaign.
+    |     The assignment is waiting for the volunteer's response.
     |
     | accepted
-    |     Volunteer accepted. The volunteer is now connected to
-    |     the campaign.
+    |     Volunteer accepted the assignment.
     |
     | rejected
     |     Volunteer rejected the assignment.
@@ -26,10 +26,10 @@ class CampaignVolunteerAssignment extends Model
     |     Volunteer has started working on the campaign.
     |
     | completed
-    |     Volunteer completed their campaign involvement.
+    |     Volunteer completed the campaign assignment.
     |
     | withdrawal_requested
-    |     Volunteer requested withdrawal and Admin has not reviewed it yet.
+    |     Volunteer requested withdrawal and Admin has not reviewed it.
     |
     | withdrawn
     |     Admin approved the withdrawal request.
@@ -62,8 +62,20 @@ class CampaignVolunteerAssignment extends Model
     | Occupied Assignment Statuses
     |--------------------------------------------------------------------------
     |
-    | A volunteer is unavailable for another campaign while an assignment
-    | is in one of these states.
+    | These statuses make a volunteer unavailable for another campaign.
+    |
+    | assigned
+    |     Assignment has been offered and is still pending.
+    |
+    | accepted
+    |     Volunteer accepted the assignment.
+    |
+    | in_progress
+    |     Volunteer is actively working.
+    |
+    | withdrawal_requested
+    |     Volunteer is still attached to the campaign until Admin
+    |     approves the withdrawal.
     |
     */
 
@@ -76,6 +88,12 @@ class CampaignVolunteerAssignment extends Model
             self::STATUS_WITHDRAWAL_REQUESTED,
         ];
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Mass Assignment
+    |--------------------------------------------------------------------------
+    */
 
     protected $fillable = [
         'campaign_id',
@@ -92,6 +110,12 @@ class CampaignVolunteerAssignment extends Model
         'withdrawal_reviewed_at',
         'withdrawal_reviewed_by',
     ];
+
+    /*
+    |--------------------------------------------------------------------------
+    | Casts
+    |--------------------------------------------------------------------------
+    */
 
     protected $casts = [
         'rejection_validated' => 'boolean',
@@ -120,7 +144,8 @@ class CampaignVolunteerAssignment extends Model
     | Volunteer
     |--------------------------------------------------------------------------
     |
-    | volunteer_id points to users.id.
+    | IMPORTANT:
+    | volunteer_id stores users.id, NOT volunteers.id.
     |
     */
 
@@ -137,7 +162,8 @@ class CampaignVolunteerAssignment extends Model
     | Assigned By
     |--------------------------------------------------------------------------
     |
-    | assigned_by points to users.id.
+    | assigned_by stores users.id of the Admin who created
+    | the campaign assignment.
     |
     */
 
@@ -154,7 +180,8 @@ class CampaignVolunteerAssignment extends Model
     | Withdrawal Reviewed By
     |--------------------------------------------------------------------------
     |
-    | withdrawal_reviewed_by points to users.id.
+    | withdrawal_reviewed_by stores users.id of the Admin who
+    | reviewed the withdrawal request.
     |
     */
 

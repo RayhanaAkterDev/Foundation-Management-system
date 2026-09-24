@@ -1,766 +1,681 @@
-import React from 'react';
-import {
-    X,
-    MapPin,
-    Tag,
-    FileText,
-    Hash,
-    ShieldCheck,
-    RefreshCw,
-    CalendarDays,
-    Building2,
-    Target,
-    Wallet,
-    Globe2,
-    Layers3,
-    HeartHandshake,
-} from 'lucide-react';
+import React from "react";
 
-import StatusBadge from '@/components/dashboard/StatusBadge';
+import {
+  X,
+  FileText,
+  ShieldCheck,
+  CalendarDays,
+  CircleAlert,
+  Target,
+  Wallet,
+  MapPin,
+  Globe2,
+  Layers3,
+} from "lucide-react";
+
+import StatusBadge from "@/components/dashboard/StatusBadge";
+
+// ============================================================
+// HEADER META
+// ============================================================
+
+const HeaderMeta = ({
+  label,
+  value,
+  mono = false,
+  truncate = false,
+  valueClassName = "text-white",
+}) => (
+  <div className="min-w-0">
+    <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-white/45">
+      {label}
+    </p>
+
+    <p
+      className={`mt-1 max-w-full text-[12px] font-semibold leading-5 tracking-[-0.01em] ${valueClassName} ${
+        mono ? "font-mono" : ""
+      } ${truncate ? "truncate" : ""}`}
+      title={truncate ? value : undefined}>
+      {value}
+    </p>
+  </div>
+);
+
+// ============================================================
+// SECTION HEADING
+// ============================================================
+
+const SectionHeading = ({ icon: Icon, eyebrow, title }) => (
+  <div className="mb-7 flex items-start gap-3">
+    <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+      <Icon size={17} strokeWidth={2} />
+    </div>
+
+    <div>
+      <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+        {eyebrow}
+      </p>
+
+      <h3 className="text-[17px] font-semibold tracking-[-0.01em] text-slate-900">
+        {title}
+      </h3>
+    </div>
+  </div>
+);
+
+// ============================================================
+// SIDE HEADING
+// ============================================================
+
+const SideHeading = ({ icon: Icon, children }) => (
+  <div className="mb-5 flex items-center gap-2.5">
+    <Icon size={16} className="text-primary" strokeWidth={2} />
+
+    <h3 className="text-[13px] font-semibold uppercase tracking-widest text-slate-700">
+      {children}
+    </h3>
+  </div>
+);
+
+// ============================================================
+// TIMELINE ITEM
+// ============================================================
+
+const TimelineItem = ({ date, title, description, last = false }) => (
+  <div className="relative flex gap-3.5">
+    <div className="relative flex w-3 shrink-0 justify-center">
+      <span className="mt-1.5 h-2.5 w-2.5 rounded-full border-2 border-primary bg-white" />
+
+      {!last && (
+        <span className="absolute left-1/2 top-4 h-[calc(100%+1rem)] w-px -translate-x-1/2 bg-slate-200" />
+      )}
+    </div>
+
+    <div className="pb-7">
+      <p className="mb-1 text-[10px] font-medium uppercase tracking-[0.08em] text-slate-400">
+        {date}
+      </p>
+
+      <p className="text-[13px] font-semibold text-slate-800">{title}</p>
+
+      {description && (
+        <p className="mt-1.5 text-[12px] leading-5 text-slate-500">
+          {description}
+        </p>
+      )}
+    </div>
+  </div>
+);
+
+// ============================================================
+// VIEW MODAL
+// ============================================================
 
 const ViewModal = ({ campaign, loading, error, onClose }) => {
-    if (!campaign && !loading && !error) {
-        return null;
+  const formatDate = (date, includeTime = false) => {
+    if (!date) return "Not provided";
+
+    const parsed = new Date(date);
+
+    if (Number.isNaN(parsed.getTime())) return "Not provided";
+
+    return parsed.toLocaleString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      ...(includeTime && {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+    });
+  };
+
+  const formatValue = (value) => {
+    if (value === null || value === undefined || value === "") {
+      return "Not provided";
     }
 
-    // --------------------------------
-    // Helpers
-    // --------------------------------
+    return String(value)
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+  };
 
-    const formatDate = (date, includeTime = false) => {
-        if (!date) {
-            return 'Not provided';
-        }
+  const formatMoney = (value) => {
+    if (value === null || value === undefined || value === "") {
+      return "Not provided";
+    }
 
-        const parsedDate = new Date(date);
+    const number = Number(value);
 
-        if (Number.isNaN(parsedDate.getTime())) {
-            return 'Not provided';
-        }
+    if (Number.isNaN(number)) return "Not provided";
 
-        return parsedDate.toLocaleDateString(undefined, {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
-            ...(includeTime && {
-                hour: 'numeric',
-                minute: '2-digit',
-            }),
-        });
+    return `৳${number.toLocaleString("en-BD")}`;
+  };
+
+  const getCampaignTypeLabel = (type) => {
+    const labels = {
+      local_help_request: "Local Help Request",
+      state_campaign: "State Campaign",
+      global_situation: "Global Situation",
     };
 
-    const formatValue = (value) => {
-        if (value === null || value === undefined || value === '') {
-            return 'Not provided';
-        }
+    return labels[type] || formatValue(type);
+  };
 
-        return String(value)
-            .replace(/_/g, ' ')
-            .replace(/\b\w/g, (letter) => letter.toUpperCase());
-    };
-
-    const formatMoney = (value) => {
-        if (value === null || value === undefined || value === '') {
-            return 'Not provided';
-        }
-
-        return `৳${Number(value).toLocaleString()}`;
-    };
-
-    const getCampaignTypeLabel = (type) => {
-        switch (type) {
-            case 'local_help_request':
-                return 'Local Help Request';
-
-            case 'state_campaign':
-                return 'State Campaign';
-
-            case 'global_situation':
-                return 'Global Situation';
-
-            default:
-                return formatValue(type);
-        }
-    };
-
-    const getOrganizerName = () => {
-        if (campaign?.organization?.name) {
-            return campaign.organization.name;
-        }
-
-        if (campaign?.type === 'global_situation') {
-            return 'Stand For People';
-        }
-
-        return 'Not assigned';
-    };
-
-    const getProgressPercentage = () => {
-        const target = Number(campaign?.target_amount || 0);
-        const collected = Number(campaign?.collected_amount || 0);
-
-        if (!target || target <= 0) {
-            return 0;
-        }
-
-        return Math.min((collected / target) * 100, 100);
-    };
-
-    const progressPercentage = getProgressPercentage();
-
+  const getOrganizerName = () => {
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-3 backdrop-blur-[5px] sm:p-5">
-            {/* Overlay */}
+      campaign?.organization?.name ||
+      campaign?.organization?.organization_name ||
+      campaign?.organization_name ||
+      (campaign?.type === "global_situation"
+        ? "Stand For People"
+        : "Not assigned")
+    );
+  };
 
-            <div
-                className="absolute inset-0"
-                onClick={!loading ? onClose : undefined}
-            />
+  const getProgressPercentage = () => {
+    const target = Number(campaign?.target_amount || 0);
 
-            <div className="relative z-10 flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-[26px] border border-white/70 bg-white shadow-[0_32px_100px_rgba(15,23,42,0.25)]">
-                {/* --------------------------------
-                    Header
-                -------------------------------- */}
+    const collected = Number(
+      campaign?.collected_amount ||
+        campaign?.raised_amount ||
+        campaign?.current_amount ||
+        0,
+    );
 
-                <div className="relative shrink-0 overflow-hidden border-b border-border bg-white px-6 py-5 sm:px-7">
-                    <div className="absolute inset-x-0 top-0 h-1 bg-linear-to-r from-primary via-teal-400 to-primary/30" />
+    if (!target || target <= 0) return 0;
 
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        disabled={loading}
-                        className="absolute right-5 top-5 flex h-9 w-9 items-center justify-center rounded-xl border border-transparent text-text-secondary transition-all hover:border-border hover:bg-background-alt hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
-                        aria-label="Close"
-                    >
-                        <X size={18} />
-                    </button>
+    return Math.min((collected / target) * 100, 100);
+  };
 
-                    <div className="pr-12">
-                        <div className="flex items-center gap-2.5">
-                            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-white shadow-sm shadow-primary/20">
-                                <HeartHandshake size={17} strokeWidth={1.9} />
-                            </span>
+  const progressPercentage = getProgressPercentage();
 
-                            <div>
-                                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
-                                    Campaign
-                                </p>
+  const statusValue = campaign?.status || "unknown";
+  const campaignType = getCampaignTypeLabel(campaign?.type);
+  const organizerName = getOrganizerName();
 
-                                <p className="mt-0.5 text-[10px] font-medium text-slate-400">
-                                    Campaign overview
-                                </p>
-                            </div>
-                        </div>
+  const locationValue =
+    campaign?.location ||
+    campaign?.address ||
+    campaign?.district ||
+    "Not provided";
 
-                        <h2 className="mt-4 max-w-3xl text-[22px] font-bold leading-7 tracking-tight text-slate-900">
-                            {campaign?.title || 'Campaign details'}
-                        </h2>
+  const collectedAmount =
+    campaign?.collected_amount ??
+    campaign?.raised_amount ??
+    campaign?.current_amount ??
+    0;
 
-                        {campaign && (
-                            <div className="mt-3 flex flex-wrap items-center gap-2">
-                                {campaign.status && (
-                                    <StatusBadge status={campaign.status} />
-                                )}
+  const targetAmount = Number(campaign?.target_amount || 0);
+  const collectedNumber = Number(collectedAmount || 0);
+  const remainingAmount = Math.max(targetAmount - collectedNumber, 0);
 
-                                {campaign.type && (
-                                    <>
-                                        <span className="h-1 w-1 rounded-full bg-slate-300" />
+  if (!campaign) return null;
 
-                                        <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-50 px-2.5 py-1 text-[11px] font-semibold capitalize text-slate-600 ring-1 ring-inset ring-slate-200">
-                                            <Globe2 size={12} />
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-3 backdrop-blur-sm sm:p-5">
+      <div
+        className="absolute inset-0"
+        onClick={!loading ? onClose : undefined}
+      />
 
-                                            {getCampaignTypeLabel(
-                                                campaign.type,
-                                            )}
-                                        </span>
-                                    </>
-                                )}
-                            </div>
-                        )}
+      <div className="relative z-10 flex max-h-[94vh] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_30px_90px_rgba(15,23,42,0.28)]">
+        {/* =========================================================
+            HEADER — EXACT REQUESTED VERSION
+        ========================================================== */}
+
+        <header className="shrink-0 border-b border-primary-hover bg-primary text-white">
+          <div className="px-6 py-6 sm:px-8 sm:py-7">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={loading}
+              className="absolute right-5 top-5 flex h-9 w-9 items-center justify-center rounded-lg border border-white/15 bg-white/10 text-white/70 transition-colors hover:bg-white/15 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+              aria-label="Close">
+              <X size={18} strokeWidth={1.8} />
+            </button>
+
+            {campaign && (
+              <div className="flex flex-col gap-7 pr-12 lg:flex-row lg:items-start lg:justify-between lg:gap-10">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/50">
+                      Campaign
+                    </span>
+
+                    {campaign?.id && (
+                      <>
+                        <span className="text-white/25">•</span>
+
+                        <span className="font-mono text-[10px] text-white/45">
+                          #{campaign.id}
+                        </span>
+                      </>
+                    )}
+                  </div>
+
+                  <div className="mt-3">
+                    <h2 className="max-w-3xl text-[24px] font-bold leading-tight tracking-[-0.02em] text-white sm:text-[28px]">
+                      {campaign?.title || "Campaign details"}
+                    </h2>
+
+                    <div className="mt-4 flex flex-wrap items-center gap-2">
+                      {campaign.status && (
+                        <span className="inline-flex items-center rounded-md bg-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-primary shadow-sm">
+                          {statusValue}
+                        </span>
+                      )}
+
+                      {campaign.type && (
+                        <span className="inline-flex items-center gap-1.5 rounded-md border border-white/15 bg-white/10 px-2.5 py-1.5 text-[10px] font-semibold text-white/90">
+                          <Globe2 size={13} />
+
+                          {campaignType}
+                        </span>
+                      )}
+
+                      {campaign.category && (
+                        <span className="inline-flex items-center gap-1.5 rounded-md border border-white/15 bg-white/10 px-2.5 py-1.5 text-[10px] font-semibold text-white/90">
+                          <Layers3 size={13} />
+
+                          {formatValue(campaign.category)}
+                        </span>
+                      )}
                     </div>
+                  </div>
                 </div>
 
-                {/* --------------------------------
-                    Content
-                -------------------------------- */}
+                <div className="w-full shrink-0 border-t border-white/10 pt-5 lg:w-50 lg:border-l lg:border-t-0 lg:pl-7 lg:pt-1">
+                  <div className="grid grid-cols-1 gap-x-6 gap-y-5">
+                    <HeaderMeta
+                      label="Organizer"
+                      value={organizerName}
+                      truncate
+                    />
 
-                <div className="min-h-0 flex-1 overflow-y-auto bg-[#f1f6f5]">
-                    {/* Loading */}
+                    <HeaderMeta
+                      label="Location"
+                      value={locationValue}
+                      truncate
+                    />
 
-                    {loading && (
-                        <div className="flex min-h-80 flex-col items-center justify-center text-center">
-                            <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
-                                <div className="h-6 w-6 animate-spin rounded-full border-2 border-slate-200 border-t-primary" />
-                            </div>
+                    <HeaderMeta
+                      label="Target"
+                      value={formatMoney(campaign.target_amount)}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </header>
 
-                            <p className="text-sm font-semibold text-text-primary">
-                                Loading campaign...
-                            </p>
+        {/* =========================================================
+            BODY — EXACT REQUESTED VERSION
+        ========================================================== */}
 
-                            <p className="mt-1 text-xs text-text-secondary">
-                                Please wait a moment.
-                            </p>
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          {loading ? (
+            <div className="flex min-h-105 items-center justify-center">
+              <div className="text-center">
+                <div className="mx-auto mb-3 h-7 w-7 animate-spin rounded-full border-2 border-slate-200 border-t-primary" />
+
+                <p className="text-sm text-slate-500">Loading campaign...</p>
+              </div>
+            </div>
+          ) : error ? (
+            <div className="flex min-h-105 items-center justify-center p-6">
+              <div className="max-w-md text-center">
+                <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-red-50 text-red-500">
+                  <CircleAlert size={20} />
+                </div>
+
+                <p className="text-sm font-medium text-slate-800">
+                  Unable to load campaign
+                </p>
+
+                <p className="mt-1 text-xs leading-5 text-slate-500">{error}</p>
+              </div>
+            </div>
+          ) : (
+            <div className="grid lg:grid-cols-[minmax(0,1fr)_280px]">
+              {/* =====================================================
+                  MAIN CONTENT
+              ====================================================== */}
+
+              <main className="min-w-0 px-6 py-7 sm:px-8">
+                {/* DESCRIPTION */}
+
+                <section className="border-b border-slate-200 pb-8">
+                  <SectionHeading
+                    icon={FileText}
+                    eyebrow="Campaign overview"
+                    title="Description"
+                  />
+
+                  <p className="max-w-3xl whitespace-pre-line text-[13px] leading-7 text-slate-600">
+                    {campaign.description || "No description provided."}
+                  </p>
+                </section>
+
+                {/* =================================================
+                    LOCATION & IMPACT
+                ================================================== */}
+
+                <section className="border-b border-slate-200 py-8">
+                  <SectionHeading
+                    icon={MapPin}
+                    eyebrow="Campaign details"
+                    title="Location & impact"
+                  />
+
+                  <div className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
+                    {/* PRIMARY LOCATION */}
+
+                    <div className="min-w-0">
+                      <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+                        Where support is needed
+                      </p>
+
+                      <div className="flex items-start gap-3">
+                        <MapPin
+                          size={21}
+                          strokeWidth={1.8}
+                          className="mt-0.5 shrink-0 text-primary"
+                        />
+
+                        <div className="min-w-0">
+                          <p className="wrap-break-word text-[20px] font-semibold leading-7 tracking-[-0.02em] text-slate-900">
+                            {locationValue}
+                          </p>
+
+                          {campaign?.district &&
+                            campaign.district !== locationValue && (
+                              <p className="mt-1.5 text-[12px] text-slate-500">
+                                {campaign.district}
+                              </p>
+                            )}
                         </div>
-                    )}
+                      </div>
 
-                    {/* Error */}
+                      <div className="mt-7 flex items-center gap-2 text-[11px] text-slate-500">
+                        <Globe2 size={14} className="shrink-0 text-slate-400" />
 
-                    {!loading && error && (
-                        <div className="mx-6 my-6 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 sm:mx-7">
-                            <p className="text-sm font-semibold text-red-700">
-                                Unable to load this campaign
-                            </p>
+                        <span>
+                          Scope:{" "}
+                          <span className="font-medium text-slate-700">
+                            {formatValue(campaign.scope)}
+                          </span>
+                        </span>
+                      </div>
+                    </div>
 
-                            <p className="mt-1 text-sm leading-6 text-red-600">
-                                {error}
-                            </p>
+                    {/* COVERAGE */}
+
+                    <div className="lg:border-l lg:border-slate-200 lg:pl-8">
+                      <p className="mb-4 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+                        Coverage & impact
+                      </p>
+
+                      <div>
+                        <div className="flex items-start justify-between gap-5 border-b border-slate-100 py-3 first:pt-0">
+                          <div className="flex items-center gap-2.5">
+                            <Layers3
+                              size={14}
+                              className="shrink-0 text-slate-400"
+                            />
+
+                            <span className="text-[12px] text-slate-500">
+                              District
+                            </span>
+                          </div>
+
+                          <span className="max-w-[55%] text-right text-[12px] font-medium text-slate-800">
+                            {formatValue(campaign.district)}
+                          </span>
                         </div>
-                    )}
 
-                    {/* Content */}
+                        <div className="flex items-start justify-between gap-5 border-b border-slate-100 py-3">
+                          <div className="flex items-center gap-2.5">
+                            <MapPin
+                              size={14}
+                              className="shrink-0 text-slate-400"
+                            />
 
-                    {!loading && !error && campaign && (
-                        <div className="mx-auto max-w-5xl">
-                            {/* Campaign identity */}
+                            <span className="text-[12px] text-slate-500">
+                              Location
+                            </span>
+                          </div>
 
-                            <div className="border-b border-slate-200 bg-white px-6 py-5 sm:px-8">
-                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                                    <MetaCard
-                                        icon={Tag}
-                                        label="Category"
-                                        value={formatValue(campaign.category)}
-                                        accent="primary"
-                                    />
-
-                                    <MetaCard
-                                        icon={Building2}
-                                        label="Organizer"
-                                        value={getOrganizerName()}
-                                        accent="organization"
-                                    />
-
-                                    <MetaCard
-                                        icon={MapPin}
-                                        label="Location"
-                                        value={
-                                            campaign.location ||
-                                            campaign.district ||
-                                            'Not specified'
-                                        }
-                                        accent="location"
-                                    />
-
-                                    <MetaCard
-                                        icon={Hash}
-                                        label="Campaign ID"
-                                        value={campaign.id || 'Not provided'}
-                                        accent="neutral"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Funding overview */}
-
-                            <div className="border-b border-slate-200 bg-white px-6 py-5 sm:px-8">
-                                <div className="mb-4 flex items-center gap-2.5">
-                                    <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                                        <Target size={14} />
-                                    </span>
-
-                                    <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
-                                        Fundraising overview
-                                    </span>
-                                </div>
-
-                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                                    <FundingCard
-                                        icon={Target}
-                                        label="Target amount"
-                                        value={formatMoney(
-                                            campaign.target_amount,
-                                        )}
-                                    />
-
-                                    <FundingCard
-                                        icon={Wallet}
-                                        label="Collected"
-                                        value={formatMoney(
-                                            campaign.collected_amount || 0,
-                                        )}
-                                    />
-
-                                    <FundingCard
-                                        icon={RefreshCw}
-                                        label="Progress"
-                                        value={`${Math.round(
-                                            progressPercentage,
-                                        )}%`}
-                                    />
-                                </div>
-
-                                {/* Progress */}
-
-                                <div className="mt-5">
-                                    <div className="mb-2 flex items-center justify-between">
-                                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                                            Fundraising progress
-                                        </span>
-
-                                        <span className="text-xs font-bold text-primary">
-                                            {Math.round(progressPercentage)}%
-                                        </span>
-                                    </div>
-
-                                    <div className="h-2 overflow-hidden rounded-full bg-slate-100">
-                                        <div
-                                            className="h-full rounded-full bg-primary transition-all"
-                                            style={{
-                                                width: `${progressPercentage}%`,
-                                            }}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Main content */}
-
-                            <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_270px]">
-                                <main className="bg-white px-6 py-7 sm:px-8 sm:py-8 lg:border-r lg:border-slate-200">
-                                    {/* Description */}
-
-                                    <div className="max-w-2xl">
-                                        <div className="mb-5 flex items-center justify-between">
-                                            <div className="flex items-center gap-2.5">
-                                                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                                                    <FileText size={14} />
-                                                </span>
-
-                                                <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-primary">
-                                                    Campaign details
-                                                </span>
-                                            </div>
-
-                                            <span className="hidden rounded-full bg-slate-50 px-2.5 py-1 text-[10px] font-medium text-slate-400 sm:inline-flex">
-                                                Full description
-                                            </span>
-                                        </div>
-
-                                        <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-linear-to-br from-white to-slate-50/70 px-5 py-5 shadow-sm sm:px-6 sm:py-6">
-                                            <div className="absolute left-0 top-0 h-full w-1 bg-primary/70" />
-
-                                            <p className="whitespace-pre-line text-[15px] leading-8 text-slate-700">
-                                                {campaign.description ||
-                                                    'No description provided.'}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    {/* Additional information */}
-
-                                    <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                                        <InfoCard
-                                            icon={Layers3}
-                                            label="Scope"
-                                            value={formatValue(campaign.scope)}
-                                        />
-
-                                        <InfoCard
-                                            icon={MapPin}
-                                            label="Affected areas"
-                                            value={
-                                                campaign.affected_areas ||
-                                                'Not provided'
-                                            }
-                                        />
-
-                                        <InfoCard
-                                            icon={Globe2}
-                                            label="Campaign type"
-                                            value={getCampaignTypeLabel(
-                                                campaign.type,
-                                            )}
-                                        />
-
-                                        <InfoCard
-                                            icon={FileText}
-                                            label="Related help request"
-                                            value={
-                                                campaign.help_request_id
-                                                    ? `Request #${campaign.help_request_id}`
-                                                    : 'Not linked'
-                                            }
-                                        />
-                                    </div>
-
-                                    {/* Verification note */}
-
-                                    {campaign.verification_note && (
-                                        <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50/60 px-5 py-4">
-                                            <div className="flex items-start gap-3">
-                                                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-600">
-                                                    <ShieldCheck size={14} />
-                                                </span>
-
-                                                <div>
-                                                    <p className="text-[10px] font-bold uppercase tracking-widest text-amber-700">
-                                                        Verification note
-                                                    </p>
-
-                                                    <p className="mt-1.5 text-sm leading-6 text-amber-800">
-                                                        {
-                                                            campaign.verification_note
-                                                        }
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-                                </main>
-
-                                {/* Side information */}
-
-                                <aside className="bg-[#f8faf9] px-6 py-7 sm:px-8 lg:px-6">
-                                    {/* Current state */}
-
-                                    <div className="mb-8">
-                                        <SideHeading
-                                            title="Current state"
-                                            icon={ShieldCheck}
-                                        />
-
-                                        <div className="mt-4 space-y-2.5">
-                                            {campaign.status && (
-                                                <SideStatus
-                                                    icon={RefreshCw}
-                                                    label="Status"
-                                                    value={
-                                                        <StatusBadge
-                                                            status={
-                                                                campaign.status
-                                                            }
-                                                        />
-                                                    }
-                                                />
-                                            )}
-
-                                            <SideStatus
-                                                icon={Building2}
-                                                label="Organizer"
-                                                value={
-                                                    <span className="text-xs font-semibold text-slate-700">
-                                                        {getOrganizerName()}
-                                                    </span>
-                                                }
-                                            />
-
-                                            <SideStatus
-                                                icon={Tag}
-                                                label="Category"
-                                                value={
-                                                    <span className="text-xs font-semibold text-slate-700">
-                                                        {formatValue(
-                                                            campaign.category,
-                                                        )}
-                                                    </span>
-                                                }
-                                            />
-                                        </div>
-                                    </div>
-
-                                    {/* Timeline */}
-
-                                    <div>
-                                        <SideHeading
-                                            title="Timeline"
-                                            icon={CalendarDays}
-                                        />
-
-                                        <div className="relative mt-5 pl-5">
-                                            <div className="absolute bottom-3 left-1 top-2 w-px bg-linear-to-b from-primary/60 via-slate-200 to-transparent" />
-
-                                            <TimelineItem
-                                                label="Created"
-                                                value={formatDate(
-                                                    campaign.created_at,
-                                                    true,
-                                                )}
-                                                active
-                                            />
-
-                                            {campaign.proposal_date && (
-                                                <TimelineItem
-                                                    label="Proposal submitted"
-                                                    value={formatDate(
-                                                        campaign.proposal_date,
-                                                        true,
-                                                    )}
-                                                />
-                                            )}
-
-                                            {campaign.verified_at && (
-                                                <TimelineItem
-                                                    label="Verified"
-                                                    value={formatDate(
-                                                        campaign.verified_at,
-                                                        true,
-                                                    )}
-                                                    active
-                                                />
-                                            )}
-
-                                            {campaign.start_date && (
-                                                <TimelineItem
-                                                    label="Campaign started"
-                                                    value={formatDate(
-                                                        campaign.start_date,
-                                                        true,
-                                                    )}
-                                                    active
-                                                />
-                                            )}
-
-                                            {campaign.end_date && (
-                                                <TimelineItem
-                                                    label="Campaign ended"
-                                                    value={formatDate(
-                                                        campaign.end_date,
-                                                        true,
-                                                    )}
-                                                    last
-                                                    active
-                                                />
-                                            )}
-
-                                            {!campaign.end_date && (
-                                                <TimelineItem
-                                                    label="Last updated"
-                                                    value={formatDate(
-                                                        campaign.updated_at,
-                                                        true,
-                                                    )}
-                                                    last
-                                                />
-                                            )}
-                                        </div>
-                                    </div>
-                                </aside>
-                            </div>
+                          <span className="max-w-[55%] text-right text-[12px] font-medium text-slate-800">
+                            {formatValue(locationValue)}
+                          </span>
                         </div>
+
+                        <div className="flex items-start justify-between gap-5 py-3">
+                          <div className="flex items-center gap-2.5">
+                            <CircleAlert
+                              size={14}
+                              className="shrink-0 text-slate-400"
+                            />
+
+                            <span className="text-[12px] text-slate-500">
+                              Affected areas
+                            </span>
+                          </div>
+
+                          <span className="max-w-[55%] text-right text-[12px] font-medium leading-5 text-slate-800">
+                            {formatValue(campaign.affected_areas)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {campaign?.verification_note && (
+                    <div className="mt-7 border-l-2 border-primary/50 pl-4">
+                      <div className="flex items-start gap-2.5">
+                        <ShieldCheck
+                          size={15}
+                          className="mt-0.5 shrink-0 text-primary"
+                        />
+
+                        <div>
+                          <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
+                            Verification note
+                          </p>
+
+                          <p className="mt-1 text-[12px] leading-5 text-slate-600">
+                            {campaign.verification_note}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </section>
+
+                {/* =================================================
+                    CAMPAIGN FUNDING
+                ================================================== */}
+
+                <section className="py-8">
+                  <SectionHeading
+                    icon={Wallet}
+                    eyebrow="Fundraising"
+                    title="Campaign funding"
+                  />
+
+                  <div className="space-y-6">
+                    <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+                      <div>
+                        <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+                          Raised so far
+                        </p>
+
+                        <p className="text-[30px] font-semibold tracking-[-0.03em] text-slate-900">
+                          {formatMoney(collectedAmount)}
+                        </p>
+                      </div>
+
+                      <div className="flex items-end gap-8 sm:text-right">
+                        <div>
+                          <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400">
+                            Target
+                          </p>
+
+                          <p className="text-[14px] font-semibold text-slate-800">
+                            {formatMoney(campaign.target_amount)}
+                          </p>
+                        </div>
+
+                        <div>
+                          <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400">
+                            Remaining
+                          </p>
+
+                          <p className="text-[14px] font-semibold text-slate-800">
+                            {formatMoney(remainingAmount)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="mb-2.5 flex items-center justify-between">
+                        <span className="text-[11px] font-medium text-slate-500">
+                          Funding progress
+                        </span>
+
+                        <span className="text-[12px] font-semibold text-primary">
+                          {progressPercentage.toFixed(0)}%
+                        </span>
+                      </div>
+
+                      <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+                        <div
+                          className="h-full rounded-full bg-primary transition-all"
+                          style={{
+                            width: `${progressPercentage}%`,
+                          }}
+                        />
+                      </div>
+
+                      <div className="mt-2 flex items-center justify-between text-[10px] text-slate-400">
+                        <span>৳0</span>
+
+                        <span>
+                          Target {formatMoney(campaign.target_amount)}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <Target size={15} className="shrink-0 text-slate-400" />
+
+                        <span className="text-[11px] text-slate-500">
+                          Current campaign funding status
+                        </span>
+                      </div>
+
+                      <span className="text-[11px] font-medium text-slate-700">
+                        {progressPercentage >= 100
+                          ? "Funding target reached"
+                          : `${formatMoney(remainingAmount)} still needed`}
+                      </span>
+                    </div>
+                  </div>
+                </section>
+              </main>
+
+              {/* =====================================================
+                  TIMELINE SIDEBAR
+              ====================================================== */}
+
+              <aside className="border-t border-slate-200 bg-slate-50/70 px-6 py-7 lg:border-l lg:border-t-0">
+                <SideHeading icon={CalendarDays}>Campaign timeline</SideHeading>
+
+                <div>
+                  {campaign?.created_at && (
+                    <TimelineItem
+                      date={formatDate(campaign.created_at)}
+                      title="Campaign created"
+                      description="Campaign information was submitted to the platform."
+                    />
+                  )}
+
+                  {campaign?.start_date && (
+                    <TimelineItem
+                      date={formatDate(campaign.start_date)}
+                      title="Campaign starts"
+                      description="The campaign becomes active from this date."
+                    />
+                  )}
+
+                  {campaign?.end_date && (
+                    <TimelineItem
+                      date={formatDate(campaign.end_date)}
+                      title="Campaign ends"
+                      description="Scheduled end date for this campaign."
+                      last
+                    />
+                  )}
+                </div>
+
+                {!campaign?.created_at &&
+                  !campaign?.start_date &&
+                  !campaign?.end_date && (
+                    <p className="text-[12px] leading-5 text-slate-500">
+                      No timeline information is available.
+                    </p>
+                  )}
+
+                <div className="mt-8 border-t border-slate-200 pt-6">
+                  <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400">
+                    Record information
+                  </p>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-[11px] text-slate-500">
+                        Created
+                      </span>
+
+                      <span className="text-right text-[11px] font-medium text-slate-700">
+                        {formatDate(campaign.created_at)}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-[11px] text-slate-500">
+                        Updated
+                      </span>
+
+                      <span className="text-right text-[11px] font-medium text-slate-700">
+                        {formatDate(campaign.updated_at)}
+                      </span>
+                    </div>
+
+                    {campaign?.id && (
+                      <div className="flex items-center justify-between gap-4">
+                        <span className="text-[11px] text-slate-500">
+                          Campaign ID
+                        </span>
+
+                        <span className="max-w-32.5 truncate text-right font-mono text-[10px] font-medium text-slate-700">
+                          #{campaign.id}
+                        </span>
+                      </div>
                     )}
+                  </div>
                 </div>
-
-                {/* Footer */}
-
-                <div className="flex shrink-0 items-center justify-between border-t border-border bg-white px-6 py-4 sm:px-7">
-                    <p className="hidden text-xs text-slate-400 sm:block">
-                        Campaign details
-                    </p>
-
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        disabled={loading}
-                        className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-sm shadow-primary/20 transition-all hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                        Done
-                    </button>
-                </div>
+              </aside>
             </div>
+          )}
         </div>
-    );
-};
-
-// --------------------------------
-// Meta Card
-// --------------------------------
-
-const MetaCard = ({ icon: Icon, label, value, accent }) => {
-    const styles = {
-        primary: {
-            wrapper:
-                'border-teal-100 bg-linear-to-br from-teal-50/80 to-white',
-            icon: 'bg-teal-100 text-teal-700',
-            label: 'text-teal-600',
-            value: 'text-slate-800',
-        },
-
-        organization: {
-            wrapper:
-                'border-violet-100 bg-linear-to-br from-violet-50/70 to-white',
-            icon: 'bg-violet-100 text-violet-700',
-            label: 'text-violet-600',
-            value: 'text-slate-800',
-        },
-
-        location: {
-            wrapper: 'border-sky-100 bg-linear-to-br from-sky-50/70 to-white',
-            icon: 'bg-sky-100 text-sky-700',
-            label: 'text-sky-600',
-            value: 'text-slate-800',
-        },
-
-        neutral: {
-            wrapper: 'border-slate-200 bg-slate-50/70',
-            icon: 'bg-white text-slate-400 ring-1 ring-slate-200',
-            label: 'text-slate-400',
-            value: 'text-slate-700',
-        },
-    };
-
-    const style = styles[accent] || styles.neutral;
-
-    return (
-        <div
-            className={`min-w-0 rounded-xl border px-3.5 py-3 ${style.wrapper}`}
-        >
-            <div className="flex items-center gap-2.5">
-                <div
-                    className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${style.icon}`}
-                >
-                    <Icon size={14} strokeWidth={1.9} />
-                </div>
-
-                <div className="min-w-0">
-                    <p
-                        className={`text-[9px] font-bold uppercase tracking-widest ${style.label}`}
-                    >
-                        {label}
-                    </p>
-
-                    <p
-                        className={`mt-0.5 truncate text-xs font-bold ${style.value}`}
-                        title={String(value)}
-                    >
-                        {value}
-                    </p>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-// --------------------------------
-// Funding Card
-// --------------------------------
-
-const FundingCard = ({ icon: Icon, label, value }) => {
-    return (
-        <div className="rounded-xl border border-slate-200 bg-slate-50/60 px-4 py-3">
-            <div className="flex items-center gap-3">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-primary ring-1 ring-slate-200">
-                    <Icon size={14} strokeWidth={1.9} />
-                </div>
-
-                <div className="min-w-0">
-                    <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400">
-                        {label}
-                    </p>
-
-                    <p className="mt-0.5 text-sm font-bold text-slate-800">
-                        {value}
-                    </p>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-// --------------------------------
-// Info Card
-// --------------------------------
-
-const InfoCard = ({ icon: Icon, label, value }) => {
-    return (
-        <div className="rounded-xl border border-slate-200 bg-white px-4 py-3.5">
-            <div className="flex items-start gap-3">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                    <Icon size={14} strokeWidth={1.8} />
-                </div>
-
-                <div className="min-w-0">
-                    <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400">
-                        {label}
-                    </p>
-
-                    <p className="mt-1 text-xs font-semibold leading-5 text-slate-700">
-                        {value}
-                    </p>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-// --------------------------------
-// Side Heading
-// --------------------------------
-
-const SideHeading = ({ title, icon: Icon }) => {
-    return (
-        <div className="flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <Icon size={13} strokeWidth={1.9} />
-            </span>
-
-            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
-                {title}
-            </p>
-        </div>
-    );
-};
-
-// --------------------------------
-// Side Status
-// --------------------------------
-
-const SideStatus = ({ icon: Icon, label, value }) => {
-    return (
-        <div className="rounded-xl border border-slate-200 bg-white px-3 py-3">
-            <div className="flex items-center gap-3">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-50 text-slate-400 ring-1 ring-slate-200">
-                    <Icon size={14} strokeWidth={1.8} />
-                </div>
-
-                <div className="min-w-0">
-                    <p className="text-[9px] font-bold uppercase tracking-[0.08em] text-slate-400">
-                        {label}
-                    </p>
-
-                    <div className="mt-1.5">{value}</div>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-// --------------------------------
-// Timeline Item
-// --------------------------------
-
-const TimelineItem = ({ label, value, last = false, active = false }) => {
-    return (
-        <div className={`relative ${last ? '' : 'pb-6'}`}>
-            <span
-                className={`absolute -left-5.25 top-1.5 h-2.5 w-2.5 rounded-full border-2 ${
-                    active
-                        ? 'border-primary bg-primary shadow-[0_0_0_3px_rgba(15,118,110,0.12)]'
-                        : 'border-slate-300 bg-[#f8faf9]'
-                }`}
-            />
-
-            <p
-                className={`text-[9px] font-bold uppercase tracking-[0.08em] ${
-                    active ? 'text-primary' : 'text-slate-400'
-                }`}
-            >
-                {label}
-            </p>
-
-            <p className="mt-1 text-xs font-medium leading-5 text-slate-600">
-                {value}
-            </p>
-        </div>
-    );
+      </div>
+    </div>
+  );
 };
 
 export default ViewModal;

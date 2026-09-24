@@ -14,7 +14,6 @@ use App\Models\VolunteerRequest;
 use App\Models\CampaignVolunteerAssignment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -37,6 +36,82 @@ class AdminController extends Controller
         }
 
         return $user;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Volunteer Availability Helpers
+    |--------------------------------------------------------------------------
+    |
+    | Availability is DERIVED.
+    |
+    | available:
+    | - volunteer status = active
+    | - no active campaign assignment
+    |
+    | unavailable:
+    | - volunteer status != active
+    | - OR active campaign assignment exists
+    |
+    | The volunteers.availability database column is no longer used.
+    |
+    */
+
+    private function hasActiveCampaignAssignment(int $userId): bool
+    {
+        return CampaignVolunteerAssignment::query()
+            ->where('volunteer_id', $userId)
+            ->whereIn(
+                'status',
+                CampaignVolunteerAssignment::activeStatuses()
+            )
+            ->exists();
+    }
+
+    private function calculateVolunteerAvailability(
+        Volunteer $volunteer
+    ): string {
+        if ($volunteer->status !== Volunteer::STATUS_ACTIVE) {
+            return 'unavailable';
+        }
+
+        return $this->hasActiveCampaignAssignment(
+            (int) $volunteer->user_id
+        )
+            ? 'unavailable'
+            : 'available';
+    }
+
+    private function volunteerWithAvailability(Volunteer $volunteer): array
+    {
+        return [
+            'id' => $volunteer->id,
+
+            'user_id' => $volunteer->user_id,
+
+            'user' => $volunteer->user,
+
+            'organization' => $volunteer->organization,
+
+            'phone' => $volunteer->phone
+                ?? $volunteer->user?->phone,
+
+            'district' => $volunteer->district,
+
+            'address' => $volunteer->address,
+
+            'skills' => $volunteer->skills,
+
+            'availability' => $this->calculateVolunteerAvailability(
+                $volunteer
+            ),
+
+            'status' => $volunteer->status,
+
+            'created_at' => $volunteer->created_at,
+
+            'updated_at' => $volunteer->updated_at,
+        ];
     }
 
     /*
@@ -129,7 +204,7 @@ class AdminController extends Controller
                             'id' => 'donation-' . $item->id,
                             'type' => 'donation',
                             'text' =>
-                            'Donation of ৳' .
+                                'Donation of ৳' .
                                 number_format((float) $item->amount, 2) .
                                 ' was recorded.',
                             'time' => $item->created_at->diffForHumans(),
@@ -392,8 +467,7 @@ class AdminController extends Controller
                 'phone' => $validated['phone'] ?? null,
                 'password' => $validated['password'],
                 'role' => $validated['role'],
-                'verification_method' =>
-                $validated['verification_method'],
+                'verification_method' => $validated['verification_method'],
                 'status' => 'inactive',
                 'email_verified_at' => null,
             ]);
@@ -411,34 +485,24 @@ class AdminController extends Controller
                 $organization = Organization::create([
                     'user_id' => $newUser->id,
                     'name' => $validated['name'],
-
                     'organization_type' =>
-                    $validated['organization_type'] ?? null,
-
+                        $validated['organization_type'] ?? null,
                     'registration_number' =>
-                    $validated['registration_number'] ?? null,
-
+                        $validated['registration_number'] ?? null,
                     'website' =>
-                    $validated['website'] ?? null,
-
+                        $validated['website'] ?? null,
                     'address' =>
-                    $validated['address'] ?? null,
-
+                        $validated['address'] ?? null,
                     'mission' =>
-                    $validated['mission'] ?? null,
-
+                        $validated['mission'] ?? null,
                     'focus_areas' =>
-                    $validated['focus_areas'] ?? null,
-
+                        $validated['focus_areas'] ?? null,
                     'communities_served' =>
-                    $validated['communities_served'] ?? null,
-
+                        $validated['communities_served'] ?? null,
                     'team_size' =>
-                    $validated['team_size'] ?? null,
-
+                        $validated['team_size'] ?? null,
                     'primary_activities' =>
-                    $validated['primary_activities'] ?? null,
-
+                        $validated['primary_activities'] ?? null,
                     'verification_status' => 'pending',
                 ]);
             }
@@ -452,9 +516,9 @@ class AdminController extends Controller
 
         return response()->json([
             'message' =>
-            $result['user']->verification_method === 'email'
-                ? 'User created successfully. The account is inactive until email verification.'
-                : 'Demo user created successfully. The account remains inactive until demo verification.',
+                $result['user']->verification_method === 'email'
+                    ? 'User created successfully. The account is inactive until email verification.'
+                    : 'Demo user created successfully. The account remains inactive until demo verification.',
 
             'user' => $result['user']
                 ->fresh()
@@ -598,7 +662,7 @@ class AdminController extends Controller
         if ($targetUser->role === 'admin') {
             return response()->json([
                 'message' =>
-                'Admin accounts cannot be deleted from user management.',
+                    'Admin accounts cannot be deleted from user management.',
             ], 422);
         }
 
@@ -668,7 +732,7 @@ class AdminController extends Controller
             ],
         ]);
 
-        $temporaryPassword = Str::random(12);
+        $temporaryPassword = str()->random(12);
 
         $result = DB::transaction(function () use (
             $validated,
@@ -688,19 +752,14 @@ class AdminController extends Controller
             $organization = Organization::create([
                 'user_id' => $organizationUser->id,
                 'name' => $validated['name'],
-
                 'organization_type' =>
-                $validated['organization_type'] ?? null,
-
+                    $validated['organization_type'] ?? null,
                 'registration_number' =>
-                $validated['registration_number'] ?? null,
-
+                    $validated['registration_number'] ?? null,
                 'website' =>
-                $validated['website'] ?? null,
-
+                    $validated['website'] ?? null,
                 'address' =>
-                $validated['address'] ?? null,
-
+                    $validated['address'] ?? null,
                 'verification_status' => 'pending',
             ]);
 
@@ -712,7 +771,7 @@ class AdminController extends Controller
 
         return response()->json([
             'message' =>
-            'Organization added successfully. The account is inactive until email verification.',
+                'Organization added successfully. The account is inactive until email verification.',
 
             'organization' => $result['organization']
                 ->fresh()
@@ -905,7 +964,7 @@ class AdminController extends Controller
 
             $organization->update([
                 'verification_status' =>
-                $verificationStatus,
+                    $verificationStatus,
             ]);
 
             if ($verificationStatus === 'rejected') {
@@ -941,7 +1000,7 @@ class AdminController extends Controller
 
         return response()->json([
             'message' =>
-            'Organization verification status updated successfully.',
+                'Organization verification status updated successfully.',
 
             'organization' => $organization,
         ]);
@@ -984,7 +1043,7 @@ class AdminController extends Controller
 
         return response()->json([
             'message' =>
-            'Organization and its user account deleted successfully.',
+                'Organization and its user account deleted successfully.',
         ]);
     }
 
@@ -1018,6 +1077,92 @@ class AdminController extends Controller
 
     /*
     |--------------------------------------------------------------------------
+    | Help Requests - Edit
+    |--------------------------------------------------------------------------
+    */
+
+    public function updateHelpRequest(
+        Request $request,
+        int $id
+    ) {
+        $user = $this->authorizeAdmin($request);
+
+        if ($user instanceof \Illuminate\Http\JsonResponse) {
+            return $user;
+        }
+
+        $helpRequest = HelpRequest::find($id);
+
+        if (!$helpRequest) {
+            return response()->json([
+                'message' => 'Help request not found.',
+            ], 404);
+        }
+
+        $validated = $request->validate([
+            'title' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'description' => [
+                'required',
+                'string',
+                'max:1000',
+            ],
+
+            'category' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'district' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'address' => [
+                'nullable',
+                'string',
+                'max:1000',
+            ],
+
+            'urgency' => [
+                'required',
+                'in:normal,high,critical',
+            ],
+        ]);
+
+        $helpRequest->title = trim($validated['title']);
+        $helpRequest->description = trim($validated['description']);
+        $helpRequest->category = trim($validated['category']);
+        $helpRequest->district = trim($validated['district']);
+        $helpRequest->address = isset($validated['address'])
+            ? trim($validated['address'])
+            : null;
+        $helpRequest->urgency = $validated['urgency'];
+
+        $helpRequest->save();
+
+        return response()->json([
+            'message' => 'Help request updated successfully.',
+
+            'help_request' => $helpRequest
+                ->fresh()
+                ->load([
+                    'user',
+                    'assignments.organization',
+                    'assignments.volunteer',
+                    'assignments.assignedBy',
+                ]),
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
     | Help Requests - Verify / Reject
     |--------------------------------------------------------------------------
     */
@@ -1043,7 +1188,7 @@ class AdminController extends Controller
         if ($helpRequest->status !== HelpRequest::STATUS_PENDING) {
             return response()->json([
                 'message' =>
-                'Only pending help requests can be reviewed.',
+                    'Only pending help requests can be reviewed.',
             ], 422);
         }
 
@@ -1064,14 +1209,14 @@ class AdminController extends Controller
             'status' => $validated['status'],
 
             'verification_note' =>
-            $validated['verification_note'] ?? null,
+                $validated['verification_note'] ?? null,
         ]);
 
         return response()->json([
             'message' =>
-            $validated['status'] === HelpRequest::STATUS_VERIFIED
-                ? 'Help request verified successfully.'
-                : 'Help request rejected successfully.',
+                $validated['status'] === HelpRequest::STATUS_VERIFIED
+                    ? 'Help request verified successfully.'
+                    : 'Help request rejected successfully.',
 
             'help_request' => $helpRequest
                 ->fresh()
@@ -1111,7 +1256,7 @@ class AdminController extends Controller
         if ($helpRequest->status !== HelpRequest::STATUS_VERIFIED) {
             return response()->json([
                 'message' =>
-                'Only verified help requests can have their priority set.',
+                    'Only verified help requests can have their priority set.',
             ], 422);
         }
 
@@ -1128,7 +1273,7 @@ class AdminController extends Controller
 
         return response()->json([
             'message' =>
-            'Help request priority updated successfully.',
+                'Help request priority updated successfully.',
 
             'help_request' => $helpRequest
                 ->fresh()
@@ -1168,7 +1313,7 @@ class AdminController extends Controller
         if ($helpRequest->status !== HelpRequest::STATUS_VERIFIED) {
             return response()->json([
                 'message' =>
-                'Only verified help requests can be assigned.',
+                    'Only verified help requests can be assigned.',
             ], 422);
         }
 
@@ -1196,7 +1341,7 @@ class AdminController extends Controller
         ) {
             return response()->json([
                 'message' =>
-                'The selected organization is not verified.',
+                    'The selected organization is not verified.',
             ], 422);
         }
 
@@ -1205,20 +1350,20 @@ class AdminController extends Controller
                 'help_request_id',
                 $helpRequest->id
             )
-            ->where(
-                'organization_id',
-                $organizationId
-            )
-            ->where(
-                'status',
-                HelpRequestAssignment::STATUS_REJECTED
-            )
-            ->exists();
+                ->where(
+                    'organization_id',
+                    $organizationId
+                )
+                ->where(
+                    'status',
+                    HelpRequestAssignment::STATUS_REJECTED
+                )
+                ->exists();
 
         if ($organizationPreviouslyRejected) {
             return response()->json([
                 'message' =>
-                'This organization has already rejected this help request and cannot be assigned to it again.',
+                    'This organization has already rejected this help request and cannot be assigned to it again.',
             ], 422);
         }
 
@@ -1227,20 +1372,20 @@ class AdminController extends Controller
                 'help_request_id',
                 $helpRequest->id
             )
-            ->where(
-                'organization_id',
-                $organizationId
-            )
-            ->whereIn('status', [
-                HelpRequestAssignment::STATUS_PENDING,
-                HelpRequestAssignment::STATUS_ACCEPTED,
-            ])
-            ->exists();
+                ->where(
+                    'organization_id',
+                    $organizationId
+                )
+                ->whereIn('status', [
+                    HelpRequestAssignment::STATUS_PENDING,
+                    HelpRequestAssignment::STATUS_ACCEPTED,
+                ])
+                ->exists();
 
         if ($organizationAlreadyAssigned) {
             return response()->json([
                 'message' =>
-                'This organization already has an active assignment for this help request.',
+                    'This organization already has an active assignment for this help request.',
             ], 422);
         }
 
@@ -1257,14 +1402,14 @@ class AdminController extends Controller
                 'assigned_by' => $user->id,
                 'status' => HelpRequestAssignment::STATUS_PENDING,
                 'assignment_note' =>
-                $validated['assignment_note'] ?? null,
+                    $validated['assignment_note'] ?? null,
                 'assigned_at' => now(),
             ]);
         });
 
         return response()->json([
             'message' =>
-            'Help request organization assignment created successfully.',
+                'Help request organization assignment created successfully.',
 
             'assignment' => $assignment
                 ->fresh()
@@ -1339,7 +1484,7 @@ class AdminController extends Controller
         if (!$assignment->organization_id) {
             return response()->json([
                 'message' =>
-                'This assignment does not belong to an organization.',
+                    'This assignment does not belong to an organization.',
             ], 422);
         }
 
@@ -1349,7 +1494,7 @@ class AdminController extends Controller
         ) {
             return response()->json([
                 'message' =>
-                'This assignment does not have a pending withdrawal request.',
+                    'This assignment does not have a pending withdrawal request.',
             ], 422);
         }
 
@@ -1359,7 +1504,7 @@ class AdminController extends Controller
         ) {
             return response()->json([
                 'message' =>
-                'Only accepted organization assignments can be withdrawn.',
+                    'Only accepted organization assignments can be withdrawn.',
             ], 422);
         }
 
@@ -1378,10 +1523,10 @@ class AdminController extends Controller
         ) {
             $assignment->update([
                 'status' =>
-                HelpRequestAssignment::STATUS_WITHDRAWN,
+                    HelpRequestAssignment::STATUS_WITHDRAWN,
 
                 'withdrawal_status' =>
-                HelpRequestAssignment::WITHDRAWAL_APPROVED,
+                    HelpRequestAssignment::WITHDRAWAL_APPROVED,
 
                 'withdrawal_reviewed_at' => now(),
 
@@ -1390,7 +1535,7 @@ class AdminController extends Controller
 
             return response()->json([
                 'message' =>
-                'Organization withdrawal approved successfully.',
+                    'Organization withdrawal approved successfully.',
 
                 'assignment' => $assignment
                     ->fresh()
@@ -1405,7 +1550,7 @@ class AdminController extends Controller
 
         $assignment->update([
             'withdrawal_status' =>
-            HelpRequestAssignment::WITHDRAWAL_REJECTED,
+                HelpRequestAssignment::WITHDRAWAL_REJECTED,
 
             'withdrawal_reviewed_at' => now(),
 
@@ -1414,7 +1559,7 @@ class AdminController extends Controller
 
         return response()->json([
             'message' =>
-            'Organization withdrawal rejected successfully.',
+                'Organization withdrawal rejected successfully.',
 
             'assignment' => $assignment
                 ->fresh()
@@ -1454,7 +1599,7 @@ class AdminController extends Controller
         if ($helpRequest->status !== HelpRequest::STATUS_VERIFIED) {
             return response()->json([
                 'message' =>
-                'Only verified help requests can be reassigned.',
+                    'Only verified help requests can be reassigned.',
             ], 422);
         }
 
@@ -1485,7 +1630,7 @@ class AdminController extends Controller
         if ($organization->verification_status !== 'verified') {
             return response()->json([
                 'message' =>
-                'The selected organization is not verified.',
+                    'The selected organization is not verified.',
             ], 422);
         }
 
@@ -1508,7 +1653,7 @@ class AdminController extends Controller
         if (!$withdrawnAssignment) {
             return response()->json([
                 'message' =>
-                'No approved organization withdrawal was found for this help request.',
+                    'No approved organization withdrawal was found for this help request.',
             ], 422);
         }
 
@@ -1517,16 +1662,16 @@ class AdminController extends Controller
                 'help_request_id',
                 $helpRequest->id
             )
-            ->where(
-                'organization_id',
-                $organizationId
-            )
-            ->exists();
+                ->where(
+                    'organization_id',
+                    $organizationId
+                )
+                ->exists();
 
         if ($organizationPreviouslyUsed) {
             return response()->json([
                 'message' =>
-                'This organization has already been assigned to this help request and cannot be selected again.',
+                    'This organization has already been assigned to this help request and cannot be selected again.',
             ], 422);
         }
 
@@ -1535,17 +1680,17 @@ class AdminController extends Controller
                 'help_request_id',
                 $helpRequest->id
             )
-            ->where(
-                'status',
-                HelpRequestAssignment::STATUS_PENDING
-            )
-            ->whereNotNull('organization_id')
-            ->exists();
+                ->where(
+                    'status',
+                    HelpRequestAssignment::STATUS_PENDING
+                )
+                ->whereNotNull('organization_id')
+                ->exists();
 
         if ($pendingAssignmentExists) {
             return response()->json([
                 'message' =>
-                'This help request already has a pending organization assignment.',
+                    'This help request already has a pending organization assignment.',
             ], 422);
         }
 
@@ -1562,7 +1707,7 @@ class AdminController extends Controller
                 'assigned_by' => $user->id,
                 'status' => HelpRequestAssignment::STATUS_PENDING,
                 'assignment_note' =>
-                $validated['assignment_note'] ?? null,
+                    $validated['assignment_note'] ?? null,
                 'assigned_at' => now(),
                 'withdrawal_status' => null,
                 'withdrawal_reason' => null,
@@ -1574,7 +1719,7 @@ class AdminController extends Controller
 
         return response()->json([
             'message' =>
-            'Help request reassigned successfully.',
+                'Help request reassigned successfully.',
 
             'assignment' => $newAssignment
                 ->fresh()
@@ -1613,7 +1758,7 @@ class AdminController extends Controller
         if ($helpRequest->status !== HelpRequest::STATUS_IN_PROGRESS) {
             return response()->json([
                 'message' =>
-                'Only in-progress help requests can be completed.',
+                    'Only in-progress help requests can be completed.',
             ], 422);
         }
 
@@ -1623,7 +1768,7 @@ class AdminController extends Controller
 
         return response()->json([
             'message' =>
-            'Help request completed successfully.',
+                'Help request completed successfully.',
 
             'help_request' => $helpRequest
                 ->fresh()
@@ -1689,51 +1834,63 @@ class AdminController extends Controller
             ->unique()
             ->values();
 
-        $pendingRequests = VolunteerRequest::with([
+        $pendingRequestsQuery = VolunteerRequest::with([
             'user:id,name,email,phone',
         ])
             ->where(
                 'status',
                 VolunteerRequest::STATUS_PENDING
-            )
-            ->whereNotIn('user_id', $existingVolunteerUserIds)
+            );
+
+        if ($existingVolunteerUserIds->isNotEmpty()) {
+            $pendingRequestsQuery->whereNotIn(
+                'user_id',
+                $existingVolunteerUserIds
+            );
+        }
+
+        $pendingRequests = $pendingRequestsQuery
             ->latest()
             ->get()
             ->unique('user_id')
             ->values();
 
-        $pendingVolunteers = $pendingRequests->map(function ($request) {
-            return [
-                'id' => null,
-
-                'request_id' => $request->id,
-
-                'user_id' => $request->user_id,
-
-                'user' => $request->user,
-
-                'organization' => null,
-
-                'phone' => $request->user?->phone,
-
-                'district' => null,
-
-                'address' => null,
-
-                'skills' => null,
-
-                'availability' => null,
-
-                'status' => VolunteerRequest::STATUS_PENDING,
-
-                'created_at' => null,
-
-                'updated_at' => $request->updated_at,
-            ];
-        });
-
         $directory = $volunteers
-            ->concat($pendingVolunteers)
+            ->map(function ($volunteer) {
+                return $this->volunteerWithAvailability($volunteer);
+            })
+            ->concat(
+                $pendingRequests->map(function ($request) {
+                    return [
+                        'id' => null,
+
+                        'request_id' => $request->id,
+
+                        'user_id' => $request->user_id,
+
+                        'user' => $request->user,
+
+                        'organization' => null,
+
+                        'phone' => $request->user?->phone,
+
+                        'district' => null,
+
+                        'address' => null,
+
+                        'skills' => null,
+
+                        'availability' => 'unavailable',
+
+                        'status' =>
+                            VolunteerRequest::STATUS_PENDING,
+
+                        'created_at' => null,
+
+                        'updated_at' => $request->updated_at,
+                    ];
+                })
+            )
             ->sortByDesc(function ($item) {
                 return $item['created_at']
                     ?? $item['updated_at']
@@ -1746,21 +1903,22 @@ class AdminController extends Controller
         ]);
     }
 
-    /**
-     * Admin: Get eligible volunteers for campaign assignment.
-     *
-     * Eligible volunteer:
-     * - individual user
-     * - active user account
-     * - verified email
-     * - active volunteer record
-     * - available
-     * - no active campaign assignment
-     *
-     * IMPORTANT:
-     * campaign_volunteer_assignments.volunteer_id stores users.id,
-     * NOT volunteers.id.
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | Campaign Volunteer Candidates
+    |--------------------------------------------------------------------------
+    |
+    | Eligible volunteer:
+    | - individual user
+    | - active user account
+    | - verified email
+    | - active volunteer profile
+    | - no active campaign assignment
+    |
+    | Availability is calculated from the last two conditions.
+    |
+    */
+
     public function campaignVolunteerCandidates(Request $request)
     {
         $user = $this->authorizeAdmin($request);
@@ -1778,12 +1936,8 @@ class AdminController extends Controller
                 'organization:id,name',
             ])
             ->where(
-                'status',
+                'volunteers.status',
                 Volunteer::STATUS_ACTIVE
-            )
-            ->where(
-                'availability',
-                'available'
             )
             ->whereHas('user', function ($query) {
                 $query
@@ -1791,20 +1945,11 @@ class AdminController extends Controller
                     ->where('status', 'active')
                     ->whereNotNull('email_verified_at');
             })
-            /*
-         * IMPORTANT:
-         * Do not rely on the Volunteer model relationship here.
-         *
-         * campaign_volunteer_assignments.volunteer_id
-         * contains users.id.
-         *
-         * Therefore we explicitly check the volunteer's user_id.
-         */
             ->whereNotExists(function ($query) use (
                 $activeAssignmentStatuses
             ) {
                 $query
-                    ->select(\Illuminate\Support\Facades\DB::raw(1))
+                    ->select(DB::raw(1))
                     ->from('campaign_volunteer_assignments')
                     ->whereColumn(
                         'campaign_volunteer_assignments.volunteer_id',
@@ -1818,32 +1963,40 @@ class AdminController extends Controller
             ->latest()
             ->get();
 
-        /*
-     * Return both IDs explicitly.
-     *
-     * `id` and `user_id` are the ID that must be sent to the
-     * campaign assignment endpoint.
-     *
-     * `volunteer_id` is the actual volunteers table ID and should
-     * NOT be used when creating CampaignVolunteerAssignment.
-     */
         $volunteers = $volunteers->map(function ($volunteer) {
             return [
+                /*
+                 * The assignment endpoint must receive users.id.
+                 */
                 'id' => $volunteer->user_id,
+
                 'user_id' => $volunteer->user_id,
+
+                /*
+                 * Actual volunteers.id is provided only for reference.
+                 */
                 'volunteer_id' => $volunteer->id,
 
                 'user' => $volunteer->user,
+
                 'organization' => $volunteer->organization,
 
                 'district' => $volunteer->district,
+
                 'address' => $volunteer->address,
+
                 'skills' => $volunteer->skills,
 
-                'availability' => $volunteer->availability,
+                /*
+                 * No active assignment + active volunteer
+                 * means available.
+                 */
+                'availability' => 'available',
+
                 'status' => $volunteer->status,
 
                 'created_at' => $volunteer->created_at,
+
                 'updated_at' => $volunteer->updated_at,
             ];
         });
@@ -1974,22 +2127,22 @@ class AdminController extends Controller
                 'scope' => 'global',
 
                 'district' =>
-                $validated['district'] ?? null,
+                    $validated['district'] ?? null,
 
                 'location' =>
-                $validated['location'] ?? null,
+                    $validated['location'] ?? null,
 
                 'affected_areas' =>
-                $validated['affected_areas'] ?? null,
+                    $validated['affected_areas'] ?? null,
 
                 'target_amount' =>
-                $validated['target_amount'],
+                    $validated['target_amount'],
 
                 'start_date' =>
-                $validated['start_date'] ?? null,
+                    $validated['start_date'] ?? null,
 
                 'end_date' =>
-                $validated['end_date'] ?? null,
+                    $validated['end_date'] ?? null,
 
                 'cover_image' => $coverImagePath,
 
@@ -2001,7 +2154,7 @@ class AdminController extends Controller
 
         return response()->json([
             'message' =>
-            'Global situation campaign created successfully and is awaiting verification.',
+                'Global situation campaign created successfully and is awaiting verification.',
 
             'campaign' => $campaign
                 ->fresh()
@@ -2044,25 +2197,123 @@ class AdminController extends Controller
         ]);
     }
 
-    /**
-     * --------------------------------------------------------------------------
-     * Admin: Get volunteer assignment history for a campaign.
-     * --------------------------------------------------------------------------
-     *
-     * Returns every volunteer assignment for the campaign, including:
-     *
-     * - assigned
-     * - accepted
-     * - rejected
-     * - in_progress
-     * - completed
-     * - withdrawal_requested
-     * - withdrawn
-     *
-     * IMPORTANT:
-     * campaign_volunteer_assignments.volunteer_id stores users.id.
-     *
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | Campaigns - Edit
+    |--------------------------------------------------------------------------
+    */
+
+    public function updateCampaign(
+        Request $request,
+        int $id
+    ) {
+        $user = $this->authorizeAdmin($request);
+
+        if ($user instanceof \Illuminate\Http\JsonResponse) {
+            return $user;
+        }
+
+        $campaign = Campaign::find($id);
+
+        if (!$campaign) {
+            return response()->json([
+                'message' => 'Campaign not found.',
+            ], 404);
+        }
+
+        $validated = $request->validate([
+            'title' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
+            'description' => [
+                'required',
+                'string',
+            ],
+
+            'category' => [
+                'required',
+                'string',
+                Rule::in([
+                    'Education',
+                    'Healthcare',
+                    'Food Assistance',
+                    'Shelter',
+                    'Livelihood',
+                    'Disaster Relief',
+                    'Other',
+                ]),
+            ],
+
+            'district' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
+            'location' => [
+                'nullable',
+                'string',
+                'max:255',
+            ],
+
+            'affected_areas' => [
+                'nullable',
+                'string',
+            ],
+
+            'target_amount' => [
+                'required',
+                'numeric',
+                'min:0',
+            ],
+
+            'start_date' => [
+                'nullable',
+                'date',
+            ],
+
+            'end_date' => [
+                'nullable',
+                'date',
+                'after_or_equal:start_date',
+            ],
+        ]);
+
+        $campaign->update([
+            'title' => $validated['title'],
+            'description' => $validated['description'],
+            'category' => $validated['category'],
+            'district' => $validated['district'] ?? null,
+            'location' => $validated['location'] ?? null,
+            'affected_areas' => $validated['affected_areas'] ?? null,
+            'target_amount' => $validated['target_amount'],
+            'start_date' => $validated['start_date'] ?? null,
+            'end_date' => $validated['end_date'] ?? null,
+        ]);
+
+        return response()->json([
+            'message' => 'Campaign updated successfully.',
+
+            'campaign' => $campaign
+                ->fresh()
+                ->load([
+                    'organization:id,name',
+                    'creator:id,name,email',
+                    'verifier:id,name,email',
+                    'helpRequest:id,title,status',
+                ]),
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Campaign Volunteer Assignments - History
+    |--------------------------------------------------------------------------
+    */
+
     public function campaignVolunteerAssignments(
         Request $request,
         int $id
@@ -2167,7 +2418,7 @@ class AdminController extends Controller
                         if (!$helpRequest) {
                             throw ValidationException::withMessages([
                                 'help_request_id' =>
-                                'The help request linked to this local case campaign was not found.',
+                                    'The help request linked to this local case campaign was not found.',
                             ]);
                         }
 
@@ -2177,13 +2428,13 @@ class AdminController extends Controller
                         ) {
                             throw ValidationException::withMessages([
                                 'help_request_id' =>
-                                'A local case campaign can only be activated for a verified help request.',
+                                    'A local case campaign can only be activated for a verified help request.',
                             ]);
                         }
 
                         $helpRequest->update([
                             'status' =>
-                            HelpRequest::STATUS_IN_PROGRESS,
+                                HelpRequest::STATUS_IN_PROGRESS,
                         ]);
                     }
 
@@ -2192,7 +2443,7 @@ class AdminController extends Controller
 
                 return response()->json([
                     'message' =>
-                    'Campaign verified successfully.',
+                        'Campaign verified successfully.',
 
                     'campaign' => $campaign
                         ->fresh()
@@ -2213,7 +2464,7 @@ class AdminController extends Controller
 
             return response()->json([
                 'message' =>
-                'Campaign rejected successfully.',
+                    'Campaign rejected successfully.',
 
                 'campaign' => $campaign
                     ->fresh()
@@ -2227,7 +2478,7 @@ class AdminController extends Controller
         } catch (ValidationException $e) {
             return response()->json([
                 'message' =>
-                'Campaign verification failed.',
+                    'Campaign verification failed.',
 
                 'errors' => $e->errors(),
             ], 422);
@@ -2277,7 +2528,7 @@ class AdminController extends Controller
 
             return response()->json([
                 'message' =>
-                'Campaign status updated successfully.',
+                    'Campaign status updated successfully.',
 
                 'campaign' => $campaign
                     ->fresh()
@@ -2291,25 +2542,27 @@ class AdminController extends Controller
         } catch (ValidationException $e) {
             return response()->json([
                 'message' =>
-                'Campaign status update failed.',
+                    'Campaign status update failed.',
 
                 'errors' => $e->errors(),
             ], 422);
         }
     }
 
-    /**
-     * Admin: Assign one or more volunteers to an active campaign.
-     *
-     * IMPORTANT:
-     * volunteer_ids contains users.id values.
-     *
-     * campaign_volunteer_assignments.volunteer_id also stores users.id,
-     * NOT volunteers.id.
-     *
-     * Multiple volunteers may be assigned to the same campaign.
-     * Each volunteer may have only one active campaign assignment.
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | Campaigns - Assign Volunteers
+    |--------------------------------------------------------------------------
+    |
+    | volunteer_ids contains USERS.ID.
+    |
+    | campaign_volunteer_assignments.volunteer_id also contains USERS.ID.
+    |
+    | Volunteer availability is derived, so this method does NOT update
+    | volunteers.availability.
+    |
+    */
+
     public function assignCampaignVolunteer(
         Request $request,
         int $id
@@ -2341,26 +2594,20 @@ class AdminController extends Controller
             ],
         ], [
             'volunteer_ids.required' =>
-            'Volunteer selection is required.',
+                'Volunteer selection is required.',
 
             'volunteer_ids.min' =>
-            'Please select at least one volunteer.',
+                'Please select at least one volunteer.',
 
             'volunteer_ids.*.distinct' =>
-            'A volunteer cannot be selected more than once.',
+                'A volunteer cannot be selected more than once.',
         ]);
 
-        /*
-     * Normalize selected user IDs.
-     */
         $volunteerIds = collect($validated['volunteer_ids'])
-            ->map(fn($id) => (int) $id)
+            ->map(fn ($volunteerId) => (int) $volunteerId)
             ->unique()
             ->values();
 
-        /*
-     * Find campaign before opening the transaction.
-     */
         $campaign = Campaign::find($id);
 
         if (!$campaign) {
@@ -2372,7 +2619,7 @@ class AdminController extends Controller
         if ($campaign->status !== Campaign::STATUS_ACTIVE) {
             return response()->json([
                 'message' =>
-                'Only active campaigns can have volunteers assigned.',
+                    'Only active campaigns can have volunteers assigned.',
             ], 422);
         }
 
@@ -2387,147 +2634,108 @@ class AdminController extends Controller
                 $user,
                 $activeAssignmentStatuses
             ) {
-                /*
-             * Lock the selected user rows.
-             *
-             * This prevents concurrent assignment operations from
-             * validating the same users simultaneously.
-             */
                 $volunteerUsers = User::query()
                     ->whereIn('id', $volunteerIds)
                     ->lockForUpdate()
                     ->get()
                     ->keyBy('id');
 
-                /*
-             * Lock the corresponding volunteer rows.
-             */
                 $volunteers = Volunteer::query()
                     ->whereIn('user_id', $volunteerIds)
                     ->lockForUpdate()
                     ->get()
                     ->keyBy('user_id');
 
-                /*
-             * Validate every selected volunteer before creating
-             * any assignment.
-             */
                 foreach ($volunteerIds as $volunteerId) {
-                    $volunteerUser = $volunteerUsers->get($volunteerId);
+                    $volunteerUser =
+                        $volunteerUsers->get($volunteerId);
 
                     if (!$volunteerUser) {
                         abort(
                             response()->json([
                                 'message' =>
-                                'One or more selected volunteers could not be found.',
+                                    'One or more selected volunteers could not be found.',
                             ], 422)
                         );
                     }
 
-                    /*
-                 * Only individual users can be volunteers.
-                 */
                     if ($volunteerUser->role !== 'individual') {
                         abort(
                             response()->json([
                                 'message' =>
-                                "{$volunteerUser->name} is not an individual user.",
+                                    "{$volunteerUser->name} is not an individual user.",
                             ], 422)
                         );
                     }
 
-                    /*
-                 * User account must be active.
-                 */
                     if ($volunteerUser->status !== 'active') {
                         abort(
                             response()->json([
                                 'message' =>
-                                "{$volunteerUser->name} is not an active user.",
+                                    "{$volunteerUser->name} is not an active user.",
                             ], 422)
                         );
                     }
 
-                    /*
-                 * Email must be verified.
-                 */
                     if ($volunteerUser->email_verified_at === null) {
                         abort(
                             response()->json([
                                 'message' =>
-                                "{$volunteerUser->name} must verify their email before being assigned to a campaign.",
+                                    "{$volunteerUser->name} must verify their email before being assigned to a campaign.",
                             ], 422)
                         );
                     }
 
-                    /*
-                 * Volunteer profile must exist and be active.
-                 */
                     $volunteer = $volunteers->get($volunteerId);
 
                     if (!$volunteer) {
                         abort(
                             response()->json([
                                 'message' =>
-                                "{$volunteerUser->name} is not a registered SP volunteer.",
+                                    "{$volunteerUser->name} is not a registered SP volunteer.",
                             ], 422)
                         );
                     }
 
-                    if ($volunteer->status !== Volunteer::STATUS_ACTIVE) {
+                    if (
+                        $volunteer->status !==
+                        Volunteer::STATUS_ACTIVE
+                    ) {
                         abort(
                             response()->json([
                                 'message' =>
-                                "{$volunteerUser->name} is not an active SP volunteer.",
+                                    "{$volunteerUser->name} is not an active SP volunteer.",
                             ], 422)
                         );
                     }
 
                     /*
-                 * Volunteer must currently be available.
-                 */
-                    if ($volunteer->availability !== 'available') {
-                        abort(
-                            response()->json([
-                                'message' =>
-                                "{$volunteerUser->name} is currently unavailable.",
-                            ], 422)
-                        );
-                    }
-
-                    /*
-                 * IMPORTANT:
-                 *
-                 * volunteer_id in campaign_volunteer_assignments
-                 * stores users.id.
-                 */
+                     * Availability is derived.
+                     *
+                     * We do NOT read volunteers.availability.
+                     */
                     $hasActiveAssignment =
                         CampaignVolunteerAssignment::query()
-                        ->where(
-                            'volunteer_id',
-                            $volunteerUser->id
-                        )
-                        ->whereIn(
-                            'status',
-                            $activeAssignmentStatuses
-                        )
-                        ->exists();
+                            ->where(
+                                'volunteer_id',
+                                $volunteerUser->id
+                            )
+                            ->whereIn(
+                                'status',
+                                $activeAssignmentStatuses
+                            )
+                            ->exists();
 
                     if ($hasActiveAssignment) {
                         abort(
                             response()->json([
                                 'message' =>
-                                "{$volunteerUser->name} is already assigned to another active campaign.",
+                                    "{$volunteerUser->name} is currently unavailable.",
                             ], 422)
                         );
                     }
                 }
 
-                /*
-             * All selected volunteers are valid.
-             *
-             * Now create every assignment.
-             */
                 $createdAssignments = [];
 
                 foreach ($volunteerIds as $volunteerId) {
@@ -2536,40 +2744,43 @@ class AdminController extends Controller
                             'campaign_id' => $campaign->id,
 
                             /*
-                         * THIS MUST BE users.id.
-                         */
+                             * MUST be users.id.
+                             */
                             'volunteer_id' => $volunteerId,
 
                             'assigned_by' => $user->id,
 
                             'status' =>
-                            CampaignVolunteerAssignment::STATUS_ASSIGNED,
+                                CampaignVolunteerAssignment::STATUS_ASSIGNED,
 
                             'assignment_note' =>
-                            $validated['assignment_note'] ?? null,
+                                $validated['assignment_note'] ?? null,
 
                             'assigned_at' => now(),
 
                             'rejection_reason' => null,
+
                             'rejection_validated' => null,
 
                             'completed_at' => null,
 
                             'withdrawal_reason' => null,
+
                             'withdrawal_requested_at' => null,
+
                             'withdrawal_reviewed_at' => null,
+
                             'withdrawal_reviewed_by' => null,
                         ]);
 
                     /*
-                 * Once assigned, the volunteer is unavailable.
-                 */
-                    Volunteer::where(
-                        'user_id',
-                        $volunteerId
-                    )->update([
-                        'availability' => 'unavailable',
-                    ]);
+                     * IMPORTANT:
+                     *
+                     * Do NOT update volunteers.availability.
+                     *
+                     * The newly-created active assignment itself now
+                     * makes this volunteer unavailable.
+                     */
 
                     $createdAssignments[] = $assignment;
                 }
@@ -2577,15 +2788,6 @@ class AdminController extends Controller
                 return $createdAssignments;
             });
         } catch (\Illuminate\Database\QueryException $e) {
-            /*
-         * PostgreSQL partial unique index:
-         *
-         * campaign_volunteer_assignments_one_active_campaign
-         *
-         * protects against a race condition where the same
-         * volunteer is assigned to another active campaign at
-         * almost the same time.
-         */
             if (
                 str_contains(
                     $e->getMessage(),
@@ -2594,7 +2796,7 @@ class AdminController extends Controller
             ) {
                 return response()->json([
                     'message' =>
-                    'One of the selected volunteers was assigned to another active campaign while this assignment was being processed. Please refresh the volunteer list and try again.',
+                        'One of the selected volunteers was assigned to another active campaign while this assignment was being processed. Please refresh the volunteer list and try again.',
                 ], 422);
             }
 
@@ -2602,9 +2804,13 @@ class AdminController extends Controller
         }
 
         /*
-     * Reload created assignments with the relationships required
-     * by the frontend.
-     */
+         * If the transaction returned a response because of the
+         * unique-index race condition, return it directly.
+         */
+        if ($assignments instanceof \Illuminate\Http\JsonResponse) {
+            return $assignments;
+        }
+
         $assignmentIds = collect($assignments)
             ->pluck('id')
             ->values();

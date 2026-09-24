@@ -2,64 +2,31 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        /*
-         * Existing volunteer statuses:
-         * pending, approved, inactive
-         *
-         * New lifecycle:
-         * pending, active, rejected, suspended, removed
-         */
+        Schema::create('volunteers', function (Blueprint $table) {
+            $table->id();
 
-        DB::table('volunteers')
-            ->where('status', 'approved')
-            ->update([
-                'status' => 'active',
-            ]);
+            $table->foreignId('user_id')
+                ->constrained('users')
+                ->onDelete('cascade');
 
-        DB::table('volunteers')
-            ->where('status', 'inactive')
-            ->update([
-                'status' => 'suspended',
-            ]);
+            $table->text('skills')->nullable();
+            $table->string('availability')->nullable();
 
-        Schema::table('volunteers', function (Blueprint $table) {
             $table->string('status')
-                ->default('pending')
-                ->change();
+                ->default('pending');
+
+            $table->timestamps();
         });
     }
 
     public function down(): void
     {
-        DB::table('volunteers')
-            ->where('status', 'active')
-            ->update([
-                'status' => 'approved',
-            ]);
-
-        DB::table('volunteers')
-            ->where('status', 'suspended')
-            ->update([
-                'status' => 'inactive',
-            ]);
-
-        DB::table('volunteers')
-            ->whereIn('status', ['rejected', 'removed'])
-            ->update([
-                'status' => 'inactive',
-            ]);
-
-        Schema::table('volunteers', function (Blueprint $table) {
-            $table->string('status')
-                ->default('pending')
-                ->change();
-        });
+        Schema::dropIfExists('volunteers');
     }
 };

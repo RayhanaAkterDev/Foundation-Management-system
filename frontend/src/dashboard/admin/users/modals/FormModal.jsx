@@ -174,38 +174,38 @@ const TextField = ({
 
       <div
         className={`
-                    group relative flex h-[50px] min-w-0 items-center
-                    overflow-hidden border bg-surface
-                    transition-all duration-150
-                    ${
-                      hasError
-                        ? "border-red-300 bg-red-50/20"
-                        : "border-border hover:border-slate-300 focus-within:border-primary"
-                    }
-                `}>
+          group relative flex h-[50px] min-w-0 items-center
+          overflow-hidden border bg-surface
+          transition-all duration-150
+          ${
+            hasError
+              ? "border-red-300 bg-red-50/20"
+              : "border-border hover:border-slate-300 focus-within:border-primary"
+          }
+        `}>
         <span
           className={`
-                        absolute inset-y-0 left-0 w-[2px]
-                        transition-opacity duration-150
-                        ${
-                          hasError
-                            ? "bg-red-500 opacity-100"
-                            : "bg-primary opacity-0 group-focus-within:opacity-100"
-                        }
-                    `}
+            absolute inset-y-0 left-0 w-[2px]
+            transition-opacity duration-150
+            ${
+              hasError
+                ? "bg-red-500 opacity-100"
+                : "bg-primary opacity-0 group-focus-within:opacity-100"
+            }
+          `}
         />
 
         <span
           className={`
-                        flex h-full w-11 shrink-0 items-center justify-center
-                        border-r border-border/70
-                        transition-colors duration-150
-                        ${
-                          hasError
-                            ? "text-red-500"
-                            : "text-slate-400 group-focus-within:border-primary/10 group-focus-within:text-primary"
-                        }
-                    `}>
+            flex h-full w-11 shrink-0 items-center justify-center
+            border-r border-border/70
+            transition-colors duration-150
+            ${
+              hasError
+                ? "text-red-500"
+                : "text-slate-400 group-focus-within:border-primary/10 group-focus-within:text-primary"
+            }
+          `}>
           <Icon size={16} strokeWidth={1.7} />
         </span>
 
@@ -221,20 +221,20 @@ const TextField = ({
           maxLength={name === "phone" ? 11 : undefined}
           inputMode={name === "phone" ? "numeric" : undefined}
           className="
-                        h-full
-                        min-w-0
-                        w-full
-                        bg-transparent
-                        px-3.5
-                        font-jost
-                        text-[13px]
-                        font-medium
-                        text-text-primary
-                        outline-none
-                        placeholder:text-slate-400
-                        disabled:cursor-not-allowed
-                        disabled:opacity-50
-                    "
+            h-full
+            min-w-0
+            w-full
+            bg-transparent
+            px-3.5
+            font-jost
+            text-[13px]
+            font-medium
+            text-text-primary
+            outline-none
+            placeholder:text-slate-400
+            disabled:cursor-not-allowed
+            disabled:opacity-50
+          "
         />
       </div>
 
@@ -288,9 +288,9 @@ const AccountOptionList = ({
     <>
       <div
         className={`
-                    overflow-hidden border bg-surface
-                    ${hasError ? "border-red-300" : "border-border"}
-                `}>
+          overflow-hidden border bg-surface
+          ${hasError ? "border-red-300" : "border-border"}
+        `}>
         {options.map((option, index) => {
           const Icon = option.icon;
           const selected = value === option.value;
@@ -309,61 +309,51 @@ const AccountOptionList = ({
                 }
               }}
               className={`
-                                group relative flex min-h-[56px]
-                                w-full items-center justify-between
-                                gap-3 px-3.5
-                                text-left
-                                transition-all duration-150
-                                ${index !== 0 ? "border-t border-border" : ""}
-                                ${
-                                  selected ? "bg-primary/[0.045]" : "bg-surface"
-                                }
-                                ${
-                                  optionDisabled
-                                    ? "cursor-not-allowed opacity-55"
-                                    : "hover:bg-background-alt/60"
-                                }
-                            `}>
+                group relative flex min-h-[56px]
+                w-full items-center justify-between
+                gap-3 px-3.5
+                text-left
+                transition-all duration-150
+                ${index !== 0 ? "border-t border-border" : ""}
+                ${selected ? "bg-primary/[0.045]" : "bg-surface"}
+                ${
+                  optionDisabled
+                    ? "cursor-not-allowed opacity-55"
+                    : "hover:bg-background-alt/60"
+                }
+              `}>
               <span
                 className={`
-                                    absolute inset-y-0 left-0 w-[2px]
-                                    transition-opacity
-                                    ${
-                                      selected
-                                        ? "bg-primary opacity-100"
-                                        : "opacity-0"
-                                    }
-                                `}
+                  absolute inset-y-0 left-0 w-[2px]
+                  transition-opacity
+                  ${selected ? "bg-primary opacity-100" : "opacity-0"}
+                `}
               />
 
               <div className="flex min-w-0 items-center gap-3">
                 <span
                   className={`
-                                        flex h-8 w-8 shrink-0
-                                        items-center justify-center
-                                        border
-                                        transition-all duration-150
-                                        ${
-                                          selected
-                                            ? "border-primary/20 bg-primary/10 text-primary"
-                                            : "border-border bg-background-alt text-text-secondary"
-                                        }
-                                    `}>
+                    flex h-8 w-8 shrink-0
+                    items-center justify-center
+                    border
+                    transition-all duration-150
+                    ${
+                      selected
+                        ? "border-primary/20 bg-primary/10 text-primary"
+                        : "border-border bg-background-alt text-text-secondary"
+                    }
+                  `}>
                   <Icon size={15} strokeWidth={1.7} />
                 </span>
 
                 <div className="min-w-0">
                   <span
                     className={`
-                                            block truncate
-                                            font-jost text-[12px]
-                                            font-semibold
-                                            ${
-                                              selected
-                                                ? "text-primary"
-                                                : "text-text-primary"
-                                            }
-                                        `}>
+                      block truncate
+                      font-jost text-[12px]
+                      font-semibold
+                      ${selected ? "text-primary" : "text-text-primary"}
+                    `}>
                     {option.label}
                   </span>
 
@@ -383,16 +373,15 @@ const AccountOptionList = ({
 
               <span
                 className={`
-                                    flex h-[17px] w-[17px] shrink-0
-                                    items-center justify-center
-                                    rounded-full border
-                                    transition-all
-                                    ${
-                                      selected
-                                        ? "border-primary bg-primary"
-                                        : "border-slate-300 bg-white"
-                                    }
-                                `}>
+                  flex h-[17px] w-[17px] shrink-0 items-center justify-center
+                  rounded-full border
+                  transition-all
+                  ${
+                    selected
+                      ? "border-primary bg-primary"
+                      : "border-slate-300 bg-white"
+                  }
+                `}>
                 {selected && (
                   <span className="h-1.5 w-1.5 rounded-full bg-white" />
                 )}
@@ -532,29 +521,29 @@ const FormModalContent = ({
   return (
     <div
       className="
-                fixed inset-0 z-50
-                flex items-center justify-center
-                bg-slate-950/55
-                p-3
-                backdrop-blur-[2px]
-                sm:p-5
-                lg:p-6
-            ">
+        fixed inset-0 z-50
+        flex items-center justify-center
+        bg-slate-950/55
+        p-3
+        backdrop-blur-[2px]
+        sm:p-5
+        lg:p-6
+      ">
       <div
         className="
-                    flex
-                    h-full
-                    max-h-[calc(100vh-1.5rem)]
-                    w-full
-                    max-w-[900px]
-                    flex-col
-                    overflow-hidden
-                    bg-surface
-                    shadow-[0_30px_90px_rgba(15,23,42,0.24)]
-                    sm:h-auto
-                    sm:max-h-[calc(100vh-2.5rem)]
-                    lg:max-h-[calc(100vh-3rem)]
-                ">
+          flex
+          h-full
+          max-h-[calc(100vh-1.5rem)]
+          w-full
+          max-w-[900px]
+          flex-col
+          overflow-hidden
+          bg-surface
+          shadow-[0_30px_90px_rgba(15,23,42,0.24)]
+          sm:h-auto
+          sm:max-h-[calc(100vh-2.5rem)]
+          lg:max-h-[calc(100vh-3rem)]
+        ">
         {/* ==================================================
                     HEADER
                 ================================================== */}
@@ -656,26 +645,26 @@ const FormModalContent = ({
             disabled={loading}
             aria-label="Close"
             className="
-                            absolute
-                            right-3
-                            top-3
-                            flex
-                            h-8
-                            w-8
-                            items-center
-                            justify-center
-                            border
-                            border-white/15
-                            text-white/60
-                            transition-colors
-                            hover:border-white/30
-                            hover:bg-white/10
-                            hover:text-white
-                            disabled:cursor-not-allowed
-                            disabled:opacity-40
-                            sm:right-5
-                            sm:top-5
-                        ">
+              absolute
+              right-3
+              top-3
+              flex
+              h-8
+              w-8
+              items-center
+              justify-center
+              border
+              border-white/15
+              text-white/60
+              transition-colors
+              hover:border-white/30
+              hover:bg-white/10
+              hover:text-white
+              disabled:cursor-not-allowed
+              disabled:opacity-40
+              sm:right-5
+              sm:top-5
+            ">
             <X size={17} strokeWidth={1.7} />
           </button>
         </header>
@@ -687,12 +676,12 @@ const FormModalContent = ({
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
           <div
             className="
-                            min-h-0
-                            flex-1
-                            overflow-y-auto
-                            overscroll-contain
-                            scrollbar-thin
-                        ">
+              min-h-0
+              flex-1
+              overflow-y-auto
+              overscroll-contain
+              scrollbar-thin
+            ">
             {error && (
               <div className="border-b border-red-100 bg-red-50 px-5 py-3 sm:px-7 lg:px-8">
                 <div className="flex items-start gap-2.5">
@@ -771,18 +760,18 @@ const FormModalContent = ({
 
                 <section
                   className="
-                                        border-t
-                                        border-border
-                                        bg-background-alt/35
-                                        px-5
-                                        py-7
-                                        sm:px-7
-                                        sm:py-8
-                                        lg:border-l
-                                        lg:border-t-0
-                                        lg:px-7
-                                        lg:py-8
-                                    ">
+                    border-t
+                    border-border
+                    bg-background-alt/35
+                    px-5
+                    py-7
+                    sm:px-7
+                    sm:py-8
+                    lg:border-l
+                    lg:border-t-0
+                    lg:px-7
+                    lg:py-8
+                  ">
                   <SectionTitle number="02" title="Account access" />
 
                   <div className="space-y-6">
@@ -920,18 +909,18 @@ const FormModalContent = ({
 
                 <section
                   className="
-                                        border-t
-                                        border-border
-                                        bg-background-alt/35
-                                        px-5
-                                        py-7
-                                        sm:px-7
-                                        sm:py-8
-                                        lg:border-l
-                                        lg:border-t-0
-                                        lg:px-7
-                                        lg:py-8
-                                    ">
+                    border-t
+                    border-border
+                    bg-background-alt/35
+                    px-5
+                    py-7
+                    sm:px-7
+                    sm:py-8
+                    lg:border-l
+                    lg:border-t-0
+                    lg:px-7
+                    lg:py-8
+                  ">
                   <SectionTitle number="02" title="Account access" />
 
                   <div className="space-y-6">
@@ -987,19 +976,19 @@ const FormModalContent = ({
 
           <footer
             className="
-                            flex
-                            shrink-0
-                            items-center
-                            justify-between
-                            gap-3
-                            border-t
-                            border-border
-                            bg-surface
-                            px-5
-                            py-3.5
-                            sm:px-7
-                            lg:px-8
-                        ">
+              flex
+              shrink-0
+              items-center
+              justify-between
+              gap-3
+              border-t
+              border-border
+              bg-surface
+              px-5
+              py-3.5
+              sm:px-7
+              lg:px-8
+            ">
             <div className="hidden sm:block">
               <p className="font-jost text-[10px] font-medium text-text-secondary">
                 {isEdit
@@ -1014,21 +1003,21 @@ const FormModalContent = ({
                 onClick={onClose}
                 disabled={loading}
                 className="
-                                    h-10
-                                    border
-                                    border-border
-                                    bg-surface
-                                    px-4
-                                    font-jost
-                                    text-[11px]
-                                    font-semibold
-                                    text-text-primary
-                                    transition-all
-                                    hover:border-slate-300
-                                    hover:bg-background-alt
-                                    disabled:cursor-not-allowed
-                                    disabled:opacity-50
-                                ">
+                  h-10
+                  border
+                  border-border
+                  bg-surface
+                  px-4
+                  font-jost
+                  text-[11px]
+                  font-semibold
+                  text-text-primary
+                  transition-all
+                  hover:border-slate-300
+                  hover:bg-background-alt
+                  disabled:cursor-not-allowed
+                  disabled:opacity-50
+                ">
                 Cancel
               </button>
 
@@ -1036,24 +1025,24 @@ const FormModalContent = ({
                 type="submit"
                 disabled={loading}
                 className="
-                                    inline-flex
-                                    h-10
-                                    min-w-32
-                                    items-center
-                                    justify-center
-                                    gap-2
-                                    bg-primary
-                                    px-4
-                                    font-jost
-                                    text-[11px]
-                                    font-bold
-                                    text-white
-                                    shadow-sm
-                                    transition-all
-                                    hover:bg-primary-hover
-                                    disabled:cursor-not-allowed
-                                    disabled:opacity-60
-                                ">
+                  inline-flex
+                  h-10
+                  min-w-32
+                  items-center
+                  justify-center
+                  gap-2
+                  bg-primary
+                  px-4
+                  font-jost
+                  text-[11px]
+                  font-bold
+                  text-white
+                  shadow-sm
+                  transition-all
+                  hover:bg-primary-hover
+                  disabled:cursor-not-allowed
+                  disabled:opacity-60
+                ">
                 {loading ? (
                   <span>{isEdit ? "Saving..." : "Creating..."}</span>
                 ) : (

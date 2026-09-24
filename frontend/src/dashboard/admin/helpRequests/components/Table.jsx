@@ -17,12 +17,12 @@ const priorityStyles = {
     urgent: {
         label: 'Urgent',
         text: 'text-orange-700',
-        dot: 'bg-orange-500',
+        dot: 'bg-orange-700',
     },
     high: {
         label: 'High',
         text: 'text-amber-700',
-        dot: 'bg-amber-500',
+        dot: 'bg-amber-700',
     },
     normal: {
         label: 'Normal',
@@ -98,7 +98,7 @@ const SortHeader = ({ column, onSort, getSortIcon }) => {
 
     if (!sortable) {
         return (
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-text-secondary">
+            <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-text-secondary">
                 {getColumnLabel(column)}
             </span>
         );
@@ -114,9 +114,9 @@ const SortHeader = ({ column, onSort, getSortIcon }) => {
                 items-center
                 gap-1.5
                 text-[10px]
-                font-semibold
+                font-bold
                 uppercase
-                tracking-widest
+                tracking-[0.14em]
                 text-text-secondary
                 transition-colors
                 hover:text-text-primary
@@ -127,12 +127,14 @@ const SortHeader = ({ column, onSort, getSortIcon }) => {
             <span
                 className="
                     flex
-                    h-4
-                    w-4
+                    h-5
+                    w-5
                     items-center
                     justify-center
+                    rounded
                     text-slate-400
                     transition-colors
+                    group-hover/header:bg-slate-100
                     group-hover/header:text-primary
                 "
             >
@@ -145,8 +147,8 @@ const SortHeader = ({ column, onSort, getSortIcon }) => {
 };
 
 const Table = ({
-    columns,
-    rows,
+    columns = [],
+    rows = [],
     onSort,
     getSortIcon,
     onRequesterClick,
@@ -159,7 +161,23 @@ const Table = ({
         (column) => column.key === 'assignedOrganization',
     );
 
-    const actionColumn = columns.find((column) => column.key === 'id');
+    /*
+     * Find the actual action column instead of assuming
+     * that actions are always attached to the `id` column.
+     *
+     * This supports:
+     * - key: "actions"
+     * - key: "action"
+     * - key: "id"
+     * - any other column containing a render function
+     */
+    const actionColumn =
+        columns.find(
+            (column) =>
+                ['actions', 'action', 'id'].includes(column.key) &&
+                typeof column.render === 'function',
+        ) ||
+        columns.find((column) => typeof column.render === 'function');
 
     const getPriority = (row) => {
         const value = row.priority || row.urgency || 'normal';
@@ -192,7 +210,9 @@ const Table = ({
         const organization =
             row.assignedOrganization || row.assigned_organization || null;
 
-        const value = organizationColumn ? row[organizationColumn.key] : null;
+        const value = organizationColumn
+            ? row[organizationColumn.key]
+            : null;
 
         const name =
             typeof organization === 'string'
@@ -205,7 +225,9 @@ const Table = ({
         const id =
             row.assignedOrganizationId ||
             row.assigned_organization_id ||
-            (typeof organization === 'object' ? organization?.id : null);
+            (typeof organization === 'object'
+                ? organization?.id
+                : null);
 
         return {
             name,
@@ -215,7 +237,10 @@ const Table = ({
 
     const getSubmittedDate = (row) => {
         const value =
-            row.submittedDate || row.submitted_date || row.created_at || null;
+            row.submittedDate ||
+            row.submitted_date ||
+            row.created_at ||
+            null;
 
         if (!value) return null;
 
@@ -237,10 +262,21 @@ const Table = ({
 
     const getLocation = (row) => row.district || row.location || '';
 
+    /*
+     * Render actions using the complete row.
+     *
+     * This is important for Edit/View handlers because they
+     * usually need the entire help-request object.
+     */
     const renderAction = (row) => {
         if (!actionColumn?.render) return null;
 
-        return actionColumn.render(row[actionColumn.key], row);
+        const value =
+            actionColumn.key && actionColumn.key in row
+                ? row[actionColumn.key]
+                : row.id;
+
+        return actionColumn.render(value, row);
     };
 
     const getStatus = (row) => {
@@ -258,16 +294,16 @@ const Table = ({
     };
 
     return (
-        <div className="w-full bg-background-alt">
+        <div className="w-full overflow-hidden border-y border-border">
             {/* =========================================================
                 TABLE HEADER
             ========================================================= */}
 
-            <div className="hidden border-y border-border bg-surface lg:block">
-                <div className="grid grid-cols-[35fr_25fr_15fr]">
+            <div className="hidden bg-background-alt lg:block">
+                <div className="grid grid-cols-[minmax(0,2.4fr)_minmax(250px,2fr)_minmax(150px,0.8fr)] border-b border-border">
                     {/* NEED */}
 
-                    <div className="px-7 py-3.5 pl-9">
+                    <div className="px-7 py-3.5 pl-8">
                         {requestColumn && (
                             <SortHeader
                                 column={requestColumn}
@@ -280,7 +316,7 @@ const Table = ({
                     {/* REQUEST STATUS */}
 
                     <div className="border-l border-border px-7 py-3.5">
-                        <span className="text-[10px] font-semibold uppercase tracking-widest text-text-secondary">
+                        <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-text-secondary">
                             Request status
                         </span>
                     </div>
@@ -288,7 +324,7 @@ const Table = ({
                     {/* ACTIONS */}
 
                     <div className="border-l border-border px-6 py-3.5">
-                        <span className="text-[10px] font-semibold uppercase tracking-widest text-text-secondary">
+                        <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-text-secondary">
                             Actions
                         </span>
                     </div>
@@ -300,8 +336,8 @@ const Table = ({
             ========================================================= */}
 
             <div>
-                {rows.length === 0 ? (
-                    <div className="mx-3 border border-border bg-surface px-6 py-16 text-center">
+                {!Array.isArray(rows) || rows.length === 0 ? (
+                    <div className="m-4 border border-dashed border-border bg-background px-6 py-16 text-center">
                         <div className="text-sm font-semibold text-text-primary">
                             No help requests found
                         </div>
@@ -334,15 +370,19 @@ const Table = ({
                                     relative
                                     border-b
                                     border-border
-                                    bg-surface
+                                    bg-background
                                     transition-all
                                     duration-200
-                                    ease-out
-                                    hover:bg-white
-                                    hover:shadow-[0_10px_28px_-20px_rgba(15,23,42,0.55)]
+                                    last:border-b-0
+                                    hover:z-10
+                                    hover:border-primary/35
+                                    hover:bg-[#f0fdfa]
+                                    hover:shadow-[0_4px_16px_rgba(15,118,110,0.10)]
+                                    hover:ring-1
+                                    hover:ring-primary/20
                                 "
                             >
-                                {/* LEFT HOVER ACCENT */}
+                                {/* ACTIVE ROW ACCENT */}
 
                                 <span
                                     className="
@@ -351,15 +391,11 @@ const Table = ({
                                         inset-y-0
                                         left-0
                                         z-20
-                                        w-0.75
-                                        origin-center
-                                        scale-y-0
+                                        w-0.5
                                         bg-primary
                                         opacity-0
-                                        transition-all
-                                        duration-200
-                                        ease-out
-                                        group-hover:scale-y-100
+                                        transition-opacity
+                                        duration-150
                                         group-hover:opacity-100
                                     "
                                 />
@@ -368,17 +404,17 @@ const Table = ({
                                     MAIN 3-COLUMN STRUCTURE
                                 ================================================= */}
 
-                                <div className="grid grid-cols-1 lg:grid-cols-[35fr_25fr_15fr]">
+                                <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,2.4fr)_minmax(250px,2fr)_minmax(150px,0.8fr)]">
                                     {/* =================================================
                                         COLUMN 1 — NEED
                                     ================================================= */}
 
-                                    <section className="flex min-w-0 flex-col px-7 py-6 pl-9">
+                                    <section className="min-w-0 px-7 py-5 pl-8">
                                         <div className="min-w-0">
-                                            {/* CATEGORY + LOCATION */}
+                                            {/* CATEGORY / LOCATION */}
 
-                                            <div className="flex items-center gap-2.5">
-                                                <span className="text-[9.5px] font-bold uppercase tracking-[0.12em] text-primary">
+                                            <div className="flex min-w-0 items-center gap-2">
+                                                <span className="shrink-0 text-[9px] font-bold uppercase tracking-[0.13em] text-primary">
                                                     {category}
                                                 </span>
 
@@ -386,7 +422,7 @@ const Table = ({
                                                     <>
                                                         <span className="h-1 w-1 shrink-0 rounded-full bg-slate-300" />
 
-                                                        <span className="inline-flex min-w-0 items-center gap-1.5 text-[10px] font-medium text-text-secondary">
+                                                        <span className="inline-flex min-w-0 items-center gap-1 text-[10px] font-medium text-slate-500">
                                                             <MapPin className="h-3 w-3 shrink-0 text-slate-400" />
 
                                                             <span className="truncate">
@@ -399,7 +435,7 @@ const Table = ({
 
                                             {/* TITLE */}
 
-                                            <h3 className="mt-2.5 text-[15px] font-semibold leading-[1.45] tracking-[-0.01em] text-text-primary transition-colors duration-200 group-hover:text-primary">
+                                            <h3 className="mt-2 text-[14px] font-semibold leading-5 text-text-primary transition-colors duration-150 group-hover:text-primary">
                                                 {row.title ||
                                                     'Untitled request'}
                                             </h3>
@@ -407,7 +443,7 @@ const Table = ({
                                             {/* DESCRIPTION */}
 
                                             {row.description && (
-                                                <p className="mt-2.5 max-w-2xl line-clamp-2 text-[11.5px] leading-[1.7] text-text-secondary">
+                                                <p className="mt-1.5 max-w-2xl line-clamp-2 text-[11px] leading-[1.65] text-text-secondary">
                                                     {row.description}
                                                 </p>
                                             )}
@@ -415,58 +451,55 @@ const Table = ({
 
                                         {/* PRIORITY */}
 
-                                        <div className="mt-auto pt-6">
-                                            <div className="flex items-center gap-2">
-                                                <span
-                                                    className={`
-                                                        h-1.5
-                                                        w-1.5
-                                                        shrink-0
-                                                        rounded-full
-                                                        ${priority.style.dot}
-                                                    `}
-                                                />
+                                        <div className="mt-4 flex items-center gap-2">
+                                            <span
+                                                className={`
+                                                    h-1.5
+                                                    w-1.5
+                                                    shrink-0
+                                                    rounded-full
+                                                    ${priority.style.dot}
+                                                `}
+                                            />
 
-                                                <span
-                                                    className={`
-                                                        text-[10.5px]
-                                                        font-semibold
-                                                        ${priority.style.text}
-                                                    `}
-                                                >
-                                                    {priority.style.label}{' '}
-                                                    priority
-                                                </span>
+                                            <span
+                                                className={`
+                                                    text-[10px]
+                                                    font-semibold
+                                                    ${priority.style.text}
+                                                `}
+                                            >
+                                                {priority.style.label} priority
+                                            </span>
 
-                                                {row.status === 'verified' &&
-                                                    onSetPriority && (
-                                                        <>
-                                                            <span className="h-3 w-px bg-slate-200" />
+                                            {row.status === 'verified' &&
+                                                onSetPriority && (
+                                                    <>
+                                                        <span className="h-3 w-px bg-slate-200" />
 
-                                                            <button
-                                                                type="button"
-                                                                onClick={() =>
-                                                                    onSetPriority(
-                                                                        row,
-                                                                    )
-                                                                }
-                                                                className="
-                                                                    text-[10px]
-                                                                    font-semibold
-                                                                    text-primary
-                                                                    transition-colors
-                                                                    hover:text-primary-hover
-                                                                    hover:underline
-                                                                "
-                                                            >
-                                                                {row.priority ||
-                                                                row.urgency
-                                                                    ? 'Change'
-                                                                    : 'Set'}
-                                                            </button>
-                                                        </>
-                                                    )}
-                                            </div>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                onSetPriority(
+                                                                    row,
+                                                                )
+                                                            }
+                                                            className="
+                                                                text-[10px]
+                                                                font-semibold
+                                                                text-primary
+                                                                transition-colors
+                                                                hover:text-primary-hover
+                                                                hover:underline
+                                                            "
+                                                        >
+                                                            {row.priority ||
+                                                            row.urgency
+                                                                ? 'Change'
+                                                                : 'Set'}
+                                                        </button>
+                                                    </>
+                                                )}
                                         </div>
                                     </section>
 
@@ -474,15 +507,15 @@ const Table = ({
                                         COLUMN 2 — REQUEST STATUS
                                     ================================================= */}
 
-                                    <section className="border-t border-border px-7 py-6 lg:border-l lg:border-t-0">
-                                        <div className="flex h-full flex-col justify-center">
+                                    <section className="border-t border-border px-7 py-5 lg:border-l lg:border-t-0">
+                                        <div className="grid grid-cols-2 gap-x-7">
                                             {/* REQUESTER */}
 
-                                            <div>
-                                                <div className="mb-2 flex items-center gap-2">
-                                                    <UserRound className="h-3.5 w-3.5 text-slate-400" />
+                                            <div className="min-w-0">
+                                                <div className="mb-2 flex items-center gap-1.5">
+                                                    <UserRound className="h-3 w-3 text-slate-400" />
 
-                                                    <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">
+                                                    <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-slate-400">
                                                         Requester
                                                     </span>
                                                 </div>
@@ -498,44 +531,74 @@ const Table = ({
                                                         )
                                                     }
                                                     className="
-                                                        block
+                                                        group/requester
+                                                        flex
+                                                        min-w-0
                                                         max-w-full
+                                                        items-center
+                                                        gap-1.5
+                                                        border-0
+                                                        bg-transparent
+                                                        p-0
                                                         text-left
-                                                        transition-colors
                                                         disabled:cursor-default
                                                     "
                                                 >
                                                     <span
                                                         className="
-                                                        block
-                                                        truncate
-                                                        text-[12.5px]
-                                                        font-semibold
-                                                        leading-5
-                                                        text-text-primary
-                                                        transition-colors
-                                                        hover:text-primary
-                                                    "
+                                                            min-w-0
+                                                            truncate
+                                                            text-[11.5px]
+                                                            font-semibold
+                                                            leading-5
+                                                            text-text-primary
+                                                            transition-colors
+                                                            duration-150
+                                                            group-hover/requester:text-primary
+                                                        "
                                                     >
                                                         {requester.name}
                                                     </span>
 
-                                                    {requester.email && (
-                                                        <span className="mt-0.5 block truncate text-[10.5px] leading-4 text-text-secondary">
-                                                            {requester.email}
+                                                    {requester.id && (
+                                                        <span
+                                                            className="
+                                                                flex
+                                                                h-4
+                                                                w-4
+                                                                shrink-0
+                                                                items-center
+                                                                justify-center
+                                                                rounded
+                                                                text-slate-300
+                                                                opacity-0
+                                                                transition-all
+                                                                duration-150
+                                                                group-hover/requester:translate-x-0.5
+                                                                group-hover/requester:text-primary
+                                                                group-hover/requester:opacity-100
+                                                            "
+                                                        >
+                                                            <ChevronDown className="h-3 w-3 -rotate-90" />
                                                         </span>
                                                     )}
                                                 </button>
+
+                                                {requester.email && (
+                                                    <p className="mt-0.5 truncate text-[10px] leading-4 text-text-secondary">
+                                                        {requester.email}
+                                                    </p>
+                                                )}
                                             </div>
 
                                             {/* ORGANIZATION */}
 
-                                            <div className="mt-5 border-t border-border pt-4">
-                                                <div className="mb-2 flex items-center gap-2">
-                                                    <Building2 className="h-3.5 w-3.5 text-slate-400" />
+                                            <div className="min-w-0">
+                                                <div className="mb-2 flex items-center gap-1.5">
+                                                    <Building2 className="h-3 w-3 text-slate-400" />
 
-                                                    <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">
-                                                        Assigned organization
+                                                    <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-slate-400">
+                                                        Organization
                                                     </span>
                                                 </div>
 
@@ -550,52 +613,83 @@ const Table = ({
                                                                 )
                                                             }
                                                             className="
-                                                                block
+                                                                group/organization
+                                                                flex
+                                                                min-w-0
                                                                 max-w-full
+                                                                items-center
+                                                                gap-1.5
+                                                                border-0
+                                                                bg-transparent
+                                                                p-0
                                                                 text-left
                                                             "
                                                         >
                                                             <span
                                                                 className="
-                                                                block
-                                                                truncate
-                                                                text-[12.5px]
-                                                                font-semibold
-                                                                leading-5
-                                                                text-text-primary
-                                                                transition-colors
-                                                                hover:text-primary
-                                                            "
+                                                                    min-w-0
+                                                                    truncate
+                                                                    text-[11.5px]
+                                                                    font-semibold
+                                                                    leading-5
+                                                                    text-text-primary
+                                                                    transition-colors
+                                                                    duration-150
+                                                                    group-hover/organization:text-primary
+                                                                "
                                                             >
                                                                 {
                                                                     organization.name
                                                                 }
                                                             </span>
+
+                                                            <span
+                                                                className="
+                                                                    flex
+                                                                    h-4
+                                                                    w-4
+                                                                    shrink-0
+                                                                    items-center
+                                                                    justify-center
+                                                                    rounded
+                                                                    text-slate-300
+                                                                    opacity-0
+                                                                    transition-all
+                                                                    duration-150
+                                                                    group-hover/organization:translate-x-0.5
+                                                                    group-hover/organization:text-primary
+                                                                    group-hover/organization:opacity-100
+                                                                "
+                                                            >
+                                                                <ChevronDown className="h-3 w-3 -rotate-90" />
+                                                            </span>
                                                         </button>
                                                     ) : (
                                                         <span
                                                             className="
-                                                            block
-                                                            max-w-full
-                                                            truncate
-                                                            text-[12.5px]
-                                                            font-semibold
-                                                            leading-5
-                                                            text-text-primary
-                                                        "
+                                                                block
+                                                                max-w-full
+                                                                truncate
+                                                                text-[11.5px]
+                                                                font-semibold
+                                                                leading-5
+                                                                text-text-primary
+                                                            "
                                                         >
-                                                            {organization.name}
+                                                            {
+                                                                organization.name
+                                                            }
                                                         </span>
                                                     )
                                                 ) : (
                                                     <span
                                                         className="
-                                                        block
-                                                        text-[11.5px]
-                                                        font-medium
-                                                        leading-5
-                                                        text-slate-400
-                                                    "
+                                                            block
+                                                            text-[10.5px]
+                                                            font-medium
+                                                            leading-5
+                                                            text-slate-400
+                                                        "
                                                     >
                                                         Not assigned
                                                     </span>
@@ -604,19 +698,19 @@ const Table = ({
 
                                             {/* STATUS */}
 
-                                            <div className="mt-5 border-t border-border pt-4">
-                                                <div className="mb-2 flex items-center gap-2">
+                                            <div className="col-span-2 mt-4 flex items-center justify-between border-t border-border pt-3.5">
+                                                <div className="flex items-center gap-1.5">
                                                     <span
                                                         className={`
-                                                            h-2
-                                                            w-2
+                                                            h-1.5
+                                                            w-1.5
                                                             rounded-full
                                                             ${status.dot}
                                                         `}
                                                     />
 
-                                                    <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">
-                                                        Current status
+                                                    <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-slate-400">
+                                                        Status
                                                     </span>
                                                 </div>
 
@@ -624,12 +718,12 @@ const Table = ({
                                                     className={`
                                                         inline-flex
                                                         items-center
-                                                        gap-2
-                                                        rounded-md
+                                                        gap-1.5
+                                                        rounded-full
                                                         border
                                                         px-2.5
-                                                        py-1.5
-                                                        text-[11px]
+                                                        py-1
+                                                        text-[10px]
                                                         font-semibold
                                                         ${status.bg}
                                                         ${status.border}
@@ -655,7 +749,7 @@ const Table = ({
                                         COLUMN 3 — ACTIONS
                                     ================================================= */}
 
-                                    <section className="border-t border-border px-6 py-5 lg:border-l lg:border-t-0">
+                                    <section className="border-t border-border px-5 py-5 lg:border-l lg:border-t-0">
                                         <div className="flex h-full items-center">
                                             <div
                                                 className="
@@ -665,7 +759,7 @@ const Table = ({
                                                     [&>div]:w-full!
                                                     [&>div]:flex-col!
                                                     [&>div]:items-stretch!
-                                                    [&>div]:gap-1!
+                                                    [&>div]:gap-0.5!
 
                                                     [&>div>button]:flex!
                                                     [&>div>button]:w-full!
@@ -673,16 +767,20 @@ const Table = ({
                                                     [&>div>button]:justify-start!
 
                                                     [&>div>button]:rounded-md!
-                                                    [&>div>button]:px-3!
-                                                    [&>div>button]:py-2!
+                                                    [&>div>button]:border!
+                                                    [&>div>button]:border-transparent!
+                                                    [&>div>button]:px-2.5!
+                                                    [&>div>button]:py-1.5!
 
                                                     [&>div>button]:text-left!
-                                                    [&>div>button]:text-[11.5px]!
+                                                    [&>div>button]:text-[10.5px]!
                                                     [&>div>button]:font-medium!
+                                                    [&>div>button]:text-slate-600!
 
                                                     [&>div>button]:transition-all!
                                                     [&>div>button]:duration-150!
 
+                                                    [&>div>button]:hover:border-border!
                                                     [&>div>button]:hover:bg-slate-50!
                                                     [&>div>button]:hover:text-primary!
 
@@ -703,29 +801,29 @@ const Table = ({
 
                                 <footer
                                     className="
-                                    flex
-                                    h-9
-                                    items-center
-                                    justify-between
-                                    border-t
-                                    border-border
-                                    bg-slate-50/40
-                                    px-5
-                                    pl-9
-                                    transition-colors
-                                    duration-200
-                                    group-hover:bg-primary/2.5
-                                "
+                                        flex
+                                        h-8.5
+                                        items-center
+                                        justify-between
+                                        border-t
+                                        border-border
+                                        bg-background
+                                        px-5
+                                        pl-8
+                                        transition-colors
+                                        duration-150
+                                        group-hover:bg-surface
+                                    "
                                 >
                                     <div
                                         className="
-                                        flex
-                                        items-center
-                                        gap-1.5
-                                        text-[10px]
-                                        font-medium
-                                        text-slate-400
-                                    "
+                                            flex
+                                            items-center
+                                            gap-1.5
+                                            text-[9.5px]
+                                            font-medium
+                                            text-slate-400
+                                        "
                                     >
                                         <CalendarDays className="h-3 w-3" />
 
@@ -737,9 +835,9 @@ const Table = ({
                                     </div>
 
                                     {row.id && (
-                                        <span className="text-[10px] font-medium text-slate-400">
+                                        <span className="font-mono text-[9.5px] font-medium text-slate-400">
                                             #
-                                            <span className="font-semibold text-slate-600">
+                                            <span className="text-slate-600">
                                                 {row.id}
                                             </span>
                                         </span>

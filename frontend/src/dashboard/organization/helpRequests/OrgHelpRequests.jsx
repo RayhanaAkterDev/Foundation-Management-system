@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { Download, Search, X } from "lucide-react";
 
@@ -101,6 +102,8 @@ const CATEGORY_KEYS = [
 ========================================================= */
 
 const OrgHelpRequests = () => {
+  const navigate = useNavigate();
+
   const [assignments, setAssignments] = useState([]);
 
   const [loading, setLoading] = useState(true);
@@ -221,6 +224,19 @@ const OrgHelpRequests = () => {
       return "rejected";
     }
 
+    /*
+     * Help Request progress is independent from assignment status.
+     *
+     * The assignment remains "accepted" while the Help Request
+     * moves from "verified" to "in_progress".
+     */
+    if (
+      helpRequestStatus === "in_progress" &&
+      assignmentStatus === "accepted"
+    ) {
+      return "active";
+    }
+
     if (helpRequestStatus === "completed" && assignmentStatus !== "rejected") {
       return "completed";
     }
@@ -299,50 +315,6 @@ const OrgHelpRequests = () => {
   }, [assignments]);
 
   /* =========================================================
-     CATEGORY TABS
-  ========================================================= */
-
-  // const categoryTabs = useMemo(() => {
-  //   return CATEGORY_KEYS.map((tab) => {
-  //     let count = 0;
-
-  //     switch (tab.key) {
-  //       case "all":
-  //         count = counts.all;
-  //         break;
-
-  //       case "pending":
-  //         count = counts.pending;
-  //         break;
-
-  //       case "assigned":
-  //         count = counts.assigned;
-  //         break;
-
-  //       case "active":
-  //         count = counts.active;
-  //         break;
-
-  //       case "completed":
-  //         count = counts.completed;
-  //         break;
-
-  //       case "rejected":
-  //         count = counts.rejected;
-  //         break;
-
-  //       default:
-  //         count = 0;
-  //     }
-
-  //     return {
-  //       ...tab,
-  //       count,
-  //     };
-  //   });
-  // }, [counts]);
-
-  /* =========================================================
      FILTER OPTIONS
   ========================================================= */
 
@@ -417,11 +389,11 @@ const OrgHelpRequests = () => {
       status: [
         {
           value: "all",
-          label: "All statuses",
+          label: "All",
         },
         {
           value: "pending",
-          label: "Needs response",
+          label: "Pending",
         },
         {
           value: "assigned",
@@ -429,7 +401,7 @@ const OrgHelpRequests = () => {
         },
         {
           value: "active",
-          label: "In progress",
+          label: "Active",
         },
         {
           value: "completed",
@@ -437,20 +409,11 @@ const OrgHelpRequests = () => {
         },
         {
           value: "rejected",
-          label: "Declined",
+          label: "Rejected",
         },
       ],
     };
   }, [assignments]);
-
-  /* =========================================================
-     CATEGORY CHANGE
-  ========================================================= */
-
-  // const handleCategoryChange = (category) => {
-  //   setActiveCategory(category);
-  //   setCurrentPage(1);
-  // };
 
   /* =========================================================
      FILTER CHANGE
@@ -502,21 +465,15 @@ const OrgHelpRequests = () => {
     return assignments.filter((request) => {
       const requestStatus = getRequestStatus(request);
 
-      /* CATEGORY TAB */
-
       if (activeCategory !== "all" && requestStatus !== activeCategory) {
         return false;
       }
-
-      /* CATEGORY FILTER */
 
       const selectedCategory = filterValues.category;
 
       if (selectedCategory !== "all" && request.category !== selectedCategory) {
         return false;
       }
-
-      /* PRIORITY FILTER */
 
       const selectedPriority = filterValues.priority;
 
@@ -530,8 +487,6 @@ const OrgHelpRequests = () => {
         }
       }
 
-      /* ASSIGNMENT FILTER */
-
       const selectedAssignment = filterValues.assignment;
 
       if (
@@ -541,15 +496,11 @@ const OrgHelpRequests = () => {
         return false;
       }
 
-      /* STATUS FILTER */
-
       const selectedStatus = filterValues.status;
 
       if (selectedStatus !== "all" && requestStatus !== selectedStatus) {
         return false;
       }
-
-      /* SEARCH */
 
       if (query) {
         const searchableText = [
@@ -594,11 +545,45 @@ const OrgHelpRequests = () => {
   const safeCurrentPage = Math.min(currentPage, totalPages);
 
   /* =========================================================
+     START SUPPORT
+  ========================================================= */
+
+  const handleStartSupport = (request) => {
+    const helpRequestId =
+      request?.rawHelpRequest?.id ??
+      request?.helpRequestId ??
+      request?.rawAssignment?.help_request_id ??
+      null;
+
+    console.log("START SUPPORT:", {
+      request,
+      helpRequestId,
+    });
+
+    if (!helpRequestId) {
+      setError(
+        "Unable to identify this help request. Please refresh the page and try again.",
+      );
+
+      return;
+    }
+
+    setSelectedRequest(null);
+
+    navigate("/organization/dashboard/campaigns", {
+      state: {
+        openCreateCampaign: true,
+        helpRequestId: String(helpRequestId),
+      },
+    });
+  };
+
+  /* =========================================================
      ASSIGNMENT ACTIONS
   ========================================================= */
 
   const handleAssignmentAction = async (request, action) => {
-    console.log("ACCEPT CLICK:", {
+    console.log("ASSIGNMENT ACTION:", {
       request,
       action,
       assignmentId: request?.assignmentId,
@@ -942,22 +927,10 @@ const OrgHelpRequests = () => {
             </p>
           </div>
 
-          {/* =====================================================
-              TWO-PANEL LAYOUT
-          ===================================================== */}
-
           <div className="grid items-stretch lg:grid-cols-[minmax(0,1fr)_280px]">
-            {/* ===================================================
-                LEFT — TABLE PANEL
-            =================================================== */}
-
             <div className="flex min-w-0 flex-col border border-border bg-surface">
-              {/* SEARCH + EXPORT */}
-
               <div className="border-b border-border px-4 py-4 sm:px-5">
                 <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                  {/* SEARCH */}
-
                   <div className="relative min-w-0 flex-1 lg:w-full">
                     <Search
                       size={16}
@@ -975,8 +948,6 @@ const OrgHelpRequests = () => {
                     />
                   </div>
 
-                  {/* EXPORT */}
-
                   <button
                     type="button"
                     onClick={handleExportCsv}
@@ -986,25 +957,7 @@ const OrgHelpRequests = () => {
                     Export CSV
                   </button>
                 </div>
-
-                {/* CATEGORY TABS
-                    Currently hidden intentionally.
-                    Search/filter functionality does not depend
-                    on these tabs.
-                */}
-
-                {/* 
-                <div className="mt-4">
-                  <CategoryTabs
-                    tabs={categoryTabs}
-                    activeCategory={activeCategory}
-                    onChange={handleCategoryChange}
-                  />
-                </div>
-                */}
               </div>
-
-              {/* TABLE */}
 
               <Table
                 requests={assignments}
@@ -1016,8 +969,6 @@ const OrgHelpRequests = () => {
                 search={search}
               />
 
-              {/* PAGINATION */}
-
               <Pagination
                 currentPage={safeCurrentPage}
                 totalPages={totalPages}
@@ -1027,13 +978,10 @@ const OrgHelpRequests = () => {
               />
             </div>
 
-            {/* ===================================================
-                RIGHT — FILTER PANEL
-            =================================================== */}
-
             <Filters
               filters={filterOptions}
               values={filterValues}
+              counts={counts}
               onChange={handleFilterChange}
               onClear={clearFilters}
             />
@@ -1041,15 +989,12 @@ const OrgHelpRequests = () => {
         </div>
       </section>
 
-      {/* =========================================================
-          CASE DRAWER
-      ========================================================= */}
-
       <CaseReviewDrawer
         request={selectedRequest}
         statusConfig={STATUS_CONFIG}
         onClose={() => setSelectedRequest(null)}
         onAction={handleAssignmentAction}
+        onStartSupport={handleStartSupport}
         onUpdateAssignment={handleUpdateAssignment}
         onRequestWithdrawal={(request) => {
           if (request?.withdrawalStatus === "pending") {
@@ -1062,10 +1007,6 @@ const OrgHelpRequests = () => {
         }}
         actionLoading={actionLoading}
       />
-
-      {/* =========================================================
-          WITHDRAWAL MODAL
-      ========================================================= */}
 
       <WithdrawalModal
         request={withdrawalRequest}
@@ -1084,10 +1025,6 @@ const OrgHelpRequests = () => {
         }}
         onSubmit={handleSubmitWithdrawal}
       />
-
-      {/* =========================================================
-          REJECTION MODAL
-      ========================================================= */}
 
       <RejectionModal
         request={rejectionRequest}

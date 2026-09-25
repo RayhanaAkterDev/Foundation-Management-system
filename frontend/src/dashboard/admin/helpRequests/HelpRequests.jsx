@@ -635,6 +635,11 @@ const HelpRequests = () => {
         fetchVolunteers(),
       ]);
 
+      console.log("SELECTED HELP REQUEST:", request);
+      console.log("SELECTED HR ASSIGNMENTS:", request?.assignments);
+
+      console.log("ADMIN ORGANIZATIONS RESPONSE:", organizationData);
+
       setOrganizations(organizationData.organizations || []);
       setVolunteers(volunteerData.volunteers || []);
     } catch (err) {
@@ -834,20 +839,23 @@ const HelpRequests = () => {
     return {
       total: helpRequests.length,
 
-      // Pending includes:
-      // 1. Help requests awaiting verification
-      // 2. Verified requests with an organization assignment awaiting response
-      pending: helpRequests.filter(
-        (request) =>
-          request.status === "pending" ||
-          hasPendingOrganizationAssignment(request),
-      ).length,
-
-      verified: helpRequests.filter((request) => request.status === "verified")
+      pending: helpRequests.filter((request) => request.status === "pending")
         .length,
 
-      assigned: helpRequests.filter((request) =>
-        hasActiveOrganizationAssignment(request),
+      verified: helpRequests.filter(
+        (request) =>
+          request.status === "verified" &&
+          !hasActiveOrganizationAssignment(request),
+      ).length,
+
+      assigned: helpRequests.filter(
+        (request) =>
+          request.status === "verified" &&
+          hasActiveOrganizationAssignment(request),
+      ).length,
+
+      inProgress: helpRequests.filter(
+        (request) => request.status === "in_progress",
       ).length,
 
       completed: helpRequests.filter(
@@ -1531,7 +1539,7 @@ const HelpRequests = () => {
           total={statistics.total}
           pending={statistics.pending}
           verified={statistics.verified}
-          assigned={statistics.assigned}
+          inProgress={statistics.inProgress}
           completed={statistics.completed}
           rejected={statistics.rejected}
         />

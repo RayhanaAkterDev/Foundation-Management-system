@@ -291,7 +291,7 @@ const IndividualDashboard = () => {
         <header className="flex items-center justify-between">
           <button
             type="button"
-            onClick={() => navigate("/dashboard/individual")}
+            onClick={() => navigate("/individual/dashboard")}
             className="group flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center bg-primary transition duration-200 group-hover:bg-primary-hover">
               <Heart className="h-4 w-4 fill-white text-white" />
@@ -310,7 +310,7 @@ const IndividualDashboard = () => {
 
           <button
             type="button"
-            onClick={() => navigate("/dashboard/individual/profile")}
+            onClick={() => navigate("/individual/dashboard/profile")}
             className="group flex items-center gap-3">
             <div className="hidden text-right sm:block">
               <p className="text-xs font-semibold text-slate-700">
@@ -359,7 +359,7 @@ const IndividualDashboard = () => {
                 <button
                   type="button"
                   onClick={() =>
-                    navigate("/dashboard/individual/help-requests")
+                    navigate("/individual/dashboard/help-requests")
                   }
                   className="group inline-flex items-center gap-2.5 bg-primary px-5 py-3 text-xs font-bold text-white transition duration-200 hover:bg-primary-hover">
                   <HeartHandshake className="h-4 w-4" />
@@ -369,7 +369,7 @@ const IndividualDashboard = () => {
 
                 <button
                   type="button"
-                  onClick={() => navigate("/dashboard/individual/campaigns")}
+                  onClick={() => navigate("/individual/dashboard/campaigns")}
                   className="group inline-flex items-center gap-2 text-xs font-bold text-slate-600 transition duration-200 hover:text-primary">
                   Explore causes
                   <ArrowUpRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -470,7 +470,7 @@ const IndividualDashboard = () => {
                 eyebrow="Your support"
                 title="Request overview"
                 action="View all requests"
-                onClick={() => navigate("/dashboard/individual/help-requests")}
+                onClick={() => navigate("/individual/dashboard/help-requests")}
               />
 
               <div className="mt-9 grid border-y border-slate-200 sm:grid-cols-4">
@@ -505,7 +505,7 @@ const IndividualDashboard = () => {
                 eyebrow="Your support"
                 title="Current request"
                 action="View all requests"
-                onClick={() => navigate("/dashboard/individual/help-requests")}
+                onClick={() => navigate("/individual/dashboard/help-requests")}
               />
 
               {currentRequest ? (
@@ -562,7 +562,7 @@ const IndividualDashboard = () => {
                       <button
                         type="button"
                         onClick={() =>
-                          navigate("/dashboard/individual/help-requests")
+                          navigate("/individual/dashboard/help-requests")
                         }
                         className="group mt-8 inline-flex w-fit items-center gap-2 text-xs font-bold text-primary">
                         View request
@@ -585,7 +585,7 @@ const IndividualDashboard = () => {
                   <button
                     type="button"
                     onClick={() =>
-                      navigate("/dashboard/individual/help-requests")
+                      navigate("/individual/dashboard/help-requests")
                     }
                     className="group mt-5 inline-flex items-center gap-2 text-xs font-bold text-primary">
                     Submit a request
@@ -605,7 +605,7 @@ const IndividualDashboard = () => {
                   eyebrow="Discover a cause"
                   title="Worth standing behind"
                   action="Browse campaigns"
-                  onClick={() => navigate("/dashboard/individual/campaigns")}
+                  onClick={() => navigate("/individual/dashboard/campaigns")}
                 />
 
                 <article className="mt-9 grid overflow-hidden lg:grid-cols-[0.82fr_1.18fr]">
@@ -685,7 +685,7 @@ const IndividualDashboard = () => {
                       <button
                         type="button"
                         onClick={() =>
-                          navigate("/dashboard/individual/campaigns")
+                          navigate("/individual/dashboard/campaigns")
                         }
                         className="group mt-7 inline-flex items-center gap-3 border-b border-white/20 pb-2 text-xs font-bold text-white transition hover:border-[#79c2b7] hover:text-[#79c2b7]">
                         Support this cause
@@ -763,7 +763,7 @@ const IndividualDashboard = () => {
                   description="Tell us what support you need"
                   iconClass="text-primary"
                   onClick={() =>
-                    navigate("/dashboard/individual/help-requests")
+                    navigate("/individual/dashboard/help-requests")
                   }
                 />
 
@@ -772,7 +772,7 @@ const IndividualDashboard = () => {
                   title="Give support"
                   description="Support a person or cause"
                   iconClass="text-primary"
-                  onClick={() => navigate("/dashboard/individual/donations")}
+                  onClick={() => navigate("/individual/dashboard/donations")}
                 />
 
                 <SidebarActionRow
@@ -780,7 +780,7 @@ const IndividualDashboard = () => {
                   title="Give your time"
                   description="Find volunteer opportunities"
                   iconClass="text-primary"
-                  onClick={() => navigate("/dashboard/individual/volunteer")}
+                  onClick={() => navigate("/individual/dashboard/volunteer")}
                 />
 
                 <SidebarActionRow
@@ -788,7 +788,7 @@ const IndividualDashboard = () => {
                   title="Discover causes"
                   description="See what needs support now"
                   iconClass="text-[#b77900]"
-                  onClick={() => navigate("/dashboard/individual/campaigns")}
+                  onClick={() => navigate("/individual/dashboard/campaigns")}
                 />
               </div>
             </section>
@@ -830,7 +830,7 @@ const IndividualDashboard = () => {
 
               <button
                 type="button"
-                onClick={() => navigate("/dashboard/individual/profile")}
+                onClick={() => navigate("/individual/dashboard/profile")}
                 className="group mt-7 inline-flex items-center gap-2 text-xs font-bold text-primary transition hover:text-primary-hover">
                 View profile
                 <ArrowUpRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />

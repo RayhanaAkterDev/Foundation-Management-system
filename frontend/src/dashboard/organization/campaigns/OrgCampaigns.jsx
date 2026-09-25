@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import CampaignPageHeader from "./components/CampaignPageHeader";
 import CampaignOverview from "./components/CampaignOverview";
@@ -13,6 +14,9 @@ const API_BASE_URL =
   import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api";
 
 const OrgCampaigns = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const [campaigns, setCampaigns] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -20,7 +24,21 @@ const OrgCampaigns = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
+
+  /*
+   * Normal campaign creation state.
+   */
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  /*
+   * Help Request ID passed from "Start Support".
+   *
+   * This is derived directly from React Router location state,
+   * so we do not need another setState inside an effect.
+   */
+  const initialHelpRequestId = location.state?.openCreateCampaign
+    ? (location.state?.helpRequestId ?? null)
+    : null;
 
   const fetchCampaigns = async () => {
     try {
@@ -60,6 +78,105 @@ const OrgCampaigns = () => {
       setIsLoading(false);
     }
   };
+
+  /*
+   * Initial campaign load.
+   *
+   * The async callback performs the state updates after the
+   * external fetch resolves, avoiding synchronous setState
+   * directly in the effect body.
+   */
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadCampaigns = async () => {
+      try {
+        setIsLoading(true);
+        setError("");
+
+        const token =
+          localStorage.getItem("auth_token") ||
+          sessionStorage.getItem("auth_token");
+
+        if (!token) {
+          throw new Error("Authentication token not found.");
+        }
+
+        const response = await fetch(`${API_BASE_URL}/organization/campaigns`, {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data?.message || "Failed to load campaigns.");
+        }
+
+        if (cancelled) {
+          return;
+        }
+
+        setCampaigns(Array.isArray(data?.campaigns) ? data.campaigns : []);
+      } catch (err) {
+        if (cancelled) {
+          return;
+        }
+
+        console.error("Failed to fetch organization campaigns:", err);
+
+        setCampaigns([]);
+
+        setError(
+          err?.message || "Something went wrong while loading campaigns.",
+        );
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadCampaigns();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  /*
+   * Open the Create Campaign modal when arriving from
+   * Help Requests -> Start Support.
+   *
+   * setState happens from the navigation event/effect callback,
+   * not synchronously in the effect body.
+   */
+  useEffect(() => {
+    if (!location.state?.openCreateCampaign) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setIsCreateModalOpen(true);
+
+      /*
+       * Clear navigation state after consuming it.
+       * This prevents the modal from reopening unexpectedly
+       * when navigating back to this route later.
+       */
+      navigate(location.pathname, {
+        replace: true,
+        state: {},
+      });
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [location.pathname, location.state?.openCreateCampaign, navigate]);
 
   const filteredCampaigns = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -129,7 +246,6 @@ const OrgCampaigns = () => {
   };
 
   const handleOpenCampaign = (campaign) => {
-    // Campaign detail logic will be connected later.
     console.log("Open campaign:", campaign);
   };
 
@@ -203,6 +319,7 @@ const OrgCampaigns = () => {
 
       <CampaignCreateModal
         open={isCreateModalOpen}
+        initialHelpRequestId={initialHelpRequestId}
         onClose={handleCloseCreateModal}
         onCreated={handleCampaignCreated}
       />

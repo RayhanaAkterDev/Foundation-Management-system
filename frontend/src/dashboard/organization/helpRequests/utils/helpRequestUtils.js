@@ -163,26 +163,41 @@ export const normalizeAssignment = (assignment) => {
 
   const assignedAt = assignment?.assigned_at || assignment?.assignedAt;
 
-  const status = mapAssignmentStatus(assignment?.status);
+  /*
+   * Keep assignment status and Help Request status separate.
+   *
+   * Assignment status:
+   * pending / accepted / rejected
+   *
+   * Help Request status:
+   * pending / verified / in_progress / completed / rejected
+   */
+  const assignmentStatus = mapAssignmentStatus(assignment?.status);
+
+  const helpRequestStatus = String(helpRequest?.status || "").toLowerCase();
+
+  /*
+   * The UI status represents the actual Help Request lifecycle.
+   *
+   * Once the organization starts support, the Help Request becomes
+   * "in_progress". Therefore the drawer must receive "active"
+   * instead of the assignment's still-"accepted" status.
+   */
+  let status = assignmentStatus;
+
+  if (assignmentStatus === "rejected") {
+    status = "rejected";
+  } else if (helpRequestStatus === "completed") {
+    status = "completed";
+  } else if (helpRequestStatus === "in_progress") {
+    status = "active";
+  } else if (assignmentStatus === "accepted") {
+    status = "assigned";
+  }
 
   /*
    * Withdrawal workflow state is intentionally kept
    * separate from assignment status.
-   *
-   * Example while waiting for admin:
-   *
-   * status = "assigned"
-   * withdrawalStatus = "pending"
-   *
-   * After admin approval:
-   *
-   * status = "withdrawal"
-   * withdrawalStatus = "approved"
-   *
-   * After admin rejection:
-   *
-   * status = "assigned" / "active"
-   * withdrawalStatus = "rejected"
    */
   const withdrawalStatus =
     assignment?.withdrawal_status ?? assignment?.withdrawalStatus ?? null;
@@ -223,8 +238,7 @@ export const normalizeAssignment = (assignment) => {
 
   return {
     /*
-     * Assignment ID is the ID that must be sent to
-     * /organization/assignments/{id}/accept|reject/withdraw
+     * Assignment ID
      */
     id: assignment?.id,
 
@@ -246,11 +260,6 @@ export const normalizeAssignment = (assignment) => {
 
     district: helpRequest?.district || "Not specified",
 
-    /*
-     * These fields are not currently present in the
-     * HelpRequest model, so they remain null instead
-     * of using mock values.
-     */
     peopleAffected:
       helpRequest?.people_affected ?? helpRequest?.peopleAffected ?? null,
 
@@ -260,10 +269,23 @@ export const normalizeAssignment = (assignment) => {
     urgency: String(helpRequest?.urgency || "").toLowerCase() || "normal",
 
     /*
-     * Assignment status is mapped to the original UI's
-     * status names.
+     * UI lifecycle status.
+     *
+     * accepted assignment + in_progress Help Request
+     * becomes "active" here.
      */
     status,
+
+    /*
+     * Preserve the actual assignment status separately.
+     * This is useful for assignment-specific actions.
+     */
+    assignmentStatus,
+
+    /*
+     * Preserve the actual backend Help Request status separately.
+     */
+    helpRequestStatus,
 
     /*
      * Withdrawal workflow state.
@@ -311,9 +333,7 @@ export const normalizeAssignment = (assignment) => {
       assignment?.rejection_note || assignment?.rejectionNote || null,
 
     /*
-     * The current backend does not have a dedicated
-     * support_type field, so category is the truthful
-     * fallback.
+     * Support type
      */
     supportType:
       helpRequest?.support_type ||
@@ -322,8 +342,7 @@ export const normalizeAssignment = (assignment) => {
       "Not specified",
 
     /*
-     * There is currently no progress field in the
-     * HelpRequest model, so don't invent progress.
+     * No invented progress.
      */
     progress: helpRequest?.progress ?? assignment?.progress ?? null,
 
@@ -332,8 +351,7 @@ export const normalizeAssignment = (assignment) => {
       : null,
 
     /*
-     * Keep the original backend objects available
-     * for future actions/debugging.
+     * Keep original backend objects available.
      */
     rawAssignment: assignment,
 

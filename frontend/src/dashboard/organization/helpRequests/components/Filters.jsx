@@ -4,6 +4,7 @@ import { RotateCcw } from "lucide-react";
 const HelpRequestFilters = ({
   filters = {},
   values = {},
+  counts = {},
   onChange,
   onClear,
 }) => {
@@ -63,6 +64,44 @@ const HelpRequestFilters = ({
     );
   };
 
+  /* =========================================================
+     STATUS OPTIONS
+  ========================================================= */
+
+  const statusOptions =
+    Array.isArray(filters.status) && filters.status.length > 0
+      ? filters.status
+      : [
+          {
+            value: "all",
+            label: "all",
+          },
+          {
+            value: "pending",
+            label: "pending",
+          },
+          {
+            value: "assigned",
+            label: "assigned",
+          },
+          {
+            value: "active",
+            label: "active",
+          },
+          {
+            value: "completed",
+            label: "completed",
+          },
+          {
+            value: "rejected",
+            label: "rejected",
+          },
+        ];
+
+  /* =========================================================
+     CATEGORY OPTIONS
+  ========================================================= */
+
   const categoryOptions =
     Array.isArray(filters.category) && filters.category.length > 0
       ? filters.category
@@ -72,6 +111,10 @@ const HelpRequestFilters = ({
             label: "All categories",
           },
         ];
+
+  /* =========================================================
+     PRIORITY OPTIONS
+  ========================================================= */
 
   const priorityOptions =
     Array.isArray(filters.priority) && filters.priority.length > 0
@@ -96,58 +139,6 @@ const HelpRequestFilters = ({
           {
             value: "normal",
             label: "Normal",
-          },
-        ];
-
-  // const assignmentOptions =
-  //   Array.isArray(filters.assignment) && filters.assignment.length > 0
-  //     ? filters.assignment
-  //     : [
-  //         {
-  //           value: "all",
-  //           label: "All assignments",
-  //         },
-  //         {
-  //           value: "pending",
-  //           label: "Needs response",
-  //         },
-  //         {
-  //           value: "assigned",
-  //           label: "Assigned",
-  //         },
-  //         {
-  //           value: "rejected",
-  //           label: "Declined",
-  //         },
-  //       ];
-
-  const statusOptions =
-    Array.isArray(filters.status) && filters.status.length > 0
-      ? filters.status
-      : [
-          {
-            value: "all",
-            label: "All statuses",
-          },
-          {
-            value: "pending",
-            label: "Needs response",
-          },
-          {
-            value: "assigned",
-            label: "Assigned",
-          },
-          {
-            value: "active",
-            label: "In progress",
-          },
-          {
-            value: "completed",
-            label: "Completed",
-          },
-          {
-            value: "rejected",
-            label: "Declined",
           },
         ];
 
@@ -176,16 +167,8 @@ const HelpRequestFilters = ({
       ===================================================== */}
 
       <div className="space-y-5 px-5 py-5">
-        {/* Category */}
-
-        {renderSelect("category", "Category", categoryOptions)}
-
-        {/* Priority */}
-
-        {renderSelect("priority", "Priority", priorityOptions)}
-
         {/* =================================================
-            STATUS
+            STATUS — FIRST
         ================================================= */}
 
         <div className="space-y-2.5">
@@ -216,7 +199,9 @@ const HelpRequestFilters = ({
                 typeof option === "string" ? option : option?.value;
 
               const optionLabel =
-                typeof option === "string" ? option : option?.label;
+                typeof option === "string"
+                  ? option
+                  : option?.label || optionValue;
 
               if (!optionValue) {
                 return null;
@@ -224,13 +209,20 @@ const HelpRequestFilters = ({
 
               const isActive = (values.status ?? "all") === optionValue;
 
+              /*
+               * IMPORTANT:
+               * Counts come from the parent component.
+               * The parent already uses getRequestStatus()
+               * so these numbers match the actual table status.
+               */
+              const count = Number(counts[optionValue] ?? 0);
+
               return (
                 <button
                   key={optionValue}
                   type="button"
                   onClick={() => handleChange("status", optionValue)}
                   className={`
-                    group
                     flex
                     w-full
                     items-center
@@ -246,29 +238,40 @@ const HelpRequestFilters = ({
                         : "text-white/70 hover:bg-white/10 hover:text-white"
                     }
                   `}>
-                  <span className="text-xs font-medium">
-                    {optionLabel || optionValue}
-                  </span>
+                  {/* STATUS NAME */}
+
+                  <span className="text-xs font-medium">{optionLabel}</span>
+
+                  {/* DYNAMIC COUNT */}
 
                   <span
                     className={`
-                      h-1.5
-                      w-1.5
-                      shrink-0
-                      rounded-full
-                      transition-colors
-                      ${
-                        isActive
-                          ? "bg-primary"
-                          : "bg-white/25 group-hover:bg-white/60"
-                      }
-                    `}
-                  />
+                      min-w-[24px]
+                      text-right
+                      text-xs
+                      font-semibold
+                      tabular-nums
+                      ${isActive ? "text-primary" : "text-white/50"}
+                    `}>
+                    {count}
+                  </span>
                 </button>
               );
             })}
           </div>
         </div>
+
+        {/* =================================================
+            CATEGORY
+        ================================================= */}
+
+        {renderSelect("category", "Category", categoryOptions)}
+
+        {/* =================================================
+            PRIORITY
+        ================================================= */}
+
+        {renderSelect("priority", "Priority", priorityOptions)}
       </div>
 
       {/* =====================================================

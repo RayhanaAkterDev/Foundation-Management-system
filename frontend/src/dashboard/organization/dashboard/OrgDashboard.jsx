@@ -1,1092 +1,756 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-
+import { useEffect, useState } from "react";
+import axios from "axios";
 import {
-    ArrowUpRight,
-    Check,
-    ChevronRight,
-    Clock3,
-    HeartHandshake,
-    MapPin,
-    Megaphone,
-    ShieldCheck,
-    Users,
-    TrendingUp,
-    CircleAlert,
-} from 'lucide-react';
+  ArrowRight,
+  BriefcaseBusiness,
+  CalendarDays,
+  CheckCircle2,
+  ChevronRight,
+  Clock3,
+  HeartHandshake,
+  Loader2,
+  MapPin,
+  Users,
+  XCircle,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-const organization = {
-    name: 'Hope Foundation Bangladesh',
-    type: 'Community organization',
-    location: 'Dhaka',
-    verificationStatus: 'verified',
+const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api";
+
+const getToken = () => {
+  return (
+    localStorage.getItem("auth_token") || sessionStorage.getItem("auth_token")
+  );
 };
 
-const overview = {
-    assignedRequests: 18,
-    activeRequests: 6,
-    completedRequests: 11,
-    activeCampaigns: 3,
-    peopleHelped: 1248,
-    fundsRaised: 452500,
+const formatDate = (date) => {
+  if (!date) return "—";
+
+  return new Date(date).toLocaleDateString("en-BD", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
 };
 
-const workQueue = [
-    {
-        id: 1,
-        title: 'Education Support for Rahim',
-        category: 'Education',
-        urgency: 'High',
-        status: 'Awaiting response',
-        assigned: 'Sep 1, 2026',
-        description:
-            'A student needs financial support to continue his education after his family lost their primary source of income.',
-    },
-    {
-        id: 2,
-        title: 'Emergency Food Assistance',
-        category: 'Food Assistance',
-        urgency: 'Medium',
-        status: 'In progress',
-        assigned: 'Aug 30, 2026',
-        description:
-            'A family requires immediate food assistance and basic household supplies.',
-    },
-    {
-        id: 3,
-        title: 'Flood Relief Support',
-        category: 'Disaster Relief',
-        urgency: 'High',
-        status: 'In progress',
-        assigned: 'Aug 27, 2026',
-        description:
-            'Relief support is being coordinated for families affected by recent flooding.',
-    },
-];
+const formatRelativeDate = (date) => {
+  if (!date) return "";
 
-const campaigns = [
-    {
-        id: 1,
-        title: 'Winter Relief 2026',
-        category: 'Disaster Relief',
-        raised: 72500,
-        goal: 100000,
-        deadline: 'Oct 5, 2026',
-        status: 'Active',
-    },
-    {
-        id: 2,
-        title: 'Education Support Drive',
-        category: 'Education',
-        raised: 48000,
-        goal: 75000,
-        deadline: 'Sep 28, 2026',
-        status: 'Active',
-    },
-];
+  const now = new Date();
+  const target = new Date(date);
 
-const team = [
-    {
-        id: 1,
-        name: 'Volunteers',
-        value: 14,
-        detail: '8 currently available',
-        icon: Users,
-    },
-    {
-        id: 2,
-        name: 'Active requests',
-        value: 6,
-        detail: 'currently being handled',
-        icon: HeartHandshake,
-    },
-    {
-        id: 3,
-        name: 'Campaigns',
-        value: 3,
-        detail: 'currently active',
-        icon: Megaphone,
-    },
-];
+  const diff = now.getTime() - target.getTime();
+  const minutes = Math.floor(diff / 60000);
 
-const activity = [
-    {
-        id: 1,
-        text: 'Education Support Drive was approved by SP.',
-        date: 'Aug 29, 2026',
-    },
-    {
-        id: 2,
-        text: 'Two volunteers accepted their assignments.',
-        date: 'Aug 28, 2026',
-    },
-    {
-        id: 3,
-        text: 'Emergency Food Assistance moved to in progress.',
-        date: 'Aug 27, 2026',
-    },
-    {
-        id: 4,
-        text: 'Winter Relief 2026 received ৳5,000.',
-        date: 'Aug 26, 2026',
-    },
-];
+  if (minutes < 1) return "Just now";
+  if (minutes < 60) return `${minutes}m ago`;
 
-const formatCurrency = (amount) =>
-    new Intl.NumberFormat('en-BD', {
-        style: 'currency',
-        currency: 'BDT',
-        maximumFractionDigits: 0,
-    })
-        .format(amount)
-        .replace('.00', '');
+  const hours = Math.floor(minutes / 60);
 
-const getInitials = (name) =>
-    name
-        .split(' ')
-        .map((word) => word[0])
-        .join('')
-        .slice(0, 2)
-        .toUpperCase();
+  if (hours < 24) return `${hours}h ago`;
 
-/* ================================================================
-   SMALL UI HELPERS
-================================================================ */
+  const days = Math.floor(hours / 24);
 
-const Eyebrow = ({ children, className = '' }) => (
+  if (days < 7) return `${days}d ago`;
+
+  return formatDate(date);
+};
+
+const statusStyles = {
+  verified: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  completed: "bg-slate-100 text-slate-600 border-slate-200",
+  active: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  pending: "bg-amber-50 text-amber-700 border-amber-200",
+  unverified: "bg-amber-50 text-amber-700 border-amber-200",
+  rejected: "bg-red-50 text-red-700 border-red-200",
+  cancelled: "bg-slate-100 text-slate-600 border-slate-200",
+};
+
+const urgencyStyles = {
+  critical: "text-red-700 bg-red-50 border-red-200",
+  high: "text-orange-700 bg-orange-50 border-orange-200",
+  normal: "text-slate-600 bg-slate-50 border-slate-200",
+  low: "text-sky-700 bg-sky-50 border-sky-200",
+};
+
+const StatCard = ({ icon: Icon, label, value, description }) => {
+  return (
+    <div className="relative min-w-0 bg-white px-5 py-5">
+      <div className="flex items-center gap-3">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center bg-teal-50 text-teal-700">
+          <Icon size={17} strokeWidth={1.8} />
+        </div>
+
+        <p className="truncate text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-400">
+          {label}
+        </p>
+      </div>
+
+      <p className="mt-4 text-[30px] font-semibold leading-none tracking-tight text-slate-900">
+        {value}
+      </p>
+
+      {description && (
+        <p className="mt-2 text-[11px] leading-4 text-slate-400">
+          {description}
+        </p>
+      )}
+    </div>
+  );
+};
+
+const StatusBadge = ({ status }) => {
+  const normalized = String(status || "")
+    .toLowerCase()
+    .replaceAll(" ", "_");
+
+  const style =
+    statusStyles[normalized] || "bg-slate-50 text-slate-600 border-slate-200";
+
+  return (
     <span
-        className={`font-poppins text-[8px] font-bold uppercase tracking-[0.18em] text-primary ${className}`}
-    >
-        {children}
+      className={`inline-flex items-center border px-2.5 py-1 text-[10px] font-semibold capitalize ${style}`}>
+      {String(status || "Unknown").replaceAll("_", " ")}
     </span>
-);
+  );
+};
 
-const SectionHeading = ({
-    eyebrow,
-    title,
-    description,
-    action,
-    onAction,
-    muted = false,
-}) => (
-    <div className="flex flex-col gap-5 border-b border-[#cfdad7] pb-6 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-            <Eyebrow className={muted ? 'text-[#6f8b86]' : ''}>
-                {eyebrow}
-            </Eyebrow>
+const UrgencyBadge = ({ urgency }) => {
+  if (!urgency || urgency === "normal") return null;
 
-            <h2 className="mt-2.5 font-fraunces text-[34px] leading-[0.95] tracking-[-0.045em] text-[#163c37] sm:text-[38px]">
-                {title}
+  const style =
+    urgencyStyles[urgency] || "text-slate-600 bg-slate-50 border-slate-200";
+
+  return (
+    <span
+      className={`inline-flex items-center border px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] ${style}`}>
+      {urgency}
+    </span>
+  );
+};
+
+const EmptyState = ({ icon: Icon, title, description }) => {
+  return (
+    <div className="flex min-h-52 flex-col items-center justify-center px-6 text-center">
+      <div className="flex h-12 w-12 items-center justify-center border border-slate-200 bg-slate-50 text-slate-400">
+        <Icon size={21} strokeWidth={1.6} />
+      </div>
+
+      <p className="mt-4 text-sm font-semibold text-slate-700">{title}</p>
+
+      <p className="mt-1 max-w-sm text-xs leading-5 text-slate-400">
+        {description}
+      </p>
+    </div>
+  );
+};
+
+export default function OrgDashboard() {
+  const navigate = useNavigate();
+
+  const [dashboard, setDashboard] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const fetchDashboard = async () => {
+    const token = getToken();
+
+    if (!token) {
+      setError("Authentication token not found.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setError("");
+
+      const response = await axios.get(`${API_URL}/organization/dashboard`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      });
+
+      setDashboard(response.data?.data || null);
+    } catch (err) {
+      console.error("Organization dashboard error:", err);
+
+      setError(
+        err.response?.data?.message || "Unable to load organization dashboard.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadDashboard = async () => {
+      const token = getToken();
+
+      if (!token) {
+        if (!cancelled) {
+          setError("Authentication token not found.");
+          setLoading(false);
+        }
+
+        return;
+      }
+
+      try {
+        const response = await axios.get(`${API_URL}/organization/dashboard`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
+          },
+        });
+
+        if (!cancelled) {
+          setDashboard(response.data?.data || null);
+
+          setLoading(false);
+        }
+      } catch (err) {
+        console.error("Organization dashboard error:", err);
+
+        if (!cancelled) {
+          setError(
+            err.response?.data?.message ||
+              "Unable to load organization dashboard.",
+          );
+
+          setLoading(false);
+        }
+      }
+    };
+
+    loadDashboard();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-[70vh] bg-background">
+        <div className="mx-auto flex max-w-7xl items-center justify-center py-32">
+          <div className="text-center">
+            <Loader2 className="mx-auto animate-spin text-teal-700" size={28} />
+
+            <p className="mt-4 text-sm text-slate-500">
+              Loading organization dashboard...
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-[70vh] bg-background">
+        <div className="mx-auto max-w-2xl">
+          <div className="border border-red-200 bg-white px-6 py-8 text-center">
+            <XCircle className="mx-auto text-red-500" size={30} />
+
+            <h2 className="mt-4 text-lg font-semibold text-slate-900">
+              Dashboard could not be loaded
             </h2>
 
-            {description && (
-                <p className="mt-3 max-w-[560px] font-poppins text-[9px] leading-5 text-[#6b7f7c]">
-                    {description}
-                </p>
-            )}
-        </div>
+            <p className="mt-2 text-sm text-slate-500">{error}</p>
 
-        {action && (
             <button
-                type="button"
-                onClick={onAction}
-                className="group inline-flex shrink-0 items-center gap-2 self-start pb-1 font-poppins text-[8px] font-bold uppercase tracking-[0.1em] text-[#617672] transition hover:text-primary sm:self-auto"
-            >
-                {action}
-                <ArrowUpRight
-                    size={12}
-                    strokeWidth={1.8}
-                    className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
-                />
+              type="button"
+              onClick={() => {
+                setLoading(true);
+                fetchDashboard();
+              }}
+              className="mt-6 inline-flex items-center gap-2 bg-teal-700 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-teal-800">
+              Try again
+              <ArrowRight size={16} />
             </button>
-        )}
-    </div>
-);
-
-/* ================================================================
-   PRIORITY REQUEST
-================================================================ */
-
-const PriorityRequest = ({ request, index, onClick }) => {
-    const isHigh = request.urgency === 'High';
-    const isWaiting = request.status === 'Awaiting response';
-
-    return (
-        <button
-            type="button"
-            onClick={onClick}
-            className={`group relative w-full text-left transition ${
-                isWaiting
-                    ? 'bg-[#fffaf1] hover:bg-[#fff5e4]'
-                    : 'bg-[#fbfcfb] hover:bg-[#f1f7f5]'
-            }`}
-        >
-            {isWaiting && (
-                <div className="absolute inset-y-0 left-0 w-[4px] bg-[#f59e0b]" />
-            )}
-
-            <div className="grid lg:grid-cols-[68px_minmax(0,1fr)_175px_48px]">
-                {/* INDEX */}
-                <div
-                    className={`flex min-h-[176px] items-start justify-center border-b border-[#d7e1de] border-r border-[#d7e1de] pt-7 font-fraunces text-[18px] lg:border-b-0 ${
-                        isWaiting ? 'text-[#c48a30]' : 'text-[#a5b4b0]'
-                    }`}
-                >
-                    {String(index + 1).padStart(2, '0')}
-                </div>
-
-                {/* MAIN REQUEST */}
-                <div className="min-w-0 border-b border-[#d7e1de] px-6 py-7 sm:px-8 lg:border-b-0">
-                    <div className="flex flex-wrap items-center gap-2.5">
-                        <span className="font-poppins text-[7px] font-bold uppercase tracking-[0.13em] text-[#82928e]">
-                            {request.category}
-                        </span>
-
-                        <span className="h-[3px] w-[3px] rounded-full bg-[#c5d1ce]" />
-
-                        <span
-                            className={`inline-flex items-center gap-1.5 font-poppins text-[7px] font-bold uppercase tracking-[0.09em] ${
-                                isHigh ? 'text-[#aa6734]' : 'text-[#9a7b2d]'
-                            }`}
-                        >
-                            <span
-                                className={`h-[5px] w-[5px] rounded-full ${
-                                    isHigh ? 'bg-[#d4773b]' : 'bg-[#c39d3e]'
-                                }`}
-                            />
-                            {request.urgency} priority
-                        </span>
-                    </div>
-
-                    <h3
-                        className={`mt-3 font-jost text-[20px] font-semibold leading-[1.1] tracking-[-0.025em] transition-colors ${
-                            isWaiting
-                                ? 'text-[#40362d] group-hover:text-[#a75c24]'
-                                : 'text-[#23413d] group-hover:text-primary'
-                        }`}
-                    >
-                        {request.title}
-                    </h3>
-
-                    <p className="mt-3 max-w-[650px] font-poppins text-[9px] leading-5 text-[#71817d]">
-                        {request.description}
-                    </p>
-
-                    <div className="mt-5 flex items-center gap-2 font-poppins text-[7px] font-medium uppercase tracking-[0.06em] text-[#99a7a3]">
-                        <Clock3 size={10} />
-                        Assigned {request.assigned}
-                    </div>
-                </div>
-
-                {/* STATUS */}
-                <div
-                    className={`flex min-h-[80px] items-center border-b border-[#d7e1de] px-6 py-5 lg:min-h-[176px] lg:border-b-0 lg:border-l ${
-                        isWaiting
-                            ? 'bg-[#fff7e9] lg:border-l-[#eadbc2]'
-                            : 'bg-[#f4f8f7] lg:border-l-[#d7e1de]'
-                    }`}
-                >
-                    <div>
-                        <div className="font-poppins text-[7px] font-bold uppercase tracking-[0.1em] text-[#94a29f]">
-                            Status
-                        </div>
-
-                        <div
-                            className={`mt-2 font-jost text-[14px] font-semibold ${
-                                isWaiting ? 'text-[#a75c24]' : 'text-primary'
-                            }`}
-                        >
-                            {request.status}
-                        </div>
-                    </div>
-                </div>
-
-                {/* ARROW */}
-                <div className="flex items-center justify-end px-5 lg:justify-center lg:border-l lg:border-[#d7e1de] lg:px-0">
-                    <ChevronRight
-                        size={18}
-                        strokeWidth={1.5}
-                        className={`text-[#a6b4b0] transition-all group-hover:translate-x-1 ${
-                            isWaiting
-                                ? 'group-hover:text-[#b16a32]'
-                                : 'group-hover:text-primary'
-                        }`}
-                    />
-                </div>
-            </div>
-        </button>
-    );
-};
-
-/* ================================================================
-   CAMPAIGN
-================================================================ */
-
-const CampaignItem = ({ campaign, onClick, featured = false }) => {
-    const percentage = Math.min(
-        Math.round((campaign.raised / campaign.goal) * 100),
-        100,
-    );
-
-    return (
-        <button
-            type="button"
-            onClick={onClick}
-            className={`group w-full text-left transition ${
-                featured
-                    ? 'bg-[#e8f2ef] hover:bg-[#e2eeeb]'
-                    : 'bg-[#f8faf9] hover:bg-[#f0f6f4]'
-            }`}
-        >
-            <div className="grid md:grid-cols-[minmax(230px,0.9fr)_1.25fr_150px] md:items-center">
-                {/* TITLE */}
-                <div className="px-6 py-7 sm:px-8 md:py-8">
-                    <div className="flex items-center gap-2">
-                        <span
-                            className={`h-[6px] w-[6px] rounded-full ${
-                                featured ? 'bg-primary' : 'bg-[#8baaa4]'
-                            }`}
-                        />
-
-                        <span className="font-poppins text-[7px] font-bold uppercase tracking-[0.13em] text-[#81918d]">
-                            {campaign.category}
-                        </span>
-                    </div>
-
-                    <h3 className="mt-3 font-jost text-[19px] font-semibold tracking-[-0.025em] text-[#294540] transition-colors group-hover:text-primary">
-                        {campaign.title}
-                    </h3>
-
-                    <span className="mt-3 inline-flex items-center gap-1.5 font-poppins text-[7px] font-bold uppercase tracking-[0.08em] text-primary">
-                        {campaign.status}
-                        <span className="h-[4px] w-[4px] rounded-full bg-primary" />
-                    </span>
-                </div>
-
-                {/* PROGRESS */}
-                <div className="px-6 pb-7 sm:px-8 md:py-8">
-                    <div className="flex items-end justify-between">
-                        <div className="font-poppins text-[8px] text-[#71817d]">
-                            <span className="font-bold text-[#334c47]">
-                                {formatCurrency(campaign.raised)}
-                            </span>{' '}
-                            of {formatCurrency(campaign.goal)}
-                        </div>
-
-                        <span className="font-fraunces text-[27px] leading-none text-primary">
-                            {percentage}%
-                        </span>
-                    </div>
-
-                    <div className="mt-3 h-[7px] bg-[#d5e1de]">
-                        <div
-                            className="h-full bg-primary transition-all"
-                            style={{ width: `${percentage}%` }}
-                        />
-                    </div>
-                </div>
-
-                {/* DEADLINE */}
-                <div className="flex items-center justify-between border-t border-[#d4dfdc] px-6 py-5 sm:px-8 md:border-l md:border-t-0 md:px-7">
-                    <div>
-                        <div className="font-poppins text-[7px] font-bold uppercase tracking-[0.1em] text-[#92a09c]">
-                            Deadline
-                        </div>
-
-                        <div className="mt-1.5 font-jost text-[13px] font-semibold text-[#465d58]">
-                            {campaign.deadline}
-                        </div>
-                    </div>
-
-                    <ChevronRight
-                        size={15}
-                        className="text-[#a7b4b1] transition-all group-hover:translate-x-1 group-hover:text-primary md:hidden"
-                    />
-                </div>
-            </div>
-        </button>
-    );
-};
-
-/* ================================================================
-   DASHBOARD
-================================================================ */
-
-const OrgDashboard = () => {
-    const navigate = useNavigate();
-
-    const completionRate = Math.round(
-        (overview.completedRequests / overview.assignedRequests) * 100,
-    );
-
-    const awaitingRequests = workQueue.filter(
-        (request) => request.status === 'Awaiting response',
-    ).length;
-
-    return (
-        <div className="min-h-screen bg-[#f4f7f5] text-[#163c37]">
-            {/* =====================================================
-                HEADER
-            ====================================================== */}
-            <header className="sticky top-0 z-50 border-b border-[#d6e0dd] bg-[#f4f7f5]/95 backdrop-blur-xl">
-                <div className="mx-auto flex h-[70px] max-w-[1500px] items-center justify-between px-5 sm:px-8 lg:px-10">
-                    <button
-                        type="button"
-                        onClick={() => navigate('/dashboard/organization')}
-                        className="group flex items-center gap-3"
-                    >
-                        <div className="flex h-9 w-9 items-center justify-center bg-primary text-white transition group-hover:bg-[#115e59]">
-                            <HeartHandshake size={17} strokeWidth={1.7} />
-                        </div>
-
-                        <div className="hidden sm:block">
-                            <div className="font-jost text-[14px] font-bold tracking-[-0.015em] text-[#163c37]">
-                                Stand For People
-                            </div>
-
-                            <div className="mt-0.5 font-poppins text-[7px] font-bold uppercase tracking-[0.15em] text-[#879894]">
-                                Organization workspace
-                            </div>
-                        </div>
-                    </button>
-
-                    <nav className="hidden items-center gap-8 lg:flex">
-                        {[
-                            ['Overview', '/dashboard/organization', true],
-                            [
-                                'Requests',
-                                '/dashboard/organization/responses',
-                                false,
-                            ],
-                            [
-                                'Campaigns',
-                                '/dashboard/organization/campaigns',
-                                false,
-                            ],
-                            [
-                                'Volunteers',
-                                '/dashboard/organization/volunteers',
-                                false,
-                            ],
-                            [
-                                'Profile',
-                                '/dashboard/organization/profile',
-                                false,
-                            ],
-                        ].map(([label, path, active]) => (
-                            <button
-                                key={label}
-                                type="button"
-                                onClick={() => navigate(path)}
-                                className={`relative py-2 font-poppins text-[8px] font-bold uppercase tracking-[0.09em] transition ${
-                                    active
-                                        ? 'text-primary'
-                                        : 'text-[#70817d] hover:text-primary'
-                                }`}
-                            >
-                                {label}
-
-                                {active && (
-                                    <span className="absolute -bottom-[25px] left-0 right-0 h-[2px] bg-primary" />
-                                )}
-                            </button>
-                        ))}
-                    </nav>
-
-                    <div className="flex items-center gap-4">
-                        <div className="hidden items-center gap-2 border-r border-[#d6e0dd] pr-5 sm:flex">
-                            <ShieldCheck
-                                size={13}
-                                strokeWidth={1.7}
-                                className="text-primary"
-                            />
-
-                            <span className="font-poppins text-[7px] font-bold uppercase tracking-[0.1em] text-[#71827e]">
-                                Verified
-                            </span>
-                        </div>
-
-                        <button
-                            type="button"
-                            onClick={() =>
-                                navigate('/dashboard/organization/profile')
-                            }
-                            className="flex h-9 w-9 items-center justify-center rounded-full border border-[#c8d6d2] bg-white font-jost text-[9px] font-bold text-primary transition hover:border-primary"
-                        >
-                            {getInitials(organization.name)}
-                        </button>
-                    </div>
-                </div>
-            </header>
-
-            <main className="mx-auto max-w-[1500px] px-5 sm:px-8 lg:px-10">
-                {/* =================================================
-                    HERO
-                ================================================== */}
-                <section className="py-8 sm:py-10 lg:py-12">
-                    <div className="grid overflow-hidden lg:grid-cols-[minmax(0,1fr)_390px]">
-                        {/* LEFT HERO */}
-                        <div className="relative min-h-[410px] bg-[#dfeeea] px-7 py-9 sm:px-10 sm:py-11 lg:px-12 lg:py-12">
-                            <div className="absolute right-[-110px] top-[-140px] h-[420px] w-[420px] rounded-full border-[55px] border-[#d2e7e2]" />
-
-                            <div className="relative z-10">
-                                <div className="flex flex-wrap items-center gap-3">
-                                    <span className="inline-flex items-center gap-2 font-poppins text-[8px] font-bold uppercase tracking-[0.14em] text-primary">
-                                        <span className="h-[6px] w-[6px] rounded-full bg-primary" />
-                                        Verified organization
-                                    </span>
-
-                                    <span className="h-[3px] w-[3px] rounded-full bg-[#9db7b1]" />
-
-                                    <span className="flex items-center gap-1.5 font-poppins text-[8px] uppercase tracking-[0.1em] text-[#718984]">
-                                        <MapPin size={10} />
-                                        {organization.location}
-                                    </span>
-                                </div>
-
-                                <h1 className="mt-8 max-w-[800px] font-fraunces text-[49px] leading-[0.91] tracking-[-0.055em] text-[#143a35] sm:text-[62px] lg:text-[70px]">
-                                    {organization.name}
-                                </h1>
-
-                                <p className="mt-6 max-w-[560px] font-poppins text-[10px] leading-6 text-[#5f7772]">
-                                    Track the people you're helping, requests
-                                    requiring attention, and campaigns moving
-                                    your organization forward.
-                                </p>
-
-                                <div className="mt-8 flex flex-wrap items-center gap-5">
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            navigate(
-                                                '/dashboard/organization/responses',
-                                            )
-                                        }
-                                        className="inline-flex h-11 items-center gap-3 bg-primary px-6 font-poppins text-[8px] font-bold uppercase tracking-[0.11em] text-white transition hover:bg-[#115e59]"
-                                    >
-                                        Review requests
-                                        <ArrowUpRight size={13} />
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            navigate(
-                                                '/dashboard/organization/profile',
-                                            )
-                                        }
-                                        className="group inline-flex items-center gap-2 font-poppins text-[8px] font-bold uppercase tracking-[0.1em] text-[#536b66] transition hover:text-primary"
-                                    >
-                                        View organization profile
-                                        <ArrowUpRight
-                                            size={12}
-                                            className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
-                                        />
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div className="absolute bottom-5 right-7 hidden font-poppins text-[7px] font-bold uppercase tracking-[0.16em] text-[#91aaa4] lg:block">
-                                Organization overview
-                            </div>
-                        </div>
-
-                        {/* RIGHT IMPACT */}
-                        <div className="relative flex min-h-[410px] flex-col justify-between bg-primary px-7 py-8 text-white sm:px-10 sm:py-10 lg:px-10 lg:py-11">
-                            <div className="absolute bottom-0 right-0 h-[190px] w-[190px] rounded-tl-full bg-[#115e59]" />
-
-                            <div className="relative z-10 flex items-center justify-between">
-                                <span className="font-poppins text-[8px] font-bold uppercase tracking-[0.17em] text-[#b8d8d3]">
-                                    Impact to date
-                                </span>
-
-                                <TrendingUp
-                                    size={19}
-                                    strokeWidth={1.5}
-                                    className="text-[#d1e6e2]"
-                                />
-                            </div>
-
-                            <div className="relative z-10 mt-12 lg:mt-16">
-                                <div className="font-fraunces text-[78px] leading-[0.78] tracking-[-0.065em] text-white sm:text-[88px]">
-                                    {overview.peopleHelped.toLocaleString(
-                                        'en-BD',
-                                    )}
-                                </div>
-
-                                <div className="mt-5 font-jost text-[18px] font-semibold text-[#e3efed]">
-                                    people helped
-                                </div>
-
-                                <div className="mt-3 font-poppins text-[8px] leading-4 text-[#b8d8d3]">
-                                    Community impact across your organization
-                                </div>
-                            </div>
-
-                            <div className="relative z-10 mt-10 grid grid-cols-2 border-t border-white/20 pt-6">
-                                <div>
-                                    <div className="font-fraunces text-[27px] leading-none text-white">
-                                        {formatCurrency(overview.fundsRaised)}
-                                    </div>
-
-                                    <div className="mt-2 font-poppins text-[7px] font-bold uppercase tracking-[0.1em] text-[#b9d8d4]">
-                                        Funds raised
-                                    </div>
-                                </div>
-
-                                <div className="border-l border-white/20 pl-5">
-                                    <div className="font-fraunces text-[27px] leading-none text-white">
-                                        {overview.completedRequests}
-                                    </div>
-
-                                    <div className="mt-2 font-poppins text-[7px] font-bold uppercase tracking-[0.1em] text-[#b9d8d4]">
-                                        Resolved
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                {/* =================================================
-                    ATTENTION / KEY NUMBERS
-                ================================================== */}
-                <section className="border-y border-[#d2deda] bg-[#edf3f1]">
-                    <div className="grid lg:grid-cols-[1.35fr_1fr_1fr_1fr]">
-                        {/* ATTENTION */}
-                        <div className="relative overflow-hidden border-b border-[#d5dfdc] bg-[#fff8ed] px-7 py-7 sm:px-9 lg:border-b-0">
-                            <div className="absolute right-[-35px] top-[-55px] h-[160px] w-[160px] rounded-full border-[35px] border-[#f7ead3]" />
-
-                            <div className="relative z-10 flex items-center gap-2">
-                                <span className="h-[6px] w-[6px] rounded-full bg-[#f59e0b]" />
-
-                                <span className="font-poppins text-[7px] font-bold uppercase tracking-[0.13em] text-[#9a6e21]">
-                                    Needs attention
-                                </span>
-                            </div>
-
-                            <div className="relative z-10 mt-3 flex items-end gap-4">
-                                <span className="font-fraunces text-[52px] leading-none tracking-[-0.04em] text-[#a75c24]">
-                                    {awaitingRequests}
-                                </span>
-
-                                <span className="mb-1.5 max-w-[125px] font-poppins text-[8px] font-semibold uppercase leading-4 tracking-[0.05em] text-[#7c756b]">
-                                    request waiting for response
-                                </span>
-                            </div>
-                        </div>
-
-                        {/* ACTIVE REQUESTS */}
-                        <div className="border-b border-[#d5dfdc] px-7 py-7 sm:px-9 lg:border-b-0 lg:border-l">
-                            <div className="font-fraunces text-[38px] leading-none text-[#294640]">
-                                {overview.activeRequests}
-                            </div>
-
-                            <div className="mt-2.5 font-poppins text-[7px] font-bold uppercase tracking-[0.1em] text-[#667b76]">
-                                Active requests
-                            </div>
-
-                            <div className="mt-1 font-poppins text-[7px] text-[#98a7a3]">
-                                Currently moving
-                            </div>
-                        </div>
-
-                        {/* ACTIVE CAMPAIGNS */}
-                        <div className="border-b border-[#d5dfdc] px-7 py-7 sm:px-9 lg:border-b-0 lg:border-l">
-                            <div className="font-fraunces text-[38px] leading-none text-[#294640]">
-                                {overview.activeCampaigns}
-                            </div>
-
-                            <div className="mt-2.5 font-poppins text-[7px] font-bold uppercase tracking-[0.1em] text-[#667b76]">
-                                Active campaigns
-                            </div>
-
-                            <div className="mt-1 font-poppins text-[7px] text-[#98a7a3]">
-                                Currently running
-                            </div>
-                        </div>
-
-                        {/* COMPLETION */}
-                        <div className="px-7 py-7 sm:px-9 lg:border-l">
-                            <div className="font-fraunces text-[38px] leading-none text-primary">
-                                {completionRate}%
-                            </div>
-
-                            <div className="mt-2.5 font-poppins text-[7px] font-bold uppercase tracking-[0.1em] text-[#667b76]">
-                                Completion rate
-                            </div>
-
-                            <div className="mt-1 font-poppins text-[7px] text-[#98a7a3]">
-                                Requests resolved
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                {/* =================================================
-                    PRIMARY WORK AREA
-                ================================================== */}
-                <section className="py-14 lg:py-16">
-                    <div className="grid lg:grid-cols-[minmax(0,1fr)_310px] lg:gap-14">
-                        {/* REQUESTS */}
-                        <div>
-                            <SectionHeading
-                                eyebrow="Priority work"
-                                title="Needs your attention"
-                                description="The most important requests currently moving through your organization."
-                                action="All requests"
-                                onAction={() =>
-                                    navigate(
-                                        '/dashboard/organization/responses',
-                                    )
-                                }
-                            />
-
-                            <div className="mt-6 overflow-hidden border border-[#d1ddda]">
-                                {workQueue.map((request, index) => (
-                                    <PriorityRequest
-                                        key={request.id}
-                                        request={request}
-                                        index={index}
-                                        onClick={() =>
-                                            navigate(
-                                                `/dashboard/organization/responses/${request.id}`,
-                                            )
-                                        }
-                                    />
-                                ))}
-                            </div>
-
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    navigate(
-                                        '/dashboard/organization/responses',
-                                    )
-                                }
-                                className="mt-5 flex items-center gap-2 font-poppins text-[8px] font-bold uppercase tracking-[0.1em] text-[#647873] transition hover:text-primary sm:hidden"
-                            >
-                                View all requests
-                                <ArrowUpRight size={12} />
-                            </button>
-                        </div>
-
-                        {/* RIGHT RAIL */}
-                        <aside className="mt-12 lg:mt-0">
-                            {/* ACTION REQUIRED */}
-                            <div className="relative overflow-hidden bg-primary px-7 py-8 text-white">
-                                <div className="absolute bottom-[-55px] right-[-45px] h-[160px] w-[160px] rounded-full border-[35px] border-[#115e59]" />
-
-                                <div className="relative z-10 flex items-center justify-between">
-                                    <span className="font-poppins text-[8px] font-bold uppercase tracking-[0.16em] text-[#b8d8d3]">
-                                        Action required
-                                    </span>
-
-                                    <CircleAlert
-                                        size={18}
-                                        strokeWidth={1.6}
-                                        className="text-[#d7ebe7]"
-                                    />
-                                </div>
-
-                                <div className="relative z-10 mt-9 font-fraunces text-[72px] leading-[0.75] tracking-[-0.06em] text-white">
-                                    {awaitingRequests}
-                                </div>
-
-                                <div className="relative z-10 mt-5 font-jost text-[19px] font-semibold leading-tight text-white">
-                                    request waiting
-                                    <br />
-                                    for your response
-                                </div>
-
-                                <p className="relative z-10 mt-4 font-poppins text-[9px] leading-5 text-[#b9d8d4]">
-                                    One request currently needs an action from
-                                    your organization before it can move
-                                    forward.
-                                </p>
-
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        navigate(
-                                            '/dashboard/organization/responses',
-                                        )
-                                    }
-                                    className="relative z-10 mt-7 inline-flex h-9 items-center gap-2 bg-[#f59e0b] px-4 font-poppins text-[7px] font-bold uppercase tracking-[0.11em] text-[#51320f] transition hover:bg-[#f7a914]"
-                                >
-                                    Review request
-                                    <ArrowUpRight size={12} />
-                                </button>
-                            </div>
-
-                            {/* PULSE */}
-                            <div className="mt-9 border-t border-[#ccd9d5] pt-7">
-                                <div className="flex items-end justify-between">
-                                    <div>
-                                        <Eyebrow className="text-[#81948f]">
-                                            Organization pulse
-                                        </Eyebrow>
-
-                                        <div className="mt-2 font-jost text-[16px] font-semibold text-[#38514c]">
-                                            Completion
-                                        </div>
-                                    </div>
-
-                                    <span className="font-fraunces text-[31px] leading-none text-primary">
-                                        {completionRate}%
-                                    </span>
-                                </div>
-
-                                <div className="mt-4 h-[6px] bg-[#dbe5e2]">
-                                    <div
-                                        className="h-full bg-primary"
-                                        style={{
-                                            width: `${completionRate}%`,
-                                        }}
-                                    />
-                                </div>
-
-                                <div className="mt-6 grid grid-cols-2">
-                                    <div>
-                                        <div className="font-fraunces text-[24px] leading-none text-[#294640]">
-                                            8
-                                        </div>
-
-                                        <div className="mt-1.5 font-poppins text-[7px] font-bold uppercase tracking-[0.07em] text-[#8c9b97]">
-                                            Available volunteers
-                                        </div>
-                                    </div>
-
-                                    <div className="text-right">
-                                        <div className="font-fraunces text-[24px] leading-none text-[#294640]">
-                                            {overview.activeCampaigns}
-                                        </div>
-
-                                        <div className="mt-1.5 font-poppins text-[7px] font-bold uppercase tracking-[0.07em] text-[#8c9b97]">
-                                            Active campaigns
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </aside>
-                    </div>
-                </section>
-
-                {/* =================================================
-                    IMPACT SNAPSHOT
-                ================================================== */}
-                <section className="mb-14 overflow-hidden bg-[#dfe9e6] lg:mb-16">
-                    <div className="grid lg:grid-cols-[0.82fr_1.18fr]">
-                        <div className="relative overflow-hidden px-7 py-9 sm:px-10 sm:py-11 lg:px-12 lg:py-12">
-                            <div className="absolute bottom-[-80px] left-[-70px] h-[210px] w-[210px] rounded-full border-[45px] border-[#d3e2de]" />
-
-                            <div className="relative z-10">
-                                <Eyebrow>Impact snapshot</Eyebrow>
-
-                                <h2 className="mt-3 max-w-[400px] font-fraunces text-[38px] leading-[0.96] tracking-[-0.045em] text-[#163c37] sm:text-[44px]">
-                                    The work behind the numbers.
-                                </h2>
-
-                                <p className="mt-5 max-w-[370px] font-poppins text-[9px] leading-5 text-[#667d78]">
-                                    Every completed request contributes to a
-                                    larger picture of community impact.
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 bg-[#f8faf9] sm:grid-cols-4">
-                            <div className="border-t border-[#d3dfdb] px-6 py-8 sm:border-l sm:border-t-0 sm:px-7">
-                                <div className="font-fraunces text-[40px] leading-none text-primary">
-                                    {overview.peopleHelped.toLocaleString(
-                                        'en-BD',
-                                    )}
-                                </div>
-
-                                <div className="mt-3 font-poppins text-[7px] font-bold uppercase tracking-[0.08em] text-[#647873]">
-                                    People reached
-                                </div>
-                            </div>
-
-                            <div className="border-l border-t border-[#d3dfdb] px-6 py-8 sm:border-t-0 sm:px-7">
-                                <div className="font-fraunces text-[40px] leading-none text-[#294640]">
-                                    {overview.completedRequests}
-                                </div>
-
-                                <div className="mt-3 font-poppins text-[7px] font-bold uppercase tracking-[0.08em] text-[#647873]">
-                                    Resolved
-                                </div>
-                            </div>
-
-                            <div className="border-l border-t border-[#d3dfdb] px-6 py-8 sm:border-t-0 sm:px-7">
-                                <div className="font-fraunces text-[40px] leading-none text-[#294640]">
-                                    {overview.activeRequests}
-                                </div>
-
-                                <div className="mt-3 font-poppins text-[7px] font-bold uppercase tracking-[0.08em] text-[#647873]">
-                                    In progress
-                                </div>
-                            </div>
-
-                            <div className="border-l border-t border-[#d3dfdb] px-6 py-8 sm:border-t-0 sm:px-7">
-                                <div className="font-fraunces text-[40px] leading-none text-[#294640]">
-                                    {overview.assignedRequests}
-                                </div>
-
-                                <div className="mt-3 font-poppins text-[7px] font-bold uppercase tracking-[0.08em] text-[#647873]">
-                                    Assigned
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                {/* =================================================
-                    CAMPAIGNS
-                ================================================== */}
-                <section className="pb-14 lg:pb-16">
-                    <SectionHeading
-                        eyebrow="Fundraising"
-                        title="Campaigns in motion"
-                        description="Fundraising efforts currently making progress."
-                        action="Manage campaigns"
-                        onAction={() =>
-                            navigate('/dashboard/organization/campaigns')
-                        }
-                    />
-
-                    <div className="mt-6 overflow-hidden border border-[#d1ddda]">
-                        {campaigns.map((campaign, index) => (
-                            <CampaignItem
-                                key={campaign.id}
-                                campaign={campaign}
-                                featured={index === 0}
-                                onClick={() =>
-                                    navigate(
-                                        `/dashboard/organization/campaigns/${campaign.id}`,
-                                    )
-                                }
-                            />
-                        ))}
-                    </div>
-                </section>
-
-                {/* =================================================
-                    TEAM + ACTIVITY
-                ================================================== */}
-                <section className="grid border-t border-[#d2deda] lg:grid-cols-[0.9fr_1.1fr]">
-                    {/* TEAM */}
-                    <div className="py-14 lg:py-16 lg:pr-14">
-                        <SectionHeading
-                            eyebrow="People"
-                            title="Your team"
-                            description="The people helping move your work forward."
-                            muted
-                        />
-
-                        <div className="mt-6">
-                            {team.map((item) => {
-                                const Icon = item.icon;
-
-                                return (
-                                    <button
-                                        key={item.id}
-                                        type="button"
-                                        onClick={() =>
-                                            navigate(
-                                                item.name === 'Volunteers'
-                                                    ? '/dashboard/organization/volunteers'
-                                                    : '/dashboard/organization/responses',
-                                            )
-                                        }
-                                        className="group grid w-full grid-cols-[42px_minmax(0,1fr)_55px_20px] items-center gap-3 border-b border-[#d6e0dd] py-5 text-left transition hover:bg-[#edf4f1]"
-                                    >
-                                        <div className="flex h-8 w-8 items-center justify-center bg-[#dfece8] text-primary">
-                                            <Icon size={15} strokeWidth={1.6} />
-                                        </div>
-
-                                        <div className="min-w-0">
-                                            <div className="font-jost text-[14px] font-semibold text-[#38514c] transition-colors group-hover:text-primary">
-                                                {item.name}
-                                            </div>
-
-                                            <div className="mt-1 font-poppins text-[7px] text-[#929f9b]">
-                                                {item.detail}
-                                            </div>
-                                        </div>
-
-                                        <div className="text-right font-fraunces text-[28px] leading-none text-[#294640]">
-                                            {item.value}
-                                        </div>
-
-                                        <ChevronRight
-                                            size={14}
-                                            className="text-[#a5b3af] transition-all group-hover:translate-x-1 group-hover:text-primary"
-                                        />
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </div>
-
-                    {/* ACTIVITY */}
-                    <div className="border-t border-[#d2deda] py-14 lg:border-l lg:border-t-0 lg:py-16 lg:pl-14">
-                        <SectionHeading
-                            eyebrow="Timeline"
-                            title="Recent activity"
-                            description="The latest changes across your organization."
-                            muted
-                        />
-
-                        <div className="mt-6">
-                            {activity.map((item, index) => (
-                                <div
-                                    key={item.id}
-                                    className="grid grid-cols-[26px_minmax(0,1fr)] gap-4 border-b border-[#d6e0dd] py-5"
-                                >
-                                    <div className="relative flex justify-center">
-                                        <div className="relative z-10 mt-0.5 flex h-[22px] w-[22px] items-center justify-center rounded-full border border-[#c8d8d3] bg-[#f4f7f5]">
-                                            <Check
-                                                size={10}
-                                                strokeWidth={2.2}
-                                                className="text-primary"
-                                            />
-                                        </div>
-
-                                        {index !== activity.length - 1 && (
-                                            <span className="absolute left-1/2 top-[23px] h-[calc(100%+1px)] w-px -translate-x-1/2 bg-[#d4dfdc]" />
-                                        )}
-                                    </div>
-
-                                    <div className="min-w-0">
-                                        <p className="font-jost text-[13px] leading-5 text-[#506761]">
-                                            {item.text}
-                                        </p>
-
-                                        <p className="mt-1.5 font-poppins text-[7px] font-bold uppercase tracking-[0.08em] text-[#98a5a1]">
-                                            {item.date}
-                                        </p>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </section>
-            </main>
-
-            {/* =====================================================
-                FOOTER
-            ====================================================== */}
-            <footer className="border-t border-[#d1dcd9] bg-[#e7efec]">
-                <div className="mx-auto flex max-w-[1500px] flex-col gap-2 px-5 py-7 font-poppins text-[7px] font-bold uppercase tracking-[0.1em] text-[#899995] sm:flex-row sm:items-center sm:justify-between sm:px-8 lg:px-10">
-                    <span>
-                        {organization.name} · {organization.location}
-                    </span>
-
-                    <span>Stand For People · Organization workspace</span>
-                </div>
-            </footer>
+          </div>
         </div>
+      </div>
     );
-};
+  }
 
-export default OrgDashboard;
+  if (!dashboard) {
+    return null;
+  }
+
+  const organization = dashboard.organization || {};
+
+  const overview = dashboard.overview || {};
+
+  const requests = dashboard.requests || [];
+
+  const campaigns = dashboard.campaigns || [];
+
+  const volunteers = dashboard.volunteers || {};
+
+  const completionRate =
+    overview.assigned_requests > 0
+      ? Math.round(
+          (overview.completed_requests / overview.assigned_requests) * 100,
+        )
+      : 0;
+
+  return (
+    <div className="min-h-screen bg-background">
+      <main className="mx-auto max-w-[1400px]">
+        {/* =====================================================
+                    ORGANIZATION HERO
+                ====================================================== */}
+
+        <section className="overflow-hidden border border-slate-200 bg-white">
+          <div className="flex flex-col lg:flex-row">
+            <div className="relative flex-1 overflow-hidden bg-teal-800 px-6 py-7 sm:px-8 lg:px-10 lg:py-9">
+              <div className="absolute -right-20 -top-24 h-64 w-64 rounded-full border-[40px] border-teal-700/50" />
+
+              <div className="absolute -bottom-28 right-20 h-48 w-48 rounded-full border-[28px] border-teal-700/40" />
+
+              <div className="relative">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-teal-200">
+                    Organization workspace
+                  </span>
+
+                  <span className="h-1 w-1 rounded-full bg-teal-400" />
+
+                  <span className="text-[10px] font-medium text-teal-200">
+                    {organization.type || "Organization"}
+                  </span>
+                </div>
+
+                <h1 className="mt-3 max-w-2xl text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+                  {organization.name || "Organization"}
+                </h1>
+
+                <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-teal-100">
+                  {organization.location && (
+                    <span className="inline-flex items-center gap-1.5">
+                      <MapPin size={14} />
+
+                      {organization.location}
+                    </span>
+                  )}
+
+                  <span className="inline-flex items-center gap-1.5">
+                    <CheckCircle2 size={14} />
+
+                    {organization.verification_status === "verified"
+                      ? "Verified organization"
+                      : "Verification pending"}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex w-full flex-col justify-between border-t border-slate-200 bg-white p-6 lg:w-[250px] lg:border-l lg:border-t-0">
+              <div>
+                <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-slate-400">
+                  Workspace
+                </p>
+
+                <p className="mt-2 text-sm font-semibold text-slate-800">
+                  Organization operations
+                </p>
+
+                <p className="mt-1 text-xs leading-5 text-slate-400">
+                  Manage requests, campaigns and volunteer activity.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => navigate("/dashboard/organization/profile")}
+                className="mt-6 inline-flex h-10 items-center justify-between border border-slate-200 px-3.5 text-xs font-semibold text-slate-700 transition hover:border-teal-600 hover:text-teal-700">
+                Organization profile
+                <ChevronRight size={15} />
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* =====================================================
+                    OVERVIEW STRIP
+                ====================================================== */}
+
+        <section className="mt-5 grid grid-cols-1 gap-px overflow-hidden border border-slate-200 bg-slate-200 sm:grid-cols-2 xl:grid-cols-4">
+          <StatCard
+            icon={HeartHandshake}
+            label="Assigned requests"
+            value={overview.assigned_requests ?? 0}
+            description="Requests assigned to your organization"
+          />
+
+          <StatCard
+            icon={Clock3}
+            label="Active requests"
+            value={overview.active_requests ?? 0}
+            description="Requests currently in progress"
+          />
+
+          <StatCard
+            icon={BriefcaseBusiness}
+            label="Active campaigns"
+            value={overview.active_campaigns ?? 0}
+            description="Currently active campaigns"
+          />
+
+          <StatCard
+            icon={Users}
+            label="Volunteers"
+            value={volunteers.total ?? 0}
+            description={`${volunteers.active_assignments ?? 0} active assignments`}
+          />
+        </section>
+
+        {/* =====================================================
+                    MAIN OPERATIONS AREA
+                ====================================================== */}
+
+        <section className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_330px]">
+          {/* =================================================
+                        REQUEST QUEUE
+                    ================================================== */}
+
+          <div className="overflow-hidden border border-slate-200 bg-white">
+            <div className="flex flex-col gap-4 border-b border-slate-200 px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 bg-teal-600" />
+
+                  <h2 className="text-sm font-bold text-slate-900">
+                    Request queue
+                  </h2>
+                </div>
+
+                <p className="mt-1.5 text-xs text-slate-400">
+                  Recent help requests requiring organizational action
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => navigate("/dashboard/organization/requests")}
+                className="inline-flex items-center gap-1.5 self-start text-xs font-bold text-teal-700 transition hover:text-teal-800 sm:self-auto">
+                View all requests
+                <ArrowRight size={14} />
+              </button>
+            </div>
+
+            {requests.length === 0 ? (
+              <EmptyState
+                icon={HeartHandshake}
+                title="No assigned requests"
+                description="Help requests assigned to your organization will appear here."
+              />
+            ) : (
+              <div>
+                {requests.map((request, index) => (
+                  <button
+                    key={request.id}
+                    type="button"
+                    onClick={() =>
+                      navigate(
+                        `/dashboard/organization/responses/${request.help_request_id || request.id}`,
+                      )
+                    }
+                    className="group flex w-full items-center gap-4 border-b border-slate-100 px-5 py-4 text-left transition last:border-b-0 hover:bg-slate-50">
+                    <span className="w-6 shrink-0 text-[10px] font-semibold tabular-nums text-slate-300">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-teal-50 text-teal-700">
+                      <HeartHandshake size={18} strokeWidth={1.7} />
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="truncate text-sm font-semibold text-slate-800 transition group-hover:text-teal-700">
+                          {request.title}
+                        </p>
+
+                        <UrgencyBadge urgency={request.urgency} />
+                      </div>
+
+                      <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-400">
+                        {request.district && (
+                          <span className="inline-flex items-center gap-1">
+                            <MapPin size={11} />
+
+                            {request.district}
+                          </span>
+                        )}
+
+                        <span>
+                          Updated {formatRelativeDate(request.updated_at)}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="hidden shrink-0 sm:block">
+                      <StatusBadge status={request.status} />
+                    </div>
+
+                    <ChevronRight
+                      className="shrink-0 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-teal-600"
+                      size={18}
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* =================================================
+                        OPERATIONS SUMMARY
+                    ================================================== */}
+
+          <aside className="border border-slate-200 bg-white">
+            <div className="border-b border-slate-200 px-5 py-5">
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 bg-amber-500" />
+
+                <h2 className="text-sm font-bold text-slate-900">Operations</h2>
+              </div>
+
+              <p className="mt-1.5 text-xs text-slate-400">
+                Current response performance
+              </p>
+            </div>
+
+            <div className="p-5">
+              <div className="flex items-end justify-between">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">
+                    Completion rate
+                  </p>
+
+                  <p className="mt-2 text-[42px] font-semibold leading-none tracking-tight text-slate-900">
+                    {completionRate}
+                    <span className="text-xl text-slate-400">%</span>
+                  </p>
+                </div>
+
+                <div className="flex h-10 w-10 items-center justify-center bg-emerald-50 text-emerald-600">
+                  <CheckCircle2 size={20} strokeWidth={1.7} />
+                </div>
+              </div>
+
+              <div className="mt-5 h-2 bg-slate-100">
+                <div
+                  className="h-full bg-teal-600 transition-all"
+                  style={{
+                    width: `${completionRate}%`,
+                  }}
+                />
+              </div>
+
+              <div className="mt-6 divide-y divide-slate-100 border-y border-slate-100">
+                <div className="flex items-center justify-between py-3.5">
+                  <span className="text-xs text-slate-500">
+                    Completed requests
+                  </span>
+
+                  <span className="text-sm font-bold text-slate-900">
+                    {overview.completed_requests ?? 0}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between py-3.5">
+                  <span className="text-xs text-slate-500">
+                    Active requests
+                  </span>
+
+                  <span className="text-sm font-bold text-slate-900">
+                    {overview.active_requests ?? 0}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between py-3.5">
+                  <span className="text-xs text-slate-500">
+                    Active campaigns
+                  </span>
+
+                  <span className="text-sm font-bold text-slate-900">
+                    {overview.active_campaigns ?? 0}
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => navigate("/dashboard/organization/requests")}
+                className="mt-5 flex w-full items-center justify-between border border-slate-200 px-3.5 py-3 text-xs font-bold text-slate-700 transition hover:border-teal-600 hover:text-teal-700">
+                Manage requests
+                <ArrowRight size={15} />
+              </button>
+            </div>
+          </aside>
+        </section>
+
+        {/* =====================================================
+                    CAMPAIGNS + VOLUNTEERS
+                ====================================================== */}
+
+        <section className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_330px]">
+          {/* =================================================
+                        CAMPAIGNS
+                    ================================================== */}
+
+          <div className="overflow-hidden border border-slate-200 bg-white">
+            <div className="flex flex-col gap-4 border-b border-slate-200 px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 bg-amber-500" />
+
+                  <h2 className="text-sm font-bold text-slate-900">
+                    Campaign activity
+                  </h2>
+                </div>
+
+                <p className="mt-1.5 text-xs text-slate-400">
+                  Latest campaigns managed by your organization
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => navigate("/dashboard/organization/campaigns")}
+                className="inline-flex items-center gap-1.5 self-start text-xs font-bold text-teal-700 transition hover:text-teal-800 sm:self-auto">
+                Manage campaigns
+                <ArrowRight size={14} />
+              </button>
+            </div>
+
+            {campaigns.length === 0 ? (
+              <EmptyState
+                icon={BriefcaseBusiness}
+                title="No campaigns yet"
+                description="Campaigns created or assigned to your organization will appear here."
+              />
+            ) : (
+              <div>
+                {campaigns.map((campaign) => (
+                  <button
+                    key={campaign.id}
+                    type="button"
+                    onClick={() =>
+                      navigate(
+                        `/dashboard/organization/campaigns/${campaign.id}`,
+                      )
+                    }
+                    className="group flex w-full items-center gap-4 border-b border-slate-100 px-5 py-4 text-left transition last:border-b-0 hover:bg-slate-50">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-amber-50 text-amber-700">
+                      <BriefcaseBusiness size={18} strokeWidth={1.7} />
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-slate-800 transition group-hover:text-teal-700">
+                        {campaign.title}
+                      </p>
+
+                      <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-400">
+                        {campaign.start_date && (
+                          <span className="inline-flex items-center gap-1">
+                            <CalendarDays size={11} />
+
+                            {formatDate(campaign.start_date)}
+                          </span>
+                        )}
+
+                        {campaign.end_date && (
+                          <span>until {formatDate(campaign.end_date)}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <StatusBadge status={campaign.status} />
+
+                    <ChevronRight
+                      className="shrink-0 text-slate-300 transition group-hover:text-teal-600"
+                      size={18}
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* =================================================
+                        VOLUNTEERS
+                    ================================================== */}
+
+          <aside className="border border-slate-200 bg-white">
+            <div className="border-b border-slate-200 px-5 py-5">
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 bg-teal-600" />
+
+                <h2 className="text-sm font-bold text-slate-900">
+                  Volunteer capacity
+                </h2>
+              </div>
+
+              <p className="mt-1.5 text-xs text-slate-400">
+                Current volunteer allocation
+              </p>
+            </div>
+
+            <div className="p-5">
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center bg-teal-50 text-teal-700">
+                  <Users size={22} strokeWidth={1.7} />
+                </div>
+
+                <div>
+                  <p className="text-[32px] font-semibold leading-none tracking-tight text-slate-900">
+                    {volunteers.total ?? 0}
+                  </p>
+
+                  <p className="mt-1 text-[11px] text-slate-400">
+                    Assigned volunteers
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-6 divide-y divide-slate-100 border-y border-slate-100">
+                <div className="flex items-center justify-between py-3.5">
+                  <span className="text-xs text-slate-500">
+                    Active assignments
+                  </span>
+
+                  <span className="text-sm font-bold text-slate-900">
+                    {volunteers.active_assignments ?? 0}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between py-3.5">
+                  <span className="text-xs text-slate-500">
+                    Active campaigns
+                  </span>
+
+                  <span className="text-sm font-bold text-slate-900">
+                    {overview.active_campaigns ?? 0}
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => navigate("/dashboard/organization/volunteers")}
+                className="mt-5 flex w-full items-center justify-between border border-slate-200 px-3.5 py-3 text-xs font-bold text-slate-700 transition hover:border-teal-600 hover:text-teal-700">
+                View volunteers
+                <ArrowRight size={15} />
+              </button>
+            </div>
+          </aside>
+        </section>
+      </main>
+    </div>
+  );
+}

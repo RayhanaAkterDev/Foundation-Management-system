@@ -35,7 +35,7 @@ const Stats = ({
       tone: "sky",
     },
     {
-      label: "In progress",
+      label: "Active",
       value: Number(active) || 0,
       description: "Support currently underway",
       icon: Activity,

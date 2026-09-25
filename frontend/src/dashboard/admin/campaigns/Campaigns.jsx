@@ -6,6 +6,7 @@ import {
   ChevronsUpDown,
   Download,
   Plus,
+  Search,
 } from "lucide-react";
 
 import PageHeader from "@/components/dashboard/PageHeader";
@@ -31,7 +32,7 @@ import {
   fetchCampaignVolunteerAssignments,
   assignCampaignVolunteer,
   verifyCampaign,
-  //   updateCampaignStatus,
+  // updateCampaignStatus,
   updateCampaign,
   createCampaign,
 } from "./api/campaignsAPI";
@@ -162,9 +163,7 @@ const Campaigns = () => {
   // =========================================================
 
   const [createCampaignOpen, setCreateCampaignOpen] = useState(false);
-
   const [createLoading, setCreateLoading] = useState(false);
-
   const [createError, setCreateError] = useState("");
 
   // =========================================================
@@ -191,9 +190,9 @@ const Campaigns = () => {
   // Status update modal
   // =========================================================
 
-  //   const [statusCampaign, setStatusCampaign] = useState(null);
-  //   const [statusLoading, setStatusLoading] = useState(false);
-  //   const [statusError, setStatusError] = useState("");
+  // const [statusCampaign, setStatusCampaign] = useState(null);
+  // const [statusLoading, setStatusLoading] = useState(false);
+  // const [statusError, setStatusError] = useState("");
 
   // =========================================================
   // Edit modal
@@ -413,7 +412,6 @@ const Campaigns = () => {
 
     result.sort((a, b) => {
       let first = a[sortConfig.key];
-
       let second = b[sortConfig.key];
 
       if (
@@ -422,7 +420,6 @@ const Campaigns = () => {
         )
       ) {
         first = first ? new Date(first).getTime() : 0;
-
         second = second ? new Date(second).getTime() : 0;
       }
 
@@ -490,31 +487,26 @@ const Campaigns = () => {
 
   const handleTypeChange = (event) => {
     setTypeFilter(event.target.value);
-
     setCurrentPage(1);
   };
 
   const handleCategoryFilterChange = (event) => {
     setCategoryFilter(event.target.value);
-
     setCurrentPage(1);
   };
 
   const handleOrganizationChange = (event) => {
     setOrganizationFilter(event.target.value);
-
     setCurrentPage(1);
   };
 
   const handleStatusChange = (event) => {
     setStatusFilter(event.target.value);
-
     setCurrentPage(1);
   };
 
   const handleSearchChange = (event) => {
     setSearchTerm(event.target.value);
-
     setCurrentPage(1);
   };
 
@@ -690,7 +682,6 @@ const Campaigns = () => {
 
     if (status !== "active" && status !== "rejected") {
       setVerificationError("Invalid verification decision.");
-
       return;
     }
 
@@ -698,13 +689,11 @@ const Campaigns = () => {
       setVerificationError(
         "Only unverified campaigns can be verified or rejected.",
       );
-
       return;
     }
 
     try {
       setVerificationLoading(true);
-
       setVerificationError("");
 
       await verifyCampaign(verificationCampaign.id, {
@@ -725,7 +714,6 @@ const Campaigns = () => {
       );
 
       setVerificationCampaign(null);
-
       setVerificationError("");
 
       showSuccessToast(
@@ -755,66 +743,66 @@ const Campaigns = () => {
   // =========================================================
 
   // const handleStatusUpdate = (campaign) => {
-  //     if (!STATUS_CHANGEABLE_STATUSES.includes(campaign.status)) {
-  //         return;
-  //     }
+  //   if (!STATUS_CHANGEABLE_STATUSES.includes(campaign.status)) {
+  //     return;
+  //   }
 
-  //     setStatusError('');
-  //     setStatusCampaign(campaign);
+  //   setStatusError("");
+  //   setStatusCampaign(campaign);
   // };
 
-  // const handleStatusConfirm = async ({ status: newStatus, status_note }) => {
-  //     if (!statusCampaign) {
-  //         return;
-  //     }
+  // const handleStatusConfirm = async ({
+  //   status: newStatus,
+  //   status_note,
+  // }) => {
+  //   if (!statusCampaign) {
+  //     return;
+  //   }
 
-  //     const allowedStatuses =
-  //         CAMPAIGN_STATUS_TRANSITIONS[statusCampaign.status] || [];
+  //   const allowedStatuses =
+  //     CAMPAIGN_STATUS_TRANSITIONS[statusCampaign.status] || [];
 
-  //     if (!allowedStatuses.includes(newStatus)) {
-  //         setStatusError('This status transition is not allowed.');
+  //   if (!allowedStatuses.includes(newStatus)) {
+  //     setStatusError("This status transition is not allowed.");
+  //     return;
+  //   }
 
-  //         return;
-  //     }
+  //   try {
+  //     setStatusLoading(true);
+  //     setStatusError("");
 
-  //     try {
-  //         setStatusLoading(true);
-  //         setStatusError('');
+  //     const data = await updateCampaignStatus(statusCampaign.id, {
+  //       status: newStatus,
+  //       status_note: status_note || null,
+  //     });
 
-  //         const data = await updateCampaignStatus(statusCampaign.id, {
-  //             status: newStatus,
-  //             status_note: status_note || null,
-  //         });
+  //     const updatedCampaign = normalizeCampaign(
+  //       data?.campaign ||
+  //         data?.data || {
+  //           ...statusCampaign,
+  //           status: newStatus,
+  //           status_note: status_note || null,
+  //         },
+  //     );
 
-  //         const updatedCampaign = normalizeCampaign(
-  //             data?.campaign ||
-  //                 data?.data || {
-  //                     ...statusCampaign,
-  //                     status: newStatus,
-  //                     status_note: status_note || null,
-  //                 },
-  //         );
+  //     setCampaigns((current) =>
+  //       current.map((campaign) =>
+  //         campaign.id === statusCampaign.id ? updatedCampaign : campaign,
+  //       ),
+  //     );
 
-  //         setCampaigns((current) =>
-  //             current.map((campaign) =>
-  //                 campaign.id === statusCampaign.id
-  //                     ? updatedCampaign
-  //                     : campaign,
-  //             ),
-  //         );
+  //     setStatusCampaign(null);
 
-  //         setStatusCampaign(null);
-
-  //         showSuccessToast(
-  //             newStatus === 'completed'
-  //                 ? 'Campaign marked as completed successfully.'
-  //                 : 'Campaign cancelled successfully.',
-  //         );
-  //     } catch (err) {
-  //         setStatusError(err?.message || 'Campaign status update failed.');
-  //     } finally {
-  //         setStatusLoading(false);
-  //     }
+  //     showSuccessToast(
+  //       newStatus === "completed"
+  //         ? "Campaign marked as completed successfully."
+  //         : "Campaign cancelled successfully.",
+  //     );
+  //   } catch (err) {
+  //     setStatusError(err?.message || "Campaign status update failed.");
+  //   } finally {
+  //     setStatusLoading(false);
+  //   }
   // };
 
   // =========================================================
@@ -844,7 +832,6 @@ const Campaigns = () => {
         assignmentData?.assignments || assignmentData?.data || [];
 
       setAssignmentVolunteers(Array.isArray(volunteers) ? volunteers : []);
-
       setAssignmentHistory(Array.isArray(assignments) ? assignments : []);
     } catch (err) {
       setAssignmentError(
@@ -877,7 +864,6 @@ const Campaigns = () => {
         assignmentData?.assignments || assignmentData?.data || [];
 
       setAssignmentVolunteers(Array.isArray(volunteers) ? volunteers : []);
-
       setAssignmentHistory(Array.isArray(assignments) ? assignments : []);
 
       showSuccessToast("Volunteer assigned to campaign successfully.");
@@ -1196,7 +1182,9 @@ const Campaigns = () => {
 
         const canVerify = row.status === "unverified";
 
-        // const canChangeStatus = STATUS_CHANGEABLE_STATUSES.includes(row.status);
+        // const canChangeStatus = STATUS_CHANGEABLE_STATUSES.includes(
+        //   row.status,
+        // );
 
         const canAssign = row.status === "active";
 
@@ -1232,19 +1220,21 @@ const Campaigns = () => {
                 type="button"
                 onClick={() => handleAssignment(row)}
                 className="text-xs font-semibold text-primary transition-colors hover:text-primary-hover">
-                Assign Voluteers
+                Assign Volunteers
               </button>
             )}
-            {/* 
-                        {canChangeStatus && (
-                            <button
-                                type="button"
-                                onClick={() => handleStatusUpdate(row)}
-                                className="text-xs font-semibold text-text-secondary transition-colors hover:text-primary"
-                            >
-                                Change Status
-                            </button>
-                        )} */}
+
+            {/*
+              {canChangeStatus && (
+                <button
+                  type="button"
+                  onClick={() => handleStatusUpdate(row)}
+                  className="text-xs font-semibold text-text-secondary transition-colors hover:text-primary"
+                >
+                  Change Status
+                </button>
+              )}
+            */}
           </div>
         );
       },
@@ -1265,8 +1255,8 @@ const Campaigns = () => {
       />
 
       {/* =====================================================
-                PAGE HEADER
-            ===================================================== */}
+          PAGE HEADER
+      ===================================================== */}
 
       <PageHeader
         title="Campaigns"
@@ -1278,32 +1268,32 @@ const Campaigns = () => {
               onClick={handleExportCSV}
               disabled={filteredCampaigns.length === 0}
               className="
-                                group
-                                inline-flex
-                                h-10
-                                items-center
-                                gap-2
-                                border
-                                border-border
-                                bg-surface
-                                px-4
-                                text-sm
-                                font-medium
-                                text-text-primary
-                                transition-all
-                                hover:border-primary/30
-                                hover:bg-background-alt
-                                disabled:cursor-not-allowed
-                                disabled:opacity-50
-                            ">
+                group
+                inline-flex
+                h-10
+                items-center
+                gap-2
+                border
+                border-border
+                bg-surface
+                px-4
+                text-sm
+                font-medium
+                text-text-primary
+                transition-all
+                hover:border-primary/30
+                hover:bg-background-alt
+                disabled:cursor-not-allowed
+                disabled:opacity-50
+              ">
               <Download
                 size={15}
                 strokeWidth={1.8}
                 className="
-                                    text-text-secondary
-                                    transition-colors
-                                    group-hover:text-primary
-                                "
+                  text-text-secondary
+                  transition-colors
+                  group-hover:text-primary
+                "
               />
 
               <span>Export CSV</span>
@@ -1313,19 +1303,19 @@ const Campaigns = () => {
               type="button"
               onClick={handleCreate}
               className="
-                                inline-flex
-                                h-10
-                                items-center
-                                gap-2
-                                bg-primary
-                                px-4
-                                text-sm
-                                font-semibold
-                                text-white
-                                shadow-sm
-                                transition-all
-                                hover:bg-primary-hover
-                            ">
+                inline-flex
+                h-10
+                items-center
+                gap-2
+                bg-primary
+                px-4
+                text-sm
+                font-semibold
+                text-white
+                shadow-sm
+                transition-all
+                hover:bg-primary-hover
+              ">
               <Plus size={17} strokeWidth={2} />
 
               <span>Add Campaign</span>
@@ -1335,8 +1325,8 @@ const Campaigns = () => {
       />
 
       {/* =====================================================
-                STATISTICS
-            ===================================================== */}
+          STATISTICS
+      ===================================================== */}
 
       <CampaignStats
         total={statistics.total}
@@ -1348,14 +1338,14 @@ const Campaigns = () => {
       />
 
       {/* =====================================================
-                CAMPAIGN MANAGEMENT
-            ===================================================== */}
+          CAMPAIGN MANAGEMENT
+      ===================================================== */}
 
       <section className="border-t border-border pt-8">
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_300px]">
           {/* =================================================
-                        MAIN WORKSPACE
-                    ================================================= */}
+              MAIN WORKSPACE
+          ================================================= */}
 
           <div className="min-w-0">
             <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
@@ -1377,6 +1367,32 @@ const Campaigns = () => {
             </div>
 
             <div className="overflow-hidden border border-border bg-surface">
+              {/* =================================================
+                  SEARCH
+              ================================================= */}
+
+              <div className="border-b border-border px-5 py-4">
+                <div className="relative w-full">
+                  <Search
+                    size={17}
+                    strokeWidth={1.8}
+                    className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary"
+                  />
+
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={handleSearchChange}
+                    placeholder="Search campaigns by title, organization, category or location..."
+                    className="h-10 w-full border border-border bg-background pl-10 pr-4 text-[13px] font-medium text-text-primary outline-none transition-colors placeholder:text-text-secondary/70 hover:border-text-secondary/30 focus:border-primary/50 focus:bg-surface"
+                  />
+                </div>
+              </div>
+
+              {/* =================================================
+                  CAMPAIGN TABLE
+              ================================================= */}
+
               <CampaignTable
                 columns={columns}
                 rows={rows}
@@ -1398,8 +1414,8 @@ const Campaigns = () => {
           </div>
 
           {/* =================================================
-                        FILTER SIDEBAR
-                    ================================================= */}
+              FILTER SIDEBAR
+          ================================================= */}
 
           <aside className="h-fit bg-primary text-white">
             <div className="border-b border-white/15 px-5 py-5">
@@ -1412,8 +1428,7 @@ const Campaigns = () => {
               </h3>
 
               <p className="mt-1.5 text-xs leading-5 text-white/70">
-                Search and filter campaign records using the available campaign
-                criteria.
+                Filter campaign records using the available campaign criteria.
               </p>
             </div>
 
@@ -1428,13 +1443,11 @@ const Campaigns = () => {
 
               <div className="mt-6">
                 <CampaignFilters
-                  searchTerm={searchTerm}
                   typeFilter={typeFilter}
                   categoryFilter={categoryFilter}
                   organizationFilter={organizationFilter}
                   statusFilter={statusFilter}
                   campaigns={campaigns}
-                  onSearchChange={handleSearchChange}
                   onTypeChange={handleTypeChange}
                   onCategoryChange={handleCategoryFilterChange}
                   onOrganizationChange={handleOrganizationChange}
@@ -1447,8 +1460,8 @@ const Campaigns = () => {
       </section>
 
       {/* =====================================================
-                CREATE MODAL
-            ===================================================== */}
+          CREATE MODAL
+      ===================================================== */}
 
       {createCampaignOpen && (
         <CampaignCreateModal
@@ -1457,7 +1470,6 @@ const Campaigns = () => {
           onClose={() => {
             if (!createLoading) {
               setCreateCampaignOpen(false);
-
               setCreateError("");
             }
           }}
@@ -1466,8 +1478,8 @@ const Campaigns = () => {
       )}
 
       {/* =====================================================
-                VIEW MODAL
-            ===================================================== */}
+          VIEW MODAL
+      ===================================================== */}
 
       {selectedCampaign && (
         <CampaignViewModal
@@ -1477,8 +1489,8 @@ const Campaigns = () => {
       )}
 
       {/* =====================================================
-                RELATED CAMPAIGN DETAILS
-            ===================================================== */}
+          RELATED CAMPAIGN DETAILS
+      ===================================================== */}
 
       {relatedCampaign && (
         <CampaignRelatedDetailsModal
@@ -1488,8 +1500,8 @@ const Campaigns = () => {
       )}
 
       {/* =====================================================
-                VERIFICATION MODAL
-            ===================================================== */}
+          VERIFICATION MODAL
+      ===================================================== */}
 
       {verificationCampaign && (
         <CampaignVerificationModal
@@ -1499,7 +1511,6 @@ const Campaigns = () => {
           onClose={() => {
             if (!verificationLoading) {
               setVerificationCampaign(null);
-
               setVerificationError("");
             }
           }}
@@ -1508,8 +1519,8 @@ const Campaigns = () => {
       )}
 
       {/* =====================================================
-                STATUS UPDATE MODAL
-            ===================================================== */}
+          STATUS UPDATE MODAL
+      ===================================================== */}
 
       {/* {statusCampaign && (
         <CampaignStatusUpdateModal
@@ -1522,7 +1533,6 @@ const Campaigns = () => {
           onClose={() => {
             if (!statusLoading) {
               setStatusCampaign(null);
-
               setStatusError("");
             }
           }}
@@ -1531,8 +1541,8 @@ const Campaigns = () => {
       )} */}
 
       {/* =====================================================
-                EDIT MODAL
-            ===================================================== */}
+          EDIT MODAL
+      ===================================================== */}
 
       {editCampaign && (
         <CampaignEditModal
@@ -1542,7 +1552,6 @@ const Campaigns = () => {
           onClose={() => {
             if (!editLoading) {
               setEditCampaign(null);
-
               setEditError("");
             }
           }}
@@ -1551,8 +1560,8 @@ const Campaigns = () => {
       )}
 
       {/* =====================================================
-                ASSIGN VOLUNTEER MODAL
-            ===================================================== */}
+          ASSIGN VOLUNTEER MODAL
+      ===================================================== */}
 
       {assignmentCampaign && (
         <CampaignAssignmentModal

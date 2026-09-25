@@ -133,14 +133,66 @@ const Table = ({ columns = [], rows = [], onSort, getSortIcon }) => {
    * ---------------------------------------------------------
    */
 
+  /*
+   * IMPORTANT:
+   *
+   * Campaigns.jsx adds:
+   *
+   * campaignType: getCampaignTypeLabel(campaign.type)
+   *
+   * Therefore row.campaignType contains "Local Case",
+   * not "local_case".
+   *
+   * We must check the raw API type FIRST.
+   */
+
   const getCampaignTypeValue = (row) => {
-    return row?.campaignType || row?.campaign_type || row?.type || "";
+    return row?.type || row?.campaign_type || row?.campaignType || "";
   };
 
   const getCampaignType = (row) => {
     const value = getCampaignTypeValue(row);
 
     return campaignTypeLabels[value] || value || "Not specified";
+  };
+
+  /*
+   * ---------------------------------------------------------
+   * HELP REQUEST ID
+   * ---------------------------------------------------------
+   *
+   * Local-case campaigns are connected to a Help Request.
+   *
+   * API response contains:
+   *
+   * "help_request_id": 16
+   *
+   * and also:
+   *
+   * "help_request": {
+   *   "id": 16
+   * }
+   *
+   */
+
+  const getHelpRequestId = (row) => {
+    /*
+     * Use the RAW campaign type.
+     *
+     * Do NOT use row.campaignType here because that value
+     * is the display label "Local Case".
+     */
+
+    if (row?.type !== "local_case") {
+      return null;
+    }
+
+    return (
+      row?.help_request_id ??
+      row?.help_request?.id ??
+      row?.helpRequest?.id ??
+      null
+    );
   };
 
   const getCategory = (row) => row?.category || "General campaign";
@@ -263,7 +315,6 @@ const Table = ({ columns = [], rows = [], onSort, getSortIcon }) => {
     <div className="w-full overflow-hidden border-y border-border">
       {/* =========================================================
           TABLE HEADER
-          Sticky while the table content scrolls
       ========================================================= */}
 
       <div
@@ -354,13 +405,28 @@ const Table = ({ columns = [], rows = [], onSort, getSortIcon }) => {
         ) : (
           rows.map((row) => {
             const campaignType = getCampaignType(row);
+
+            /*
+             * This now correctly gets:
+             *
+             * Campaign #2 → HR #16
+             * Campaign #4 → HR #13
+             * Campaign #6 → HR #14
+             * Campaign #7 → HR #17
+             */
+
+            const helpRequestId = getHelpRequestId(row);
+
             const category = getCategory(row);
             const location = getLocation(row);
             const organization = getOrganization(row);
+
             const status = getStatus(row);
+
             const startDate = getStartDate(row);
             const endDate = getEndDate(row);
             const createdDate = getCreatedDate(row);
+
             const target = getTarget(row);
             const collected = getCollected(row);
 
@@ -527,12 +593,28 @@ const Table = ({ columns = [], rows = [], onSort, getSortIcon }) => {
 
                       <div>
                         <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-slate-400">
-                          Type
+                          Type 😎🥸
                         </span>
 
                         <p className="mt-1.5 text-[11.5px] font-semibold leading-5 text-text-primary">
                           {campaignType}
                         </p>
+
+                        {/* =================================================
+                            HR ID — LOCAL CASE ONLY
+                        ================================================= */}
+
+                        {row?.type === "local_case" && helpRequestId && (
+                          <div className="mt-2.5 inline-flex items-center gap-1.5 border border-primary/10 bg-primary/[0.04] px-2 py-1">
+                            <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-slate-400">
+                              HR ID
+                            </span>
+
+                            <span className="font-mono text-[10.5px] font-semibold text-primary">
+                              #{helpRequestId}
+                            </span>
+                          </div>
+                        )}
                       </div>
 
                       {/* ORGANIZATION */}

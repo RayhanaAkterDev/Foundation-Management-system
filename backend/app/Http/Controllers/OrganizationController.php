@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Campaign;
+use App\Models\CampaignVolunteerAssignment;
 use App\Models\HelpRequestAssignment;
 use App\Models\Organization;
 use Illuminate\Http\Request;
@@ -546,4 +548,292 @@ public function acceptAssignment(
                 ]),
         ]);
     }
+
+/**
+ * Organization: View volunteers assigned to active campaigns.
+ *
+ * Only volunteers assigned to this organization's ACTIVE
+ * campaigns are returned.
+ *
+ * Rejected and withdrawn assignments are not considered
+ * current volunteer assignments.
+ */
+public function volunteers(Request $request)
+{
+    $user = $request->user();
+
+    if (!$user || $user->role !== 'organization') {
+        return response()->json([
+            'message' => 'Unauthorized.',
+        ], 403);
+    }
+
+    $organization = Organization::where(
+        'user_id',
+        $user->id
+    )->first();
+
+    if (!$organization) {
+        return response()->json([
+            'message' => 'Organization profile not found.',
+        ], 404);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Get volunteer assignments belonging to this organization
+    | and its ACTIVE campaigns only.
+    |--------------------------------------------------------------------------
+    */
+
+    $assignments = CampaignVolunteerAssignment::query()
+        ->whereHas('campaign', function ($query) use ($organization) {
+            $query
+                ->where(
+                    'organization_id',
+                    $organization->id
+                )
+                ->where(
+                    'status',
+                    Campaign::STATUS_ACTIVE
+                );
+        })
+        ->whereNotIn('status', [
+            CampaignVolunteerAssignment::STATUS_REJECTED,
+            CampaignVolunteerAssignment::STATUS_WITHDRAWN,
+        ])
+        ->with([
+            'volunteer:id,name,email,phone,status,email_verified_at',
+            'campaign:id,organization_id,title,status,start_date,end_date',
+        ])
+        ->latest('assigned_at')
+        ->get();
+
+    /*
+    |--------------------------------------------------------------------------
+    | Summary
+    |--------------------------------------------------------------------------
+    */
+
+    $totalVolunteers = $assignments
+        ->pluck('volunteer_id')
+        ->unique()
+        ->count();
+
+    $activeCampaigns = Campaign::query()
+        ->where(
+            'organization_id',
+            $organization->id
+        )
+        ->where(
+            'status',
+            Campaign::STATUS_ACTIVE
+        )
+        ->count();
+
+    $activeAssignments = $assignments
+        ->whereIn('status', [
+            CampaignVolunteerAssignment::STATUS_ASSIGNED,
+            CampaignVolunteerAssignment::STATUS_ACCEPTED,
+            CampaignVolunteerAssignment::STATUS_IN_PROGRESS,
+        ])
+        ->count();
+
+    return response()->json([
+        'volunteers' => $assignments,
+        'summary' => [
+            'total' => $totalVolunteers,
+            'active_campaigns' => $activeCampaigns,
+            'active_assignments' => $activeAssignments,
+        ],
+    ]);
+}
+
+/**
+ * Organization: Dashboard overview.
+ *
+ * Returns only data belonging to the authenticated organization.
+ */
+public function dashboard(Request $request)
+{
+    $user = $request->user();
+
+    if (!$user || $user->role !== 'organization') {
+        return response()->json([
+            'message' => 'Unauthorized.',
+        ], 403);
+    }
+
+    $organization = Organization::where(
+        'user_id',
+        $user->id
+    )->first();
+
+    if (!$organization) {
+        return response()->json([
+            'message' => 'Organization profile not found.',
+        ], 404);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Help Request Assignments
+    |--------------------------------------------------------------------------
+    */
+
+    $assignments = HelpRequestAssignment::query()
+        ->where('organization_id', $organization->id)
+        ->with([
+            'helpRequest',
+            'assignedBy:id,name,email',
+        ])
+        ->latest()
+        ->get();
+
+    $assignedRequests = $assignments->count();
+
+    $activeRequests = $assignments
+        ->filter(function ($assignment) {
+            return $assignment->helpRequest
+                && $assignment->helpRequest->status === 'verified';
+        })
+        ->count();
+
+    $completedRequests = $assignments
+        ->filter(function ($assignment) {
+            return $assignment->helpRequest
+                && $assignment->helpRequest->status === 'completed';
+        })
+        ->count();
+
+    /*
+    |--------------------------------------------------------------------------
+    | Organization Campaigns
+    |--------------------------------------------------------------------------
+    */
+
+    $campaigns = Campaign::query()
+        ->where('organization_id', $organization->id)
+        ->latest()
+        ->get();
+
+    $activeCampaigns = $campaigns
+        ->where('status', Campaign::STATUS_ACTIVE)
+        ->values();
+
+    /*
+    |--------------------------------------------------------------------------
+    | Volunteers
+    |--------------------------------------------------------------------------
+    */
+
+    $volunteerAssignments = CampaignVolunteerAssignment::query()
+        ->whereHas('campaign', function ($query) use ($organization) {
+            $query
+                ->where('organization_id', $organization->id)
+                ->where('status', Campaign::STATUS_ACTIVE);
+        })
+        ->whereNotIn('status', [
+            CampaignVolunteerAssignment::STATUS_REJECTED,
+            CampaignVolunteerAssignment::STATUS_WITHDRAWN,
+        ])
+        ->with([
+            'volunteer:id,name,email,phone,status,email_verified_at',
+            'campaign:id,organization_id,title,status,start_date,end_date',
+        ])
+        ->latest('assigned_at')
+        ->get();
+
+    $totalVolunteers = $volunteerAssignments
+        ->pluck('volunteer_id')
+        ->unique()
+        ->count();
+
+    $activeVolunteerAssignments = $volunteerAssignments
+        ->whereIn('status', [
+            CampaignVolunteerAssignment::STATUS_ASSIGNED,
+            CampaignVolunteerAssignment::STATUS_ACCEPTED,
+            CampaignVolunteerAssignment::STATUS_IN_PROGRESS,
+        ])
+        ->count();
+
+    /*
+    |--------------------------------------------------------------------------
+    | Recent Requests
+    |--------------------------------------------------------------------------
+    */
+
+    $recentRequests = $assignments
+        ->take(5)
+        ->map(function ($assignment) {
+            $request = $assignment->helpRequest;
+
+            return [
+                'id' => $assignment->id,
+                'help_request_id' => $request?->id,
+                'title' => $request?->title ?? 'Help request',
+                'district' => $request?->district,
+                'urgency' => $request?->urgency,
+                'status' => $request?->status,
+                'assignment_status' => $assignment->status,
+                'withdrawal_status' => $assignment->withdrawal_status,
+                'updated_at' => $request?->updated_at,
+            ];
+        })
+        ->values();
+
+    /*
+    |--------------------------------------------------------------------------
+    | Recent Campaigns
+    |--------------------------------------------------------------------------
+    */
+
+    $recentCampaigns = $campaigns
+        ->take(5)
+        ->map(function ($campaign) {
+            return [
+                'id' => $campaign->id,
+                'title' => $campaign->title,
+                'status' => $campaign->status,
+                'type' => $campaign->type,
+                'start_date' => $campaign->start_date,
+                'end_date' => $campaign->end_date,
+                'created_at' => $campaign->created_at,
+            ];
+        })
+        ->values();
+
+    return response()->json([
+        'success' => true,
+
+        'data' => [
+            'organization' => [
+                'id' => $organization->id,
+                'name' => $organization->name,
+                'type' => $organization->type,
+                'location' => $organization->location,
+                'verification_status' => $organization->verification_status,
+            ],
+
+            'overview' => [
+                'assigned_requests' => $assignedRequests,
+                'active_requests' => $activeRequests,
+                'completed_requests' => $completedRequests,
+                'active_campaigns' => $activeCampaigns->count(),
+                'total_volunteers' => $totalVolunteers,
+                'active_volunteer_assignments' => $activeVolunteerAssignments,
+            ],
+
+            'requests' => $recentRequests,
+
+            'campaigns' => $recentCampaigns,
+
+            'volunteers' => [
+                'total' => $totalVolunteers,
+                'active_assignments' => $activeVolunteerAssignments,
+            ],
+        ],
+    ]);
+}
+
 }

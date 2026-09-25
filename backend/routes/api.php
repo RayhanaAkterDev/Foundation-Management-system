@@ -293,9 +293,19 @@ Route::patch(
     // =========================================================
 
     Route::get(
+    '/organization/dashboard',
+    [OrganizationController::class, 'dashboard']
+);
+
+    Route::get(
         '/organization/assignments',
         [OrganizationController::class, 'assignments']
     );
+
+    Route::get(
+    '/organization/volunteers',
+    [OrganizationController::class, 'volunteers']
+);
 
     Route::patch(
         '/organization/assignments/{id}/accept',

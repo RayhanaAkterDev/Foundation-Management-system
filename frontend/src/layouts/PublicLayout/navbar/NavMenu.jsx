@@ -1,70 +1,77 @@
-import React from "react";
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { IoChevronDown } from "react-icons/io5";
+import React from 'react';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { IoChevronDown } from 'react-icons/io5';
 
-import navLinks from "./data/navLinks";
+import navLinks from './data/navLinks';
 
 const NavMenu = ({ mobile = false, onClose, activeMenu, setActiveMenu }) => {
-  const location = useLocation();
-  const navigate = useNavigate();
+    const location = useLocation();
+    const navigate = useNavigate();
 
-  const [openId, setOpenId] = React.useState(null);
+    const [openId, setOpenId] = React.useState(null);
 
-  /* =========================================================
+    /* =========================================================
        ACTIVE LINK CHECKER
     ========================================================= */
 
-  const isActiveLink = (link) => {
-    if (link.type === "single") {
-      return location.pathname === link.path;
-    }
+    const isActiveLink = (link) => {
+        if (link.type === 'single') {
+            return location.pathname === link.path;
+        }
 
-    if (link.type === "mega") {
-      return link.groups?.some((group) =>
-        group.items.some((item) => location.pathname.startsWith(item.path)),
-      );
-    }
+        if (link.type === 'mega') {
+            return link.groups?.some((group) =>
+                group.items.some((item) =>
+                    location.pathname.startsWith(item.path),
+                ),
+            );
+        }
 
-    return false;
-  };
+        return false;
+    };
 
-  /* =========================================================
+    /* =========================================================
        MOBILE MENU
     ========================================================= */
 
-  if (mobile) {
-    return (
-      <nav aria-label="Mobile navigation">
-        <ul className="flex flex-col">
-          {navLinks.map((link) => {
-            const active = isActiveLink(link);
-            const isOpen = openId === link.id;
+    if (mobile) {
+        return (
+            <nav aria-label="মোবাইল নেভিগেশন">
+                <ul className="flex flex-col">
+                    {navLinks.map((link) => {
+                        const active = isActiveLink(link);
+                        const isOpen = openId === link.id;
 
-            return (
-              <li
-                key={link.id}
-                className="
+                        return (
+                            <li
+                                key={link.id}
+                                className="
                                     border-b
                                     border-border/70
                                     last:border-b-0
-                                ">
-                {/* =====================================
+                                "
+                            >
+                                {/* =====================================
                                     MAIN ITEM
                                 ===================================== */}
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (link.type === "single") {
-                      navigate(link.path);
-                      onClose?.();
-                      return;
-                    }
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        if (link.type === 'single') {
+                                            navigate(link.path);
+                                            onClose?.();
+                                            return;
+                                        }
 
-                    setOpenId(isOpen ? null : link.id);
-                  }}
-                  aria-expanded={link.type === "mega" ? isOpen : undefined}
-                  className={`
+                                        setOpenId(isOpen ? null : link.id);
+                                    }}
+                                    aria-expanded={
+                                        link.type === 'mega'
+                                            ? isOpen
+                                            : undefined
+                                    }
+                                    className={`
                                         group
                                         flex
                                         w-full
@@ -74,25 +81,27 @@ const NavMenu = ({ mobile = false, onClose, activeMenu, setActiveMenu }) => {
                                         py-4
                                         text-left
                                         text-[15px]
-                                        leading-[1.6]
+                                        leading-[1.7]
                                         font-medium
                                         transition-colors
                                         duration-200
                                         ${
-                                          active
-                                            ? "text-primary"
-                                            : "text-text-primary"
+                                            active
+                                                ? 'text-primary'
+                                                : 'text-text-primary'
                                         }
                                         hover:text-primary
                                         focus:outline-none
                                         focus-visible:ring-2
                                         focus-visible:ring-primary
                                         focus-visible:ring-inset
-                                    `}>
-                  <span className="flex items-center gap-3">
-                    {/* Active indicator */}
-                    <span
-                      className={`
+                                    `}
+                                >
+                                    <span className="flex items-center gap-3">
+                                        {/* Active indicator */}
+
+                                        <span
+                                            className={`
                                                 h-1.5
                                                 w-1.5
                                                 shrink-0
@@ -101,82 +110,89 @@ const NavMenu = ({ mobile = false, onClose, activeMenu, setActiveMenu }) => {
                                                 transition-all
                                                 duration-200
                                                 ${
-                                                  active
-                                                    ? "scale-100 opacity-100"
-                                                    : "scale-0 opacity-0"
+                                                    active
+                                                        ? 'scale-100 opacity-100'
+                                                        : 'scale-0 opacity-0'
                                                 }
                                             `}
-                      aria-hidden="true"
-                    />
+                                            aria-hidden="true"
+                                        />
 
-                    <span>{link.name}</span>
-                  </span>
+                                        <span>{link.name}</span>
+                                    </span>
 
-                  {link.type === "mega" && (
-                    <IoChevronDown
-                      className={`
+                                    {link.type === 'mega' && (
+                                        <IoChevronDown
+                                            className={`
                                                 shrink-0
                                                 text-[17px]
                                                 text-text-muted
                                                 transition-transform
                                                 duration-200
                                                 ${
-                                                  isOpen
-                                                    ? "rotate-180 text-primary"
-                                                    : ""
+                                                    isOpen
+                                                        ? 'rotate-180 text-primary'
+                                                        : ''
                                                 }
                                             `}
-                    />
-                  )}
-                </button>
+                                        />
+                                    )}
+                                </button>
 
-                {/* =====================================
+                                {/* =====================================
                                     SUBMENU
                                 ===================================== */}
 
-                {link.type === "mega" && isOpen && (
-                  <div
-                    className="
+                                {link.type === 'mega' && isOpen && (
+                                    <div
+                                        className="
                                             mb-4
                                             ml-3
                                             border-l
                                             border-primary/20
                                             pl-4
-                                        ">
-                    <div className="space-y-6">
-                      {link.groups.map((group) => (
-                        <div key={group.title}>
-                          {/* Group label */}
+                                        "
+                                    >
+                                        <div className="space-y-6">
+                                            {link.groups.map((group) => (
+                                                <div key={group.title}>
+                                                    {/* Group label */}
 
-                          <p
-                            className="
+                                                    <p
+                                                        className="
                                                             mb-2
                                                             text-[11px]
                                                             font-semibold
-                                                            uppercase
-                                                            tracking-[0.12em]
+                                                            tracking-[0.08em]
                                                             text-text-muted
-                                                        ">
-                            {group.title}
-                          </p>
+                                                        "
+                                                    >
+                                                        {group.title}
+                                                    </p>
 
-                          {/* Group items */}
+                                                    {/* Group items */}
 
-                          <div className="space-y-0.5">
-                            {group.items.map((item) => {
-                              const itemActive = location.pathname.startsWith(
-                                item.path,
-                              );
+                                                    <div className="space-y-0.5">
+                                                        {group.items.map(
+                                                            (item) => {
+                                                                const itemActive =
+                                                                    location.pathname.startsWith(
+                                                                        item.path,
+                                                                    );
 
-                              return (
-                                <button
-                                  type="button"
-                                  key={item.id}
-                                  onClick={() => {
-                                    navigate(item.path);
-                                    onClose?.();
-                                  }}
-                                  className={`
+                                                                return (
+                                                                    <button
+                                                                        type="button"
+                                                                        key={
+                                                                            item.id
+                                                                        }
+                                                                        onClick={() => {
+                                                                            navigate(
+                                                                                item.path,
+                                                                            );
+                                                                            onClose?.();
+                                                                        }}
+                                                                        className={`
                                                                             flex
                                                                             w-full
                                                                             items-center
@@ -185,77 +201,83 @@ const NavMenu = ({ mobile = false, onClose, activeMenu, setActiveMenu }) => {
                                                                             py-2.5
                                                                             text-left
                                                                             text-[14px]
-                                                                            leading-[1.6]
+                                                                            leading-[1.7]
                                                                             transition-colors
                                                                             duration-200
                                                                             ${
-                                                                              itemActive
-                                                                                ? "bg-background-teal text-primary font-medium"
-                                                                                : "text-text-secondary font-normal"
+                                                                                itemActive
+                                                                                    ? 'bg-background-teal font-medium text-primary'
+                                                                                    : 'font-normal text-text-secondary'
                                                                             }
                                                                             hover:bg-background-teal
                                                                             hover:text-primary
-                                                                        `}>
-                                  {item.name}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
-    );
-  }
+                                                                        `}
+                                                                    >
+                                                                        {
+                                                                            item.name
+                                                                        }
+                                                                    </button>
+                                                                );
+                                                            },
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </li>
+                        );
+                    })}
+                </ul>
+            </nav>
+        );
+    }
 
-  /* =========================================================
+    /* =========================================================
        DESKTOP MENU
     ========================================================= */
 
-  return (
-    <nav aria-label="Primary navigation">
-      <ul className="flex items-center gap-7 xl:gap-9">
-        {navLinks.map((link) => {
-          const active = isActiveLink(link);
-          const isOpen = activeMenu === link.id;
+    return (
+        <nav aria-label="প্রধান নেভিগেশন">
+            <ul className="flex items-center gap-7 xl:gap-9">
+                {navLinks.map((link) => {
+                    const active = isActiveLink(link);
+                    const isOpen = activeMenu === link.id;
 
-          return (
-            <li key={link.id} className="relative">
-              {link.type === "single" ? (
-                <NavLink
-                  to={link.path}
-                  className={`
+                    return (
+                        <li key={link.id} className="relative">
+                            {link.type === 'single' ? (
+                                <NavLink
+                                    to={link.path}
+                                    className={`
                                         relative
                                         inline-flex
                                         items-center
                                         py-2
                                         text-[14px]
                                         xl:text-[15px]
-                                        leading-none
+                                        leading-[1.4]
                                         transition-colors
                                         duration-200
                                         ${
-                                          active
-                                            ? "font-semibold text-primary"
-                                            : "font-medium text-text-secondary hover:text-primary"
+                                            active
+                                                ? 'font-semibold text-primary'
+                                                : 'font-medium text-text-secondary hover:text-primary'
                                         }
                                         focus:outline-none
                                         focus-visible:ring-2
                                         focus-visible:ring-primary
                                         focus-visible:ring-offset-4
                                         rounded-sm
-                                    `}>
-                  {link.name}
+                                    `}
+                                >
+                                    {link.name}
 
-                  {/* Active underline */}
-                  <span
-                    className={`
+                                    {/* Active underline */}
+
+                                    <span
+                                        className={`
                                             absolute
                                             -bottom-1
                                             left-0
@@ -265,20 +287,22 @@ const NavMenu = ({ mobile = false, onClose, activeMenu, setActiveMenu }) => {
                                             transition-all
                                             duration-200
                                             ${
-                                              active
-                                                ? "w-full opacity-100"
-                                                : "w-0 opacity-0"
+                                                active
+                                                    ? 'w-full opacity-100'
+                                                    : 'w-0 opacity-0'
                                             }
                                         `}
-                    aria-hidden="true"
-                  />
-                </NavLink>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setActiveMenu?.(isOpen ? null : link.id)}
-                  aria-expanded={isOpen}
-                  className={`
+                                        aria-hidden="true"
+                                    />
+                                </NavLink>
+                            ) : (
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setActiveMenu?.(isOpen ? null : link.id)
+                                    }
+                                    aria-expanded={isOpen}
+                                    className={`
                                         relative
                                         flex
                                         items-center
@@ -286,7 +310,7 @@ const NavMenu = ({ mobile = false, onClose, activeMenu, setActiveMenu }) => {
                                         py-2
                                         text-[14px]
                                         xl:text-[15px]
-                                        leading-none
+                                        leading-[1.4]
                                         transition-colors
                                         duration-200
                                         focus:outline-none
@@ -295,26 +319,27 @@ const NavMenu = ({ mobile = false, onClose, activeMenu, setActiveMenu }) => {
                                         focus-visible:ring-offset-4
                                         rounded-sm
                                         ${
-                                          active || isOpen
-                                            ? "font-semibold text-primary"
-                                            : "font-medium text-text-secondary hover:text-primary"
+                                            active || isOpen
+                                                ? 'font-semibold text-primary'
+                                                : 'font-medium text-text-secondary hover:text-primary'
                                         }
-                                    `}>
-                  <span>{link.name}</span>
+                                    `}
+                                >
+                                    <span>{link.name}</span>
 
-                  <IoChevronDown
-                    className={`
+                                    <IoChevronDown
+                                        className={`
                                             text-[15px]
                                             transition-transform
                                             duration-200
-                                            ${isOpen ? "rotate-180" : ""}
+                                            ${isOpen ? 'rotate-180' : ''}
                                         `}
-                  />
+                                    />
 
-                  {/* Active/open underline */}
+                                    {/* Active/open underline */}
 
-                  <span
-                    className={`
+                                    <span
+                                        className={`
                                             absolute
                                             -bottom-1
                                             left-0
@@ -324,21 +349,21 @@ const NavMenu = ({ mobile = false, onClose, activeMenu, setActiveMenu }) => {
                                             transition-all
                                             duration-200
                                             ${
-                                              active || isOpen
-                                                ? "w-full opacity-100"
-                                                : "w-0 opacity-0"
+                                                active || isOpen
+                                                    ? 'w-full opacity-100'
+                                                    : 'w-0 opacity-0'
                                             }
                                         `}
-                    aria-hidden="true"
-                  />
-                </button>
-              )}
-            </li>
-          );
-        })}
-      </ul>
-    </nav>
-  );
+                                        aria-hidden="true"
+                                    />
+                                </button>
+                            )}
+                        </li>
+                    );
+                })}
+            </ul>
+        </nav>
+    );
 };
 
 export default NavMenu;

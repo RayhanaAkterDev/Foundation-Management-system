@@ -1,6 +1,6 @@
 import React from 'react';
 
-// Icons (external libraries)
+// Icons
 import { TbHeartFilled } from 'react-icons/tb';
 import { HiArrowSmRight } from 'react-icons/hi';
 
@@ -23,26 +23,27 @@ const Home = () => {
             <Hero
                 title={
                     <>
-                        Requests become action.
+                        প্রয়োজনের পাশে,
                         <span className="text-primary block">
-                            In real time.
+                            সহায়তার পথে।
                         </span>
                     </>
                 }
-                description="Stand For People connects real human needs with real-time community support — making it easier to request help, coordinate volunteers, and track aid delivery transparently from start to finish."
+                description="Stand For People এমন একটি মানবিক সহায়তা প্ল্যাটফর্ম, যেখানে প্রয়োজনে থাকা মানুষ, স্বেচ্ছাসেবী, দাতা ও সংগঠন একসাথে কাজ করে—যাতে প্রয়োজনের সময় সঠিক সহায়তা সঠিক মানুষের কাছে পৌঁছে যায়।"
                 primaryCta={{
                     icon: <TbHeartFilled />,
-                    label: 'Request Help',
+                    label: 'সহায়তার আবেদন করুন',
                     to: '/request-help',
                 }}
                 secondaryCta={{
-                    label: 'See How It Works',
+                    label: 'কীভাবে কাজ করে',
                     icon: <HiArrowSmRight />,
                     to: '/how-it-works',
                 }}
                 image={heroBG}
                 showStats
             />
+
             <HowItWorksSection />
             <ExploreCategories />
             <FeaturedCampaign />

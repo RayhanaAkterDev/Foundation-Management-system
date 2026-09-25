@@ -1,17 +1,17 @@
-import React, { useRef } from "react";
-import { Link } from "react-router-dom";
-import { FiArrowRight, FiX } from "react-icons/fi";
+import React, { useRef } from 'react';
+import { Link } from 'react-router-dom';
+import { FiArrowRight, FiX } from 'react-icons/fi';
 
 const MegaMenu = ({ item, onClose }) => {
-  const menuRef = useRef(null);
+    const menuRef = useRef(null);
 
-  if (!item) return null;
+    if (!item) return null;
 
-  const preview = item.preview;
+    const preview = item.preview;
 
-  return (
-    <div
-      className="
+    return (
+        <div
+            className="
                 fixed
                 top-[84px]
                 left-0
@@ -21,13 +21,14 @@ const MegaMenu = ({ item, onClose }) => {
                 justify-center
                 px-4
                 pointer-events-none
-            ">
-      {/* =====================================================
+            "
+        >
+            {/* =====================================================
                 BACKDROP
             ===================================================== */}
 
-      <div
-        className="
+            <div
+                className="
                     fixed
                     inset-0
                     z-[999]
@@ -35,17 +36,17 @@ const MegaMenu = ({ item, onClose }) => {
                     backdrop-blur-[2px]
                     pointer-events-auto
                 "
-        onClick={onClose}
-        aria-hidden="true"
-      />
+                onClick={onClose}
+                aria-hidden="true"
+            />
 
-      {/* =====================================================
+            {/* =====================================================
                 MEGA MENU
             ===================================================== */}
 
-      <div
-        ref={menuRef}
-        className="
+            <div
+                ref={menuRef}
+                className="
                     relative
                     z-[1001]
                     mt-3
@@ -60,13 +61,14 @@ const MegaMenu = ({ item, onClose }) => {
                     shadow-[0_24px_70px_rgba(15,23,42,0.12)]
                     pointer-events-auto
                     animate-[fadeIn_0.18s_ease-out]
-                ">
-        {/* =================================================
+                "
+            >
+                {/* =================================================
                     HEADER
                 ================================================= */}
 
-        <div
-          className="
+                <div
+                    className="
                         flex
                         items-center
                         justify-between
@@ -75,35 +77,41 @@ const MegaMenu = ({ item, onClose }) => {
                         px-6
                         py-4
                         lg:px-8
-                    ">
-          <div>
-            <p
-              className="
+                    "
+                >
+                    <div>
+                        <p
+                            className="
                                 text-[11px]
                                 font-semibold
-                                uppercase
                                 tracking-[0.14em]
                                 text-text-muted
-                            ">
-              Explore
-            </p>
+                            "
+                        >
+                            {item.name === 'অংশ নিন'
+                                ? 'অংশগ্রহণ'
+                                : item.name === 'দেখুন'
+                                  ? 'কার্যক্রম'
+                                  : 'পরিচিতি'}
+                        </p>
 
-            <p
-              className="
+                        <p
+                            className="
                                 mt-1
                                 text-sm
                                 font-semibold
                                 text-text-primary
-                            ">
-              {item.name}
-            </p>
-          </div>
+                            "
+                        >
+                            {item.name}
+                        </p>
+                    </div>
 
-          <button
-            type="button"
-            aria-label="Close menu"
-            onClick={onClose}
-            className="
+                    <button
+                        type="button"
+                        aria-label="মেনু বন্ধ করুন"
+                        onClick={onClose}
+                        className="
                             flex
                             h-9
                             w-9
@@ -121,17 +129,18 @@ const MegaMenu = ({ item, onClose }) => {
                             focus:outline-none
                             focus-visible:ring-2
                             focus-visible:ring-primary
-                        ">
-            <FiX className="text-[17px]" />
-          </button>
-        </div>
+                        "
+                    >
+                        <FiX className="text-[17px]" />
+                    </button>
+                </div>
 
-        {/* =================================================
+                {/* =================================================
                     BODY
                 ================================================= */}
 
-        <div
-          className="
+                <div
+                    className="
                         grid
                         grid-cols-1
                         gap-8
@@ -139,44 +148,46 @@ const MegaMenu = ({ item, onClose }) => {
                         lg:grid-cols-12
                         lg:gap-10
                         lg:p-8
-                    ">
-          {/* =================================================
+                    "
+                >
+                    {/* =================================================
                         LEFT — NAVIGATION GROUPS
                     ================================================= */}
 
-          <div className="lg:col-span-8">
-            <div
-              className="
+                    <div className="lg:col-span-8">
+                        <div
+                            className="
                                 grid
                                 grid-cols-1
                                 gap-7
                                 md:grid-cols-2
-                            ">
-              {item.groups.map((group) => (
-                <div key={group.title}>
-                  {/* Group heading */}
+                            "
+                        >
+                            {item.groups.map((group) => (
+                                <div key={group.title}>
+                                    {/* Group heading */}
 
-                  <h4
-                    className="
+                                    <h4
+                                        className="
                                             mb-3
                                             text-[11px]
                                             font-semibold
-                                            uppercase
                                             tracking-[0.12em]
                                             text-text-muted
-                                        ">
-                    {group.title}
-                  </h4>
+                                        "
+                                    >
+                                        {group.title}
+                                    </h4>
 
-                  {/* Group links */}
+                                    {/* Group links */}
 
-                  <div className="space-y-1">
-                    {group.items.map((link) => (
-                      <Link
-                        key={link.id}
-                        to={link.path}
-                        onClick={onClose}
-                        className="
+                                    <div className="space-y-1">
+                                        {group.items.map((link) => (
+                                            <Link
+                                                key={link.id}
+                                                to={link.path}
+                                                onClick={onClose}
+                                                className="
                                                     group
                                                     flex
                                                     items-start
@@ -188,10 +199,11 @@ const MegaMenu = ({ item, onClose }) => {
                                                     transition-colors
                                                     duration-200
                                                     hover:bg-background-teal
-                                                ">
-                        <div className="min-w-0">
-                          <h5
-                            className="
+                                                "
+                                            >
+                                                <div className="min-w-0">
+                                                    <h5
+                                                        className="
                                                             text-[14px]
                                                             font-medium
                                                             leading-[1.5]
@@ -199,27 +211,29 @@ const MegaMenu = ({ item, onClose }) => {
                                                             transition-colors
                                                             duration-200
                                                             group-hover:text-primary
-                                                        ">
-                            {link.name}
-                          </h5>
+                                                        "
+                                                    >
+                                                        {link.name}
+                                                    </h5>
 
-                          {link.desc && (
-                            <p
-                              className="
+                                                    {link.desc && (
+                                                        <p
+                                                            className="
                                                                 mt-1
                                                                 max-w-[34rem]
                                                                 text-[12px]
                                                                 font-normal
-                                                                leading-[1.6]
+                                                                leading-[1.7]
                                                                 text-text-muted
-                                                            ">
-                              {link.desc}
-                            </p>
-                          )}
-                        </div>
+                                                            "
+                                                        >
+                                                            {link.desc}
+                                                        </p>
+                                                    )}
+                                                </div>
 
-                        <FiArrowRight
-                          className="
+                                                <FiArrowRight
+                                                    className="
                                                         mt-0.5
                                                         shrink-0
                                                         text-[16px]
@@ -232,22 +246,22 @@ const MegaMenu = ({ item, onClose }) => {
                                                         group-hover:text-primary
                                                         group-hover:opacity-100
                                                     "
-                        />
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+                                                />
+                                            </Link>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
 
-          {/* =================================================
+                    {/* =================================================
                         RIGHT — FEATURE / PREVIEW
                     ================================================= */}
 
-          <div className="lg:col-span-4">
-            <div
-              className="
+                    <div className="lg:col-span-4">
+                        <div
+                            className="
                                 flex
                                 h-full
                                 flex-col
@@ -256,106 +270,113 @@ const MegaMenu = ({ item, onClose }) => {
                                 border
                                 border-border
                                 bg-background
-                            ">
-              {/* Preview image */}
+                            "
+                        >
+                            {/* Preview image */}
 
-              {preview?.image && (
-                <div
-                  className="
+                            {preview?.image && (
+                                <div
+                                    className="
                                         h-40
                                         w-full
                                         overflow-hidden
                                         bg-background-alt
-                                    ">
-                  <img
-                    src={preview.image}
-                    alt=""
-                    className="
+                                    "
+                                >
+                                    <img
+                                        src={preview.image}
+                                        alt=""
+                                        className="
                                             h-full
                                             w-full
                                             object-cover
                                         "
-                  />
-                </div>
-              )}
+                                    />
+                                </div>
+                            )}
 
-              {/* Preview content */}
+                            {/* Preview content */}
 
-              <div
-                className="
+                            <div
+                                className="
                                     flex
                                     flex-1
                                     flex-col
                                     justify-between
                                     p-5
                                     lg:p-6
-                                ">
-                <div>
-                  <p
-                    className="
+                                "
+                            >
+                                <div>
+                                    <p
+                                        className="
                                             text-[10px]
                                             font-semibold
-                                            uppercase
                                             tracking-[0.14em]
                                             text-primary
-                                        ">
-                    {item.name}
-                  </p>
+                                        "
+                                    >
+                                        {item.name}
+                                    </p>
 
-                  {preview?.title && (
-                    <h3
-                      className="
+                                    {preview?.title && (
+                                        <h3
+                                            className="
                                                 mt-2
                                                 text-lg
                                                 font-semibold
-                                                leading-[1.35]
+                                                leading-[1.45]
                                                 text-text-primary
-                                            ">
-                      {preview.title}
-                    </h3>
-                  )}
+                                            "
+                                        >
+                                            {preview.title}
+                                        </h3>
+                                    )}
 
-                  {preview?.desc && (
-                    <p
-                      className="
+                                    {preview?.desc && (
+                                        <p
+                                            className="
                                                 mt-3
                                                 text-[13px]
                                                 font-normal
-                                                leading-[1.7]
+                                                leading-[1.8]
                                                 text-text-secondary
-                                            ">
-                      {preview.desc}
-                    </p>
-                  )}
+                                            "
+                                        >
+                                            {preview.desc}
+                                        </p>
+                                    )}
 
-                  {preview?.highlight && (
-                    <div
-                      className="
+                                    {preview?.highlight && (
+                                        <div
+                                            className="
                                                 mt-4
                                                 border-l-2
                                                 border-accent
                                                 pl-3
-                                            ">
-                      <p
-                        className="
+                                            "
+                                        >
+                                            <p
+                                                className="
                                                     text-[12px]
                                                     font-medium
-                                                    leading-[1.6]
+                                                    leading-[1.7]
                                                     text-text-secondary
-                                                ">
-                        {preview.highlight}
-                      </p>
-                    </div>
-                  )}
-                </div>
+                                                "
+                                            >
+                                                {preview.highlight}
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
 
-                {/* CTA */}
+                                {/* CTA */}
 
-                {preview?.cta && (
-                  <Link
-                    to={preview.cta}
-                    onClick={onClose}
-                    className="
+                                {preview?.cta && (
+                                    <Link
+                                        to={preview.cta}
+                                        onClick={onClose}
+                                        className="
                                             mt-6
                                             inline-flex
                                             w-fit
@@ -373,18 +394,19 @@ const MegaMenu = ({ item, onClose }) => {
                                             focus-visible:ring-primary
                                             focus-visible:ring-offset-2
                                             rounded-sm
-                                        ">
-                    Explore
-                    <FiArrowRight className="text-[16px]" />
-                  </Link>
-                )}
-              </div>
+                                        "
+                                    >
+                                        আরও দেখুন
+                                        <FiArrowRight className="text-[16px]" />
+                                    </Link>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 };
 
 export default MegaMenu;

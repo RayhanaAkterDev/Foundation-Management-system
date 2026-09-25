@@ -1,51 +1,84 @@
 export const footerLinks = [
     {
-        title: 'Support',
+        title: 'সহায়তা',
         links: [
-            { label: 'Urgent cases', to: '/campaigns/urgent' },
-            { label: 'Medical support', to: '/campaigns/medical' },
-            { label: 'Disaster relief', to: '/campaigns/disaster' },
-            { label: 'Education support', to: '/campaigns/education' },
-            { label: 'Browse all requests', to: '/requests' },
+            {
+                label: 'জরুরি সহায়তা',
+                to: '/campaigns/urgent',
+            },
+            {
+                label: 'সব ক্যাম্পেইন',
+                to: '/campaigns',
+            },
+            {
+                label: 'সহায়তার ক্ষেত্র',
+                to: '/categories',
+            },
+            {
+                label: 'সহায়তার আবেদন করুন',
+                to: '/request-help',
+            },
         ],
     },
+
     {
-        title: 'Discover',
+        title: 'অংশ নিন',
         links: [
-            { label: 'Verified requests', to: '/campaigns/verified' },
-            { label: 'Active fundraisers', to: '/campaigns/active' },
-            { label: 'Emergency campaigns', to: '/campaigns/emergency' },
-            { label: 'Impact stories', to: '/impact-stories' },
-            { label: 'Community updates', to: '/updates' },
+            {
+                label: 'দান করুন',
+                to: '/donate',
+            },
+            {
+                label: 'স্বেচ্ছাসেবী হোন',
+                to: '/volunteer',
+            },
+            {
+                label: 'অংশীদার হোন',
+                to: '/partner',
+            },
+            {
+                label: 'কীভাবে কাজ করে',
+                to: '/how-it-works',
+            },
         ],
     },
+
     {
-        title: 'Trust & Safety',
+        title: 'আমাদের সম্পর্কে',
         links: [
-            { label: 'How CareLink works', to: '/about/how-it-works' },
-            { label: 'AI verification system', to: '/about/verification' },
-            { label: 'Human review process', to: '/about/review-process' },
-            { label: 'Impact tracking', to: '/about/impact' },
-            { label: 'Transparency center', to: '/about/transparency' },
-        ],
-    },
-    {
-        title: 'Get Involved',
-        links: [
-            { label: 'Start a request', to: '/request/new' },
-            { label: 'Become a volunteer', to: '/volunteer' },
-            { label: 'Partner with CareLink', to: '/partners' },
-            { label: 'Help center', to: '/help' },
-            { label: 'Contact support', to: '/contact' },
+            {
+                label: 'পরিচিতি',
+                to: '/about',
+            },
+            {
+                label: 'আমাদের গল্প',
+                to: '/about/story',
+            },
+            {
+                label: 'আমাদের টিম',
+                to: '/about/team',
+            },
+            {
+                label: 'স্বচ্ছতা',
+                to: '/trust-safety',
+            },
         ],
     },
 ];
 
 export const legalLinks = [
-    { label: 'Privacy Policy', to: '/privacy' },
-    { label: 'Terms of Use', to: '/terms' },
-    { label: 'Cookie Policy', to: '/cookies' },
-    { label: 'Accessibility', to: '/accessibility' },
+    {
+        label: 'গোপনীয়তা নীতি',
+        to: '/privacy',
+    },
+    {
+        label: 'ব্যবহারের শর্ত',
+        to: '/terms',
+    },
+    {
+        label: 'অ্যাক্সেসযোগ্যতা',
+        to: '/accessibility',
+    },
 ];
 
 export const socialLinks = [

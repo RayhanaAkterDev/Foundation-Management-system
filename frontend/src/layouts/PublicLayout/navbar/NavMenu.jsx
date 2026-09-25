@@ -1,15 +1,19 @@
 import React from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { IoChevronDown } from "react-icons/io5";
+
 import navLinks from "./data/navLinks";
 
 const NavMenu = ({ mobile = false, onClose, activeMenu, setActiveMenu }) => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // =============================
-  // ACTIVE LINK CHECKER
-  // =============================
+  const [openId, setOpenId] = React.useState(null);
+
+  /* =========================================================
+       ACTIVE LINK CHECKER
+    ========================================================= */
+
   const isActiveLink = (link) => {
     if (link.type === "single") {
       return location.pathname === link.path;
@@ -24,126 +28,316 @@ const NavMenu = ({ mobile = false, onClose, activeMenu, setActiveMenu }) => {
     return false;
   };
 
-  // MOBILE MENU
-  const [openId, setOpenId] = React.useState(null);
+  /* =========================================================
+       MOBILE MENU
+    ========================================================= */
 
   if (mobile) {
     return (
-      <ul className="flex flex-col">
+      <nav aria-label="Mobile navigation">
+        <ul className="flex flex-col">
+          {navLinks.map((link) => {
+            const active = isActiveLink(link);
+            const isOpen = openId === link.id;
+
+            return (
+              <li
+                key={link.id}
+                className="
+                                    border-b
+                                    border-border/70
+                                    last:border-b-0
+                                ">
+                {/* =====================================
+                                    MAIN ITEM
+                                ===================================== */}
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (link.type === "single") {
+                      navigate(link.path);
+                      onClose?.();
+                      return;
+                    }
+
+                    setOpenId(isOpen ? null : link.id);
+                  }}
+                  aria-expanded={link.type === "mega" ? isOpen : undefined}
+                  className={`
+                                        group
+                                        flex
+                                        w-full
+                                        items-center
+                                        justify-between
+                                        px-2
+                                        py-4
+                                        text-left
+                                        text-[15px]
+                                        leading-[1.6]
+                                        font-medium
+                                        transition-colors
+                                        duration-200
+                                        ${
+                                          active
+                                            ? "text-primary"
+                                            : "text-text-primary"
+                                        }
+                                        hover:text-primary
+                                        focus:outline-none
+                                        focus-visible:ring-2
+                                        focus-visible:ring-primary
+                                        focus-visible:ring-inset
+                                    `}>
+                  <span className="flex items-center gap-3">
+                    {/* Active indicator */}
+                    <span
+                      className={`
+                                                h-1.5
+                                                w-1.5
+                                                shrink-0
+                                                rounded-full
+                                                bg-primary
+                                                transition-all
+                                                duration-200
+                                                ${
+                                                  active
+                                                    ? "scale-100 opacity-100"
+                                                    : "scale-0 opacity-0"
+                                                }
+                                            `}
+                      aria-hidden="true"
+                    />
+
+                    <span>{link.name}</span>
+                  </span>
+
+                  {link.type === "mega" && (
+                    <IoChevronDown
+                      className={`
+                                                shrink-0
+                                                text-[17px]
+                                                text-text-muted
+                                                transition-transform
+                                                duration-200
+                                                ${
+                                                  isOpen
+                                                    ? "rotate-180 text-primary"
+                                                    : ""
+                                                }
+                                            `}
+                    />
+                  )}
+                </button>
+
+                {/* =====================================
+                                    SUBMENU
+                                ===================================== */}
+
+                {link.type === "mega" && isOpen && (
+                  <div
+                    className="
+                                            mb-4
+                                            ml-3
+                                            border-l
+                                            border-primary/20
+                                            pl-4
+                                        ">
+                    <div className="space-y-6">
+                      {link.groups.map((group) => (
+                        <div key={group.title}>
+                          {/* Group label */}
+
+                          <p
+                            className="
+                                                            mb-2
+                                                            text-[11px]
+                                                            font-semibold
+                                                            uppercase
+                                                            tracking-[0.12em]
+                                                            text-text-muted
+                                                        ">
+                            {group.title}
+                          </p>
+
+                          {/* Group items */}
+
+                          <div className="space-y-0.5">
+                            {group.items.map((item) => {
+                              const itemActive = location.pathname.startsWith(
+                                item.path,
+                              );
+
+                              return (
+                                <button
+                                  type="button"
+                                  key={item.id}
+                                  onClick={() => {
+                                    navigate(item.path);
+                                    onClose?.();
+                                  }}
+                                  className={`
+                                                                            flex
+                                                                            w-full
+                                                                            items-center
+                                                                            rounded-md
+                                                                            px-3
+                                                                            py-2.5
+                                                                            text-left
+                                                                            text-[14px]
+                                                                            leading-[1.6]
+                                                                            transition-colors
+                                                                            duration-200
+                                                                            ${
+                                                                              itemActive
+                                                                                ? "bg-background-teal text-primary font-medium"
+                                                                                : "text-text-secondary font-normal"
+                                                                            }
+                                                                            hover:bg-background-teal
+                                                                            hover:text-primary
+                                                                        `}>
+                                  {item.name}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+    );
+  }
+
+  /* =========================================================
+       DESKTOP MENU
+    ========================================================= */
+
+  return (
+    <nav aria-label="Primary navigation">
+      <ul className="flex items-center gap-7 xl:gap-9">
         {navLinks.map((link) => {
           const active = isActiveLink(link);
-          const isOpen = openId === link.id;
+          const isOpen = activeMenu === link.id;
 
           return (
-            <li key={link.id} className="select-none">
-              {/* MAIN ITEM */}
-              <button
-                onClick={() => {
-                  if (link.type === "single") {
-                    navigate(link.path);
-                    onClose?.();
-                    return;
-                  }
-
-                  setOpenId(isOpen ? null : link.id);
-                }}
-                className={`w-full flex items-center justify-between px-5 py-4 text-[16px] leading-[1.4] font-medium transition-colors duration-200 ${
-                  active ? "text-primary" : "text-text-primary"
-                } hover:text-primary`}>
-                <span className="flex items-center gap-2">
-                  {active && (
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                  )}
+            <li key={link.id} className="relative">
+              {link.type === "single" ? (
+                <NavLink
+                  to={link.path}
+                  className={`
+                                        relative
+                                        inline-flex
+                                        items-center
+                                        py-2
+                                        text-[14px]
+                                        xl:text-[15px]
+                                        leading-none
+                                        transition-colors
+                                        duration-200
+                                        ${
+                                          active
+                                            ? "font-semibold text-primary"
+                                            : "font-medium text-text-secondary hover:text-primary"
+                                        }
+                                        focus:outline-none
+                                        focus-visible:ring-2
+                                        focus-visible:ring-primary
+                                        focus-visible:ring-offset-4
+                                        rounded-sm
+                                    `}>
                   {link.name}
-                </span>
 
-                {link.type === "mega" && (
-                  <IoChevronDown
-                    className={`text-[18px] text-text-secondary transition-transform duration-200 ${
-                      isOpen ? "rotate-180" : ""
-                    }`}
+                  {/* Active underline */}
+                  <span
+                    className={`
+                                            absolute
+                                            -bottom-1
+                                            left-0
+                                            h-[2px]
+                                            rounded-full
+                                            bg-primary
+                                            transition-all
+                                            duration-200
+                                            ${
+                                              active
+                                                ? "w-full opacity-100"
+                                                : "w-0 opacity-0"
+                                            }
+                                        `}
+                    aria-hidden="true"
                   />
-                )}
-              </button>
+                </NavLink>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setActiveMenu?.(isOpen ? null : link.id)}
+                  aria-expanded={isOpen}
+                  className={`
+                                        relative
+                                        flex
+                                        items-center
+                                        gap-1.5
+                                        py-2
+                                        text-[14px]
+                                        xl:text-[15px]
+                                        leading-none
+                                        transition-colors
+                                        duration-200
+                                        focus:outline-none
+                                        focus-visible:ring-2
+                                        focus-visible:ring-primary
+                                        focus-visible:ring-offset-4
+                                        rounded-sm
+                                        ${
+                                          active || isOpen
+                                            ? "font-semibold text-primary"
+                                            : "font-medium text-text-secondary hover:text-primary"
+                                        }
+                                    `}>
+                  <span>{link.name}</span>
 
-              {/* SUBMENU */}
-              {link.type === "mega" && isOpen && (
-                <div className="ml-6 pl-4 border-l border-border/50 mt-1 mb-3 space-y-4">
-                  {link.groups.map((group) => (
-                    <div key={group.title}>
-                      {/* GROUP LABEL */}
-                      <p className="text-[11px] leading-[1.6] tracking-[0.14em] uppercase text-text-secondary mb-3">
-                        {group.title}
-                      </p>
+                  <IoChevronDown
+                    className={`
+                                            text-[15px]
+                                            transition-transform
+                                            duration-200
+                                            ${isOpen ? "rotate-180" : ""}
+                                        `}
+                  />
 
-                      {/* ITEMS */}
-                      <div className="space-y-2">
-                        {group.items.map((item) => (
-                          <button
-                            key={item.id}
-                            onClick={() => {
-                              navigate(item.path);
-                              onClose?.();
-                            }}
-                            className="w-full text-left px-3 py-2 text-[14px] leading-[1.6] font-normal text-text-secondary hover:text-text-primary transition-colors">
-                            {item.name}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                  {/* Active/open underline */}
+
+                  <span
+                    className={`
+                                            absolute
+                                            -bottom-1
+                                            left-0
+                                            h-[2px]
+                                            rounded-full
+                                            bg-primary
+                                            transition-all
+                                            duration-200
+                                            ${
+                                              active || isOpen
+                                                ? "w-full opacity-100"
+                                                : "w-0 opacity-0"
+                                            }
+                                        `}
+                    aria-hidden="true"
+                  />
+                </button>
               )}
             </li>
           );
         })}
       </ul>
-    );
-  }
-
-  // =============================
-  // DESKTOP MENU (CLICK TO OPEN)
-  // =============================
-  return (
-    <ul className="flex items-center gap-10">
-      {navLinks.map((link) => {
-        const active = isActiveLink(link);
-        const isOpen = activeMenu === link.id;
-
-        return (
-          <li key={link.id}>
-            {link.type === "single" ? (
-              <NavLink
-                to={link.path}
-                className={`py-2 text-[15px] transition-all cursor-pointer ${
-                  active
-                    ? "text-primary font-semibold"
-                    : "text-text-primary/70 hover:text-text-primary"
-                }`}>
-                {link.name}
-              </NavLink>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setActiveMenu?.(isOpen ? null : link.id)}
-                className={`py-2 flex items-center gap-1 text-[15px] transition-all cursor-pointer ${
-                  active
-                    ? "text-primary font-semibold"
-                    : "text-text-primary/70 hover:text-text-primary"
-                }`}>
-                <span>{link.name}</span>
-
-                <IoChevronDown
-                  className={`text-sm transition-transform ${
-                    isOpen ? "rotate-180" : ""
-                  }`}
-                />
-              </button>
-            )}
-          </li>
-        );
-      })}
-    </ul>
+    </nav>
   );
 };
 

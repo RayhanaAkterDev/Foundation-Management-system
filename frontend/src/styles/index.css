@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Noto+Sans+Bengali:wght@400;500;600&family=Noto+Sans:wght@400;500;600;700&display=swap');
 
 @import 'tailwindcss';
 
@@ -18,7 +18,7 @@
     }
 
     body {
-        @apply font-sans bg-background text-text-primary antialiased;
+        @apply bg-background text-text-primary antialiased;
     }
 
     button,
@@ -41,170 +41,87 @@
 @theme {
     /* =====================================================
        TYPOGRAPHY
-       ===================================================== */
+    ===================================================== */
 
-    --font-sans: 'Noto Sans Bengali', 'Noto Sans', sans-serif;
+    --font-sans: 'Noto Sans', 'Noto Sans Bengali', sans-serif;
     --font-bengali: 'Noto Sans Bengali', sans-serif;
     --font-noto: 'Noto Sans', sans-serif;
-    --font-display: 'Fraunces', serif;
 
-    /* Legacy aliases */
-    --font-jost: 'Noto Sans', 'Noto Sans Bengali', sans-serif;
-    --font-poppins: 'Noto Sans', 'Noto Sans Bengali', sans-serif;
+    --font-display: 'Fraunces', serif;
     --font-fraunces: 'Fraunces', serif;
 
     /* =====================================================
        BRAND
-       ===================================================== */
+    ===================================================== */
 
-    /*
-     * Main brand.
-     */
+    --color-primary: #0f6258;
+    --color-primary-hover: #0b5149;
+    --color-primary-deep: #083c36;
+    --color-primary-soft: #e8f2f0;
+    --color-primary-muted: #cfe3df;
 
-    --color-primary: #006b63;
+    /* =====================================================
+       ACCENT
+    ===================================================== */
 
-    --color-primary-hover: #00534e;
-
-    --color-primary-deep: #073b37;
-
-    /*
-     * Human / emotional accent.
-     */
-
-    --color-accent: #e86a4a;
-
-    --color-accent-hover: #cf5639;
-
-    --color-accent-soft: #fce9e4;
-
-    /*
-     * Small highlight color.
-     */
-
-    --color-highlight: #f2b84b;
-
-    --color-highlight-soft: #fff4d9;
+    --color-accent: #ed864a;
+    --color-accent-hover: #d96f35;
+    --color-accent-soft: #fef0e7;
+    --color-accent-muted: #f1c6ac;
 
     /* =====================================================
        PAGE BACKGROUNDS
-       ===================================================== */
+    ===================================================== */
 
-    /*
-     * Main page.
-     *
-     * Slightly cool neutral.
-     */
-
-    --color-background: #f5f7f6;
-
-    /*
-     * Alternate section.
-     *
-     * Noticeably darker than the main background.
-     */
-
-    --color-background-alt: #e8efed;
-
-    /*
-     * Warm section.
-     */
-
-    --color-background-warm: #fff8f4;
-
-    /*
-     * Soft brand section.
-     */
-
-    --color-background-teal: #e3f0ee;
-
-    /*
-     * New semantic name.
-     */
-
-    --color-background-sage: #e3f0ee;
-
-    /*
-     * Dark impact section.
-     */
-
-    --color-background-dark: #073b37;
+    --color-background: #f7f9f8;
+    --color-background-alt: #eef2f1;
+    --color-background-warm: #fbf7ef;
+    --color-background-teal: #e8f2f0;
+    --color-background-sage: #edf2ef;
+    --color-background-dark: #083c36;
 
     /* =====================================================
        SURFACES
-       ===================================================== */
-
-    /*
-     * Actual white surface.
-     */
+    ===================================================== */
 
     --color-surface: #ffffff;
-
-    /*
-     * Slightly tinted surface.
-     */
-
-    --color-surface-soft: #f8faf9;
-
-    /*
-     * Soft green surface.
-     */
-
-    --color-surface-teal: #e3f0ee;
-
-    --color-surface-sage: #e3f0ee;
-
-    /*
-     * Warm surface.
-     */
-
-    --color-surface-warm: #fff1ec;
+    --color-surface-soft: #fbfcfc;
+    --color-surface-teal: #f1f7f5;
+    --color-surface-sage: #f3f6f4;
+    --color-surface-warm: #fdf9f2;
 
     /* =====================================================
        TEXT
-       ===================================================== */
+    ===================================================== */
 
-    --color-text-primary: #17211f;
-
-    --color-text-body: #46534f;
-
-    --color-text-secondary: #596863;
-
-    --color-text-muted: #71807a;
-
-    /*
-     * Text for dark sections.
-     */
-
-    --color-text-on-dark: #f5f7f6;
-
-    --color-text-on-dark-muted: #c6d4d0;
+    --color-text-primary: #172321;
+    --color-text-body: #44524f;
+    --color-text-secondary: #66736f;
+    --color-text-muted: #8a9592;
+    --color-text-on-dark: #f8faf9;
+    --color-text-on-dark-muted: #b9cbc7;
 
     /* =====================================================
        BORDERS
-       ===================================================== */
+    ===================================================== */
 
-    --color-border: #d8e1de;
-
-    --color-border-strong: #c2cfca;
+    --color-border: #dfe6e3;
+    --color-border-strong: #cbd6d2;
 
     /* =====================================================
        STATUS
-       ===================================================== */
+    ===================================================== */
 
-    --color-success: #287a4a;
-
-    --color-error: #c94b4b;
-
-    --color-warning: #b7791f;
-
-    --color-info: #27718a;
+    --color-success: #287a50;
+    --color-error: #c64d4d;
+    --color-warning: #b57922;
+    --color-info: #3d7185;
 
     /* =====================================================
        HERO IMAGES
-       ===================================================== */
+    ===================================================== */
 
     --background-image-heroMobile: url('/src/assets/images/home/heroBgMobile.png');
-
     --background-image-heroDesktop: url('/src/assets/images/home/heroBgDesktop.png');
 }
 
@@ -213,16 +130,12 @@
    ========================================================= */
 
 body {
-    font-family: 'Noto Sans Bengali', 'Noto Sans', sans-serif;
-
-    color: #17211f;
-
+    font-family: 'Noto Sans', 'Noto Sans Bengali', sans-serif;
     font-weight: 400;
-
     line-height: 1.6;
+    color: #172321;
 
     -webkit-font-smoothing: antialiased;
-
     text-rendering: optimizeLegibility;
 }
 
@@ -230,42 +143,35 @@ body {
    HEADINGS
    ========================================================= */
 
-h1 {
-    font-family: 'Noto Sans Bengali', 'Noto Sans', sans-serif;
+/*
+   500 gives SP a clear hierarchy without the heavy
+   dashboard/SaaS appearance of 600.
+*/
 
-    font-weight: 700;
-
-    letter-spacing: -0.02em;
-
-    color: #17211f;
-}
-
+h1,
 h2 {
-    font-family: 'Noto Sans Bengali', 'Noto Sans', sans-serif;
-
-    font-weight: 700;
-
-    letter-spacing: -0.015em;
-
-    color: #17211f;
+    font-family: 'Noto Sans', 'Noto Sans Bengali', sans-serif;
+    font-weight: 500;
+    letter-spacing: -0.012em;
+    color: #172321;
+    line-height: 1.2;
 }
 
 h3 {
-    font-family: 'Noto Sans Bengali', 'Noto Sans', sans-serif;
-
-    font-weight: 600;
-
-    color: #17211f;
+    font-family: 'Noto Sans', 'Noto Sans Bengali', sans-serif;
+    font-weight: 500;
+    letter-spacing: -0.008em;
+    color: #172321;
+    line-height: 1.3;
 }
 
 h4,
 h5,
 h6 {
-    font-family: 'Noto Sans Bengali', 'Noto Sans', sans-serif;
-
-    font-weight: 600;
-
-    color: #17211f;
+    font-family: 'Noto Sans', 'Noto Sans Bengali', sans-serif;
+    font-weight: 500;
+    color: #172321;
+    line-height: 1.35;
 }
 
 /* =========================================================
@@ -274,7 +180,7 @@ h6 {
 
 nav,
 nav a {
-    font-family: 'Noto Sans Bengali', 'Noto Sans', sans-serif;
+    font-family: 'Noto Sans', 'Noto Sans Bengali', sans-serif;
 }
 
 nav a {
@@ -294,9 +200,8 @@ a {
    ========================================================= */
 
 button {
-    font-family: 'Noto Sans Bengali', 'Noto Sans', sans-serif;
-
-    font-weight: 600;
+    font-family: 'Noto Sans', 'Noto Sans Bengali', sans-serif;
+    font-weight: 500;
 }
 
 /* =========================================================
@@ -322,35 +227,127 @@ b {
 }
 
 /* =========================================================
-   BENGALI
+   BENGALI TYPOGRAPHY
    ========================================================= */
+
+/*
+   Noto Sans Bengali is used consistently for Bangla.
+
+   400:
+   - body text
+   - descriptions
+   - supporting content
+
+   500:
+   - headings
+   - navigation
+   - buttons
+   - important labels
+
+   600:
+   - strong/emphasis only
+
+   No negative letter-spacing is used for Bengali.
+*/
 
 .font-bengali,
 .bengali,
 .bangla,
 [lang='bn'] {
     font-family: 'Noto Sans Bengali', sans-serif;
-
     font-weight: 400;
-
-    line-height: 1.75;
+    line-height: 1.8;
+    letter-spacing: 0;
 }
+
+/* =========================================================
+   BENGALI HEADINGS
+   ========================================================= */
 
 .font-bengali h1,
 .font-bengali h2,
 .font-bengali h3,
+.font-bengali h4,
+.font-bengali h5,
+.font-bengali h6,
 .bengali h1,
 .bengali h2,
 .bengali h3,
+.bengali h4,
+.bengali h5,
+.bengali h6,
 .bangla h1,
 .bangla h2,
 .bangla h3,
+.bangla h4,
+.bangla h5,
+.bangla h6,
 [lang='bn'] h1,
 [lang='bn'] h2,
-[lang='bn'] h3 {
+[lang='bn'] h3,
+[lang='bn'] h4,
+[lang='bn'] h5,
+[lang='bn'] h6 {
     font-family: 'Noto Sans Bengali', sans-serif;
+    font-weight: 500;
+    line-height: 1.4;
+    letter-spacing: 0;
+}
 
-    font-weight: 700;
+/* =========================================================
+   BENGALI BODY TEXT
+   ========================================================= */
+
+.font-bengali p,
+.bengali p,
+.bangla p,
+[lang='bn'] p {
+    font-family: 'Noto Sans Bengali', sans-serif;
+    font-weight: 400;
+    line-height: 1.85;
+    letter-spacing: 0;
+}
+
+/* =========================================================
+   BENGALI BUTTONS
+   ========================================================= */
+
+.font-bengali button,
+.bengali button,
+.bangla button,
+[lang='bn'] button {
+    font-family: 'Noto Sans Bengali', sans-serif;
+    font-weight: 500;
+    letter-spacing: 0;
+}
+
+/* =========================================================
+   BENGALI LINKS
+   ========================================================= */
+
+.font-bengali a,
+.bengali a,
+.bangla a,
+[lang='bn'] a {
+    font-family: 'Noto Sans Bengali', sans-serif;
+    font-weight: 500;
+    letter-spacing: 0;
+}
+
+/* =========================================================
+   BENGALI NAVIGATION
+   ========================================================= */
+
+.font-bengali nav,
+.bengali nav,
+.bangla nav,
+[lang='bn'] nav,
+nav .font-bengali,
+nav .bengali,
+nav .bangla {
+    font-family: 'Noto Sans Bengali', sans-serif;
+    font-weight: 500;
+    letter-spacing: 0;
 }
 
 /* =========================================================
@@ -368,7 +365,7 @@ b {
 
     /* =====================================================
        SECTION BACKGROUNDS
-       ===================================================== */
+    ===================================================== */
 
     .section-soft {
         @apply bg-background;
@@ -396,31 +393,31 @@ b {
 
     /* =====================================================
        SURFACES
-       ===================================================== */
+    ===================================================== */
 
     .surface {
-        @apply bg-surface border border-border;
+        @apply border border-border bg-surface;
     }
 
     .surface-soft {
-        @apply bg-surface-soft border border-border;
+        @apply border border-border bg-surface-soft;
     }
 
     .surface-teal {
-        @apply bg-surface-teal border border-border;
+        @apply border border-border bg-surface-teal;
     }
 
     .surface-sage {
-        @apply bg-surface-sage border border-border;
+        @apply border border-border bg-surface-sage;
     }
 
     .surface-warm {
-        @apply bg-surface-warm border border-border;
+        @apply border border-border bg-surface-warm;
     }
 
     /* =====================================================
        PRIMARY BUTTON
-       ===================================================== */
+    ===================================================== */
 
     .btn-primary {
         @apply inline-flex
@@ -431,7 +428,7 @@ b {
             px-5
             py-3
             text-sm
-            font-semibold
+            font-medium
             text-white
             transition-colors
             duration-200
@@ -444,7 +441,7 @@ b {
 
     /* =====================================================
        SECONDARY BUTTON
-       ===================================================== */
+    ===================================================== */
 
     .btn-secondary {
         @apply inline-flex
@@ -457,7 +454,7 @@ b {
             px-5
             py-3
             text-sm
-            font-semibold
+            font-medium
             text-text-primary
             transition-colors
             duration-200
@@ -475,8 +472,8 @@ b {
    ========================================================= */
 
 .input {
-    @apply w-full
-        h-11
+    @apply h-11
+        w-full
         rounded-lg
         border
         border-border
@@ -485,8 +482,8 @@ b {
         text-sm
         text-text-primary
         placeholder:text-text-muted
-        focus:outline-none
         focus:border-primary
+        focus:outline-none
         focus:ring-2
         focus:ring-primary/15;
 }
@@ -495,9 +492,8 @@ b {
    ACCESSIBILITY
    ========================================================= */
 
-:focus-visible {
-    outline: 2px solid #006b63;
-
+*:focus-visible {
+    outline: 2px solid #0f6258;
     outline-offset: 2px;
 }
 
@@ -506,7 +502,6 @@ b {
    ========================================================= */
 
 ::selection {
-    background: #cfe5e1;
-
-    color: #073b37;
+    background: #cfe3df;
+    color: #083c36;
 }

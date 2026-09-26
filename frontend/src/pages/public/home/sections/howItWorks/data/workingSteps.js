@@ -1,24 +1,27 @@
 const flow = [
     {
-        step: '01',
-        title: 'Need Identified',
-        desc: 'Urgent needs are reported by community members, volunteers, or local partners through structured, location-based submissions.',
+        step: '০১',
+        title: 'প্রয়োজন চিহ্নিতকরণ',
+        desc: 'কমিউনিটির সদস্য, স্বেচ্ছাসেবক বা স্থানীয় অংশীদাররা কাঠামোবদ্ধ ও অবস্থানভিত্তিক তথ্যের মাধ্যমে জরুরি প্রয়োজনের কথা জানান।',
         emphasis: 'soft',
     },
+
     {
-        step: '02',
-        title: 'Request Structured',
-        desc: 'Submitted information is converted into a structured request with key details, evidence, category, and location data.',
+        step: '০২',
+        title: 'অনুরোধ কাঠামোবদ্ধকরণ',
+        desc: 'প্রাপ্ত তথ্যকে প্রয়োজনীয় বিবরণ, প্রমাণ, শ্রেণি এবং অবস্থানের তথ্যসহ একটি সুসংগঠিত সহায়তা অনুরোধে রূপ দেওয়া হয়।',
     },
+
     {
-        step: '03',
-        title: 'Verification & Prioritization',
-        desc: 'AI-assisted checks and human review validate authenticity, detect duplicates, and assign urgency levels for fair prioritization.',
+        step: '০৩',
+        title: 'যাচাই ও অগ্রাধিকার নির্ধারণ',
+        desc: 'AI-সহায়তায় তথ্য যাচাই ও মানবিক পর্যালোচনার মাধ্যমে অনুরোধের সত্যতা নিশ্চিত, পুনরাবৃত্তি শনাক্ত এবং জরুরিতার মাত্রা নির্ধারণ করা হয়।',
     },
+
     {
-        step: '04',
-        title: 'Support Delivered',
-        desc: 'Verified requests are matched with donors and volunteers, ensuring timely, transparent, and accountable delivery of support.',
+        step: '০৪',
+        title: 'সহায়তা পৌঁছে দেওয়া',
+        desc: 'যাচাইকৃত অনুরোধগুলো দাতা ও স্বেচ্ছাসেবকদের সঙ্গে সমন্বয় করে সময়মতো, স্বচ্ছ ও জবাবদিহিমূলকভাবে সহায়তা পৌঁছে দেওয়া হয়।',
         emphasis: 'strong',
     },
 ];

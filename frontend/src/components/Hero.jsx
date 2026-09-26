@@ -196,13 +196,8 @@ const Hero = ({
                             <Motion variant="fadeUp" className="mt-8 w-full">
                                 <div
                                     className="
-                                        lg:border-t
+                                        xl:border-t
                                         border-border
-                                        lg:pt-6
-
-                                        lg:mt-1
-                                        lg:pt-5
-
                                         xl:pt-6
                                     "
                                 >

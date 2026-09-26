@@ -12,8 +12,8 @@ const HeroTrustLine = () => {
                 items-center
                 gap-2.5
                 text-text-secondary
-                lg:flex
-                lg:items-start
+                xl:flex
+                xl:items-start
             "
         >
             <div className="flex items-center gap-2">

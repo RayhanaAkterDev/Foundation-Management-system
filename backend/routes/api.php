@@ -11,6 +11,7 @@ use App\Http\Controllers\DonationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\PublicCampaignController;
+use App\Http\Controllers\CategoryController;
 use Illuminate\Support\Facades\Route;
 
 // =============================================================
@@ -31,10 +32,36 @@ Route::get(
     [CampaignController::class, 'show']
 );
 
+// =============================================================
+// CENTRAL CATEGORIES
+// =============================================================
+//
+// Single source of truth for category names used by
+// public website and dashboards.
+//
+// This route is intentionally outside auth:sanctum.
+//
+
+Route::get(
+    '/categories',
+    [CategoryController::class, 'index']
+);
+
 Route::prefix('public')->group(function () {
-    Route::get('/campaigns', [PublicCampaignController::class, 'index']);
-    Route::get('/campaigns/{id}', [PublicCampaignController::class, 'show']);
-    Route::get('/categories', [PublicCampaignController::class, 'categories']);
+    Route::get(
+        '/campaigns',
+        [PublicCampaignController::class, 'index']
+    );
+
+    Route::get(
+        '/campaigns/{id}',
+        [PublicCampaignController::class, 'show']
+    );
+
+    Route::get(
+        '/categories',
+        [PublicCampaignController::class, 'categories']
+    );
 });
 
 // =============================================================
@@ -181,22 +208,24 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Individual submits a volunteer application.
     // Individual = sender.
+
     Route::post(
         '/volunteer',
         [VolunteerController::class, 'store']
     );
 
     // Individual requests admin to reactivate an inactive
-// volunteer profile.
-//
-// This does NOT create another Volunteer record.
+    // volunteer profile.
+    //
+    // This does NOT create another Volunteer record.
 
-Route::patch(
-    '/volunteer/reactivation',
-    [VolunteerController::class, 'requestReactivation']
-);
+    Route::patch(
+        '/volunteer/reactivation',
+        [VolunteerController::class, 'requestReactivation']
+    );
 
     // Get current volunteer profile / request state.
+
     Route::get(
         '/volunteer',
         [VolunteerController::class, 'show']
@@ -293,9 +322,9 @@ Route::patch(
     // =========================================================
 
     Route::get(
-    '/organization/dashboard',
-    [OrganizationController::class, 'dashboard']
-);
+        '/organization/dashboard',
+        [OrganizationController::class, 'dashboard']
+    );
 
     Route::get(
         '/organization/assignments',
@@ -303,9 +332,9 @@ Route::patch(
     );
 
     Route::get(
-    '/organization/volunteers',
-    [OrganizationController::class, 'volunteers']
-);
+        '/organization/volunteers',
+        [OrganizationController::class, 'volunteers']
+    );
 
     Route::patch(
         '/organization/assignments/{id}/accept',

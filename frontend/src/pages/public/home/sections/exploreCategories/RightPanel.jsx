@@ -1,87 +1,208 @@
 import React from 'react';
+
 import SectionHeading from '@/components/SectionHeading';
 import Motion from '@/components/motion/Motion';
+
 import ExploreAllCategoriesCta from './ExploreAllCategoriesCta';
 
-const RightPanel = ({ categories, active, setActive }) => {
+const RightPanel = ({ categories = [], active, setActive }) => {
     return (
         <div className="lg:sticky lg:top-24">
+            {/* =================================================
+                INTRO
+            ================================================== */}
             <Motion variant="fadeUp">
                 <SectionHeading
-                    gap="lg"
+                    gap="md"
                     align="left"
-                    title="Where would you like your help to go?"
-                    headingClass='lg:leading-14! font-fraunces!'
+                    title="কোথায় সহায়তা পৌঁছাবে?"
+                    headingClass="
+                        font-bengali!
+                        font-medium!
+                        leading-[1.45]!
+                        text-text-primary!
+                    "
                     headingSize="sectionHero"
-                    description="Every category represents real people and real situations. Choose where your support should make a difference."
+                    description="
+                        আপনার সহায়তার ক্ষেত্রটি বেছে নিন। প্রতিটি বিভাগ
+                        বাস্তব মানুষের বাস্তব প্রয়োজনের সঙ্গে যুক্ত।
+                    "
                     descriptionSize="sectionHero"
+                    descriptionClass="
+                        font-bengali!
+                        text-text-secondary!
+                    "
                 />
             </Motion>
 
-            <div className="my-10">
-                <p className="text-xs uppercase tracking-[0.25em] text-text-secondary">
-                    Categories
+            {/* =================================================
+                CATEGORY LABEL
+            ================================================== */}
+            <div className="mt-9 mb-4 flex items-center gap-2.5">
+                <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+
+                <p
+                    className="
+                        font-bengali
+                        text-xs
+                        font-medium
+                        leading-[1.8]
+                        text-text-secondary
+                    "
+                >
+                    সহায়তার ক্ষেত্র
                 </p>
             </div>
 
-            <div className="space-y-8">
-                {categories.map((cat) => {
-                    const isActive = active.id === cat.id;
+            {/* =================================================
+                CATEGORY LIST
+            ================================================== */}
+            <div className="overflow-hidden border-y border-border">
+                {categories.map((cat, index) => {
+                    const isActive = active?.id === cat.id;
 
                     return (
                         <button
                             key={cat.id}
-                            onClick={() => setActive(cat)}
                             type="button"
+                            onClick={() => setActive(cat)}
                             className={`
-                                relative w-full text-left group
-                                transition-all duration-300
-                                ${isActive ? 'scale-[1.01]' : 'opacity-80 hover:opacity-100'}
+                                group
+                                relative
+                                w-full
+                                text-left
+                                transition-colors
+                                duration-200
+                                ${
+                                    isActive
+                                        ? 'bg-surface-teal'
+                                        : 'bg-transparent hover:bg-surface-soft'
+                                }
                             `}
                         >
-                            {/* guide line */}
-                            <span className="absolute left-0 top-1 bottom-1 w-px bg-border opacity-40" />
-
-                            {/* active indicator */}
+                            {/* Active indicator */}
                             <span
                                 className={`
-                                    absolute left-0 top-0 h-full w-0.5 rounded-full
-                                    transition-all duration-300
-                                    ${isActive ? 'opacity-100' : 'opacity-0'}
+                                    absolute
+                                    inset-y-0
+                                    left-0
+                                    w-0.5
+                                    origin-center
+                                    bg-primary
+                                    transition-transform
+                                    duration-300
+                                    ${isActive ? 'scale-y-100' : 'scale-y-0'}
                                 `}
-                                style={{ backgroundColor: cat.color }}
                             />
 
-                            <div className="pl-6">
-                                <div className="flex items-baseline justify-between gap-4">
-                                    <span
-                                        className="text-base sm:text-lg transition-all duration-300"
-                                        style={{
-                                            color: isActive
-                                                ? cat.color
-                                                : '#111827',
-                                            fontWeight: isActive ? 600 : 400,
-                                        }}
+                            <div
+                                className="
+                                    flex
+                                    items-start
+                                    gap-4
+                                    px-4
+                                    py-4
+                                    sm:px-5
+                                    sm:py-[1.1rem]
+                                "
+                            >
+                                {/* Number */}
+                                <span
+                                    className={`
+                                        pt-0.5
+                                        shrink-0
+                                        text-[11px]
+                                        font-medium
+                                        tabular-nums
+                                        transition-colors
+                                        duration-200
+                                        ${
+                                            isActive
+                                                ? 'text-primary'
+                                                : 'text-text-muted'
+                                        }
+                                    `}
+                                >
+                                    {String(index + 1).padStart(2, '0')}
+                                </span>
+
+                                {/* Content */}
+                                <div className="min-w-0 flex-1">
+                                    <div
+                                        className="
+                                            flex
+                                            items-center
+                                            justify-between
+                                            gap-4
+                                        "
                                     >
-                                        {cat.name}
-                                    </span>
+                                        <span
+                                            className={`
+                                                font-bengali
+                                                text-[15px]
+                                                leading-[1.6]
+                                                transition-colors
+                                                duration-200
+                                                sm:text-base
+                                                ${
+                                                    isActive
+                                                        ? 'font-medium text-primary'
+                                                        : 'font-normal text-text-primary group-hover:text-primary'
+                                                }
+                                            `}
+                                        >
+                                            {cat.name}
+                                        </span>
 
-                                    <span className="text-xs text-text-secondary whitespace-nowrap">
-                                        {cat.urgency}
-                                    </span>
+                                        <span
+                                            className={`
+                                                shrink-0
+                                                text-base
+                                                leading-none
+                                                transition-all
+                                                duration-200
+                                                ${
+                                                    isActive
+                                                        ? 'translate-x-0 text-primary opacity-100'
+                                                        : '-translate-x-1 text-primary opacity-0 group-hover:translate-x-0 group-hover:opacity-60'
+                                                }
+                                            `}
+                                        >
+                                            →
+                                        </span>
+                                    </div>
+
+                                    {cat.description && (
+                                        <p
+                                            className={`
+                                                mt-1.5
+                                                max-w-sm
+                                                font-bengali
+                                                text-xs
+                                                leading-[1.75]
+                                                transition-colors
+                                                duration-200
+                                                ${
+                                                    isActive
+                                                        ? 'text-text-secondary'
+                                                        : 'text-text-muted'
+                                                }
+                                            `}
+                                        >
+                                            {cat.description}
+                                        </p>
+                                    )}
                                 </div>
-
-                                <p className="text-xs text-text-secondary/70 leading-relaxed mt-2">
-                                    {cat.microHint ||
-                                        'Explore active requests in this category'}
-                                </p>
                             </div>
                         </button>
                     );
                 })}
             </div>
 
-            <div className="mt-14">
+            {/* =================================================
+                ALL CATEGORIES
+            ================================================== */}
+            <div className="mt-7">
                 <ExploreAllCategoriesCta />
             </div>
         </div>

@@ -1,21 +1,84 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { TbArrowRight } from 'react-icons/tb';
+import {
+    TbBook,
+    TbFirstAidKit,
+    TbHome,
+    TbToolsKitchen2,
+    TbBuildingCommunity,
+    TbAlertTriangle,
+    TbDots,
+} from 'react-icons/tb';
 
-import { getFeaturedCategories } from '@/data/selectors';
+import { fetchCategories } from '@/api/categories';
 import SectionHeading from '@/components/SectionHeading';
 
-const CategoryQuickAccess = () => {
-    const categories = getFeaturedCategories()?.slice(0, 4);
+const categoryVisuals = {
+    Education: {
+        icon: TbBook,
+        description: 'Support access to education and learning opportunities.',
+    },
+    Healthcare: {
+        icon: TbFirstAidKit,
+        description:
+            'Help people access essential healthcare and medical support.',
+    },
+    'Food Assistance': {
+        icon: TbToolsKitchen2,
+        description: 'Support individuals and families facing food insecurity.',
+    },
+    Shelter: {
+        icon: TbHome,
+        description: 'Help provide safe and stable shelter for people in need.',
+    },
+    Livelihood: {
+        icon: TbBuildingCommunity,
+        description: 'Support people in building sustainable livelihoods.',
+    },
+    'Disaster Relief': {
+        icon: TbAlertTriangle,
+        description:
+            'Respond to urgent needs caused by disasters and emergencies.',
+    },
+    Other: {
+        icon: TbDots,
+        description:
+            'Support humanitarian needs that fall outside other categories.',
+    },
+};
 
-    if (!categories?.length) return null;
+const CategoryQuickAccess = () => {
+    const [categories, setCategories] = useState([]);
+
+    useEffect(() => {
+        const loadCategories = async () => {
+            try {
+                const data = await fetchCategories();
+
+                const featured = data
+                    .filter((category) => category.featured)
+                    .slice(0, 4);
+
+                setCategories(featured);
+            } catch (error) {
+                console.error('Failed to load categories:', error);
+                setCategories([]);
+            }
+        };
+
+        loadCategories();
+    }, []);
+
+    if (!categories.length) return null;
 
     const [main, ...rest] = categories;
-    const MainIcon = main.icon;
+
+    const mainVisual = categoryVisuals[main.name];
+    const MainIcon = mainVisual?.icon || TbDots;
 
     return (
         <section className="section-gap bg-surface relative overflow-hidden">
-            {/* ambient background */}
             <div className="absolute inset-0 pointer-events-none">
                 <div className="absolute -top-40 right-0 h-125 w-125 rounded-full bg-primary/5 blur-3xl" />
             </div>
@@ -30,9 +93,8 @@ const CategoryQuickAccess = () => {
                     />
                 </div>
 
-                {/* Featured Category */}
                 <Link
-                    to={`/campaigns?category=${main.id}`}
+                    to={`/campaigns?category=${main.slug}`}
                     className="
                         group
                         relative
@@ -47,7 +109,6 @@ const CategoryQuickAccess = () => {
                         hover:border-primary/20
                     "
                 >
-                    {/* background accent */}
                     <div className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
                         <div className="absolute right-0 top-0 h-64 w-64 rounded-full bg-primary/5 blur-3xl" />
                     </div>
@@ -76,7 +137,7 @@ const CategoryQuickAccess = () => {
                                 </h2>
 
                                 <p className="mt-4 max-w-xl leading-relaxed text-text-secondary">
-                                    {main.description}
+                                    {mainVisual?.description}
                                 </p>
                             </div>
 
@@ -117,15 +178,15 @@ const CategoryQuickAccess = () => {
                     </div>
                 </Link>
 
-                {/* Secondary Categories */}
                 <div className="mt-5 grid gap-4 sm:grid-cols-3">
                     {rest.map((cat) => {
-                        const Icon = cat.icon;
+                        const visual = categoryVisuals[cat.name];
+                        const Icon = visual?.icon || TbDots;
 
                         return (
                             <Link
                                 key={cat.id}
-                                to={`/campaigns?category=${cat.id}`}
+                                to={`/campaigns?category=${cat.slug}`}
                                 className="
                                     group
                                     flex items-center gap-4
@@ -156,7 +217,7 @@ const CategoryQuickAccess = () => {
                                     </h4>
 
                                     <p className="mt-1 line-clamp-1 text-xs text-text-secondary">
-                                        {cat.description}
+                                        {visual?.description}
                                     </p>
                                 </div>
 
@@ -179,7 +240,6 @@ const CategoryQuickAccess = () => {
                     })}
                 </div>
 
-                {/* View all */}
                 <div className="mt-12 flex justify-center">
                     <Link
                         to="/categories"

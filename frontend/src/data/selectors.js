@@ -1,27 +1,4 @@
 import { campaigns } from './campaigns';
-import { categories } from './categories';
-
-// ==============================
-// CORE
-// ==============================
-
-export const allCampaigns = campaigns;
-export const allCategories = categories;
-
-// ==============================
-// CATEGORY
-// ==============================
-
-export const getAllCategories = () => categories;
-
-export const getCategoryById = (id) =>
-    categories.find((c) => String(c.id) === String(id));
-
-export const getFeaturedCategories = () =>
-    categories.filter((c) => c.featured);
-
-// 🔥 IMPORTANT FIX (this was missing earlier)
-export const featuredCategories = getFeaturedCategories();
 
 // ==============================
 // CAMPAIGNS
@@ -46,7 +23,9 @@ export const getActiveCampaigns = () =>
 
 export const getUrgentCampaigns = () =>
     campaigns.filter(
-        (c) => c.urgency === 'urgent' || c.urgency === 'critical'
+        (c) =>
+            c.urgency === 'urgent' ||
+            c.urgency === 'critical'
     );
 
 export const getFeaturedCampaigns = () =>
@@ -92,13 +71,20 @@ export const getNewestCampaigns = () =>
 // STATS
 // ==============================
 
-export const getTotalCampaignsCount = () => campaigns.length;
-export const getTotalCategoriesCount = () => categories.length;
+export const getTotalCampaignsCount = () =>
+    campaigns.length;
 
-export const getActiveCount = () => getActiveCampaigns().length;
-export const getUrgentCount = () => getUrgentCampaigns().length;
-export const getFeaturedCount = () => getFeaturedCampaigns().length;
-export const getLocalImpactCount = () => getLocalImpactCampaigns().length;
+export const getActiveCount = () =>
+    getActiveCampaigns().length;
+
+export const getUrgentCount = () =>
+    getUrgentCampaigns().length;
+
+export const getFeaturedCount = () =>
+    getFeaturedCampaigns().length;
+
+export const getLocalImpactCount = () =>
+    getLocalImpactCampaigns().length;
 
 export const getCategoryCount = (categoryId) =>
     getCampaignsByCategory(categoryId).length;
@@ -109,5 +95,6 @@ export const getAllCampaignStats = () => ({
     urgent: getUrgentCount(),
     featured: getFeaturedCount(),
     localImpact: getLocalImpactCount(),
-    categories: getTotalCategoriesCount(),
 });
+
+export const getFeaturedCategories = () => [];

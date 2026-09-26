@@ -1,232 +1,530 @@
 import React from 'react';
 
-// eslint-disable-next-line no-unused-vars
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
+
+import { ArrowRight, ArrowUpRight, MapPin } from 'lucide-react';
+
 import { Link } from 'react-router-dom';
-import { FiArrowRight, FiActivity, FiClock, FiCheck } from 'react-icons/fi';
 
-import Motion from '@/components/motion/Motion';
-import SectionHeading from '@/components/SectionHeading';
-import { getCampaignsByCategory } from '@/data/selectors';
+const LeftPanel = ({ current, campaigns = [] }) => {
+    if (!current) {
+        return null;
+    }
 
-const LeftPanel = ({ current }) => {
-    const activeCases = getCampaignsByCategory(current.id).length;
+    const activeCampaigns = campaigns.filter(
+        (campaign) =>
+            campaign?.status === 'active' &&
+            campaign?.category?.name === current.name,
+    );
+
+    const supportTypes = Array.isArray(current.support_types)
+        ? current.support_types
+        : [];
 
     return (
         <AnimatePresence mode="wait">
             <motion.div
-                key={current.id}
-                initial={{ opacity: 0, y: 12 }}
+                key={current.slug}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -12 }}
+                exit={{ opacity: 0, y: -8 }}
                 transition={{
                     duration: 0.35,
-                    ease: 'easeOut',
+                    ease: [0.22, 1, 0.36, 1],
                 }}
-                className="space-y-8"
+                className="min-w-0"
             >
-                {/* Header */}
-                <SectionHeading
-                    align="left"
-                    gap="sm"
-                    title={current.name}
-                    description={current.story}
-                    descriptionSize="sectionHero"
-                />
-
-                {/* Image */}
-                <div className="relative overflow-hidden rounded-4xl">
-                    <img
-                        src={current.image}
-                        alt={current.name}
-                        className="
-                                    h-65
-                                    sm:h-80
-                                    lg:h-90
-                                    w-full
-                                    object-cover
-                                    transition-transform
-                                    duration-700
-                                    hover:scale-[1.03]
-                                "
-                    />
-
+                {/* =====================================================
+                    HERO
+                ====================================================== */}
+                <section className="overflow-hidden rounded-2xl bg-background-alt">
+                    {/* =================================================
+                        HERO META
+                    ================================================== */}
                     <div
                         className="
-                                    absolute inset-0
-                                    bg-linear-to-t
-                                    from-black/60
-                                    via-black/10
-                                    to-transparent
-                                "
-                    />
+                            flex
+                            flex-col
+                            gap-4
+                            border-b
+                            border-border
+                            p-5
+                            pb-4
 
-                    <div className="absolute top-5 right-5">
-                        <span
-                            className="
-                                        inline-flex
-                                        items-center
-                                        gap-2
-                                        rounded-full
-                                        px-4
-                                        py-2
-                                        text-sm
-                                        font-medium
-                                        text-white
-                                        backdrop-blur-md
-                                    "
-                            style={{
-                                backgroundColor: `${current.color}95`,
-                            }}
-                        >
-                            <FiActivity />
-                            {activeCases} Active Request
-                            {activeCases !== 1 ? 's' : ''}
-                        </span>
-                    </div>
-                </div>
+                            sm:flex-row
+                            sm:flex-wrap
+                            sm:items-start
+                            sm:justify-between
+                            sm:gap-x-8
+                            sm:gap-y-4
+                            sm:p-6
+                            sm:pb-4
 
-                {/* Quick Facts */}
-                <div
-                    className="
-                                flex
-                                flex-wrap
-                                items-center
-                                gap-x-8
-                                gap-y-3
-                                border-b
-                                border-border
-                                pb-6
-                            "
-                >
-                    <div className="flex items-center gap-2">
-                        <FiActivity
-                            style={{
-                                color: current.color,
-                            }}
-                        />
+                            lg:gap-x-8
+                            lg:p-6
+                            lg:pb-4
 
-                        <span className="text-sm text-text-secondary">
-                            <strong
-                                style={{
-                                    color: current.color,
-                                }}
-                            >
-                                {activeCases}
-                            </strong>{' '}
-                            Active Cases
-                        </span>
-                    </div>
+                            xl:gap-x-12
+                            xl:p-7
+                            xl:pb-5
+                        "
+                    >
+                        {/* LOCATION */}
+                        <div className="min-w-0 sm:min-w-[170px]">
+                            <div className="flex items-center gap-1.5">
+                                <MapPin
+                                    size={14}
+                                    strokeWidth={1.8}
+                                    className="shrink-0 text-primary"
+                                />
 
-                    <div className="flex items-center gap-2">
-                        <FiClock
-                            style={{
-                                color: current.color,
-                            }}
-                        />
-
-                        <span className="text-sm text-text-secondary">
-                            <strong
-                                style={{
-                                    color: current.color,
-                                }}
-                            >
-                                {current.avgResponseTime}
-                            </strong>{' '}
-                            Average Response
-                        </span>
-                    </div>
-                </div>
-
-                {/* About */}
-                <div className="space-y-4">
-                    <h3 className="text-xl font-semibold text-text-primary">
-                        About This Category
-                    </h3>
-
-                    <p className="leading-8 text-text-secondary">
-                        Requests submitted under this category are reviewed,
-                        verified, and prioritized based on urgency. Support is
-                        coordinated through volunteers, donors, and partner
-                        organizations to help assistance reach those who need it
-                        most.
-                    </p>
-                </div>
-
-                {/* Support Types */}
-                {current.supportTypes?.length > 0 && (
-                    <div className="space-y-4 border-t border-border pt-6">
-                        <h3 className="text-xl font-semibold text-text-primary">
-                            Common Support Includes
-                        </h3>
-
-                        <div className="grid gap-3 sm:grid-cols-2">
-                            {current.supportTypes.map((item) => (
-                                <div
-                                    key={item}
+                                <span
                                     className="
-                                                flex
-                                                items-center
-                                                gap-3
-                                            "
+                                        font-bengali
+                                        text-[11px]
+                                        font-medium
+                                        leading-[1.8]
+                                        text-text-secondary
+                                    "
                                 >
-                                    <div
-                                        className="
-                                                    flex
-                                                    h-6
-                                                    w-6
-                                                    items-center
-                                                    justify-center
-                                                    rounded-full
-                                                    shrink-0
-                                                "
-                                        style={{
-                                            backgroundColor: `${current.color}15`,
-                                            color: current.color,
-                                        }}
-                                    >
-                                        <FiCheck size={13} />
-                                    </div>
+                                    সহায়তার এলাকা
+                                </span>
+                            </div>
 
-                                    <span className="text-sm text-text-secondary">
-                                        {item}
-                                    </span>
-                                </div>
-                            ))}
+                            <p
+                                className="
+                                    mt-0.5
+                                    font-bengali
+                                    text-sm
+                                    font-medium
+                                    leading-[1.8]
+                                    text-text-primary
+                                "
+                            >
+                                {current.location ||
+                                    'বিভিন্ন প্রয়োজনীয় এলাকায়'}
+                            </p>
+                        </div>
+
+                        {/* ACTIVE CAMPAIGNS */}
+                        <div className="sm:text-right">
+                            <span
+                                className="
+                                    font-bengali
+                                    text-[11px]
+                                    font-medium
+                                    leading-[1.8]
+                                    text-text-secondary
+                                "
+                            >
+                                চলমান উদ্যোগ
+                            </span>
+
+                            <p
+                                className="
+                                    mt-0.5
+                                    font-bengali
+                                    text-sm
+                                    font-medium
+                                    leading-[1.8]
+                                    text-text-primary
+                                "
+                            >
+                                {activeCampaigns.length}টি সক্রিয় উদ্যোগ
+                            </p>
                         </div>
                     </div>
-                )}
 
-                {/* CTA */}
-                <div className="border-t border-border pt-6">
-                    <Motion variant="fadeUp">
-                        <Link
-                            to={`/campaigns/category/${current.id}`}
+                    {/* =================================================
+                        HERO IMAGE
+                    ================================================== */}
+                    <div
+                        className="
+                            relative
+                            h-[20rem]
+
+                            sm:h-[24rem]
+
+                            lg:h-[26rem]
+
+                            xl:h-[29rem]
+                        "
+                    >
+                        <img
+                            src={current.image}
+                            alt={current.name}
                             className="
-                                        group
-                                        inline-flex
-                                        items-center
-                                        gap-3
-                                        text-base
-                                        font-semibold
-                                        transition-all
-                                        duration-300
-                                    "
-                            style={{
-                                color: current.color,
-                            }}
+                                absolute
+                                inset-0
+                                h-full
+                                w-full
+                                object-cover
+                            "
+                        />
+
+                        {/* Neutral photographic overlay */}
+                        <div
+                            className="
+                                absolute
+                                inset-0
+                                bg-gradient-to-t
+                                from-black/75
+                                to-black/25
+                            "
+                        />
+
+                        <div
+                            className="
+                                absolute
+                                inset-0
+                                bg-gradient-to-br
+                                from-white/[0.06]
+                                via-transparent
+                                to-transparent
+                            "
+                        />
+
+                        {/* =================================================
+                            OVERLAY CONTENT
+                        ================================================== */}
+                        <div
+                            className="
+                                absolute
+                                inset-0
+                                flex
+                                flex-col
+                                justify-between
+                                p-5
+
+                                sm:p-6
+
+                                lg:p-7
+
+                                xl:p-8
+                            "
                         >
-                            Explore Active Requests
-                            <FiArrowRight
+                            {/* TOP — SUPPORT AREA */}
+                            <div className="flex items-center gap-2">
+                                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+
+                                <span
+                                    className="
+                                        font-bengali
+                                        text-[12px]
+                                        font-medium
+                                        leading-[1.8]
+                                        text-white/80
+                                    "
+                                >
+                                    সহায়তার ক্ষেত্র
+                                </span>
+                            </div>
+
+                            {/* BOTTOM — TITLE + DESCRIPTION */}
+                            <div
                                 className="
-                                            transition-transform
-                                            duration-300
-                                            group-hover:translate-x-1
-                                        "
-                            />
-                        </Link>
-                    </Motion>
+                                    max-w-xl
+
+                                    lg:max-w-2xl
+
+                                    xl:max-w-3xl
+                                "
+                            >
+                                <h2
+                                    className="
+                                        font-bengali!
+                                        text-[1.7rem]
+                                        font-medium!
+                                        leading-[1.45]!
+                                        tracking-normal
+                                        text-white!
+
+                                        sm:text-[2rem]
+
+                                        lg:text-[2.15rem]
+
+                                        xl:text-[2.4rem]
+                                    "
+                                >
+                                    {current.name}
+                                </h2>
+
+                                <p
+                                    className="
+                                        mt-2
+                                        max-w-lg
+                                        font-bengali
+                                        text-[13px]
+                                        font-normal
+                                        leading-[1.9]
+                                        text-white/75
+
+                                        sm:max-w-xl
+                                        sm:text-[14px]
+
+                                        lg:max-w-2xl
+                                        lg:text-[14px]
+
+                                        xl:text-[15px]
+                                    "
+                                >
+                                    {current.description}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* =====================================================
+    CONTENT
+====================================================== */}
+<div
+    className="
+        mt-10
+        sm:mt-12
+        lg:mt-14
+        xl:mt-16
+    "
+>
+    {/* =================================================
+        ABOUT
+    ================================================== */}
+    {current.about && (
+        <section
+            className="
+                max-w-3xl
+                lg:max-w-2xl
+                xl:max-w-3xl
+            "
+        >
+            <div className="flex items-center gap-3">
+                <span
+                    className="
+                        h-1
+                        w-8
+                        shrink-0
+                        rounded-full
+                        bg-accent!
+                    "
+                />
+
+                <h3
+                    className="
+                        font-bengali!
+                        text-[15px]!
+                        font-semibold!
+                        leading-[1.8]!
+                        text-primary!
+                        sm:text-base!
+                    "
+                >
+                    কেন এটি গুরুত্বপূর্ণ
+                </h3>
+            </div>
+
+            <p
+                className="
+                    mt-5
+                    font-bengali!
+                    text-[16px]!
+                    font-normal!
+                    leading-[2.05]!
+                    text-text-body!
+                    sm:text-[17px]!
+                    sm:leading-[2.1]!
+                    lg:text-[16px]!
+                    xl:text-[17px]!
+                "
+            >
+                {current.about}
+            </p>
+        </section>
+    )}
+
+    {/* =================================================
+        SUPPORT
+    ================================================== */}
+    {supportTypes.length > 0 && (
+        <section
+            className="
+                mt-14
+                sm:mt-16
+                lg:mt-18
+                xl:mt-20
+            "
+        >
+            <div
+                className="
+                    max-w-3xl
+                    lg:max-w-2xl
+                    xl:max-w-3xl
+                "
+            >
+                <div className="flex items-center gap-3">
+                    <span
+                        className="
+                            h-1
+                            w-8
+                            shrink-0
+                            rounded-full
+                            bg-primary!
+                        "
+                    />
+
+                    <h3
+                        className="
+                            font-bengali!
+                            text-[15px]!
+                            font-semibold!
+                            leading-[1.8]!
+                            text-primary!
+                            sm:text-base!
+                        "
+                    >
+                        পাশে থাকার সুযোগ
+                    </h3>
                 </div>
+
+                <p
+                    className="
+                        mt-5
+                        max-w-2xl
+                        font-bengali!
+                        text-[14px]!
+                        font-normal!
+                        leading-[2]!
+                        text-text-body!
+                        sm:text-[15px]!
+                        sm:leading-[2.05]!
+                    "
+                >
+                    আপনার সামর্থ্য ও সময় অনুযায়ী এই উদ্যোগে
+                    বিভিন্নভাবে অবদান রাখা সম্ভব।
+                </p>
+
+                <div
+                    className="
+                        mt-6
+                        grid
+                        gap-x-10
+                        gap-y-3
+                        sm:grid-cols-2
+                        lg:grid-cols-1
+                        xl:grid-cols-2
+                        xl:gap-y-4
+                    "
+                >
+                    {supportTypes.map((type, index) => (
+                        <div
+                            key={`${type}-${index}`}
+                            className="
+                                flex
+                                items-start
+                                gap-3
+                                py-1
+                            "
+                        >
+                            <span
+                                className="
+                                    mt-[0.7rem]
+                                    h-1.5
+                                    w-1.5
+                                    shrink-0
+                                    rounded-full
+                                    bg-accent!
+                                "
+                            />
+
+                            <p
+                                className="
+                                    font-bengali!
+                                    text-[14px]!
+                                    font-medium!
+                                    leading-[1.9]!
+                                    text-text-primary!
+                                    sm:text-[15px]!
+                                "
+                            >
+                                {type}
+                            </p>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </section>
+    )}
+
+    {/* =================================================
+        CTA
+    ================================================== */}
+    <div
+        className="
+            mt-10
+            sm:mt-11
+            lg:mt-12
+            xl:mt-14
+        "
+    >
+        <Link
+            to={`/campaigns/category/${current.slug}`}
+            className="
+                group
+                inline-flex
+                min-h-11
+                items-center
+                justify-center
+                gap-3
+                rounded-lg
+                bg-primary!
+                px-5
+                py-2.5
+                font-bengali!
+                text-[14px]!
+                font-medium!
+                leading-[1.8]!
+                text-white!
+                shadow-sm
+                transition-all
+                duration-200
+                hover:bg-primary-hover!
+                hover:shadow-md
+                focus-visible:outline-none
+                focus-visible:ring-2
+                focus-visible:ring-primary/30
+                focus-visible:ring-offset-2
+                sm:px-5
+            "
+        >
+            <span>এই বিভাগের উদ্যোগগুলো দেখুন</span>
+
+            <span
+                className="
+                    flex
+                    h-6
+                    w-6
+                    shrink-0
+                    items-center
+                    justify-center
+                    rounded-full
+                    bg-white/10
+                    transition-colors
+                    duration-200
+                    group-hover:bg-white/15
+                "
+            >
+                <ArrowRight
+                    size={15}
+                    strokeWidth={1.9}
+                    className="
+                        transition-transform
+                        duration-200
+                        group-hover:translate-x-0.5
+                    "
+                />
+            </span>
+        </Link>
+    </div>
+</div>
             </motion.div>
         </AnimatePresence>
     );

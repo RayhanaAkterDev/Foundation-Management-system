@@ -10,6 +10,8 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        $this->call(CategorySeeder::class);
+
         User::create([
             'name' => 'SP Admin',
             'email' => 'admin@standforpeople.com',

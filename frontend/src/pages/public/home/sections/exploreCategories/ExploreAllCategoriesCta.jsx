@@ -1,29 +1,53 @@
 import React from 'react';
+
 import { Link } from 'react-router-dom';
+import { ArrowUpRight } from 'lucide-react';
 
-const ExploreAllCategoriesCta = ({ current }) => {
+const ExploreAllCategoriesCta = () => {
     return (
-        <div className="pb-8 sm:pb-10 lg:pb-0 flex justify-end sm:pr-6 lg:pr-10">
-            <div className="flex flex-col items-end gap-3 opacity-80 hover:opacity-100 transition">
-                <span className="text-[10px] sm:text-[11px] uppercase tracking-[0.2em] text-gray-400">
-                    View more
-                </span>
+        <div className="pt-8">
+            <Link
+                to="/categories"
+                className="
+                        group flex items-center justify-between gap-4
+                        text-text-primary
+                        transition-colors duration-300
+                        hover:text-primary
+                        focus-visible:outline-none
+                        focus-visible:ring-2
+                        focus-visible:ring-primary/25
+                        focus-visible:ring-offset-4
+                    "
+            >
+                <div className="min-w-0">
+                    <p className="font-bengali text-[13px] font-medium leading-[1.7] text-text-secondary">
+                        আরও সহায়তার ক্ষেত্র
+                    </p>
 
-                <div className="flex items-center gap-3">
-                    <div
-                        className="w-10 sm:w-12 h-px"
-                        style={{ backgroundColor: current?.color || '#d1d5db' }}
-                    />
-
-                    <Link
-                        to="/categories"
-                        className="text-sm sm:text-base font-medium tracking-wide leading-relaxed"
-                        style={{ color: current?.color || '#111827' }}
-                    >
-                        Browse all categories
-                    </Link>
+                    <p className="mt-1 font-bengali text-[15px] sm:text-base font-medium leading-[1.6]">
+                        সব বিভাগ দেখুন
+                    </p>
                 </div>
-            </div>
+
+                <span
+                    className="
+                            flex h-10 w-10 shrink-0 items-center justify-center
+                            rounded-full border border-border
+                            text-primary
+                            transition-all duration-300
+                            group-hover:border-primary/35
+                            group-hover:bg-primary
+                            group-hover:text-white
+                            group-hover:-translate-y-0.5
+                        "
+                >
+                    <ArrowUpRight
+                        size={17}
+                        strokeWidth={1.8}
+                        className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                    />
+                </span>
+            </Link>
         </div>
     );
 };

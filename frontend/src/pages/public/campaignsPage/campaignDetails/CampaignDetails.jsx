@@ -32,16 +32,11 @@ const CampaignDetails = () => {
 
                 setCampaign(data);
             } catch (err) {
-                console.error(
-                    'Failed to load campaign:',
-                    err
-                );
+                console.error('Failed to load campaign:', err);
 
                 if (!cancelled) {
                     setCampaign(null);
-                    setError(
-                        'Unable to load this campaign right now.'
-                    );
+                    setError('Unable to load this campaign right now.');
                 }
             } finally {
                 if (!cancelled) {
@@ -65,9 +60,7 @@ const CampaignDetails = () => {
         return (
             <div className="min-h-screen bg-surface">
                 <div className="container-width pt-32 text-center">
-                    <p className="text-text-secondary">
-                        Loading campaign...
-                    </p>
+                    <p className="text-text-secondary">Loading campaign...</p>
                 </div>
             </div>
         );
@@ -102,9 +95,7 @@ const CampaignDetails = () => {
         typeof campaign.organizer === 'object'
             ? campaign.organizer
             : {
-                  name:
-                      campaign.organizer ||
-                      'Stand For People',
+                  name: campaign.organizer || 'Stand For People',
                   role: '',
                   verified: false,
               };
@@ -127,9 +118,7 @@ const CampaignDetails = () => {
                     "
                 >
                     {/* MAIN CONTENT */}
-                    <CampaignMainContent
-                        campaign={campaign}
-                    />
+                    <CampaignMainContent campaign={campaign} />
 
                     {/* DONATION SIDEBAR */}
                     <DonationSidebar

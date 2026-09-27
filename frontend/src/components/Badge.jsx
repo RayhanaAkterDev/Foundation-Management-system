@@ -207,7 +207,7 @@ const Badge = ({
                 toneClass,
                 sizeStyles[size],
                 shape === 'label' &&
-                    'h-auto rounded-none border-0 bg-transparent p-0 text-[11px] font-medium uppercase tracking-[0.14em]',
+                    'h-auto rounded-none border-0 bg-transparent p-0 font-nav text-xs font-medium leading-5 tracking-normal text-primary',
                 className,
             )}
         >

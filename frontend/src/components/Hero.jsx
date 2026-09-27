@@ -1,6 +1,10 @@
 import React from 'react';
 
+import { ArrowRight, HeartHandshake } from 'lucide-react';
+
 import Button from './Button';
+import Badge from './Badge';
+import SectionHeading from './SectionHeading';
 import HeroStats from '@/pages/public/home/sections/hero/HeroStats';
 import Motion from './motion/Motion';
 
@@ -15,211 +19,308 @@ const Hero = ({
     showStats,
     image,
     imageAlt = 'Hero image',
+    lang,
 }) => {
     return (
-        <section className="relative mt-20 overflow-hidden bg-surface">
+        <section
+            className="
+                relative
+                mt-20
+                overflow-hidden
+                bg-surface
+            "
+            lang={lang}
+        >
             <div className="container-width">
+                {/* ─────────────────────────────────────────
+                    INTRO
+                ───────────────────────────────────────── */}
                 <div
                     className="
-                        grid grid-cols-1
-                        pb-14 pt-8
-                        sm:pb-16 sm:pt-10
+                        pb-8
+                        pt-10
 
-                        lg:grid-cols-12 lg:items-center lg:gap-x-8
-                        lg:min-h-[610px] lg:py-12
+                        sm:pb-10
+                        sm:pt-12
 
-                        xl:min-h-[700px] xl:gap-x-12 xl:py-16
+                        lg:pb-12
+                        lg:pt-16
+
+                        xl:pb-14
+                        xl:pt-20
                     "
                 >
-                    {/* EDITORIAL COPY */}
                     <div
                         className="
-                            relative z-10
-                            lg:col-span-5 lg:pr-2
-                            xl:col-span-5 xl:pr-8
+                            max-w-[68rem]
+                            lg:max-w-[76rem]
+                            xl:max-w-[82rem]
                         "
                     >
                         {(badge || badgeIcon) && (
                             <Motion variant="fadeUp">
                                 <div
-                                    className={`
-                                        mb-5 flex items-center gap-3
-                                        font-nav text-[11px] font-medium uppercase
-                                        tracking-[0.14em] text-primary
-                                        sm:mb-6 sm:text-xs
-                                        lg:mb-5
-                                        xl:mb-7
-                                        ${badgeClass || ''}
-                                    `}
+                                    className="
+                                        mb-5
+                                        flex
+                                        items-center
+                                        gap-2.5
+
+                                        sm:mb-6
+
+                                        lg:mb-7
+                                    "
                                 >
-                                    {badgeIcon && (
-                                        <span className="flex shrink-0 items-center text-primary">
-                                            {badgeIcon}
-                                        </span>
-                                    )}
-                                    {badge && <span>{badge}</span>}
+                                    <span className="h-2 w-2 shrink-0 rounded-full bg-primary/80" />
+
+                                    <Badge
+                                        variant="primary"
+                                        tone="soft"
+                                        size="md"
+                                        shape="label"
+                                        className={`
+                                            !rounded-full
+                                            !bg-transparent
+                                            !px-0
+                                            !py-0
+                                            text-sm
+                                            font-medium
+                                            text-primary
+                                            sm:text-[15px]
+                                            ${badgeClass || ''}
+                                        `}
+                                    >
+                                        {badge}
+                                    </Badge>
                                 </div>
                             </Motion>
                         )}
 
                         <Motion variant="blurIn">
-                            <h1
-                                className="
-                                    max-w-[15ch]
-                                    font-display font-medium
-                                    text-[2.35rem] leading-[1.13] tracking-[-0.02em]
-                                    text-text-primary
+                            <SectionHeading
+                                lang={lang}
+                                title={title}
+                                headingTag="h1"
+                                align="left"
+                                gap="none"
+                                headingSize="hero"
+                                treatment="editorial"
+                                wrapperClass="max-w-none"
+                                headingClass="
+            max-w-[15ch]
 
-                                    sm:max-w-[14ch] sm:text-[2.75rem] sm:leading-[1.12]
+            !text-[2.7rem]
+            !leading-[1.3]
+            !tracking-[-0.015em]
 
-                                    lg:max-w-[12.5ch] lg:text-[3rem] lg:leading-[1.1]
+            sm:!text-[3.35rem]
+            sm:!leading-[1.26]
+            sm:!tracking-[-0.018em]
 
-                                    xl:max-w-[13.5ch] xl:text-[3.45rem] xl:leading-[1.08]
-                                "
-                            >
-                                {title}
-                            </h1>
+            lg:!text-[3.85rem]
+            lg:!leading-[1.22]
+            lg:!tracking-[-0.02em]
+
+            xl:!text-[4.5rem]
+            xl:!leading-[1.18]
+            xl:!tracking-[-0.022em]
+        "
+                                description={null}
+                            />
                         </Motion>
 
-                        {description && (
-                            <Motion variant="fadeUp">
-                                <p
-                                    className="
-                                        mt-5 max-w-[37rem]
-                                        text-[15px] leading-[1.8] text-text-body
+                        <div
+                            className="
+                                mt-7
+                                flex
+                                flex-col
+                                gap-7
 
-                                        sm:mt-6 sm:text-base sm:leading-[1.85]
+                                sm:mt-8
 
-                                        lg:mt-6 lg:max-w-[29rem] lg:text-[15px] lg:leading-[1.8]
+                                lg:mt-9
+                                lg:flex-row
+                                lg:items-end
+                                lg:justify-between
+                                lg:gap-12
 
-                                        xl:mt-7 xl:max-w-[32rem] xl:text-base
-                                    "
-                                >
-                                    {description}
-                                </p>
-                            </Motion>
-                        )}
+                                xl:mt-10
+                                xl:gap-16
+                            "
+                        >
+                            {description && (
+                                <Motion variant="fadeUp">
+                                    <p
+                                        className="
+                                            max-w-[42rem]
+                                            text-[16px]
+                                            leading-[1.78]
+                                            text-text-body
 
-                        {(primaryCta || secondaryCta) && (
-                            <Motion variant="fadeUp">
-                                <div
-                                    className="
-                                        mt-7 flex flex-col items-stretch gap-3
-                                        sm:flex-row sm:items-center sm:gap-6
-                                        lg:mt-8 lg:gap-5
-                                        xl:mt-9 xl:gap-7
-                                    "
-                                >
-                                    {primaryCta && (
-                                        <Button
-                                            size="lg"
-                                            to={primaryCta.to}
-                                            className="
-                                                w-full !min-h-12 !rounded-md !px-7
-                                                sm:w-auto
-                                                lg:!min-h-11 lg:!px-6
-                                                xl:!min-h-12 xl:!px-7
-                                            "
-                                        >
-                                            <span className="flex items-center justify-center gap-2">
-                                                {primaryCta.icon}
+                                            sm:text-[17px]
+
+                                            lg:max-w-[43rem]
+                                            lg:text-[17px]
+
+                                            xl:max-w-[47rem]
+                                            xl:text-[18px]
+                                            xl:leading-[1.75]
+                                        "
+                                    >
+                                        {description}
+                                    </p>
+                                </Motion>
+                            )}
+
+                            {(primaryCta || secondaryCta) && (
+                                <Motion variant="fadeUp">
+                                    <div
+                                        className="
+                                            flex
+                                            shrink-0
+                                            flex-col
+                                            gap-3
+
+                                            sm:flex-row
+                                            sm:items-center
+                                            sm:gap-5
+
+                                            lg:pb-0.5
+                                        "
+                                    >
+                                        {primaryCta && (
+                                            <Button
+                                                size="lg"
+                                                to={primaryCta.to}
+                                                className="
+                                                    w-full
+                                                    !min-h-[52px]
+                                                    !justify-center
+                                                    !rounded-[0.65rem]
+                                                    !px-7
+                                                    !text-[15px]
+
+                                                    sm:w-auto
+
+                                                    lg:!min-h-[54px]
+                                                    lg:!px-8
+                                                    lg:!text-base
+                                                "
+                                            >
                                                 {primaryCta.label}
-                                            </span>
-                                        </Button>
-                                    )}
 
-                                    {secondaryCta && (
-                                        <Button
-                                            variant="ghost"
-                                            size="lg"
-                                            to={secondaryCta.to}
-                                            className="
-                                                group w-full !min-h-11 !justify-center !rounded-none
-                                                !px-0 !text-text-primary
-                                                hover:!bg-transparent hover:!text-primary
-                                                sm:w-auto sm:!justify-start
-                                            "
-                                        >
-                                            <span className="flex items-center justify-center gap-2.5">
+                                                {primaryCta.icon || (
+                                                    <ArrowRight className="h-4 w-4" />
+                                                )}
+                                            </Button>
+                                        )}
+
+                                        {secondaryCta && (
+                                            <Button
+                                                variant="editorial"
+                                                size="lg"
+                                                to={secondaryCta.to}
+                                                className="
+                                                    group
+                                                    w-full
+                                                    !min-h-[48px]
+                                                    !justify-center
+                                                    !px-2
+                                                    !text-[15px]
+
+                                                    sm:w-auto
+
+                                                    lg:!text-base
+                                                "
+                                            >
                                                 {secondaryCta.label}
+
                                                 <span
                                                     className="
-                                                        text-primary transition-transform duration-200
+                                                        text-primary
+                                                        transition-transform
+                                                        duration-200
                                                         group-hover:translate-x-1
                                                     "
                                                 >
-                                                    {secondaryCta.icon}
+                                                    {secondaryCta.icon || (
+                                                        <ArrowRight className="h-4 w-4" />
+                                                    )}
                                                 </span>
-                                            </span>
-                                        </Button>
-                                    )}
-                                </div>
-                            </Motion>
-                        )}
+                                            </Button>
+                                        )}
+                                    </div>
+                                </Motion>
+                            )}
+                        </div>
                     </div>
+                </div>
 
-                    {/* PHOTOGRAPHIC FIELD */}
-                    <div
+                {/* ─────────────────────────────────────────
+                    IMAGE
+                ───────────────────────────────────────── */}
+                <Motion variant="fadeIn">
+                    <figure
                         className="
-                            mt-9 min-w-0
-                            sm:mt-11
+                            relative
+                            overflow-hidden
+                            rounded-[1.25rem]
+                            bg-background-alt
 
-                            lg:col-span-7 lg:mt-0
-                            lg:-mr-8 lg:pl-1
+                            sm:rounded-[1.5rem]
 
-                            xl:-mr-16 xl:pl-4
+                            lg:rounded-[1.75rem]
                         "
                     >
-                        <Motion variant="fadeIn">
-                            <figure
-                                className="
-                                    relative w-full overflow-hidden bg-background-alt
-                                    rounded-[0.75rem]
-
-                                    lg:rounded-[0.5rem]
-                                    xl:rounded-[0.625rem]
-                                "
-                            >
-                                <div
-                                    className="
-                                        aspect-[5/4] w-full
-                                        sm:aspect-[16/10]
-                                        lg:aspect-[1.28/1]
-                                        xl:aspect-[1.48/1]
-                                    "
-                                >
-                                    <img
-                                        src={image}
-                                        alt={imageAlt}
-                                        className="h-full w-full object-cover object-center"
-                                        loading="eager"
-                                    />
-                                </div>
-                            </figure>
-                        </Motion>
-                    </div>
-
-                    {/* XL TRUST RAIL */}
-                    {showStats && (
                         <div
                             className="
-                                hidden
-                                xl:col-span-12 xl:mt-9 xl:block
+                                absolute
+                                inset-0
+                                z-10
+                                rounded-[inherit]
+                                ring-1
+                                ring-inset
+                                ring-black/[0.07]
+                            "
+                        />
+
+                        <div
+                            className="
+                                aspect-[4/3]
+                                w-full
+
+                                sm:aspect-[16/9]
+
+                                lg:h-[530px]
+                                lg:aspect-auto
+
+                                xl:h-[610px]
                             "
                         >
-                            <Motion variant="fadeUp">
-                                <div className="border-t border-border pt-1">
-                                    <HeroStats />
-                                </div>
-                            </Motion>
+                            <img
+                                src={image}
+                                alt={imageAlt}
+                                className="
+                                    h-full
+                                    w-full
+                                    object-cover
+                                    object-center
+                                "
+                                loading="eager"
+                            />
                         </div>
-                    )}
-                </div>
+                    </figure>
+                </Motion>
             </div>
 
-            <div className="container-width" aria-hidden="true">
-                <div className="h-px bg-border/70" />
-            </div>
+            {/* ─────────────────────────────────────────
+                TRUST / STATS
+            ───────────────────────────────────────── */}
+            {showStats && (
+                <Motion variant="fadeUp">
+                    <HeroStats />
+                </Motion>
+            )}
         </section>
     );
 };

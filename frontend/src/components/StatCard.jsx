@@ -68,7 +68,7 @@ const StatCard = ({
                             relative group
                             ${isLine ? 'px-0 py-6 sm:px-5 sm:py-7 lg:px-6 lg:py-8' : s.padding}
 
-                            flex flex-col items-center justify-center text-center
+                            ${isLine ? 'flex flex-col items-start justify-start text-left' : 'flex flex-col items-center justify-center text-center'}
                             transition-all duration-300 ease-out
 
                             ${isLine ? 'min-h-0' : 'min-h-35 sm:min-h-40 lg:min-h-45'}
@@ -158,13 +158,15 @@ const StatCard = ({
                         <StatValue
                             value={stat?.value}
                             className={`
-                                ${isLine ? 'font-medium tracking-[-0.02em]' : 'font-bold tracking-tight'}
+                                ${isLine ? 'font-medium tracking-normal' : 'font-bold tracking-tight'}
                                 leading-tight
                                 ${s.value}
                                 ${
                                     isPrimary
                                         ? 'text-white'
-                                        : 'text-text-primary'
+                                        : isLine
+                                          ? 'text-primary-deep'
+                                          : 'text-text-primary'
                                 }
                             `}
                         />

@@ -23,7 +23,7 @@ function Button({
         rounded-lg
         font-sans
         font-medium
-        tracking-[-0.01em]
+        tracking-normal
         whitespace-nowrap
         transition-all
         duration-200
@@ -60,49 +60,23 @@ function Button({
         primary: `
             bg-primary
             text-white
-            shadow-[0_1px_2px_rgba(8,60,54,0.12)]
+            shadow-none
             hover:bg-primary-hover
-            hover:shadow-[0_5px_14px_rgba(8,60,54,0.14)]
+
             active:translate-y-px
             focus-visible:ring-primary/30
 
-            before:absolute
-            before:inset-x-0
-            before:top-0
-            before:h-px
-            before:bg-white/20
-
-            after:absolute
-            after:inset-0
-            after:bg-white/[0.04]
-            after:opacity-0
-            after:transition-opacity
-            after:duration-200
-            hover:after:opacity-100
         `,
 
         accent: `
             bg-accent
             text-white
-            shadow-[0_1px_2px_rgba(180,93,72,0.12)]
+            shadow-none
             hover:bg-accent-hover
-            hover:shadow-[0_5px_14px_rgba(180,93,72,0.15)]
+
             active:translate-y-px
             focus-visible:ring-accent/30
 
-            before:absolute
-            before:inset-x-0
-            before:top-0
-            before:h-px
-            before:bg-white/20
-
-            after:absolute
-            after:inset-0
-            after:bg-white/[0.05]
-            after:opacity-0
-            after:transition-opacity
-            after:duration-200
-            hover:after:opacity-100
         `,
 
         outline: `
@@ -110,7 +84,7 @@ function Button({
             border-border-strong
             bg-surface
             text-text-primary
-            shadow-[0_1px_1px_rgba(23,35,33,0.03)]
+            shadow-none
             hover:border-primary-muted
             hover:bg-primary-soft
             hover:text-primary-deep
@@ -137,6 +111,17 @@ function Button({
             hover:text-primary
             active:translate-y-px
             focus-visible:ring-primary/20
+            after:absolute
+            after:bottom-1
+            after:left-0
+            after:h-px
+            after:w-full
+            after:origin-left
+            after:scale-x-0
+            after:bg-primary
+            after:transition-transform
+            after:duration-200
+            hover:after:scale-x-100
         `,
     };
 

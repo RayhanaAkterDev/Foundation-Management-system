@@ -1,8 +1,8 @@
 import React from 'react';
 
 // Icons
-import { TbHeartFilled } from 'react-icons/tb';
 import { HiArrowSmRight } from 'react-icons/hi';
+import { TbHeartFilled } from 'react-icons/tb';
 
 // Reusable/shared components
 import Hero from '@/components/Hero';
@@ -21,15 +21,17 @@ const Home = () => {
     return (
         <>
             <Hero
+                lang="bn"
+                badge="মানুষের পাশে, একসাথে"
                 title={
                     <>
                         প্রয়োজনের পাশে,
-                        <span className="text-primary block">
+                        <span className="block text-primary">
                             সহায়তার পথে।
                         </span>
                     </>
                 }
-                description="Stand For People এমন একটি মানবিক সহায়তা প্ল্যাটফর্ম, যেখানে প্রয়োজনে থাকা মানুষ, স্বেচ্ছাসেবী, দাতা ও সংগঠন একসাথে কাজ করে—যাতে প্রয়োজনের সময় সঠিক সহায়তা সঠিক মানুষের কাছে পৌঁছে যায়।"
+                description="Stand For People মানুষ, দাতা, স্বেচ্ছাসেবী ও সংগঠনকে একসাথে যুক্ত করে—যাতে মানুষের প্রয়োজন যাচাই করে তা কার্যকর সহায়তায় রূপ দেওয়া যায়।"
                 primaryCta={{
                     icon: <TbHeartFilled />,
                     label: 'সহায়তার আবেদন করুন',
@@ -41,6 +43,7 @@ const Home = () => {
                     to: '/how-it-works',
                 }}
                 image={heroBG}
+                imageAlt="মানুষের পাশে দাঁড়িয়ে সহায়তা পৌঁছে দিচ্ছেন স্বেচ্ছাসেবীরা"
                 showStats
             />
 

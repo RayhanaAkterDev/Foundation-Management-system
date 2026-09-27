@@ -58,19 +58,18 @@ const gapStyles = {
 
 const headingStyles = {
     hero: `
-        text-[2.5rem]
-        sm:text-[3.15rem]
-        md:text-[3.75rem]
-        lg:text-[3.7rem]
-        xl:text-[4.85rem]
+        text-[2.25rem]
+        sm:text-[2.65rem]
+        md:text-[2.9rem]
+        lg:text-[3rem]
+        xl:text-[3.35rem]
         font-medium
-        leading-[1.08]
-        sm:leading-[1.06]
-        lg:leading-[1.04]
+        leading-[1.14]
+        sm:leading-[1.12]
+        lg:leading-[1.1]
         text-text-primary
-        tracking-[-0.018em]
-        sm:tracking-[-0.022em]
-        lg:tracking-[-0.026em]
+        tracking-[-0.012em]
+        sm:tracking-[-0.016em]
         max-w-full
     `,
 
@@ -202,6 +201,7 @@ const SectionHeading = ({
     headingSize = 'section',
     descriptionSize = 'section',
     treatment = 'default',
+    lang,
     wrapperClass = '',
     headingClass = '',
     descriptionClass = '',
@@ -210,6 +210,7 @@ const SectionHeading = ({
 
     return (
         <div
+            lang={lang}
             className={`
                 ${wrapperStyles.base}
                 ${alignStyles[align]}
@@ -284,7 +285,7 @@ const SectionHeading = ({
             <HeadingTag
                 className={`
                     ${headingStyles[headingSize]}
-                    ${isEditorial ? 'font-medium !leading-[1.18] !tracking-[-0.012em]' : ''}
+                    ${isEditorial ? 'font-medium !leading-[1.2]' : ''}
                     ${isEditorial && (badge || badges) ? 'mt-4 sm:mt-5' : ''}
                     ${headingClass}
                 `}
@@ -300,6 +301,7 @@ const SectionHeading = ({
                 <p
                     className={`
                         ${descriptionStyles[descriptionSize]}
+                        ${isEditorial ? 'mt-4 sm:mt-5' : ''}
                         ${descriptionClass}
                     `}
                 >

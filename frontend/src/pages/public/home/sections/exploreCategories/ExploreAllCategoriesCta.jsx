@@ -1,50 +1,84 @@
 import React from 'react';
 
-import { Link } from 'react-router-dom';
 import { ArrowUpRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const ExploreAllCategoriesCta = () => {
     return (
-        <div className="pt-8">
+        <div className="mt-7">
             <Link
                 to="/categories"
                 className="
-                        group flex items-center justify-between gap-4
-                        text-text-primary
-                        transition-colors duration-300
-                        hover:text-primary
-                        focus-visible:outline-none
-                        focus-visible:ring-2
-                        focus-visible:ring-primary/25
-                        focus-visible:ring-offset-4
-                    "
+                    group
+                    flex
+                    items-center
+                    justify-between
+                    gap-5
+                    pt-5
+                    text-text-primary
+                    transition-colors
+                    duration-200
+                    hover:text-primary
+                    focus-visible:outline-none
+                    focus-visible:ring-2
+                    focus-visible:ring-primary/25
+                    focus-visible:ring-offset-4
+                "
             >
                 <div className="min-w-0">
-                    <p className="font-bengali text-[13px] font-medium leading-[1.7] text-text-secondary">
-                        আরও সহায়তার ক্ষেত্র
+                    <p
+                        className="
+                            font-bengali
+                            text-[12px]
+                            font-normal
+                            leading-[1.8]
+                            text-text-secondary
+                        "
+                    >
+                        আরও ক্ষেত্র রয়েছে
                     </p>
 
-                    <p className="mt-1 font-bengali text-[15px] sm:text-base font-medium leading-[1.6]">
-                        সব বিভাগ দেখুন
+                    <p
+                        className="
+                            mt-1
+                            font-bengali
+                            text-[15px]
+                            font-medium
+                            leading-[1.7]
+                        "
+                    >
+                        সব সহায়তার ক্ষেত্র দেখুন
                     </p>
                 </div>
 
                 <span
                     className="
-                            flex h-10 w-10 shrink-0 items-center justify-center
-                            rounded-full border border-border
-                            text-primary
-                            transition-all duration-300
-                            group-hover:border-primary/35
-                            group-hover:bg-primary
-                            group-hover:text-white
-                            group-hover:-translate-y-0.5
-                        "
+                        flex
+                        h-9
+                        w-9
+                        shrink-0
+                        items-center
+                        justify-center
+                        rounded-full
+                        border
+                        border-border
+                        text-primary
+                        transition-all
+                        duration-200
+                        group-hover:border-primary/40
+                        group-hover:bg-primary
+                        group-hover:text-white
+                    "
                 >
                     <ArrowUpRight
-                        size={17}
+                        size={16}
                         strokeWidth={1.8}
-                        className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                        className="
+                            transition-transform
+                            duration-200
+                            group-hover:translate-x-0.5
+                            group-hover:-translate-y-0.5
+                        "
                     />
                 </span>
             </Link>

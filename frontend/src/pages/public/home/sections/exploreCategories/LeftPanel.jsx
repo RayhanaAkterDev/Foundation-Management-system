@@ -1,9 +1,7 @@
 import React from 'react';
 
 import { AnimatePresence, motion } from 'framer-motion';
-
-import { ArrowRight, ArrowUpRight, MapPin } from 'lucide-react';
-
+import { ArrowRight, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const LeftPanel = ({ current, campaigns = [] }) => {
@@ -25,129 +23,29 @@ const LeftPanel = ({ current, campaigns = [] }) => {
         <AnimatePresence mode="wait">
             <motion.div
                 key={current.slug}
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
+                exit={{ opacity: 0, y: -10 }}
                 transition={{
-                    duration: 0.35,
+                    duration: 0.4,
                     ease: [0.22, 1, 0.36, 1],
                 }}
                 className="min-w-0"
             >
-                {/* =====================================================
-                    HERO
-                ====================================================== */}
-                <section className="overflow-hidden rounded-2xl bg-background-alt">
+                <section className="overflow-hidden rounded-2xl bg-surface">
                     {/* =================================================
-                        HERO META
+                        IMAGE
                     ================================================== */}
-                    <div
-                        className="
-                            flex
-                            flex-col
-                            gap-4
-                            border-b
-                            border-border
-                            p-5
-                            pb-4
 
-                            sm:flex-row
-                            sm:flex-wrap
-                            sm:items-start
-                            sm:justify-between
-                            sm:gap-x-8
-                            sm:gap-y-4
-                            sm:p-6
-                            sm:pb-4
-
-                            lg:gap-x-8
-                            lg:p-6
-                            lg:pb-4
-
-                            xl:gap-x-12
-                            xl:p-7
-                            xl:pb-5
-                        "
-                    >
-                        {/* LOCATION */}
-                        <div className="min-w-0 sm:min-w-[170px]">
-                            <div className="flex items-center gap-1.5">
-                                <MapPin
-                                    size={14}
-                                    strokeWidth={1.8}
-                                    className="shrink-0 text-primary"
-                                />
-
-                                <span
-                                    className="
-                                        font-bengali
-                                        text-[11px]
-                                        font-medium
-                                        leading-[1.8]
-                                        text-text-secondary
-                                    "
-                                >
-                                    সহায়তার এলাকা
-                                </span>
-                            </div>
-
-                            <p
-                                className="
-                                    mt-0.5
-                                    font-bengali
-                                    text-sm
-                                    font-medium
-                                    leading-[1.8]
-                                    text-text-primary
-                                "
-                            >
-                                {current.location ||
-                                    'বিভিন্ন প্রয়োজনীয় এলাকায়'}
-                            </p>
-                        </div>
-
-                        {/* ACTIVE CAMPAIGNS */}
-                        <div className="sm:text-right">
-                            <span
-                                className="
-                                    font-bengali
-                                    text-[11px]
-                                    font-medium
-                                    leading-[1.8]
-                                    text-text-secondary
-                                "
-                            >
-                                চলমান উদ্যোগ
-                            </span>
-
-                            <p
-                                className="
-                                    mt-0.5
-                                    font-bengali
-                                    text-sm
-                                    font-medium
-                                    leading-[1.8]
-                                    text-text-primary
-                                "
-                            >
-                                {activeCampaigns.length}টি সক্রিয় উদ্যোগ
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* =================================================
-                        HERO IMAGE
-                    ================================================== */}
                     <div
                         className="
                             relative
                             h-[20rem]
-
+                            overflow-hidden
                             sm:h-[24rem]
-
-                            lg:h-[26rem]
-
-                            xl:h-[29rem]
+                            md:h-[26rem]
+                            lg:h-[25rem]
+                            xl:h-[31rem]
                         "
                     >
                         <img
@@ -162,369 +60,354 @@ const LeftPanel = ({ current, campaigns = [] }) => {
                             "
                         />
 
-                        {/* Neutral photographic overlay */}
                         <div
                             className="
                                 absolute
                                 inset-0
                                 bg-gradient-to-t
-                                from-black/75
-                                to-black/25
+                                from-black/80
+                                via-black/25
+                                to-black/5
                             "
                         />
 
                         <div
                             className="
                                 absolute
-                                inset-0
-                                bg-gradient-to-br
-                                from-white/[0.06]
-                                via-transparent
-                                to-transparent
-                            "
-                        />
-
-                        {/* =================================================
-                            OVERLAY CONTENT
-                        ================================================== */}
-                        <div
-                            className="
-                                absolute
-                                inset-0
+                                left-5
+                                top-5
                                 flex
-                                flex-col
-                                justify-between
+                                items-center
+                                gap-2
+                                sm:left-6
+                                sm:top-6
+                                lg:left-6
+                                lg:top-6
+                                xl:left-7
+                                xl:top-7
+                            "
+                        >
+                            <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+
+                            <span
+                                className="
+                                    font-bengali
+                                    text-[11px]
+                                    font-medium
+                                    leading-[1.8]
+                                    text-white/85
+                                "
+                            >
+                                সহায়তার একটি ক্ষেত্র
+                            </span>
+                        </div>
+
+                        <div
+                            className="
+                                absolute
+                                inset-x-0
+                                bottom-0
                                 p-5
-
                                 sm:p-6
-
-                                lg:p-7
-
+                                lg:p-6
                                 xl:p-8
                             "
                         >
-                            {/* TOP — SUPPORT AREA */}
-                            <div className="flex items-center gap-2">
-                                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
-
-                                <span
-                                    className="
-                                        font-bengali
-                                        text-[12px]
-                                        font-medium
-                                        leading-[1.8]
-                                        text-white/80
-                                    "
-                                >
-                                    সহায়তার ক্ষেত্র
-                                </span>
-                            </div>
-
-                            {/* BOTTOM — TITLE + DESCRIPTION */}
-                            <div
-                                className="
-                                    max-w-xl
-
-                                    lg:max-w-2xl
-
-                                    xl:max-w-3xl
-                                "
-                            >
+                            <div className="max-w-2xl">
                                 <h2
                                     className="
                                         font-bengali!
-                                        text-[1.7rem]
+                                        text-[1.65rem]!
                                         font-medium!
                                         leading-[1.45]!
                                         tracking-normal
                                         text-white!
-
-                                        sm:text-[2rem]
-
-                                        lg:text-[2.15rem]
-
-                                        xl:text-[2.4rem]
+                                        sm:text-[1.9rem]!
+                                        md:text-[2.1rem]!
+                                        lg:text-[2rem]!
+                                        xl:text-[2.65rem]!
                                     "
                                 >
                                     {current.name}
                                 </h2>
 
-                                <p
+                                {current.description && (
+                                    <p
+                                        className="
+                                            mt-2.5
+                                            max-w-xl
+                                            font-bengali
+                                            text-[12px]
+                                            font-normal
+                                            leading-[1.95]
+                                            text-white/78
+                                            sm:text-[13px]
+                                            lg:text-[13px]
+                                            xl:text-[15px]
+                                        "
+                                    >
+                                        {current.description}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* =================================================
+                        META
+                    ================================================== */}
+
+                    <div
+                        className="
+                            grid
+                            grid-cols-1
+                            divide-y
+                            divide-border
+                            sm:grid-cols-2
+                            sm:divide-x
+                            sm:divide-y-0
+                        "
+                    >
+                        <div className="px-5 py-4.5 sm:px-6 sm:py-5 lg:px-6 xl:px-7">
+                            <div className="flex items-center gap-2">
+                                <MapPin
+                                    size={15}
+                                    strokeWidth={1.8}
+                                    className="shrink-0 text-primary"
+                                />
+
+                                <span
                                     className="
-                                        mt-2
-                                        max-w-lg
                                         font-bengali
-                                        text-[13px]
-                                        font-normal
-                                        leading-[1.9]
-                                        text-white/75
-
-                                        sm:max-w-xl
-                                        sm:text-[14px]
-
-                                        lg:max-w-2xl
-                                        lg:text-[14px]
-
-                                        xl:text-[15px]
+                                        text-[11px]
+                                        font-medium
+                                        leading-[1.8]
+                                        text-text-secondary
                                     "
                                 >
-                                    {current.description}
-                                </p>
+                                    কোথায় প্রয়োজন
+                                </span>
                             </div>
+
+                            <p
+                                className="
+                                    mt-1
+                                    font-bengali
+                                    text-sm
+                                    font-medium
+                                    leading-[1.8]
+                                    text-text-primary
+                                "
+                            >
+                                {current.location ||
+                                    'বিভিন্ন প্রয়োজনীয় এলাকায়'}
+                            </p>
+                        </div>
+
+                        <div className="px-5 py-4.5 sm:px-6 sm:py-5 lg:px-6 xl:px-7">
+                            <span
+                                className="
+                                    font-bengali
+                                    text-[11px]
+                                    font-medium
+                                    leading-[1.8]
+                                    text-text-secondary
+                                "
+                            >
+                                বর্তমানে সক্রিয়
+                            </span>
+
+                            <p
+                                className="
+                                    mt-1
+                                    font-bengali
+                                    text-sm
+                                    font-medium
+                                    leading-[1.8]
+                                    text-text-primary
+                                "
+                            >
+                                {activeCampaigns.length}টি উদ্যোগ
+                            </p>
                         </div>
                     </div>
                 </section>
 
-                {/* =====================================================
-    CONTENT
-====================================================== */}
-<div
-    className="
-        mt-10
-        sm:mt-12
-        lg:mt-14
-        xl:mt-16
-    "
->
-    {/* =================================================
-        ABOUT
-    ================================================== */}
-    {current.about && (
-        <section
-            className="
-                max-w-3xl
-                lg:max-w-2xl
-                xl:max-w-3xl
-            "
-        >
-            <div className="flex items-center gap-3">
-                <span
-                    className="
-                        h-1
-                        w-8
-                        shrink-0
-                        rounded-full
-                        bg-accent!
-                    "
-                />
+                {/* =================================================
+                    CONTENT
+                ================================================== */}
 
-                <h3
-                    className="
-                        font-bengali!
-                        text-[15px]!
-                        font-semibold!
-                        leading-[1.8]!
-                        text-primary!
-                        sm:text-base!
-                    "
-                >
-                    কেন এটি গুরুত্বপূর্ণ
-                </h3>
-            </div>
-
-            <p
-                className="
-                    mt-5
-                    font-bengali!
-                    text-[16px]!
-                    font-normal!
-                    leading-[2.05]!
-                    text-text-body!
-                    sm:text-[17px]!
-                    sm:leading-[2.1]!
-                    lg:text-[16px]!
-                    xl:text-[17px]!
-                "
-            >
-                {current.about}
-            </p>
-        </section>
-    )}
-
-    {/* =================================================
-        SUPPORT
-    ================================================== */}
-    {supportTypes.length > 0 && (
-        <section
-            className="
-                mt-14
-                sm:mt-16
-                lg:mt-18
-                xl:mt-20
-            "
-        >
-            <div
-                className="
-                    max-w-3xl
-                    lg:max-w-2xl
-                    xl:max-w-3xl
-                "
-            >
-                <div className="flex items-center gap-3">
-                    <span
-                        className="
-                            h-1
-                            w-8
-                            shrink-0
-                            rounded-full
-                            bg-primary!
-                        "
-                    />
-
-                    <h3
-                        className="
-                            font-bengali!
-                            text-[15px]!
-                            font-semibold!
-                            leading-[1.8]!
-                            text-primary!
-                            sm:text-base!
-                        "
-                    >
-                        পাশে থাকার সুযোগ
-                    </h3>
-                </div>
-
-                <p
-                    className="
-                        mt-5
-                        max-w-2xl
-                        font-bengali!
-                        text-[14px]!
-                        font-normal!
-                        leading-[2]!
-                        text-text-body!
-                        sm:text-[15px]!
-                        sm:leading-[2.05]!
-                    "
-                >
-                    আপনার সামর্থ্য ও সময় অনুযায়ী এই উদ্যোগে
-                    বিভিন্নভাবে অবদান রাখা সম্ভব।
-                </p>
-
-                <div
-                    className="
-                        mt-6
-                        grid
-                        gap-x-10
-                        gap-y-3
-                        sm:grid-cols-2
-                        lg:grid-cols-1
-                        xl:grid-cols-2
-                        xl:gap-y-4
-                    "
-                >
-                    {supportTypes.map((type, index) => (
-                        <div
-                            key={`${type}-${index}`}
+                <div className="mt-10 sm:mt-12 lg:mt-12 xl:mt-16">
+                    {current.about && (
+                        <section
                             className="
-                                flex
-                                items-start
-                                gap-3
-                                py-1
+                                max-w-3xl
+                                border-l-2
+                                border-primary/15
+                                pl-4
+                                sm:pl-5
+                                lg:pl-5
+                                xl:pl-6
                             "
                         >
-                            <span
+                            <p
                                 className="
-                                    mt-[0.7rem]
-                                    h-1.5
-                                    w-1.5
-                                    shrink-0
-                                    rounded-full
-                                    bg-accent!
+                                    font-bengali
+                                    text-[14px]
+                                    font-medium
+                                    leading-[1.9]
+                                    text-primary
+                                    sm:text-[15px]
                                 "
-                            />
+                            >
+                                কেন এই সহায়তা গুরুত্বপূর্ণ
+                            </p>
 
                             <p
                                 className="
-                                    font-bengali!
-                                    text-[14px]!
-                                    font-medium!
-                                    leading-[1.9]!
-                                    text-text-primary!
-                                    sm:text-[15px]!
+                                    mt-3
+                                    font-bengali
+                                    text-[15px]
+                                    font-normal
+                                    leading-[2.05]
+                                    text-text-body
+                                    sm:text-[16px]
+                                    sm:leading-[2.1]
+                                    xl:text-[17px]
                                 "
                             >
-                                {type}
+                                {current.about}
                             </p>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        </section>
-    )}
+                        </section>
+                    )}
 
-    {/* =================================================
-        CTA
-    ================================================== */}
+                    {supportTypes.length > 0 && (
+                        <section className="mt-12 sm:mt-14 lg:mt-14 xl:mt-18">
+                            <div className="max-w-3xl">
+                                <p
+                                    className="
+                                        font-bengali
+                                        text-[14px]
+                                        font-semibold
+                                        leading-[1.8]
+                                        text-text-primary
+                                        sm:text-[15px]
+                                    "
+                                >
+                                    কীভাবে পাশে থাকবেন
+                                </p>
+
+                                <p
+                                    className="
+                                        mt-1.5
+                                        max-w-xl
+                                        font-bengali
+                                        text-[12px]
+                                        leading-[1.9]
+                                        text-text-secondary
+                                        sm:text-[13px]
+                                        sm:leading-[2]
+                                    "
+                                >
+                                    আপনার সামর্থ্য ও সময় অনুযায়ী সহায়তার
+                                    বিভিন্ন পথ রয়েছে।
+                                </p>
+
+                               <div
+    className="
+        max-w-3xl
+        pt-6
+    "
+>
     <div
         className="
-            mt-10
-            sm:mt-11
-            lg:mt-12
-            xl:mt-14
+            flex
+            flex-wrap
+            items-baseline
+            gap-x-2
+            gap-y-1
         "
     >
-        <Link
-            to={`/campaigns/category/${current.slug}`}
-            className="
-                group
-                inline-flex
-                min-h-11
-                items-center
-                justify-center
-                gap-3
-                rounded-lg
-                bg-primary!
-                px-5
-                py-2.5
-                font-bengali!
-                text-[14px]!
-                font-medium!
-                leading-[1.8]!
-                text-white!
-                shadow-sm
-                transition-all
-                duration-200
-                hover:bg-primary-hover!
-                hover:shadow-md
-                focus-visible:outline-none
-                focus-visible:ring-2
-                focus-visible:ring-primary/30
-                focus-visible:ring-offset-2
-                sm:px-5
-            "
-        >
-            <span>এই বিভাগের উদ্যোগগুলো দেখুন</span>
-
-            <span
-                className="
-                    flex
-                    h-6
-                    w-6
-                    shrink-0
-                    items-center
-                    justify-center
-                    rounded-full
-                    bg-white/10
-                    transition-colors
-                    duration-200
-                    group-hover:bg-white/15
-                "
-            >
-                <ArrowRight
-                    size={15}
-                    strokeWidth={1.9}
+        {supportTypes.map((type, index) => (
+            <React.Fragment key={`${type}-${index}`}>
+                <span
                     className="
-                        transition-transform
-                        duration-200
-                        group-hover:translate-x-0.5
+                        font-bengali
+                        text-[15px]
+                        font-medium
+                        leading-[2]
+                        tracking-[-0.01em]
+                        text-text-primary
+                        sm:text-[16px]
                     "
-                />
-            </span>
-        </Link>
+                >
+                    {type}
+                </span>
+
+                {index < supportTypes.length - 1 && (
+                    <span
+                        aria-hidden="true"
+                        className="
+                            mx-1
+                            inline-block
+                            h-1
+                            w-1
+                            shrink-0
+                            rounded-full
+                            bg-accent
+                            align-middle
+                        "
+                    />
+                )}
+            </React.Fragment>
+        ))}
     </div>
 </div>
+                            </div>
+                        </section>
+                    )}
+
+                    <div className="mt-9 sm:mt-10 lg:mt-10 xl:mt-12">
+                        <Link
+                            to={`/campaigns/category/${current.slug}`}
+                            className="
+                                group
+                                inline-flex
+                                items-center
+                                gap-3
+                                border-b
+                                border-primary/30
+                                pb-2
+                                font-bengali
+                                text-[13px]
+                                font-medium
+                                leading-[1.8]
+                                text-primary
+                                transition-colors
+                                duration-200
+                                hover:border-primary
+                                hover:text-primary-hover
+                                focus-visible:outline-none
+                                focus-visible:ring-2
+                                focus-visible:ring-primary/25
+                                focus-visible:ring-offset-4
+                                sm:text-[14px]
+                            "
+                        >
+                            <span>এই ক্ষেত্রের উদ্যোগগুলো দেখুন</span>
+
+                            <ArrowRight
+                                size={16}
+                                strokeWidth={1.9}
+                                className="
+                                    transition-transform
+                                    duration-200
+                                    group-hover:translate-x-1
+                                "
+                            />
+                        </Link>
+                    </div>
+                </div>
             </motion.div>
         </AnimatePresence>
     );

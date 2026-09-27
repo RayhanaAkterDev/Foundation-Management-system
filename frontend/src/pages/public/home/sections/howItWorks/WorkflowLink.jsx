@@ -1,10 +1,9 @@
 import React from 'react';
 
 import { Link } from 'react-router-dom';
+import { TbArrowNarrowRight } from 'react-icons/tb';
 
 import Motion from '@/components/motion/Motion';
-
-import { TbArrowNarrowRight } from 'react-icons/tb';
 
 const WorkflowLink = () => {
     return (
@@ -13,10 +12,12 @@ const WorkflowLink = () => {
             viewport={{ once: true, amount: 0.3 }}
             className="
                 mt-10
-                sm:mt-12
-                lg:mt-14
                 flex
                 justify-center
+                sm:mt-12
+                md:mt-14
+                lg:mt-12
+                xl:mt-16
             "
         >
             <Link
@@ -25,56 +26,57 @@ const WorkflowLink = () => {
                     group
                     inline-flex
                     items-center
-                    gap-2.5
-
-                    text-sm
-                    sm:text-[15px]
+                    gap-3
+                    rounded-full
+                    border
+                    border-primary/15
+                    bg-surface/70
+                    px-5
+                    py-2.5
+                    font-bengali
+                    text-[15px]
                     font-medium
-                    text-text-secondary
-
-                    transition-colors
-                    duration-200
-
+                    leading-none
+                    text-text-primary
+                    shadow-sm
+                    transition-all
+                    duration-300
+                    hover:-translate-y-0.5
+                    hover:border-primary/30
+                    hover:bg-surface
                     hover:text-primary
+                    hover:shadow-[0_8px_24px_rgba(15,118,110,0.08)]
                     focus-visible:outline-none
                     focus-visible:ring-2
                     focus-visible:ring-primary/25
                     focus-visible:ring-offset-4
+                    sm:text-[16px]
+                    lg:text-[17px]
                 "
             >
-                <span className="relative">
-                    <span>কীভাবে কাজ করে দেখুন</span>
+                <span
+                    className="
+                        h-1.5
+                        w-1.5
+                        shrink-0
+                        rounded-full
+                        bg-primary/65
+                        transition-transform
+                        duration-300
+                        group-hover:scale-125
+                    "
+                />
 
-                    <span
-                        className="
-                            absolute
-                            -bottom-1
-                            left-0
-                            h-px
-                            w-full
-                            origin-left
-                            scale-x-0
-                            bg-primary/60
-
-                            transition-transform
-                            duration-300
-                            ease-out
-
-                            group-hover:scale-x-100
-                        "
-                    />
-                </span>
+                <span>কীভাবে কাজ করে দেখুন</span>
 
                 <TbArrowNarrowRight
-                    size={19}
-                    strokeWidth={1.8}
+                    size={20}
+                    strokeWidth={1.7}
                     className="
                         shrink-0
                         text-primary/60
-
                         transition-all
                         duration-300
-
                         group-hover:translate-x-1
                         group-hover:text-primary
                     "

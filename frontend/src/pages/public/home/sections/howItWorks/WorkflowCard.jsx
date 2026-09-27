@@ -1,7 +1,6 @@
 import React from 'react';
 
 import Motion from '@/components/motion/Motion';
-
 import { TbArrowNarrowRight } from 'react-icons/tb';
 
 const WorkflowCard = ({ item, index, flow }) => {
@@ -19,39 +18,41 @@ const WorkflowCard = ({ item, index, flow }) => {
                 ${index === 3 ? 'xl:mt-10' : ''}
             `}
         >
-            {/* CONNECTOR */}
+            {/* DESKTOP CONNECTOR */}
             {index !== flow.length - 1 && (
                 <div
                     className="
-                        hidden xl:flex
+                        pointer-events-none
                         absolute
+                        -right-4
                         top-1/2
-                        -right-5
+                        z-10
+                        hidden
                         -translate-y-1/2
                         items-center
-                        z-10
+                        lg:flex
+                        xl:-right-5
                     "
                 >
                     <div
                         className={`
-                            w-8
                             h-px
-                            transition-colors
-                            duration-300
-                            ${isAccent ? 'bg-accent/30' : 'bg-primary/20'}
+                            w-4
+                            xl:w-7
+                            ${isAccent ? 'bg-accent/25' : 'bg-primary/15'}
                         `}
                     />
 
                     <TbArrowNarrowRight
                         size={17}
-                        strokeWidth={1.8}
+                        strokeWidth={1.5}
                         className="
                             -ml-px
-                            text-primary/35
+                            text-primary/30
                             transition-all
                             duration-300
                             group-hover:translate-x-0.5
-                            group-hover:text-primary/65
+                            group-hover:text-primary/55
                         "
                     />
                 </div>
@@ -59,82 +60,73 @@ const WorkflowCard = ({ item, index, flow }) => {
 
             {/* CARD */}
             <Motion
-                whileHover={{ y: -4 }}
+                whileHover={{ y: -2 }}
                 transition={{
-                    duration: 0.28,
+                    duration: 0.24,
                     ease: [0.22, 1, 0.36, 1],
                 }}
                 className={`
                     relative
+                    h-full
+                    min-h-64
                     overflow-hidden
-                    rounded-2xl
+                    rounded-xl
                     border
                     p-5
                     sm:p-6
-                    lg:p-7
-                    min-h-65
-                    md:h-full
-                    xl:min-h-65
-
-                    transition-all
+                    lg:min-h-80
+                    lg:px-5
+                    lg:py-6
+                    xl:min-h-72
+                    xl:p-7
+                    transition-[background-color,border-color,box-shadow]
                     duration-300
 
                     ${
                         isAccent
                             ? `
-                                bg-accent-soft/55
-                                border-accent/25
-                                hover:border-accent/40
+                                border-accent/20
+                                bg-accent-soft/35
+                                hover:border-accent/30
+                                hover:bg-accent-soft/50
                             `
                             : isStrong
                               ? `
-                                    bg-primary-soft/65
-                                    border-primary/25
-                                    hover:border-primary/40
+                                    border-primary/18
+                                    bg-primary-soft/35
+                                    hover:border-primary/28
+                                    hover:bg-primary-soft/50
                                 `
                               : isSoft
                                 ? `
-                                      bg-primary-soft/30
-                                      border-primary/15
-                                      hover:border-primary/30
-                                  `
+                                    border-primary/10
+                                    bg-primary-soft/12
+                                    hover:border-primary/20
+                                    hover:bg-primary-soft/22
+                                `
                                 : `
-                                      bg-surface
-                                      border-border
-                                      hover:border-primary/25
-                                  `
+                                    border-border/80
+                                    bg-surface
+                                    hover:border-primary/20
+                                    hover:bg-surface
+                                `
                     }
+
+                    hover:shadow-[0_10px_30px_rgba(15,118,110,0.06)]
                 `}
             >
-                {/* TOP ACCENT */}
-                <div
-                    className={`
-                        absolute
-                        inset-x-0
-                        top-0
-                        h-0.5
-                        ${
-                            isAccent
-                                ? 'bg-accent/70'
-                                : isStrong
-                                  ? 'bg-primary/55'
-                                  : 'bg-primary/20'
-                        }
-                    `}
-                />
-
-                {/* STEP + INDEX MARK */}
-                <div className="flex items-center justify-between">
-                    <span
+                {/* STEP */}
+                <div className="flex items-center justify-between gap-4">
+                    <div
                         className={`
-                            inline-flex
+                            flex
                             items-center
-                            gap-2
-                            text-xs
-                            sm:text-sm
+                            gap-2.5
+                            font-bengali
+                            text-sm
                             font-medium
-                            tracking-normal
-
+                            leading-none
+                            lg:text-[15px]
                             ${
                                 isAccent
                                     ? 'text-accent-hover'
@@ -146,43 +138,43 @@ const WorkflowCard = ({ item, index, flow }) => {
                     >
                         <span
                             className={`
-                                flex
-                                h-6
-                                min-w-6
-                                items-center
-                                justify-center
-                                rounded-md
-                                border
-                                px-1.5
-                                text-[11px]
+                                font-sans
+                                text-[13px]
                                 font-semibold
-
+                                tracking-wide
                                 ${
                                     isAccent
-                                        ? 'border-accent/25 bg-accent/10 text-accent-hover'
+                                        ? 'text-accent-hover'
                                         : isStrong
-                                          ? 'border-primary/20 bg-primary/10 text-primary'
-                                          : 'border-border bg-surface/70 text-text-secondary'
+                                          ? 'text-primary'
+                                          : 'text-text-secondary'
                                 }
                             `}
                         >
                             {item.step}
                         </span>
 
-                        <span>ধাপ</span>
-                    </span>
+                        <span className="h-1 w-1 rounded-full bg-current opacity-35" />
 
+                        <span>ধাপ</span>
+                    </div>
+
+                    {/* TEAL DOT */}
                     <span
                         className={`
-                            h-1.5
-                            w-1.5
+                            h-2
+                            w-2
+                            shrink-0
                             rounded-full
+                            transition-transform
+                            duration-300
+                            group-hover:scale-125
                             ${
                                 isAccent
                                     ? 'bg-accent/70'
                                     : isStrong
-                                      ? 'bg-primary/60'
-                                      : 'bg-primary/25'
+                                      ? 'bg-primary/65'
+                                      : 'bg-primary/35'
                             }
                         `}
                     />
@@ -191,54 +183,36 @@ const WorkflowCard = ({ item, index, flow }) => {
                 {/* TITLE */}
                 <h3
                     className="
-                        mt-6
-                        max-w-[18rem]
-                        text-[19px]
-                        sm:text-[21px]
-                        lg:text-[22px]
-
-                        font-bold
-                        leading-[1.4]
-                        tracking-normal
-
-                        text-text-primary
-
+                        mt-7
+                        max-w-[19rem]
                         font-bengali
+                        text-[20px]
+                        font-semibold
+                        leading-[1.42]
+                        tracking-normal
+                        text-text-primary
+                        sm:text-[22px]
+                        lg:text-[21px]
+                        xl:text-[23px]
                     "
                 >
                     {item.title}
                 </h3>
 
-                {/* DIVIDER */}
-                <div
-                    className={`
-                        mt-4
-                        h-px
-                        w-10
-                        transition-all
-                        duration-300
-                        group-hover:w-14
-                        ${
-                            isAccent
-                                ? 'bg-accent/60'
-                                : isStrong
-                                  ? 'bg-primary/50'
-                                  : 'bg-primary/30'
-                        }
-                    `}
-                />
-
                 {/* DESCRIPTION */}
                 <p
                     className="
-                        mt-5
-                        text-[14px]
-                        sm:text-[15px]
+                        mt-4
+                        max-w-[20rem]
                         font-bengali
+                        text-[15px]
                         font-normal
-                        leading-[1.85]
+                        leading-[1.75]
                         tracking-normal
                         text-text-body
+                        sm:text-[16px]
+                        lg:text-[15px]
+                        xl:text-[16px]
                     "
                 >
                     {item.desc}
@@ -255,11 +229,14 @@ const WorkflowCard = ({ item, index, flow }) => {
                             border-t
                             border-primary/10
                             pt-4
-                            text-sm
                             font-bengali
+                            text-[14px]
                             font-medium
-                            leading-[1.7]
+                            leading-[1.65]
                             text-primary
+                            sm:text-[15px]
+                            lg:text-[14px]
+                            xl:text-[15px]
                         "
                     >
                         <span

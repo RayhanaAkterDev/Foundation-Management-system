@@ -1,100 +1,166 @@
 import { Link } from 'react-router-dom';
+
+import { HiArrowSmRight, HiOutlineLocationMarker } from 'react-icons/hi';
+
+import { FiClock, FiUsers } from 'react-icons/fi';
+
 import defaultCampaignImage from '@/assets/campaigns/campaignsHeroImage.png';
 
 export default function CampaignCard({ campaign }) {
-    const imageUrl = campaign.image || campaign.cover_image || defaultCampaignImage;
-    const raisedAmount = Number(campaign.raised ?? campaign.collected_amount ?? 0);
+    const imageUrl =
+        campaign.image || campaign.cover_image || defaultCampaignImage;
+
+    const raisedAmount = Number(
+        campaign.raised ?? campaign.collected_amount ?? 0,
+    );
+
     const progressPercent = Number(campaign.progress ?? 0);
+
     const supporterCount = Number(campaign.supporters ?? 0);
-    const descriptionText = campaign.shortDescription || campaign.description || '';
+
+    const descriptionText =
+        campaign.shortDescription || campaign.description || '';
+
+    const location = campaign.location || campaign.district || '';
+
+    const safeProgress = Math.min(100, Math.max(0, progressPercent));
 
     return (
-        <Link to={`/campaign/${campaign.id}`} className="group block">
-            <article className="relative overflow-hidden rounded-3xl">
-                {/* Image */}
-                <img
-                    src={imageUrl}
-                    alt={campaign.title || 'Campaign'}
-                    className="h-95 w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    onError={(e) => {
-                        e.currentTarget.onerror = null;
-                        e.currentTarget.src = defaultCampaignImage;
-                    }}
-                />
-
-                {/* Overlay */}
-                <div className="absolute inset-0 bg-linear-to-t from-black/85 via-black/55 to-transparent" />
-                <div className="absolute inset-0 bg-linear-to-b from-transparent via-transparent to-black/25" />
-
-                {/* Content */}
-                <div className="absolute bottom-0 left-0 right-0 p-6 space-y-3">
-                    {/* Category & Days Left badges */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                        {campaign.category && (
-                            <span className="inline-flex items-center rounded-full px-3 py-1 bg-white/20 backdrop-blur-md border border-white/20 text-xs font-semibold text-white uppercase tracking-wider">
-                                {campaign.category}
-                            </span>
-                        )}
-
-                        {campaign.daysLeft != null && (
-                            <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 bg-black/40 backdrop-blur-md border border-white/10">
-                                <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
-                                <span className="text-xs font-medium text-white/90">
-                                    {campaign.daysLeft > 0 ? `${campaign.daysLeft} days left` : 'Ending today'}
-                                </span>
-                            </div>
-                        )}
+        <Link to={`/campaign/${campaign.id}`} className="group block h-full">
+            <article className="relative h-full">
+                {/* IMAGE FRAME */}
+                <div className="relative overflow-hidden">
+                    <div className="aspect-[1.08/1] overflow-hidden bg-background-alt">
+                        <img
+                            src={imageUrl}
+                            alt={campaign.title || 'Campaign'}
+                            className="h-full w-full object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-[1.07]"
+                            onError={(e) => {
+                                e.currentTarget.onerror = null;
+                                e.currentTarget.src = defaultCampaignImage;
+                            }}
+                        />
                     </div>
 
-                    {/* Title */}
-                    <h3 className="text-xl font-semibold text-white leading-snug tracking-tight line-clamp-2">
+                    {/* IMAGE TONE */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+
+                    {/* CATEGORY */}
+                    {campaign.category && (
+                        <div className="absolute left-6 top-6">
+                            <span className="font-bengali text-[10px] font-medium tracking-wide text-white">
+                                {campaign.category}
+                            </span>
+                        </div>
+                    )}
+
+                    {/* DAYS */}
+                    {campaign.daysLeft != null && (
+                        <div className="absolute right-6 top-6 flex items-center gap-2 text-white">
+                            <FiClock className="text-[12px]" />
+
+                            <span className="font-bengali text-[10px]">
+                                {campaign.daysLeft > 0
+                                    ? `${campaign.daysLeft} দিন বাকি`
+                                    : 'আজ শেষ'}
+                            </span>
+                        </div>
+                    )}
+
+                    {/* IMAGE INDEX */}
+                    <div className="absolute bottom-5 left-6">
+                        <span className="text-[9px] font-medium uppercase tracking-[0.25em] text-white/70">
+                            Stand For People
+                        </span>
+                    </div>
+                </div>
+
+                {/* FLOATING SHEET */}
+                <div className="relative z-10 -mt-12 ml-5 mr-5 bg-surface px-6 pb-6 pt-7 shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
+                    {/* LOCATION */}
+                    {location && (
+                        <div className="mb-4 flex items-center gap-1.5">
+                            <HiOutlineLocationMarker className="text-[14px] text-primary" />
+
+                            <span className="font-bengali text-[10px] text-text-muted">
+                                {location}
+                            </span>
+                        </div>
+                    )}
+
+                    {/* TITLE */}
+                    <h3 className="font-bengali text-[22px] font-semibold leading-[1.48] tracking-[-0.025em] text-text-primary">
                         {campaign.title}
                     </h3>
 
-                    {/* Description */}
+                    {/* DESCRIPTION */}
                     {descriptionText && (
-                        <p className="text-sm leading-relaxed text-white/80 line-clamp-2">
+                        <p className="mt-3 line-clamp-2 max-w-[95%] font-bengali text-[12px] leading-[1.9] text-text-secondary">
                             {descriptionText}
                         </p>
                     )}
 
-                    {/* Location if available */}
-                    {(campaign.location || campaign.district) && (
-                        <p className="text-xs text-white/60">
-                            📍 {campaign.location || campaign.district}
-                        </p>
-                    )}
+                    {/* DIVIDER */}
+                    <div className="my-6 h-px bg-border" />
 
-                    {/* Progress */}
-                    <div className="rounded-2xl bg-white/15 border border-white/20 backdrop-blur-md p-4 space-y-3">
-                        <div className="flex items-end justify-between">
-                            <div>
-                                <div className="text-xl font-semibold text-white">
-                                    ৳{raisedAmount.toLocaleString()}
-                                </div>
-                                <div className="text-xs text-white/60">
-                                    raised so far
-                                </div>
-                            </div>
+                    {/* FUNDING ROW */}
+                    <div className="grid grid-cols-[1fr_auto] gap-5">
+                        <div>
+                            <span className="font-bengali text-[9px] uppercase tracking-[0.08em] text-text-muted">
+                                সংগ্রহ হয়েছে
+                            </span>
 
-                            <div className="text-base font-semibold text-white/90">
-                                {progressPercent}%
+                            <div className="mt-1 text-[21px] font-semibold tracking-[-0.025em] text-text-primary">
+                                ৳{raisedAmount.toLocaleString()}
                             </div>
                         </div>
 
-                        {/* Progress Bar */}
-                        <div className="h-1.5 w-full rounded-full bg-white/10 overflow-hidden">
+                        <div className="border-l border-border pl-5">
+                            <span className="font-bengali text-[9px] text-text-muted">
+                                সহায়তাকারী
+                            </span>
+
+                            <div className="mt-1 flex items-center gap-1.5">
+                                <FiUsers className="text-[12px] text-primary" />
+
+                                <span className="text-[16px] font-semibold text-text-primary">
+                                    {supporterCount}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* PROGRESS */}
+                    <div className="mt-6">
+                        <div className="flex items-center justify-between">
+                            <span className="font-bengali text-[10px] text-text-muted">
+                                সহায়তার অগ্রগতি
+                            </span>
+
+                            <span className="text-[11px] font-semibold text-primary">
+                                {safeProgress}%
+                            </span>
+                        </div>
+
+                        <div className="mt-2 h-[3px] bg-background-alt">
                             <div
-                                className="h-full rounded-full bg-linear-to-r from-emerald-600 via-emerald-500 to-emerald-400 transition-all duration-700 ease-out"
+                                className="h-full bg-primary transition-all duration-1000"
                                 style={{
-                                    width: `${Math.min(100, Math.max(0, progressPercent))}%`,
+                                    width: `${safeProgress}%`,
                                 }}
                             />
                         </div>
+                    </div>
 
-                        <div className="text-xs text-white/65">
-                            Backed by {supporterCount} donors
-                        </div>
+                    {/* ACTION */}
+                    <div className="mt-6 flex items-center justify-between">
+                        <span className="font-bengali text-[11px] font-semibold text-text-primary transition-colors duration-300 group-hover:text-primary">
+                            এই উদ্যোগ সম্পর্কে জানুন
+                        </span>
+
+                        <span className="flex h-9 w-9 items-center justify-center bg-primary text-white transition-transform duration-300 group-hover:translate-x-1">
+                            <HiArrowSmRight className="text-[17px]" />
+                        </span>
                     </div>
                 </div>
             </article>

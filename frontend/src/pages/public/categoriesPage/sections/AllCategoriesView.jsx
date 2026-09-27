@@ -52,6 +52,12 @@ const categoryVisuals = {
         tone: 'দুর্যোগ সহায়তা',
     },
 
+    other: {
+        icon: TbBuildingCommunity,
+        image: 'https://images.unsplash.com/photo-1559027615-cd4628902d4a?auto=format&fit=crop&q=88&w=1400',
+        tone: 'অন্যান্য',
+    },
+
     'water-sanitation': {
         icon: TbDroplet,
         image: 'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?auto=format&fit=crop&q=88&w=1400',
@@ -78,7 +84,7 @@ const categoryVisuals = {
 
     'emergency-relief': {
         icon: TbBolt,
-        image: 'https://images.unsplash.com/photo-1584473457493-17c4c24290c7?auto=format&fit=crop&q=88&w=1400',
+        image: 'https://images.unsplash.com/photo-1593113630400-ea4288922497?auto=format&fit=crop&q=88&w=1400',
         tone: 'জরুরি সহায়তা',
     },
 };

@@ -1,248 +1,432 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useCallback, useEffect, useState } from 'react';
 
-import { fetchPublicCampaigns, fetchPublicCategories } from '@/api/publicCampaignsApi';
+import { useParams } from 'react-router-dom';
+
+import { HiOutlineExclamationCircle } from 'react-icons/hi';
+
+import {
+    fetchPublicCampaigns,
+    fetchPublicCategories,
+} from '@/api/publicCampaignsApi';
 
 import CampaignCard from './sections/CampaignCard';
-import SectionHeading from '@/components/SectionHeading';
-import Pagination from './sections/Pagination';
-import SearchBar from './sections/SearchBar';
 import HeroSection from './sections/HeroSection';
-
-const ITEMS_PER_PAGE = 6;
 
 const Campaigns = () => {
     const { categoryId } = useParams();
-    const navigate = useNavigate();
 
     const [campaigns, setCampaigns] = useState([]);
-    const [categories, setCategories] = useState([]);
+    const [, setCategories] = useState([]);
+    const [categoryName, setCategoryName] = useState(null);
+
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [search, setSearch] = useState('');
-    const [currentPage, setCurrentPage] = useState(1);
-    const [activeCategory, setActiveCategory] = useState(categoryId || 'all');
 
-    useEffect(() => {
-        if (categoryId) {
-            setActiveCategory(categoryId);
+    /**
+     * Load campaigns and categories from the backend.
+     *
+     * Important:
+     * The backend performs the category filtering.
+     * We do NOT fetch all campaigns and filter them locally.
+     */
+    const loadCampaignData = useCallback(async () => {
+        const normalizedCategoryId = categoryId
+            ? decodeURIComponent(categoryId).trim().toLowerCase()
+            : null;
+
+        const [campaignsData, categoriesData] = await Promise.all([
+            fetchPublicCampaigns(
+                normalizedCategoryId
+                    ? {
+                          category: normalizedCategoryId,
+                      }
+                    : {},
+            ),
+            fetchPublicCategories(),
+        ]);
+
+        const safeCampaigns = Array.isArray(campaignsData) ? campaignsData : [];
+        const safeCategories = Array.isArray(categoriesData)
+            ? categoriesData
+            : [];
+
+        setCampaigns(safeCampaigns);
+        setCategories(safeCategories);
+
+        /**
+         * Resolve the page title from the canonical
+         * categories API using the URL slug.
+         */
+        if (normalizedCategoryId) {
+            const matchedCategory = safeCategories.find(
+                (category) =>
+                    String(category?.slug ?? '')
+                        .trim()
+                        .toLowerCase() === normalizedCategoryId,
+            );
+
+            setCategoryName(matchedCategory?.name ?? null);
         } else {
-            setActiveCategory('all');
+            setCategoryName(null);
         }
     }, [categoryId]);
 
-    const loadData = async () => {
+    /**
+     * Fetch whenever the category URL changes.
+     */
+    useEffect(() => {
+        let cancelled = false;
+
+        const fetchData = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+
+                await loadCampaignData();
+
+                if (cancelled) {
+                    return;
+                }
+            } catch (err) {
+                if (cancelled) {
+                    return;
+                }
+
+                console.error('Error loading public campaigns:', err);
+
+                setCampaigns([]);
+
+                setError(
+                    'উদ্যোগগুলোর তথ্য এই মুহূর্তে পাওয়া যাচ্ছে না। কিছুক্ষণ পর আবার চেষ্টা করুন।',
+                );
+            } finally {
+                if (!cancelled) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        fetchData();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [loadCampaignData]);
+
+    /**
+     * Retry.
+     */
+    const handleRetry = async () => {
         try {
             setLoading(true);
             setError(null);
 
-            const [campaignsData, categoriesData] = await Promise.all([
-                fetchPublicCampaigns(),
-                fetchPublicCategories(),
-            ]);
-
-            setCampaigns(campaignsData || []);
-            setCategories(categoriesData || []);
+            await loadCampaignData();
         } catch (err) {
             console.error('Error loading public campaigns:', err);
-            setError('Unable to load campaigns from the server. Please try again.');
+
+            setCampaigns([]);
+
+            setError(
+                'উদ্যোগগুলোর তথ্য এই মুহূর্তে পাওয়া যাচ্ছে না। কিছুক্ষণ পর আবার চেষ্টা করুন।',
+            );
         } finally {
             setLoading(false);
         }
     };
 
-    useEffect(() => {
-        loadData();
-    }, []);
+    const isCategoryPage = Boolean(categoryId);
 
-    const handleCategoryClick = (catName) => {
-        setActiveCategory(catName);
-        setCurrentPage(1);
-        if (catName === 'all') {
-            navigate('/campaigns');
-        } else {
-            navigate(`/campaigns/category/${encodeURIComponent(catName)}`);
-        }
-    };
+    const pageTitle = isCategoryPage ? categoryName || 'উদ্যোগ' : 'সব উদ্যোগ';
 
-    // Filter by category and search
-    const filtered = useMemo(() => {
-        const q = search.trim().toLowerCase();
+    const pageEyebrow = isCategoryPage ? 'সহায়তার ক্ষেত্র' : 'চলমান উদ্যোগ';
 
-        return campaigns.filter((c) => {
-            const matchesCategory =
-                activeCategory === 'all' ||
-                !activeCategory ||
-                String(c.category || '').toLowerCase() === String(activeCategory).toLowerCase();
-
-            if (!matchesCategory) return false;
-
-            if (!q) return true;
-
-            const title = (c.title || '').toLowerCase();
-            const desc = (c.shortDescription || c.description || '').toLowerCase();
-            const location = (c.location || c.district || '').toLowerCase();
-
-            return title.includes(q) || desc.includes(q) || location.includes(q);
-        });
-    }, [search, campaigns, activeCategory]);
-
-    // pagination
-    const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
-
-    const current = useMemo(() => {
-        const start = (currentPage - 1) * ITEMS_PER_PAGE;
-        return filtered.slice(start, start + ITEMS_PER_PAGE);
-    }, [filtered, currentPage]);
+    const pageDescription = isCategoryPage
+        ? categoryName
+            ? `${categoryName} সম্পর্কিত চলমান উদ্যোগগুলো দেখুন এবং আপনার সামর্থ্য অনুযায়ী মানুষের পাশে দাঁড়ান।`
+            : 'এই সহায়তার ক্ষেত্রের উদ্যোগগুলো এই মুহূর্তে পাওয়া যাচ্ছে না।'
+        : 'মানুষের জরুরি প্রয়োজন ও দীর্ঘমেয়াদি পরিবর্তনের জন্য চলমান উদ্যোগগুলো দেখুন এবং আপনার সামর্থ্য অনুযায়ী পাশে দাঁড়ান।';
 
     return (
-        <section className="bg-surface min-h-screen">
-            {/* HERO */}
-            <HeroSection />
+        <main className="min-h-screen bg-surface">
+            {/* Heading */}
 
-            <div
+            {/* CAMPAIGNS AREA */}
+            <section
                 id="explore"
-                className="container-width pb-14 md:pb-16 lg:pb-20"
+                className="container-width border-t border-border/70 py-20 sm:py-24 lg:py-28"
             >
-                {/* HEADER */}
-                <SectionHeading
-                    align="left"
-                    title={activeCategory !== 'all' && activeCategory ? `${activeCategory} Campaigns` : `Active Campaigns`}
-                    headingSize="sectionHero"
-                />
+                <h1
+                    className="
+        relative
+        z-10
+        max-w-[1120px]
+        font-bengali
+        text-[2.75rem]
+        font-semibold
+        leading-[1.32]
+        tracking-[-0.025em]
+        text-text-primary
+        sm:text-[4rem]
+        sm:leading-[1.24]
+        lg:max-w-[1080px]
+        lg:text-[5.35rem]
+        lg:leading-[1.18]
+        xl:max-w-[1180px]
+        xl:text-[6.25rem]
+        xl:leading-[1.16]
+    "
+                >
+                    মানুষের পাশে থাকার
+                    <br />
+                    <span className="text-primary">গল্পগুলো এখান থেকেই</span>
+                    <br />
+                    শুরু হয়।
+                </h1>
+                {/* EDITORIAL INTRO */}
+                {!loading && !error && (
+                    <header className="relative">
+                        <div className="grid gap-8 lg:grid-cols-[1fr_0.52fr] lg:items-end lg:gap-24">
+                            <div>
+                                <div className="mb-6 flex items-center gap-3">
+                                    <span className="h-px w-10 bg-accent" />
 
-                <p className="text-gray-600 mt-2 max-w-2xl">
-                    Discover verified causes and support real people in need.
-                </p>
+                                    <span className="font-bengali text-[11px] font-semibold tracking-[0.08em] text-primary">
+                                        {pageEyebrow}
+                                    </span>
+                                </div>
 
-                {/* CATEGORY FILTER PILLS */}
-                {categories.length > 0 && (
-                    <div className="mt-6 flex flex-wrap items-center gap-2">
-                        <button
-                            type="button"
-                            onClick={() => handleCategoryClick('all')}
-                            className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all ${
-                                activeCategory === 'all'
-                                    ? 'bg-primary text-white shadow-sm'
-                                    : 'bg-white border border-gray-200 text-gray-700 hover:border-primary/50'
-                            }`}
-                        >
-                            All ({campaigns.length})
-                        </button>
-
-                        {categories.map((cat) => {
-                            const name = cat.name || cat;
-                            const count = cat.count;
-                            const isSelected =
-                                String(activeCategory).toLowerCase() === String(name).toLowerCase();
-
-                            return (
-                                <button
-                                    key={name}
-                                    type="button"
-                                    onClick={() => handleCategoryClick(name)}
-                                    className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all ${
-                                        isSelected
-                                            ? 'bg-primary text-white shadow-sm'
-                                            : 'bg-white border border-gray-200 text-gray-700 hover:border-primary/50'
-                                    }`}
+                                <h2
+                                    className="
+                                        max-w-[850px]
+                                        font-bengali
+                                        text-[2.45rem]
+                                        font-semibold
+                                        leading-[1.35]
+                                        tracking-[-0.03em]
+                                        text-text-primary
+                                        sm:text-[3.2rem]
+                                        lg:text-[4rem]
+                                    "
                                 >
-                                    {name} {count !== undefined && `(${count})`}
-                                </button>
-                            );
-                        })}
-                    </div>
+                                    {pageTitle}
+                                </h2>
+                            </div>
+
+                            <div className="lg:pb-2">
+                                <p
+                                    className="
+                                        max-w-[440px]
+                                        font-bengali
+                                        text-[13px]
+                                        leading-[2.05]
+                                        text-text-secondary
+                                        lg:ml-auto
+                                    "
+                                >
+                                    {pageDescription}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div
+                            className="
+                                mt-10
+                                flex
+                                flex-col
+                                gap-3
+                                border-t
+                                border-border/70
+                                pt-5
+                                sm:mt-12
+                                sm:flex-row
+                                sm:items-center
+                                sm:justify-between
+                            "
+                        >
+                            <p className="font-bengali text-[12px] text-text-secondary">
+                                {isCategoryPage && categoryName
+                                    ? `${categoryName} বিভাগের উদ্যোগ`
+                                    : 'সকল চলমান উদ্যোগ'}
+                            </p>
+
+                            <p className="font-bengali text-[11px] text-text-muted">
+                                মোট {campaigns.length}টি উদ্যোগ
+                            </p>
+                        </div>
+                    </header>
                 )}
 
-                {/* SEARCH */}
-                <div className="mt-6 max-w-xl">
-                    <SearchBar
-                        value={search}
-                        onChange={(v) => {
-                            setSearch(v);
-                            setCurrentPage(1);
-                        }}
-                    />
-                </div>
-
-                {/* LOADING STATE */}
+                {/* LOADING */}
                 {loading && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 mt-10">
-                        {[1, 2, 3].map((n) => (
-                            <div
-                                key={n}
-                                className="h-95 rounded-3xl bg-gray-200 animate-pulse"
-                            />
+                    <div
+                        className="
+                            grid
+                            grid-cols-1
+                            gap-x-10
+                            gap-y-14
+                            sm:grid-cols-2
+                            lg:grid-cols-3
+                        "
+                    >
+                        {[1, 2, 3, 4, 5, 6].map((item) => (
+                            <div key={item} className="animate-pulse">
+                                <div className="h-[300px] bg-black/5 sm:h-[330px]" />
+
+                                <div className="pt-6">
+                                    <div className="h-3 w-20 bg-black/5" />
+
+                                    <div className="mt-5 h-7 w-[88%] bg-black/5" />
+
+                                    <div className="mt-2 h-7 w-[65%] bg-black/5" />
+
+                                    <div className="mt-5 h-3 w-full bg-black/5" />
+
+                                    <div className="mt-2 h-3 w-[78%] bg-black/5" />
+
+                                    <div className="mt-7 h-px w-full bg-black/5" />
+
+                                    <div className="mt-5 h-4 w-28 bg-black/5" />
+                                </div>
+                            </div>
                         ))}
                     </div>
                 )}
 
-                {/* ERROR STATE */}
+                {/* ERROR */}
                 {!loading && error && (
-                    <div className="mt-10 rounded-2xl border border-red-200 bg-red-50 p-8 text-center text-red-700">
-                        <p className="font-semibold text-lg">{error}</p>
-                        <button
-                            type="button"
-                            onClick={loadData}
-                            className="mt-4 rounded-xl bg-red-600 px-6 py-2 text-sm font-semibold text-white shadow hover:bg-red-700 transition"
-                        >
-                            Retry
-                        </button>
+                    <div className="border-y border-red-200 py-20 sm:py-24">
+                        <div className="mx-auto max-w-xl text-center">
+                            <HiOutlineExclamationCircle className="mx-auto text-3xl text-red-600" />
+
+                            <h3 className="mt-5 font-bengali text-[21px] font-semibold text-text-primary">
+                                উদ্যোগগুলো লোড করা যায়নি
+                            </h3>
+
+                            <p className="mt-3 font-bengali text-[13px] leading-[2] text-text-secondary">
+                                {error}
+                            </p>
+
+                            <button
+                                type="button"
+                                onClick={handleRetry}
+                                className="
+                                    mt-7
+                                    border
+                                    border-red-600
+                                    px-6
+                                    py-3
+                                    font-bengali
+                                    text-[12px]
+                                    font-semibold
+                                    text-red-700
+                                    transition-all
+                                    duration-300
+                                    hover:bg-red-600
+                                    hover:text-white
+                                "
+                            >
+                                আবার চেষ্টা করুন
+                            </button>
+                        </div>
                     </div>
                 )}
 
-                {/* GRID */}
+                {/* CAMPAIGNS */}
                 {!loading && !error && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 mt-10">
-                        {current.length > 0 ? (
-                            current.map((campaign) => (
-                                <CampaignCard
-                                    key={campaign.id}
-                                    campaign={campaign}
-                                />
-                            ))
+                    <>
+                        {campaigns.length > 0 ? (
+                            <div
+                                className="
+                                    mt-12
+                                    grid
+                                    grid-cols-1
+                                    gap-x-10
+                                    gap-y-16
+                                    sm:grid-cols-2
+                                    lg:mt-16
+                                    lg:grid-cols-3
+                                    lg:gap-y-20
+                                "
+                            >
+                                {campaigns.map((campaign) => (
+                                    <CampaignCard
+                                        key={campaign.id}
+                                        campaign={campaign}
+                                    />
+                                ))}
+                            </div>
                         ) : (
-                            <div className="col-span-full text-center py-20 bg-white rounded-3xl border border-gray-200/60 p-8">
-                                <div className="text-4xl mb-3">🌱</div>
-                                <h3 className="text-lg font-semibold text-gray-800">
-                                    No active campaigns found
+                            <div
+                                className="
+                                    mt-12
+                                    border-y
+                                    border-border
+                                    py-20
+                                    text-center
+                                    sm:mt-16
+                                    sm:py-28
+                                "
+                            >
+                                <div className="mx-auto h-px w-12 bg-accent" />
+
+                                <span
+                                    className="
+                                        mt-6
+                                        block
+                                        font-bengali
+                                        text-[11px]
+                                        font-semibold
+                                        tracking-wide
+                                        text-primary
+                                    "
+                                >
+                                    এই মুহূর্তে কোনো উদ্যোগ নেই
+                                </span>
+
+                                <h3
+                                    className="
+                                        mx-auto
+                                        mt-5
+                                        max-w-2xl
+                                        font-bengali
+                                        text-[25px]
+                                        font-semibold
+                                        leading-[1.6]
+                                        tracking-[-0.015em]
+                                        text-text-primary
+                                        sm:text-[30px]
+                                    "
+                                >
+                                    {isCategoryPage
+                                        ? categoryName
+                                            ? `${categoryName} বিভাগে এখন কোনো চলমান উদ্যোগ নেই।`
+                                            : 'এই সহায়তার ক্ষেত্রটি খুঁজে পাওয়া যায়নি।'
+                                        : 'এই মুহূর্তে কোনো চলমান উদ্যোগ প্রকাশিত হয়নি।'}
                                 </h3>
-                                <p className="text-sm text-gray-500 mt-1 max-w-md mx-auto">
-                                    {search
-                                        ? `No campaigns matched your search for "${search}".`
-                                        : activeCategory !== 'all'
-                                        ? `There are currently no active campaigns in the "${activeCategory}" category.`
-                                        : 'There are currently no active campaigns available for public view.'}
+
+                                <p
+                                    className="
+                                        mx-auto
+                                        mt-4
+                                        max-w-md
+                                        font-bengali
+                                        text-[13px]
+                                        leading-[2]
+                                        text-text-secondary
+                                    "
+                                >
+                                    নতুন উদ্যোগ প্রকাশিত হলে এখানে দেখা যাবে।
                                 </p>
-                                {(search || activeCategory !== 'all') && (
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setSearch('');
-                                            handleCategoryClick('all');
-                                        }}
-                                        className="mt-4 text-sm font-semibold text-primary hover:underline"
-                                    >
-                                        Clear filters
-                                    </button>
-                                )}
                             </div>
                         )}
-                    </div>
+                    </>
                 )}
+            </section>
 
-                {/* PAGINATION */}
-                {!loading && !error && filtered.length > ITEMS_PER_PAGE && (
-                    <div className="flex justify-center mt-10">
-                        <Pagination
-                            currentPage={currentPage}
-                            totalPages={totalPages}
-                            onPageChange={setCurrentPage}
-                        />
-                    </div>
-                )}
-            </div>
-        </section>
+            {/* HERO */}
+            <HeroSection />
+        </main>
     );
 };
 

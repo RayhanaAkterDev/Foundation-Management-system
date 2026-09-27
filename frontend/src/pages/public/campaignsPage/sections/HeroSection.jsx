@@ -1,9 +1,10 @@
 import React from 'react';
-import { TbHeartFilled } from 'react-icons/tb';
+
 import { HiArrowSmRight } from 'react-icons/hi';
+import { FiArrowDown } from 'react-icons/fi';
 
 import Button from '@/components/Button';
-import SectionHeading from '@/components/SectionHeading';
+
 import campaignsHeroImage from '@/assets/campaigns/campaignsHeroImage.png';
 
 const HeroSection = () => {
@@ -14,70 +15,71 @@ const HeroSection = () => {
     };
 
     return (
-        <section className="bg-surface">
-            <div className="container-width section-gap mt-24">
-                {/* TEXT BLOCK */}
-                <SectionHeading
-                    badge={{
-                        label: 'All Campaigns',
-                        variant: 'accent',
-                        tone: 'soft',
-                        size: 'md',
-                    }}
-                    title={
-                        <>
-                            Support real people{' '}
-                            <span className="text-primary sm:block">
-                                when it matters most
-                            </span>
-                        </>
-                    }
-                    headingSize="hero"
-                    description={
-                        <>
-                            Browse verified campaigns and contribute to urgent
-                            needs across communities.
-                        </>
-                    }
-                    descriptionClass="max-w-2xl"
-                />
-
-                {/* CTA */}
-                <div className="mt-7 flex flex-col sm:flex-row gap-3 justify-center">
-                    <Button
-                        size="lg"
-                        to="/volunteer"
-                        variant="accent"
-                        className="w-full sm:w-auto"
-                    >
-                        Become a Volunteer
-                    </Button>
-
-                    <Button
-                        size="lg"
-                        variant="ghost"
-                        onClick={handleScroll}
-                        className=""
-                    >
-                        Explore Campaigns
-                        <HiArrowSmRight className="mt-0.75" />
-                    </Button>
-                </div>
-
-                {/* IMAGE (reduced importance) */}
-                <div className="mt-16 overflow-hidden rounded-3xl">
+        <div className="container-width section-gap mt-20">
+            {/* LARGE EDITORIAL HEADING */}
+            <div className="relative">
+                {/* IMAGE AS PART OF THE EDITORIAL CANVAS */}
+                <div className="relative h-[300px] overflow-hidden rounded-xl sm:h-[410px] lg:h-[500px]">
                     <img
                         src={campaignsHeroImage}
-                        alt="Campaigns Hero"
-                        className="
-                            w-full
-                            h-56 sm:h-72 md:h-80 lg:h-136
-                            object-cover
-                        "
+                        alt="মানবিক সহায়তার উদ্যোগ"
+                        className="h-full w-full object-cover"
                     />
+
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
+
+                    <div className="absolute bottom-0 left-0 p-6 sm:p-8 lg:p-10">
+                        <p className="max-w-[570px] font-bengali text-[17px] font-medium leading-[1.7] text-white sm:text-[21px]">
+                            একটি মানুষের প্রয়োজন থেকে একটি উদ্যোগের জন্ম হয়।
+                            আর মানুষের পাশে দাঁড়ানো থেকেই শুরু হয় পরিবর্তন।
+                        </p>
+                    </div>
+                </div>
+
+                <p className="max-w-150 mt-16 font-bengali text-[14px] leading-[2.1] text-text-secondary sm:text-[15px]">
+                    যাচাই করা মানবিক উদ্যোগগুলো খুঁজে দেখুন এবং আপনার সামর্থ্য
+                    অনুযায়ী জরুরি প্রয়োজন, চিকিৎসা, শিক্ষা ও দীর্ঘমেয়াদি
+                    পরিবর্তনের পাশে দাঁড়ান।
+                </p>
+
+                <div className="my-7 flex flex-wrap items-center gap-x-7 gap-y-4">
+                    <Button size="lg" to="/volunteer" variant="accent">
+                        স্বেচ্ছাসেবক হিসেবে যুক্ত হন
+                        <HiArrowSmRight className="text-xl" />
+                    </Button>
+
+                    <button
+                        type="button"
+                        onClick={handleScroll}
+                        className="
+                                        group
+                                        inline-flex
+                                        items-center
+                                        gap-3
+                                        font-bengali
+                                        text-[13px]
+                                        font-semibold
+                                        text-text-primary
+                                        transition-colors
+                                        hover:text-primary
+                                    "
+                    >
+                        <span>উদ্যোগগুলো দেখুন</span>
+
+                        <FiArrowDown className="transition-transform duration-300 group-hover:translate-y-1" />
+                    </button>
+                </div>
+
+                {/* BOTTOM EDITORIAL LINE */}
+                <div className="mt-1 flex items-center justify-between border-t border-primary/15 pt-4">
+                    <span className="font-bengali text-[11px] text-text-secondary">
+                        মানুষের প্রয়োজন • সম্মিলিত সহায়তা • বাস্তব পরিবর্তন
+                    </span>
+
+                    <span className="h-px w-10 bg-accent sm:w-16" />
                 </div>
             </div>
-        </section>
+        </div>
     );
 };
 

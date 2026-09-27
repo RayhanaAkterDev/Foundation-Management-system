@@ -1,100 +1,71 @@
-import { campaigns } from './campaigns';
+// ============================================================
+// LEGACY CAMPAIGN SELECTORS
+// ============================================================
+//
+// Public campaign data now comes from the Laravel API.
+// Do not import ./campaigns here.
+//
+// These functions are kept temporarily so older components
+// importing them do not break while the public campaign
+// system is being migrated to the API.
+// ============================================================
 
-// ==============================
-// CAMPAIGNS
-// ==============================
+export const getAllCampaigns = () => [];
 
-export const getAllCampaigns = () => campaigns;
+export const getCampaignById = () => null;
 
-export const getCampaignById = (id) => {
-    if (!id) return null;
-
-    return campaigns.find(
-        (c) => String(c.id) === String(id)
-    );
-};
-
-// ==============================
+// ============================================================
 // FILTERS
-// ==============================
+// ============================================================
 
-export const getActiveCampaigns = () =>
-    campaigns.filter((c) => c.status === 'active');
+export const getActiveCampaigns = () => [];
 
-export const getUrgentCampaigns = () =>
-    campaigns.filter(
-        (c) =>
-            c.urgency === 'urgent' ||
-            c.urgency === 'critical'
-    );
+export const getUrgentCampaigns = () => [];
 
-export const getFeaturedCampaigns = () =>
-    campaigns.filter((c) => c.featured === true);
+export const getFeaturedCampaigns = () => [];
 
-export const getLocalImpactCampaigns = () =>
-    campaigns.filter((c) => c.localImpact === true);
+export const getLocalImpactCampaigns = () => [];
 
-// ==============================
+// ============================================================
 // CATEGORY FILTER
-// ==============================
+// ============================================================
 
-export const getCampaignsByCategory = (categoryId) => {
-    if (!categoryId || categoryId === 'all') return campaigns;
+export const getCampaignsByCategory = () => [];
 
-    return campaigns.filter(
-        (c) =>
-            String(c.category).trim() ===
-            String(categoryId).trim()
-    );
-};
-
-// ==============================
+// ============================================================
 // FEATURED SINGLE
-// ==============================
+// ============================================================
 
-export const getFeaturedCampaign = () => {
-    return (
-        campaigns.find((c) => c.featured === true) ||
-        campaigns[0] ||
-        null
-    );
-};
+export const getFeaturedCampaign = () => null;
 
-// ==============================
+// ============================================================
 // SORTING
-// ==============================
+// ============================================================
 
-export const getNewestCampaigns = () =>
-    [...campaigns].sort((a, b) => b.id - a.id);
+export const getNewestCampaigns = () => [];
 
-// ==============================
+// ============================================================
 // STATS
-// ==============================
+// ============================================================
 
-export const getTotalCampaignsCount = () =>
-    campaigns.length;
+export const getTotalCampaignsCount = () => 0;
 
-export const getActiveCount = () =>
-    getActiveCampaigns().length;
+export const getActiveCount = () => 0;
 
-export const getUrgentCount = () =>
-    getUrgentCampaigns().length;
+export const getUrgentCount = () => 0;
 
-export const getFeaturedCount = () =>
-    getFeaturedCampaigns().length;
+export const getFeaturedCount = () => 0;
 
-export const getLocalImpactCount = () =>
-    getLocalImpactCampaigns().length;
+export const getLocalImpactCount = () => 0;
 
-export const getCategoryCount = (categoryId) =>
-    getCampaignsByCategory(categoryId).length;
+export const getCategoryCount = () => 0;
 
 export const getAllCampaignStats = () => ({
-    total: getTotalCampaignsCount(),
-    active: getActiveCount(),
-    urgent: getUrgentCount(),
-    featured: getFeaturedCount(),
-    localImpact: getLocalImpactCount(),
+    total: 0,
+    active: 0,
+    urgent: 0,
+    featured: 0,
+    localImpact: 0,
 });
 
 export const getFeaturedCategories = () => [];

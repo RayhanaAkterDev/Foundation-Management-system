@@ -4,26 +4,45 @@ const API_BASE_URL =
     'http://127.0.0.1:8000/api';
 
 /**
- * Fetch all publicly visible active campaigns, optionally filtered by category or search.
+ * Fetch publicly visible active campaigns.
  *
- * @param {Object} [params]
- * @param {string} [params.category]
- * @param {string} [params.search]
- * @returns {Promise<Array>}
+ * Category filtering is performed by Laravel.
+ *
+ * Example:
+ * fetchPublicCampaigns()
+ *
+ * fetchPublicCampaigns({
+ *     category: 'food-assistance',
+ * })
  */
 export const fetchPublicCampaigns = async (params = {}) => {
     const searchParams = new URLSearchParams();
 
-    if (params.category && params.category !== 'all') {
-        searchParams.set('category', params.category);
+    if (
+        params.category &&
+        params.category !== 'all'
+    ) {
+        searchParams.set(
+            'category',
+            params.category
+        );
     }
 
-    if (params.search && params.search.trim()) {
-        searchParams.set('search', params.search.trim());
+    if (
+        params.search &&
+        params.search.trim()
+    ) {
+        searchParams.set(
+            'search',
+            params.search.trim()
+        );
     }
 
     const queryString = searchParams.toString();
-    const url = `${API_BASE_URL}/public/campaigns${queryString ? `?${queryString}` : ''}`;
+
+    const url =
+        `${API_BASE_URL}/public/campaigns` +
+        `${queryString ? `?${queryString}` : ''}`;
 
     const response = await fetch(url, {
         headers: {
@@ -32,21 +51,28 @@ export const fetchPublicCampaigns = async (params = {}) => {
     });
 
     if (!response.ok) {
-        throw new Error(`Failed to fetch campaigns (HTTP ${response.status})`);
+        throw new Error(
+            `Failed to fetch campaigns (HTTP ${response.status})`
+        );
     }
 
     const result = await response.json();
-    return result.data || [];
+
+    return Array.isArray(result?.data)
+        ? result.data
+        : [];
 };
 
 /**
  * Fetch a single active campaign by ID.
- *
- * @param {number|string} id
- * @returns {Promise<Object>}
  */
 export const fetchPublicCampaignById = async (id) => {
-    const url = `${API_BASE_URL}/public/campaigns/${id}`;
+    if (!id) {
+        return null;
+    }
+
+    const url =
+        `${API_BASE_URL}/public/campaigns/${id}`;
 
     const response = await fetch(url, {
         headers: {
@@ -58,20 +84,25 @@ export const fetchPublicCampaignById = async (id) => {
         if (response.status === 404) {
             return null;
         }
-        throw new Error(`Failed to fetch campaign details (HTTP ${response.status})`);
+
+        throw new Error(
+            `Failed to fetch campaign details (HTTP ${response.status})`
+        );
     }
 
     const result = await response.json();
-    return result.data || null;
+
+    return result?.data || null;
 };
 
 /**
- * Fetch categories with active campaign counts.
+ * Fetch canonical categories.
  *
- * @returns {Promise<Array>}
+ * Slugs come directly from the categories table.
  */
 export const fetchPublicCategories = async () => {
-    const url = `${API_BASE_URL}/public/categories`;
+    const url =
+        `${API_BASE_URL}/public/categories`;
 
     const response = await fetch(url, {
         headers: {
@@ -80,9 +111,14 @@ export const fetchPublicCategories = async () => {
     });
 
     if (!response.ok) {
-        throw new Error(`Failed to fetch categories (HTTP ${response.status})`);
+        throw new Error(
+            `Failed to fetch categories (HTTP ${response.status})`
+        );
     }
 
     const result = await response.json();
-    return result.data || [];
+
+    return Array.isArray(result?.data)
+        ? result.data
+        : [];
 };

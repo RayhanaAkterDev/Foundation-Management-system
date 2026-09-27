@@ -50,7 +50,11 @@ const StatCard = ({
                 grid-cols-1
                 sm:grid-cols-2
                 lg:grid-cols-4
-                gap-5 sm:gap-6 lg:gap-8
+                ${
+                    isLine
+                        ? 'gap-0 border-y border-border sm:grid-cols-2 lg:grid-cols-4'
+                        : 'gap-5 sm:gap-6 lg:gap-8'
+                }
                 ${className}
             `}
         >
@@ -62,14 +66,14 @@ const StatCard = ({
                         key={index}
                         className={`
                             relative group
-                            ${s.padding}
+                            ${isLine ? 'px-0 py-6 sm:px-5 sm:py-7 lg:px-6 lg:py-8' : s.padding}
 
                             flex flex-col items-center justify-center text-center
                             transition-all duration-300 ease-out
 
-                            min-h-35 sm:min-h-40 lg:min-h-45
+                            ${isLine ? 'min-h-0' : 'min-h-35 sm:min-h-40 lg:min-h-45'}
 
-                            rounded-2xl
+                            ${isLine ? 'rounded-none' : 'rounded-2xl'}
 
                             ${
                                 isLine
@@ -77,16 +81,23 @@ const StatCard = ({
                                         bg-transparent
                                         border-0
                                         shadow-none
+                                        border-b border-border
+                                        last:border-b-0
+                                        sm:[&:nth-child(odd)]:border-r
+                                        sm:[&:nth-last-child(-n+2)]:border-b-0
+                                        lg:border-b-0
+                                        lg:border-r
+                                        lg:last:border-r-0
                                     `
                                     : isPrimary
-                                    ? `
+                                      ? `
                                         bg-white/10
                                         backdrop-blur-md
                                         border border-white/15
                                         hover:bg-white/15
                                         hover:-translate-y-1
                                     `
-                                    : `
+                                      : `
                                         bg-surface
                                         border border-black/5
                                         shadow-sm
@@ -128,11 +139,11 @@ const StatCard = ({
                                                 mb-3 sm:mb-4
                                             `
                                             : isPrimary
-                                            ? `
+                                              ? `
                                                 bg-white/15 text-white
                                                 group-hover:bg-white/25
                                             `
-                                            : `
+                                              : `
                                                 bg-primary/10 text-primary
                                                 group-hover:bg-primary group-hover:text-white
                                             `
@@ -147,7 +158,7 @@ const StatCard = ({
                         <StatValue
                             value={stat?.value}
                             className={`
-                                font-bold tracking-tight
+                                ${isLine ? 'font-medium tracking-[-0.02em]' : 'font-bold tracking-tight'}
                                 leading-tight
                                 ${s.value}
                                 ${

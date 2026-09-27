@@ -175,6 +175,7 @@ const Badge = ({
     size = 'md',
     dot = false,
     pulse = false,
+    shape = 'pill',
     className = '',
 }) => {
     const toneGroup = toneStyles[tone] || toneStyles.glass;
@@ -205,6 +206,8 @@ const Badge = ({
                 `,
                 toneClass,
                 sizeStyles[size],
+                shape === 'label' &&
+                    'h-auto rounded-none border-0 bg-transparent p-0 text-[11px] font-medium uppercase tracking-[0.14em]',
                 className,
             )}
         >

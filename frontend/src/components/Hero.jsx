@@ -1,7 +1,6 @@
 import React from 'react';
 
 import Button from './Button';
-import SectionHeading from './SectionHeading';
 import HeroStats from '@/pages/public/home/sections/hero/HeroStats';
 import Motion from './motion/Motion';
 
@@ -18,116 +17,97 @@ const Hero = ({
     imageAlt = 'Hero image',
 }) => {
     return (
-        <section className="relative overflow-hidden bg-surface mt-20">
+        <section className="relative mt-20 overflow-hidden bg-surface">
             <div className="container-width">
                 <div
                     className="
-                        grid
-                        grid-cols-1
-                        items-center
+                        grid grid-cols-1
+                        pb-14 pt-8
+                        sm:pb-16 sm:pt-10
 
-                        gap-8
-                        py-10
+                        lg:grid-cols-12 lg:items-center lg:gap-x-8
+                        lg:min-h-[610px] lg:py-12
 
-                        sm:gap-10
-                        sm:py-14
-
-                        /* =================================
-                           LAPTOP — lg
-                           Balanced two-column layout
-                        ================================= */
-                        lg:grid-cols-[0.95fr_1.05fr]
-                        lg:gap-8
-                        lg:py-14
-
-                        /* =================================
-                           DESKTOP — xl
-                           More breathing room
-                        ================================= */
-                        xl:grid-cols-[0.95fr_1.05fr]
-                        xl:gap-14
-                        xl:py-20
+                        xl:min-h-[700px] xl:gap-x-12 xl:py-16
                     "
                 >
-                    {/* =================================
-                        CONTENT
-
-                        Mobile:
-                        - First
-
-                        Laptop/Desktop:
-                        - Left column
-                        - Left aligned
-                    ================================= */}
+                    {/* EDITORIAL COPY */}
                     <div
                         className="
-                            order-1
-                            flex
-                            min-w-0
-                            flex-col
-                            items-center
-                            text-center
-
-                            lg:order-1
-                            lg:items-start
-                            lg:text-left
+                            relative z-10
+                            lg:col-span-5 lg:pr-2
+                            xl:col-span-5 xl:pr-8
                         "
                     >
+                        {(badge || badgeIcon) && (
+                            <Motion variant="fadeUp">
+                                <div
+                                    className={`
+                                        mb-5 flex items-center gap-3
+                                        font-nav text-[11px] font-medium uppercase
+                                        tracking-[0.14em] text-primary
+                                        sm:mb-6 sm:text-xs
+                                        lg:mb-5
+                                        xl:mb-7
+                                        ${badgeClass || ''}
+                                    `}
+                                >
+                                    {badgeIcon && (
+                                        <span className="flex shrink-0 items-center text-primary">
+                                            {badgeIcon}
+                                        </span>
+                                    )}
+                                    {badge && <span>{badge}</span>}
+                                </div>
+                            </Motion>
+                        )}
+
                         <Motion variant="blurIn">
-                            <SectionHeading
-                                align="center"
-                                headingTag="h1"
-                                headingSize="hero"
-                                badge={badge}
-                                badgeIcon={badgeIcon}
-                                badgeClass={badgeClass}
-                                title={title}
-                                headingClass="
-                                    !capitalize-none
-                                    !leading-[1.08]
-                                    !tracking-[-0.025em]
+                            <h1
+                                className="
+                                    max-w-[15ch]
+                                    font-display font-medium
+                                    text-[2.35rem] leading-[1.13] tracking-[-0.02em]
+                                    text-text-primary
 
-                                    max-w-2xl
+                                    sm:max-w-[14ch] sm:text-[2.75rem] sm:leading-[1.12]
 
-                                    lg:!text-left
+                                    lg:max-w-[12.5ch] lg:text-[3rem] lg:leading-[1.1]
+
+                                    xl:max-w-[13.5ch] xl:text-[3.45rem] xl:leading-[1.08]
                                 "
-                                description={description}
-                                descriptionSize="hero"
-                                descriptionClass="
-                                    !mx-auto
-                                    !mt-5
-                                    !max-w-xl
-                                    !leading-7
-
-                                    lg:!mx-0
-                                    lg:!text-left
-                                "
-                                wrapperClass="
-                                    !items-center
-                                    !text-center
-
-                                    lg:!items-start
-                                    lg:!text-left
-                                "
-                            />
+                            >
+                                {title}
+                            </h1>
                         </Motion>
 
-                        {/* ACTIONS */}
+                        {description && (
+                            <Motion variant="fadeUp">
+                                <p
+                                    className="
+                                        mt-5 max-w-[37rem]
+                                        text-[15px] leading-[1.8] text-text-body
+
+                                        sm:mt-6 sm:text-base sm:leading-[1.85]
+
+                                        lg:mt-6 lg:max-w-[29rem] lg:text-[15px] lg:leading-[1.8]
+
+                                        xl:mt-7 xl:max-w-[32rem] xl:text-base
+                                    "
+                                >
+                                    {description}
+                                </p>
+                            </Motion>
+                        )}
+
                         {(primaryCta || secondaryCta) && (
                             <Motion variant="fadeUp">
                                 <div
                                     className="
-                                        mt-7
-                                        flex
-                                        w-full
-                                        flex-col
-                                        gap-3
-
-                                        sm:w-auto
-                                        sm:flex-row
-                                        sm:items-center
-
-                                        lg:mt-8
+                                        mt-7 flex flex-col items-stretch gap-3
+                                        sm:flex-row sm:items-center sm:gap-6
+                                        lg:mt-8 lg:gap-5
+                                        xl:mt-9 xl:gap-7
                                     "
                                 >
                                     {primaryCta && (
@@ -135,13 +115,10 @@ const Hero = ({
                                             size="lg"
                                             to={primaryCta.to}
                                             className="
-                                                w-full
-                                                !rounded-xl
-                                                !px-6
-
+                                                w-full !min-h-12 !rounded-md !px-7
                                                 sm:w-auto
-                                                lg:!px-5
-                                                xl:!px-6
+                                                lg:!min-h-11 lg:!px-6
+                                                xl:!min-h-12 xl:!px-7
                                             "
                                         >
                                             <span className="flex items-center justify-center gap-2">
@@ -153,32 +130,21 @@ const Hero = ({
 
                                     {secondaryCta && (
                                         <Button
-                                            variant="outline"
+                                            variant="ghost"
                                             size="lg"
                                             to={secondaryCta.to}
                                             className="
-                                                group
-                                                w-full
-                                                !rounded-xl
-                                                !border-border
-                                                !bg-surface
-                                                !px-6
-
-                                                hover:!border-primary/30
-                                                hover:!bg-background-alt
-
-                                                sm:w-auto
-                                                lg:!px-5
-                                                xl:!px-6
+                                                group w-full !min-h-11 !justify-center !rounded-none
+                                                !px-0 !text-text-primary
+                                                hover:!bg-transparent hover:!text-primary
+                                                sm:w-auto sm:!justify-start
                                             "
                                         >
-                                            <span className="flex items-center justify-center gap-2">
+                                            <span className="flex items-center justify-center gap-2.5">
                                                 {secondaryCta.label}
-
                                                 <span
                                                     className="
-                                                        transition-transform
-                                                        duration-200
+                                                        text-primary transition-transform duration-200
                                                         group-hover:translate-x-1
                                                     "
                                                 >
@@ -190,231 +156,70 @@ const Hero = ({
                                 </div>
                             </Motion>
                         )}
+                    </div>
 
-                        {/* TRUST / IMPACT */}
-                        {showStats && (
-                            <Motion variant="fadeUp" className="mt-8 w-full">
+                    {/* PHOTOGRAPHIC FIELD */}
+                    <div
+                        className="
+                            mt-9 min-w-0
+                            sm:mt-11
+
+                            lg:col-span-7 lg:mt-0
+                            lg:-mr-8 lg:pl-1
+
+                            xl:-mr-16 xl:pl-4
+                        "
+                    >
+                        <Motion variant="fadeIn">
+                            <figure
+                                className="
+                                    relative w-full overflow-hidden bg-background-alt
+                                    rounded-[0.75rem]
+
+                                    lg:rounded-[0.5rem]
+                                    xl:rounded-[0.625rem]
+                                "
+                            >
                                 <div
                                     className="
-                                        xl:border-t
-                                        border-border
-                                        xl:pt-6
+                                        aspect-[5/4] w-full
+                                        sm:aspect-[16/10]
+                                        lg:aspect-[1.28/1]
+                                        xl:aspect-[1.48/1]
                                     "
                                 >
+                                    <img
+                                        src={image}
+                                        alt={imageAlt}
+                                        className="h-full w-full object-cover object-center"
+                                        loading="eager"
+                                    />
+                                </div>
+                            </figure>
+                        </Motion>
+                    </div>
+
+                    {/* XL TRUST RAIL */}
+                    {showStats && (
+                        <div
+                            className="
+                                hidden
+                                xl:col-span-12 xl:mt-9 xl:block
+                            "
+                        >
+                            <Motion variant="fadeUp">
+                                <div className="border-t border-border pt-1">
                                     <HeroStats />
                                 </div>
                             </Motion>
-                        )}
-                    </div>
-
-                    {/* =================================
-                        IMAGE
-
-                        Mobile:
-                        - Comes AFTER content
-
-                        Laptop:
-                        - Controlled image size
-
-                        Desktop:
-                        - Larger image
-                    ================================= */}
-                    <div
-                        className="
-                            order-2
-                            min-w-0
-                            w-full
-
-                            lg:order-2
-                        "
-                    >
-                        <Motion variant="scaleUp">
-                            <div
-                                className="
-                                    relative
-                                    mx-auto
-                                    w-full
-
-                                    lg:max-w-[540px]
-                                    lg:ml-auto
-
-                                    xl:max-w-[640px]
-                                "
-                            >
-                                {/* IMAGE FRAME */}
-                                <div
-                                    className="
-                                        relative
-                                        overflow-hidden
-                                        rounded-[1.5rem]
-                                        border
-                                        border-border
-                                        bg-background-alt
-                                        shadow-[0_20px_55px_rgba(15,23,42,0.10)]
-
-                                        sm:rounded-[1.75rem]
-
-                                        lg:rounded-[1.5rem]
-
-                                        xl:rounded-[1.75rem]
-                                    "
-                                >
-                                    <div
-                                        className="
-                                            aspect-[4/3]
-                                            w-full
-
-                                            sm:aspect-[5/4]
-
-                                            lg:aspect-[4/3]
-
-                                            xl:aspect-[5/4]
-                                        "
-                                    >
-                                        <img
-                                            src={image}
-                                            alt={imageAlt}
-                                            className="
-                                                h-full
-                                                w-full
-                                                object-cover
-                                            "
-                                            loading="eager"
-                                        />
-                                    </div>
-
-                                    {/* SUBTLE IMAGE OVERLAY */}
-                                    <div
-                                        className="
-                                            pointer-events-none
-                                            absolute
-                                            inset-0
-                                            bg-gradient-to-t
-                                            from-slate-950/20
-                                            via-transparent
-                                            to-transparent
-                                        "
-                                    />
-                                </div>
-
-                                {/* =================================
-                                    IMPACT LABEL
-
-                                    Smaller on laptop so it doesn't
-                                    overpower the image.
-                                ================================= */}
-                                <div
-                                    className="
-                                        absolute
-                                        bottom-4
-                                        left-4
-                                        max-w-[calc(100%-2rem)]
-                                        rounded-xl
-                                        border
-                                        border-white/70
-                                        bg-surface/95
-                                        px-3
-                                        py-2.5
-                                        shadow-lg
-                                        backdrop-blur-sm
-
-                                        sm:bottom-5
-                                        sm:left-5
-                                        sm:px-4
-                                        sm:py-3
-
-                                        lg:bottom-4
-                                        lg:left-4
-                                        lg:px-3
-                                        lg:py-2.5
-
-                                        xl:bottom-6
-                                        xl:left-6
-                                        xl:px-4
-                                        xl:py-3
-                                    "
-                                >
-                                    <div className="flex items-center gap-2.5 sm:gap-3">
-                                        <div
-                                            className="
-                                                flex
-                                                h-8
-                                                w-8
-                                                shrink-0
-                                                items-center
-                                                justify-center
-                                                rounded-full
-                                                bg-primary/10
-                                                text-primary
-
-                                                sm:h-9
-                                                sm:w-9
-                                            "
-                                        >
-                                            <span className="text-sm sm:text-base">
-                                                ♥
-                                            </span>
-                                        </div>
-
-                                        <div className="min-w-0">
-                                            <p
-                                                className="
-                                                    truncate
-                                                    text-xs
-                                                    font-semibold
-                                                    text-text-primary
-
-                                                    sm:text-sm
-                                                "
-                                            >
-                                                মানুষের পাশে
-                                            </p>
-
-                                            <p
-                                                className="
-                                                    mt-0.5
-                                                    truncate
-                                                    text-[10px]
-                                                    text-text-secondary
-
-                                                    sm:text-xs
-                                                "
-                                            >
-                                                সহায়তা পৌঁছে দিতে একসাথে
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* IMAGE CORNER ACCENT */}
-                                <div
-                                    className="
-                                        pointer-events-none
-                                        absolute
-                                        -right-1.5
-                                        -top-1.5
-                                        h-10
-                                        w-10
-                                        rounded-xl
-                                        bg-primary/10
-
-                                        sm:-right-2
-                                        sm:-top-2
-                                        sm:h-12
-                                        sm:w-12
-
-                                        xl:-right-3
-                                        xl:-top-3
-                                    "
-                                />
-                            </div>
-                        </Motion>
-                    </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
-            {/* BOTTOM TRANSITION */}
-            <div className="h-px w-full bg-border" />
+            <div className="container-width" aria-hidden="true">
+                <div className="h-px bg-border/70" />
+            </div>
         </section>
     );
 };

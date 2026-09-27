@@ -58,49 +58,49 @@ const gapStyles = {
 
 const headingStyles = {
     hero: `
-        text-[2rem]
-        sm:text-[2.4rem]
-        md:text-[2.8rem]
-        lg:text-[3.15rem]
-        xl:text-[3.8rem]
-        font-bold
-        leading-[1.2]
-        sm:leading-[1.18]
-        lg:leading-[1.16]
+        text-[2.5rem]
+        sm:text-[3.15rem]
+        md:text-[3.75rem]
+        lg:text-[3.7rem]
+        xl:text-[4.85rem]
+        font-medium
+        leading-[1.08]
+        sm:leading-[1.06]
+        lg:leading-[1.04]
         text-text-primary
-        tracking-[-0.01em]
-        sm:tracking-[-0.012em]
-        lg:tracking-[-0.015em]
+        tracking-[-0.018em]
+        sm:tracking-[-0.022em]
+        lg:tracking-[-0.026em]
         max-w-full
     `,
 
     sectionHero: `
-        text-[1.85rem]
-        sm:text-[2.1rem]
-        md:text-[2.45rem]
-        lg:text-[2.7rem]
+        text-[1.9rem]
+        sm:text-[2.2rem]
+        md:text-[2.5rem]
+        lg:text-[2.65rem]
         xl:text-[3.15rem]
-        font-bold
+        font-medium
         leading-[1.24]
         sm:leading-[1.2]
-        lg:leading-[1.18]
+        lg:leading-[1.16]
         text-text-primary
-        tracking-[-0.008em]
-        sm:tracking-[-0.01em]
+        tracking-[-0.006em]
+        sm:tracking-[-0.009em]
         lg:tracking-[-0.012em]
         max-w-full
     `,
 
     section: `
         text-[1.5rem]
-        sm:text-[1.65rem]
-        md:text-[1.85rem]
+        sm:text-[1.7rem]
+        md:text-[1.9rem]
         lg:text-[2rem]
-        xl:text-[2.15rem]
-        font-semibold
+        xl:text-[2.2rem]
+        font-medium
         leading-[1.3]
         text-text-primary
-        tracking-[-0.005em]
+        tracking-[-0.004em]
     `,
 
     sub: `
@@ -108,7 +108,7 @@ const headingStyles = {
         sm:text-xl
         lg:text-[1.2rem]
         xl:text-[1.3rem]
-        font-semibold
+        font-medium
         leading-[1.45]
         text-text-primary
     `,
@@ -132,18 +132,18 @@ const headingStyles = {
 
 const descriptionStyles = {
     hero: `
-        text-[0.95rem]
-        sm:text-base
-        lg:text-[1.05rem]
-        xl:text-[1.1rem]
+        text-[0.98rem]
+        sm:text-[1.05rem]
+        lg:text-[1rem]
+        xl:text-[1.08rem]
         text-text-body
         leading-[1.8]
         sm:leading-[1.85]
         lg:leading-[1.8]
         max-w-full
         sm:max-w-xl
-        lg:max-w-xl
-        xl:max-w-2xl
+        lg:max-w-lg
+        xl:max-w-xl
     `,
 
     sectionHero: `
@@ -201,16 +201,19 @@ const SectionHeading = ({
     gap = 'md',
     headingSize = 'section',
     descriptionSize = 'section',
+    treatment = 'default',
     wrapperClass = '',
     headingClass = '',
     descriptionClass = '',
 }) => {
+    const isEditorial = treatment === 'editorial';
+
     return (
         <div
             className={`
                 ${wrapperStyles.base}
                 ${alignStyles[align]}
-                ${gapStyles[gap]}
+                ${isEditorial ? 'gap-0' : gapStyles[gap]}
                 ${wrapperClass}
             `}
         >
@@ -240,12 +243,18 @@ const SectionHeading = ({
                             size={badge.size || 'sm'}
                             dot={badge.dot}
                             pulse={badge.pulse}
+                            shape={isEditorial ? 'label' : 'pill'}
                         >
                             {badge.label}
                         </Badge>
                     ) : (
                         badge && (
-                            <Badge variant="primary" tone="soft" size="sm">
+                            <Badge
+                                variant="primary"
+                                tone="soft"
+                                size="sm"
+                                shape={isEditorial ? 'label' : 'pill'}
+                            >
                                 {badge}
                             </Badge>
                         )
@@ -260,6 +269,7 @@ const SectionHeading = ({
                             size="sm"
                             dot={item.dot}
                             pulse={item.pulse}
+                            shape={isEditorial ? 'label' : 'pill'}
                         >
                             {item.label}
                         </Badge>
@@ -274,6 +284,8 @@ const SectionHeading = ({
             <HeadingTag
                 className={`
                     ${headingStyles[headingSize]}
+                    ${isEditorial ? 'font-medium !leading-[1.18] !tracking-[-0.012em]' : ''}
+                    ${isEditorial && (badge || badges) ? 'mt-4 sm:mt-5' : ''}
                     ${headingClass}
                 `}
             >

@@ -126,6 +126,18 @@ function Button({
             active:translate-y-px
             focus-visible:ring-primary/20
         `,
+
+        editorial: `
+            overflow-visible
+            rounded-none
+            bg-transparent
+            px-0
+            text-text-primary
+            shadow-none
+            hover:text-primary
+            active:translate-y-px
+            focus-visible:ring-primary/20
+        `,
     };
 
     const classes = `

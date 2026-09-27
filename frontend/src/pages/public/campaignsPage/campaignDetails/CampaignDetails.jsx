@@ -1,17 +1,82 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+
 import { useParams } from 'react-router-dom';
 
-import { getCampaignById } from '@/data/selectors';
+import { fetchPublicCampaignById } from '@/api/publicCampaignsApi';
 
 import CampaignMainContent from './components/CampaignMainContent';
+
 import DonationSidebar from './components/DonationSidebar';
 
 const CampaignDetails = () => {
     const { id } = useParams();
 
-    const campaign = getCampaignById(id);
+    const [campaign, setCampaign] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    // NOT FOUND
+    useEffect(() => {
+        if (!id) {
+            return;
+        }
+
+        let cancelled = false;
+
+        const loadCampaign = async () => {
+            try {
+                const data = await fetchPublicCampaignById(id);
+
+                if (cancelled) {
+                    return;
+                }
+
+                setCampaign(data);
+            } catch (err) {
+                console.error(
+                    'Failed to load campaign:',
+                    err
+                );
+
+                if (!cancelled) {
+                    setCampaign(null);
+                    setError(
+                        'Unable to load this campaign right now.'
+                    );
+                }
+            } finally {
+                if (!cancelled) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        loadCampaign();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [id]);
+
+    // ============================================================
+    // LOADING
+    // ============================================================
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-surface">
+                <div className="container-width pt-32 text-center">
+                    <p className="text-text-secondary">
+                        Loading campaign...
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
+    // ============================================================
+    // NOT FOUND / ERROR
+    // ============================================================
+
     if (!campaign) {
         return (
             <div className="min-h-screen bg-surface">
@@ -21,15 +86,18 @@ const CampaignDetails = () => {
                     </h2>
 
                     <p className="mt-3 text-text-secondary">
-                        The campaign you are looking for does not exist or may
-                        have been removed.
+                        {error ||
+                            'The campaign you are looking for does not exist or may have been removed.'}
                     </p>
                 </div>
             </div>
         );
     }
 
-    // SAFE ORGANIZER FALLBACK
+    // ============================================================
+    // ORGANIZER FALLBACK
+    // ============================================================
+
     const organizer =
         typeof campaign.organizer === 'object'
             ? campaign.organizer
@@ -37,11 +105,13 @@ const CampaignDetails = () => {
                   name:
                       campaign.organizer ||
                       'Stand For People',
-
                   role: '',
-
                   verified: false,
               };
+
+    // ============================================================
+    // PAGE
+    // ============================================================
 
     return (
         <div className="min-h-screen bg-surface mt-20 pt-4">

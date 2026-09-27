@@ -1,247 +1,349 @@
 import React from 'react';
 
 import Motion from '@/components/motion/Motion';
+
 import { TbArrowNarrowRight } from 'react-icons/tb';
 
 const WorkflowCard = ({ item, index, flow }) => {
     const isStrong = item.emphasis === 'strong';
     const isSoft = item.emphasis === 'soft';
     const isAccent = index === 0;
+    const isLast = index === flow.length - 1;
 
     return (
         <Motion
             variant="fadeUp"
             className={`
-                relative group
-                ${index === 1 ? 'xl:mt-10' : ''}
-                ${index === 2 ? 'xl:mt-20' : ''}
-                ${index === 3 ? 'xl:mt-10' : ''}
+                relative
+                group
+
+                ${index === 1 ? 'xl:mt-8' : ''}
+                ${index === 2 ? 'xl:mt-16' : ''}
+                ${index === 3 ? 'xl:mt-8' : ''}
             `}
         >
-            {/* DESKTOP CONNECTOR */}
+            {/* =================================================
+                CONNECTOR
+            ================================================== */}
             {index !== flow.length - 1 && (
                 <div
+                    aria-hidden="true"
                     className="
                         pointer-events-none
                         absolute
-                        -right-4
+                        -right-5
                         top-1/2
                         z-10
                         hidden
                         -translate-y-1/2
                         items-center
-                        lg:flex
-                        xl:-right-5
+                        xl:flex
                     "
                 >
-                    <div
+                    <span
                         className={`
                             h-px
-                            w-4
-                            xl:w-7
-                            ${isAccent ? 'bg-accent/25' : 'bg-primary/15'}
+                            w-7
+
+                            transition-colors
+                            duration-300
+
+                            ${isAccent ? 'bg-accent/25' : 'bg-primary/18'}
+
+                            group-hover:bg-primary/35
                         `}
                     />
 
                     <TbArrowNarrowRight
                         size={17}
-                        strokeWidth={1.5}
+                        strokeWidth={1.7}
                         className="
                             -ml-px
                             text-primary/30
-                            transition-all
+
+                            transition-[color,transform]
                             duration-300
+
                             group-hover:translate-x-0.5
-                            group-hover:text-primary/55
+                            group-hover:text-primary/60
                         "
                     />
                 </div>
             )}
 
-            {/* CARD */}
+            {/* =================================================
+                CARD
+            ================================================== */}
             <Motion
-                whileHover={{ y: -2 }}
+                whileHover={{ y: -4 }}
                 transition={{
-                    duration: 0.24,
+                    duration: 0.28,
                     ease: [0.22, 1, 0.36, 1],
                 }}
                 className={`
                     relative
+                    flex
                     h-full
-                    min-h-64
+                    min-h-65
+                    flex-col
                     overflow-hidden
-                    rounded-xl
+                    rounded-[14px]
                     border
-                    p-5
-                    sm:p-6
-                    lg:min-h-80
-                    lg:px-5
-                    lg:py-6
-                    xl:min-h-72
-                    xl:p-7
-                    transition-[background-color,border-color,box-shadow]
+
+                    p-6
+                    sm:p-7
+                    lg:p-7
+
+                    transition-[border-color,background-color]
                     duration-300
 
                     ${
                         isAccent
                             ? `
-                                border-accent/20
-                                bg-accent-soft/35
-                                hover:border-accent/30
-                                hover:bg-accent-soft/50
+                                border-accent/25
+                                bg-accent-soft/60
+
+                                hover:border-accent/40
+                                hover:bg-accent-soft/75
                             `
-                            : isStrong
+                            : isLast
                               ? `
+                                    border-primary/20
+                                    bg-primary-soft/55
+
+                                    hover:border-primary/35
+                                    hover:bg-primary-soft/70
+                                `
+                              : isStrong
+                                ? `
                                     border-primary/18
                                     bg-primary-soft/35
-                                    hover:border-primary/28
-                                    hover:bg-primary-soft/50
-                                `
-                              : isSoft
-                                ? `
-                                    border-primary/10
-                                    bg-primary-soft/12
-                                    hover:border-primary/20
-                                    hover:bg-primary-soft/22
-                                `
-                                : `
-                                    border-border/80
-                                    bg-surface
-                                    hover:border-primary/20
-                                    hover:bg-surface
-                                `
-                    }
 
-                    hover:shadow-[0_10px_30px_rgba(15,118,110,0.06)]
+                                    hover:border-primary/30
+                                    hover:bg-primary-soft/55
+                                `
+                                : isSoft
+                                  ? `
+                                        border-border
+                                        bg-surface
+
+                                        hover:border-primary/20
+                                        hover:bg-surface-teal/30
+                                    `
+                                  : `
+                                        border-border
+                                        bg-surface
+
+                                        hover:border-primary/20
+                                        hover:bg-surface-teal/25
+                                    `
+                    }
                 `}
             >
-                {/* STEP */}
+                {/* =================================================
+                    SUBTLE EDGE ACCENT
+                ================================================== */}
+                <span
+                    aria-hidden="true"
+                    className={`
+                        absolute
+                        left-0
+                        top-6
+                        bottom-6
+                        w-[2px]
+                        rounded-r-full
+
+                        ${
+                            isAccent
+                                ? 'bg-accent/65'
+                                : isLast
+                                  ? 'bg-primary/55'
+                                  : isStrong
+                                    ? 'bg-primary/35'
+                                    : 'bg-transparent'
+                        }
+                    `}
+                />
+
+                {/* =================================================
+                    HEADER
+                ================================================== */}
                 <div className="flex items-center justify-between gap-4">
-                    <div
-                        className={`
-                            flex
-                            items-center
-                            gap-2.5
-                            font-bengali
-                            text-sm
-                            font-medium
-                            leading-none
-                            lg:text-[15px]
-                            ${
-                                isAccent
-                                    ? 'text-accent-hover'
-                                    : isStrong
-                                      ? 'text-primary'
-                                      : 'text-text-secondary'
-                            }
-                        `}
-                    >
+                    <div className="flex items-center gap-2.5">
+                        {/* STEP NUMBER */}
                         <span
                             className={`
+                                inline-flex
+                                h-9
+                                min-w-9
+                                items-center
+                                justify-center
+                                rounded-lg
+                                border
+                                px-2
+
                                 font-sans
                                 text-[13px]
                                 font-semibold
-                                tracking-wide
+                                leading-none
+
+                                sm:h-9
+                                sm:min-w-9
+                                sm:text-[13px]
+
                                 ${
                                     isAccent
-                                        ? 'text-accent-hover'
-                                        : isStrong
-                                          ? 'text-primary'
-                                          : 'text-text-secondary'
+                                        ? `
+                                            border-accent/25
+                                            bg-accent/10
+                                            text-accent-hover
+                                        `
+                                        : isLast || isStrong
+                                          ? `
+                                                border-primary/20
+                                                bg-primary/10
+                                                text-primary
+                                            `
+                                          : `
+                                                border-border
+                                                bg-background
+                                                text-text-secondary
+                                            `
                                 }
                             `}
                         >
                             {item.step}
                         </span>
 
-                        <span className="h-1 w-1 rounded-full bg-current opacity-35" />
+                        <span
+                            className={`
+                                font-bengali
+                                text-[15px]
+                                font-medium
+                                leading-[1.4]
 
-                        <span>ধাপ</span>
+                                sm:text-[15px]
+
+                                ${
+                                    isAccent
+                                        ? 'text-accent-hover'
+                                        : isLast || isStrong
+                                          ? 'text-primary'
+                                          : 'text-text-secondary'
+                                }
+                            `}
+                        >
+                            ধাপ
+                        </span>
                     </div>
 
-                    {/* TEAL DOT */}
+                    {/* STATUS DOT */}
                     <span
+                        aria-hidden="true"
                         className={`
-                            h-2
-                            w-2
+                            h-1.5
+                            w-1.5
                             shrink-0
                             rounded-full
-                            transition-transform
-                            duration-300
-                            group-hover:scale-125
+
                             ${
                                 isAccent
-                                    ? 'bg-accent/70'
-                                    : isStrong
-                                      ? 'bg-primary/65'
-                                      : 'bg-primary/35'
+                                    ? 'bg-accent'
+                                    : isLast
+                                      ? 'bg-primary'
+                                      : isStrong
+                                        ? 'bg-primary/60'
+                                        : 'bg-primary/25'
                             }
                         `}
                     />
                 </div>
 
-                {/* TITLE */}
-                <h3
-                    className="
-                        mt-7
-                        max-w-[19rem]
-                        font-bengali
-                        text-[20px]
-                        font-semibold
-                        leading-[1.42]
-                        tracking-normal
-                        text-text-primary
-                        sm:text-[22px]
-                        lg:text-[21px]
-                        xl:text-[23px]
-                    "
-                >
-                    {item.title}
-                </h3>
+                {/* =================================================
+                    CONTENT
+                ================================================== */}
+                <div className="mt-8">
+                    <h3
+                        className="
+                            max-w-[18rem]
 
-                {/* DESCRIPTION */}
-                <p
-                    className="
-                        mt-4
-                        max-w-[20rem]
-                        font-bengali
-                        text-[15px]
-                        font-normal
-                        leading-[1.75]
-                        tracking-normal
-                        text-text-body
-                        sm:text-[16px]
-                        lg:text-[15px]
-                        xl:text-[16px]
-                    "
-                >
-                    {item.desc}
-                </p>
+                            font-bengali
+                            text-[21px]
+                            font-medium
+                            leading-[1.45]
+                            tracking-normal
+                            text-text-primary
 
-                {/* STRONG STATE */}
-                {isStrong && (
+                            sm:text-[22px]
+                            lg:text-[22px]
+                        "
+                    >
+                        {item.title}
+                    </h3>
+
+                    {/* SHORT CONTENT MARKER */}
                     <div
+                        aria-hidden="true"
+                        className={`
+                            mt-5
+                            h-px
+                            w-10
+                            ${
+                                isAccent
+                                    ? 'bg-accent/55'
+                                    : isLast || isStrong
+                                      ? 'bg-primary/45'
+                                      : 'bg-primary/25'
+                            }
+                        `}
+                    />
+
+                    <p
                         className="
                             mt-6
+                            max-w-[21rem]
+
+                            font-bengali
+                            text-[15px]
+                            font-normal
+                            leading-[1.82]
+                            tracking-normal
+                            text-text-body
+
+                            sm:text-[15.5px]
+                            lg:text-[16px]
+                        "
+                    >
+                        {item.desc}
+                    </p>
+                </div>
+
+                {/* =================================================
+                    STRONG STATE
+                ================================================== */}
+                {/* {isStrong && (
+                    <div
+                        className="
+                            mt-auto
                             flex
                             items-start
                             gap-2.5
-                            border-t
-                            border-primary/10
-                            pt-4
+
+                            pt-6
+
                             font-bengali
-                            text-[14px]
+                            text-[15px]
                             font-medium
-                            leading-[1.65]
+                            leading-[1.72]
                             text-primary
-                            sm:text-[15px]
-                            lg:text-[14px]
-                            xl:text-[15px]
+
+                            sm:text-[15.5px]
                         "
                     >
                         <span
+                            aria-hidden="true"
                             className="
-                                mt-[0.55rem]
+                                mt-[0.58rem]
                                 h-1.5
                                 w-1.5
                                 shrink-0
@@ -255,7 +357,7 @@ const WorkflowCard = ({ item, index, flow }) => {
                             দিই
                         </span>
                     </div>
-                )}
+                )} */}
             </Motion>
         </Motion>
     );

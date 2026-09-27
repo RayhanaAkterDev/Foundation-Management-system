@@ -7,7 +7,7 @@ import FlowCTA from './WorkflowLink';
 
 const HowItWorks = () => {
     return (
-        <section className="section-gap bg-background-alt">
+        <section className="section-gap bg-background">
             <div className="container-width">
                 <SectionHeading
                     gap="lg"
@@ -27,19 +27,19 @@ const HowItWorks = () => {
                             gap-3
                             font-bengali
                             text-[13px]
-                            sm:text-sm
-                            lg:text-[15px]
                             font-medium
                             leading-[1.5]
                             tracking-normal
                             text-primary
+                            sm:text-sm
+                            lg:text-[15px]
                             before:content-['']
                             before:block
-                            before:w-7
-                            lg:before:w-9
                             before:h-px
-                            before:bg-primary/35
+                            before:w-7
                             before:shrink-0
+                            before:bg-primary/30
+                            lg:before:w-9
                         `,
                     }}
                     title="প্রয়োজন থেকে সহায়তা — ধাপে ধাপে"

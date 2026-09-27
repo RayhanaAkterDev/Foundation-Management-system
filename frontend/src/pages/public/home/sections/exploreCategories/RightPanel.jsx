@@ -1,17 +1,25 @@
 import React from 'react';
 
 import SectionHeading from '@/components/SectionHeading';
+
 import Motion from '@/components/motion/Motion';
 
 import ExploreAllCategoriesCta from './ExploreAllCategoriesCta';
 
-const RightPanel = ({ categories = [], active, setActive }) => {
+const RightPanel = ({ categories = [], active, setActive, campaigns = [] }) => {
+    const getActiveCampaignCount = (category) => {
+        return campaigns.filter(
+            (campaign) =>
+                campaign?.status === 'active' &&
+                campaign?.category === category?.name,
+        ).length;
+    };
+
     return (
         <div className="lg:sticky lg:top-24">
             {/* =================================================
                 INTRO
             ================================================== */}
-
             <Motion variant="fadeUp">
                 <SectionHeading
                     gap="md"
@@ -41,7 +49,6 @@ const RightPanel = ({ categories = [], active, setActive }) => {
             {/* =================================================
                 CATEGORY LABEL
             ================================================== */}
-
             <div className="mt-8 mb-4 flex items-center gap-2.5 sm:mt-10">
                 <span className="h-1.5 w-1.5 rounded-full bg-accent" />
 
@@ -61,7 +68,6 @@ const RightPanel = ({ categories = [], active, setActive }) => {
             {/* =================================================
                 MOBILE / TABLET CATEGORY NAV
             ================================================== */}
-
             <div
                 className="
                     grid
@@ -73,6 +79,7 @@ const RightPanel = ({ categories = [], active, setActive }) => {
             >
                 {categories.map((cat, index) => {
                     const isActive = active?.id === cat.id;
+                    const activeCampaignCount = getActiveCampaignCount(cat);
 
                     return (
                         <button
@@ -139,10 +146,10 @@ const RightPanel = ({ categories = [], active, setActive }) => {
                                         }
                                     `}
                                 >
-                                    {cat.name}
+                                    {cat.name} ({activeCampaignCount})
                                 </p>
 
-                                {cat.description && (
+                                {isActive && cat.description && (
                                     <p
                                         className="
                                             mt-0.5
@@ -182,11 +189,11 @@ const RightPanel = ({ categories = [], active, setActive }) => {
             {/* =================================================
                 DESKTOP CATEGORY NAV
             ================================================== */}
-
             <div className="hidden lg:block">
-                <div className="border-y border-border">
+                <div className="border border-border">
                     {categories.map((cat, index) => {
                         const isActive = active?.id === cat.id;
+                        const activeCampaignCount = getActiveCampaignCount(cat);
 
                         return (
                             <button
@@ -283,7 +290,8 @@ const RightPanel = ({ categories = [], active, setActive }) => {
                                                     }
                                                 `}
                                             >
-                                                {cat.name}
+                                                {cat.name} (
+                                                {activeCampaignCount})
                                             </span>
 
                                             <span
@@ -304,7 +312,7 @@ const RightPanel = ({ categories = [], active, setActive }) => {
                                             </span>
                                         </div>
 
-                                        {cat.description && (
+                                        {isActive && cat.description && (
                                             <p
                                                 className={`
                                                     mt-1
@@ -313,11 +321,7 @@ const RightPanel = ({ categories = [], active, setActive }) => {
                                                     text-[11px]
                                                     leading-[1.8]
                                                     xl:text-xs
-                                                    ${
-                                                        isActive
-                                                            ? 'text-text-secondary'
-                                                            : 'text-text-muted'
-                                                    }
+                                                    text-text-secondary
                                                 `}
                                             >
                                                 {cat.description}
@@ -334,7 +338,6 @@ const RightPanel = ({ categories = [], active, setActive }) => {
             {/* =================================================
                 ALL CATEGORIES
             ================================================== */}
-
             <ExploreAllCategoriesCta />
         </div>
     );

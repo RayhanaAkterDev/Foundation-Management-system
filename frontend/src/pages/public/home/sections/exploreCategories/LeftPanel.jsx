@@ -12,7 +12,7 @@ const LeftPanel = ({ current, campaigns = [] }) => {
     const activeCampaigns = campaigns.filter(
         (campaign) =>
             campaign?.status === 'active' &&
-            campaign?.category?.name === current.name,
+            campaign?.category === current?.name,
     );
 
     const supportTypes = Array.isArray(current.support_types)
@@ -313,25 +313,27 @@ const LeftPanel = ({ current, campaigns = [] }) => {
                                     বিভিন্ন পথ রয়েছে।
                                 </p>
 
-                               <div
-    className="
+                                <div
+                                    className="
         max-w-3xl
         pt-6
     "
->
-    <div
-        className="
+                                >
+                                    <div
+                                        className="
             flex
             flex-wrap
             items-baseline
             gap-x-2
             gap-y-1
         "
-    >
-        {supportTypes.map((type, index) => (
-            <React.Fragment key={`${type}-${index}`}>
-                <span
-                    className="
+                                    >
+                                        {supportTypes.map((type, index) => (
+                                            <React.Fragment
+                                                key={`${type}-${index}`}
+                                            >
+                                                <span
+                                                    className="
                         font-bengali
                         text-[15px]
                         font-medium
@@ -340,14 +342,15 @@ const LeftPanel = ({ current, campaigns = [] }) => {
                         text-text-primary
                         sm:text-[16px]
                     "
-                >
-                    {type}
-                </span>
+                                                >
+                                                    {type}
+                                                </span>
 
-                {index < supportTypes.length - 1 && (
-                    <span
-                        aria-hidden="true"
-                        className="
+                                                {index <
+                                                    supportTypes.length - 1 && (
+                                                    <span
+                                                        aria-hidden="true"
+                                                        className="
                             mx-1
                             inline-block
                             h-1
@@ -357,12 +360,12 @@ const LeftPanel = ({ current, campaigns = [] }) => {
                             bg-accent
                             align-middle
                         "
-                    />
-                )}
-            </React.Fragment>
-        ))}
-    </div>
-</div>
+                                                    />
+                                                )}
+                                            </React.Fragment>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
                         </section>
                     )}

@@ -13,7 +13,7 @@ const UrgentSection = ({ campaigns = [] }) => {
     const goToCampaign = (id) => navigate(`/campaign/${id}`);
 
     return (
-        <section className="section-gap border-b border-border">
+        <section className="section-gap mt-20 border-b border-border">
             <div className="container-width space-y-10">
                 <div className="grid lg:grid-cols-3 gap-10">
                     {/* LEFT MAIN */}
@@ -58,7 +58,7 @@ const UrgentSection = ({ campaigns = [] }) => {
                                     "
                                     >
                                         <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
-                                        Emergency Appeal
+                                        Emergency Appeal 
                                     </span>
 
                                     <span

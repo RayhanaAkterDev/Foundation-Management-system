@@ -27,6 +27,7 @@ const LoginForm = ({ loginRole = null }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
         setLoginError('');
         setIsSubmitting(true);
 
@@ -50,8 +51,8 @@ const LoginForm = ({ loginRole = null }) => {
             const data = await response.json();
 
             /* =========================================================
-               Demo account requires demo verification
-            ========================================================= */
+           Demo account requires demo verification
+        ========================================================= */
             if (
                 response.status === 403 &&
                 data.verification_method === 'demo' &&
@@ -61,13 +62,19 @@ const LoginForm = ({ loginRole = null }) => {
                     `/email-verification?status=demo&user_id=${data.user_id}&email=${encodeURIComponent(
                         email.trim(),
                     )}`,
+                    {
+                        state: {
+                            from: location.state?.from,
+                        },
+                    },
                 );
+
                 return;
             }
 
             /* =========================================================
-               Real email verification required
-            ========================================================= */
+           Real email verification required
+        ========================================================= */
             if (
                 response.status === 403 &&
                 data.verification_method === 'email' &&
@@ -79,13 +86,19 @@ const LoginForm = ({ loginRole = null }) => {
                     }&email=${encodeURIComponent(
                         email.trim(),
                     )}&role=${encodeURIComponent(role || '')}`,
+                    {
+                        state: {
+                            from: location.state?.from,
+                        },
+                    },
                 );
+
                 return;
             }
 
             /* =========================================================
-               Other login errors
-            ========================================================= */
+           Other login errors
+        ========================================================= */
             if (!response.ok) {
                 throw new Error(
                     data.error ||
@@ -95,10 +108,10 @@ const LoginForm = ({ loginRole = null }) => {
             }
 
             /* =========================================================
-               Store authentication data
-            ========================================================= */
-
+           Store authentication data
+        ========================================================= */
             const storage = rememberMe ? localStorage : sessionStorage;
+
             const otherStorage = rememberMe ? sessionStorage : localStorage;
 
             // Remove any old authentication data from the other storage.
@@ -108,37 +121,56 @@ const LoginForm = ({ loginRole = null }) => {
             storage.setItem('auth_token', data.token);
             storage.setItem('user', JSON.stringify(data.user));
 
+            // Notify the public site that authentication has changed.
+            window.dispatchEvent(new Event('auth-changed'));
+
             /* =========================================================
-               Redirect
-            =========================================================
+           Redirect
 
-               Individual / Organization:
-               - If the login was initiated from another page,
-                 return there.
-               - Otherwise go to the public homepage.
+           Individual / Organization:
+           - Return to the page that initiated login.
+           - Otherwise go to the public homepage.
 
-               Admin:
-               - Continue directly to the admin dashboard.
-            ========================================================= */
-
+           Admin:
+           - Continue directly to the admin dashboard.
+        ========================================================= */
             if (data.user.role === 'admin') {
-                navigate('/admin/dashboard', { replace: true });
+                navigate('/admin/dashboard', {
+                    replace: true,
+                });
+
                 return;
             }
 
-            const returnPath = location.state?.from?.pathname;
+            const from = location.state?.from;
 
-            if (returnPath) {
-                navigate(
-                    `${returnPath}${
-                        location.state?.from?.search || ''
-                    }${location.state?.from?.hash || ''}`,
-                    { replace: true },
-                );
-            } else {
-                // Main public website
-                navigate('/', { replace: true });
+            // Case 1: Login was opened with a simple string path.
+            // Example: state={{ from: '/volunteer' }}
+            if (typeof from === 'string') {
+                navigate(from, {
+                    replace: true,
+                });
+
+                return;
             }
+
+            // Case 2: Login was opened with a React Router location object.
+            // Example: state={{ from: location }}
+            if (from?.pathname) {
+                navigate(
+                    `${from.pathname}${from.search || ''}${from.hash || ''}`,
+                    {
+                        replace: true,
+                    },
+                );
+
+                return;
+            }
+
+            // Case 3: Login was opened directly or from Navbar.
+            navigate('/', {
+                replace: true,
+            });
         } catch (error) {
             setLoginError(
                 error.message || 'কিছু একটা সমস্যা হয়েছে। আবার চেষ্টা করুন।',

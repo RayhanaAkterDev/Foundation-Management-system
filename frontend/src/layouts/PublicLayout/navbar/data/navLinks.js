@@ -36,11 +36,11 @@ const navLinks = [
                         path: '/volunteer',
                     },
                     {
-                        id: 'partner',
-                        name: 'অংশীদার হোন',
-                        desc: 'আপনার প্রতিষ্ঠান বা সংগঠন নিয়ে আমাদের সাথে কাজ করুন।',
-                        path: '/partner',
-                    },
+    id: 'organizations',
+    name: 'সংযুক্ত প্রতিষ্ঠান',
+    desc: 'Stand For People-এর সাথে যুক্ত নিবন্ধিত প্রতিষ্ঠানগুলো দেখুন।',
+    path: '/organizations',
+},
                 ],
             },
 

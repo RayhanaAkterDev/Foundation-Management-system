@@ -21,7 +21,7 @@ import DonateHub from '@/pages/public/donationPage/DonateHub/DonateHub';
 import PaymentResult from '@/pages/public/donationPage/PaymentResult';
 import Volunteer from '@/pages/public/volunteerPage/Volunteer';
 import RequestHelp from '@/pages/public/requestHelpPage/RequestHelp';
-import Partner from '@/pages/public/partnersPage/Partner';
+import Organizations from '@/pages/public/organizationsPage/Organizations';
 import Stories from '@/pages/public/storiesPage/Stories';
 import About from '@/pages/public/about/About';
 
@@ -165,8 +165,8 @@ const router = createBrowserRouter([
 
             // PARTNER
             {
-                path: 'partner',
-                element: <Partner />,
+                path: 'organizations',
+                element: <Organizations />,
             },
 
             // STORIES

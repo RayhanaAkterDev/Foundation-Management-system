@@ -33,6 +33,20 @@ Route::get(
 );
 
 // =============================================================
+// PUBLIC ORGANIZATIONS
+// =============================================================
+//
+// Public directory of registered organizations.
+// This is read-only and does not create a separate
+// partnership workflow.
+//
+
+Route::get(
+    '/organizations',
+    [OrganizationController::class, 'publicIndex']
+);
+
+// =============================================================
 // CENTRAL CATEGORIES
 // =============================================================
 //

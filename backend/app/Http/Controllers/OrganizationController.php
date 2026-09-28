@@ -11,6 +11,34 @@ use Illuminate\Http\Request;
 class OrganizationController extends Controller
 {
     /**
+     * Public: View registered and verified organizations.
+     *
+     * Only verified organizations are shown on the public website.
+     *
+     * This is a read-only public directory and does not create
+     * a separate partnership workflow.
+     */
+    public function publicIndex()
+    {
+        $organizations = Organization::query()
+            ->where('verification_status', 'verified')
+            ->select([
+                'id',
+                'name',
+                'organization_type',
+                'address',
+                'logo',
+                'verification_status',
+            ])
+            ->latest('id')
+            ->get();
+
+        return response()->json([
+            'organizations' => $organizations,
+        ]);
+    }
+
+    /**
      * Organization: View assigned help requests.
      */
     public function assignments(Request $request)
@@ -51,76 +79,75 @@ class OrganizationController extends Controller
     }
 
     /**
- * Organization: Accept a help request assignment.
- *
- * assigned -> accepted
- */
-public function acceptAssignment(
-    Request $request,
-    int $id
-) {
-    $user = $request->user();
-
-    if (!$user || $user->role !== 'organization') {
-        return response()->json([
-            'message' => 'Unauthorized.',
-        ], 403);
-    }
-
-    $organization = Organization::where(
-        'user_id',
-        $user->id
-    )->first();
-
-    if (!$organization) {
-        return response()->json([
-            'message' => 'Organization profile not found.',
-        ], 404);
-    }
-
-    $assignment = HelpRequestAssignment::where(
-        'id',
-        $id
-    )
-        ->where(
-            'organization_id',
-            $organization->id
-        )
-        ->first();
-
-    if (!$assignment) {
-        return response()->json([
-            'message' => 'Assignment not found.',
-        ], 404);
-    }
-
-    if (
-        $assignment->status !==
-        HelpRequestAssignment::STATUS_PENDING
+     * Organization: Accept a help request assignment.
+     *
+     * assigned -> accepted
+     */
+    public function acceptAssignment(
+        Request $request,
+        int $id
     ) {
+        $user = $request->user();
+
+        if (!$user || $user->role !== 'organization') {
+            return response()->json([
+                'message' => 'Unauthorized.',
+            ], 403);
+        }
+
+        $organization = Organization::where(
+            'user_id',
+            $user->id
+        )->first();
+
+        if (!$organization) {
+            return response()->json([
+                'message' => 'Organization profile not found.',
+            ], 404);
+        }
+
+        $assignment = HelpRequestAssignment::where(
+            'id',
+            $id
+        )
+            ->where(
+                'organization_id',
+                $organization->id
+            )
+            ->first();
+
+        if (!$assignment) {
+            return response()->json([
+                'message' => 'Assignment not found.',
+            ], 404);
+        }
+
+        if (
+            $assignment->status !==
+            HelpRequestAssignment::STATUS_PENDING
+        ) {
+            return response()->json([
+                'message' =>
+                'Only pending assignments can be accepted.',
+            ], 422);
+        }
+
+        $assignment->update([
+            'status' =>
+            HelpRequestAssignment::STATUS_ACCEPTED,
+        ]);
+
         return response()->json([
             'message' =>
-                'Only pending assignments can be accepted.',
-        ], 422);
-    }
-
-    $assignment->update([
-        'status' =>
-            HelpRequestAssignment::STATUS_ACCEPTED,
-    ]);
-
-    return response()->json([
-        'message' =>
             'Help request assignment accepted successfully.',
-
-        'assignment' => $assignment
-            ->fresh()
-            ->load([
-                'helpRequest',
-                'assignedBy:id,name,email',
-            ]),
-    ]);
-}
+            'assignment' => $assignment
+                ->fresh()
+                ->load([
+                    'helpRequest',
+                    'assignedBy:id,name,email',
+                ]),
+        ]);
+    }
 
     /**
      * Organization: Reject a pending help request assignment.
@@ -187,7 +214,6 @@ public function acceptAssignment(
         $assignment->update([
             'status' =>
             HelpRequestAssignment::STATUS_REJECTED,
-
             'rejection_note' =>
             trim($validated['rejection_note']),
         ]);
@@ -195,7 +221,6 @@ public function acceptAssignment(
         return response()->json([
             'message' =>
             'Help request assignment rejected successfully.',
-
             'assignment' => $assignment
                 ->fresh()
                 ->load([
@@ -305,18 +330,14 @@ public function acceptAssignment(
             ], 404);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Only Accepted Assignments Can Request Withdrawal
-        |--------------------------------------------------------------------------
-        |
-        | pending    -> cannot withdraw
-        | accepted   -> can request withdrawal
-        | rejected   -> cannot withdraw
-        | withdrawn  -> cannot withdraw again
-        |
-        */
-
+        /**
+         * Only Accepted Assignments Can Request Withdrawal
+         *
+         * pending   -> cannot withdraw
+         * accepted  -> can request withdrawal
+         * rejected  -> cannot withdraw
+         * withdrawn -> cannot withdraw again
+         */
         if (
             $assignment->status !==
             HelpRequestAssignment::STATUS_ACCEPTED
@@ -327,12 +348,9 @@ public function acceptAssignment(
             ], 422);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Prevent Duplicate Pending Request
-        |--------------------------------------------------------------------------
-        */
-
+        /**
+         * Prevent Duplicate Pending Request
+         */
         if (
             $assignment->withdrawal_status ===
             HelpRequestAssignment::WITHDRAWAL_PENDING
@@ -343,12 +361,9 @@ public function acceptAssignment(
             ], 422);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Validate Withdrawal Reason
-        |--------------------------------------------------------------------------
-        */
-
+        /**
+         * Validate Withdrawal Reason
+         */
         $validated = $request->validate([
             'withdrawal_reason' => [
                 'required',
@@ -358,38 +373,27 @@ public function acceptAssignment(
             ],
         ]);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Create Withdrawal Request
-        |--------------------------------------------------------------------------
-        |
-        | IMPORTANT:
-        |
-        | The assignment status remains accepted.
-        |
-        | It changes to withdrawn only after Admin approves
-        | the withdrawal request.
-        |
-        */
-
+        /**
+         * Create Withdrawal Request
+         *
+         * The assignment status remains accepted.
+         *
+         * It changes to withdrawn only after Admin approves
+         * the withdrawal request.
+         */
         $assignment->update([
             'withdrawal_status' =>
             HelpRequestAssignment::WITHDRAWAL_PENDING,
-
             'withdrawal_reason' =>
             trim($validated['withdrawal_reason']),
-
             'withdrawal_requested_at' => now(),
-
             'withdrawal_reviewed_at' => null,
-
             'withdrawal_reviewed_by' => null,
         ]);
 
         return response()->json([
             'message' =>
             'Withdrawal request submitted successfully.',
-
             'assignment' => $assignment
                 ->fresh()
                 ->load([
@@ -458,12 +462,9 @@ public function acceptAssignment(
             ], 404);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Only Accepted Assignments Can Be Edited
-        |--------------------------------------------------------------------------
-        */
-
+        /**
+         * Only Accepted Assignments Can Be Edited
+         */
         if (
             $assignment->status !==
             HelpRequestAssignment::STATUS_ACCEPTED
@@ -474,12 +475,9 @@ public function acceptAssignment(
             ], 422);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Make Sure Help Request Exists
-        |--------------------------------------------------------------------------
-        */
-
+        /**
+         * Make Sure Help Request Exists
+         */
         $helpRequest = $assignment->helpRequest;
 
         if (!$helpRequest) {
@@ -489,16 +487,12 @@ public function acceptAssignment(
             ], 404);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Validate Only Organization-Editable Fields
-        |--------------------------------------------------------------------------
-        |
-        | Valid urgency values:
-        | low, normal, high, critical
-        |
-        */
-
+        /**
+         * Validate Only Organization-Editable Fields
+         *
+         * Valid urgency values:
+         * low, normal, high, critical
+         */
         $validated = $request->validate([
             'category' => [
                 'sometimes',
@@ -506,7 +500,6 @@ public function acceptAssignment(
                 'string',
                 'max:100',
             ],
-
             'urgency' => [
                 'sometimes',
                 'required',
@@ -515,12 +508,9 @@ public function acceptAssignment(
             ],
         ]);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Make Sure At Least One Editable Field Was Sent
-        |--------------------------------------------------------------------------
-        */
-
+        /**
+         * Make Sure At Least One Editable Field Was Sent
+         */
         if (empty($validated)) {
             return response()->json([
                 'message' =>
@@ -528,18 +518,14 @@ public function acceptAssignment(
             ], 422);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Update Help Request
-        |--------------------------------------------------------------------------
-        */
-
+        /**
+         * Update Help Request
+         */
         $helpRequest->update($validated);
 
         return response()->json([
             'message' =>
             'Help request updated successfully.',
-
             'assignment' => $assignment
                 ->fresh()
                 ->load([
@@ -549,291 +535,286 @@ public function acceptAssignment(
         ]);
     }
 
-/**
- * Organization: View volunteers assigned to active campaigns.
- *
- * Only volunteers assigned to this organization's ACTIVE
- * campaigns are returned.
- *
- * Rejected and withdrawn assignments are not considered
- * current volunteer assignments.
- */
-public function volunteers(Request $request)
-{
-    $user = $request->user();
+    /**
+     * Organization: View volunteers assigned to active campaigns.
+     *
+     * Only volunteers assigned to this organization's ACTIVE
+     * campaigns are returned.
+     *
+     * Rejected and withdrawn assignments are not considered
+     * current volunteer assignments.
+     */
+    public function volunteers(Request $request)
+    {
+        $user = $request->user();
 
-    if (!$user || $user->role !== 'organization') {
+        if (!$user || $user->role !== 'organization') {
+            return response()->json([
+                'message' => 'Unauthorized.',
+            ], 403);
+        }
+
+        $organization = Organization::where(
+            'user_id',
+            $user->id
+        )->first();
+
+        if (!$organization) {
+            return response()->json([
+                'message' => 'Organization profile not found.',
+            ], 404);
+        }
+
+        /**
+         * Get volunteer assignments belonging to this organization
+         * and its ACTIVE campaigns only.
+         */
+        $assignments = CampaignVolunteerAssignment::query()
+            ->whereHas('campaign', function ($query) use ($organization) {
+                $query
+                    ->where(
+                        'organization_id',
+                        $organization->id
+                    )
+                    ->where(
+                        'status',
+                        Campaign::STATUS_ACTIVE
+                    );
+            })
+            ->whereNotIn('status', [
+                CampaignVolunteerAssignment::STATUS_REJECTED,
+                CampaignVolunteerAssignment::STATUS_WITHDRAWN,
+            ])
+            ->with([
+                'volunteer:id,name,email,phone,status,email_verified_at',
+                'campaign:id,organization_id,title,status,start_date,end_date',
+            ])
+            ->latest('assigned_at')
+            ->get();
+
+        /**
+         * Summary
+         */
+        $totalVolunteers = $assignments
+            ->pluck('volunteer_id')
+            ->unique()
+            ->count();
+
+        $activeCampaigns = Campaign::query()
+            ->where(
+                'organization_id',
+                $organization->id
+            )
+            ->where(
+                'status',
+                Campaign::STATUS_ACTIVE
+            )
+            ->count();
+
+        $activeAssignments = $assignments
+            ->whereIn('status', [
+                CampaignVolunteerAssignment::STATUS_ASSIGNED,
+                CampaignVolunteerAssignment::STATUS_ACCEPTED,
+                CampaignVolunteerAssignment::STATUS_IN_PROGRESS,
+            ])
+            ->count();
+
         return response()->json([
-            'message' => 'Unauthorized.',
-        ], 403);
-    }
-
-    $organization = Organization::where(
-        'user_id',
-        $user->id
-    )->first();
-
-    if (!$organization) {
-        return response()->json([
-            'message' => 'Organization profile not found.',
-        ], 404);
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Get volunteer assignments belonging to this organization
-    | and its ACTIVE campaigns only.
-    |--------------------------------------------------------------------------
-    */
-
-    $assignments = CampaignVolunteerAssignment::query()
-        ->whereHas('campaign', function ($query) use ($organization) {
-            $query
-                ->where(
-                    'organization_id',
-                    $organization->id
-                )
-                ->where(
-                    'status',
-                    Campaign::STATUS_ACTIVE
-                );
-        })
-        ->whereNotIn('status', [
-            CampaignVolunteerAssignment::STATUS_REJECTED,
-            CampaignVolunteerAssignment::STATUS_WITHDRAWN,
-        ])
-        ->with([
-            'volunteer:id,name,email,phone,status,email_verified_at',
-            'campaign:id,organization_id,title,status,start_date,end_date',
-        ])
-        ->latest('assigned_at')
-        ->get();
-
-    /*
-    |--------------------------------------------------------------------------
-    | Summary
-    |--------------------------------------------------------------------------
-    */
-
-    $totalVolunteers = $assignments
-        ->pluck('volunteer_id')
-        ->unique()
-        ->count();
-
-    $activeCampaigns = Campaign::query()
-        ->where(
-            'organization_id',
-            $organization->id
-        )
-        ->where(
-            'status',
-            Campaign::STATUS_ACTIVE
-        )
-        ->count();
-
-    $activeAssignments = $assignments
-        ->whereIn('status', [
-            CampaignVolunteerAssignment::STATUS_ASSIGNED,
-            CampaignVolunteerAssignment::STATUS_ACCEPTED,
-            CampaignVolunteerAssignment::STATUS_IN_PROGRESS,
-        ])
-        ->count();
-
-    return response()->json([
-        'volunteers' => $assignments,
-        'summary' => [
-            'total' => $totalVolunteers,
-            'active_campaigns' => $activeCampaigns,
-            'active_assignments' => $activeAssignments,
-        ],
-    ]);
-}
-
-/**
- * Organization: Dashboard overview.
- *
- * Returns only data belonging to the authenticated organization.
- */
-public function dashboard(Request $request)
-{
-    $user = $request->user();
-
-    if (!$user || $user->role !== 'organization') {
-        return response()->json([
-            'message' => 'Unauthorized.',
-        ], 403);
-    }
-
-    $organization = Organization::where(
-        'user_id',
-        $user->id
-    )->first();
-
-    if (!$organization) {
-        return response()->json([
-            'message' => 'Organization profile not found.',
-        ], 404);
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Help Request Assignments
-    |--------------------------------------------------------------------------
-    */
-
-    $assignments = HelpRequestAssignment::query()
-        ->where('organization_id', $organization->id)
-        ->with([
-            'helpRequest',
-            'assignedBy:id,name,email',
-        ])
-        ->latest()
-        ->get();
-
-    $assignedRequests = $assignments->count();
-
-    $activeRequests = $assignments
-        ->filter(function ($assignment) {
-            return $assignment->helpRequest
-                && $assignment->helpRequest->status === 'verified';
-        })
-        ->count();
-
-    $completedRequests = $assignments
-        ->filter(function ($assignment) {
-            return $assignment->helpRequest
-                && $assignment->helpRequest->status === 'completed';
-        })
-        ->count();
-
-    /*
-    |--------------------------------------------------------------------------
-    | Organization Campaigns
-    |--------------------------------------------------------------------------
-    */
-
-    $campaigns = Campaign::query()
-        ->where('organization_id', $organization->id)
-        ->latest()
-        ->get();
-
-    $activeCampaigns = $campaigns
-        ->where('status', Campaign::STATUS_ACTIVE)
-        ->values();
-
-    /*
-    |--------------------------------------------------------------------------
-    | Volunteers
-    |--------------------------------------------------------------------------
-    */
-
-    $volunteerAssignments = CampaignVolunteerAssignment::query()
-        ->whereHas('campaign', function ($query) use ($organization) {
-            $query
-                ->where('organization_id', $organization->id)
-                ->where('status', Campaign::STATUS_ACTIVE);
-        })
-        ->whereNotIn('status', [
-            CampaignVolunteerAssignment::STATUS_REJECTED,
-            CampaignVolunteerAssignment::STATUS_WITHDRAWN,
-        ])
-        ->with([
-            'volunteer:id,name,email,phone,status,email_verified_at',
-            'campaign:id,organization_id,title,status,start_date,end_date',
-        ])
-        ->latest('assigned_at')
-        ->get();
-
-    $totalVolunteers = $volunteerAssignments
-        ->pluck('volunteer_id')
-        ->unique()
-        ->count();
-
-    $activeVolunteerAssignments = $volunteerAssignments
-        ->whereIn('status', [
-            CampaignVolunteerAssignment::STATUS_ASSIGNED,
-            CampaignVolunteerAssignment::STATUS_ACCEPTED,
-            CampaignVolunteerAssignment::STATUS_IN_PROGRESS,
-        ])
-        ->count();
-
-    /*
-    |--------------------------------------------------------------------------
-    | Recent Requests
-    |--------------------------------------------------------------------------
-    */
-
-    $recentRequests = $assignments
-        ->take(5)
-        ->map(function ($assignment) {
-            $request = $assignment->helpRequest;
-
-            return [
-                'id' => $assignment->id,
-                'help_request_id' => $request?->id,
-                'title' => $request?->title ?? 'Help request',
-                'district' => $request?->district,
-                'urgency' => $request?->urgency,
-                'status' => $request?->status,
-                'assignment_status' => $assignment->status,
-                'withdrawal_status' => $assignment->withdrawal_status,
-                'updated_at' => $request?->updated_at,
-            ];
-        })
-        ->values();
-
-    /*
-    |--------------------------------------------------------------------------
-    | Recent Campaigns
-    |--------------------------------------------------------------------------
-    */
-
-    $recentCampaigns = $campaigns
-        ->take(5)
-        ->map(function ($campaign) {
-            return [
-                'id' => $campaign->id,
-                'title' => $campaign->title,
-                'status' => $campaign->status,
-                'type' => $campaign->type,
-                'start_date' => $campaign->start_date,
-                'end_date' => $campaign->end_date,
-                'created_at' => $campaign->created_at,
-            ];
-        })
-        ->values();
-
-    return response()->json([
-        'success' => true,
-
-        'data' => [
-            'organization' => [
-                'id' => $organization->id,
-                'name' => $organization->name,
-                'type' => $organization->type,
-                'location' => $organization->location,
-                'verification_status' => $organization->verification_status,
-            ],
-
-            'overview' => [
-                'assigned_requests' => $assignedRequests,
-                'active_requests' => $activeRequests,
-                'completed_requests' => $completedRequests,
-                'active_campaigns' => $activeCampaigns->count(),
-                'total_volunteers' => $totalVolunteers,
-                'active_volunteer_assignments' => $activeVolunteerAssignments,
-            ],
-
-            'requests' => $recentRequests,
-
-            'campaigns' => $recentCampaigns,
-
-            'volunteers' => [
+            'volunteers' => $assignments,
+            'summary' => [
                 'total' => $totalVolunteers,
-                'active_assignments' => $activeVolunteerAssignments,
+                'active_campaigns' => $activeCampaigns,
+                'active_assignments' => $activeAssignments,
             ],
-        ],
-    ]);
-}
+        ]);
+    }
 
+    /**
+     * Organization: Dashboard overview.
+     *
+     * Returns only data belonging to the authenticated organization.
+     */
+    public function dashboard(Request $request)
+    {
+        $user = $request->user();
+
+        if (!$user || $user->role !== 'organization') {
+            return response()->json([
+                'message' => 'Unauthorized.',
+            ], 403);
+        }
+
+        $organization = Organization::where(
+            'user_id',
+            $user->id
+        )->first();
+
+        if (!$organization) {
+            return response()->json([
+                'message' => 'Organization profile not found.',
+            ], 404);
+        }
+
+        /**
+         * Help Request Assignments
+         */
+        $assignments = HelpRequestAssignment::query()
+            ->where(
+                'organization_id',
+                $organization->id
+            )
+            ->with([
+                'helpRequest',
+                'assignedBy:id,name,email',
+            ])
+            ->latest()
+            ->get();
+
+        $assignedRequests = $assignments->count();
+
+        $activeRequests = $assignments
+            ->filter(function ($assignment) {
+                return $assignment->helpRequest
+                    && $assignment->helpRequest->status === 'verified';
+            })
+            ->count();
+
+        $completedRequests = $assignments
+            ->filter(function ($assignment) {
+                return $assignment->helpRequest
+                    && $assignment->helpRequest->status === 'completed';
+            })
+            ->count();
+
+        /**
+         * Organization Campaigns
+         */
+        $campaigns = Campaign::query()
+            ->where(
+                'organization_id',
+                $organization->id
+            )
+            ->latest()
+            ->get();
+
+        $activeCampaigns = $campaigns
+            ->where(
+                'status',
+                Campaign::STATUS_ACTIVE
+            )
+            ->values();
+
+        /**
+         * Volunteers
+         */
+        $volunteerAssignments = CampaignVolunteerAssignment::query()
+            ->whereHas('campaign', function ($query) use ($organization) {
+                $query
+                    ->where(
+                        'organization_id',
+                        $organization->id
+                    )
+                    ->where(
+                        'status',
+                        Campaign::STATUS_ACTIVE
+                    );
+            })
+            ->whereNotIn('status', [
+                CampaignVolunteerAssignment::STATUS_REJECTED,
+                CampaignVolunteerAssignment::STATUS_WITHDRAWN,
+            ])
+            ->with([
+                'volunteer:id,name,email,phone,status,email_verified_at',
+                'campaign:id,organization_id,title,status,start_date,end_date',
+            ])
+            ->latest('assigned_at')
+            ->get();
+
+        $totalVolunteers = $volunteerAssignments
+            ->pluck('volunteer_id')
+            ->unique()
+            ->count();
+
+        $activeVolunteerAssignments = $volunteerAssignments
+            ->whereIn('status', [
+                CampaignVolunteerAssignment::STATUS_ASSIGNED,
+                CampaignVolunteerAssignment::STATUS_ACCEPTED,
+                CampaignVolunteerAssignment::STATUS_IN_PROGRESS,
+            ])
+            ->count();
+
+        /**
+         * Recent Requests
+         */
+        $recentRequests = $assignments
+            ->take(5)
+            ->map(function ($assignment) {
+                $request = $assignment->helpRequest;
+
+                return [
+                    'id' => $assignment->id,
+                    'help_request_id' => $request?->id,
+                    'title' => $request?->title ?? 'Help request',
+                    'district' => $request?->district,
+                    'urgency' => $request?->urgency,
+                    'status' => $request?->status,
+                    'assignment_status' => $assignment->status,
+                    'withdrawal_status' => $assignment->withdrawal_status,
+                    'updated_at' => $request?->updated_at,
+                ];
+            })
+            ->values();
+
+        /**
+         * Recent Campaigns
+         */
+        $recentCampaigns = $campaigns
+            ->take(5)
+            ->map(function ($campaign) {
+                return [
+                    'id' => $campaign->id,
+                    'title' => $campaign->title,
+                    'status' => $campaign->status,
+                    'type' => $campaign->type,
+                    'start_date' => $campaign->start_date,
+                    'end_date' => $campaign->end_date,
+                    'created_at' => $campaign->created_at,
+                ];
+            })
+            ->values();
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'organization' => [
+                    'id' => $organization->id,
+                    'name' => $organization->name,
+                    'type' => $organization->type,
+                    'location' => $organization->location,
+                    'verification_status' =>
+                    $organization->verification_status,
+                ],
+
+                'overview' => [
+                    'assigned_requests' => $assignedRequests,
+                    'active_requests' => $activeRequests,
+                    'completed_requests' => $completedRequests,
+                    'active_campaigns' => $activeCampaigns->count(),
+                    'total_volunteers' => $totalVolunteers,
+                    'active_volunteer_assignments' =>
+                    $activeVolunteerAssignments,
+                ],
+
+                'requests' => $recentRequests,
+
+                'campaigns' => $recentCampaigns,
+
+                'volunteers' => [
+                    'total' => $totalVolunteers,
+                    'active_assignments' =>
+                    $activeVolunteerAssignments,
+                ],
+            ],
+        ]);
+    }
 }

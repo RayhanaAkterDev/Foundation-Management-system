@@ -18,7 +18,6 @@ const Volunteer = () => {
             <VolunteerBenefits />
             <VolunteerJourney />
             <VolunteerStories />
-
             <VolunteerCTA onClickJoin={() => setFocusForm(true)} />
             <VolunteerForm focus={focusForm} />
             <VolunteerFAQ />

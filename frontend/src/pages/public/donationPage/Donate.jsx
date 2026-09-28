@@ -1,3 +1,5 @@
+// src/pages/Donate/Donate.jsx
+
 import React, { useEffect, useState } from 'react';
 
 import { useParams, Link } from 'react-router-dom';
@@ -16,6 +18,10 @@ import {
     TbUser,
     TbWallet,
 } from 'react-icons/tb';
+
+/* =========================================================
+   AUTH HELPERS
+========================================================= */
 
 const getStoredUser = () => {
     try {
@@ -39,9 +45,13 @@ const getStoredToken = () => {
     );
 };
 
+/* =========================================================
+   ERROR MESSAGE
+========================================================= */
+
 const getErrorMessage = (error) => {
     if (!error) {
-        return 'Unable to start the payment process. Please try again.';
+        return 'পেমেন্ট প্রক্রিয়া শুরু করা সম্ভব হয়নি। আবার চেষ্টা করুন।';
     }
 
     if (typeof error === 'string') {
@@ -74,22 +84,36 @@ const getErrorMessage = (error) => {
         }
     }
 
-    return 'Unable to start the payment process. Please try again.';
+    return 'পেমেন্ট প্রক্রিয়া শুরু করা সম্ভব হয়নি। আবার চেষ্টা করুন।';
 };
 
 const Donate = () => {
     const { id } = useParams();
 
-    const storedUser = getStoredUser();
-    const storedToken = getStoredToken();
-
-    const isLoggedIn = Boolean(storedToken && storedUser);
-
     const [campaign, setCampaign] = useState(null);
+
     const [loading, setLoading] = useState(true);
+
     const [error, setError] = useState(null);
 
     const [amount, setAmount] = useState(1000);
+
+    const [submitting, setSubmitting] = useState(false);
+
+    /* =========================================================
+       AUTH STATE
+    ========================================================= */
+
+    const [auth, setAuth] = useState(() => ({
+        user: getStoredUser(),
+        token: getStoredToken(),
+    }));
+
+    const isLoggedIn = Boolean(auth.token && auth.user);
+
+    /* =========================================================
+       DONOR INFORMATION
+    ========================================================= */
 
     const [donor, setDonor] = useState(() => {
         const user = getStoredUser();
@@ -110,7 +134,50 @@ const Donate = () => {
         };
     });
 
-    const [submitting, setSubmitting] = useState(false);
+    /* =========================================================
+       SYNC AUTH STATE
+
+       This allows the public donation page to recognize
+       login/logout changes made in the same browser.
+    ========================================================= */
+
+    useEffect(() => {
+        const syncAuth = () => {
+            const user = getStoredUser();
+            const token = getStoredToken();
+
+            setAuth({
+                user,
+                token,
+            });
+
+            if (user && token) {
+                setDonor({
+                    name: user?.name || '',
+                    email: user?.email || '',
+                    phone: user?.phone || '',
+                });
+            } else {
+                setDonor({
+                    name: '',
+                    email: '',
+                    phone: '',
+                });
+            }
+        };
+
+        window.addEventListener('auth-changed', syncAuth);
+        window.addEventListener('storage', syncAuth);
+
+        return () => {
+            window.removeEventListener('auth-changed', syncAuth);
+            window.removeEventListener('storage', syncAuth);
+        };
+    }, []);
+
+    /* =========================================================
+       LOAD CAMPAIGN
+    ========================================================= */
 
     useEffect(() => {
         if (!id) {
@@ -133,7 +200,7 @@ const Donate = () => {
 
                 if (!cancelled) {
                     setCampaign(null);
-                    setError('Unable to load this campaign right now.');
+                    setError('এই ক্যাম্পেইনটি এখন লোড করা সম্ভব হচ্ছে না।');
                 }
             } finally {
                 if (!cancelled) {
@@ -149,6 +216,10 @@ const Donate = () => {
         };
     }, [id]);
 
+    /* =========================================================
+       DONOR FIELD CHANGE
+    ========================================================= */
+
     const handleDonorChange = (field, value) => {
         setDonor((current) => ({
             ...current,
@@ -157,6 +228,10 @@ const Donate = () => {
 
         setError(null);
     };
+
+    /* =========================================================
+       DONATION
+    ========================================================= */
 
     const handleDonate = async (event) => {
         event.preventDefault();
@@ -168,12 +243,12 @@ const Donate = () => {
         const numericAmount = Number(amount);
 
         if (!Number.isFinite(numericAmount) || numericAmount < 10) {
-            setError('Please enter a donation amount of at least ৳10.');
+            setError('অনুগ্রহ করে কমপক্ষে ৳১০ অনুদানের পরিমাণ লিখুন।');
             return;
         }
 
         if (!campaign?.id) {
-            setError('Campaign information is missing. Please try again.');
+            setError('ক্যাম্পেইনের তথ্য পাওয়া যায়নি। আবার চেষ্টা করুন।');
             return;
         }
 
@@ -182,23 +257,23 @@ const Donate = () => {
         const donorPhone = donor.phone.trim();
 
         if (!donorName) {
-            setError('Please enter your full name.');
+            setError('অনুগ্রহ করে আপনার পূর্ণ নাম লিখুন।');
             return;
         }
 
         if (!donorEmail) {
-            setError('Please enter your email address.');
+            setError('অনুগ্রহ করে আপনার ইমেইল ঠিকানা লিখুন।');
             return;
         }
 
         if (!donorPhone) {
-            setError('Please enter your phone number.');
+            setError('অনুগ্রহ করে আপনার ফোন নম্বর লিখুন।');
             return;
         }
 
         if (!/^01\d{9}$/.test(donorPhone)) {
             setError(
-                'Please enter a valid Bangladeshi phone number, for example 01XXXXXXXXX.',
+                'অনুগ্রহ করে একটি সঠিক বাংলাদেশি ফোন নম্বর লিখুন। উদাহরণ: 01XXXXXXXXX',
             );
             return;
         }
@@ -207,12 +282,29 @@ const Donate = () => {
             setSubmitting(true);
             setError(null);
 
+            /*
+             * IMPORTANT:
+             *
+             * initiateDonation() uses apiRequest().
+             * apiRequest() automatically reads auth_token from
+             * localStorage/sessionStorage and sends:
+             *
+             * Authorization: Bearer <token>
+             *
+             * Therefore:
+             *
+             * Guest       → no token → guest donation
+             * Logged user → token   → donation linked to user
+             */
+
             console.log('Starting donation:', {
                 campaignId: campaign.id,
                 amount: numericAmount,
                 donorName,
                 donorEmail,
                 donorPhone,
+                authenticated: isLoggedIn,
+                userId: auth.user?.id || null,
             });
 
             const response = await initiateDonation({
@@ -226,14 +318,14 @@ const Donate = () => {
             console.log('Donation API response:', response);
 
             if (!response) {
-                throw new Error('The server returned an empty response.');
+                throw new Error('সার্ভার থেকে কোনো উত্তর পাওয়া যায়নি।');
             }
 
             if (!response.payment_url) {
                 throw new Error(
                     response.message ||
                         response.error ||
-                        'Payment URL was not returned by the server.',
+                        'সার্ভার থেকে পেমেন্টের লিংক পাওয়া যায়নি।',
                 );
             }
 
@@ -242,36 +334,47 @@ const Donate = () => {
             console.error('Donation initiation failed:', err);
 
             setError(getErrorMessage(err));
+
             setSubmitting(false);
         }
     };
 
+    /* =========================================================
+       LOADING
+    ========================================================= */
+
     if (loading) {
         return (
-            <div className="min-h-screen bg-background flex items-center justify-center">
-                <p className="text-text-secondary">Loading donation page...</p>
+            <div className="flex min-h-screen items-center justify-center bg-background">
+                <p className="font-bengali text-sm text-text-secondary">
+                    অনুদানের পেজ লোড হচ্ছে...
+                </p>
             </div>
         );
     }
 
+    /* =========================================================
+       CAMPAIGN NOT FOUND
+    ========================================================= */
+
     if (!campaign) {
         return (
-            <div className="min-h-screen bg-background flex items-center justify-center px-4">
+            <div className="flex min-h-screen items-center justify-center bg-background px-4">
                 <div className="text-center">
-                    <h2 className="text-xl font-semibold text-text-primary">
-                        Campaign not found
+                    <h2 className="font-bengali text-xl font-semibold text-text-primary">
+                        ক্যাম্পেইন পাওয়া যায়নি
                     </h2>
 
-                    <p className="mt-2 text-sm text-text-secondary">
+                    <p className="mt-2 font-bengali text-sm text-text-secondary">
                         {error ||
-                            'The campaign you are looking for does not exist or may have been removed.'}
+                            'আপনি যে ক্যাম্পেইনটি খুঁজছেন সেটি বিদ্যমান নেই অথবা সরিয়ে নেওয়া হয়েছে।'}
                     </p>
 
                     <Link
                         to="/campaigns"
-                        className="text-primary mt-4 inline-block"
+                        className="mt-4 inline-block font-bengali text-primary"
                     >
-                        Back to campaigns
+                        ক্যাম্পেইনগুলো দেখুন
                     </Link>
                 </div>
             </div>
@@ -281,23 +384,25 @@ const Donate = () => {
     const presets = [500, 1000, 2000, 5000];
 
     return (
-        <div className="min-h-screen bg-background py-10 mt-20">
+        <div className="mt-20 min-h-screen bg-background py-10">
             <div className="container-width max-w-5xl">
+                {/* Back */}
                 <Link
                     to={`/campaign/${campaign.id}`}
                     className="
+                        mb-6
                         inline-flex
                         items-center
                         gap-2
+                        font-bengali
                         text-sm
                         text-text-secondary
-                        hover:text-primary
-                        mb-6
                         transition
+                        hover:text-primary
                     "
                 >
                     <TbArrowLeft />
-                    Back to campaign
+                    ক্যাম্পেইনে ফিরে যান
                 </Link>
 
                 <form
@@ -305,65 +410,97 @@ const Donate = () => {
                     className="
                         grid
                         grid-cols-1
-                        lg:grid-cols-2
                         gap-8
+                        lg:grid-cols-2
                         lg:gap-10
                     "
                 >
-                    {/* LEFT COLUMN */}
-                    <div className="space-y-6 order-2 lg:order-1">
+                    {/* =================================================
+                        LEFT COLUMN
+                    ================================================= */}
+                    <div className="order-2 space-y-6 lg:order-1">
                         {/* Campaign Introduction */}
                         <div>
                             <Badge variant="primary" tone="soft">
                                 {campaign.category?.name ||
                                     campaign.category ||
-                                    'Campaign'}
+                                    'ক্যাম্পেইন'}
                             </Badge>
 
-                            <h1 className="text-3xl font-bold mt-3 text-text-primary leading-tight">
-                                Donate to {campaign.title}
+                            <h1
+                                className="
+                                    mt-3
+                                    font-bengali
+                                    text-3xl
+                                    font-semibold
+                                    leading-tight
+                                    tracking-[-0.025em]
+                                    text-text-primary
+                                "
+                            >
+                                {campaign.title}-এ অনুদান দিন
                             </h1>
 
-                            <p className="text-text-secondary mt-2 leading-relaxed">
-                                Your contribution helps provide immediate
-                                support to people in urgent need.
+                            <p
+                                className="
+                                    mt-2
+                                    font-bengali
+                                    leading-relaxed
+                                    text-text-secondary
+                                "
+                            >
+                                আপনার অনুদান জরুরি প্রয়োজনে থাকা মানুষের কাছে
+                                দ্রুত সহায়তা পৌঁছে দিতে সাহায্য করবে।
                             </p>
 
                             {campaign.supporters !== undefined && (
-                                <div className="mt-3 text-sm text-text-secondary">
+                                <div className="mt-3 font-bengali text-sm text-text-secondary">
                                     <p className="font-medium">
-                                        {campaign.supporters} people supported
-                                        this campaign
+                                        {campaign.supporters} জন এই ক্যাম্পেইন
+                                        থেকে সহায়তা পেয়েছেন।
                                     </p>
 
                                     <p>
-                                        Most donations are around{' '}
-                                        <span className="text-primary font-medium">
-                                            ৳1000–2000
+                                        বেশিরভাগ অনুদানের পরিমাণ{' '}
+                                        <span className="font-medium text-primary">
+                                            ৳১০০০–২০০০
                                         </span>
+                                        ।
                                     </p>
                                 </div>
                             )}
                         </div>
 
                         {/* Donor Information */}
-                        <div className="bg-surface rounded-2xl p-5 sm:p-6 border border-border">
+                        <div className="rounded-2xl border border-border bg-surface p-5 sm:p-6">
                             <div className="flex items-start justify-between gap-4">
                                 <div>
-                                    <h3 className="font-semibold text-text-primary">
-                                        Donor Information
+                                    <h3 className="font-bengali font-semibold text-text-primary">
+                                        দাতার তথ্য
                                     </h3>
 
-                                    <p className="text-xs text-text-secondary mt-1">
+                                    <p className="mt-1 font-bengali text-xs text-text-secondary">
                                         {isLoggedIn
-                                            ? 'Your account information has been filled in automatically.'
-                                            : 'Enter your information to continue with the donation.'}
+                                            ? 'আপনার অ্যাকাউন্টের তথ্য স্বয়ংক্রিয়ভাবে পূরণ করা হয়েছে।'
+                                            : 'অনুদান চালিয়ে যেতে আপনার তথ্য লিখুন।'}
                                     </p>
                                 </div>
 
                                 {isLoggedIn && (
-                                    <span className="shrink-0 text-xs font-medium text-primary bg-primary/10 px-2.5 py-1 rounded-full">
-                                        Logged in
+                                    <span
+                                        className="
+                                            shrink-0
+                                            rounded-full
+                                            bg-primary/10
+                                            px-2.5
+                                            py-1
+                                            font-bengali
+                                            text-xs
+                                            font-medium
+                                            text-primary
+                                        "
+                                    >
+                                        লগইন করা আছে
                                     </span>
                                 )}
                             </div>
@@ -374,14 +511,15 @@ const Donate = () => {
                                     <label
                                         htmlFor="donor-name"
                                         className="
+                                            mb-1.5
                                             block
+                                            font-bengali
                                             text-sm
                                             font-medium
                                             text-text-primary
-                                            mb-1.5
                                         "
                                     >
-                                        Full Name
+                                        পূর্ণ নাম
                                     </label>
 
                                     <input
@@ -394,7 +532,7 @@ const Donate = () => {
                                                 e.target.value,
                                             )
                                         }
-                                        placeholder="Enter your full name"
+                                        placeholder="আপনার পূর্ণ নাম লিখুন"
                                         autoComplete="name"
                                         className="
                                             w-full
@@ -420,14 +558,15 @@ const Donate = () => {
                                     <label
                                         htmlFor="donor-email"
                                         className="
+                                            mb-1.5
                                             block
+                                            font-bengali
                                             text-sm
                                             font-medium
                                             text-text-primary
-                                            mb-1.5
                                         "
                                     >
-                                        Email Address
+                                        ইমেইল ঠিকানা
                                     </label>
 
                                     <input
@@ -466,14 +605,15 @@ const Donate = () => {
                                     <label
                                         htmlFor="donor-phone"
                                         className="
+                                            mb-1.5
                                             block
+                                            font-bengali
                                             text-sm
                                             font-medium
                                             text-text-primary
-                                            mb-1.5
                                         "
                                     >
-                                        Phone Number
+                                        ফোন নম্বর
                                     </label>
 
                                     <input
@@ -507,25 +647,25 @@ const Donate = () => {
                                         "
                                     />
 
-                                    <p className="mt-1.5 text-[11px] text-text-secondary">
-                                        A valid Bangladeshi phone number is
-                                        required for payment.
+                                    <p className="mt-1.5 font-bengali text-[11px] text-text-secondary">
+                                        পেমেন্টের জন্য একটি সঠিক বাংলাদেশি ফোন
+                                        নম্বর প্রয়োজন।
                                     </p>
                                 </div>
                             </div>
                         </div>
 
                         {/* Choose Amount */}
-                        <div className="bg-surface rounded-2xl p-5 sm:p-6 border border-border">
-                            <h3 className="font-semibold mb-2 text-text-primary">
-                                Choose Amount
+                        <div className="rounded-2xl border border-border bg-surface p-5 sm:p-6">
+                            <h3 className="mb-2 font-bengali font-semibold text-text-primary">
+                                অনুদানের পরিমাণ নির্বাচন করুন
                             </h3>
 
-                            <p className="text-xs text-text-secondary mb-4">
-                                Suggested based on recent donations
+                            <p className="mb-4 font-bengali text-xs text-text-secondary">
+                                সাম্প্রতিক অনুদানের ভিত্তিতে প্রস্তাবিত পরিমাণ
                             </p>
 
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                                 {presets.map((val) => {
                                     const isSuggested = val === 1000;
 
@@ -536,25 +676,38 @@ const Donate = () => {
                                             onClick={() => setAmount(val)}
                                             className={`
                                                 relative
-                                                py-3
                                                 rounded-xl
                                                 border
+                                                py-3
                                                 text-sm
                                                 font-medium
                                                 transition-all
                                                 ${
                                                     amount === val
-                                                        ? 'bg-primary text-white border-primary shadow-sm'
+                                                        ? 'border-primary bg-primary text-white shadow-sm'
                                                         : isSuggested
-                                                          ? 'bg-primary/5 border-primary text-primary'
-                                                          : 'bg-surface-soft border-border hover:border-primary/40'
+                                                          ? 'border-primary bg-primary/5 text-primary'
+                                                          : 'border-border bg-surface-soft hover:border-primary/40'
                                                 }
                                             `}
                                         >
                                             ৳{val}
                                             {isSuggested && (
-                                                <span className="absolute -top-2 right-2 text-[10px] bg-primary text-white px-2 py-0.5 rounded-full">
-                                                    Popular
+                                                <span
+                                                    className="
+                                                        absolute
+                                                        -right-1
+                                                        -top-2
+                                                        rounded-full
+                                                        bg-primary
+                                                        px-2
+                                                        py-0.5
+                                                        font-bengali
+                                                        text-[10px]
+                                                        text-white
+                                                    "
+                                                >
+                                                    জনপ্রিয়
                                                 </span>
                                             )}
                                         </button>
@@ -578,58 +731,84 @@ const Donate = () => {
                                 className="
                                     mt-4
                                     w-full
-                                    p-3
                                     rounded-xl
                                     border
                                     border-border
                                     bg-surface-soft
+                                    p-3
                                     outline-none
-                                    focus:border-primary
                                     transition
+                                    focus:border-primary
                                 "
-                                placeholder="Custom amount"
+                                placeholder="নিজের পরিমাণ লিখুন"
                             />
 
-                            <div className="mt-4 text-sm text-text-secondary">
-                                <span className="text-primary font-medium">
+                            <div className="mt-4 font-bengali text-sm text-text-secondary">
+                                <span className="font-medium text-primary">
                                     ৳{Number(amount || 0).toLocaleString()}
                                 </span>{' '}
-                                can help provide essential support to affected
-                                families
+                                দিয়ে ক্ষতিগ্রস্ত পরিবারগুলোর জন্য প্রয়োজনীয়
+                                সহায়তা পৌঁছে দিতে সাহায্য করতে পারেন।
                             </div>
                         </div>
 
                         {/* Payment Method */}
-                        <div className="bg-surface rounded-2xl p-5 sm:p-6 border border-border space-y-4">
-                            <h3 className="font-semibold flex items-center gap-2 text-text-primary">
+                        <div className="space-y-4 rounded-2xl border border-border bg-surface p-5 sm:p-6">
+                            <h3 className="flex items-center gap-2 font-bengali font-semibold text-text-primary">
                                 <TbCreditCard />
-                                Payment Method
+                                পেমেন্ট পদ্ধতি
                             </h3>
 
-                            <label className="flex items-center gap-3 border border-border rounded-xl p-3 hover:border-primary/40 transition cursor-pointer">
+                            <label
+                                className="
+                                    flex
+                                    cursor-pointer
+                                    items-center
+                                    gap-3
+                                    rounded-xl
+                                    border
+                                    border-border
+                                    p-3
+                                    transition
+                                    hover:border-primary/40
+                                "
+                            >
                                 <input type="radio" name="pay" defaultChecked />
 
                                 <TbCreditCard className="text-primary" />
 
-                                <span className="text-sm text-text-primary">
-                                    Credit / Debit Card
+                                <span className="font-bengali text-sm text-text-primary">
+                                    ক্রেডিট / ডেবিট কার্ড
                                 </span>
                             </label>
 
-                            <label className="flex items-center gap-3 border border-border rounded-xl p-3 hover:border-primary/40 transition cursor-pointer">
+                            <label
+                                className="
+                                    flex
+                                    cursor-pointer
+                                    items-center
+                                    gap-3
+                                    rounded-xl
+                                    border
+                                    border-border
+                                    p-3
+                                    transition
+                                    hover:border-primary/40
+                                "
+                            >
                                 <input type="radio" name="pay" />
 
                                 <TbWallet className="text-accent" />
 
-                                <span className="text-sm text-text-primary">
-                                    Mobile Banking (bKash / Nagad)
+                                <span className="font-bengali text-sm text-text-primary">
+                                    মোবাইল ব্যাংকিং (বিকাশ / নগদ)
                                 </span>
                             </label>
                         </div>
 
                         {/* Error */}
                         {error && (
-                            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 font-bengali text-sm text-red-700">
                                 {error}
                             </div>
                         )}
@@ -639,18 +818,20 @@ const Donate = () => {
                             type="submit"
                             disabled={submitting}
                             className="
-                                w-full
-                                text-lg
-                                py-3
-                                rounded-xl
-                                bg-primary
-                                text-white
                                 flex
+                                w-full
                                 items-center
                                 justify-center
                                 gap-2
-                                hover:bg-primary-dark
+                                rounded-xl
+                                bg-primary
+                                py-3
+                                font-bengali
+                                text-lg
+                                font-semibold
+                                text-white
                                 transition
+                                hover:bg-primary-dark
                                 disabled:cursor-not-allowed
                                 disabled:opacity-60
                             "
@@ -658,47 +839,49 @@ const Donate = () => {
                             <TbHeartFilled />
 
                             {submitting
-                                ? 'Starting payment...'
-                                : `Donate ৳${Number(
+                                ? 'পেমেন্ট শুরু হচ্ছে...'
+                                : `৳${Number(
                                       amount || 0,
-                                  ).toLocaleString()}`}
+                                  ).toLocaleString()} অনুদান দিন`}
                         </button>
 
-                        <p className="text-xs text-text-secondary flex items-center gap-2">
+                        <p className="flex items-center gap-2 font-bengali text-xs text-text-secondary">
                             <TbShieldCheck className="text-primary" />
-                            Secure donation • No hidden fees • Instant
-                            confirmation
+                            নিরাপদ অনুদান • কোনো গোপন চার্জ নেই • তাৎক্ষণিক
+                            নিশ্চিতকরণ
                         </p>
                     </div>
 
-                    {/* RIGHT COLUMN */}
-                    <div className="space-y-6 order-1 lg:order-2">
+                    {/* =================================================
+                        RIGHT COLUMN
+                    ================================================= */}
+                    <div className="order-1 space-y-6 lg:order-2">
                         {/* Campaign Summary */}
-                        <div className="bg-surface rounded-2xl p-5 sm:p-6 border border-border">
-                            <h3 className="font-semibold mb-4 text-text-primary">
-                                Campaign Summary
+                        <div className="rounded-2xl border border-border bg-surface p-5 sm:p-6">
+                            <h3 className="mb-4 font-bengali font-semibold text-text-primary">
+                                ক্যাম্পেইনের সংক্ষিপ্ত তথ্য
                             </h3>
 
                             {campaign.image && (
                                 <img
                                     src={campaign.image}
                                     alt={campaign.title}
-                                    className="w-full h-52 object-cover rounded-xl"
+                                    className="h-52 w-full rounded-xl object-cover"
                                 />
                             )}
 
                             {campaign.shortDescription && (
-                                <p className="mt-4 text-sm text-text-secondary leading-relaxed">
+                                <p className="mt-4 font-bengali text-sm leading-relaxed text-text-secondary">
                                     {campaign.shortDescription}
                                 </p>
                             )}
 
-                            <div className="mt-5 text-sm space-y-2">
+                            <div className="mt-5 space-y-2 font-bengali text-sm">
                                 {campaign.raised !== undefined && (
                                     <div className="flex justify-between text-text-secondary">
-                                        <span>Raised</span>
+                                        <span>সংগৃহীত</span>
 
-                                        <span className="text-text-primary font-medium">
+                                        <span className="font-medium text-text-primary">
                                             ৳
                                             {Number(
                                                 campaign.raised,
@@ -709,9 +892,9 @@ const Donate = () => {
 
                                 {campaign.targetAmount !== undefined && (
                                     <div className="flex justify-between text-text-secondary">
-                                        <span>Goal</span>
+                                        <span>লক্ষ্য</span>
 
-                                        <span className="text-text-primary font-medium">
+                                        <span className="font-medium text-text-primary">
                                             ৳
                                             {Number(
                                                 campaign.targetAmount,
@@ -722,9 +905,9 @@ const Donate = () => {
 
                                 {campaign.supporters !== undefined && (
                                     <div className="flex justify-between text-text-secondary">
-                                        <span>Supporters</span>
+                                        <span>সহায়তাকারী</span>
 
-                                        <span className="text-text-primary font-medium">
+                                        <span className="font-medium text-text-primary">
                                             {campaign.supporters}
                                         </span>
                                     </div>
@@ -733,35 +916,35 @@ const Donate = () => {
                         </div>
 
                         {/* Impact */}
-                        <div className="bg-primary/5 rounded-2xl p-5 sm:p-6 border border-primary/10">
-                            <h3 className="font-semibold flex items-center gap-2 text-primary">
+                        <div className="rounded-2xl border border-primary/10 bg-primary/5 p-5 sm:p-6">
+                            <h3 className="flex items-center gap-2 font-bengali font-semibold text-primary">
                                 <TbUser />
-                                Your Impact
+                                আপনার অবদান
                             </h3>
 
-                            <p className="text-sm text-text-secondary mt-2 leading-relaxed">
-                                Even a small donation helps provide food,
-                                medicine, and emergency relief to affected
-                                families.
+                            <p className="mt-2 font-bengali text-sm leading-relaxed text-text-secondary">
+                                আপনার ছোট একটি অনুদানও ক্ষতিগ্রস্ত পরিবারগুলোর
+                                জন্য খাবার, চিকিৎসা এবং জরুরি সহায়তা পৌঁছে দিতে
+                                সাহায্য করতে পারে।
                             </p>
 
-                            <div className="mt-4 text-sm font-medium text-primary">
-                                Every contribution matters ❤️
+                            <div className="mt-4 font-bengali text-sm font-medium text-primary">
+                                প্রতিটি অবদান গুরুত্বপূর্ণ ❤️
                             </div>
                         </div>
 
                         {/* Transparency */}
-                        <div className="bg-surface rounded-2xl p-5 sm:p-6 border border-border">
-                            <h3 className="font-semibold flex items-center gap-2 text-text-primary">
+                        <div className="rounded-2xl border border-border bg-surface p-5 sm:p-6">
+                            <h3 className="flex items-center gap-2 font-bengali font-semibold text-text-primary">
                                 <TbWallet />
-                                Transparency
+                                স্বচ্ছতা
                             </h3>
 
-                            <ul className="text-sm text-text-secondary mt-3 space-y-2">
-                                <li>• 100% verified campaigns</li>
-                                <li>• Real-time updates</li>
-                                <li>• Public fund tracking</li>
-                                <li>• NGO verification system</li>
+                            <ul className="mt-3 space-y-2 font-bengali text-sm text-text-secondary">
+                                <li>• ১০০% যাচাইকৃত ক্যাম্পেইন</li>
+                                <li>• রিয়েল-টাইম আপডেট</li>
+                                <li>• জনসাধারণের জন্য তহবিলের তথ্য</li>
+                                <li>• এনজিও যাচাই ব্যবস্থা</li>
                             </ul>
                         </div>
                     </div>

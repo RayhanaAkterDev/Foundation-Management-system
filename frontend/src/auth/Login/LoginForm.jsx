@@ -1,10 +1,17 @@
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+// src/pages/Auth/Login/LoginForm.jsx
+
+import {
+    Link,
+    useLocation,
+    useNavigate,
+    useSearchParams,
+} from 'react-router-dom';
 import { Eye, EyeOff, LockKeyhole, Mail } from 'lucide-react';
 import { useState } from 'react';
 
 const LoginForm = ({ loginRole = null }) => {
     const navigate = useNavigate();
-
+    const location = useLocation();
     const [searchParams] = useSearchParams();
 
     // Public login gets its role from the URL.
@@ -20,7 +27,6 @@ const LoginForm = ({ loginRole = null }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
         setLoginError('');
         setIsSubmitting(true);
 
@@ -43,97 +49,99 @@ const LoginForm = ({ loginRole = null }) => {
 
             const data = await response.json();
 
-            /*
-            |--------------------------------------------------------------------------
-            | Demo account requires demo verification
-            |--------------------------------------------------------------------------
-            |
-            | Admin-created demo accounts do not use a real email inbox.
-            | The backend provides a demo verification endpoint instead.
-            |
-            */
-
+            /* =========================================================
+               Demo account requires demo verification
+            ========================================================= */
             if (
                 response.status === 403 &&
                 data.verification_method === 'demo' &&
                 data.user_id
             ) {
                 navigate(
-                    `/email-verification?status=demo&user_id=${data.user_id}&email=${encodeURIComponent(email.trim())}`,
+                    `/email-verification?status=demo&user_id=${data.user_id}&email=${encodeURIComponent(
+                        email.trim(),
+                    )}`,
                 );
-
                 return;
             }
 
-            /*
-            |--------------------------------------------------------------------------
-            | Real email verification required
-            |--------------------------------------------------------------------------
-            |
-            | The backend sends the verification email on the user's
-            | first login attempt.
-            |
-            | We send the user to the verification page so they can
-            | see the verification instructions and use Resend if needed.
-            |
-            */
-
+            /* =========================================================
+               Real email verification required
+            ========================================================= */
             if (
                 response.status === 403 &&
                 data.verification_method === 'email' &&
                 data.user_id
             ) {
                 navigate(
-                    `/email-verification?status=email&user_id=${data.user_id}&email=${encodeURIComponent(email.trim())}&role=${encodeURIComponent(role)}`,
+                    `/email-verification?status=email&user_id=${
+                        data.user_id
+                    }&email=${encodeURIComponent(
+                        email.trim(),
+                    )}&role=${encodeURIComponent(role || '')}`,
                 );
-
                 return;
             }
 
-            /*
-            |--------------------------------------------------------------------------
-            | Other login errors
-            |--------------------------------------------------------------------------
-            */
-
+            /* =========================================================
+               Other login errors
+            ========================================================= */
             if (!response.ok) {
                 throw new Error(
                     data.error ||
                         data.message ||
-                        'Unable to sign in. Please try again.',
+                        'লগইন করা সম্ভব হয়নি। আবার চেষ্টা করুন।',
                 );
             }
 
-            /*
-            |--------------------------------------------------------------------------
-            | Store authentication data
-            |--------------------------------------------------------------------------
-            */
+            /* =========================================================
+               Store authentication data
+            ========================================================= */
 
             const storage = rememberMe ? localStorage : sessionStorage;
+            const otherStorage = rememberMe ? sessionStorage : localStorage;
+
+            // Remove any old authentication data from the other storage.
+            otherStorage.removeItem('auth_token');
+            otherStorage.removeItem('user');
 
             storage.setItem('auth_token', data.token);
-
             storage.setItem('user', JSON.stringify(data.user));
 
-            /*
-            |--------------------------------------------------------------------------
-            | Redirect based on authenticated account role
-            |--------------------------------------------------------------------------
-            */
+            /* =========================================================
+               Redirect
+            =========================================================
 
-            if (data.user.role === 'individual') {
-                navigate('/individual/dashboard');
-            } else if (data.user.role === 'organization') {
-                navigate('/organization/dashboard');
-            } else if (data.user.role === 'admin') {
-                navigate('/admin/dashboard');
+               Individual / Organization:
+               - If the login was initiated from another page,
+                 return there.
+               - Otherwise go to the public homepage.
+
+               Admin:
+               - Continue directly to the admin dashboard.
+            ========================================================= */
+
+            if (data.user.role === 'admin') {
+                navigate('/admin/dashboard', { replace: true });
+                return;
+            }
+
+            const returnPath = location.state?.from?.pathname;
+
+            if (returnPath) {
+                navigate(
+                    `${returnPath}${
+                        location.state?.from?.search || ''
+                    }${location.state?.from?.hash || ''}`,
+                    { replace: true },
+                );
             } else {
-                throw new Error('Unknown account type.');
+                // Main public website
+                navigate('/', { replace: true });
             }
         } catch (error) {
             setLoginError(
-                error.message || 'Something went wrong. Please try again.',
+                error.message || 'কিছু একটা সমস্যা হয়েছে। আবার চেষ্টা করুন।',
             );
         } finally {
             setIsSubmitting(false);
@@ -146,9 +154,9 @@ const LoginForm = ({ loginRole = null }) => {
             <div>
                 <label
                     htmlFor="email"
-                    className="mb-2 block text-sm font-medium text-text-primary"
+                    className="mb-2 block font-bengali text-sm font-medium text-text-primary"
                 >
-                    Email address
+                    ইমেইল ঠিকানা
                 </label>
 
                 <div className="relative">
@@ -206,14 +214,15 @@ const LoginForm = ({ loginRole = null }) => {
                 <div className="mb-2 flex items-center justify-between">
                     <label
                         htmlFor="password"
-                        className="text-sm font-medium text-text-primary"
+                        className="font-bengali text-sm font-medium text-text-primary"
                     >
-                        Password
+                        পাসওয়ার্ড
                     </label>
 
                     <Link
                         to="/account/forgot-password"
                         className="
+                            font-bengali
                             text-xs
                             font-semibold
                             text-primary
@@ -222,7 +231,7 @@ const LoginForm = ({ loginRole = null }) => {
                             sm:text-sm
                         "
                     >
-                        Forgot password?
+                        পাসওয়ার্ড ভুলে গেছেন?
                     </Link>
                 </div>
 
@@ -243,7 +252,7 @@ const LoginForm = ({ loginRole = null }) => {
                     <input
                         id="password"
                         type={showPassword ? 'text' : 'password'}
-                        placeholder="Enter your password"
+                        placeholder="আপনার পাসওয়ার্ড লিখুন"
                         autoComplete="current-password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
@@ -277,7 +286,9 @@ const LoginForm = ({ loginRole = null }) => {
                         type="button"
                         onClick={() => setShowPassword((prev) => !prev)}
                         aria-label={
-                            showPassword ? 'Hide password' : 'Show password'
+                            showPassword
+                                ? 'পাসওয়ার্ড লুকান'
+                                : 'পাসওয়ার্ড দেখুন'
                         }
                         disabled={isSubmitting}
                         className="
@@ -347,7 +358,7 @@ const LoginForm = ({ loginRole = null }) => {
                         </div>
                     )}
 
-                    <p className="text-[12px] leading-5 sm:text-[13px]">
+                    <p className="font-bengali text-[12px] leading-5 sm:text-[13px]">
                         {loginError}
                     </p>
                 </div>
@@ -373,8 +384,8 @@ const LoginForm = ({ loginRole = null }) => {
                         "
                     />
 
-                    <span className="text-sm text-text-secondary">
-                        Remember me
+                    <span className="font-bengali text-sm text-text-secondary">
+                        আমাকে মনে রাখুন
                     </span>
                 </label>
             </div>
@@ -391,6 +402,7 @@ const LoginForm = ({ loginRole = null }) => {
                     justify-center
                     rounded-xl
                     bg-primary
+                    font-bengali
                     text-sm
                     font-semibold
                     text-white
@@ -406,7 +418,7 @@ const LoginForm = ({ loginRole = null }) => {
                     disabled:hover:translate-y-0
                 "
             >
-                {isSubmitting ? 'Signing in...' : 'Continue'}
+                {isSubmitting ? 'লগইন হচ্ছে...' : 'লগইন করুন'}
             </button>
 
             {/* Divider */}
@@ -420,6 +432,7 @@ const LoginForm = ({ loginRole = null }) => {
                         className="
                             bg-surface
                             px-4
+                            font-bengali
                             text-[10px]
                             font-medium
                             uppercase
@@ -427,7 +440,7 @@ const LoginForm = ({ loginRole = null }) => {
                             text-text-secondary
                         "
                     >
-                        Or
+                        অথবা
                     </span>
                 </div>
             </div>
@@ -447,6 +460,7 @@ const LoginForm = ({ loginRole = null }) => {
                     border
                     border-border
                     bg-surface
+                    font-bengali
                     text-sm
                     font-medium
                     text-text-primary
@@ -463,7 +477,7 @@ const LoginForm = ({ loginRole = null }) => {
                     alt="Google"
                     className="h-5 w-5"
                 />
-                Continue with Google
+                Google দিয়ে চালিয়ে যান
             </button>
         </form>
     );

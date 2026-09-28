@@ -379,8 +379,39 @@ class DonationController extends Controller
             '/'
         );
 
+        /*
+     * Determine whether this donation belongs to a
+     * registered/authenticated user or a guest.
+     *
+     * The SSLCOMMERZ callback itself is not authenticated,
+     * so we use the DonationAttempt created when the
+     * payment was started.
+     */
+        $attempt = null;
+
+        if ($transactionId) {
+            $attempt = DonationAttempt::where(
+                'transaction_id',
+                $transactionId
+            )->first();
+        }
+
+        /*
+     * Registered user donation
+     * → Individual dashboard payment result
+     *
+     * Guest donation
+     * → Public payment result
+     */
+        if ($attempt?->user_id) {
+            $path = '/individual/dashboard/donation/payment-result';
+        } else {
+            $path = '/donation/payment-result';
+        }
+
         $url = $frontendUrl .
-            '/individual/dashboard/donation/payment-result?status=' .
+            $path .
+            '?status=' .
             urlencode($status);
 
         if ($transactionId) {

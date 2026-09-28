@@ -16,12 +16,10 @@ const Login = () => {
                     {/* Soft background shapes */}
                     <div className="pointer-events-none absolute inset-0">
                         <div className="absolute -right-40 -top-40 h-125 w-125 rounded-full bg-white/5 blur-3xl" />
-
                         <div className="absolute -bottom-40 -left-40 h-125 w-125 rounded-full bg-black/10 blur-3xl" />
 
                         {/* Minimal decorative line */}
                         <div className="absolute bottom-24 right-20 h-64 w-px rotate-45 bg-white/10" />
-
                         <div className="absolute bottom-20 right-32 h-40 w-px rotate-45 bg-white/10" />
                     </div>
 
@@ -40,8 +38,7 @@ const Login = () => {
                                 </p>
 
                                 <p className="mt-1 text-xs text-white/60">
-                                    Helping people. Building stronger
-                                    communities.
+                                    মানুষের পাশে। শক্তিশালী সমাজ গড়ার পথে।
                                 </p>
                             </div>
                         </div>
@@ -53,23 +50,22 @@ const Login = () => {
                                 <div className="flex items-center gap-3">
                                     <span className="h-px w-8 bg-white/40" />
 
-                                    <span className="text-[11px] font-medium uppercase tracking-[0.25em] text-white/65">
-                                        Welcome back
+                                    <span className="font-bengali text-[11px] font-medium uppercase tracking-[0.18em] text-white/65">
+                                        আবার স্বাগতম
                                     </span>
                                 </div>
 
-                                <h1 className="mt-7 max-w-lg font-fraunces text-5xl font-medium leading-[1.08] text-white xl:text-[58px]">
-                                    Continue making
+                                <h1 className="mt-7 max-w-lg font-bengali text-5xl font-semibold leading-[1.12] tracking-[-0.035em] text-white xl:text-[58px]">
+                                    পরিবর্তনের পথে
                                     <span className="block text-white/65">
-                                        a difference.
+                                        আবারও এগিয়ে চলুন।
                                     </span>
                                 </h1>
 
-                                <p className="mt-7 max-w-md text-base leading-7 text-white/70 xl:text-lg xl:leading-8">
-                                    Sign in to continue supporting people,
-                                    managing your activities, and staying
-                                    connected with the communities that need
-                                    you.
+                                <p className="mt-7 max-w-md font-bengali text-base font-normal leading-7 text-white/70 xl:text-lg xl:leading-8">
+                                    মানুষের পাশে থাকা, আপনার কার্যক্রম পরিচালনা
+                                    করা এবং যেসব মানুষের সহায়তা প্রয়োজন তাদের
+                                    সঙ্গে সংযুক্ত থাকতে লগইন করুন।
                                 </p>
 
                                 {/* Simple stat */}
@@ -79,8 +75,8 @@ const Login = () => {
                                             12,800+
                                         </p>
 
-                                        <p className="mt-1 text-xs text-white/55">
-                                            People supported
+                                        <p className="mt-1 font-bengali text-xs text-white/55">
+                                            সহায়তা পাওয়া মানুষ
                                         </p>
                                     </div>
 
@@ -91,8 +87,8 @@ const Login = () => {
                                             2026
                                         </p>
 
-                                        <p className="mt-1 text-xs text-white/55">
-                                            Building together
+                                        <p className="mt-1 font-bengali text-xs text-white/55">
+                                            একসঙ্গে এগিয়ে চলার বছর
                                         </p>
                                     </div>
                                 </div>
@@ -100,14 +96,14 @@ const Login = () => {
                         </div>
 
                         {/* Bottom */}
-                        <div className="flex items-end justify-between">
-                            <p className="max-w-xs text-xs leading-5 text-white/40">
-                                A trusted space for individuals and
-                                organizations working together for stronger
-                                communities.
+                        <div className="flex items-end justify-between gap-8">
+                            <p className="max-w-xs font-bengali text-xs leading-5 text-white/40">
+                                ব্যক্তি ও প্রতিষ্ঠানকে একসঙ্গে কাজ করার মাধ্যমে
+                                আরও শক্তিশালী ও সহায়ক সমাজ গড়ার একটি
+                                নির্ভরযোগ্য প্ল্যাটফর্ম।
                             </p>
 
-                            <span className="text-[10px] uppercase tracking-[0.25em] text-white/35">
+                            <span className="whitespace-nowrap text-[10px] uppercase tracking-[0.25em] text-white/35">
                                 Stand For People
                             </span>
                         </div>

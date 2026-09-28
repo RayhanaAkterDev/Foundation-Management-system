@@ -35,6 +35,23 @@ export const createHelpRequest = async (data) => {
 };
 
 // =========================================================
+// Analyze help request with AI assistance
+// =========================================================
+//
+// This only analyzes the natural-language description.
+// It does NOT create a Help Request.
+//
+
+export const analyzeHelpRequest = async (description) => {
+    return apiRequest('/help-requests/analyze', {
+        method: 'POST',
+        body: JSON.stringify({
+            description,
+        }),
+    });
+};
+
+// =========================================================
 // Update help request
 // =========================================================
 

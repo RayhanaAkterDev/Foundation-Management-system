@@ -84,10 +84,6 @@ Route::prefix('public')->group(function () {
 //
 // Guests and authenticated users can start donations.
 //
-// DonationController::store() uses $request->user() when a
-// valid Sanctum token is supplied, otherwise the donation is
-// treated as a guest donation.
-//
 
 Route::post(
     '/donations',
@@ -210,6 +206,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get(
         '/help-requests',
         [HelpRequestController::class, 'myRequests']
+    );
+
+    // AI-assisted analysis only.
+    // This does NOT create a Help Request.
+    //
+    // IMPORTANT:
+    // Keep this route before /help-requests/{id}
+    // so "analyze" is not treated as an ID.
+
+    Route::post(
+        '/help-requests/analyze',
+        [HelpRequestController::class, 'analyze']
     );
 
     Route::post(

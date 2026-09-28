@@ -5,10 +5,60 @@ namespace App\Http\Controllers;
 use App\Models\HelpRequest;
 use App\Notifications\PlatformNotification;
 use App\Models\User;
+use App\Services\HelpRequestAiService;
 use Illuminate\Http\Request;
 
 class HelpRequestController extends Controller
 {
+
+    /**
+     * Analyze a natural-language help request.
+     *
+     * This endpoint only analyzes the request.
+     * It does NOT create a Help Request.
+     */
+    public function analyze(
+        Request $request,
+        HelpRequestAiService $aiService
+    ) {
+        $user = $request->user();
+
+        if (!$user || $user->role !== 'individual') {
+            return response()->json([
+                'message' =>
+                'Only individual users can analyze help requests.',
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'description' => [
+                'required',
+                'string',
+                'min:10',
+                'max:5000',
+            ],
+        ]);
+
+        try {
+            $analysis = $aiService->analyze(
+                $validated['description']
+            );
+
+            return response()->json([
+                'message' =>
+                'Help request analyzed successfully.',
+                'analysis' => $analysis,
+            ], 200);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return response()->json([
+                'message' =>
+                'Unable to analyze the help request right now.',
+            ], 500);
+        }
+    }
+
     /*
     |--------------------------------------------------------------------------
     | Submit Help Request

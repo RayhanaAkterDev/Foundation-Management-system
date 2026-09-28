@@ -175,7 +175,7 @@ class CampaignController extends Controller
             'district' => ['nullable', 'string', 'max:255'],
             'location' => ['nullable', 'string'],
             'affected_areas' => ['nullable', 'string'],
-            'target_amount' => ['nullable', 'numeric', 'min:1'],
+            'target_amount' => ['required', 'numeric', 'min:1'],
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
             'cover_image' => ['nullable', 'string'],

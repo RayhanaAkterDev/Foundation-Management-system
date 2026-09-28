@@ -5,7 +5,6 @@ import { useParams } from 'react-router-dom';
 import { fetchPublicCampaignById } from '@/api/publicCampaignsApi';
 
 import CampaignMainContent from './components/CampaignMainContent';
-
 import DonationSidebar from './components/DonationSidebar';
 
 const CampaignDetails = () => {
@@ -52,44 +51,56 @@ const CampaignDetails = () => {
         };
     }, [id]);
 
-    // ============================================================
-    // LOADING
-    // ============================================================
+    /* ============================================================
+        LOADING
+    ============================================================ */
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-surface">
-                <div className="container-width pt-32 text-center">
-                    <p className="text-text-secondary">Loading campaign...</p>
+            <main className="min-h-screen bg-surface">
+                <div className="container-width section-gap mt-20">
+                    <div className="text-center">
+                        <p className="font-bengali text-sm text-text-secondary">
+                            উদ্যোগের তথ্য লোড হচ্ছে...
+                        </p>
+
+                        <div className="mt-5 mx-auto h-px w-10 bg-accent" />
+                    </div>
                 </div>
-            </div>
+            </main>
         );
     }
 
-    // ============================================================
-    // NOT FOUND / ERROR
-    // ============================================================
+    /* ============================================================
+        NOT FOUND / ERROR
+    ============================================================ */
 
     if (!campaign) {
         return (
-            <div className="min-h-screen bg-surface">
-                <div className="container-width pt-32 text-center">
-                    <h2 className="text-2xl font-semibold text-text-primary">
-                        Campaign not found
-                    </h2>
+            <main className="min-h-screen bg-surface">
+                <div className="container-width section-gap mt-20">
+                    <div className="text-center">
+                        <span className="font-bengali text-[10px] font-semibold text-accent">
+                            উদ্যোগ
+                        </span>
 
-                    <p className="mt-3 text-text-secondary">
-                        {error ||
-                            'The campaign you are looking for does not exist or may have been removed.'}
-                    </p>
+                        <h2 className="mt-4 font-bengali text-3xl font-semibold text-text-primary">
+                            উদ্যোগটি খুঁজে পাওয়া যায়নি
+                        </h2>
+
+                        <p className="mx-auto mt-4 max-w-md text-sm leading-7 text-text-secondary">
+                            {error ||
+                                'The campaign you are looking for does not exist or may have been removed.'}
+                        </p>
+                    </div>
                 </div>
-            </div>
+            </main>
         );
     }
 
-    // ============================================================
-    // ORGANIZER FALLBACK
-    // ============================================================
+    /* ============================================================
+        ORGANIZER FALLBACK
+    ============================================================ */
 
     const organizer =
         typeof campaign.organizer === 'object'
@@ -100,34 +111,36 @@ const CampaignDetails = () => {
                   verified: false,
               };
 
-    // ============================================================
-    // PAGE
-    // ============================================================
+    /* ============================================================
+        PAGE
+    ============================================================ */
 
     return (
-        <div className="min-h-screen bg-surface mt-20 pt-4">
-            <div className="container-width py-10">
+        <main className="min-h-screen bg-surface section-gap mt-20">
+            <div className="container-width">
                 <div
                     className="
                         grid
                         grid-cols-1
-                        lg:grid-cols-[minmax(0,1fr)_380px]
-                        gap-10
-                        lg:gap-14
                         items-start
+                        gap-12
+
+                        lg:grid-cols-[minmax(0,1fr)_340px]
+                        lg:gap-16
+
+                        xl:grid-cols-[minmax(0,1fr)_360px]
+                        xl:gap-20
                     "
                 >
-                    {/* MAIN CONTENT */}
                     <CampaignMainContent campaign={campaign} />
 
-                    {/* DONATION SIDEBAR */}
                     <DonationSidebar
                         campaign={campaign}
                         organizer={organizer}
                     />
                 </div>
             </div>
-        </div>
+        </main>
     );
 };
 

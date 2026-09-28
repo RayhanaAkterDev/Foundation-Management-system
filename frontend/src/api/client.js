@@ -1,5 +1,6 @@
 const API_BASE_URL =
-    import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
+    import.meta.env.VITE_API_URL ||
+    'http://127.0.0.1:8000/api';
 
 const getToken = () => {
     return (
@@ -11,17 +12,18 @@ const getToken = () => {
 export const apiRequest = async (url, options = {}) => {
     const token = getToken();
 
-    if (!token) {
-        throw new Error('Authentication token not found.');
-    }
-
     const isFormData = options.body instanceof FormData;
 
     const headers = {
         Accept: 'application/json',
-        Authorization: `Bearer ${token}`,
         ...(options.headers || {}),
     };
+
+    // Attach authentication only when a token exists.
+    // This allows public/guest API requests to work without login.
+    if (token) {
+        headers.Authorization = `Bearer ${token}`;
+    }
 
     let body = options.body;
 
@@ -43,7 +45,9 @@ export const apiRequest = async (url, options = {}) => {
         body,
     });
 
-    const contentType = response.headers.get('content-type') || '';
+    const contentType =
+        response.headers.get('content-type') || '';
+
     const responseText = await response.text();
 
     let data = {};

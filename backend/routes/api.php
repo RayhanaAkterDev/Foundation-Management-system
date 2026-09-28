@@ -65,6 +65,22 @@ Route::prefix('public')->group(function () {
 });
 
 // =============================================================
+// PUBLIC DONATIONS
+// =============================================================
+//
+// Guests and authenticated users can start donations.
+//
+// DonationController::store() uses $request->user() when a
+// valid Sanctum token is supplied, otherwise the donation is
+// treated as a guest donation.
+//
+
+Route::post(
+    '/donations',
+    [DonationController::class, 'store']
+);
+
+// =============================================================
 // EMAIL VERIFICATION
 // =============================================================
 
@@ -263,7 +279,6 @@ Route::middleware('auth:sanctum')->group(function () {
     // ---------------------------------------------------------
 
     // Existing active volunteer resigns.
-    // This is separate from cancelling a pending request.
 
     Route::patch(
         '/volunteer/resign',
@@ -378,14 +393,11 @@ Route::middleware('auth:sanctum')->group(function () {
     // DONATIONS
     // ---------------------------------------------------------
 
+    // Only viewing personal donation history requires login.
+
     Route::get(
         '/donations/my',
         [DonationController::class, 'myDonations']
-    );
-
-    Route::post(
-        '/donations',
-        [DonationController::class, 'store']
     );
 });
 
@@ -560,7 +572,6 @@ Route::middleware('auth:sanctum')
         );
 
         // Admin cancels an invitation sent by admin.
-        // Admin = sender.
 
         Route::patch(
             '/volunteers/requests/{id}/cancel',

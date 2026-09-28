@@ -1,161 +1,457 @@
 import React from 'react';
+
 import { Link } from 'react-router-dom';
-import Button from '@/components/Button';
+
 import {
     TbClock,
     TbHeartHandshake,
     TbLockCheck,
-    TbShieldCheckFilled,
     TbShare,
+    TbShieldCheckFilled,
     TbUsers,
 } from 'react-icons/tb';
 
+import Button from '@/components/Button';
+
+const toBengaliNumber = (value) =>
+    String(value).replace(/\d/g, (digit) => '০১২৩৪৫৬৭৮৯'[digit]);
+
+const formatAmount = (amount) => Number(amount || 0).toLocaleString('en-BD');
+
 const DonationSidebar = ({ campaign, organizer }) => {
-    const percent = Math.min(100, Math.max(0, campaign?.progress || 0));
+    const percent = Math.min(100, Math.max(0, Number(campaign?.progress || 0)));
 
-    const radius = 56;
-    const circumference = 2 * Math.PI * radius;
-
-    const offset = circumference - (percent / 100) * circumference;
+    const raised = campaign?.raised || 0;
+    const target = campaign?.targetAmount || 0;
+    const supporters = campaign?.supporters || 0;
+    const daysLeft = campaign?.daysLeft || 0;
 
     return (
-        <aside className="lg:sticky lg:top-24">
-            <div className="overflow-hidden rounded-3xl border border-border bg-background shadow-sm">
-                {/* HERO */}
-                <div className="relative overflow-hidden bg-primary text-white">
-                    <div className="absolute -top-16 -right-16 h-52 w-52 rounded-full bg-white/10" />
-                    <div className="absolute -bottom-24 -left-24 h-60 w-60 rounded-full bg-white/5" />
+        <aside className="lg:sticky lg:top-28">
+            {/* =====================================================
+                FUNDING HEADER
+            ====================================================== */}
 
-                    <div className="relative p-8">
-                        <h3 className="text-xl font-semibold">
-                            Make a Difference Today
-                        </h3>
+            <div className="border-t-2 border-primary">
+                <div className="flex items-center justify-between border-b border-border py-3.5 sm:py-4 lg:py-4.5">
+                    <span
+                        className="
+                            font-bengali
+                            text-[12px]
+                            font-semibold
+                            text-primary
+                            sm:text-[13px]
+                            lg:text-[14px]
+                        "
+                    >
+                        সহায়তার অগ্রগতি
+                    </span>
 
-                        <p className="mt-2 text-sm text-white/75 leading-relaxed">
-                            Your support helps deliver food, relief, and
-                            emergency aid.
-                        </p>
+                    <span
+                        className="
+                            text-[11px]
+                            font-semibold
+                            text-text-muted
+                            sm:text-[12px]
+                            lg:text-[13px]
+                        "
+                    >
+                        {toBengaliNumber(percent)}%
+                    </span>
+                </div>
 
-                        {/* PROGRESS */}
-                        <div className="mt-7 flex justify-center">
-                            <div className="relative h-36 w-36">
-                                <svg
-                                    className="h-full w-full -rotate-90"
-                                    viewBox="0 0 140 140"
-                                >
-                                    <circle
-                                        cx="70"
-                                        cy="70"
-                                        r={radius}
-                                        fill="none"
-                                        stroke="rgba(255,255,255,.18)"
-                                        strokeWidth="8"
-                                    />
-                                    <circle
-                                        cx="70"
-                                        cy="70"
-                                        r={radius}
-                                        fill="none"
-                                        stroke="white"
-                                        strokeWidth="8"
-                                        strokeLinecap="round"
-                                        strokeDasharray={circumference}
-                                        strokeDashoffset={offset}
-                                    />
-                                </svg>
+                {/* =================================================
+                    AMOUNT
+                ================================================== */}
 
-                                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                    <span className="text-4xl font-black">
-                                        {percent}%
-                                    </span>
-                                    <span className="text-[11px] uppercase tracking-[0.2em] text-white/70">
-                                        Funded
-                                    </span>
-                                </div>
-                            </div>
+                <div className="py-7 sm:py-8 lg:py-9">
+                    <span
+                        className="
+                            block
+                            font-bengali
+                            text-[12px]
+                            font-medium
+                            text-text-muted
+                            sm:text-[13px]
+                            lg:text-[14px]
+                        "
+                    >
+                        সংগ্রহ হয়েছে
+                    </span>
+
+                    <div
+                        className="
+                            mt-2.5
+                            text-[38px]
+                            font-semibold
+                            leading-none
+                            tracking-[-0.045em]
+                            text-text-primary
+                            sm:text-[42px]
+                            lg:mt-3
+                            lg:text-[48px]
+                            xl:text-[52px]
+                        "
+                    >
+                        ৳{formatAmount(raised)}
+                    </div>
+
+                    <p
+                        className="
+                            mt-3
+                            font-bengali
+                            text-[12px]
+                            leading-[1.7]
+                            text-text-secondary
+                            sm:text-[13px]
+                            lg:mt-4
+                            lg:text-[14px]
+                        "
+                    >
+                        লক্ষ্যমাত্রা{' '}
+                        <span className="font-semibold text-text-primary">
+                            ৳{formatAmount(target)}
+                        </span>
+                    </p>
+
+                    {/* PROGRESS */}
+
+                    <div className="mt-6 sm:mt-7 lg:mt-8">
+                        <div className="h-[3px] overflow-hidden bg-border sm:h-[4px]">
+                            <div
+                                className="
+                                    h-full
+                                    bg-primary
+                                    transition-all
+                                    duration-700
+                                "
+                                style={{
+                                    width: `${percent}%`,
+                                }}
+                            />
                         </div>
 
-                        {/* AMOUNT */}
-                        <div className="mt-6 text-center">
-                            <div className="text-5xl font-black tracking-tight">
-                                ${campaign?.raised?.toLocaleString() || 0}
-                            </div>
+                        <div className="mt-2.5 flex items-center justify-between sm:mt-3">
+                            <span
+                                className="
+                                    font-bengali
+                                    text-[11px]
+                                    text-text-muted
+                                    sm:text-[12px]
+                                    lg:text-[13px]
+                                "
+                            >
+                                সংগ্রহ
+                            </span>
 
-                            <div className="mt-2 text-sm text-white/75">
-                                raised of $
-                                {campaign?.targetAmount?.toLocaleString() || 0}
-                            </div>
-                        </div>
-
-                        {/* META */}
-                        <div className="mt-6 flex items-center justify-center gap-6 text-sm">
-                            <div className="flex items-center gap-2">
-                                <TbUsers size={16} />
-                                <span>
-                                    {campaign?.supporters || 0} supporters
-                                </span>
-                            </div>
-
-                            <div className="h-4 w-px bg-white/20" />
-
-                            <div className="flex items-center gap-2">
-                                <TbClock size={16} />
-                                <span>{campaign?.daysLeft || 0} days left</span>
-                            </div>
+                            <span
+                                className="
+                                    font-bengali
+                                    text-[11px]
+                                    text-text-muted
+                                    sm:text-[12px]
+                                    lg:text-[13px]
+                                "
+                            >
+                                লক্ষ্য
+                            </span>
                         </div>
                     </div>
                 </div>
 
-                {/* DONATION */}
-                <div className="p-8 pt-0">
-                    <button className="mt-5 flex w-full items-center justify-center gap-2 text-sm font-medium text-primary hover:underline">
-                        <TbShare size={16} />
-                        Share Campaign
-                    </button>
+                {/* =================================================
+                    STATS
+                ================================================== */}
 
-                    {/* CTA */}
-                    <Link to={`/donate/${campaign.id}`}>
+                <div className="grid grid-cols-2 border-y border-border">
+                    <div className="border-r border-border py-4.5 pr-4 sm:py-5 sm:pr-5 lg:py-6">
+                        <TbUsers
+                            size={18}
+                            className="text-primary sm:size-[19px] lg:size-[20px]"
+                        />
+
+                        <strong
+                            className="
+                                mt-2
+                                block
+                                text-[20px]
+                                font-semibold
+                                leading-none
+                                text-text-primary
+                                sm:text-[22px]
+                                lg:mt-2.5
+                                lg:text-[24px]
+                            "
+                        >
+                            {toBengaliNumber(supporters)}
+                        </strong>
+
+                        <span
+                            className="
+                                mt-1.5
+                                block
+                                font-bengali
+                                text-[11px]
+                                text-text-muted
+                                sm:text-[12px]
+                                lg:text-[13px]
+                            "
+                        >
+                            সহায়তাকারী
+                        </span>
+                    </div>
+
+                    <div className="py-4.5 pl-4 sm:py-5 sm:pl-5 lg:py-6">
+                        <TbClock
+                            size={18}
+                            className="text-accent sm:size-[19px] lg:size-[20px]"
+                        />
+
+                        <strong
+                            className="
+                                mt-2
+                                block
+                                text-[20px]
+                                font-semibold
+                                leading-none
+                                text-text-primary
+                                sm:text-[22px]
+                                lg:mt-2.5
+                                lg:text-[24px]
+                            "
+                        >
+                            {toBengaliNumber(daysLeft)}
+                        </strong>
+
+                        <span
+                            className="
+                                mt-1.5
+                                block
+                                font-bengali
+                                text-[11px]
+                                text-text-muted
+                                sm:text-[12px]
+                                lg:text-[13px]
+                            "
+                        >
+                            দিন বাকি
+                        </span>
+                    </div>
+                </div>
+
+                {/* =================================================
+                    DONATION CTA
+                ================================================== */}
+
+                <div className="py-6 sm:py-7 lg:py-8">
+                    <p
+                        className="
+                            font-bengali
+                            text-[12px]
+                            leading-[1.9]
+                            text-text-secondary
+                            sm:text-[13px]
+                            sm:leading-[1.95]
+                            lg:text-[14px]
+                            lg:leading-[2]
+                        "
+                    >
+                        আপনার সহায়তা এই উদ্যোগের প্রয়োজনীয় কাজগুলো এগিয়ে
+                        নিতে সাহায্য করবে।
+                    </p>
+
+                    <Link to={`/donate/${campaign.id}`} className="block">
                         <Button
                             variant="primary"
                             size="lg"
-                            className="mt-5 h-14 w-full text-base font-bold"
+                            className="
+                                mt-5
+                                h-13
+                                w-full
+                                font-bengali
+                                text-[13px]
+                                font-semibold
+                                sm:text-[14px]
+                                lg:mt-6
+                                lg:text-[15px]
+                            "
                         >
-                            Donate Now
+                            এখনই সহায়তা করুন
                         </Button>
                     </Link>
 
-                    <div className="mt-3 flex items-center gap-2 text-sm text-text-secondary">
-                        <TbLockCheck size={16} />
-                        Secure encrypted payment processing
+                    <div className="mt-3.5 flex items-center justify-center gap-2 sm:mt-4">
+                        <TbLockCheck
+                            size={15}
+                            className="shrink-0 text-primary sm:size-[16px]"
+                        />
+
+                        <span
+                            className="
+                                font-bengali
+                                text-[10px]
+                                text-text-muted
+                                sm:text-[11px]
+                                lg:text-[12px]
+                            "
+                        >
+                            নিরাপদ ও সুরক্ষিত পেমেন্ট
+                        </span>
+                    </div>
+
+                    <button
+                        type="button"
+                        className="
+                            mx-auto
+                            mt-5
+                            flex
+                            items-center
+                            gap-2
+                            font-bengali
+                            text-[11px]
+                            font-medium
+                            text-text-secondary
+                            transition-colors
+                            hover:text-primary
+                            sm:text-[12px]
+                            lg:mt-6
+                            lg:text-[13px]
+                        "
+                    >
+                        <TbShare size={15} className="sm:size-[16px]" />
+                        উদ্যোগটি শেয়ার করুন
+                    </button>
+                </div>
+
+                {/* =================================================
+                    TRUST
+                ================================================== */}
+
+                <div className="border-t border-border py-6 sm:py-7 lg:py-8">
+                    <div className="flex items-center gap-3">
+                        <span className="h-px w-7 bg-accent sm:w-8 lg:w-9" />
+
+                        <h3
+                            className="
+                                font-bengali
+                                text-[12px]
+                                font-semibold
+                                text-text-primary
+                                sm:text-[13px]
+                                lg:text-[14px]
+                            "
+                        >
+                            স্বচ্ছতা ও নিরাপত্তা
+                        </h3>
+                    </div>
+
+                    <div className="mt-5 space-y-4 sm:mt-6 sm:space-y-5 lg:mt-7">
+                        <div className="flex items-start gap-3">
+                            <TbShieldCheckFilled
+                                size={18}
+                                className="mt-0.5 shrink-0 text-primary sm:size-[19px] lg:size-[20px]"
+                            />
+
+                            <span
+                                className="
+                                    font-bengali
+                                    text-[11px]
+                                    leading-[1.8]
+                                    text-text-secondary
+                                    sm:text-[12px]
+                                    sm:leading-[1.85]
+                                    lg:text-[13px]
+                                    lg:leading-[1.9]
+                                "
+                            >
+                                যাচাই করা মানবিক উদ্যোগ
+                            </span>
+                        </div>
+
+                        <div className="flex items-start gap-3">
+                            <TbLockCheck
+                                size={18}
+                                className="mt-0.5 shrink-0 text-primary sm:size-[19px] lg:size-[20px]"
+                            />
+
+                            <span
+                                className="
+                                    font-bengali
+                                    text-[11px]
+                                    leading-[1.8]
+                                    text-text-secondary
+                                    sm:text-[12px]
+                                    sm:leading-[1.85]
+                                    lg:text-[13px]
+                                    lg:leading-[1.9]
+                                "
+                            >
+                                নিরাপদ ও এনক্রিপ্টেড পেমেন্ট
+                            </span>
+                        </div>
+
+                        <div className="flex items-start gap-3">
+                            <TbHeartHandshake
+                                size={18}
+                                className="mt-0.5 shrink-0 text-primary sm:size-[19px] lg:size-[20px]"
+                            />
+
+                            <span
+                                className="
+                                    font-bengali
+                                    text-[11px]
+                                    leading-[1.8]
+                                    text-text-secondary
+                                    sm:text-[12px]
+                                    sm:leading-[1.85]
+                                    lg:text-[13px]
+                                    lg:leading-[1.9]
+                                "
+                            >
+                                সহায়তার অর্থ সংশ্লিষ্ট উদ্যোগে ব্যবহৃত হয়
+                            </span>
+                        </div>
                     </div>
                 </div>
 
-                {/* TRUST */}
-                <div className="border-t border-border p-8">
-                    <h4 className="mb-4 text-lg font-bold">Trust & Safety</h4>
+                {/* =================================================
+                    ORGANIZER
+                ================================================== */}
 
-                    <div className="space-y-4 text-sm text-text-secondary">
-                        <div className="flex items-start gap-3">
-                            <TbShieldCheckFilled className="mt-0.5 text-primary" />
-                            <span>Verified campaign with fraud checks.</span>
-                        </div>
+                <div className="border-y border-border py-4.5 sm:py-5 lg:py-6">
+                    <span
+                        className="
+                            block
+                            font-bengali
+                            text-[10px]
+                            text-text-muted
+                            sm:text-[11px]
+                            lg:text-[12px]
+                        "
+                    >
+                        উদ্যোগ পরিচালনায়
+                    </span>
 
-                        <div className="flex items-start gap-3">
-                            <TbLockCheck className="mt-0.5 text-primary" />
-                            <span>End-to-end encrypted payments.</span>
-                        </div>
-
-                        <div className="flex items-start gap-3">
-                            <TbHeartHandshake className="mt-0.5 text-primary" />
-                            <span>Funds go directly to relief operations.</span>
-                        </div>
-                    </div>
-
-                    <div className="mt-6 border-t border-border pt-5 text-xs text-text-secondary">
-                        Organized by{' '}
-                        <span className="font-medium text-text-primary">
-                            {organizer?.name || 'Unknown'}
+                    <div className="mt-1.5 flex items-center gap-2">
+                        <span
+                            className="
+                                font-bengali
+                                text-[12px]
+                                font-semibold
+                                text-text-primary
+                                sm:text-[13px]
+                                lg:text-[14px]
+                            "
+                        >
+                            {organizer?.name || 'Stand For People'}
                         </span>
+
+                        {organizer?.verified && (
+                            <TbShieldCheckFilled
+                                size={15}
+                                className="text-primary sm:size-[16px] lg:size-[17px]"
+                            />
+                        )}
                     </div>
                 </div>
             </div>

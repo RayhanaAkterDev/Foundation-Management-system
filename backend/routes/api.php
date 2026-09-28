@@ -12,6 +12,8 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\PublicCampaignController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ChatbotController;
+
 use Illuminate\Support\Facades\Route;
 
 // =============================================================
@@ -77,6 +79,19 @@ Route::prefix('public')->group(function () {
         [PublicCampaignController::class, 'categories']
     );
 });
+
+// =============================================================
+// PUBLIC CHATBOT
+// =============================================================
+//
+// Public SP Assistant.
+// Authentication is NOT required.
+//
+
+Route::post(
+    '/chatbot',
+    [ChatbotController::class, 'chat']
+);
 
 // =============================================================
 // PUBLIC DONATIONS

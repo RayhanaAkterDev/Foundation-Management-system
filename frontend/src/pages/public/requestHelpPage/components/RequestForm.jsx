@@ -1,11 +1,7 @@
 import React, { useEffect, useState } from 'react';
-
 import { Link } from 'react-router-dom';
-
 import Button from '@/components/Button';
-
 import { fetchCategories } from '@/api/categories';
-
 import {
     analyzeHelpRequest,
     createHelpRequest,
@@ -65,28 +61,11 @@ const getCategoryName = (category) => {
 };
 
 // =========================================================
-// User helpers
-// =========================================================
-
-const getUserName = (user) => {
-    if (!user) return '';
-
-    return user.name || user.full_name || user.fullName || '';
-};
-
-const getUserEmail = (user) => {
-    if (!user) return '';
-
-    return user.email || '';
-};
-
-// =========================================================
 // Component
 // =========================================================
 
 const RequestForm = ({ setSuccess }) => {
     const user = getStoredUser();
-
     const authToken = getStoredToken();
 
     const isLoggedIn = Boolean(user && authToken);
@@ -97,9 +76,6 @@ const RequestForm = ({ setSuccess }) => {
 
     const [form, setForm] = useState({
         description: '',
-        phone: '',
-        location: '',
-        urgencyHint: '',
     });
 
     // =====================================================
@@ -160,6 +136,7 @@ const RequestForm = ({ setSuccess }) => {
         setError((prev) => ({
             ...prev,
             [name]: '',
+            analyze: '',
         }));
 
         // If the original description changes,
@@ -182,6 +159,7 @@ const RequestForm = ({ setSuccess }) => {
         setError((prev) => ({
             ...prev,
             [field]: '',
+            submit: '',
         }));
     };
 
@@ -234,18 +212,15 @@ const RequestForm = ({ setSuccess }) => {
 
             setAnalysis({
                 title: nextAnalysis.title || '',
-
                 description: nextAnalysis.description || description,
-
                 category: nextAnalysis.category || '',
-
                 urgency: nextAnalysis.urgency || '',
-
                 district: nextAnalysis.district || '',
-
                 address: nextAnalysis.address || '',
-
                 deadline: nextAnalysis.deadline || '',
+                keywords: Array.isArray(nextAnalysis.keywords)
+                    ? nextAnalysis.keywords
+                    : [],
             });
         } catch (err) {
             console.error('Failed to analyze help request:', err);
@@ -285,7 +260,7 @@ const RequestForm = ({ setSuccess }) => {
 
         const district = analysis.district?.trim() || '';
 
-        const address = analysis.address?.trim() || form.location.trim();
+        const address = analysis.address?.trim() || '';
 
         const urgency = analysis.urgency?.trim() || '';
 
@@ -457,98 +432,16 @@ const RequestForm = ({ setSuccess }) => {
 
                 <p className="mt-3 font-bengali text-sm leading-7 text-text-muted">
                     আপনার পরিস্থিতি নিজের ভাষায় বিস্তারিত লিখুন। বিশ্লেষণের পর
-                    প্রতিটি তথ্য আপনি নিজে পরিবর্তন করে নিতে পারবেন।
+                    প্রয়োজনীয় তথ্যগুলো সাজিয়ে দেওয়া হবে এবং পাঠানোর আগে আপনি
+                    নিজে সবকিছু পর্যালোচনা করতে পারবেন।
                 </p>
-            </div>
-
-            {/* =================================================
-                Authenticated account information
-            ================================================= */}
-
-            <div className="mt-8 rounded-2xl border border-border bg-background p-4 sm:p-5">
-                <div className="mb-4">
-                    <p className="font-bengali text-sm font-semibold text-text-primary">
-                        আপনার অ্যাকাউন্ট
-                    </p>
-
-                    <p className="mt-1 font-bengali text-xs leading-5 text-text-muted">
-                        এই তথ্য আপনার লগইন করা অ্যাকাউন্ট থেকে নেওয়া হয়েছে।
-                    </p>
-                </div>
-
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    {/* Name */}
-
-                    <div>
-                        <label
-                            htmlFor="account-name"
-                            className="font-bengali text-sm font-semibold text-text-primary"
-                        >
-                            নাম
-                        </label>
-
-                        <input
-                            id="account-name"
-                            type="text"
-                            value={getUserName(user)}
-                            readOnly
-                            className="
-                                mt-2
-                                h-12
-                                w-full
-                                cursor-not-allowed
-                                rounded-xl
-                                border
-                                border-border
-                                bg-surface
-                                px-4
-                                font-bengali
-                                text-sm
-                                text-text-primary
-                                outline-none
-                            "
-                        />
-                    </div>
-
-                    {/* Email */}
-
-                    <div>
-                        <label
-                            htmlFor="account-email"
-                            className="font-bengali text-sm font-semibold text-text-primary"
-                        >
-                            ইমেইল
-                        </label>
-
-                        <input
-                            id="account-email"
-                            type="email"
-                            value={getUserEmail(user)}
-                            readOnly
-                            className="
-                                mt-2
-                                h-12
-                                w-full
-                                cursor-not-allowed
-                                rounded-xl
-                                border
-                                border-border
-                                bg-surface
-                                px-4
-                                text-sm
-                                text-text-primary
-                                outline-none
-                            "
-                        />
-                    </div>
-                </div>
             </div>
 
             {/* =================================================
                 Description
             ================================================= */}
 
-            <div className="mt-6">
+            <div className="mt-8">
                 <label
                     htmlFor="description"
                     className="font-bengali text-sm font-semibold text-text-primary"
@@ -561,7 +454,7 @@ const RequestForm = ({ setSuccess }) => {
                     name="description"
                     value={form.description}
                     onChange={handleChange}
-                    rows={7}
+                    rows={8}
                     placeholder="আপনার কী সমস্যা হয়েছে, কী ধরনের সাহায্য প্রয়োজন এবং পরিস্থিতি সম্পর্কে প্রাসঙ্গিক তথ্য নিজের ভাষায় লিখুন..."
                     className="
                         mt-3
@@ -586,92 +479,22 @@ const RequestForm = ({ setSuccess }) => {
                     "
                 />
 
+                <div className="mt-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="font-bengali text-xs leading-5 text-text-muted">
+                        প্রয়োজনে আপনার অবস্থান, ঠিকানা, সময়সীমা বা পরিস্থিতির
+                        জরুরিতার মতো তথ্যও এখানে লিখতে পারেন।
+                    </p>
+
+                    <p className="shrink-0 text-xs text-text-muted">
+                        {form.description.length}/5000
+                    </p>
+                </div>
+
                 {error.description && (
                     <p className="mt-2 font-bengali text-xs text-red-600">
                         {error.description}
                     </p>
                 )}
-            </div>
-
-            {/* =================================================
-                Phone
-            ================================================= */}
-
-            <div className="mt-5">
-                <label
-                    htmlFor="phone"
-                    className="font-bengali text-sm font-semibold text-text-primary"
-                >
-                    ফোন নম্বর
-                </label>
-
-                <input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    value={form.phone}
-                    onChange={handleChange}
-                    placeholder="প্রয়োজনে যোগাযোগের ফোন নম্বর"
-                    className="
-                        mt-2
-                        h-12
-                        w-full
-                        rounded-xl
-                        border
-                        border-border
-                        bg-background
-                        px-4
-                        text-sm
-                        text-text-primary
-                        outline-none
-                        transition
-                        placeholder:text-text-muted
-                        focus:border-primary
-                        focus:ring-2
-                        focus:ring-primary/10
-                    "
-                />
-            </div>
-
-            {/* =================================================
-                Optional location
-            ================================================= */}
-
-            <div className="mt-5">
-                <label
-                    htmlFor="location"
-                    className="font-bengali text-sm font-semibold text-text-primary"
-                >
-                    ঠিকানা / অবস্থান
-                </label>
-
-                <input
-                    id="location"
-                    name="location"
-                    type="text"
-                    value={form.location}
-                    onChange={handleChange}
-                    placeholder="আপনার বর্তমান ঠিকানা বা অবস্থান"
-                    className="
-                        mt-2
-                        h-12
-                        w-full
-                        rounded-xl
-                        border
-                        border-border
-                        bg-background
-                        px-4
-                        font-bengali
-                        text-sm
-                        text-text-primary
-                        outline-none
-                        transition
-                        placeholder:text-text-muted
-                        focus:border-primary
-                        focus:ring-2
-                        focus:ring-primary/10
-                    "
-                />
             </div>
 
             {/* =================================================
@@ -700,6 +523,10 @@ const RequestForm = ({ setSuccess }) => {
 
             {analysis && !analyzing && (
                 <div className="mt-8 rounded-2xl border border-border bg-background p-5 sm:p-6">
+                    {/* =================================================
+                        Review header
+                    ================================================= */}
+
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                         <div>
                             <p className="font-bengali text-sm font-semibold text-primary">
@@ -813,7 +640,6 @@ const RequestForm = ({ setSuccess }) => {
 
                                 {categories.map((category) => {
                                     const slug = getCategorySlug(category);
-
                                     const name = getCategoryName(category);
 
                                     return (
@@ -887,104 +713,51 @@ const RequestForm = ({ setSuccess }) => {
                     </div>
 
                     {/* =================================================
-                        District + deadline
+                        District
                     ================================================= */}
 
-                    <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
-                        {/* District */}
+                    <div className="mt-5">
+                        <label
+                            htmlFor="analysis-district"
+                            className="font-bengali text-sm font-semibold text-text-primary"
+                        >
+                            জেলা *
+                        </label>
 
-                        <div>
-                            <label
-                                htmlFor="analysis-district"
-                                className="font-bengali text-sm font-semibold text-text-primary"
-                            >
-                                জেলা *
-                            </label>
+                        <input
+                            id="analysis-district"
+                            type="text"
+                            value={analysis.district || ''}
+                            onChange={(e) =>
+                                handleAnalysisChange('district', e.target.value)
+                            }
+                            placeholder="যেমন: কুমিল্লা"
+                            className="
+                                mt-2
+                                h-12
+                                w-full
+                                rounded-xl
+                                border
+                                border-border
+                                bg-surface
+                                px-4
+                                font-bengali
+                                text-sm
+                                text-text-primary
+                                outline-none
+                                transition
+                                placeholder:text-text-muted
+                                focus:border-primary
+                                focus:ring-2
+                                focus:ring-primary/10
+                            "
+                        />
 
-                            <input
-                                id="analysis-district"
-                                type="text"
-                                value={analysis.district || ''}
-                                onChange={(e) =>
-                                    handleAnalysisChange(
-                                        'district',
-                                        e.target.value,
-                                    )
-                                }
-                                placeholder="যেমন: কুমিল্লা"
-                                className="
-                                    mt-2
-                                    h-12
-                                    w-full
-                                    rounded-xl
-                                    border
-                                    border-border
-                                    bg-surface
-                                    px-4
-                                    font-bengali
-                                    text-sm
-                                    text-text-primary
-                                    outline-none
-                                    transition
-                                    placeholder:text-text-muted
-                                    focus:border-primary
-                                    focus:ring-2
-                                    focus:ring-primary/10
-                                "
-                            />
-
-                            {error.district && (
-                                <p className="mt-2 font-bengali text-xs text-red-600">
-                                    {error.district}
-                                </p>
-                            )}
-                        </div>
-
-                        {/* Deadline */}
-
-                        <div>
-                            <label
-                                htmlFor="analysis-deadline"
-                                className="font-bengali text-sm font-semibold text-text-primary"
-                            >
-                                সময়সীমা
-                            </label>
-
-                            <input
-                                id="analysis-deadline"
-                                type="date"
-                                value={analysis.deadline || ''}
-                                onChange={(e) =>
-                                    handleAnalysisChange(
-                                        'deadline',
-                                        e.target.value,
-                                    )
-                                }
-                                className="
-                                    mt-2
-                                    h-12
-                                    w-full
-                                    rounded-xl
-                                    border
-                                    border-border
-                                    bg-surface
-                                    px-4
-                                    font-bengali
-                                    text-sm
-                                    text-text-primary
-                                    outline-none
-                                    transition
-                                    focus:border-primary
-                                    focus:ring-2
-                                    focus:ring-primary/10
-                                "
-                            />
-
-                            <p className="mt-2 font-bengali text-xs leading-5 text-text-muted">
-                                প্রয়োজন হলে যে তারিখের মধ্যে সাহায্য দরকার সেই
-                                তারিখ নির্বাচন করুন।
+                        {error.district && (
+                            <p className="mt-2 font-bengali text-xs text-red-600">
+                                {error.district}
                             </p>
-                        </div>
+                        )}
                     </div>
 
                     {/* =================================================
@@ -1036,6 +809,28 @@ const RequestForm = ({ setSuccess }) => {
                             </p>
                         )}
                     </div>
+
+                    {/* =================================================
+                        Extracted deadline metadata
+                    ================================================= */}
+
+                    {analysis.deadline && (
+                        <div className="mt-5 rounded-xl border border-border bg-surface px-4 py-3">
+                            <p className="font-bengali text-xs font-semibold text-text-primary">
+                                প্রয়োজনের সময়সীমা
+                            </p>
+
+                            <p className="mt-1 font-bengali text-sm leading-6 text-text-muted">
+                                {analysis.deadline}
+                            </p>
+
+                            <p className="mt-1 font-bengali text-xs leading-5 text-text-muted">
+                                এটি আপনার বর্ণনা থেকে পাওয়া তথ্য; প্রয়োজনে
+                                আপনি মূল পরিস্থিতির বিবরণে এটি পরিবর্তন করতে
+                                পারেন।
+                            </p>
+                        </div>
+                    )}
 
                     {/* =================================================
                         Review notice

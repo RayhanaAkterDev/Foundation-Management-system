@@ -5,13 +5,20 @@ import { useParams } from 'react-router-dom';
 import { fetchPublicCampaignById } from '@/api/publicCampaignsApi';
 
 import CampaignMainContent from './components/CampaignMainContent';
+
 import DonationSidebar from './components/DonationSidebar';
+
+import { useChatbotContext } from '@/components/chatbot/useChatbotContext';
 
 const CampaignDetails = () => {
     const { id } = useParams();
 
+    const { setPageContext } = useChatbotContext();
+
     const [campaign, setCampaign] = useState(null);
+
     const [loading, setLoading] = useState(true);
+
     const [error, setError] = useState(null);
 
     useEffect(() => {
@@ -51,8 +58,43 @@ const CampaignDetails = () => {
         };
     }, [id]);
 
+    /*
+     * ============================================================
+     * CHATBOT PAGE CONTEXT
+     * ============================================================
+     *
+     * Give the chatbot only public campaign information.
+     *
+     * Do not pass the entire campaign object because it may contain
+     * internal/backend fields that the chatbot does not need.
+     */
+    useEffect(() => {
+        if (!campaign) {
+            setPageContext(null);
+
+            return;
+        }
+
+        const organizer =
+            typeof campaign.organizer === 'object' ? campaign.organizer : null;
+
+        setPageContext({
+            type: 'campaign',
+            title: campaign.title || '',
+            description: campaign.description || '',
+            category: campaign.category || '',
+            district: campaign.district || '',
+            status: campaign.status || '',
+            organizer: organizer?.name || campaign.organizer || '',
+        });
+
+        return () => {
+            setPageContext(null);
+        };
+    }, [campaign, setPageContext]);
+
     /* ============================================================
-        LOADING
+       LOADING
     ============================================================ */
 
     if (loading) {
@@ -64,7 +106,7 @@ const CampaignDetails = () => {
                             উদ্যোগের তথ্য লোড হচ্ছে...
                         </p>
 
-                        <div className="mt-5 mx-auto h-px w-10 bg-accent" />
+                        <div className="mx-auto mt-5 h-px w-10 bg-accent" />
                     </div>
                 </div>
             </main>
@@ -72,7 +114,7 @@ const CampaignDetails = () => {
     }
 
     /* ============================================================
-        NOT FOUND / ERROR
+       NOT FOUND / ERROR
     ============================================================ */
 
     if (!campaign) {
@@ -99,7 +141,7 @@ const CampaignDetails = () => {
     }
 
     /* ============================================================
-        ORGANIZER FALLBACK
+       ORGANIZER FALLBACK
     ============================================================ */
 
     const organizer =
@@ -112,7 +154,7 @@ const CampaignDetails = () => {
               };
 
     /* ============================================================
-        PAGE
+       PAGE
     ============================================================ */
 
     return (
@@ -124,10 +166,8 @@ const CampaignDetails = () => {
                         grid-cols-1
                         items-start
                         gap-12
-
                         lg:grid-cols-[minmax(0,1fr)_340px]
                         lg:gap-16
-
                         xl:grid-cols-[minmax(0,1fr)_360px]
                         xl:gap-20
                     "

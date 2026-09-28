@@ -1,4 +1,5 @@
 {
+    "cSpell.enabled": false,
     "search.useGlobalIgnoreFiles": true,
     "search.useParentIgnoreFiles": true,
     "css.lint.unknownAtRules": "ignore",

@@ -21,7 +21,7 @@ import DonateHub from '@/pages/public/donationPage/DonateHub/DonateHub';
 import PaymentResult from '@/pages/public/donationPage/PaymentResult';
 import Volunteer from '@/pages/public/volunteerPage/Volunteer';
 import RequestHelp from '@/pages/public/requestHelpPage/RequestHelp';
-import Organizations from '@/pages/public/organizationsPage/Organizations';
+import Organizations from '@/pages/public/OrganizationsPage/Organizations';
 import Stories from '@/pages/public/storiesPage/Stories';
 import About from '@/pages/public/about/About';
 

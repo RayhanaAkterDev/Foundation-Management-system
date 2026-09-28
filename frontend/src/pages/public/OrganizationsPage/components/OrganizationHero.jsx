@@ -136,7 +136,7 @@ const OrganizationHero = () => {
                             </div>
 
                             <h3 className="mt-3 whitespace-nowrap text-sm font-semibold text-text-primary sm:text-base">
-                                স্ট্যান্ড ফর পিপল
+                                Stand For People
                             </h3>
 
                             <p className="mt-0.5 whitespace-nowrap text-[11px] text-muted-foreground sm:text-xs">

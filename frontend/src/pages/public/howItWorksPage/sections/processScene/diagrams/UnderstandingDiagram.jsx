@@ -1,93 +1,263 @@
 import React from 'react';
 
+import {
+    TbArrowDown,
+    TbMapPin,
+    TbMedicalCross,
+    TbSparkles,
+} from 'react-icons/tb';
+
+const insights = [
+    {
+        label: 'অবস্থান',
+        value: 'ঢাকা',
+        icon: TbMapPin,
+    },
+    {
+        label: 'প্রয়োজনের ধরন',
+        value: 'চিকিৎসা সহায়তা',
+        icon: TbMedicalCross,
+    },
+    {
+        label: 'জরুরিতা',
+        value: 'উচ্চ',
+        emphasis: true,
+    },
+    {
+        label: 'বিভাগ',
+        value: 'স্বাস্থ্যসেবা',
+    },
+];
+
 const UnderstandingDiagram = () => {
-    const insights = [
-        { label: 'Location', value: 'Dhaka', highlight: false },
-        { label: 'Need Type', value: 'Medical Support', highlight: true },
-        { label: 'Urgency Level', value: 'High', highlight: true },
-        { label: 'Category', value: 'Healthcare', highlight: false },
-    ];
-
     return (
-        <div className="w-full max-w-md sm:max-w-lg mx-auto space-y-6 sm:space-y-8">
-            {/* INPUT CARD */}
-            <div className="relative rounded-2xl sm:rounded-3xl border border-border bg-surface p-4 sm:p-6 overflow-hidden">
-                <div className="absolute -top-10 -right-10 w-24 sm:w-32 h-24 sm:h-32 bg-primary/10 blur-2xl rounded-full" />
+        <div className="mx-auto w-full max-w-[560px] font-bengali">
+            {/* RAW REQUEST */}
 
-                <div className="flex items-center justify-between mb-2 sm:mb-3">
-                    <span className="text-[10px] sm:text-xs uppercase tracking-widest text-text-secondary">
-                        Incoming Request
+            <div
+                className="
+                    border-l-2
+                    border-primary
+                    bg-[#f7f6f1]
+                    px-5
+                    py-5
+
+                    sm:px-6
+                    sm:py-6
+                "
+            >
+                <div
+                    className="
+                        flex
+                        items-center
+                        justify-between
+                        gap-5
+                    "
+                >
+                    <span
+                        className="
+                            text-[0.72rem]
+                            font-semibold
+                            text-text-muted
+                        "
+                    >
+                        আসা অনুরোধ
                     </span>
 
-                    <span className="text-[9px] sm:text-[10px] px-2 py-1 rounded-full bg-primary/10 text-primary font-semibold">
-                        RAW INPUT
+                    <span
+                        className="
+                            flex
+                            items-center
+                            gap-2
+                            text-[0.7rem]
+                            font-medium
+                            text-primary
+                        "
+                    >
+                        <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                        প্রাথমিক তথ্য
                     </span>
                 </div>
 
-                <p className="text-base sm:text-lg font-medium leading-relaxed text-text-primary">
-                    Need urgent medicine for my father in Dhaka.
-                </p>
+                <p
+                    className="
+                        mt-5
+                        text-[1.05rem]
+                        font-medium
+                        leading-[1.75]
 
-                <div className="mt-3 sm:mt-4 flex gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary/40 animate-pulse" />
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary/30 animate-pulse delay-150" />
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary/20 animate-pulse delay-300" />
+                        sm:text-[1.15rem]
+                    "
+                >
+                    “ঢাকায় আমার বাবার জন্য জরুরি ওষুধ প্রয়োজন।”
+                </p>
+            </div>
+
+            {/* FLOW */}
+
+            <div
+                className="
+                    flex
+                    h-16
+                    items-center
+                    justify-center
+                "
+            >
+                <div
+                    className="
+                        flex
+                        flex-col
+                        items-center
+                        gap-1
+                        text-primary
+                    "
+                >
+                    <TbSparkles size={17} />
+
+                    <TbArrowDown size={15} />
                 </div>
             </div>
 
-            {/* AI OUTPUT CARD */}
-            <div className="relative rounded-2xl sm:rounded-3xl border border-border bg-surface p-4 sm:p-6 overflow-hidden">
-                <div className="absolute inset-0 bg-linear-to-br from-primary/5 via-transparent to-transparent" />
+            {/* STRUCTURED */}
 
-                <div className="relative">
-                    <div className="flex items-center justify-between mb-4 sm:mb-5">
-                        <span className="font-semibold text-sm sm:text-base">
-                            Structured Understanding
+            <div className="border border-black/10 bg-white">
+                <div
+                    className="
+                        flex
+                        flex-col
+                        gap-3
+                        border-b
+                        border-black/10
+                        px-5
+                        py-5
+
+                        sm:flex-row
+                        sm:items-center
+                        sm:justify-between
+                        sm:px-6
+                    "
+                >
+                    <div>
+                        <span
+                            className="
+                                text-[0.72rem]
+                                text-text-muted
+                            "
+                        >
+                            AI বিশ্লেষণের পর
                         </span>
 
-                        <span className="text-primary font-semibold text-xs sm:text-sm">
-                            Confidence: 96%
-                        </span>
+                        <h4
+                            className="
+                                mt-1
+                                text-[1rem]
+                                font-semibold
+                            "
+                        >
+                            সংগঠিত প্রয়োজনের তথ্য
+                        </h4>
                     </div>
 
-                    {/* GRID */}
-                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                        {insights.map((item) => (
+                    <span
+                        className="
+                            text-[0.78rem]
+                            font-semibold
+                            text-primary
+                        "
+                    >
+                        আস্থা ৯৬%
+                    </span>
+                </div>
+
+                <div className="grid grid-cols-2">
+                    {insights.map((item, index) => {
+                        const Icon = item.icon;
+
+                        return (
                             <div
                                 key={item.label}
                                 className={`
-                                    rounded-xl sm:rounded-2xl
-                                    p-3 sm:p-4
-                                    border
-                                    transition
+                                    min-h-[110px]
+                                    px-5
+                                    py-5
+
                                     ${
-                                        item.highlight
-                                            ? 'border-primary/40 bg-primary/5'
-                                            : 'border-border bg-transparent'
+                                        index % 2 === 1
+                                            ? 'border-l border-black/10'
+                                            : ''
                                     }
+
+                                    ${
+                                        index >= 2
+                                            ? 'border-t border-black/10'
+                                            : ''
+                                    }
+
+                                    ${item.emphasis ? 'bg-[#edf4f1]' : ''}
                                 `}
                             >
-                                <div className="text-[10px] sm:text-xs text-text-secondary mb-1">
-                                    {item.label}
+                                <div
+                                    className="
+                                        flex
+                                        items-center
+                                        gap-2
+                                    "
+                                >
+                                    {Icon && (
+                                        <Icon
+                                            size={15}
+                                            className="text-primary"
+                                        />
+                                    )}
+
+                                    <span
+                                        className="
+                                            text-[0.7rem]
+                                            text-text-muted
+                                        "
+                                    >
+                                        {item.label}
+                                    </span>
                                 </div>
 
-                                <div className="text-sm sm:text-base font-semibold text-text-primary">
+                                <strong
+                                    className="
+                                        mt-3
+                                        block
+                                        text-[0.95rem]
+                                        font-semibold
+                                    "
+                                >
                                     {item.value}
-                                </div>
+                                </strong>
                             </div>
-                        ))}
+                        );
+                    })}
+                </div>
+
+                <div className="px-5 py-5 sm:px-6">
+                    <div
+                        className="
+                            flex
+                            items-center
+                            justify-between
+                            text-[0.72rem]
+                            text-text-muted
+                        "
+                    >
+                        <span>তথ্যের স্পষ্টতা</span>
+                        <span>৯৬%</span>
                     </div>
 
-                    {/* CONFIDENCE BAR */}
-                    <div className="mt-5 sm:mt-6">
-                        <div className="flex justify-between text-[10px] sm:text-xs text-text-secondary mb-2">
-                            <span>Clarity Score</span>
-                            <span>96%</span>
-                        </div>
-
-                        <div className="h-1.5 sm:h-2 rounded-full bg-border overflow-hidden">
-                            <div className="h-full w-[96%] bg-primary rounded-full" />
-                        </div>
+                    <div
+                        className="
+                            mt-3
+                            h-1.5
+                            overflow-hidden
+                            bg-[#e6e9e7]
+                        "
+                    >
+                        <div className="h-full w-[96%] bg-primary" />
                     </div>
                 </div>
             </div>

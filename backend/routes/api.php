@@ -12,6 +12,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\PublicCampaignController;
 use App\Http\Controllers\PublicCommunityController;
+use App\Http\Controllers\TestimonialController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ChatbotController;
 
@@ -190,6 +191,25 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put(
         '/profile',
         [AuthController::class, 'updateProfile']
+    );
+
+
+    // ---------------------------------------------------------
+    // COMMUNITY TESTIMONIALS
+    // ---------------------------------------------------------
+
+    // Authenticated individual and organization accounts can
+    // submit their experience. The controller determines the
+    // authenticated user and allowed account type.
+
+    Route::get(
+        '/testimonials',
+        [TestimonialController::class, 'index']
+    );
+
+    Route::post(
+        '/testimonials',
+        [TestimonialController::class, 'store']
     );
 
     // ---------------------------------------------------------

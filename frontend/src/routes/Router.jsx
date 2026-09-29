@@ -102,6 +102,10 @@ const router = createBrowserRouter([
                 element: <AccountSelection />,
             },
             {
+                path: 'how-it-works',
+                element: <HowItWorksPage />,
+            },
+            {
                 path: 'about',
                 element: <About />,
             },

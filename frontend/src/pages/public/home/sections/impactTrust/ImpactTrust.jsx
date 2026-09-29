@@ -2,7 +2,6 @@ import React from 'react';
 import SectionHeading from '@/components/SectionHeading';
 import Motion from '@/components/motion/Motion';
 import StoriesPreview from './StoriesPreview';
-import HumanProof from './HumanProof';
 import FinalCTA from './FinalCTA';
 
 const ImpactTrust = () => {
@@ -14,38 +13,33 @@ const ImpactTrust = () => {
                     <SectionHeading
                         align="left"
                         badge={{
-                            label: 'Transparency & Trust',
+                            label: 'স্বচ্ছতা ও আস্থা',
                             variant: 'primary',
                             tone: 'solid',
                             size: 'lg',
                         }}
                         title={
                             <>
-                                Every impact is real.
-                                <span className="block text-primary pt-1">
-                                    Every action is verified.
+                                প্রতিটি প্রভাব বাস্তব।
+                                <span className="block pt-1 text-primary">
+                                    প্রতিটি উদ্যোগ যাচাইকৃত।
                                 </span>
                             </>
                         }
                         headingSize="sectionHero"
-                        description="Support reaches people through verified requests across real situations."
+                        description="বাস্তব পরিস্থিতিতে যাচাইকৃত সহায়তার অনুরোধের মাধ্যমে প্রয়োজনীয় মানুষের কাছে সহায়তা পৌঁছায়।"
                         descriptionSize="sectionHero"
                     />
                 </Motion>
 
-                {/* CONTENT STACK (controlled spacing system) */}
-                <div className="mt-8 sm:mt-12 space-y-10 sm:space-y-12">
-                    {/* 1. HUMAN PROOF */}
-                    <Motion variant="softLift">
-                        <HumanProof />
-                    </Motion>
-
-                    {/* 2. SYSTEM ACTIVITY */}
+                {/* Content Stack */}
+                <div className="mt-8 space-y-10 sm:mt-12 sm:space-y-12">
+                    {/* Real Community Testimonial */}
                     <Motion variant="softLift">
                         <StoriesPreview />
                     </Motion>
 
-                    {/* 3. FINAL CTA */}
+                    {/* Final CTA */}
                     <Motion variant="softLift">
                         <FinalCTA />
                     </Motion>

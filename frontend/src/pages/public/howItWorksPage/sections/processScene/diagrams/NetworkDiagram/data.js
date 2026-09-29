@@ -7,20 +7,18 @@ import {
 const nodes = [
     {
         icon: HeartHandshake,
-        title: 'Donors',
-        subtitle: 'Provide resources and funding',
+        title: 'সহায়তাকারী',
+        subtitle: 'অর্থ ও প্রয়োজনীয় সম্পদ দিয়ে সহযোগিতা করেন',
     },
-
     {
         icon: HandHelping,
-        title: 'Volunteers',
-        subtitle: 'Deliver field assistance',
+        title: 'স্বেচ্ছাসেবক',
+        subtitle: 'মাঠপর্যায়ে সহায়তা পৌঁছে দিতে কাজ করেন',
     },
-
     {
         icon: Building2,
-        title: 'Partners',
-        subtitle: 'Expand reach and impact',
+        title: 'সহযোগী সংগঠন',
+        subtitle: 'সহায়তার পরিধি ও সক্ষমতা বাড়াতে যুক্ত হয়',
     },
 ];
 

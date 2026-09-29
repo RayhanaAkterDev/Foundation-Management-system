@@ -1,133 +1,212 @@
 import React from 'react';
 
 const cases = [
-    { title: 'Medical Emergency', score: 98 },
-    { title: 'Food Assistance', score: 92 },
-    { title: 'Shelter Support', score: 84 },
+    {
+        rank: '০১',
+        title: 'জরুরি চিকিৎসা',
+        level: 'তাৎক্ষণিক ব্যবস্থা',
+        score: '৯৮',
+        width: '98%',
+        tone: 'bg-[#c86f63]',
+        text: 'text-[#b65f54]',
+    },
+    {
+        rank: '০২',
+        title: 'খাদ্য সহায়তা',
+        level: 'উচ্চ অগ্রাধিকার',
+        score: '৯২',
+        width: '92%',
+        tone: 'bg-accent',
+        text: 'text-[#b97918]',
+    },
+    {
+        rank: '০৩',
+        title: 'আশ্রয় সহায়তা',
+        level: 'সাধারণ অগ্রাধিকার',
+        score: '৮৪',
+        width: '84%',
+        tone: 'bg-primary',
+        text: 'text-primary',
+    },
 ];
-
-const getTone = (score) => {
-    if (score >= 95) return 'critical';
-    if (score >= 90) return 'high';
-    return 'moderate';
-};
-
-const toneStyles = {
-    critical: {
-        dot: 'bg-red-400',
-        bar: 'bg-gradient-to-r from-red-300 to-red-200',
-        text: 'text-red-400',
-        ring: 'border-red-200',
-        badge: 'bg-red-50 text-red-600',
-        label: 'Immediate Action',
-    },
-
-    high: {
-        dot: 'bg-accent',
-        bar: 'bg-gradient-to-r from-accent/70 to-accent/40',
-        text: 'text-accent/80',
-        ring: 'border-accent/40',
-        badge: 'bg-accent/10 text-accent',
-        label: 'High Priority',
-    },
-
-    moderate: {
-        dot: 'bg-primary/50',
-        bar: 'bg-gradient-to-r from-primary/40 to-primary/20',
-        text: 'text-primary/70',
-        ring: 'border-primary/20',
-        badge: 'bg-primary/5 text-primary/70',
-        label: 'Standard Queue',
-    },
-};
 
 const PriorityDiagram = () => {
     return (
-        <div className="w-full max-w-md sm:max-w-xl mx-auto">
-            <div className="relative">
-                {/* timeline */}
-                <div className="absolute left-3 sm:left-4 top-4 bottom-4 w-px bg-slate-200 opacity-60" />
+        <div className="mx-auto w-full max-w-[590px] font-bengali">
+            <div
+                className="
+                    flex
+                    items-end
+                    justify-between
+                    gap-6
+                    border-b
+                    border-black/10
+                    pb-5
+                "
+            >
+                <div>
+                    <span
+                        className="
+                            text-[0.72rem]
+                            text-text-muted
+                        "
+                    >
+                        অগ্রাধিকার বিশ্লেষণ
+                    </span>
 
-                <div className="space-y-6 sm:space-y-8">
-                    {cases.map((item, index) => {
-                        const tone = getTone(item.score);
-                        const style = toneStyles[tone];
-
-                        return (
-                            <div
-                                key={item.title}
-                                className="relative pl-10 sm:pl-14"
-                            >
-                                {/* NODE */}
-                                <div className="absolute left-0 top-3 sm:top-4">
-                                    <div
-                                        className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full border ${style.ring} flex items-center justify-center bg-white`}
-                                    >
-                                        <div
-                                            className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full ${style.dot}`}
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* CARD */}
-                                <div className="rounded-xl sm:rounded-2xl border border-border bg-surface p-4 sm:p-6">
-                                    {/* header */}
-                                    <div className="flex items-start justify-between gap-3">
-                                        <div>
-                                            <h3 className="text-sm sm:text-lg font-semibold text-text-primary">
-                                                {item.title}
-                                            </h3>
-
-                                            <p
-                                                className={`mt-1 text-xs sm:text-sm font-medium ${style.text}`}
-                                            >
-                                                {style.label}
-                                            </p>
-                                        </div>
-
-                                        <div className="text-right">
-                                            <div
-                                                className={`text-2xl sm:text-4xl font-bold ${style.text}`}
-                                            >
-                                                {item.score}
-                                            </div>
-
-                                            <div className="text-[10px] sm:text-xs uppercase tracking-widest text-text-secondary">
-                                                Priority Score
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* progress */}
-                                    <div className="mt-4 sm:mt-6">
-                                        <div className="h-1.5 sm:h-2 rounded-full bg-slate-200 overflow-hidden">
-                                            <div
-                                                className={`h-full ${style.bar}`}
-                                                style={{
-                                                    width: `${item.score}%`,
-                                                }}
-                                            />
-                                        </div>
-
-                                        <div className="mt-2 flex justify-between text-[10px] sm:text-xs text-text-secondary">
-                                            <span>Ranking Strength</span>
-                                            <span>{item.score}%</span>
-                                        </div>
-                                    </div>
-
-                                    {/* badge */}
-                                    <div className="mt-3">
-                                        <span
-                                            className={`inline-flex text-[10px] sm:text-xs px-2 py-1 rounded-full font-medium ${style.badge}`}
-                                        >
-                                            Queue Position #{index + 1}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })}
+                    <h4
+                        className="
+                            mt-1
+                            text-[1.05rem]
+                            font-semibold
+                        "
+                    >
+                        কোন প্রয়োজন আগে মনোযোগ পাবে?
+                    </h4>
                 </div>
+
+                <span
+                    className="
+                        text-[0.72rem]
+                        text-text-muted
+                    "
+                >
+                    AI সহায়ক মূল্যায়ন
+                </span>
+            </div>
+
+            <div>
+                {cases.map((item) => (
+                    <div
+                        key={item.rank}
+                        className="
+                            grid
+                            grid-cols-[38px_1fr_58px]
+                            gap-4
+                            border-b
+                            border-black/[0.08]
+                            py-6
+
+                            sm:grid-cols-[45px_1fr_72px]
+                        "
+                    >
+                        <span
+                            className="
+                                pt-1
+                                text-[0.72rem]
+                                font-semibold
+                                text-text-muted
+                            "
+                        >
+                            {item.rank}
+                        </span>
+
+                        <div>
+                            <div
+                                className="
+                                    flex
+                                    flex-wrap
+                                    items-center
+                                    justify-between
+                                    gap-3
+                                "
+                            >
+                                <h5
+                                    className="
+                                        text-[0.95rem]
+                                        font-semibold
+                                    "
+                                >
+                                    {item.title}
+                                </h5>
+
+                                <span
+                                    className={`
+                                        text-[0.7rem]
+                                        font-medium
+                                        ${item.text}
+                                    `}
+                                >
+                                    {item.level}
+                                </span>
+                            </div>
+
+                            <div
+                                className="
+                                    mt-4
+                                    h-1.5
+                                    overflow-hidden
+                                    bg-[#e8e9e6]
+                                "
+                            >
+                                <div
+                                    className={`h-full ${item.tone}`}
+                                    style={{
+                                        width: item.width,
+                                    }}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="text-right">
+                            <strong
+                                className={`
+                                    text-[2rem]
+                                    font-medium
+                                    leading-none
+
+                                    sm:text-[2.3rem]
+
+                                    ${item.text}
+                                `}
+                            >
+                                {item.score}
+                            </strong>
+
+                            <span
+                                className="
+                                    mt-1
+                                    block
+                                    text-[0.62rem]
+                                    text-text-muted
+                                "
+                            >
+                                স্কোর
+                            </span>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            <div
+                className="
+                    mt-5
+                    flex
+                    items-start
+                    gap-3
+                "
+            >
+                <span
+                    className="
+                        mt-2
+                        h-1.5
+                        w-1.5
+                        shrink-0
+                        rounded-full
+                        bg-primary
+                    "
+                />
+
+                <p
+                    className="
+                        text-[0.72rem]
+                        leading-[1.7]
+                        text-text-muted
+                    "
+                >
+                    জরুরিতা, সম্ভাব্য প্রভাব, পরিস্থিতি এবং উপলভ্য সম্পদের মতো
+                    সংকেত অগ্রাধিকার নির্ধারণে বিবেচিত হয়।
+                </p>
             </div>
         </div>
     );

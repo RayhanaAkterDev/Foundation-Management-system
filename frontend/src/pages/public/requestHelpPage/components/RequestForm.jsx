@@ -343,7 +343,7 @@ const RequestForm = ({ setSuccess }) => {
                             আপনার সাহায্যের আবেদন তৈরি করুন
                         </h2>
 
-                        <p className="mt-3 font-bengali text-sm leading-7 text-text-muted">
+                        <p className="mt-3 font-bengali text-[15px] leading-8 text-text-muted sm:text-base">
                             আপনার পরিস্থিতি বিস্তারিত লিখুন। আমরা আপনার অনুরোধটি
                             সাজিয়ে দেওয়ার পর আপনি নিজে পর্যালোচনা করে পাঠাতে
                             পারবেন।
@@ -415,22 +415,22 @@ const RequestForm = ({ setSuccess }) => {
                     handleAnalyze();
                 }
             }}
-            className="p-6 sm:p-8 lg:p-10"
+            className="px-5 py-7 sm:px-8 sm:py-9 lg:px-10 lg:py-11 xl:px-12"
         >
             {/* =================================================
                 Header
             ================================================= */}
 
-            <div className="max-w-3xl">
-                <p className="font-bengali text-sm font-semibold text-primary">
+            <div className="max-w-2xl">
+                <p className="font-bengali text-[15px] font-semibold text-primary">
                     আপনার পরিস্থিতি
                 </p>
 
-                <h2 className="mt-2 font-bengali text-2xl font-semibold tracking-tight text-text-primary sm:text-3xl">
+                <h2 className="mt-2 font-bengali text-[1.8rem] font-semibold leading-[1.35] text-text-primary sm:text-[2.1rem]">
                     কী ধরনের সাহায্য প্রয়োজন?
                 </h2>
 
-                <p className="mt-3 font-bengali text-sm leading-7 text-text-muted">
+                <p className="mt-3 font-bengali text-[15px] leading-8 text-text-muted sm:text-base">
                     আপনার পরিস্থিতি নিজের ভাষায় বিস্তারিত লিখুন। বিশ্লেষণের পর
                     প্রয়োজনীয় তথ্যগুলো সাজিয়ে দেওয়া হবে এবং পাঠানোর আগে আপনি
                     নিজে সবকিছু পর্যালোচনা করতে পারবেন।
@@ -444,7 +444,7 @@ const RequestForm = ({ setSuccess }) => {
             <div className="mt-8">
                 <label
                     htmlFor="description"
-                    className="font-bengali text-sm font-semibold text-text-primary"
+                    className="font-bengali text-[15px] font-semibold text-text-primary"
                 >
                     আপনার পরিস্থিতি *
                 </label>
@@ -460,15 +460,15 @@ const RequestForm = ({ setSuccess }) => {
                         mt-3
                         w-full
                         resize-none
-                        rounded-2xl
+                        rounded-[18px]
                         border
                         border-border
-                        bg-background
+                        bg-surface
                         px-4
                         py-4
                         font-bengali
-                        text-sm
-                        leading-7
+                        text-[15px]
+                        leading-8
                         text-text-primary
                         outline-none
                         transition
@@ -522,18 +522,18 @@ const RequestForm = ({ setSuccess }) => {
             ================================================= */}
 
             {analysis && !analyzing && (
-                <div className="mt-8 rounded-2xl border border-border bg-background p-5 sm:p-6">
+                <div className="mt-9 border-t border-border pt-8 sm:pt-9">
                     {/* =================================================
                         Review header
                     ================================================= */}
 
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                         <div>
-                            <p className="font-bengali text-sm font-semibold text-primary">
+                            <p className="font-bengali text-[15px] font-semibold text-primary">
                                 পর্যালোচনা করুন
                             </p>
 
-                            <h3 className="mt-1 font-bengali text-xl font-semibold tracking-tight text-text-primary">
+                            <h3 className="mt-1 font-bengali text-2xl font-semibold leading-snug text-text-primary">
                                 আপনার অনুরোধের তথ্য
                             </h3>
                         </div>
@@ -550,7 +550,7 @@ const RequestForm = ({ setSuccess }) => {
                     <div className="mt-6">
                         <label
                             htmlFor="analysis-title"
-                            className="font-bengali text-sm font-semibold text-text-primary"
+                            className="font-bengali text-[15px] font-semibold text-text-primary"
                         >
                             শিরোনাম *
                         </label>
@@ -600,7 +600,7 @@ const RequestForm = ({ setSuccess }) => {
                         <div>
                             <label
                                 htmlFor="analysis-category"
-                                className="font-bengali text-sm font-semibold text-text-primary"
+                                className="font-bengali text-[15px] font-semibold text-text-primary"
                             >
                                 বিভাগ *
                             </label>
@@ -662,7 +662,7 @@ const RequestForm = ({ setSuccess }) => {
                         <div>
                             <label
                                 htmlFor="analysis-urgency"
-                                className="font-bengali text-sm font-semibold text-text-primary"
+                                className="font-bengali text-[15px] font-semibold text-text-primary"
                             >
                                 জরুরিতা *
                             </label>
@@ -719,7 +719,7 @@ const RequestForm = ({ setSuccess }) => {
                     <div className="mt-5">
                         <label
                             htmlFor="analysis-district"
-                            className="font-bengali text-sm font-semibold text-text-primary"
+                            className="font-bengali text-[15px] font-semibold text-text-primary"
                         >
                             জেলা *
                         </label>
@@ -767,7 +767,7 @@ const RequestForm = ({ setSuccess }) => {
                     <div className="mt-5">
                         <label
                             htmlFor="analysis-address"
-                            className="font-bengali text-sm font-semibold text-text-primary"
+                            className="font-bengali text-[15px] font-semibold text-text-primary"
                         >
                             ঠিকানা *
                         </label>

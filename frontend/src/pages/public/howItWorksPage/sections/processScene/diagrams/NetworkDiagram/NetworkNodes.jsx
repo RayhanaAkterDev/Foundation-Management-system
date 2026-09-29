@@ -1,19 +1,55 @@
-import { HeartHandshake, Users } from 'lucide-react';
+import React from 'react';
+
+import { HeartHandshake } from 'lucide-react';
+import { TbUsers } from 'react-icons/tb';
 
 export const TopNode = ({ icon, title, subtitle }) => {
     const Icon = icon;
 
     return (
-        <div className="flex flex-col items-center text-center max-w-42.5 sm:max-w-47.5">
-            <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/10 flex items-center justify-center transition hover:scale-105">
-                <Icon className="w-7 h-7 text-primary" />
+        <div
+            className="
+                flex
+                max-w-[190px]
+                flex-col
+                items-center
+                text-center
+            "
+        >
+            <div
+                className="
+                    flex
+                    h-12
+                    w-12
+                    items-center
+                    justify-center
+                    rounded-full
+                    border
+                    border-primary/15
+                    bg-[#edf4f1]
+                "
+            >
+                <Icon className="h-5 w-5 text-primary" />
             </div>
 
-            <h4 className="mt-3 text-base sm:text-lg font-semibold text-foreground">
+            <h4
+                className="
+                    mt-3
+                    text-[0.9rem]
+                    font-semibold
+                "
+            >
                 {title}
             </h4>
 
-            <p className="mt-1 text-xs sm:text-sm leading-5 text-muted-foreground">
+            <p
+                className="
+                    mt-1
+                    text-[0.68rem]
+                    leading-[1.6]
+                    text-text-muted
+                "
+            >
                 {subtitle}
             </p>
         </div>
@@ -22,39 +58,117 @@ export const TopNode = ({ icon, title, subtitle }) => {
 
 export const FoundationNode = () => {
     return (
-        <div className="relative w-full max-w-85 px-6 sm:px-7 py-5 sm:py-6 rounded-[28px] bg-primary text-primary-foreground overflow-hidden shadow-[0_20px_60px_-25px_rgba(0,0,0,.25)]">
-            <div className="absolute -top-16 -right-16 w-36 h-36 rounded-full bg-white/10" />
+        <div
+            className="
+                relative
+                w-full
+                max-w-[390px]
+                overflow-hidden
+                bg-primary
+                px-6
+                py-6
+                text-white
 
-            <div className="relative w-14 h-14 rounded-2xl bg-white/15 flex items-center justify-center">
-                <Users className="w-7 h-7" />
+                sm:px-7
+            "
+        >
+            <div className="flex items-start gap-4">
+                <div
+                    className="
+                        flex
+                        h-11
+                        w-11
+                        shrink-0
+                        items-center
+                        justify-center
+                        rounded-full
+                        bg-white/10
+                    "
+                >
+                    <TbUsers className="h-5 w-5" />
+                </div>
+
+                <div>
+                    <span
+                        className="
+                            text-[0.68rem]
+                            text-white/50
+                        "
+                    >
+                        SP সমন্বয় ব্যবস্থা
+                    </span>
+
+                    <h3
+                        className="
+                            mt-1
+                            text-[1.05rem]
+                            font-semibold
+                        "
+                    >
+                        সমন্বয়ের কেন্দ্র
+                    </h3>
+
+                    <p
+                        className="
+                            mt-2
+                            text-[0.72rem]
+                            leading-[1.7]
+                            text-white/65
+                        "
+                    >
+                        অনুরোধ যাচাই, অগ্রাধিকার নির্ধারণ এবং সহায়তাকারী,
+                        স্বেচ্ছাসেবক ও সহযোগী সংগঠনকে একটি সমন্বিত কার্যপ্রবাহে
+                        যুক্ত করে।
+                    </p>
+                </div>
             </div>
-
-            <h3 className="relative mt-4 text-xl sm:text-2xl font-bold">
-                Coordination Layer
-            </h3>
-
-            <p className="relative mt-2 text-sm leading-6 text-primary-foreground/80">
-                Validates requests, allocates priority, and connects donors,
-                volunteers and partners into a unified response system.
-            </p>
         </div>
     );
 };
 
 export const CommunityNode = () => {
     return (
-        <div className="bg-surface border border-border rounded-[26px] px-5 sm:px-6 py-5 text-center w-full max-w-70 sm:max-w-75">
-            <div className="w-14 h-14 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center">
-                <HeartHandshake className="w-7 h-7 text-primary" />
-            </div>
+        <div
+            className="
+                w-full
+                max-w-[310px]
+                border
+                border-black/10
+                bg-[#f7f6f1]
+                px-6
+                py-5
+                text-center
+            "
+        >
+            <HeartHandshake
+                className="
+                    mx-auto
+                    h-6
+                    w-6
+                    text-primary
+                "
+            />
 
-            <h3 className="mt-4 text-lg sm:text-xl font-bold text-foreground">
-                Impact Network
+            <h3
+                className="
+                    mt-3
+                    text-[0.95rem]
+                    font-semibold
+                "
+            >
+                সহায়তার প্রভাব
             </h3>
 
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Receives verified support through a transparent system of
-                coordinated aid delivery.
+            <p
+                className="
+                    mt-2
+                    text-[0.7rem]
+                    leading-[1.65]
+                    text-text-muted
+                "
+            >
+                সমন্বিত ও স্বচ্ছ ব্যবস্থার মাধ্যমে যাচাইকৃত সহায়তা প্রয়োজনের
+                কাছে পৌঁছে যায়।
             </p>
         </div>
     );

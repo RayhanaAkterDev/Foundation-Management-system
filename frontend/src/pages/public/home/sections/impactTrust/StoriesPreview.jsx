@@ -1,74 +1,172 @@
-import React from 'react';
-import { TbShieldCheck } from 'react-icons/tb';
-import { HiOutlineMapPin } from 'react-icons/hi2';
-import stories from './data/storiesData';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+
+import { TbQuote, TbShieldCheck } from 'react-icons/tb';
+
+import { fetchTestimonials } from '@/api/testimonials';
 
 const StoriesPreview = () => {
+    const [testimonial, setTestimonial] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        let isMounted = true;
+
+        const loadTestimonial = async () => {
+            try {
+                setLoading(true);
+
+                const response = await fetchTestimonials();
+
+                if (!isMounted) {
+                    return;
+                }
+
+                const testimonials = response?.testimonials || [];
+
+                setTestimonial(testimonials[0] || null);
+            } catch {
+                if (isMounted) {
+                    setTestimonial(null);
+                }
+            } finally {
+                if (isMounted) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        loadTestimonial();
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
+
+    if (loading) {
+        return (
+            <div
+                className="
+                    rounded-3xl border border-border
+                    bg-surface/80 p-6 sm:p-8
+                    animate-pulse
+                "
+            >
+                <div className="h-4 w-32 rounded bg-border/60" />
+
+                <div className="mt-6 h-6 w-2/3 rounded bg-border/60" />
+
+                <div className="mt-4 h-20 w-full rounded bg-border/60" />
+            </div>
+        );
+    }
+
+    if (!testimonial) {
+        return null;
+    }
+
+    const isOrganization = testimonial?.user?.role === 'organization';
+
     return (
-        <div className="grid md:grid-cols-3 gap-8">
-            {stories.map((story) => (
-                <article
-                    key={story.category}
+        <article
+            className="
+                group relative overflow-hidden
+                rounded-3xl border border-border
+                bg-surface/80 p-6 sm:p-8 lg:p-10
+                transition duration-300
+                hover:border-primary/30
+                hover:shadow-lg
+            "
+        >
+            {/* Header */}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-2 text-text-secondary">
+                    <TbShieldCheck
+                        size={17}
+                        className="shrink-0 text-primary"
+                    />
+
+                    <span className="text-[11px] font-medium uppercase tracking-[0.14em]">
+                        যাচাইকৃত কমিউনিটি অভিজ্ঞতা
+                    </span>
+                </div>
+
+                <span
                     className="
-                            group relative rounded-2xl border border-border
-                            bg-surface/80 p-6
-                            transition duration-300
-                            hover:border-primary/30 hover:shadow-lg
-                        "
+                        w-fit rounded-full
+                        bg-primary/10
+                        px-3 py-1
+                        text-[11px] font-medium
+                        text-primary
+                    "
                 >
-                    {/* subtle trust indicator */}
-                    <div className="flex items-center justify-between mb-5">
-                        <div className="flex items-center gap-2 text-text-secondary">
-                            <TbShieldCheck size={16} className="text-primary" />
-                            <span className="text-[11px] uppercase tracking-wider">
-                                Verified story
-                            </span>
+                    {isOrganization ? 'সংগঠন' : 'ব্যক্তি'}
+                </span>
+            </div>
+
+            {/* Testimonial */}
+            <div className="mt-7 grid gap-6 lg:grid-cols-[auto_1fr] lg:gap-8">
+                <div
+                    className="
+                        flex h-12 w-12 shrink-0
+                        items-center justify-center
+                        rounded-2xl
+                        bg-primary/10
+                        text-primary
+                    "
+                >
+                    <TbQuote size={24} strokeWidth={1.8} />
+                </div>
+
+                <div className="min-w-0">
+                    <p
+                        className="
+                            max-w-4xl
+                            text-lg font-medium
+                            leading-8 text-text-primary
+                            sm:text-xl
+                        "
+                    >
+                        “{testimonial.message}”
+                    </p>
+
+                    <div
+                        className="
+                            mt-7 flex flex-col gap-2
+                            border-t border-border pt-5
+                            sm:flex-row sm:items-center
+                            sm:justify-between
+                        "
+                    >
+                        <div>
+                            <p className="text-sm font-semibold text-text-primary">
+                                {testimonial?.user?.name || 'কমিউনিটি সদস্য'}
+                            </p>
+
+                            <p className="mt-1 text-xs text-text-secondary">
+                                {isOrganization
+                                    ? 'সংগঠন'
+                                    : 'ব্যক্তিগত অ্যাকাউন্ট'}
+                            </p>
                         </div>
 
-                        <span className="text-[10px] px-2 py-1 rounded-full bg-primary/10 text-primary">
-                            {story.tag}
+                        <span className="text-xs text-text-secondary">
+                            SP কমিউনিটি
                         </span>
                     </div>
+                </div>
+            </div>
 
-                    {/* main content */}
-                    <div>
-                        <h4 className="text-lg font-semibold text-text-primary leading-snug">
-                            {story.category}
-                        </h4>
-
-                        <div className="flex items-center gap-1 mt-2 text-xs text-text-secondary">
-                            <HiOutlineMapPin size={14} />
-                            <span>{story.location}</span>
-                        </div>
-
-                        <p className="mt-4 text-sm leading-relaxed text-text-secondary line-clamp-4">
-                            {story.text}
-                        </p>
-                    </div>
-
-                    {/* CTA */}
-                    <div className="mt-6 flex items-center justify-between">
-                        <span className="text-[11px] text-text-secondary">
-                            Community validated
-                        </span>
-
-                        <Link
-                            className="
-                                    text-[12px] font-medium text-primary
-                                    opacity-80 group-hover:opacity-100
-                                    transition cursor-pointer
-                                "
-                        >
-                            Read story →
-                        </Link>
-                    </div>
-
-                    {/* subtle hover accent */}
-                    <div className="absolute inset-0 rounded-2xl ring-1 ring-transparent group-hover:ring-primary/10 pointer-events-none" />
-                </article>
-            ))}
-        </div>
+            {/* Subtle accent */}
+            <div
+                className="
+                    pointer-events-none absolute
+                    -right-20 -top-20
+                    h-44 w-44
+                    rounded-full
+                    bg-primary/5
+                "
+            />
+        </article>
     );
 };
 

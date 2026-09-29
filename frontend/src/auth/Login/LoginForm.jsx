@@ -437,7 +437,7 @@ const LoginForm = ({ loginRole = null }) => {
                     font-bengali
                     text-sm
                     font-semibold
-                    text-white
+                    text-white!
                     shadow-sm
                     transition-all
                     duration-200

@@ -120,15 +120,15 @@ const Stats = ({
                                     <Users
                                         size={17}
                                         strokeWidth={1.7}
-                                        className="shrink-0 text-white/60"
+                                        className="shrink-0 text-white!/60"
                                     />
 
-                                    <span className="truncate text-[9px] font-semibold uppercase tracking-[0.16em] text-white/60 sm:text-[10px]">
+                                    <span className="truncate text-[9px] font-semibold uppercase tracking-[0.16em] text-white!/60 sm:text-[10px]">
                                         Total community
                                     </span>
                                 </div>
 
-                                <span className="ml-4 shrink-0 text-[8px] font-medium uppercase tracking-[0.15em] text-white/30">
+                                <span className="ml-4 shrink-0 text-[8px] font-medium uppercase tracking-[0.15em] text-white!/30">
                                     01
                                 </span>
                             </div>
@@ -136,11 +136,11 @@ const Stats = ({
                             {/* Number */}
                             <div className="mt-8 sm:mt-10 lg:mt-12">
                                 <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                                    <span className="font-jost text-[48px] font-semibold leading-none tracking-[-0.055em] text-white sm:text-[56px] lg:text-[60px]">
+                                    <span className="font-jost text-[48px] font-semibold leading-none tracking-[-0.055em] text-white! sm:text-[56px] lg:text-[60px]">
                                         {total}
                                     </span>
 
-                                    <span className="text-[10px] text-white/40 sm:text-xs">
+                                    <span className="text-[10px] text-white!/40 sm:text-xs">
                                         accounts
                                     </span>
                                 </div>
@@ -148,7 +148,7 @@ const Stats = ({
                                 <div className="mt-4 flex max-w-sm items-start gap-2.5">
                                     <span className="mt-2 h-px w-7 shrink-0 bg-white/25" />
 
-                                    <p className="text-[11px] leading-[1.6] text-white/60 sm:text-xs">
+                                    <p className="text-[11px] leading-[1.6] text-white!/60 sm:text-xs">
                                         Everyone with a registered place in the
                                         Stand For People community.
                                     </p>

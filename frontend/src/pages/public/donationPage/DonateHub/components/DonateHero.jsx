@@ -152,7 +152,7 @@ const DonateHero = () => {
                             <Button
                                 to={`/campaign/${campaign.slug}`}
                                 size="md"
-                                className="bg-primary hover:bg-primary-hover text-white"
+                                className="bg-primary hover:bg-primary-hover text-white!"
                             >
                                 Help Save Life
                             </Button>

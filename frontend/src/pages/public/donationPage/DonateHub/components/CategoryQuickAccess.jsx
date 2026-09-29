@@ -149,7 +149,7 @@ const CategoryQuickAccess = () => {
                                         bg-primary
                                         px-5 py-2.5
                                         text-sm font-medium
-                                        text-white
+                                        text-white!
                                     "
                                 >
                                     View campaigns

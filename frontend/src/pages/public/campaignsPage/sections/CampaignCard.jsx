@@ -76,7 +76,7 @@ function ImageMeta({ campaign, dark = true }) {
                             text-[10px]
                             font-medium
                             leading-none
-                            text-white
+                            text-white!
                             backdrop-blur-[3px]
                             sm:px-3
                             sm:text-[11px]
@@ -100,7 +100,7 @@ function ImageMeta({ campaign, dark = true }) {
                         flex
                         items-center
                         gap-1.5
-                        text-white
+                        text-white!
                         sm:right-6
                         sm:top-6
                         lg:right-7
@@ -138,7 +138,7 @@ function Progress({ progress, light = false }) {
                         leading-none
                         sm:text-[11px]
                         lg:text-[12px]
-                        ${light ? 'text-white/55' : 'text-text-muted'}
+                        ${light ? 'text-white!/55' : 'text-text-muted'}
                     `}
                 >
                     সহায়তার অগ্রগতি
@@ -151,7 +151,7 @@ function Progress({ progress, light = false }) {
                         leading-none
                         sm:text-[11px]
                         lg:text-[13px]
-                        ${light ? 'text-white' : 'text-primary'}
+                        ${light ? 'text-white!' : 'text-primary'}
                     `}
                 >
                     {toBengaliNumber(safeProgress)}%
@@ -320,7 +320,7 @@ export default function CampaignCard({
                             "
                         >
                             {location ? (
-                                <div className="flex min-w-0 items-center gap-1.5 text-white lg:gap-2">
+                                <div className="flex min-w-0 items-center gap-1.5 text-white! lg:gap-2">
                                     <HiOutlineLocationMarker className="shrink-0 text-[12px] lg:text-[14px]" />
 
                                     <span className="truncate font-bengali text-[10px] leading-none sm:text-[11px] lg:text-[12px]">
@@ -335,7 +335,7 @@ export default function CampaignCard({
                                 className="
                                     shrink-0
                                     text-[18px]
-                                    text-white
+                                    text-white!
                                     transition-transform
                                     duration-300
                                     group-hover:translate-x-1
@@ -502,7 +502,7 @@ export default function CampaignCard({
                                 font-light
                                 leading-none
                                 tracking-[-0.055em]
-                                text-white/90
+                                text-white!/90
                                 sm:bottom-6
                                 sm:left-6
                                 sm:text-[58px]
@@ -525,7 +525,7 @@ export default function CampaignCard({
                                     max-w-[50%]
                                     items-center
                                     gap-1.5
-                                    text-white
+                                    text-white!
                                     sm:right-6
                                     lg:bottom-8
                                     lg:right-8
@@ -673,7 +673,7 @@ export default function CampaignCard({
                                         duration-300
                                         group-hover:border-primary
                                         group-hover:bg-primary
-                                        group-hover:text-white
+                                        group-hover:text-white!
                                         sm:h-10
                                         sm:w-10
                                         lg:h-11
@@ -703,7 +703,7 @@ export default function CampaignCard({
                     border
                     border-border/70
                     bg-[#171b18]
-                    text-white
+                    text-white!
                 "
             >
                 <div className="grid lg:min-h-[560px] lg:grid-cols-[1.18fr_0.82fr] xl:min-h-[600px]">
@@ -759,7 +759,7 @@ export default function CampaignCard({
                                         font-bengali
                                         text-[10px]
                                         leading-none
-                                        text-white
+                                        text-white!
                                         backdrop-blur-[3px]
                                         sm:px-3
                                         sm:text-[11px]
@@ -784,7 +784,7 @@ export default function CampaignCard({
                                 font-light
                                 leading-none
                                 tracking-[-0.06em]
-                                text-white/90
+                                text-white!/90
                                 sm:bottom-8
                                 sm:left-8
                                 sm:text-[72px]
@@ -845,7 +845,7 @@ export default function CampaignCard({
                                     font-medium
                                     uppercase
                                     tracking-[0.2em]
-                                    text-white/50
+                                    text-white!/50
                                     sm:text-[9px]
                                     sm:tracking-[0.24em]
                                     lg:text-[10px]
@@ -855,7 +855,7 @@ export default function CampaignCard({
                             </span>
 
                             {campaign.daysLeft != null && (
-                                <div className="flex items-center gap-1.5 text-white/65 lg:gap-2">
+                                <div className="flex items-center gap-1.5 text-white!/65 lg:gap-2">
                                     <FiClock className="text-[11px] lg:text-[14px]" />
 
                                     <span className="font-bengali text-[10px] leading-none sm:text-[11px] lg:text-[12px]">
@@ -876,7 +876,7 @@ export default function CampaignCard({
                                 font-semibold
                                 leading-[1.5]
                                 tracking-[-0.025em]
-                                text-white
+                                text-white!
                                 sm:mt-9
                                 sm:text-[29px]
                                 lg:mt-11
@@ -897,7 +897,7 @@ export default function CampaignCard({
                                     font-bengali
                                     text-[11px]
                                     leading-[2]
-                                    text-white/60
+                                    text-white!/60
                                     sm:mt-5
                                     sm:text-[12px]
                                     lg:mt-6
@@ -914,7 +914,7 @@ export default function CampaignCard({
 
                             <div className="mt-6 grid grid-cols-2 gap-5 sm:mt-7 sm:gap-6 lg:mt-8 lg:gap-8">
                                 <div>
-                                    <p className="font-bengali text-[10px] leading-none text-white/45 sm:text-[11px] lg:text-[12px]">
+                                    <p className="font-bengali text-[10px] leading-none text-white!/45 sm:text-[11px] lg:text-[12px]">
                                         সংগ্রহ হয়েছে
                                     </p>
 
@@ -924,7 +924,7 @@ export default function CampaignCard({
                                             text-[22px]
                                             font-semibold
                                             tracking-[-0.04em]
-                                            text-white
+                                            text-white!
                                             sm:text-[25px]
                                             lg:text-[31px]
                                             xl:text-[34px]
@@ -934,21 +934,21 @@ export default function CampaignCard({
                                     </p>
 
                                     {targetAmount > 0 && (
-                                        <p className="mt-1 font-bengali text-[9px] leading-none text-white/40 sm:text-[10px] lg:text-[11px]">
+                                        <p className="mt-1 font-bengali text-[9px] leading-none text-white!/40 sm:text-[10px] lg:text-[11px]">
                                             লক্ষ্য ৳{formatAmount(targetAmount)}
                                         </p>
                                     )}
                                 </div>
 
                                 <div className="border-l border-white/15 pl-5 sm:pl-6 lg:pl-7">
-                                    <p className="font-bengali text-[10px] leading-none text-white/45 sm:text-[11px] lg:text-[12px]">
+                                    <p className="font-bengali text-[10px] leading-none text-white!/45 sm:text-[11px] lg:text-[12px]">
                                         সহায়তাকারী
                                     </p>
 
                                     <div className="mt-2 flex items-center gap-2 lg:mt-2.5 lg:gap-2.5">
-                                        <FiUsers className="text-[13px] text-white/70 sm:text-[14px] lg:text-[16px]" />
+                                        <FiUsers className="text-[13px] text-white!/70 sm:text-[14px] lg:text-[16px]" />
 
-                                        <span className="text-[17px] font-semibold text-white sm:text-[19px] lg:text-[22px]">
+                                        <span className="text-[17px] font-semibold text-white! sm:text-[19px] lg:text-[22px]">
                                             {toBengaliNumber(supporterCount)}
                                         </span>
                                     </div>
@@ -956,7 +956,7 @@ export default function CampaignCard({
                             </div>
 
                             <div className="mt-7 flex items-center justify-between gap-5 border-t border-white/15 pt-5 sm:mt-8 sm:pt-6 lg:mt-9 lg:pt-7">
-                                <span className="font-bengali text-[10px] font-semibold leading-[1.6] text-white/85 sm:text-[11px] lg:text-[13px]">
+                                <span className="font-bengali text-[10px] font-semibold leading-[1.6] text-white!/85 sm:text-[11px] lg:text-[13px]">
                                     উদ্যোগটির সম্পূর্ণ গল্প দেখুন
                                 </span>
 

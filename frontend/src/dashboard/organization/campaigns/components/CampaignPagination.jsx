@@ -53,7 +53,7 @@ const CampaignPagination = ({
                         className={[
                             'flex h-8 min-w-8 items-center justify-center rounded-lg px-2 text-[10px] font-bold transition-colors',
                             page === currentPage
-                                ? 'bg-primary text-white'
+                                ? 'bg-primary text-white!'
                                 : 'border border-border bg-white text-text-secondary hover:border-primary/30 hover:text-primary',
                         ].join(' ')}
                     >

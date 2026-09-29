@@ -78,17 +78,17 @@ const toneStyles = {
         accent: `
             border-accent-hover
             bg-accent-hover
-            text-white
+            text-white!
         `,
         urgent: `
             border-error
             bg-error
-            text-white
+            text-white!
         `,
         success: `
             border-success
             bg-success
-            text-white
+            text-white!
         `,
         warning: `
             border-highlight
@@ -106,22 +106,22 @@ const toneStyles = {
         primary: `
             border-primary
             bg-primary
-            text-white
+            text-white!
         `,
         accent: `
             border-accent
             bg-accent
-            text-white
+            text-white!
         `,
         urgent: `
             border-error
             bg-error
-            text-white
+            text-white!
         `,
         success: `
             border-success
             bg-success
-            text-white
+            text-white!
         `,
         warning: `
             border-highlight
@@ -131,7 +131,7 @@ const toneStyles = {
         default: `
             border-text-primary
             bg-text-primary
-            text-white
+            text-white!
         `,
         white: `
             border-border

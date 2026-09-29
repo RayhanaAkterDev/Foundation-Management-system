@@ -38,7 +38,7 @@ const FeaturedSection = ({ campaigns = [] }) => {
                         <div className="flex justify-center pt-2">
                             <Link
                                 to="/campaigns/featured"
-                                className="group inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white px-6 py-3 font-sans text-sm font-semibold text-primary transition-all duration-200 hover:border-primary hover:bg-primary hover:text-white"
+                                className="group inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white px-6 py-3 font-sans text-sm font-semibold text-primary transition-all duration-200 hover:border-primary hover:bg-primary hover:text-white!"
                             >
                                 See More
                                 <ArrowRight

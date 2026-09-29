@@ -590,7 +590,7 @@ const UserViewModal = ({ user, loading, error, onClose }) => {
                     <button
                         type="button"
                         onClick={onClose}
-                        className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-all hover:bg-primary-hover"
+                        className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white! transition-all hover:bg-primary-hover"
                     >
                         Done
                     </button>

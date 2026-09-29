@@ -277,27 +277,27 @@ const HelpRequestEditModal = ({ isOpen, request, onClose, onSuccess }) => {
                         <div className="flex items-start justify-between gap-3 sm:gap-5">
                             <div className="flex min-w-0 items-start gap-3 sm:gap-4">
                                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[13px] bg-white/10 ring-1 ring-white/10 sm:h-12 sm:w-12 sm:rounded-[15px]">
-                                    <FileText className="h-[18px] w-[18px] text-white sm:h-[20px] sm:w-[20px]" />
+                                    <FileText className="h-[18px] w-[18px] text-white! sm:h-[20px] sm:w-[20px]" />
                                 </div>
 
                                 <div className="min-w-0 py-0.5 sm:py-1">
                                     <div className="mb-2 flex flex-wrap items-center gap-2">
-                                        <span className="text-[9px] font-bold uppercase tracking-[0.14em] text-white/55 sm:text-[10px] sm:tracking-[0.16em]">
+                                        <span className="text-[9px] font-bold uppercase tracking-[0.14em] text-white!/55 sm:text-[10px] sm:tracking-[0.16em]">
                                             Help request
                                         </span>
 
                                         <span className="h-1 w-1 rounded-full bg-white/25" />
 
-                                        <span className="rounded-full bg-white/10 px-2 py-0.5 text-[8px] font-bold uppercase tracking-[0.08em] text-white/75 ring-1 ring-white/[0.08] sm:px-2.5 sm:py-1 sm:text-[9px] sm:tracking-[0.1em]">
+                                        <span className="rounded-full bg-white/10 px-2 py-0.5 text-[8px] font-bold uppercase tracking-[0.08em] text-white!/75 ring-1 ring-white/[0.08] sm:px-2.5 sm:py-1 sm:text-[9px] sm:tracking-[0.1em]">
                                             Pending
                                         </span>
                                     </div>
 
-                                    <h2 className="font-['Fraunces'] text-[23px] font-semibold leading-[1.05] tracking-[-0.025em] text-white sm:text-[29px]">
+                                    <h2 className="font-['Fraunces'] text-[23px] font-semibold leading-[1.05] tracking-[-0.025em] text-white! sm:text-[29px]">
                                         Edit help request
                                     </h2>
 
-                                    <p className="mt-2 max-w-[530px] text-[11px] leading-4 text-white/65 sm:mt-2.5 sm:text-[13px] sm:leading-5">
+                                    <p className="mt-2 max-w-[530px] text-[11px] leading-4 text-white!/65 sm:mt-2.5 sm:text-[13px] sm:leading-5">
                                         Update your request details before it is
                                         reviewed and processed.
                                     </p>
@@ -308,7 +308,7 @@ const HelpRequestEditModal = ({ isOpen, request, onClose, onSuccess }) => {
                                 type="button"
                                 onClick={handleClose}
                                 disabled={submitting}
-                                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-white/[0.08] text-white/60 ring-1 ring-white/[0.08] transition-all hover:bg-white/[0.14] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 sm:h-9 sm:w-9 sm:rounded-xl"
+                                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-white/[0.08] text-white!/60 ring-1 ring-white/[0.08] transition-all hover:bg-white/[0.14] hover:text-white! disabled:cursor-not-allowed disabled:opacity-40 sm:h-9 sm:w-9 sm:rounded-xl"
                                 aria-label="Close modal"
                             >
                                 <X className="h-4 w-4 sm:h-[18px] sm:w-[18px]" />
@@ -354,7 +354,7 @@ const HelpRequestEditModal = ({ isOpen, request, onClose, onSuccess }) => {
                                 <section>
                                     <div className="mb-4 flex items-start justify-between gap-3 sm:mb-5 sm:items-center">
                                         <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
-                                            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary text-[10px] font-bold text-white">
+                                            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary text-[10px] font-bold text-white!">
                                                 01
                                             </span>
 
@@ -728,7 +728,7 @@ const HelpRequestEditModal = ({ isOpen, request, onClose, onSuccess }) => {
                                 <button
                                     type="submit"
                                     disabled={submitting}
-                                    className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-[11px] bg-primary px-4 text-[11px] font-bold text-white shadow-[0_5px_16px_rgba(15,118,110,0.2)] transition-all hover:bg-primary-hover hover:shadow-[0_7px_20px_rgba(15,118,110,0.26)] disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none sm:px-5 sm:text-[12px]"
+                                    className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-[11px] bg-primary px-4 text-[11px] font-bold text-white! shadow-[0_5px_16px_rgba(15,118,110,0.2)] transition-all hover:bg-primary-hover hover:shadow-[0_7px_20px_rgba(15,118,110,0.26)] disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none sm:px-5 sm:text-[12px]"
                                 >
                                     {submitting && (
                                         <Loader2 className="h-3.5 w-3.5 animate-spin" />

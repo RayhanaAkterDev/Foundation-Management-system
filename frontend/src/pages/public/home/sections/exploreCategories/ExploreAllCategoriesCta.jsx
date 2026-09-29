@@ -67,7 +67,7 @@ const ExploreAllCategoriesCta = () => {
                         duration-200
                         group-hover:border-primary/40
                         group-hover:bg-primary
-                        group-hover:text-white
+                        group-hover:text-white!
                     "
                 >
                     <ArrowUpRight

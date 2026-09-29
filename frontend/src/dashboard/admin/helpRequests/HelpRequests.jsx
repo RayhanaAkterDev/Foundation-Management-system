@@ -1,1906 +1,1989 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 import {
-  AlertCircle,
-  ArrowDown,
-  ArrowUp,
-  CheckCircle2,
-  Clock3,
-  Download,
-  RotateCcw,
-  Search,
-  X,
-  XCircle,
-  ChevronsUpDown,
-} from "lucide-react";
+    AlertCircle,
+    ArrowDown,
+    ArrowUp,
+    CheckCircle2,
+    Clock3,
+    Download,
+    RotateCcw,
+    Search,
+    X,
+    XCircle,
+    ChevronsUpDown,
+} from 'lucide-react';
 
-import PageHeader from "@/components/dashboard/PageHeader";
+import PageHeader from '@/components/dashboard/PageHeader';
 
-import HelpRequestStats from "./components/Stats";
-import HelpRequestCategoryTabs from "./components/CategoryTabs";
-import HelpRequestFilters from "./components/Filters";
-import HelpRequestTable from "./components/Table";
-import HelpRequestPagination from "./components/Pagination";
-import HelpRequestSuccessToast from "./components/SuccessToast";
+import HelpRequestStats from './components/Stats';
+import HelpRequestCategoryTabs from './components/CategoryTabs';
+import HelpRequestFilters from './components/Filters';
+import HelpRequestTable from './components/Table';
+import HelpRequestPagination from './components/Pagination';
+import HelpRequestSuccessToast from './components/SuccessToast';
 
-import HelpRequestViewModal from "./modals/ViewModal";
-import HelpRequestEditModal from "./modals/EditModal";
-import HelpRequestVerificationModal from "./modals/VerificationModal";
-import HelpRequestAssignmentModal from "./modals/AssignmentModal";
-import HelpRequestReassignmentModal from "./modals/ReassignmentModal";
+import HelpRequestViewModal from './modals/ViewModal';
+import HelpRequestEditModal from './modals/EditModal';
+import HelpRequestVerificationModal from './modals/VerificationModal';
+import HelpRequestAssignmentModal from './modals/AssignmentModal';
+import HelpRequestReassignmentModal from './modals/ReassignmentModal';
 
-import UserViewModal from "./modals/UserViewModal";
-import OrganizationViewModal from "./modals/OrganizationViewModal";
+import UserViewModal from './modals/UserViewModal';
+import OrganizationViewModal from './modals/OrganizationViewModal';
 
 import {
-  fetchHelpRequests,
-  updateHelpRequest,
-  updateHelpRequestVerification,
-  assignHelpRequest,
-  fetchOrganizations,
-  fetchVolunteers,
-} from "./api/helpRequestAPI";
+    fetchHelpRequests,
+    updateHelpRequest,
+    updateHelpRequestVerification,
+    assignHelpRequest,
+    fetchOrganizations,
+    fetchVolunteers,
+} from './api/helpRequestAPI';
 
-import { fetchUser } from "@/dashboard/admin/users/api/userApi";
-import { fetchOrganization } from "@/dashboard/admin/organizations/api/organizationApi";
-import { apiRequest } from "@/api/client";
+import { fetchUser } from '@/dashboard/admin/users/api/userApi';
+import { fetchOrganization } from '@/dashboard/admin/organizations/api/organizationApi';
+import { apiRequest } from '@/api/client';
 
 const HELP_REQUESTS_PER_PAGE = 25;
 
 const HelpRequests = () => {
-  const [helpRequests, setHelpRequests] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+    const [helpRequests, setHelpRequests] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
 
-  // --------------------------------
-  // Withdrawal requests
-  // --------------------------------
+    // --------------------------------
+    // Withdrawal requests
+    // --------------------------------
 
-  const [withdrawalRequests, setWithdrawalRequests] = useState([]);
-  const [withdrawalError, setWithdrawalError] = useState("");
+    const [withdrawalRequests, setWithdrawalRequests] = useState([]);
+    const [withdrawalError, setWithdrawalError] = useState('');
 
-  const [selectedWithdrawalRequest, setSelectedWithdrawalRequest] =
-    useState(null);
+    const [selectedWithdrawalRequest, setSelectedWithdrawalRequest] =
+        useState(null);
 
-  const [withdrawalReviewLoading, setWithdrawalReviewLoading] = useState(false);
+    const [withdrawalReviewLoading, setWithdrawalReviewLoading] =
+        useState(false);
 
-  const [withdrawalReviewError, setWithdrawalReviewError] = useState("");
+    const [withdrawalReviewError, setWithdrawalReviewError] = useState('');
 
-  // --------------------------------
-  // Filters / Search / Sorting
-  // --------------------------------
+    // --------------------------------
+    // Filters / Search / Sorting
+    // --------------------------------
 
-  const [activeCategory, setActiveCategory] = useState("all");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("all");
-  const [priorityFilter, setPriorityFilter] = useState("all");
-  const [assignmentFilter, setAssignmentFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
+    const [activeCategory, setActiveCategory] = useState('all');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [categoryFilter, setCategoryFilter] = useState('all');
+    const [priorityFilter, setPriorityFilter] = useState('all');
+    const [assignmentFilter, setAssignmentFilter] = useState('all');
+    const [statusFilter, setStatusFilter] = useState('all');
 
-  const [sortConfig, setSortConfig] = useState({
-    key: "created_at",
-    direction: "desc",
-  });
-
-  const [currentPage, setCurrentPage] = useState(1);
-
-  // --------------------------------
-  // View request
-  // --------------------------------
-
-  const [selectedRequest, setSelectedRequest] = useState(null);
-  const [viewLoading, setViewLoading] = useState(false);
-  const [viewError, setViewError] = useState("");
-
-  // --------------------------------
-  // View requester
-  // --------------------------------
-
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [userLoading, setUserLoading] = useState(false);
-  const [userError, setUserError] = useState("");
-
-  // --------------------------------
-  // View organization
-  // --------------------------------
-
-  const [selectedOrganization, setSelectedOrganization] = useState(null);
-  const [organizationLoading, setOrganizationLoading] = useState(false);
-  const [organizationError, setOrganizationError] = useState("");
-
-  // --------------------------------
-  // Verification
-  // --------------------------------
-
-  const [selectedVerificationRequest, setSelectedVerificationRequest] =
-    useState(null);
-
-  const [verificationLoading, setVerificationLoading] = useState(false);
-  const [verificationError, setVerificationError] = useState("");
-
-  // --------------------------------
-  // Edit help request
-  // --------------------------------
-
-  const [selectedEditRequest, setSelectedEditRequest] = useState(null);
-  const [editLoading, setEditLoading] = useState(false);
-  const [editError, setEditError] = useState("");
-
-  // --------------------------------
-  // Initial Assignment
-  // --------------------------------
-
-  const [selectedAssignmentRequest, setSelectedAssignmentRequest] =
-    useState(null);
-
-  const [assignmentLoading, setAssignmentLoading] = useState(false);
-  const [assignmentError, setAssignmentError] = useState("");
-
-  // --------------------------------
-  // Assignment / Support data
-  // --------------------------------
-
-  const [organizations, setOrganizations] = useState([]);
-  const [volunteers, setVolunteers] = useState([]);
-  const [assignmentDataLoading, setAssignmentDataLoading] = useState(false);
-
-  // --------------------------------
-  // Add Support
-  // --------------------------------
-
-  const [selectedSupportRequest, setSelectedSupportRequest] = useState(null);
-  const [supportError, setSupportError] = useState("");
-
-  // --------------------------------
-  // Reassignment
-  // --------------------------------
-
-  const [selectedReassignmentRequest, setSelectedReassignmentRequest] =
-    useState(null);
-
-  const [reassignmentLoading, setReassignmentLoading] = useState(false);
-  const [reassignmentError, setReassignmentError] = useState("");
-
-  // --------------------------------
-  // Action message
-  // --------------------------------
-
-  const [actionMessage, setActionMessage] = useState({
-    show: false,
-    title: "",
-    message: "",
-  });
-
-  const seenRejectedAssignmentsRef = useRef(new Set());
-
-  // --------------------------------
-  // Success toast
-  // --------------------------------
-
-  const [toast, setToast] = useState({
-    show: false,
-    message: "",
-  });
-
-  const showSuccessToast = (message) => {
-    setToast({
-      show: true,
-      message,
+    const [sortConfig, setSortConfig] = useState({
+        key: 'created_at',
+        direction: 'desc',
     });
 
-    setTimeout(() => {
-      setToast({
+    const [currentPage, setCurrentPage] = useState(1);
+
+    // --------------------------------
+    // View request
+    // --------------------------------
+
+    const [selectedRequest, setSelectedRequest] = useState(null);
+    const [viewLoading, setViewLoading] = useState(false);
+    const [viewError, setViewError] = useState('');
+
+    // --------------------------------
+    // View requester
+    // --------------------------------
+
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [userLoading, setUserLoading] = useState(false);
+    const [userError, setUserError] = useState('');
+
+    // --------------------------------
+    // View organization
+    // --------------------------------
+
+    const [selectedOrganization, setSelectedOrganization] = useState(null);
+    const [organizationLoading, setOrganizationLoading] = useState(false);
+    const [organizationError, setOrganizationError] = useState('');
+
+    // --------------------------------
+    // Verification
+    // --------------------------------
+
+    const [selectedVerificationRequest, setSelectedVerificationRequest] =
+        useState(null);
+
+    const [verificationLoading, setVerificationLoading] = useState(false);
+    const [verificationError, setVerificationError] = useState('');
+
+    // --------------------------------
+    // Edit help request
+    // --------------------------------
+
+    const [selectedEditRequest, setSelectedEditRequest] = useState(null);
+    const [editLoading, setEditLoading] = useState(false);
+    const [editError, setEditError] = useState('');
+
+    // --------------------------------
+    // Initial Assignment
+    // --------------------------------
+
+    const [selectedAssignmentRequest, setSelectedAssignmentRequest] =
+        useState(null);
+
+    const [assignmentLoading, setAssignmentLoading] = useState(false);
+    const [assignmentError, setAssignmentError] = useState('');
+
+    // --------------------------------
+    // Assignment / Support data
+    // --------------------------------
+
+    const [organizations, setOrganizations] = useState([]);
+    const [volunteers, setVolunteers] = useState([]);
+    const [assignmentDataLoading, setAssignmentDataLoading] = useState(false);
+
+    // --------------------------------
+    // Add Support
+    // --------------------------------
+
+    const [selectedSupportRequest, setSelectedSupportRequest] = useState(null);
+    const [supportError, setSupportError] = useState('');
+
+    // --------------------------------
+    // Reassignment
+    // --------------------------------
+
+    const [selectedReassignmentRequest, setSelectedReassignmentRequest] =
+        useState(null);
+
+    const [reassignmentLoading, setReassignmentLoading] = useState(false);
+    const [reassignmentError, setReassignmentError] = useState('');
+
+    // --------------------------------
+    // Action message
+    // --------------------------------
+
+    const [actionMessage, setActionMessage] = useState({
         show: false,
-        message: "",
-      });
-    }, 3000);
-  };
-
-  // --------------------------------
-  // Action message helpers
-  // --------------------------------
-
-  const showActionMessage = (title, message) => {
-    setActionMessage({
-      show: true,
-      title,
-      message,
+        title: '',
+        message: '',
     });
-  };
 
-  const closeActionMessage = () => {
-    setActionMessage({
-      show: false,
-      title: "",
-      message: "",
+    const seenRejectedAssignmentsRef = useRef(new Set());
+
+    // --------------------------------
+    // Success toast
+    // --------------------------------
+
+    const [toast, setToast] = useState({
+        show: false,
+        message: '',
     });
-  };
 
-  // --------------------------------
-  // Load help requests
-  // --------------------------------
-
-  const loadHelpRequests = async () => {
-    try {
-      setError("");
-
-      const data = await fetchHelpRequests();
-
-      setHelpRequests(data.helpRequests || []);
-    } catch (err) {
-      setError(
-        err.message || "Something went wrong while loading help requests.",
-      );
-    }
-  };
-
-  // --------------------------------
-  // Load withdrawal requests
-  // --------------------------------
-
-  const loadWithdrawalRequests = async () => {
-    try {
-      setWithdrawalError("");
-
-      const data = await apiRequest("/admin/help-requests/withdrawal-requests");
-
-      setWithdrawalRequests(data.withdrawalRequests || []);
-    } catch (err) {
-      setWithdrawalError(
-        err.message || "Unable to load organization withdrawal requests.",
-      );
-    }
-  };
-
-  // --------------------------------
-  // Initial data + polling
-  // --------------------------------
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const checkForUpdates = async (isInitialLoad = false) => {
-      try {
-        const [helpRequestData, withdrawalData] = await Promise.all([
-          fetchHelpRequests(),
-          apiRequest("/admin/help-requests/withdrawal-requests"),
-        ]);
-
-        if (cancelled) {
-          return;
-        }
-
-        const requests = helpRequestData.helpRequests || [];
-        const pendingWithdrawals = withdrawalData.withdrawalRequests || [];
-
-        if (isInitialLoad) {
-          const existingRejectedIds = new Set();
-
-          requests.forEach((request) => {
-            const assignments = Array.isArray(request?.assignments)
-              ? request.assignments
-              : [];
-
-            assignments.forEach((assignment) => {
-              if (
-                assignment?.organization_id &&
-                String(assignment?.status).trim().toLowerCase() === "rejected"
-              ) {
-                existingRejectedIds.add(assignment.id);
-              }
-            });
-          });
-
-          seenRejectedAssignmentsRef.current = existingRejectedIds;
-
-          setHelpRequests(requests);
-          setWithdrawalRequests(pendingWithdrawals);
-
-          return;
-        }
-
-        requests.forEach((request) => {
-          const assignments = Array.isArray(request?.assignments)
-            ? request.assignments
-            : [];
-
-          assignments.forEach((assignment) => {
-            const isRejected =
-              assignment?.organization_id &&
-              String(assignment?.status).trim().toLowerCase() === "rejected";
-
-            if (
-              !isRejected ||
-              seenRejectedAssignmentsRef.current.has(assignment.id)
-            ) {
-              return;
-            }
-
-            seenRejectedAssignmentsRef.current.add(assignment.id);
-
-            const organizationName =
-              assignment?.organization?.name ||
-              assignment?.organization?.user?.name ||
-              "The assigned organization";
-
-            const requestTitle =
-              request?.title ||
-              assignment?.help_request?.title ||
-              "this help request";
-
-            const rejectionReason =
-              assignment?.rejection_note || "No rejection reason was provided.";
-
-            showActionMessage(
-              "Organization rejected assignment",
-              `${organizationName} rejected "${requestTitle}". Reason: ${rejectionReason}`,
-            );
-          });
+    const showSuccessToast = (message) => {
+        setToast({
+            show: true,
+            message,
         });
 
-        setHelpRequests(requests);
-        setWithdrawalRequests(pendingWithdrawals);
-      } catch (err) {
-        if (!isInitialLoad || cancelled) {
-          return;
+        setTimeout(() => {
+            setToast({
+                show: false,
+                message: '',
+            });
+        }, 3000);
+    };
+
+    // --------------------------------
+    // Action message helpers
+    // --------------------------------
+
+    const showActionMessage = (title, message) => {
+        setActionMessage({
+            show: true,
+            title,
+            message,
+        });
+    };
+
+    const closeActionMessage = () => {
+        setActionMessage({
+            show: false,
+            title: '',
+            message: '',
+        });
+    };
+
+    // --------------------------------
+    // Load help requests
+    // --------------------------------
+
+    const loadHelpRequests = async () => {
+        try {
+            setError('');
+
+            const data = await fetchHelpRequests();
+
+            setHelpRequests(data.helpRequests || []);
+        } catch (err) {
+            setError(
+                err.message ||
+                    'Something went wrong while loading help requests.',
+            );
         }
-
-        setError(
-          err.message || "Something went wrong while loading help requests.",
-        );
-      }
     };
 
-    const loadInitialRequests = async () => {
-      try {
-        setLoading(true);
-        setError("");
+    // --------------------------------
+    // Load withdrawal requests
+    // --------------------------------
 
-        await checkForUpdates(true);
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
+    const loadWithdrawalRequests = async () => {
+        try {
+            setWithdrawalError('');
+
+            const data = await apiRequest(
+                '/admin/help-requests/withdrawal-requests',
+            );
+
+            setWithdrawalRequests(data.withdrawalRequests || []);
+        } catch (err) {
+            setWithdrawalError(
+                err.message ||
+                    'Unable to load organization withdrawal requests.',
+            );
         }
-      }
     };
 
-    loadInitialRequests();
-
-    const intervalId = window.setInterval(() => {
-      checkForUpdates(false);
-    }, 10000);
-
-    return () => {
-      cancelled = true;
-      window.clearInterval(intervalId);
-    };
-  }, []);
-
-  // --------------------------------
-  // Withdrawal review
-  // --------------------------------
-
-  const handleReviewWithdrawal = (assignment) => {
-    if (!assignment) {
-      return;
-    }
-
-    setWithdrawalReviewError("");
-    setSelectedWithdrawalRequest(assignment);
-  };
-
-  const closeWithdrawalReview = () => {
-    if (withdrawalReviewLoading) {
-      return;
-    }
-
-    setSelectedWithdrawalRequest(null);
-    setWithdrawalReviewError("");
-  };
-
-  const handleWithdrawalDecision = async (decision) => {
-    if (!selectedWithdrawalRequest || withdrawalReviewLoading) {
-      return;
-    }
-
-    setWithdrawalReviewLoading(true);
-    setWithdrawalReviewError("");
-
-    try {
-      await apiRequest(
-        `/admin/help-requests/assignments/${selectedWithdrawalRequest.id}/withdrawal`,
-        {
-          method: "PATCH",
-          body: JSON.stringify({
-            decision,
-          }),
-        },
-      );
-
-      setWithdrawalRequests((currentRequests) =>
-        currentRequests.filter(
-          (item) => String(item.id) !== String(selectedWithdrawalRequest.id),
-        ),
-      );
-
-      setSelectedWithdrawalRequest(null);
-
-      await Promise.all([loadHelpRequests(), loadWithdrawalRequests()]);
-
-      if (decision === "approved") {
-        showSuccessToast("Organization withdrawal approved successfully.");
-      } else {
-        showSuccessToast("Organization withdrawal request rejected.");
-      }
-    } catch (err) {
-      setWithdrawalReviewError(
-        err.message ||
-          `Unable to ${
-            decision === "approved" ? "approve" : "reject"
-          } the withdrawal request.`,
-      );
-    } finally {
-      setWithdrawalReviewLoading(false);
-    }
-  };
-
-  // --------------------------------
-  // Edit help request
-  // --------------------------------
-
-  const handleEditRequest = (request) => {
-    if (!request) {
-      return;
-    }
-
-    setEditError("");
-    setSelectedEditRequest(request);
-  };
-
-  const closeEditModal = () => {
-    if (editLoading) {
-      return;
-    }
-
-    setSelectedEditRequest(null);
-    setEditError("");
-  };
-
-  const handleConfirmEdit = async (updatedData) => {
-    if (!selectedEditRequest?.id || editLoading) {
-      return;
-    }
-
-    setEditLoading(true);
-    setEditError("");
-
-    try {
-      await updateHelpRequest(selectedEditRequest.id, updatedData);
-
-      setSelectedEditRequest(null);
-
-      await loadHelpRequests();
-
-      showSuccessToast("Help request updated successfully.");
-    } catch (err) {
-      setEditError(
-        err?.message || "Failed to update the help request. Please try again.",
-      );
-    } finally {
-      setEditLoading(false);
-    }
-  };
-
-  // --------------------------------
-  // View help request
-  // --------------------------------
-
-  const handleViewRequest = (request) => {
-    setViewError("");
-    setViewLoading(false);
-    setSelectedRequest(request);
-  };
-
-  const closeViewModal = () => {
-    setSelectedRequest(null);
-    setViewError("");
-  };
-
-  // --------------------------------
-  // View requester
-  // --------------------------------
-
-  const handleViewUser = async (userId) => {
-    if (!userId) {
-      setUserError("Requester information is unavailable.");
-      setSelectedUser(null);
-      return;
-    }
-
-    setUserLoading(true);
-    setUserError("");
-    setSelectedUser(null);
-
-    try {
-      const data = await fetchUser(userId);
-
-      setSelectedUser(data.user);
-    } catch (err) {
-      setUserError(err.message || "Unable to load user details.");
-    } finally {
-      setUserLoading(false);
-    }
-  };
-
-  const closeUserModal = () => {
-    setSelectedUser(null);
-    setUserError("");
-  };
-
-  // --------------------------------
-  // View organization
-  // --------------------------------
-
-  const handleViewOrganization = async (organizationId) => {
-    if (!organizationId) {
-      setOrganizationError("Organization information is unavailable.");
-      setSelectedOrganization(null);
-      return;
-    }
-
-    setOrganizationLoading(true);
-    setOrganizationError("");
-    setSelectedOrganization(null);
-
-    try {
-      const data = await fetchOrganization(organizationId);
-
-      setSelectedOrganization(data.organization);
-    } catch (err) {
-      setOrganizationError(
-        err.message || "Unable to load organization details.",
-      );
-    } finally {
-      setOrganizationLoading(false);
-    }
-  };
-
-  const closeOrganizationModal = () => {
-    setSelectedOrganization(null);
-    setOrganizationError("");
-  };
-
-  // --------------------------------
-  // Verification
-  // --------------------------------
-
-  const handleVerifyRequest = (request) => {
-    setVerificationError("");
-    setSelectedVerificationRequest(request);
-  };
-
-  const closeVerificationModal = () => {
-    if (verificationLoading) {
-      return;
-    }
-
-    setSelectedVerificationRequest(null);
-    setVerificationError("");
-  };
-
-  const handleVerificationChange = async (status) => {
-    if (!selectedVerificationRequest) {
-      return;
-    }
-
-    setVerificationLoading(true);
-    setVerificationError("");
-
-    try {
-      await updateHelpRequestVerification(
-        selectedVerificationRequest.id,
-        status,
-      );
-
-      setSelectedVerificationRequest(null);
-
-      await loadHelpRequests();
-
-      showSuccessToast(
-        status === "verified"
-          ? "Help request verified successfully."
-          : "Help request rejected successfully.",
-      );
-    } catch (err) {
-      setVerificationError(
-        err.message || "Unable to update help request verification.",
-      );
-    } finally {
-      setVerificationLoading(false);
-    }
-  };
-
-  // --------------------------------
-  // Initial Assignment
-  // --------------------------------
-
-  const handleAssignRequest = async (request) => {
-    setAssignmentError("");
-    setSelectedAssignmentRequest(request);
-    setAssignmentDataLoading(true);
-
-    try {
-      const [organizationData, volunteerData] = await Promise.all([
-        fetchOrganizations(),
-        fetchVolunteers(),
-      ]);
-
-      console.log("SELECTED HELP REQUEST:", request);
-      console.log("SELECTED HR ASSIGNMENTS:", request?.assignments);
-
-      console.log("ADMIN ORGANIZATIONS RESPONSE:", organizationData);
-
-      setOrganizations(organizationData.organizations || []);
-      setVolunteers(volunteerData.volunteers || []);
-    } catch (err) {
-      setOrganizations([]);
-      setVolunteers([]);
-
-      setAssignmentError(
-        err.message ||
-          "Unable to load organizations and volunteers for assignment.",
-      );
-    } finally {
-      setAssignmentDataLoading(false);
-    }
-  };
-
-  const closeAssignmentModal = () => {
-    if (assignmentLoading || assignmentDataLoading) {
-      return;
-    }
-
-    setSelectedAssignmentRequest(null);
-    setAssignmentError("");
-    setOrganizations([]);
-    setVolunteers([]);
-  };
-
-  const handleAssignment = async (assignmentData) => {
-    if (!selectedAssignmentRequest) {
-      return;
-    }
-
-    setAssignmentLoading(true);
-    setAssignmentError("");
-
-    try {
-      await assignHelpRequest(selectedAssignmentRequest.id, assignmentData);
-
-      setSelectedAssignmentRequest(null);
-      setOrganizations([]);
-      setVolunteers([]);
-
-      await loadHelpRequests();
-
-      showSuccessToast("Help request assigned successfully.");
-    } catch (err) {
-      setAssignmentError(err.message || "Unable to assign help request.");
-    } finally {
-      setAssignmentLoading(false);
-    }
-  };
-
-  // --------------------------------
-  // Add Support
-  // --------------------------------
-
-  const handleAddSupportRequest = async (request) => {
-    const additionalSupportRequested = hasAdditionalSupportRequest(request);
-
-    if (!additionalSupportRequested) {
-      showActionMessage(
-        "Additional Support Not Requested",
-        "The assigned organization has not requested additional support for this help request.",
-      );
-
-      return;
-    }
-
-    setSupportError("");
-    setSelectedSupportRequest(request);
-    setAssignmentDataLoading(true);
-
-    try {
-      const [organizationData, volunteerData] = await Promise.all([
-        fetchOrganizations(),
-        fetchVolunteers(),
-      ]);
-
-      setOrganizations(organizationData.organizations || []);
-      setVolunteers(volunteerData.volunteers || []);
-    } catch (err) {
-      setOrganizations([]);
-      setVolunteers([]);
-
-      setSupportError(
-        err.message ||
-          "Unable to load organizations and volunteers for additional support.",
-      );
-    } finally {
-      setAssignmentDataLoading(false);
-    }
-  };
-
-  const closeSupportModal = () => {
-    if (assignmentDataLoading) {
-      return;
-    }
-
-    setSelectedSupportRequest(null);
-    setSupportError("");
-    setOrganizations([]);
-    setVolunteers([]);
-  };
-
-  // --------------------------------
-  // Reassignment
-  // --------------------------------
-
-  const handleReassignRequest = async (request) => {
-    const withdrawalRequested = hasOrganizationRequestedWithdrawal(request);
-
-    if (!withdrawalRequested) {
-      showActionMessage(
-        "Reassignment Not Requested",
-        "The assigned organization has not requested withdrawal, so this help request cannot be reassigned yet.",
-      );
-
-      return;
-    }
-
-    const pendingWithdrawal = getPendingWithdrawalAssignment(request);
-
-    if (pendingWithdrawal) {
-      showActionMessage(
-        "Withdrawal Awaiting Review",
-        "The organization has requested withdrawal, but the request is still waiting for admin review. Approve the withdrawal before reassigning this help request.",
-      );
-
-      return;
-    }
-
-    setReassignmentError("");
-    setSelectedReassignmentRequest(request);
-    setAssignmentDataLoading(true);
-
-    try {
-      const [organizationData, volunteerData] = await Promise.all([
-        fetchOrganizations(),
-        fetchVolunteers(),
-      ]);
-
-      setOrganizations(organizationData.organizations || []);
-      setVolunteers(volunteerData.volunteers || []);
-    } catch (err) {
-      setOrganizations([]);
-      setVolunteers([]);
-
-      setReassignmentError(
-        err.message ||
-          "Unable to load organizations and volunteers for reassignment.",
-      );
-    } finally {
-      setAssignmentDataLoading(false);
-    }
-  };
-
-  const closeReassignmentModal = () => {
-    if (reassignmentLoading || assignmentDataLoading) {
-      return;
-    }
-
-    setSelectedReassignmentRequest(null);
-    setReassignmentError("");
-    setOrganizations([]);
-    setVolunteers([]);
-  };
-
-  const handleReassignment = async (reassignmentData) => {
-    if (!selectedReassignmentRequest) {
-      return;
-    }
-
-    setReassignmentLoading(true);
-    setReassignmentError("");
-
-    try {
-      console.log("Reassignment payload:", reassignmentData);
-
-      setSelectedReassignmentRequest(null);
-      setOrganizations([]);
-      setVolunteers([]);
-
-      await loadHelpRequests();
-
-      showSuccessToast("Help request reassignment submitted successfully.");
-    } catch (err) {
-      setReassignmentError(err.message || "Unable to reassign help request.");
-    } finally {
-      setReassignmentLoading(false);
-    }
-  };
-
-  // --------------------------------
-  // Statistics
-  // --------------------------------
-
-  const statistics = useMemo(() => {
-    return {
-      total: helpRequests.length,
-
-      pending: helpRequests.filter((request) => request.status === "pending")
-        .length,
-
-      verified: helpRequests.filter(
-        (request) =>
-          request.status === "verified" &&
-          !hasActiveOrganizationAssignment(request),
-      ).length,
-
-      assigned: helpRequests.filter(
-        (request) =>
-          request.status === "verified" &&
-          hasActiveOrganizationAssignment(request),
-      ).length,
-
-      inProgress: helpRequests.filter(
-        (request) => request.status === "in_progress",
-      ).length,
-
-      completed: helpRequests.filter(
-        (request) => request.status === "completed",
-      ).length,
-
-      rejected: helpRequests.filter((request) => request.status === "rejected")
-        .length,
-    };
-  }, [helpRequests]);
-
-  // --------------------------------
-  // Category tabs
-  // --------------------------------
-
-  const categoryTabs = useMemo(
-    () => [
-      {
-        key: "all",
-        label: "All Requests",
-        count: statistics.total,
-      },
-      {
-        key: "pending",
-        label: "Pending",
-        count: statistics.pending,
-      },
-      {
-        key: "verified",
-        label: "Verified",
-        count: statistics.verified,
-      },
-      {
-        key: "completed",
-        label: "Completed",
-        count: statistics.completed,
-      },
-      {
-        key: "rejected",
-        label: "Rejected",
-        count: statistics.rejected,
-      },
-    ],
-    [statistics],
-  );
-
-  // --------------------------------
-  // Filtering + sorting
-  // --------------------------------
-
-  const filteredHelpRequests = useMemo(() => {
-    let result = [...helpRequests];
-
-    // Pending category includes both:
-    // - request.status === "pending"
-    // - organization assignment.status === "pending"
-    if (activeCategory !== "all") {
-      result = result.filter((request) => {
-        if (activeCategory === "pending") {
-          return (
-            request.status === "pending" ||
-            hasPendingOrganizationAssignment(request)
-          );
-        }
-
-        return request.status === activeCategory;
-      });
-    }
-
-    if (categoryFilter !== "all") {
-      result = result.filter((request) => request.category === categoryFilter);
-    }
-
-    if (priorityFilter !== "all") {
-      result = result.filter(
-        (request) => (request.priority || request.urgency) === priorityFilter,
-      );
-    }
-
-    if (assignmentFilter !== "all") {
-      result = result.filter((request) => {
-        const assigned = hasExistingAssignment(request);
-
-        return assignmentFilter === "assigned" ? assigned : !assigned;
-      });
-    }
-
-    if (statusFilter !== "all") {
-      result = result.filter((request) => request.status === statusFilter);
-    }
-
-    const search = searchTerm.trim().toLowerCase();
-
-    if (search) {
-      result = result.filter((request) => {
-        const requesterName =
-          request.user?.name || request.requester?.name || "";
-
-        const requesterEmail =
-          request.user?.email || request.requester?.email || "";
-
-        return (
-          request.title?.toLowerCase().includes(search) ||
-          request.description?.toLowerCase().includes(search) ||
-          request.category?.toLowerCase().includes(search) ||
-          requesterName.toLowerCase().includes(search) ||
-          requesterEmail.toLowerCase().includes(search)
-        );
-      });
-    }
-
-    if (!sortConfig.key || !sortConfig.direction) {
-      return result;
-    }
-
-    result.sort((a, b) => {
-      let first = a[sortConfig.key];
-      let second = b[sortConfig.key];
-
-      if (sortConfig.key === "created_at") {
-        first = new Date(first).getTime();
-        second = new Date(second).getTime();
-      }
-
-      first = first ?? "";
-      second = second ?? "";
-
-      if (typeof first === "string") {
-        first = first.toLowerCase();
-        second = String(second).toLowerCase();
-      }
-
-      if (first < second) {
-        return sortConfig.direction === "asc" ? -1 : 1;
-      }
-
-      if (first > second) {
-        return sortConfig.direction === "asc" ? 1 : -1;
-      }
-
-      return 0;
-    });
-
-    return result;
-  }, [
-    helpRequests,
-    activeCategory,
-    categoryFilter,
-    priorityFilter,
-    assignmentFilter,
-    statusFilter,
-    searchTerm,
-    sortConfig,
-  ]);
-
-  // --------------------------------
-  // Pagination
-  // --------------------------------
-
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredHelpRequests.length / HELP_REQUESTS_PER_PAGE),
-  );
-
-  const safeCurrentPage = Math.min(currentPage, totalPages);
-
-  const paginatedHelpRequests = useMemo(() => {
-    const startIndex = (safeCurrentPage - 1) * HELP_REQUESTS_PER_PAGE;
-
-    return filteredHelpRequests.slice(
-      startIndex,
-      startIndex + HELP_REQUESTS_PER_PAGE,
-    );
-  }, [filteredHelpRequests, safeCurrentPage]);
-
-  // --------------------------------
-  // Controls
-  // --------------------------------
-
-  const handleCategoryChange = (category) => {
-    setActiveCategory(category);
-    setCurrentPage(1);
-  };
-
-  const handleCategoryFilterChange = (event) => {
-    setCategoryFilter(event.target.value);
-    setCurrentPage(1);
-  };
-
-  const handlePriorityChange = (event) => {
-    setPriorityFilter(event.target.value);
-    setCurrentPage(1);
-  };
-
-  const handleAssignmentChange = (event) => {
-    setAssignmentFilter(event.target.value);
-    setCurrentPage(1);
-  };
-
-  const handleStatusChange = (event) => {
-    setStatusFilter(event.target.value);
-    setCurrentPage(1);
-  };
-
-  const handleSearchChange = (event) => {
-    setSearchTerm(event.target.value);
-    setCurrentPage(1);
-  };
-
-  const handleSort = (key) => {
-    setSortConfig((current) => {
-      if (current.key !== key) {
-        return {
-          key,
-          direction: "asc",
+    // --------------------------------
+    // Initial data + polling
+    // --------------------------------
+
+    useEffect(() => {
+        let cancelled = false;
+
+        const checkForUpdates = async (isInitialLoad = false) => {
+            try {
+                const [helpRequestData, withdrawalData] = await Promise.all([
+                    fetchHelpRequests(),
+                    apiRequest('/admin/help-requests/withdrawal-requests'),
+                ]);
+
+                if (cancelled) {
+                    return;
+                }
+
+                const requests = helpRequestData.helpRequests || [];
+                const pendingWithdrawals =
+                    withdrawalData.withdrawalRequests || [];
+
+                if (isInitialLoad) {
+                    const existingRejectedIds = new Set();
+
+                    requests.forEach((request) => {
+                        const assignments = Array.isArray(request?.assignments)
+                            ? request.assignments
+                            : [];
+
+                        assignments.forEach((assignment) => {
+                            if (
+                                assignment?.organization_id &&
+                                String(assignment?.status)
+                                    .trim()
+                                    .toLowerCase() === 'rejected'
+                            ) {
+                                existingRejectedIds.add(assignment.id);
+                            }
+                        });
+                    });
+
+                    seenRejectedAssignmentsRef.current = existingRejectedIds;
+
+                    setHelpRequests(requests);
+                    setWithdrawalRequests(pendingWithdrawals);
+
+                    return;
+                }
+
+                requests.forEach((request) => {
+                    const assignments = Array.isArray(request?.assignments)
+                        ? request.assignments
+                        : [];
+
+                    assignments.forEach((assignment) => {
+                        const isRejected =
+                            assignment?.organization_id &&
+                            String(assignment?.status).trim().toLowerCase() ===
+                                'rejected';
+
+                        if (
+                            !isRejected ||
+                            seenRejectedAssignmentsRef.current.has(
+                                assignment.id,
+                            )
+                        ) {
+                            return;
+                        }
+
+                        seenRejectedAssignmentsRef.current.add(assignment.id);
+
+                        const organizationName =
+                            assignment?.organization?.name ||
+                            assignment?.organization?.user?.name ||
+                            'The assigned organization';
+
+                        const requestTitle =
+                            request?.title ||
+                            assignment?.help_request?.title ||
+                            'this help request';
+
+                        const rejectionReason =
+                            assignment?.rejection_note ||
+                            'No rejection reason was provided.';
+
+                        showActionMessage(
+                            'Organization rejected assignment',
+                            `${organizationName} rejected "${requestTitle}". Reason: ${rejectionReason}`,
+                        );
+                    });
+                });
+
+                setHelpRequests(requests);
+                setWithdrawalRequests(pendingWithdrawals);
+            } catch (err) {
+                if (!isInitialLoad || cancelled) {
+                    return;
+                }
+
+                setError(
+                    err.message ||
+                        'Something went wrong while loading help requests.',
+                );
+            }
         };
-      }
 
-      if (current.direction === "asc") {
-        return {
-          key,
-          direction: "desc",
+        const loadInitialRequests = async () => {
+            try {
+                setLoading(true);
+                setError('');
+
+                await checkForUpdates(true);
+            } finally {
+                if (!cancelled) {
+                    setLoading(false);
+                }
+            }
         };
-      }
 
-      return {
-        key: null,
-        direction: null,
-      };
-    });
-  };
+        loadInitialRequests();
 
-  const getSortIcon = (key) => {
-    if (sortConfig.key !== key) {
-      return <ChevronsUpDown size={14} strokeWidth={1.8} />;
-    }
+        const intervalId = window.setInterval(() => {
+            checkForUpdates(false);
+        }, 10000);
 
-    if (sortConfig.direction === "asc") {
-      return <ArrowUp size={14} strokeWidth={2} />;
-    }
+        return () => {
+            cancelled = true;
+            window.clearInterval(intervalId);
+        };
+    }, []);
 
-    if (sortConfig.direction === "desc") {
-      return <ArrowDown size={14} strokeWidth={2} />;
-    }
+    // --------------------------------
+    // Withdrawal review
+    // --------------------------------
 
-    return <ChevronsUpDown size={14} strokeWidth={1.8} />;
-  };
+    const handleReviewWithdrawal = (assignment) => {
+        if (!assignment) {
+            return;
+        }
 
-  // --------------------------------
-  // CSV Export
-  // --------------------------------
+        setWithdrawalReviewError('');
+        setSelectedWithdrawalRequest(assignment);
+    };
 
-  const handleExportCSV = () => {
-    if (filteredHelpRequests.length === 0) {
-      return;
-    }
+    const closeWithdrawalReview = () => {
+        if (withdrawalReviewLoading) {
+            return;
+        }
 
-    const headers = [
-      "Requester",
-      "Request",
-      "Category",
-      "Priority",
-      "Assigned",
-      "Status",
-      "Submitted",
-    ];
+        setSelectedWithdrawalRequest(null);
+        setWithdrawalReviewError('');
+    };
 
-    const csvRows = filteredHelpRequests.map((request) => [
-      request.user?.name || request.requester?.name || "",
-      request.title || "",
-      request.category || "",
-      request.priority || request.urgency || "",
-      getAssignedOrganizationName(request),
-      request.status || "",
-      request.created_at
-        ? new Date(request.created_at).toLocaleDateString()
-        : "",
-    ]);
+    const handleWithdrawalDecision = async (decision) => {
+        if (!selectedWithdrawalRequest || withdrawalReviewLoading) {
+            return;
+        }
 
-    const csvContent = [headers, ...csvRows]
-      .map((row) =>
-        row
-          .map((value) => `"${String(value ?? "").replace(/"/g, '""')}"`)
-          .join(","),
-      )
-      .join("\n");
+        setWithdrawalReviewLoading(true);
+        setWithdrawalReviewError('');
 
-    const blob = new Blob([csvContent], {
-      type: "text/csv;charset=utf-8;",
-    });
+        try {
+            await apiRequest(
+                `/admin/help-requests/assignments/${selectedWithdrawalRequest.id}/withdrawal`,
+                {
+                    method: 'PATCH',
+                    body: JSON.stringify({
+                        decision,
+                    }),
+                },
+            );
 
-    const url = URL.createObjectURL(blob);
+            setWithdrawalRequests((currentRequests) =>
+                currentRequests.filter(
+                    (item) =>
+                        String(item.id) !==
+                        String(selectedWithdrawalRequest.id),
+                ),
+            );
 
-    const link = document.createElement("a");
+            setSelectedWithdrawalRequest(null);
 
-    link.href = url;
-    link.download = "stand-for-people-help-requests.csv";
+            await Promise.all([loadHelpRequests(), loadWithdrawalRequests()]);
 
-    document.body.appendChild(link);
+            if (decision === 'approved') {
+                showSuccessToast(
+                    'Organization withdrawal approved successfully.',
+                );
+            } else {
+                showSuccessToast('Organization withdrawal request rejected.');
+            }
+        } catch (err) {
+            setWithdrawalReviewError(
+                err.message ||
+                    `Unable to ${
+                        decision === 'approved' ? 'approve' : 'reject'
+                    } the withdrawal request.`,
+            );
+        } finally {
+            setWithdrawalReviewLoading(false);
+        }
+    };
 
-    link.click();
+    // --------------------------------
+    // Edit help request
+    // --------------------------------
 
-    document.body.removeChild(link);
+    const handleEditRequest = (request) => {
+        if (!request) {
+            return;
+        }
 
-    URL.revokeObjectURL(url);
+        setEditError('');
+        setSelectedEditRequest(request);
+    };
 
-    showSuccessToast("Help requests exported successfully.");
-  };
+    const closeEditModal = () => {
+        if (editLoading) {
+            return;
+        }
 
-  // --------------------------------
-  // Table rows
-  // --------------------------------
+        setSelectedEditRequest(null);
+        setEditError('');
+    };
 
-  const rows = paginatedHelpRequests.map((request, index) => ({
-    ...request,
+    const handleConfirmEdit = async (updatedData) => {
+        if (!selectedEditRequest?.id || editLoading) {
+            return;
+        }
 
-    requesterName: request.user?.name || request.requester?.name || "—",
+        setEditLoading(true);
+        setEditError('');
 
-    requesterEmail: request.user?.email || request.requester?.email || "—",
+        try {
+            await updateHelpRequest(selectedEditRequest.id, updatedData);
 
-    requesterId:
-      request.user?.id || request.requester?.id || request.user_id || null,
+            setSelectedEditRequest(null);
 
-    assignedOrganization: getAssignedOrganizationName(request),
+            await loadHelpRequests();
 
-    assignedOrganizationId: getAssignedOrganizationId(request),
+            showSuccessToast('Help request updated successfully.');
+        } catch (err) {
+            setEditError(
+                err?.message ||
+                    'Failed to update the help request. Please try again.',
+            );
+        } finally {
+            setEditLoading(false);
+        }
+    };
 
-    submittedDate: request.created_at
-      ? new Date(request.created_at).toLocaleDateString()
-      : "—",
+    // --------------------------------
+    // View help request
+    // --------------------------------
 
-    serialNumber: (safeCurrentPage - 1) * HELP_REQUESTS_PER_PAGE + index + 1,
-  }));
+    const handleViewRequest = (request) => {
+        setViewError('');
+        setViewLoading(false);
+        setSelectedRequest(request);
+    };
 
-  // --------------------------------
-  // Table columns
-  // --------------------------------
+    const closeViewModal = () => {
+        setSelectedRequest(null);
+        setViewError('');
+    };
 
-  const columns = [
-    {
-      key: "title",
-      header: "Help Request Details",
-      sortable: true,
-      sortKey: "title",
-      width: "420px",
-    },
+    // --------------------------------
+    // View requester
+    // --------------------------------
 
-    {
-      key: "submittedDate",
-      header: "Submitted",
-      sortable: true,
-      sortKey: "created_at",
-      width: "120px",
-    },
+    const handleViewUser = async (userId) => {
+        if (!userId) {
+            setUserError('Requester information is unavailable.');
+            setSelectedUser(null);
+            return;
+        }
 
-    {
-      key: "priority",
-      header: "Priority",
-      sortable: true,
-      sortKey: "priority",
-      width: "120px",
+        setUserLoading(true);
+        setUserError('');
+        setSelectedUser(null);
 
-      render: (value, row) => value || row.urgency || "—",
-    },
+        try {
+            const data = await fetchUser(userId);
 
-    {
-      key: "assignedOrganization",
-      header: "Assigned",
-      width: "220px",
+            setSelectedUser(data.user);
+        } catch (err) {
+            setUserError(err.message || 'Unable to load user details.');
+        } finally {
+            setUserLoading(false);
+        }
+    };
 
-      render: (value) => value || "Not assigned",
-    },
+    const closeUserModal = () => {
+        setSelectedUser(null);
+        setUserError('');
+    };
 
-    {
-      key: "status",
-      header: "Status",
-      sortable: true,
-      sortKey: "status",
-      width: "150px",
+    // --------------------------------
+    // View organization
+    // --------------------------------
 
-      render: (value, row) => {
-        const pendingWithdrawal = getPendingWithdrawalAssignment(row);
+    const handleViewOrganization = async (organizationId) => {
+        if (!organizationId) {
+            setOrganizationError('Organization information is unavailable.');
+            setSelectedOrganization(null);
+            return;
+        }
+
+        setOrganizationLoading(true);
+        setOrganizationError('');
+        setSelectedOrganization(null);
+
+        try {
+            const data = await fetchOrganization(organizationId);
+
+            setSelectedOrganization(data.organization);
+        } catch (err) {
+            setOrganizationError(
+                err.message || 'Unable to load organization details.',
+            );
+        } finally {
+            setOrganizationLoading(false);
+        }
+    };
+
+    const closeOrganizationModal = () => {
+        setSelectedOrganization(null);
+        setOrganizationError('');
+    };
+
+    // --------------------------------
+    // Verification
+    // --------------------------------
+
+    const handleVerifyRequest = (request) => {
+        setVerificationError('');
+        setSelectedVerificationRequest(request);
+    };
+
+    const closeVerificationModal = () => {
+        if (verificationLoading) {
+            return;
+        }
+
+        setSelectedVerificationRequest(null);
+        setVerificationError('');
+    };
+
+    const handleVerificationChange = async (status) => {
+        if (!selectedVerificationRequest) {
+            return;
+        }
+
+        setVerificationLoading(true);
+        setVerificationError('');
+
+        try {
+            await updateHelpRequestVerification(
+                selectedVerificationRequest.id,
+                status,
+            );
+
+            setSelectedVerificationRequest(null);
+
+            await loadHelpRequests();
+
+            showSuccessToast(
+                status === 'verified'
+                    ? 'Help request verified successfully.'
+                    : 'Help request rejected successfully.',
+            );
+        } catch (err) {
+            setVerificationError(
+                err.message || 'Unable to update help request verification.',
+            );
+        } finally {
+            setVerificationLoading(false);
+        }
+    };
+
+    // --------------------------------
+    // Initial Assignment
+    // --------------------------------
+
+    const handleAssignRequest = async (request) => {
+        setAssignmentError('');
+        setSelectedAssignmentRequest(request);
+        setAssignmentDataLoading(true);
+
+        try {
+            const [organizationData, volunteerData] = await Promise.all([
+                fetchOrganizations(),
+                fetchVolunteers(),
+            ]);
+
+            console.log('SELECTED HELP REQUEST:', request);
+            console.log('SELECTED HR ASSIGNMENTS:', request?.assignments);
+
+            console.log('ADMIN ORGANIZATIONS RESPONSE:', organizationData);
+
+            setOrganizations(organizationData.organizations || []);
+            setVolunteers(volunteerData.volunteers || []);
+        } catch (err) {
+            setOrganizations([]);
+            setVolunteers([]);
+
+            setAssignmentError(
+                err.message ||
+                    'Unable to load organizations and volunteers for assignment.',
+            );
+        } finally {
+            setAssignmentDataLoading(false);
+        }
+    };
+
+    const closeAssignmentModal = () => {
+        if (assignmentLoading || assignmentDataLoading) {
+            return;
+        }
+
+        setSelectedAssignmentRequest(null);
+        setAssignmentError('');
+        setOrganizations([]);
+        setVolunteers([]);
+    };
+
+    const handleAssignment = async (assignmentData) => {
+        if (!selectedAssignmentRequest) {
+            return;
+        }
+
+        setAssignmentLoading(true);
+        setAssignmentError('');
+
+        try {
+            await assignHelpRequest(
+                selectedAssignmentRequest.id,
+                assignmentData,
+            );
+
+            setSelectedAssignmentRequest(null);
+            setOrganizations([]);
+            setVolunteers([]);
+
+            await loadHelpRequests();
+
+            showSuccessToast('Help request assigned successfully.');
+        } catch (err) {
+            setAssignmentError(err.message || 'Unable to assign help request.');
+        } finally {
+            setAssignmentLoading(false);
+        }
+    };
+
+    // --------------------------------
+    // Add Support
+    // --------------------------------
+
+    const handleAddSupportRequest = async (request) => {
+        const additionalSupportRequested = hasAdditionalSupportRequest(request);
+
+        if (!additionalSupportRequested) {
+            showActionMessage(
+                'Additional Support Not Requested',
+                'The assigned organization has not requested additional support for this help request.',
+            );
+
+            return;
+        }
+
+        setSupportError('');
+        setSelectedSupportRequest(request);
+        setAssignmentDataLoading(true);
+
+        try {
+            const [organizationData, volunteerData] = await Promise.all([
+                fetchOrganizations(),
+                fetchVolunteers(),
+            ]);
+
+            setOrganizations(organizationData.organizations || []);
+            setVolunteers(volunteerData.volunteers || []);
+        } catch (err) {
+            setOrganizations([]);
+            setVolunteers([]);
+
+            setSupportError(
+                err.message ||
+                    'Unable to load organizations and volunteers for additional support.',
+            );
+        } finally {
+            setAssignmentDataLoading(false);
+        }
+    };
+
+    const closeSupportModal = () => {
+        if (assignmentDataLoading) {
+            return;
+        }
+
+        setSelectedSupportRequest(null);
+        setSupportError('');
+        setOrganizations([]);
+        setVolunteers([]);
+    };
+
+    // --------------------------------
+    // Reassignment
+    // --------------------------------
+
+    const handleReassignRequest = async (request) => {
+        const withdrawalRequested = hasOrganizationRequestedWithdrawal(request);
+
+        if (!withdrawalRequested) {
+            showActionMessage(
+                'Reassignment Not Requested',
+                'The assigned organization has not requested withdrawal, so this help request cannot be reassigned yet.',
+            );
+
+            return;
+        }
+
+        const pendingWithdrawal = getPendingWithdrawalAssignment(request);
 
         if (pendingWithdrawal) {
-          return (
-            <div className="inline-flex items-center gap-1.5 whitespace-nowrap text-xs font-semibold text-amber-700">
-              <RotateCcw size={13} strokeWidth={2} />
-              Withdrawal requested
-            </div>
-          );
+            showActionMessage(
+                'Withdrawal Awaiting Review',
+                'The organization has requested withdrawal, but the request is still waiting for admin review. Approve the withdrawal before reassigning this help request.',
+            );
+
+            return;
         }
 
-        return value || "—";
-      },
-    },
+        setReassignmentError('');
+        setSelectedReassignmentRequest(request);
+        setAssignmentDataLoading(true);
 
-    {
-      key: "id",
-      header: "Actions",
-      align: "right",
-      width: "470px",
+        try {
+            const [organizationData, volunteerData] = await Promise.all([
+                fetchOrganizations(),
+                fetchVolunteers(),
+            ]);
 
-      render: (_, row) => {
-        const hasAssignment = hasExistingAssignment(row);
+            setOrganizations(organizationData.organizations || []);
+            setVolunteers(volunteerData.volunteers || []);
+        } catch (err) {
+            setOrganizations([]);
+            setVolunteers([]);
 
-        const hasPendingOrganization = hasPendingOrganizationAssignment(row);
+            setReassignmentError(
+                err.message ||
+                    'Unable to load organizations and volunteers for reassignment.',
+            );
+        } finally {
+            setAssignmentDataLoading(false);
+        }
+    };
 
-        const hasActiveOrganization = hasActiveOrganizationAssignment(row);
+    const closeReassignmentModal = () => {
+        if (reassignmentLoading || assignmentDataLoading) {
+            return;
+        }
 
-        const pendingWithdrawal = getPendingWithdrawalAssignment(row);
+        setSelectedReassignmentRequest(null);
+        setReassignmentError('');
+        setOrganizations([]);
+        setVolunteers([]);
+    };
 
-        return (
-          <div className="flex min-w-max items-center justify-end gap-4 whitespace-nowrap">
-            {/* VIEW */}
-            <button
-              type="button"
-              onClick={() => handleViewRequest(row)}
-              className="shrink-0 text-xs font-semibold text-text-secondary transition-colors hover:text-primary">
-              View
-            </button>
+    const handleReassignment = async (reassignmentData) => {
+        if (!selectedReassignmentRequest) {
+            return;
+        }
 
-            {/* EDIT */}
-            <button
-              type="button"
-              onClick={() => handleEditRequest(row)}
-              className="shrink-0 text-xs font-semibold text-primary transition-colors hover:text-primary-hover">
-              Edit
-            </button>
+        setReassignmentLoading(true);
+        setReassignmentError('');
 
-            {/* VERIFY */}
-            {row.status === "pending" && (
-              <button
-                type="button"
-                onClick={() => handleVerifyRequest(row)}
-                className="shrink-0 text-xs font-semibold text-primary transition-colors hover:text-primary-hover">
-                Verify
-              </button>
-            )}
+        try {
+            console.log('Reassignment payload:', reassignmentData);
 
-            {/* WITHDRAWAL REVIEW */}
-            {pendingWithdrawal && (
-              <button
-                type="button"
-                onClick={() => handleReviewWithdrawal(pendingWithdrawal)}
-                className="inline-flex shrink-0 items-center gap-1.5 text-xs font-bold text-amber-700 transition-colors hover:text-amber-800">
-                <RotateCcw size={13} strokeWidth={2} />
-                Review Withdrawal
-              </button>
-            )}
+            setSelectedReassignmentRequest(null);
+            setOrganizations([]);
+            setVolunteers([]);
 
-            {/* INITIAL ASSIGNMENT */}
-            {row.status === "verified" &&
-              !hasAssignment &&
-              !hasPendingOrganization && (
-                <button
-                  type="button"
-                  onClick={() => handleAssignRequest(row)}
-                  className="shrink-0 text-xs font-semibold text-primary transition-colors hover:text-primary-hover">
-                  Assign
-                </button>
-              )}
+            await loadHelpRequests();
 
-            {/* REASSIGN */}
-            {row.status === "verified" &&
-              hasActiveOrganization &&
-              !pendingWithdrawal && (
-                <button
-                  type="button"
-                  onClick={() => handleReassignRequest(row)}
-                  className="shrink-0 text-xs font-semibold text-amber-600 transition-colors hover:text-amber-700">
-                  Reassign
-                </button>
-              )}
+            showSuccessToast(
+                'Help request reassignment submitted successfully.',
+            );
+        } catch (err) {
+            setReassignmentError(
+                err.message || 'Unable to reassign help request.',
+            );
+        } finally {
+            setReassignmentLoading(false);
+        }
+    };
 
-            {/* ADD SUPPORT */}
-            {row.status === "verified" &&
-              hasActiveOrganization &&
-              !pendingWithdrawal && (
-                <button
-                  type="button"
-                  onClick={() => handleAddSupportRequest(row)}
-                  className="shrink-0 text-xs font-semibold text-primary transition-colors hover:text-primary-hover">
-                  Add Support
-                </button>
-              )}
-          </div>
+    // --------------------------------
+    // Statistics
+    // --------------------------------
+
+    const statistics = useMemo(() => {
+        return {
+            total: helpRequests.length,
+
+            pending: helpRequests.filter(
+                (request) => request.status === 'pending',
+            ).length,
+
+            verified: helpRequests.filter(
+                (request) =>
+                    request.status === 'verified' &&
+                    !hasActiveOrganizationAssignment(request),
+            ).length,
+
+            assigned: helpRequests.filter(
+                (request) =>
+                    request.status === 'verified' &&
+                    hasActiveOrganizationAssignment(request),
+            ).length,
+
+            inProgress: helpRequests.filter(
+                (request) => request.status === 'in_progress',
+            ).length,
+
+            completed: helpRequests.filter(
+                (request) => request.status === 'completed',
+            ).length,
+
+            rejected: helpRequests.filter(
+                (request) => request.status === 'rejected',
+            ).length,
+        };
+    }, [helpRequests]);
+
+    // --------------------------------
+    // Category tabs
+    // --------------------------------
+
+    const categoryTabs = useMemo(
+        () => [
+            {
+                key: 'all',
+                label: 'All Requests',
+                count: statistics.total,
+            },
+            {
+                key: 'pending',
+                label: 'Pending',
+                count: statistics.pending,
+            },
+            {
+                key: 'verified',
+                label: 'Verified',
+                count: statistics.verified,
+            },
+            {
+                key: 'completed',
+                label: 'Completed',
+                count: statistics.completed,
+            },
+            {
+                key: 'rejected',
+                label: 'Rejected',
+                count: statistics.rejected,
+            },
+        ],
+        [statistics],
+    );
+
+    // --------------------------------
+    // Filtering + sorting
+    // --------------------------------
+
+    const filteredHelpRequests = useMemo(() => {
+        let result = [...helpRequests];
+
+        // Pending category includes both:
+        // - request.status === "pending"
+        // - organization assignment.status === "pending"
+        if (activeCategory !== 'all') {
+            result = result.filter((request) => {
+                if (activeCategory === 'pending') {
+                    return (
+                        request.status === 'pending' ||
+                        hasPendingOrganizationAssignment(request)
+                    );
+                }
+
+                return request.status === activeCategory;
+            });
+        }
+
+        if (categoryFilter !== 'all') {
+            result = result.filter(
+                (request) => request.category === categoryFilter,
+            );
+        }
+
+        if (priorityFilter !== 'all') {
+            result = result.filter(
+                (request) =>
+                    (request.priority || request.urgency) === priorityFilter,
+            );
+        }
+
+        if (assignmentFilter !== 'all') {
+            result = result.filter((request) => {
+                const assigned = hasExistingAssignment(request);
+
+                return assignmentFilter === 'assigned' ? assigned : !assigned;
+            });
+        }
+
+        if (statusFilter !== 'all') {
+            result = result.filter(
+                (request) => request.status === statusFilter,
+            );
+        }
+
+        const search = searchTerm.trim().toLowerCase();
+
+        if (search) {
+            result = result.filter((request) => {
+                const requesterName =
+                    request.user?.name || request.requester?.name || '';
+
+                const requesterEmail =
+                    request.user?.email || request.requester?.email || '';
+
+                return (
+                    request.title?.toLowerCase().includes(search) ||
+                    request.description?.toLowerCase().includes(search) ||
+                    request.category?.toLowerCase().includes(search) ||
+                    requesterName.toLowerCase().includes(search) ||
+                    requesterEmail.toLowerCase().includes(search)
+                );
+            });
+        }
+
+        if (!sortConfig.key || !sortConfig.direction) {
+            return result;
+        }
+
+        result.sort((a, b) => {
+            let first = a[sortConfig.key];
+            let second = b[sortConfig.key];
+
+            if (sortConfig.key === 'created_at') {
+                first = new Date(first).getTime();
+                second = new Date(second).getTime();
+            }
+
+            first = first ?? '';
+            second = second ?? '';
+
+            if (typeof first === 'string') {
+                first = first.toLowerCase();
+                second = String(second).toLowerCase();
+            }
+
+            if (first < second) {
+                return sortConfig.direction === 'asc' ? -1 : 1;
+            }
+
+            if (first > second) {
+                return sortConfig.direction === 'asc' ? 1 : -1;
+            }
+
+            return 0;
+        });
+
+        return result;
+    }, [
+        helpRequests,
+        activeCategory,
+        categoryFilter,
+        priorityFilter,
+        assignmentFilter,
+        statusFilter,
+        searchTerm,
+        sortConfig,
+    ]);
+
+    // --------------------------------
+    // Pagination
+    // --------------------------------
+
+    const totalPages = Math.max(
+        1,
+        Math.ceil(filteredHelpRequests.length / HELP_REQUESTS_PER_PAGE),
+    );
+
+    const safeCurrentPage = Math.min(currentPage, totalPages);
+
+    const paginatedHelpRequests = useMemo(() => {
+        const startIndex = (safeCurrentPage - 1) * HELP_REQUESTS_PER_PAGE;
+
+        return filteredHelpRequests.slice(
+            startIndex,
+            startIndex + HELP_REQUESTS_PER_PAGE,
         );
-      },
-    },
-  ];
+    }, [filteredHelpRequests, safeCurrentPage]);
 
-  // --------------------------------
-  // Loading
-  // --------------------------------
+    // --------------------------------
+    // Controls
+    // --------------------------------
 
-  if (loading) {
+    const handleCategoryChange = (category) => {
+        setActiveCategory(category);
+        setCurrentPage(1);
+    };
+
+    const handleCategoryFilterChange = (event) => {
+        setCategoryFilter(event.target.value);
+        setCurrentPage(1);
+    };
+
+    const handlePriorityChange = (event) => {
+        setPriorityFilter(event.target.value);
+        setCurrentPage(1);
+    };
+
+    const handleAssignmentChange = (event) => {
+        setAssignmentFilter(event.target.value);
+        setCurrentPage(1);
+    };
+
+    const handleStatusChange = (event) => {
+        setStatusFilter(event.target.value);
+        setCurrentPage(1);
+    };
+
+    const handleSearchChange = (event) => {
+        setSearchTerm(event.target.value);
+        setCurrentPage(1);
+    };
+
+    const handleSort = (key) => {
+        setSortConfig((current) => {
+            if (current.key !== key) {
+                return {
+                    key,
+                    direction: 'asc',
+                };
+            }
+
+            if (current.direction === 'asc') {
+                return {
+                    key,
+                    direction: 'desc',
+                };
+            }
+
+            return {
+                key: null,
+                direction: null,
+            };
+        });
+    };
+
+    const getSortIcon = (key) => {
+        if (sortConfig.key !== key) {
+            return <ChevronsUpDown size={14} strokeWidth={1.8} />;
+        }
+
+        if (sortConfig.direction === 'asc') {
+            return <ArrowUp size={14} strokeWidth={2} />;
+        }
+
+        if (sortConfig.direction === 'desc') {
+            return <ArrowDown size={14} strokeWidth={2} />;
+        }
+
+        return <ChevronsUpDown size={14} strokeWidth={1.8} />;
+    };
+
+    // --------------------------------
+    // CSV Export
+    // --------------------------------
+
+    const handleExportCSV = () => {
+        if (filteredHelpRequests.length === 0) {
+            return;
+        }
+
+        const headers = [
+            'Requester',
+            'Request',
+            'Category',
+            'Priority',
+            'Assigned',
+            'Status',
+            'Submitted',
+        ];
+
+        const csvRows = filteredHelpRequests.map((request) => [
+            request.user?.name || request.requester?.name || '',
+            request.title || '',
+            request.category || '',
+            request.priority || request.urgency || '',
+            getAssignedOrganizationName(request),
+            request.status || '',
+            request.created_at
+                ? new Date(request.created_at).toLocaleDateString()
+                : '',
+        ]);
+
+        const csvContent = [headers, ...csvRows]
+            .map((row) =>
+                row
+                    .map(
+                        (value) =>
+                            `"${String(value ?? '').replace(/"/g, '""')}"`,
+                    )
+                    .join(','),
+            )
+            .join('\n');
+
+        const blob = new Blob([csvContent], {
+            type: 'text/csv;charset=utf-8;',
+        });
+
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement('a');
+
+        link.href = url;
+        link.download = 'stand-for-people-help-requests.csv';
+
+        document.body.appendChild(link);
+
+        link.click();
+
+        document.body.removeChild(link);
+
+        URL.revokeObjectURL(url);
+
+        showSuccessToast('Help requests exported successfully.');
+    };
+
+    // --------------------------------
+    // Table rows
+    // --------------------------------
+
+    const rows = paginatedHelpRequests.map((request, index) => ({
+        ...request,
+
+        requesterName: request.user?.name || request.requester?.name || '—',
+
+        requesterEmail: request.user?.email || request.requester?.email || '—',
+
+        requesterId:
+            request.user?.id ||
+            request.requester?.id ||
+            request.user_id ||
+            null,
+
+        assignedOrganization: getAssignedOrganizationName(request),
+
+        assignedOrganizationId: getAssignedOrganizationId(request),
+
+        submittedDate: request.created_at
+            ? new Date(request.created_at).toLocaleDateString()
+            : '—',
+
+        serialNumber:
+            (safeCurrentPage - 1) * HELP_REQUESTS_PER_PAGE + index + 1,
+    }));
+
+    // --------------------------------
+    // Table columns
+    // --------------------------------
+
+    const columns = [
+        {
+            key: 'title',
+            header: 'Help Request Details',
+            sortable: true,
+            sortKey: 'title',
+            width: '420px',
+        },
+
+        {
+            key: 'submittedDate',
+            header: 'Submitted',
+            sortable: true,
+            sortKey: 'created_at',
+            width: '120px',
+        },
+
+        {
+            key: 'priority',
+            header: 'Priority',
+            sortable: true,
+            sortKey: 'priority',
+            width: '120px',
+
+            render: (value, row) => value || row.urgency || '—',
+        },
+
+        {
+            key: 'assignedOrganization',
+            header: 'Assigned',
+            width: '220px',
+
+            render: (value) => value || 'Not assigned',
+        },
+
+        {
+            key: 'status',
+            header: 'Status',
+            sortable: true,
+            sortKey: 'status',
+            width: '150px',
+
+            render: (value, row) => {
+                const pendingWithdrawal = getPendingWithdrawalAssignment(row);
+
+                if (pendingWithdrawal) {
+                    return (
+                        <div className="inline-flex items-center gap-1.5 whitespace-nowrap text-xs font-semibold text-amber-700">
+                            <RotateCcw size={13} strokeWidth={2} />
+                            Withdrawal requested
+                        </div>
+                    );
+                }
+
+                return value || '—';
+            },
+        },
+
+        {
+            key: 'id',
+            header: 'Actions',
+            align: 'right',
+            width: '470px',
+
+            render: (_, row) => {
+                const hasAssignment = hasExistingAssignment(row);
+
+                const hasPendingOrganization =
+                    hasPendingOrganizationAssignment(row);
+
+                const hasActiveOrganization =
+                    hasActiveOrganizationAssignment(row);
+
+                const pendingWithdrawal = getPendingWithdrawalAssignment(row);
+
+                return (
+                    <div className="flex min-w-max items-center justify-end gap-4 whitespace-nowrap">
+                        {/* VIEW */}
+                        <button
+                            type="button"
+                            onClick={() => handleViewRequest(row)}
+                            className="shrink-0 text-xs font-semibold text-text-secondary transition-colors hover:text-primary"
+                        >
+                            View
+                        </button>
+
+                        {/* EDIT */}
+                        <button
+                            type="button"
+                            onClick={() => handleEditRequest(row)}
+                            className="shrink-0 text-xs font-semibold text-primary transition-colors hover:text-primary-hover"
+                        >
+                            Edit
+                        </button>
+
+                        {/* VERIFY */}
+                        {row.status === 'pending' && (
+                            <button
+                                type="button"
+                                onClick={() => handleVerifyRequest(row)}
+                                className="shrink-0 text-xs font-semibold text-primary transition-colors hover:text-primary-hover"
+                            >
+                                Verify
+                            </button>
+                        )}
+
+                        {/* WITHDRAWAL REVIEW */}
+                        {pendingWithdrawal && (
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    handleReviewWithdrawal(pendingWithdrawal)
+                                }
+                                className="inline-flex shrink-0 items-center gap-1.5 text-xs font-bold text-amber-700 transition-colors hover:text-amber-800"
+                            >
+                                <RotateCcw size={13} strokeWidth={2} />
+                                Review Withdrawal
+                            </button>
+                        )}
+
+                        {/* INITIAL ASSIGNMENT */}
+                        {row.status === 'verified' &&
+                            !hasAssignment &&
+                            !hasPendingOrganization && (
+                                <button
+                                    type="button"
+                                    onClick={() => handleAssignRequest(row)}
+                                    className="shrink-0 text-xs font-semibold text-primary transition-colors hover:text-primary-hover"
+                                >
+                                    Assign
+                                </button>
+                            )}
+
+                        {/* REASSIGN */}
+                        {row.status === 'verified' &&
+                            hasActiveOrganization &&
+                            !pendingWithdrawal && (
+                                <button
+                                    type="button"
+                                    onClick={() => handleReassignRequest(row)}
+                                    className="shrink-0 text-xs font-semibold text-amber-600 transition-colors hover:text-amber-700"
+                                >
+                                    Reassign
+                                </button>
+                            )}
+
+                        {/* ADD SUPPORT */}
+                        {row.status === 'verified' &&
+                            hasActiveOrganization &&
+                            !pendingWithdrawal && (
+                                <button
+                                    type="button"
+                                    onClick={() => handleAddSupportRequest(row)}
+                                    className="shrink-0 text-xs font-semibold text-primary transition-colors hover:text-primary-hover"
+                                >
+                                    Add Support
+                                </button>
+                            )}
+                    </div>
+                );
+            },
+        },
+    ];
+
+    // --------------------------------
+    // Loading
+    // --------------------------------
+
+    if (loading) {
+        return (
+            <div className="space-y-8">
+                <PageHeader
+                    title="Help Requests"
+                    subtitle="Review, verify, and coordinate help requests submitted through the Stand For People platform."
+                />
+
+                <div className="flex min-h-70 items-center justify-center border-y border-border bg-white">
+                    <div className="text-center">
+                        <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-border border-t-primary" />
+
+                        <p className="text-sm font-semibold text-text-primary">
+                            Loading help requests...
+                        </p>
+
+                        <p className="mt-1 text-xs text-text-secondary">
+                            Please wait while we retrieve the request list.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // --------------------------------
+    // Error
+    // --------------------------------
+
+    if (error) {
+        return (
+            <div className="space-y-8">
+                <PageHeader
+                    title="Help Requests"
+                    subtitle="Review, verify, and coordinate help requests submitted through the Stand For People platform."
+                />
+
+                <div className="border-l-4 border-red-500 bg-red-50 px-5 py-4 text-sm text-red-600">
+                    {error}
+                </div>
+            </div>
+        );
+    }
+
+    // --------------------------------
+    // Render
+    // --------------------------------
+
     return (
-      <div className="space-y-8">
-        <PageHeader
-          title="Help Requests"
-          subtitle="Review, verify, and coordinate help requests submitted through the Stand For People platform."
-        />
+        <>
+            <div className="space-y-9">
+                <PageHeader
+                    title="Help Requests"
+                    subtitle="Verify requests and coordinate assistance through organizations and SP volunteers."
+                    action={
+                        <button
+                            type="button"
+                            onClick={handleExportCSV}
+                            disabled={filteredHelpRequests.length === 0}
+                            className="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-white px-4 text-sm font-medium text-text-primary transition-colors hover:border-primary/30 hover:bg-background-alt disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            <Download size={16} />
+                            Export
+                        </button>
+                    }
+                />
 
-        <div className="flex min-h-70 items-center justify-center border-y border-border bg-white">
-          <div className="text-center">
-            <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-border border-t-primary" />
-
-            <p className="text-sm font-semibold text-text-primary">
-              Loading help requests...
-            </p>
-
-            <p className="mt-1 text-xs text-text-secondary">
-              Please wait while we retrieve the request list.
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // --------------------------------
-  // Error
-  // --------------------------------
-
-  if (error) {
-    return (
-      <div className="space-y-8">
-        <PageHeader
-          title="Help Requests"
-          subtitle="Review, verify, and coordinate help requests submitted through the Stand For People platform."
-        />
-
-        <div className="border-l-4 border-red-500 bg-red-50 px-5 py-4 text-sm text-red-600">
-          {error}
-        </div>
-      </div>
-    );
-  }
-
-  // --------------------------------
-  // Render
-  // --------------------------------
-
-  return (
-    <>
-      <div className="space-y-9">
-        <PageHeader
-          title="Help Requests"
-          subtitle="Verify requests and coordinate assistance through organizations and SP volunteers."
-          action={
-            <button
-              type="button"
-              onClick={handleExportCSV}
-              disabled={filteredHelpRequests.length === 0}
-              className="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-white px-4 text-sm font-medium text-text-primary transition-colors hover:border-primary/30 hover:bg-background-alt disabled:cursor-not-allowed disabled:opacity-50">
-              <Download size={16} />
-              Export
-            </button>
-          }
-        />
-
-        {/* --------------------------------
+                {/* --------------------------------
                     Withdrawal Requests
                    -------------------------------- */}
 
-        {withdrawalRequests.length > 0 && (
-          <section className="border border-amber-200 bg-amber-50/70">
-            <div className="flex flex-col gap-4 px-5 py-5 sm:px-6">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div className="flex items-start gap-3">
-                  <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
-                    <RotateCcw size={17} strokeWidth={2} />
-                  </div>
+                {withdrawalRequests.length > 0 && (
+                    <section className="border border-amber-200 bg-amber-50/70">
+                        <div className="flex flex-col gap-4 px-5 py-5 sm:px-6">
+                            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                                <div className="flex items-start gap-3">
+                                    <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
+                                        <RotateCcw size={17} strokeWidth={2} />
+                                    </div>
 
-                  <div>
-                    <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-amber-700">
-                      Action required
-                    </p>
+                                    <div>
+                                        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-amber-700">
+                                            Action required
+                                        </p>
 
-                    <h2 className="mt-1 text-lg font-bold tracking-tight text-text-primary">
-                      Organization withdrawal requests
-                    </h2>
+                                        <h2 className="mt-1 text-lg font-bold tracking-tight text-text-primary">
+                                            Organization withdrawal requests
+                                        </h2>
 
-                    <p className="mt-1 max-w-2xl text-sm leading-6 text-text-secondary">
-                      An organization has requested to withdraw from a help
-                      request. Review the reason before deciding whether to
-                      approve or reject the withdrawal.
-                    </p>
-                  </div>
-                </div>
+                                        <p className="mt-1 max-w-2xl text-sm leading-6 text-text-secondary">
+                                            An organization has requested to
+                                            withdraw from a help request. Review
+                                            the reason before deciding whether
+                                            to approve or reject the withdrawal.
+                                        </p>
+                                    </div>
+                                </div>
 
-                <div className="inline-flex w-fit shrink-0 items-center gap-2 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-amber-700 shadow-sm ring-1 ring-amber-200">
-                  <Clock3 size={13} />
-                  {withdrawalRequests.length}{" "}
-                  {withdrawalRequests.length === 1
-                    ? "pending request"
-                    : "pending requests"}
-                </div>
-              </div>
+                                <div className="inline-flex w-fit shrink-0 items-center gap-2 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-amber-700 shadow-sm ring-1 ring-amber-200">
+                                    <Clock3 size={13} />
+                                    {withdrawalRequests.length}{' '}
+                                    {withdrawalRequests.length === 1
+                                        ? 'pending request'
+                                        : 'pending requests'}
+                                </div>
+                            </div>
 
-              <div className="divide-y divide-amber-100 border border-amber-200 bg-white">
-                {withdrawalRequests.map((assignment) => {
-                  const helpRequest =
-                    assignment?.help_request || assignment?.helpRequest || {};
+                            <div className="divide-y divide-amber-100 border border-amber-200 bg-white">
+                                {withdrawalRequests.map((assignment) => {
+                                    const helpRequest =
+                                        assignment?.help_request ||
+                                        assignment?.helpRequest ||
+                                        {};
 
-                  const organization = assignment?.organization || {};
+                                    const organization =
+                                        assignment?.organization || {};
 
-                  const organizationName =
-                    organization?.name ||
-                    organization?.user?.name ||
-                    "Organization unavailable";
+                                    const organizationName =
+                                        organization?.name ||
+                                        organization?.user?.name ||
+                                        'Organization unavailable';
 
-                  const requestTitle = helpRequest?.title || "Help request";
+                                    const requestTitle =
+                                        helpRequest?.title || 'Help request';
 
-                  const requestedAt = assignment?.withdrawal_requested_at;
+                                    const requestedAt =
+                                        assignment?.withdrawal_requested_at;
 
-                  return (
-                    <div
-                      key={assignment.id}
-                      className="flex flex-col gap-4 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-sm font-bold text-text-primary">
-                            {organizationName}
-                          </span>
+                                    return (
+                                        <div
+                                            key={assignment.id}
+                                            className="flex flex-col gap-4 px-5 py-4 lg:flex-row lg:items-center lg:justify-between"
+                                        >
+                                            <div className="min-w-0">
+                                                <div className="flex flex-wrap items-center gap-2">
+                                                    <span className="text-sm font-bold text-text-primary">
+                                                        {organizationName}
+                                                    </span>
 
-                          <span className="text-xs text-text-secondary">
-                            requested withdrawal
-                          </span>
+                                                    <span className="text-xs text-text-secondary">
+                                                        requested withdrawal
+                                                    </span>
+                                                </div>
+
+                                                <p className="mt-1 truncate text-sm font-medium text-text-primary">
+                                                    {requestTitle}
+                                                </p>
+
+                                                <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-text-secondary">
+                                                    {requestedAt && (
+                                                        <span>
+                                                            Requested{' '}
+                                                            {formatDateTime(
+                                                                requestedAt,
+                                                            )}
+                                                        </span>
+                                                    )}
+
+                                                    {assignment?.withdrawal_reason && (
+                                                        <span className="max-w-xl truncate">
+                                                            Reason:{' '}
+                                                            {
+                                                                assignment.withdrawal_reason
+                                                            }
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    handleReviewWithdrawal(
+                                                        assignment,
+                                                    )
+                                                }
+                                                className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-xs font-bold text-white! transition-colors hover:bg-primary-hover"
+                                            >
+                                                <RotateCcw size={14} />
+                                                Review
+                                            </button>
+                                        </div>
+                                    );
+                                })}
+                            </div>
                         </div>
+                    </section>
+                )}
 
-                        <p className="mt-1 truncate text-sm font-medium text-text-primary">
-                          {requestTitle}
-                        </p>
+                {withdrawalError && (
+                    <div className="flex items-start gap-3 border-l-4 border-amber-500 bg-amber-50 px-5 py-4 text-sm text-amber-800">
+                        <AlertCircle size={17} className="mt-0.5 shrink-0" />
 
-                        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-text-secondary">
-                          {requestedAt && (
-                            <span>Requested {formatDateTime(requestedAt)}</span>
-                          )}
+                        <div>
+                            <p className="font-semibold">
+                                Withdrawal requests could not be loaded.
+                            </p>
 
-                          {assignment?.withdrawal_reason && (
-                            <span className="max-w-xl truncate">
-                              Reason: {assignment.withdrawal_reason}
-                            </span>
-                          )}
+                            <p className="mt-1">{withdrawalError}</p>
                         </div>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => handleReviewWithdrawal(assignment)}
-                        className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-lg bg-primary px-4 text-xs font-bold text-white transition-colors hover:bg-primary-hover">
-                        <RotateCcw size={14} />
-                        Review
-                      </button>
                     </div>
-                  );
-                })}
-              </div>
-            </div>
-          </section>
-        )}
+                )}
 
-        {withdrawalError && (
-          <div className="flex items-start gap-3 border-l-4 border-amber-500 bg-amber-50 px-5 py-4 text-sm text-amber-800">
-            <AlertCircle size={17} className="mt-0.5 shrink-0" />
+                {/* Help Request Overview */}
 
-            <div>
-              <p className="font-semibold">
-                Withdrawal requests could not be loaded.
-              </p>
+                <HelpRequestStats
+                    total={statistics.total}
+                    pending={statistics.pending}
+                    verified={statistics.verified}
+                    inProgress={statistics.inProgress}
+                    completed={statistics.completed}
+                    rejected={statistics.rejected}
+                />
 
-              <p className="mt-1">{withdrawalError}</p>
-            </div>
-          </div>
-        )}
-
-        {/* Help Request Overview */}
-
-        <HelpRequestStats
-          total={statistics.total}
-          pending={statistics.pending}
-          verified={statistics.verified}
-          inProgress={statistics.inProgress}
-          completed={statistics.completed}
-          rejected={statistics.rejected}
-        />
-
-        {/* ==================================================
+                {/* ==================================================
                     HELP REQUEST MANAGEMENT
                 ================================================== */}
 
-        <section className="mt-24">
-          {/* SECTION HEADER */}
+                <section className="mt-24">
+                    {/* SECTION HEADER */}
 
-          <div className="mb-6">
-            <div className="flex flex-col gap-4 border-b border-border pb-5 sm:flex-row sm:items-end sm:justify-between">
-              <div className="min-w-0">
-                <div className="mb-2 flex items-center gap-2.5 px-2">
-                  <span className="h-1.5 w-1.5 bg-primary" />
+                    <div className="mb-6">
+                        <div className="flex flex-col gap-4 border-b border-border pb-5 sm:flex-row sm:items-end sm:justify-between">
+                            <div className="min-w-0">
+                                <div className="mb-2 flex items-center gap-2.5 px-2">
+                                    <span className="h-1.5 w-1.5 bg-primary" />
 
-                  <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary">
-                    Administration
-                  </span>
-                </div>
+                                    <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary">
+                                        Administration
+                                    </span>
+                                </div>
 
-                <h2 className="font-fraunces text-[25px] font-semibold leading-tight tracking-tight text-text-primary">
-                  Help request management
-                </h2>
+                                <h2 className="font-fraunces text-[25px] font-semibold leading-tight tracking-tight text-text-primary">
+                                    Help request management
+                                </h2>
 
-                <p className="mt-1.5 max-w-xl text-[13px] leading-5 text-text-secondary">
-                  Review submitted help requests, assess priority, monitor
-                  request status, and coordinate support across the platform.
-                </p>
-              </div>
+                                <p className="mt-1.5 max-w-xl text-[13px] leading-5 text-text-secondary">
+                                    Review submitted help requests, assess
+                                    priority, monitor request status, and
+                                    coordinate support across the platform.
+                                </p>
+                            </div>
 
-              <div className="flex shrink-0 items-center gap-2.5">
-                <span className="h-8 border-l border-border" />
+                            <div className="flex shrink-0 items-center gap-2.5">
+                                <span className="h-8 border-l border-border" />
 
-                <div>
-                  <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-text-secondary">
-                    Showing
-                  </p>
+                                <div>
+                                    <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-text-secondary">
+                                        Showing
+                                    </p>
 
-                  <p className="mt-0.5 text-sm font-semibold text-text-primary">
-                    {filteredHelpRequests.length}{" "}
-                    <span className="font-normal text-text-secondary">
-                      {filteredHelpRequests.length === 1
-                        ? "request"
-                        : "requests"}
-                    </span>
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* MANAGEMENT WORKSPACE */}
-
-          <div className="grid items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_280px]">
-            {/* LEFT — TABLE */}
-
-            <div className="flex min-h-0 min-w-0 flex-col border border-border bg-surface">
-              {/* TOOLBAR */}
-
-              <div className="shrink-0 border-b border-border px-5 py-4">
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                  <div className="min-w-0 flex-1">
-                    <div className="relative">
-                      <Search
-                        size={17}
-                        strokeWidth={1.8}
-                        className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary"
-                      />
-
-                      <input
-                        type="text"
-                        value={searchTerm}
-                        onChange={handleSearchChange}
-                        placeholder="Search requests by title, requester or email..."
-                        className="h-10 w-full border border-border bg-background pl-10 pr-4 text-[13px] font-medium text-text-primary outline-none transition-colors placeholder:text-text-secondary/70 hover:border-text-secondary/30 focus:border-primary/50 focus:bg-surface"
-                      />
+                                    <p className="mt-0.5 text-sm font-semibold text-text-primary">
+                                        {filteredHelpRequests.length}{' '}
+                                        <span className="font-normal text-text-secondary">
+                                            {filteredHelpRequests.length === 1
+                                                ? 'request'
+                                                : 'requests'}
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                  </div>
 
-                  <div className="flex shrink-0 items-center gap-5">
-                    <div className="hidden h-7 border-l border-border lg:block" />
+                    {/* MANAGEMENT WORKSPACE */}
 
-                    <div>
-                      <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-text-secondary">
-                        Directory
-                      </p>
+                    <div className="grid items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_280px]">
+                        {/* LEFT — TABLE */}
 
-                      <p className="mt-0.5 text-xs font-medium text-text-primary">
-                        {filteredHelpRequests.length}{" "}
-                        {filteredHelpRequests.length === 1
-                          ? "result"
-                          : "results"}
-                      </p>
+                        <div className="flex min-h-0 min-w-0 flex-col border border-border bg-surface">
+                            {/* TOOLBAR */}
+
+                            <div className="shrink-0 border-b border-border px-5 py-4">
+                                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                                    <div className="min-w-0 flex-1">
+                                        <div className="relative">
+                                            <Search
+                                                size={17}
+                                                strokeWidth={1.8}
+                                                className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary"
+                                            />
+
+                                            <input
+                                                type="text"
+                                                value={searchTerm}
+                                                onChange={handleSearchChange}
+                                                placeholder="Search requests by title, requester or email..."
+                                                className="h-10 w-full border border-border bg-background pl-10 pr-4 text-[13px] font-medium text-text-primary outline-none transition-colors placeholder:text-text-secondary/70 hover:border-text-secondary/30 focus:border-primary/50 focus:bg-surface"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="flex shrink-0 items-center gap-5">
+                                        <div className="hidden h-7 border-l border-border lg:block" />
+
+                                        <div>
+                                            <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-text-secondary">
+                                                Directory
+                                            </p>
+
+                                            <p className="mt-0.5 text-xs font-medium text-text-primary">
+                                                {filteredHelpRequests.length}{' '}
+                                                {filteredHelpRequests.length ===
+                                                1
+                                                    ? 'result'
+                                                    : 'results'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* TABLE HEADING */}
+
+                            <div className="flex shrink-0 flex-col gap-2 border-b border-border bg-surface px-5 py-3.5 sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                    <p className="text-sm font-semibold text-text-primary">
+                                        Submitted help requests
+                                    </p>
+
+                                    <p className="mt-0.5 text-xs text-text-secondary">
+                                        Browse and review requests submitted by
+                                        people seeking support
+                                    </p>
+                                </div>
+
+                                <span className="text-[11px] font-medium text-text-secondary">
+                                    Sorted by request
+                                </span>
+                            </div>
+
+                            {/* TABLE */}
+
+                            <div className="min-h-0 flex-1 overflow-x-auto overflow-y-auto">
+                                <div className="min-w-190">
+                                    <HelpRequestTable
+                                        columns={columns}
+                                        rows={rows}
+                                        onSort={handleSort}
+                                        getSortIcon={getSortIcon}
+                                        resultCount={
+                                            filteredHelpRequests.length
+                                        }
+                                        onRequesterClick={handleViewUser}
+                                        onOrganizationClick={
+                                            handleViewOrganization
+                                        }
+                                    />
+                                </div>
+                            </div>
+
+                            {/* PAGINATION */}
+
+                            {filteredHelpRequests.length > 0 && (
+                                <div className="shrink-0 border-t border-border">
+                                    <HelpRequestPagination
+                                        currentPage={safeCurrentPage}
+                                        totalPages={totalPages}
+                                        totalItems={filteredHelpRequests.length}
+                                        itemsPerPage={HELP_REQUESTS_PER_PAGE}
+                                        onPageChange={setCurrentPage}
+                                    />
+                                </div>
+                            )}
+                        </div>
+
+                        {/* RIGHT — FILTER SIDEBAR */}
+
+                        <aside className="flex flex-col self-start border border-primary/90 bg-primary">
+                            <div className="shrink-0 px-5 pb-5 pt-6">
+                                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white!/45">
+                                    Directory controls
+                                </p>
+
+                                <h2 className="mt-1.5 font-fraunces text-[21px] leading-tight text-white!">
+                                    Refine requests
+                                </h2>
+
+                                <p className="mt-2 max-w-55 text-[12px] leading-5 text-white!/50">
+                                    Narrow the request directory by category,
+                                    urgency, and current request status.
+                                </p>
+                            </div>
+
+                            <div className="border-y border-white/10 bg-black/4 px-4 py-5">
+                                <div className="mb-3 flex items-center justify-between px-1">
+                                    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white!/45">
+                                        Request category
+                                    </p>
+
+                                    <span className="text-[10px] font-medium tabular-nums text-white!/30">
+                                        {categoryTabs.length}
+                                    </span>
+                                </div>
+
+                                <HelpRequestCategoryTabs
+                                    tabs={categoryTabs}
+                                    activeCategory={activeCategory}
+                                    onChange={handleCategoryChange}
+                                />
+                            </div>
+
+                            <div className="bg-black/4 px-4 py-5">
+                                <HelpRequestFilters
+                                    categoryFilter={categoryFilter}
+                                    priorityFilter={priorityFilter}
+                                    assignmentFilter={assignmentFilter}
+                                    statusFilter={statusFilter}
+                                    helpRequests={helpRequests}
+                                    onCategoryChange={
+                                        handleCategoryFilterChange
+                                    }
+                                    onPriorityChange={handlePriorityChange}
+                                    onAssignmentChange={handleAssignmentChange}
+                                    onStatusChange={handleStatusChange}
+                                />
+                            </div>
+                        </aside>
                     </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* TABLE HEADING */}
-
-              <div className="flex shrink-0 flex-col gap-2 border-b border-border bg-surface px-5 py-3.5 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-text-primary">
-                    Submitted help requests
-                  </p>
-
-                  <p className="mt-0.5 text-xs text-text-secondary">
-                    Browse and review requests submitted by people seeking
-                    support
-                  </p>
-                </div>
-
-                <span className="text-[11px] font-medium text-text-secondary">
-                  Sorted by request
-                </span>
-              </div>
-
-              {/* TABLE */}
-
-              <div className="min-h-0 flex-1 overflow-x-auto overflow-y-auto">
-                <div className="min-w-190">
-                  <HelpRequestTable
-                    columns={columns}
-                    rows={rows}
-                    onSort={handleSort}
-                    getSortIcon={getSortIcon}
-                    resultCount={filteredHelpRequests.length}
-                    onRequesterClick={handleViewUser}
-                    onOrganizationClick={handleViewOrganization}
-                  />
-                </div>
-              </div>
-
-              {/* PAGINATION */}
-
-              {filteredHelpRequests.length > 0 && (
-                <div className="shrink-0 border-t border-border">
-                  <HelpRequestPagination
-                    currentPage={safeCurrentPage}
-                    totalPages={totalPages}
-                    totalItems={filteredHelpRequests.length}
-                    itemsPerPage={HELP_REQUESTS_PER_PAGE}
-                    onPageChange={setCurrentPage}
-                  />
-                </div>
-              )}
+                </section>
             </div>
 
-            {/* RIGHT — FILTER SIDEBAR */}
-
-            <aside className="flex flex-col self-start border border-primary/90 bg-primary">
-              <div className="shrink-0 px-5 pb-5 pt-6">
-                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/45">
-                  Directory controls
-                </p>
-
-                <h2 className="mt-1.5 font-fraunces text-[21px] leading-tight text-white">
-                  Refine requests
-                </h2>
-
-                <p className="mt-2 max-w-55 text-[12px] leading-5 text-white/50">
-                  Narrow the request directory by category, urgency, and current
-                  request status.
-                </p>
-              </div>
-
-              <div className="border-y border-white/10 bg-black/4 px-4 py-5">
-                <div className="mb-3 flex items-center justify-between px-1">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/45">
-                    Request category
-                  </p>
-
-                  <span className="text-[10px] font-medium tabular-nums text-white/30">
-                    {categoryTabs.length}
-                  </span>
-                </div>
-
-                <HelpRequestCategoryTabs
-                  tabs={categoryTabs}
-                  activeCategory={activeCategory}
-                  onChange={handleCategoryChange}
-                />
-              </div>
-
-              <div className="bg-black/4 px-4 py-5">
-                <HelpRequestFilters
-                  categoryFilter={categoryFilter}
-                  priorityFilter={priorityFilter}
-                  assignmentFilter={assignmentFilter}
-                  statusFilter={statusFilter}
-                  helpRequests={helpRequests}
-                  onCategoryChange={handleCategoryFilterChange}
-                  onPriorityChange={handlePriorityChange}
-                  onAssignmentChange={handleAssignmentChange}
-                  onStatusChange={handleStatusChange}
-                />
-              </div>
-            </aside>
-          </div>
-        </section>
-      </div>
-
-      {/* --------------------------------
+            {/* --------------------------------
                 Withdrawal Review Modal
             -------------------------------- */}
 
-      {selectedWithdrawalRequest && (
-        <WithdrawalReviewModal
-          assignment={selectedWithdrawalRequest}
-          loading={withdrawalReviewLoading}
-          error={withdrawalReviewError}
-          onClose={closeWithdrawalReview}
-          onDecision={handleWithdrawalDecision}
-          onOrganizationClick={handleViewOrganization}
-        />
-      )}
+            {selectedWithdrawalRequest && (
+                <WithdrawalReviewModal
+                    assignment={selectedWithdrawalRequest}
+                    loading={withdrawalReviewLoading}
+                    error={withdrawalReviewError}
+                    onClose={closeWithdrawalReview}
+                    onDecision={handleWithdrawalDecision}
+                    onOrganizationClick={handleViewOrganization}
+                />
+            )}
 
-      {/* --------------------------------
+            {/* --------------------------------
                 Action message
             -------------------------------- */}
 
-      {actionMessage.show && (
-        <div className="fixed inset-0 z-70 flex items-center justify-center bg-black/30 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="text-base font-bold text-text-primary">
-              {actionMessage.title}
-            </h3>
+            {actionMessage.show && (
+                <div className="fixed inset-0 z-70 flex items-center justify-center bg-black/30 p-4">
+                    <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+                        <h3 className="text-base font-bold text-text-primary">
+                            {actionMessage.title}
+                        </h3>
 
-            <p className="mt-2 text-sm leading-6 text-text-secondary">
-              {actionMessage.message}
-            </p>
+                        <p className="mt-2 text-sm leading-6 text-text-secondary">
+                            {actionMessage.message}
+                        </p>
 
-            <div className="mt-6 flex justify-end">
-              <button
-                type="button"
-                onClick={closeActionMessage}
-                className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary-hover">
-                Okay
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+                        <div className="mt-6 flex justify-end">
+                            <button
+                                type="button"
+                                onClick={closeActionMessage}
+                                className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white! transition-colors hover:bg-primary-hover"
+                            >
+                                Okay
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
-      {/* --------------------------------
+            {/* --------------------------------
                 Toast
             -------------------------------- */}
 
-      <HelpRequestSuccessToast show={toast.show} message={toast.message} />
+            <HelpRequestSuccessToast
+                show={toast.show}
+                message={toast.message}
+            />
 
-      {/* --------------------------------
+            {/* --------------------------------
                 View request
             -------------------------------- */}
 
-      <HelpRequestViewModal
-        request={selectedRequest}
-        loading={viewLoading}
-        error={viewError}
-        onClose={closeViewModal}
-      />
+            <HelpRequestViewModal
+                request={selectedRequest}
+                loading={viewLoading}
+                error={viewError}
+                onClose={closeViewModal}
+            />
 
-      {/* --------------------------------
+            {/* --------------------------------
                 View requester
             -------------------------------- */}
 
-      <UserViewModal
-        user={selectedUser}
-        loading={userLoading}
-        error={userError}
-        onClose={closeUserModal}
-      />
+            <UserViewModal
+                user={selectedUser}
+                loading={userLoading}
+                error={userError}
+                onClose={closeUserModal}
+            />
 
-      {/* --------------------------------
+            {/* --------------------------------
                 View organization
             -------------------------------- */}
 
-      <OrganizationViewModal
-        organization={selectedOrganization}
-        loading={organizationLoading}
-        error={organizationError}
-        onClose={closeOrganizationModal}
-      />
+            <OrganizationViewModal
+                organization={selectedOrganization}
+                loading={organizationLoading}
+                error={organizationError}
+                onClose={closeOrganizationModal}
+            />
 
-      {/* --------------------------------
+            {/* --------------------------------
                 Verification
             -------------------------------- */}
 
-      <HelpRequestVerificationModal
-        request={selectedVerificationRequest}
-        loading={verificationLoading}
-        error={verificationError}
-        onClose={closeVerificationModal}
-        onConfirm={handleVerificationChange}
-      />
+            <HelpRequestVerificationModal
+                request={selectedVerificationRequest}
+                loading={verificationLoading}
+                error={verificationError}
+                onClose={closeVerificationModal}
+                onConfirm={handleVerificationChange}
+            />
 
-      {/* --------------------------------
+            {/* --------------------------------
                 Edit Help Request
             -------------------------------- */}
 
-      <HelpRequestEditModal
-        key={selectedEditRequest?.id || "edit-request-modal"}
-        request={selectedEditRequest}
-        loading={editLoading}
-        error={editError}
-        onClose={closeEditModal}
-        onConfirm={handleConfirmEdit}
-      />
+            <HelpRequestEditModal
+                key={selectedEditRequest?.id || 'edit-request-modal'}
+                request={selectedEditRequest}
+                loading={editLoading}
+                error={editError}
+                onClose={closeEditModal}
+                onConfirm={handleConfirmEdit}
+            />
 
-      {/* --------------------------------
+            {/* --------------------------------
                 Initial Assignment
             -------------------------------- */}
 
-      <HelpRequestAssignmentModal
-        request={selectedAssignmentRequest}
-        organizations={organizations}
-        volunteers={volunteers}
-        loading={assignmentLoading || assignmentDataLoading}
-        error={assignmentError}
-        onClose={closeAssignmentModal}
-        onConfirm={handleAssignment}
-      />
+            <HelpRequestAssignmentModal
+                request={selectedAssignmentRequest}
+                organizations={organizations}
+                volunteers={volunteers}
+                loading={assignmentLoading || assignmentDataLoading}
+                error={assignmentError}
+                onClose={closeAssignmentModal}
+                onConfirm={handleAssignment}
+            />
 
-      {/* --------------------------------
+            {/* --------------------------------
                 Add Support
             -------------------------------- */}
 
-      {selectedSupportRequest && (
-        <HelpRequestAssignmentModal
-          key={`support-${selectedSupportRequest.id}`}
-          request={selectedSupportRequest}
-          organizations={organizations}
-          volunteers={volunteers}
-          loading={assignmentDataLoading}
-          error={supportError}
-          onClose={closeSupportModal}
-          onConfirm={(supportData) => {
-            console.log("Add Support payload:", supportData);
-          }}
-        />
-      )}
+            {selectedSupportRequest && (
+                <HelpRequestAssignmentModal
+                    key={`support-${selectedSupportRequest.id}`}
+                    request={selectedSupportRequest}
+                    organizations={organizations}
+                    volunteers={volunteers}
+                    loading={assignmentDataLoading}
+                    error={supportError}
+                    onClose={closeSupportModal}
+                    onConfirm={(supportData) => {
+                        console.log('Add Support payload:', supportData);
+                    }}
+                />
+            )}
 
-      {/* --------------------------------
+            {/* --------------------------------
                 Reassignment
             -------------------------------- */}
 
-      <HelpRequestReassignmentModal
-        key={selectedReassignmentRequest?.id || "reassignment-modal"}
-        request={selectedReassignmentRequest}
-        open={Boolean(selectedReassignmentRequest)}
-        loading={reassignmentLoading || assignmentDataLoading}
-        error={reassignmentError}
-        organizations={organizations}
-        volunteers={volunteers}
-        onClose={closeReassignmentModal}
-        onSubmit={handleReassignment}
-        onOrganizationClick={handleViewOrganization}
-      />
-    </>
-  );
+            <HelpRequestReassignmentModal
+                key={selectedReassignmentRequest?.id || 'reassignment-modal'}
+                request={selectedReassignmentRequest}
+                open={Boolean(selectedReassignmentRequest)}
+                loading={reassignmentLoading || assignmentDataLoading}
+                error={reassignmentError}
+                organizations={organizations}
+                volunteers={volunteers}
+                onClose={closeReassignmentModal}
+                onSubmit={handleReassignment}
+                onOrganizationClick={handleViewOrganization}
+            />
+        </>
+    );
 };
 
 /*
@@ -1910,226 +1993,239 @@ const HelpRequests = () => {
 */
 
 const WithdrawalReviewModal = ({
-  assignment,
-  loading = false,
-  error = "",
-  onClose,
-  onDecision,
-  onOrganizationClick,
+    assignment,
+    loading = false,
+    error = '',
+    onClose,
+    onDecision,
+    onOrganizationClick,
 }) => {
-  if (!assignment) {
-    return null;
-  }
-
-  const helpRequest = assignment?.help_request || assignment?.helpRequest || {};
-
-  const organization = assignment?.organization || {};
-
-  const organizationName =
-    organization?.name ||
-    organization?.user?.name ||
-    "Organization unavailable";
-
-  const organizationId =
-    organization?.id || assignment?.organization_id || null;
-
-  const requestTitle = helpRequest?.title || "Help request";
-
-  const requestDescription =
-    helpRequest?.description || "No description provided.";
-
-  const requestedAt = assignment?.withdrawal_requested_at;
-
-  const reason =
-    assignment?.withdrawal_reason || "No withdrawal reason was provided.";
-
-  const handleClose = () => {
-    if (loading) {
-      return;
+    if (!assignment) {
+        return null;
     }
 
-    onClose?.();
-  };
+    const helpRequest =
+        assignment?.help_request || assignment?.helpRequest || {};
 
-  return (
-    <div className="fixed inset-0 z-80 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
-      <div
-        className="absolute inset-0"
-        onClick={!loading ? handleClose : undefined}
-      />
+    const organization = assignment?.organization || {};
 
-      <div className="relative z-10 flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl bg-white shadow-[0_30px_100px_rgba(15,23,42,0.28)]">
-        <div className="flex items-start justify-between gap-5 border-b border-border px-6 py-5 sm:px-7">
-          <div className="flex min-w-0 items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
-              <RotateCcw size={18} strokeWidth={2} />
-            </div>
+    const organizationName =
+        organization?.name ||
+        organization?.user?.name ||
+        'Organization unavailable';
 
-            <div className="min-w-0">
-              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-amber-700">
-                Withdrawal review
-              </p>
+    const organizationId =
+        organization?.id || assignment?.organization_id || null;
 
-              <h2 className="mt-1 text-lg font-bold tracking-tight text-text-primary">
-                Organization withdrawal request
-              </h2>
+    const requestTitle = helpRequest?.title || 'Help request';
 
-              <p className="mt-1 text-xs leading-5 text-text-secondary">
-                Review the organization's reason before approving or rejecting
-                the withdrawal.
-              </p>
-            </div>
-          </div>
+    const requestDescription =
+        helpRequest?.description || 'No description provided.';
 
-          <button
-            type="button"
-            onClick={handleClose}
-            disabled={loading}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-text-secondary transition-colors hover:bg-background-alt hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
-            aria-label="Close">
-            <X size={18} />
-          </button>
-        </div>
+    const requestedAt = assignment?.withdrawal_requested_at;
 
-        <div className="overflow-y-auto px-6 py-6 sm:px-7">
-          <div className="space-y-5">
-            <div className="border border-border bg-background-alt/50 p-5">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-text-secondary">
-                    Organization
-                  </p>
+    const reason =
+        assignment?.withdrawal_reason || 'No withdrawal reason was provided.';
 
-                  <button
-                    type="button"
-                    disabled={!organizationId}
-                    onClick={() => onOrganizationClick?.(organizationId)}
-                    className="mt-1 text-left text-base font-bold text-text-primary transition-colors hover:text-primary disabled:cursor-default disabled:hover:text-text-primary">
-                    {organizationName}
-                  </button>
+    const handleClose = () => {
+        if (loading) {
+            return;
+        }
+
+        onClose?.();
+    };
+
+    return (
+        <div className="fixed inset-0 z-80 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm">
+            <div
+                className="absolute inset-0"
+                onClick={!loading ? handleClose : undefined}
+            />
+
+            <div className="relative z-10 flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl bg-white shadow-[0_30px_100px_rgba(15,23,42,0.28)]">
+                <div className="flex items-start justify-between gap-5 border-b border-border px-6 py-5 sm:px-7">
+                    <div className="flex min-w-0 items-start gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
+                            <RotateCcw size={18} strokeWidth={2} />
+                        </div>
+
+                        <div className="min-w-0">
+                            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-amber-700">
+                                Withdrawal review
+                            </p>
+
+                            <h2 className="mt-1 text-lg font-bold tracking-tight text-text-primary">
+                                Organization withdrawal request
+                            </h2>
+
+                            <p className="mt-1 text-xs leading-5 text-text-secondary">
+                                Review the organization's reason before
+                                approving or rejecting the withdrawal.
+                            </p>
+                        </div>
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={handleClose}
+                        disabled={loading}
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-text-secondary transition-colors hover:bg-background-alt hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
+                        aria-label="Close"
+                    >
+                        <X size={18} />
+                    </button>
                 </div>
 
-                <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-amber-700">
-                  <Clock3 size={11} />
-                  Pending review
-                </span>
-              </div>
+                <div className="overflow-y-auto px-6 py-6 sm:px-7">
+                    <div className="space-y-5">
+                        <div className="border border-border bg-background-alt/50 p-5">
+                            <div className="flex items-start justify-between gap-4">
+                                <div>
+                                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-text-secondary">
+                                        Organization
+                                    </p>
+
+                                    <button
+                                        type="button"
+                                        disabled={!organizationId}
+                                        onClick={() =>
+                                            onOrganizationClick?.(
+                                                organizationId,
+                                            )
+                                        }
+                                        className="mt-1 text-left text-base font-bold text-text-primary transition-colors hover:text-primary disabled:cursor-default disabled:hover:text-text-primary"
+                                    >
+                                        {organizationName}
+                                    </button>
+                                </div>
+
+                                <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-amber-700">
+                                    <Clock3 size={11} />
+                                    Pending review
+                                </span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-text-secondary">
+                                Help request
+                            </p>
+
+                            <h3 className="mt-1 text-base font-bold text-text-primary">
+                                {requestTitle}
+                            </h3>
+
+                            <p className="mt-2 text-sm leading-6 text-text-secondary">
+                                {requestDescription}
+                            </p>
+                        </div>
+
+                        {requestedAt && (
+                            <div className="border-t border-border pt-4">
+                                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-text-secondary">
+                                    Requested
+                                </p>
+
+                                <p className="mt-1 text-sm font-medium text-text-primary">
+                                    {formatDateTime(requestedAt)}
+                                </p>
+                            </div>
+                        )}
+
+                        <div className="border-t border-border pt-5">
+                            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-text-secondary">
+                                Organization's reason
+                            </p>
+
+                            <div className="mt-2 border border-amber-200 bg-amber-50 px-4 py-4">
+                                <p className="whitespace-pre-wrap text-sm leading-6 text-text-primary">
+                                    {reason}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="border border-border bg-background-alt px-4 py-4">
+                            <p className="text-xs font-bold text-text-primary">
+                                What happens after your decision?
+                            </p>
+
+                            <ul className="mt-2 space-y-1.5 text-xs leading-5 text-text-secondary">
+                                <li>
+                                    <span className="font-semibold text-text-primary">
+                                        Approve:
+                                    </span>{' '}
+                                    The current organization assignment becomes
+                                    withdrawn and remains in history.
+                                </li>
+
+                                <li>
+                                    <span className="font-semibold text-text-primary">
+                                        Reject:
+                                    </span>{' '}
+                                    The organization remains assigned and can
+                                    continue the help request.
+                                </li>
+
+                                <li>
+                                    <span className="font-semibold text-text-primary">
+                                        Reassignment:
+                                    </span>{' '}
+                                    A replacement organization will be handled
+                                    separately after an approved withdrawal.
+                                </li>
+                            </ul>
+                        </div>
+
+                        {error && (
+                            <div className="flex items-start gap-3 border-l-4 border-red-500 bg-red-50 px-4 py-3 text-sm text-red-700">
+                                <AlertCircle
+                                    size={17}
+                                    className="mt-0.5 shrink-0"
+                                />
+
+                                <p>{error}</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                <div className="flex flex-col-reverse gap-3 border-t border-border bg-white px-6 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-7">
+                    <button
+                        type="button"
+                        onClick={handleClose}
+                        disabled={loading}
+                        className="h-10 rounded-lg border border-border px-4 text-sm font-semibold text-text-secondary transition-colors hover:bg-background-alt hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        Cancel
+                    </button>
+
+                    <div className="flex flex-col gap-2 sm:flex-row">
+                        <button
+                            type="button"
+                            onClick={() => onDecision?.('rejected')}
+                            disabled={loading}
+                            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-red-200 bg-white px-4 text-sm font-bold text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            <XCircle size={16} />
+
+                            {loading ? 'Processing...' : 'Reject Withdrawal'}
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => onDecision?.('approved')}
+                            disabled={loading}
+                            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-primary px-5 text-sm font-bold text-white! transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            <CheckCircle2 size={16} />
+
+                            {loading ? 'Processing...' : 'Approve Withdrawal'}
+                        </button>
+                    </div>
+                </div>
             </div>
-
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-text-secondary">
-                Help request
-              </p>
-
-              <h3 className="mt-1 text-base font-bold text-text-primary">
-                {requestTitle}
-              </h3>
-
-              <p className="mt-2 text-sm leading-6 text-text-secondary">
-                {requestDescription}
-              </p>
-            </div>
-
-            {requestedAt && (
-              <div className="border-t border-border pt-4">
-                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-text-secondary">
-                  Requested
-                </p>
-
-                <p className="mt-1 text-sm font-medium text-text-primary">
-                  {formatDateTime(requestedAt)}
-                </p>
-              </div>
-            )}
-
-            <div className="border-t border-border pt-5">
-              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-text-secondary">
-                Organization's reason
-              </p>
-
-              <div className="mt-2 border border-amber-200 bg-amber-50 px-4 py-4">
-                <p className="whitespace-pre-wrap text-sm leading-6 text-text-primary">
-                  {reason}
-                </p>
-              </div>
-            </div>
-
-            <div className="border border-border bg-background-alt px-4 py-4">
-              <p className="text-xs font-bold text-text-primary">
-                What happens after your decision?
-              </p>
-
-              <ul className="mt-2 space-y-1.5 text-xs leading-5 text-text-secondary">
-                <li>
-                  <span className="font-semibold text-text-primary">
-                    Approve:
-                  </span>{" "}
-                  The current organization assignment becomes withdrawn and
-                  remains in history.
-                </li>
-
-                <li>
-                  <span className="font-semibold text-text-primary">
-                    Reject:
-                  </span>{" "}
-                  The organization remains assigned and can continue the help
-                  request.
-                </li>
-
-                <li>
-                  <span className="font-semibold text-text-primary">
-                    Reassignment:
-                  </span>{" "}
-                  A replacement organization will be handled separately after an
-                  approved withdrawal.
-                </li>
-              </ul>
-            </div>
-
-            {error && (
-              <div className="flex items-start gap-3 border-l-4 border-red-500 bg-red-50 px-4 py-3 text-sm text-red-700">
-                <AlertCircle size={17} className="mt-0.5 shrink-0" />
-
-                <p>{error}</p>
-              </div>
-            )}
-          </div>
         </div>
-
-        <div className="flex flex-col-reverse gap-3 border-t border-border bg-white px-6 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-7">
-          <button
-            type="button"
-            onClick={handleClose}
-            disabled={loading}
-            className="h-10 rounded-lg border border-border px-4 text-sm font-semibold text-text-secondary transition-colors hover:bg-background-alt hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-50">
-            Cancel
-          </button>
-
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <button
-              type="button"
-              onClick={() => onDecision?.("rejected")}
-              disabled={loading}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-red-200 bg-white px-4 text-sm font-bold text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50">
-              <XCircle size={16} />
-
-              {loading ? "Processing..." : "Reject Withdrawal"}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => onDecision?.("approved")}
-              disabled={loading}
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-primary px-5 text-sm font-bold text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50">
-              <CheckCircle2 size={16} />
-
-              {loading ? "Processing..." : "Approve Withdrawal"}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+    );
 };
 
 /*
@@ -2139,326 +2235,328 @@ const WithdrawalReviewModal = ({
 */
 
 const normalizeAssignmentStatus = (status) => {
-  return String(status || "")
-    .trim()
-    .toLowerCase();
+    return String(status || '')
+        .trim()
+        .toLowerCase();
 };
 
 const isPendingOrganizationAssignment = (assignment) => {
-  if (!assignment?.organization_id && !assignment?.organization) {
-    return false;
-  }
+    if (!assignment?.organization_id && !assignment?.organization) {
+        return false;
+    }
 
-  return normalizeAssignmentStatus(assignment.status) === "pending";
+    return normalizeAssignmentStatus(assignment.status) === 'pending';
 };
 
 const isActiveOrganizationAssignment = (assignment) => {
-  if (!assignment?.organization_id && !assignment?.organization) {
-    return false;
-  }
+    if (!assignment?.organization_id && !assignment?.organization) {
+        return false;
+    }
 
-  return ["assigned", "accepted", "in_progress", "completed"].includes(
-    normalizeAssignmentStatus(assignment.status),
-  );
+    return ['assigned', 'accepted', 'in_progress', 'completed'].includes(
+        normalizeAssignmentStatus(assignment.status),
+    );
 };
 
 const getOrganizationAssignments = (request) => {
-  if (!request) {
-    return [];
-  }
-
-  const assignments = [];
-
-  if (Array.isArray(request.assignments)) {
-    assignments.push(...request.assignments);
-  }
-
-  if (request.assignment) {
-    assignments.push(request.assignment);
-  }
-
-  return assignments.filter((assignment, index, array) => {
-    const assignmentId = assignment?.id;
-
-    if (!assignmentId) {
-      return index === array.indexOf(assignment);
+    if (!request) {
+        return [];
     }
 
-    return index === array.findIndex((item) => item?.id === assignmentId);
-  });
+    const assignments = [];
+
+    if (Array.isArray(request.assignments)) {
+        assignments.push(...request.assignments);
+    }
+
+    if (request.assignment) {
+        assignments.push(request.assignment);
+    }
+
+    return assignments.filter((assignment, index, array) => {
+        const assignmentId = assignment?.id;
+
+        if (!assignmentId) {
+            return index === array.indexOf(assignment);
+        }
+
+        return index === array.findIndex((item) => item?.id === assignmentId);
+    });
 };
 
 const hasExistingAssignment = (request) => {
-  if (!request) {
+    if (!request) {
+        return false;
+    }
+
+    const organizationAssignments = getOrganizationAssignments(request);
+
+    const hasActiveOrganization = organizationAssignments.some(
+        isActiveOrganizationAssignment,
+    );
+
+    if (hasActiveOrganization) {
+        return true;
+    }
+
+    if (
+        Array.isArray(request.assigned_volunteers) &&
+        request.assigned_volunteers.length > 0
+    ) {
+        return true;
+    }
+
+    if (Array.isArray(request.volunteers) && request.volunteers.length > 0) {
+        return true;
+    }
+
     return false;
-  }
-
-  const organizationAssignments = getOrganizationAssignments(request);
-
-  const hasActiveOrganization = organizationAssignments.some(
-    isActiveOrganizationAssignment,
-  );
-
-  if (hasActiveOrganization) {
-    return true;
-  }
-
-  if (
-    Array.isArray(request.assigned_volunteers) &&
-    request.assigned_volunteers.length > 0
-  ) {
-    return true;
-  }
-
-  if (Array.isArray(request.volunteers) && request.volunteers.length > 0) {
-    return true;
-  }
-
-  return false;
 };
 
 const hasPendingOrganizationAssignment = (request) => {
-  return getOrganizationAssignments(request).some(
-    isPendingOrganizationAssignment,
-  );
+    return getOrganizationAssignments(request).some(
+        isPendingOrganizationAssignment,
+    );
 };
 
 const hasActiveOrganizationAssignment = (request) => {
-  return getOrganizationAssignments(request).some(
-    isActiveOrganizationAssignment,
-  );
+    return getOrganizationAssignments(request).some(
+        isActiveOrganizationAssignment,
+    );
 };
 
 const getPendingWithdrawalAssignment = (request) => {
-  if (!request) {
-    return null;
-  }
+    if (!request) {
+        return null;
+    }
 
-  const assignments = getOrganizationAssignments(request);
+    const assignments = getOrganizationAssignments(request);
 
-  return (
-    assignments.find(
-      (assignment) =>
-        Boolean(assignment?.organization_id || assignment?.organization) &&
-        String(assignment?.withdrawal_status || "")
-          .trim()
-          .toLowerCase() === "pending",
-    ) || null
-  );
+    return (
+        assignments.find(
+            (assignment) =>
+                Boolean(
+                    assignment?.organization_id || assignment?.organization,
+                ) &&
+                String(assignment?.withdrawal_status || '')
+                    .trim()
+                    .toLowerCase() === 'pending',
+        ) || null
+    );
 };
 
 const hasOrganizationRequestedWithdrawal = (request) => {
-  if (!request) {
-    return false;
-  }
-
-  if (request.organization_withdrawal_requested === true) {
-    return true;
-  }
-
-  if (request.withdrawal_requested === true) {
-    return true;
-  }
-
-  if (request.assignment?.withdrawal_requested === true) {
-    return true;
-  }
-
-  if (request.assigned_organization?.withdrawal_requested === true) {
-    return true;
-  }
-
-  if (request.assignment?.withdrawal_status === "pending") {
-    return true;
-  }
-
-  if (
-    request.organization_withdrawal_status === "requested" ||
-    request.organization_withdrawal_status === "pending"
-  ) {
-    return true;
-  }
-
-  if (Array.isArray(request.assignments)) {
-    return request.assignments.some((assignment) => {
-      if (!assignment?.organization_id) {
+    if (!request) {
         return false;
-      }
+    }
 
-      return (
-        assignment.withdrawal_requested === true ||
-        assignment.withdrawal_status === "requested" ||
-        assignment.withdrawal_status === "pending" ||
-        assignment.status === "withdrawal_requested" ||
-        assignment.status === "withdrawal_pending"
-      );
-    });
-  }
+    if (request.organization_withdrawal_requested === true) {
+        return true;
+    }
 
-  return false;
+    if (request.withdrawal_requested === true) {
+        return true;
+    }
+
+    if (request.assignment?.withdrawal_requested === true) {
+        return true;
+    }
+
+    if (request.assigned_organization?.withdrawal_requested === true) {
+        return true;
+    }
+
+    if (request.assignment?.withdrawal_status === 'pending') {
+        return true;
+    }
+
+    if (
+        request.organization_withdrawal_status === 'requested' ||
+        request.organization_withdrawal_status === 'pending'
+    ) {
+        return true;
+    }
+
+    if (Array.isArray(request.assignments)) {
+        return request.assignments.some((assignment) => {
+            if (!assignment?.organization_id) {
+                return false;
+            }
+
+            return (
+                assignment.withdrawal_requested === true ||
+                assignment.withdrawal_status === 'requested' ||
+                assignment.withdrawal_status === 'pending' ||
+                assignment.status === 'withdrawal_requested' ||
+                assignment.status === 'withdrawal_pending'
+            );
+        });
+    }
+
+    return false;
 };
 
 const hasAdditionalSupportRequest = (request) => {
-  if (!request) {
+    if (!request) {
+        return false;
+    }
+
+    if (request.additional_support_requested === true) {
+        return true;
+    }
+
+    if (request.support_requested === true) {
+        return true;
+    }
+
+    if (request.need_additional_support === true) {
+        return true;
+    }
+
+    if (request.additional_help_requested === true) {
+        return true;
+    }
+
+    if (request.assignment?.additional_support_requested === true) {
+        return true;
+    }
+
+    if (request.assignment?.support_requested === true) {
+        return true;
+    }
+
+    if (request.assigned_organization?.additional_support_requested === true) {
+        return true;
+    }
+
+    if (request.assigned_organization?.support_requested === true) {
+        return true;
+    }
+
+    if (
+        request.additional_support_status === 'requested' ||
+        request.additional_support_status === 'pending'
+    ) {
+        return true;
+    }
+
+    if (
+        request.support_request_status === 'requested' ||
+        request.support_request_status === 'pending'
+    ) {
+        return true;
+    }
+
+    if (Array.isArray(request.assignments)) {
+        return request.assignments.some(
+            (assignment) =>
+                assignment?.additional_support_requested === true ||
+                assignment?.support_requested === true ||
+                assignment?.additional_support_status === 'requested' ||
+                assignment?.additional_support_status === 'pending' ||
+                assignment?.support_request_status === 'requested' ||
+                assignment?.support_request_status === 'pending' ||
+                assignment?.status === 'support_requested',
+        );
+    }
+
     return false;
-  }
-
-  if (request.additional_support_requested === true) {
-    return true;
-  }
-
-  if (request.support_requested === true) {
-    return true;
-  }
-
-  if (request.need_additional_support === true) {
-    return true;
-  }
-
-  if (request.additional_help_requested === true) {
-    return true;
-  }
-
-  if (request.assignment?.additional_support_requested === true) {
-    return true;
-  }
-
-  if (request.assignment?.support_requested === true) {
-    return true;
-  }
-
-  if (request.assigned_organization?.additional_support_requested === true) {
-    return true;
-  }
-
-  if (request.assigned_organization?.support_requested === true) {
-    return true;
-  }
-
-  if (
-    request.additional_support_status === "requested" ||
-    request.additional_support_status === "pending"
-  ) {
-    return true;
-  }
-
-  if (
-    request.support_request_status === "requested" ||
-    request.support_request_status === "pending"
-  ) {
-    return true;
-  }
-
-  if (Array.isArray(request.assignments)) {
-    return request.assignments.some(
-      (assignment) =>
-        assignment?.additional_support_requested === true ||
-        assignment?.support_requested === true ||
-        assignment?.additional_support_status === "requested" ||
-        assignment?.additional_support_status === "pending" ||
-        assignment?.support_request_status === "requested" ||
-        assignment?.support_request_status === "pending" ||
-        assignment?.status === "support_requested",
-    );
-  }
-
-  return false;
 };
 
 const getAssignedOrganizationName = (request) => {
-  if (!request) {
-    return "Not assigned";
-  }
+    if (!request) {
+        return 'Not assigned';
+    }
 
-  const organizationAssignments = getOrganizationAssignments(request);
+    const organizationAssignments = getOrganizationAssignments(request);
 
-  const pendingAssignment = organizationAssignments.find(
-    isPendingOrganizationAssignment,
-  );
+    const pendingAssignment = organizationAssignments.find(
+        isPendingOrganizationAssignment,
+    );
 
-  if (pendingAssignment) {
-    return "Assignment Pending";
-  }
+    if (pendingAssignment) {
+        return 'Assignment Pending';
+    }
 
-  const activeAssignment = organizationAssignments.find(
-    isActiveOrganizationAssignment,
-  );
+    const activeAssignment = organizationAssignments.find(
+        isActiveOrganizationAssignment,
+    );
 
-  if (activeAssignment?.organization?.name) {
-    return activeAssignment.organization.name;
-  }
+    if (activeAssignment?.organization?.name) {
+        return activeAssignment.organization.name;
+    }
 
-  if (activeAssignment?.organization?.user?.name) {
-    return activeAssignment.organization.user.name;
-  }
+    if (activeAssignment?.organization?.user?.name) {
+        return activeAssignment.organization.user.name;
+    }
 
-  if (
-    organizationAssignments.length === 0 &&
-    request.assigned_organization?.name
-  ) {
-    return request.assigned_organization.name;
-  }
+    if (
+        organizationAssignments.length === 0 &&
+        request.assigned_organization?.name
+    ) {
+        return request.assigned_organization.name;
+    }
 
-  if (
-    organizationAssignments.length === 0 &&
-    typeof request.assigned_organization === "string"
-  ) {
-    return request.assigned_organization;
-  }
+    if (
+        organizationAssignments.length === 0 &&
+        typeof request.assigned_organization === 'string'
+    ) {
+        return request.assigned_organization;
+    }
 
-  return "Not assigned";
+    return 'Not assigned';
 };
 
 const getAssignedOrganizationId = (request) => {
-  if (!request) {
+    if (!request) {
+        return null;
+    }
+
+    const organizationAssignments = getOrganizationAssignments(request);
+
+    const activeAssignment = organizationAssignments.find(
+        isActiveOrganizationAssignment,
+    );
+
+    if (activeAssignment?.organization?.id) {
+        return activeAssignment.organization.id;
+    }
+
+    if (activeAssignment?.organization_id) {
+        return activeAssignment.organization_id;
+    }
+
+    if (organizationAssignments.length === 0) {
+        if (request.assigned_organization?.id) {
+            return request.assigned_organization.id;
+        }
+
+        if (request.assigned_organization_id) {
+            return request.assigned_organization_id;
+        }
+    }
+
     return null;
-  }
-
-  const organizationAssignments = getOrganizationAssignments(request);
-
-  const activeAssignment = organizationAssignments.find(
-    isActiveOrganizationAssignment,
-  );
-
-  if (activeAssignment?.organization?.id) {
-    return activeAssignment.organization.id;
-  }
-
-  if (activeAssignment?.organization_id) {
-    return activeAssignment.organization_id;
-  }
-
-  if (organizationAssignments.length === 0) {
-    if (request.assigned_organization?.id) {
-      return request.assigned_organization.id;
-    }
-
-    if (request.assigned_organization_id) {
-      return request.assigned_organization_id;
-    }
-  }
-
-  return null;
 };
 
 const formatDateTime = (value) => {
-  if (!value) {
-    return "Not available";
-  }
+    if (!value) {
+        return 'Not available';
+    }
 
-  const date = new Date(value);
+    const date = new Date(value);
 
-  if (Number.isNaN(date.getTime())) {
-    return String(value);
-  }
+    if (Number.isNaN(date.getTime())) {
+        return String(value);
+    }
 
-  return date.toLocaleString("en-BD", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
+    return date.toLocaleString('en-BD', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+    });
 };
 
 export default HelpRequests;

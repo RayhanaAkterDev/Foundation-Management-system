@@ -50,7 +50,7 @@ const NetworkItem = ({
                             transition-all duration-300
                             group-hover:border-primary
                             group-hover:bg-primary
-                            group-hover:text-white
+                            group-hover:text-white!
                         "
                     >
                         <Icon
@@ -204,7 +204,7 @@ const NetworkSection = ({
                                         className="
                                             flex h-10 w-10
                                             items-center justify-center
-                                            bg-primary text-white
+                                            bg-primary text-white!
                                         "
                                     >
                                         <Users size={18} strokeWidth={1.6} />
@@ -474,7 +474,7 @@ const NetworkSection = ({
                                         font-poppins text-[10px]
                                         font-semibold uppercase
                                         tracking-[0.12em]
-                                        text-white/60
+                                        text-white!/60
                                     "
                                 >
                                     Connected action
@@ -486,7 +486,7 @@ const NetworkSection = ({
                                     font-fraunces text-[24px]
                                     leading-[1.2]
                                     tracking-[-0.02em]
-                                    text-white
+                                    text-white!
                                 "
                             >
                                 Every participant strengthens the path from
@@ -498,7 +498,7 @@ const NetworkSection = ({
                                     mt-3 max-w-85
                                     font-jost text-[12px]
                                     leading-[1.55]
-                                    text-white/60
+                                    text-white!/60
                                 "
                             >
                                 People bring the need. Organizations bring

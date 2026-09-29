@@ -2,13 +2,7 @@ import React from 'react';
 
 import { AlertTriangle, X, Building2, Trash2 } from 'lucide-react';
 
-const DeleteModal = ({
-    organization,
-    loading,
-    error,
-    onClose,
-    onConfirm,
-}) => {
+const DeleteModal = ({ organization, loading, error, onClose, onConfirm }) => {
     if (!organization) {
         return null;
     }
@@ -174,7 +168,7 @@ const DeleteModal = ({
                                 rounded-lg
                                 bg-[#b42318]
                                 px-5
-                                text-[12.5px] font-semibold text-white
+                                text-[12.5px] font-semibold text-white!
                                 shadow-sm
                                 transition-all duration-200
                                 hover:bg-[#9f1d14]

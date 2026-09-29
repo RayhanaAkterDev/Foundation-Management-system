@@ -41,11 +41,11 @@ const Stats = ({ total = 0, active = 0, pending = 0, inactive = 0 }) => {
                     <div className="relative flex min-h-36 flex-col justify-between">
                         <div className="flex items-start justify-between gap-5">
                             <div>
-                                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/55">
+                                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white!/55">
                                     Volunteer network
                                 </p>
 
-                                <h3 className="mt-2 text-[17px] font-semibold tracking-[-0.02em] text-white">
+                                <h3 className="mt-2 text-[17px] font-semibold tracking-[-0.02em] text-white!">
                                     Total volunteers
                                 </h3>
                             </div>
@@ -54,23 +54,23 @@ const Stats = ({ total = 0, active = 0, pending = 0, inactive = 0 }) => {
                                 <UserRound
                                     size={19}
                                     strokeWidth={1.7}
-                                    className="text-white"
+                                    className="text-white!"
                                 />
                             </div>
                         </div>
 
                         <div className="mt-7 flex items-end justify-between gap-5">
                             <div>
-                                <p className="font-jost text-[42px] font-semibold leading-none tracking-[-0.04em] text-white">
+                                <p className="font-jost text-[42px] font-semibold leading-none tracking-[-0.04em] text-white!">
                                     {total}
                                 </p>
 
-                                <p className="mt-2 text-[11px] leading-4 text-white/50">
+                                <p className="mt-2 text-[11px] leading-4 text-white!/50">
                                     Registered across the platform
                                 </p>
                             </div>
 
-                            <span className="hidden border-l border-white/15 pl-4 text-[9px] font-bold uppercase leading-4 tracking-[0.12em] text-white/45 sm:block">
+                            <span className="hidden border-l border-white/15 pl-4 text-[9px] font-bold uppercase leading-4 tracking-[0.12em] text-white!/45 sm:block">
                                 Community
                                 <br />
                                 support

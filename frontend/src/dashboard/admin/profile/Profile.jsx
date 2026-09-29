@@ -302,7 +302,7 @@ const Profile = () => {
                         <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-center">
                             <div className="flex items-center gap-4">
                                 <div className="relative">
-                                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-xl font-semibold text-white shadow-[0_4px_12px_rgba(15,118,110,0.16)]">
+                                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-xl font-semibold text-white! shadow-[0_4px_12px_rgba(15,118,110,0.16)]">
                                         {firstLetter}
                                     </div>
 
@@ -490,7 +490,7 @@ const Profile = () => {
                                     inline-flex h-10 items-center justify-center gap-2
                                     cursor-pointer
                                     bg-primary px-5
-                                    text-[13px] font-semibold text-white
+                                    text-[13px] font-semibold text-white!
                                     shadow-sm
                                     transition-all duration-200
                                     hover:bg-primary-hover
@@ -581,7 +581,7 @@ const Profile = () => {
                                         inline-flex h-10 items-center justify-center gap-2
                                         cursor-pointer
                                         bg-primary px-5
-                                        text-[13px] font-semibold text-white
+                                        text-[13px] font-semibold text-white!
                                         shadow-sm
                                         transition-all duration-200
                                         hover:bg-primary-hover

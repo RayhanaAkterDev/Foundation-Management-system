@@ -22,8 +22,14 @@ import PaymentResult from '@/pages/public/donationPage/PaymentResult';
 import Volunteer from '@/pages/public/volunteerPage/Volunteer';
 import RequestHelp from '@/pages/public/requestHelpPage/RequestHelp';
 import Organizations from '@/pages/public/OrganizationsPage/Organizations';
-import Stories from '@/pages/public/storiesPage/Stories';
 import About from '@/pages/public/about/About';
+import Mission from '@/pages/public/about/mission/Mission';
+import Story from '@/pages/public/about/story/Story';
+import Team from '@/pages/public/about/team/Team';
+import Impact from '@/pages/public/about/impact/Impact';
+import Report from '@/pages/public/about/report/Report';
+import TrustSafety from '@/pages/public/about/trustSafety/TrustSafety';
+import Community from '@/pages/public/communityPage/Community';
 
 // Account pages
 import AuthLayout from '@/layouts/AuthLayout/AuthLayout';
@@ -100,8 +106,28 @@ const router = createBrowserRouter([
                 element: <About />,
             },
             {
-                path: 'how-it-works',
-                element: <HowItWorksPage />,
+                path: 'about/mission',
+                element: <Mission />,
+            },
+            {
+                path: 'about/story',
+                element: <Story />,
+            },
+            {
+                path: 'about/team',
+                element: <Team />,
+            },
+            {
+                path: 'about/impact',
+                element: <Impact />,
+            },
+            {
+                path: 'about/reports',
+                element: <Report />,
+            },
+            {
+                path: 'about/trust-safety',
+                element: <TrustSafety />,
             },
 
             // CATEGORY PAGE
@@ -169,10 +195,10 @@ const router = createBrowserRouter([
                 element: <Organizations />,
             },
 
-            // STORIES
+            // COMMUNITY
             {
-                path: 'stories',
-                element: <Stories />,
+                path: 'community',
+                element: <Community />,
             },
         ],
     },

@@ -21,7 +21,7 @@ const HelpRequestStats = ({
         <section className="overflow-hidden rounded-2xl border border-primary/15 bg-white shadow-sm">
             <div className="grid grid-cols-1 lg:grid-cols-[1.15fr_2.85fr]">
                 {/* Primary metric */}
-                <div className="relative overflow-hidden bg-primary px-6 py-7 text-white sm:px-7">
+                <div className="relative overflow-hidden bg-primary px-6 py-7 text-white! sm:px-7">
                     <div className="absolute -right-10 -top-10 h-36 w-36 rounded-full bg-white/5" />
                     <div className="absolute -bottom-16 right-8 h-40 w-40 rounded-full bg-white/5" />
 
@@ -31,13 +31,13 @@ const HelpRequestStats = ({
                                 <LifeBuoy size={20} strokeWidth={1.8} />
                             </div>
 
-                            <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/60">
+                            <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-white!/60">
                                 All requests
                             </span>
                         </div>
 
                         <div className="mt-auto pt-10">
-                            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-white/65">
+                            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-white!/65">
                                 Total help requests
                             </p>
 
@@ -45,7 +45,7 @@ const HelpRequestStats = ({
                                 {total}
                             </p>
 
-                            <p className="mt-2 max-w-55 text-xs leading-5 text-white/65">
+                            <p className="mt-2 max-w-55 text-xs leading-5 text-white!/65">
                                 Total help requests submitted through the Stand
                                 For People platform.
                             </p>

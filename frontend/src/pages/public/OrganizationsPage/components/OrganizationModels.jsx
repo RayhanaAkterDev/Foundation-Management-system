@@ -45,11 +45,11 @@ const PartnerModels = () => {
     const [active, setActive] = useState(0);
 
     return (
-        <section className="mt-14 bg-primary py-12 text-white sm:mt-20 sm:py-20">
+        <section className="mt-14 bg-primary py-12 text-white! sm:mt-20 sm:py-20">
             <div className="container-width">
                 {/* HEADER */}
                 <div className="px-4">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/60 sm:text-sm">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white!/60 sm:text-sm">
                         কীভাবে প্রতিষ্ঠানগুলো কাজ করে
                     </p>
 
@@ -73,7 +73,7 @@ const PartnerModels = () => {
                             max-w-2xl
                             text-xs
                             leading-relaxed
-                            text-white/70
+                            text-white!/70
                             sm:text-sm
                             lg:text-base
                         "
@@ -107,7 +107,7 @@ const PartnerModels = () => {
                                 >
                                     {/* LEFT */}
                                     <div className="flex min-w-0 gap-3 sm:gap-5">
-                                        <div className="mt-0.5 shrink-0 text-white/80">
+                                        <div className="mt-0.5 shrink-0 text-white!/80">
                                             <Icon className="text-base sm:text-xl" />
                                         </div>
 
@@ -129,7 +129,7 @@ const PartnerModels = () => {
                                                     mt-0.5
                                                     text-[10px]
                                                     leading-snug
-                                                    text-white/50
+                                                    text-white!/50
                                                     sm:text-xs
                                                     lg:text-sm
                                                 "
@@ -145,7 +145,7 @@ const PartnerModels = () => {
                                             shrink-0
                                             text-lg
                                             leading-none
-                                            text-white/50
+                                            text-white!/50
                                             sm:text-2xl
                                         "
                                         aria-hidden="true"
@@ -174,7 +174,7 @@ const PartnerModels = () => {
                                             pl-7
                                             text-xs
                                             leading-relaxed
-                                            text-white/70
+                                            text-white!/70
                                             sm:pl-10
                                             sm:text-sm
                                             lg:text-base

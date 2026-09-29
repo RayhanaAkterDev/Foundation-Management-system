@@ -218,7 +218,7 @@ const Footer = () => {
                             py-2.5
                             text-[13px]
                             font-semibold
-                            text-white
+                            text-white!
                             transition-colors
                             duration-200
                             hover:bg-primary-hover

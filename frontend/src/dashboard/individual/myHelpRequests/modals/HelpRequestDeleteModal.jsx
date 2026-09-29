@@ -156,7 +156,7 @@ const HelpRequestDeleteModal = ({
                                 type="button"
                                 onClick={onConfirm}
                                 disabled={deleting}
-                                className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-[10px] bg-red-600 px-4 text-[11px] font-semibold text-white shadow-[0_4px_14px_rgba(220,38,38,0.16)] transition-all hover:bg-red-700 hover:shadow-[0_6px_18px_rgba(220,38,38,0.22)] disabled:cursor-not-allowed disabled:opacity-55 sm:h-10 sm:flex-none sm:px-4.5 sm:text-[12px]"
+                                className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-[10px] bg-red-600 px-4 text-[11px] font-semibold text-white! shadow-[0_4px_14px_rgba(220,38,38,0.16)] transition-all hover:bg-red-700 hover:shadow-[0_6px_18px_rgba(220,38,38,0.22)] disabled:cursor-not-allowed disabled:opacity-55 sm:h-10 sm:flex-none sm:px-4.5 sm:text-[12px]"
                             >
                                 {deleting ? (
                                     <>

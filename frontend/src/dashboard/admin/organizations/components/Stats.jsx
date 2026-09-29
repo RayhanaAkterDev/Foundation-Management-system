@@ -224,7 +224,7 @@ const Stats = ({ total, verified, pending, rejected }) => {
                             Open review queue
                         </span>
 
-                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white text-text-secondary shadow-sm ring-1 ring-inset ring-border transition-all group-hover:bg-primary group-hover:text-white group-hover:ring-primary">
+                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white text-text-secondary shadow-sm ring-1 ring-inset ring-border transition-all group-hover:bg-primary group-hover:text-white! group-hover:ring-primary">
                             <ChevronRight size={14} strokeWidth={2} />
                         </span>
                     </button>

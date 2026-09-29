@@ -22,7 +22,7 @@ const UrgencySelector = ({ form, setForm, error }) => {
                         }
                         className={`p-4 border rounded-xl text-left ${
                             form.urgency === l.label
-                                ? 'bg-primary text-white'
+                                ? 'bg-primary text-white!'
                                 : 'border-border'
                         }`}
                     >

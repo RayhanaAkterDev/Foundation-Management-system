@@ -13,11 +13,9 @@ import {
     ShieldCheck,
 } from 'lucide-react';
 
-const API_URL =
-    `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api'}/email/verification-notification`;
+const API_URL = `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api'}/email/verification-notification`;
 
-const DEMO_VERIFICATION_URL =
-    `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api'}/email/verify-demo`;
+const DEMO_VERIFICATION_URL = `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api'}/email/verify-demo`;
 
 const EmailVerification = () => {
     const [searchParams] = useSearchParams();
@@ -306,7 +304,7 @@ const EmailVerification = () => {
                         <button
                             type="submit"
                             disabled={isResending}
-                            className="mt-5 flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white transition hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-12"
+                            className="mt-5 flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white! transition hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-12"
                         >
                             {isResending ? (
                                 <>
@@ -411,7 +409,7 @@ const EmailVerification = () => {
                             py-2.5
                             text-sm
                             font-medium
-                            text-white
+                            text-white!
                             transition
                             hover:bg-primary-hover
                             focus:outline-none
@@ -487,7 +485,7 @@ const EmailVerification = () => {
 
                     <Link
                         to="/account"
-                        className="mt-7 inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white transition hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 sm:mt-8"
+                        className="mt-7 inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white! transition hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 sm:mt-8"
                     >
                         Continue to Sign In
                         <ArrowRight size={17} strokeWidth={1.8} />
@@ -526,7 +524,7 @@ const EmailVerification = () => {
 
                     <Link
                         to="/account"
-                        className="mt-7 inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white transition hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 sm:mt-8"
+                        className="mt-7 inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white! transition hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 sm:mt-8"
                     >
                         Continue to Sign In
                         <ArrowRight size={17} strokeWidth={1.8} />
@@ -671,7 +669,7 @@ const EmailVerification = () => {
                         <button
                             type="submit"
                             disabled={isResending}
-                            className="mt-5 flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white transition hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-12"
+                            className="mt-5 flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white! transition hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-12"
                         >
                             {isResending ? (
                                 <>

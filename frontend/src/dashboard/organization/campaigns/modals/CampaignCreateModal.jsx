@@ -651,7 +651,7 @@ const CampaignCreateModal = ({
                 {/* Header */}
                 <header className="relative flex shrink-0 items-center justify-between border-b border-border bg-white px-5 py-4 sm:px-7 lg:px-8">
                     <div className="flex min-w-0 items-center gap-3.5">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-white shadow-sm">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-white! shadow-sm">
                             <Target
                                 className="h-[18px] w-[18px]"
                                 strokeWidth={1.8}
@@ -723,7 +723,7 @@ const CampaignCreateModal = ({
                                         <div className="absolute left-[15px] top-5 h-[calc(100%-40px)] w-px bg-primary/15" />
 
                                         <div className="relative flex gap-4">
-                                            <span className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-white ring-4 ring-[#f0fdfa]">
+                                            <span className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-white! ring-4 ring-[#f0fdfa]">
                                                 1
                                             </span>
 
@@ -1560,7 +1560,7 @@ const CampaignCreateModal = ({
                             <button
                                 type="submit"
                                 disabled={isSubmitting}
-                                className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-5 text-[11px] font-semibold text-white shadow-sm transition-all hover:bg-primary-hover hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
+                                className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-5 text-[11px] font-semibold text-white! shadow-sm transition-all hover:bg-primary-hover hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
                             >
                                 {isSubmitting && (
                                     <Loader2 className="h-3.5 w-3.5 animate-spin" />

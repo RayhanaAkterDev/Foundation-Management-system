@@ -149,7 +149,7 @@ const ViewModal = ({ organization, loading, error, onClose }) => {
                             HERO
                         ================================================== */}
 
-                        <div className="relative shrink-0 overflow-hidden bg-primary text-white">
+                        <div className="relative shrink-0 overflow-hidden bg-primary text-white!">
                             {/* Decorative composition */}
                             <div className="pointer-events-none absolute inset-0">
                                 <div className="absolute -right-24 -top-48 h-h-130 w-h-130 rounded-full border-90 border-white/[0.035]" />
@@ -164,7 +164,7 @@ const ViewModal = ({ organization, loading, error, onClose }) => {
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="absolute right-5 top-5 z-20 flex h-9 w-9 items-center justify-center rounded-xl text-white/45 transition hover:bg-white/10 hover:text-white"
+                                className="absolute right-5 top-5 z-20 flex h-9 w-9 items-center justify-center rounded-xl text-white!/45 transition hover:bg-white/10 hover:text-white!"
                                 aria-label="Close"
                             >
                                 <X size={19} />
@@ -191,13 +191,13 @@ const ViewModal = ({ organization, loading, error, onClose }) => {
 
                                         <div className="min-w-0">
                                             <div className="flex flex-wrap items-center gap-2">
-                                                <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/40">
+                                                <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white!/40">
                                                     Organization profile
                                                 </span>
 
                                                 <span className="h-1 w-1 rounded-full bg-white/25" />
 
-                                                <span className="text-[10px] text-white/40">
+                                                <span className="text-[10px] text-white!/40">
                                                     {formatType(
                                                         organization.organization_type,
                                                     )}
@@ -208,7 +208,7 @@ const ViewModal = ({ organization, loading, error, onClose }) => {
                                                 {organization.name}
                                             </h2>
 
-                                            <div className="mt-3 flex min-w-0 items-center gap-2 text-[13px] text-white/55">
+                                            <div className="mt-3 flex min-w-0 items-center gap-2 text-[13px] text-white!/55">
                                                 <Mail
                                                     size={14}
                                                     strokeWidth={1.6}
@@ -271,7 +271,7 @@ const ViewModal = ({ organization, loading, error, onClose }) => {
                                         />
                                     </div>
 
-                                    <span className="hidden text-[9px] font-medium uppercase tracking-[0.16em] text-white/25 lg:block">
+                                    <span className="hidden text-[9px] font-medium uppercase tracking-[0.16em] text-white!/25 lg:block">
                                         Organization
                                     </span>
                                 </div>
@@ -513,7 +513,7 @@ const ViewModal = ({ organization, loading, error, onClose }) => {
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-md"
+                                className="rounded-xl bg-primary px-6 py-2.5 text-sm font-semibold text-white! shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary-hover hover:shadow-md"
                             >
                                 Done
                             </button>
@@ -532,7 +532,7 @@ const ViewModal = ({ organization, loading, error, onClose }) => {
 const StatusBlock = ({ label, status }) => {
     return (
         <div className="min-w-30 rounded-xl border border-white/10 bg-white/[0.07] px-3.5 py-2.5">
-            <p className="mb-1.5 text-[8px] font-bold uppercase tracking-[0.14em] text-white/35">
+            <p className="mb-1.5 text-[8px] font-bold uppercase tracking-[0.14em] text-white!/35">
                 {label}
             </p>
 
@@ -548,11 +548,11 @@ const StatusBlock = ({ label, status }) => {
 const HeaderMeta = ({ icon: Icon, label, value }) => {
     return (
         <div className="flex items-center gap-2">
-            <Icon size={13} strokeWidth={1.7} className="text-white/30" />
+            <Icon size={13} strokeWidth={1.7} className="text-white!/30" />
 
-            <span className="text-[10px] text-white/35">{label}</span>
+            <span className="text-[10px] text-white!/35">{label}</span>
 
-            <span className="text-[11px] font-medium text-white/60">
+            <span className="text-[11px] font-medium text-white!/60">
                 {value}
             </span>
         </div>

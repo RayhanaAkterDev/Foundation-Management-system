@@ -140,12 +140,12 @@ const StatCard = ({
                                             `
                                             : isPrimary
                                               ? `
-                                                bg-white/15 text-white
+                                                bg-white/15 text-white!
                                                 group-hover:bg-white/25
                                             `
                                               : `
                                                 bg-primary/10 text-primary
-                                                group-hover:bg-primary group-hover:text-white
+                                                group-hover:bg-primary group-hover:text-white!
                                             `
                                     }
                                 `}
@@ -163,7 +163,7 @@ const StatCard = ({
                                 ${s.value}
                                 ${
                                     isPrimary
-                                        ? 'text-white'
+                                        ? 'text-white!'
                                         : isLine
                                           ? 'text-primary-deep'
                                           : 'text-text-primary'
@@ -179,7 +179,7 @@ const StatCard = ({
                                 ${s.label}
                                 ${
                                     isPrimary
-                                        ? 'text-white/75'
+                                        ? 'text-white!/75'
                                         : 'text-text-secondary'
                                 }
                             `}

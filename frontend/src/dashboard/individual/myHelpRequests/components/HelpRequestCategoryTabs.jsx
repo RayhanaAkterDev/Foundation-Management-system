@@ -43,7 +43,7 @@ const HelpRequestCategoryTabs = ({ tabs, activeCategory, onChange }) => {
                                     text-[10px] font-bold
                                     ${
                                         active
-                                            ? 'bg-primary text-white'
+                                            ? 'bg-primary text-white!'
                                             : 'bg-background-alt text-text-secondary group-hover:bg-primary/10 group-hover:text-primary'
                                     }
                                 `}

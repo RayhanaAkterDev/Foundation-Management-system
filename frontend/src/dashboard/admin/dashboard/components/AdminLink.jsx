@@ -72,7 +72,7 @@ const AdminLink = ({ icon: Icon, title, description, index, onClick }) => {
                     transition-all
                     duration-200
                     group-hover:bg-primary
-                    group-hover:text-white
+                    group-hover:text-white!
                     sm:h-10
                     sm:w-10
                 "
@@ -142,7 +142,7 @@ const AdminLink = ({ icon: Icon, title, description, index, onClick }) => {
                     duration-200
                     group-hover:border-primary
                     group-hover:bg-primary
-                    group-hover:text-white
+                    group-hover:text-white!
                     sm:h-9
                     sm:w-9
                 "

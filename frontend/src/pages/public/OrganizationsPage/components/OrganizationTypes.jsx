@@ -191,7 +191,7 @@ const OrganizationTypes = () => {
 
                         <Link
                             to="/account/register"
-                            className="mt-5 inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-primary/90 lg:mt-0"
+                            className="mt-5 inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white! transition-colors hover:bg-primary/90 lg:mt-0"
                         >
                             প্রতিষ্ঠান নিবন্ধন করুন
                             <TbArrowUpRight className="text-lg" />

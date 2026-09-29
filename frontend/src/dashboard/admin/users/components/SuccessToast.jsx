@@ -63,7 +63,7 @@ const SuccessToast = ({ show, message }) => {
                             <Sparkles
                                 size={8}
                                 strokeWidth={2.5}
-                                className="text-white"
+                                className="text-white!"
                             />
                         </span>
                     </div>

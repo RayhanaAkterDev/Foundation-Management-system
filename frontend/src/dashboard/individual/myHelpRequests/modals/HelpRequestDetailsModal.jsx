@@ -246,22 +246,22 @@ const HelpRequestDetailModal = ({ isOpen, request, onClose }) => {
                         <div className="shrink-0">
                             <div className="flex items-center gap-2.5">
                                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/10">
-                                    <FileText className="h-4 w-4 text-white" />
+                                    <FileText className="h-4 w-4 text-white!" />
                                 </div>
 
-                                <span className="text-[9px] font-bold uppercase tracking-[0.17em] text-white/60">
+                                <span className="text-[9px] font-bold uppercase tracking-[0.17em] text-white!/60">
                                     Help request
                                 </span>
                             </div>
 
-                            <p className="mt-3 break-words text-[11px] font-medium text-white/40">
+                            <p className="mt-3 break-words text-[11px] font-medium text-white!/40">
                                 Request #{request.id}
                             </p>
                         </div>
 
                         {/* STATUS TIMELINE */}
                         <div className="relative my-auto min-h-0 py-10">
-                            <p className="mb-7 text-[9px] font-bold uppercase tracking-[0.18em] text-white/35">
+                            <p className="mb-7 text-[9px] font-bold uppercase tracking-[0.18em] text-white!/35">
                                 Request status
                             </p>
 
@@ -276,11 +276,11 @@ const HelpRequestDetailModal = ({ isOpen, request, onClose }) => {
                                         className={`absolute -left-7 top-0 flex h-3 w-3 items-center justify-center rounded-full ${statusInfo.dot} ring-4 ring-[#0f766e]`}
                                     />
 
-                                    <p className="text-[13px] font-bold text-white">
+                                    <p className="text-[13px] font-bold text-white!">
                                         {statusInfo.label}
                                     </p>
 
-                                    <p className="mt-2 max-w-[165px] break-words text-[10px] leading-5 text-white/45">
+                                    <p className="mt-2 max-w-[165px] break-words text-[10px] leading-5 text-white!/45">
                                         {statusInfo.description}
                                     </p>
                                 </div>
@@ -291,11 +291,11 @@ const HelpRequestDetailModal = ({ isOpen, request, onClose }) => {
                                         <span className="h-1 w-1 rounded-full bg-white/60" />
                                     </div>
 
-                                    <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/40">
+                                    <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white!/40">
                                         Submitted
                                     </p>
 
-                                    <p className="mt-1 text-[11px] text-white/60">
+                                    <p className="mt-1 text-[11px] text-white!/60">
                                         {submittedDate}
                                     </p>
                                 </div>
@@ -307,7 +307,7 @@ const HelpRequestDetailModal = ({ isOpen, request, onClose }) => {
                             <div className="flex items-start gap-2.5">
                                 <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#f59e0b]" />
 
-                                <p className="text-[9px] leading-5 text-white/35">
+                                <p className="text-[9px] leading-5 text-white!/35">
                                     Your request is part of the Stand For People
                                     community support system.
                                 </p>
@@ -564,7 +564,7 @@ const HelpRequestDetailModal = ({ isOpen, request, onClose }) => {
                                                             href={campaignUrl}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
-                                                            className="flex h-9 w-9 shrink-0 items-center justify-center gap-2 rounded-lg bg-slate-900 text-[10px] font-bold text-white transition-all hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-900/10 sm:w-auto sm:px-3.5"
+                                                            className="flex h-9 w-9 shrink-0 items-center justify-center gap-2 rounded-lg bg-slate-900 text-[10px] font-bold text-white! transition-all hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-900/10 sm:w-auto sm:px-3.5"
                                                         >
                                                             <span className="hidden sm:inline">
                                                                 View campaign
@@ -681,7 +681,7 @@ const HelpRequestDetailModal = ({ isOpen, request, onClose }) => {
                         <button
                             type="button"
                             onClick={onClose}
-                            className="h-10 w-full rounded-xl bg-primary px-7 text-[11px] font-bold text-white transition-all hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-900/10 sm:w-auto"
+                            className="h-10 w-full rounded-xl bg-primary px-7 text-[11px] font-bold text-white! transition-all hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-900/10 sm:w-auto"
                         >
                             Close
                         </button>

@@ -401,7 +401,7 @@ const Register = () => {
                 {/* Branding */}
                 <div className="mb-8 flex flex-col items-center text-center">
                     <div className="flex items-center gap-2">
-                        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-white">
+                        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-white!">
                             <HeartHandshake className="h-5 w-5" />
                         </span>
 

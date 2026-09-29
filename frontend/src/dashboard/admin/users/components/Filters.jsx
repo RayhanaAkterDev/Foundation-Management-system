@@ -23,7 +23,7 @@ const Filters = ({
         <div className="space-y-6">
             {/* Account Status */}
             <div>
-                <p className="mb-3 px-1 text-[10px] font-bold uppercase tracking-[0.16em] text-white/45">
+                <p className="mb-3 px-1 text-[10px] font-bold uppercase tracking-[0.16em] text-white!/45">
                     Account status
                 </p>
 
@@ -53,7 +53,7 @@ const Filters = ({
                                     ${
                                         active
                                             ? 'bg-white text-primary'
-                                            : 'text-white/60 hover:bg-white/[0.07] hover:text-white'
+                                            : 'text-white!/60 hover:bg-white/[0.07] hover:text-white!'
                                     }
                                 `}
                             >
@@ -81,7 +81,7 @@ const Filters = ({
 
             {/* Email Verification */}
             <div>
-                <p className="mb-3 px-1 text-[10px] font-bold uppercase tracking-[0.16em] text-white/45">
+                <p className="mb-3 px-1 text-[10px] font-bold uppercase tracking-[0.16em] text-white!/45">
                     Email verification
                 </p>
 
@@ -111,7 +111,7 @@ const Filters = ({
                                     ${
                                         active
                                             ? 'bg-white text-primary'
-                                            : 'text-white/60 hover:bg-white/[0.07] hover:text-white'
+                                            : 'text-white!/60 hover:bg-white/[0.07] hover:text-white!'
                                     }
                                 `}
                             >

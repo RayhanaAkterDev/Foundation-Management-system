@@ -238,7 +238,7 @@ const VolunteerForm = ({ focus }) => {
                                     state={{
                                         from: '/volunteer',
                                     }}
-                                    className="inline-flex items-center justify-center rounded-full bg-primary px-7 py-3 text-sm font-semibold text-white transition hover:bg-primary/90"
+                                    className="inline-flex items-center justify-center rounded-full bg-primary px-7 py-3 text-sm font-semibold text-white! transition hover:bg-primary/90"
                                 >
                                     Log In
                                 </Link>
@@ -268,7 +268,7 @@ const VolunteerForm = ({ focus }) => {
 
                             <Link
                                 to="/individual/dashboard/volunteer"
-                                className="mt-7 inline-flex items-center justify-center rounded-full bg-primary px-7 py-3 text-sm font-semibold text-white transition hover:bg-primary/90"
+                                className="mt-7 inline-flex items-center justify-center rounded-full bg-primary px-7 py-3 text-sm font-semibold text-white! transition hover:bg-primary/90"
                             >
                                 Open Volunteer Dashboard
                             </Link>
@@ -314,7 +314,7 @@ const VolunteerForm = ({ focus }) => {
 
                             <Link
                                 to="/individual/dashboard/volunteer"
-                                className="mt-7 inline-flex items-center justify-center rounded-full bg-primary px-7 py-3 text-sm font-semibold text-white transition hover:bg-primary/90"
+                                className="mt-7 inline-flex items-center justify-center rounded-full bg-primary px-7 py-3 text-sm font-semibold text-white! transition hover:bg-primary/90"
                             >
                                 Open Volunteer Dashboard
                             </Link>
@@ -383,7 +383,7 @@ const VolunteerForm = ({ focus }) => {
                                     type="button"
                                     onClick={handleApply}
                                     disabled={submitting}
-                                    className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-primary px-7 py-3.5 text-sm font-semibold text-white transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+                                    className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-primary px-7 py-3.5 text-sm font-semibold text-white! transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
                                 >
                                     {submitting ? (
                                         <>

@@ -92,7 +92,7 @@ const HelpRequestPagination = ({
                                     transition-all
                                     ${
                                         currentPage === page
-                                            ? 'bg-primary text-white'
+                                            ? 'bg-primary text-white!'
                                             : 'text-text-secondary hover:bg-background-alt hover:text-text-primary'
                                     }
                                 `}

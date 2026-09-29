@@ -159,11 +159,11 @@ const CampaignCreateModal = ({
 
                     <div className="relative flex h-full flex-col px-8 py-8">
                         <div>
-                            <p className="text-[11px] font-bold tracking-wide text-white">
+                            <p className="text-[11px] font-bold tracking-wide text-white!">
                                 Stand For People
                             </p>
 
-                            <p className="mt-1 text-[10px] text-white/45">
+                            <p className="mt-1 text-[10px] text-white!/45">
                                 Humanitarian coordination
                             </p>
                         </div>
@@ -177,7 +177,7 @@ const CampaignCreateModal = ({
                                 </span>
                             </div>
 
-                            <h2 className="text-[34px] font-semibold leading-[1.05] tracking-[-0.04em] text-white xl:text-[38px]">
+                            <h2 className="text-[34px] font-semibold leading-[1.05] tracking-[-0.04em] text-white! xl:text-[38px]">
                                 Respond to
                                 <br />
                                 situations
@@ -187,14 +187,14 @@ const CampaignCreateModal = ({
                                 </span>
                             </h2>
 
-                            <p className="mt-6 max-w-52 text-[12px] leading-6 text-white/50">
+                            <p className="mt-6 max-w-52 text-[12px] leading-6 text-white!/50">
                                 Create a coordinated campaign for a wider
                                 humanitarian situation.
                             </p>
                         </div>
 
                         <div className="border-t border-white/10 pt-5">
-                            <p className="text-[10px] font-medium text-white/40">
+                            <p className="text-[10px] font-medium text-white!/40">
                                 Global humanitarian campaign
                             </p>
                         </div>
@@ -253,7 +253,7 @@ const CampaignCreateModal = ({
                                 {/* Campaign details */}
                                 <section>
                                     <div className="mb-5 flex items-center gap-3 border-b border-slate-200 pb-3">
-                                        <span className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-[10px] font-bold text-white">
+                                        <span className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-[10px] font-bold text-white!">
                                             01
                                         </span>
 
@@ -392,7 +392,7 @@ const CampaignCreateModal = ({
                                 {/* Location */}
                                 <section className="mt-8">
                                     <div className="mb-5 flex items-center gap-3 border-b border-slate-200 pb-3">
-                                        <span className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-[10px] font-bold text-white">
+                                        <span className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-[10px] font-bold text-white!">
                                             02
                                         </span>
 
@@ -488,7 +488,7 @@ const CampaignCreateModal = ({
                                 {/* Funding & schedule */}
                                 <section className="mt-8">
                                     <div className="mb-5 flex items-center gap-3 border-b border-slate-200 pb-3">
-                                        <span className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-[10px] font-bold text-white">
+                                        <span className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-[10px] font-bold text-white!">
                                             03
                                         </span>
 
@@ -661,7 +661,7 @@ const CampaignCreateModal = ({
                                 {/* Image */}
                                 <section className="mt-8">
                                     <div className="mb-5 flex items-center gap-3 border-b border-slate-200 pb-3">
-                                        <span className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-[10px] font-bold text-white">
+                                        <span className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-[10px] font-bold text-white!">
                                             04
                                         </span>
 
@@ -716,7 +716,7 @@ const CampaignCreateModal = ({
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary px-6 text-xs font-bold text-white transition-colors hover:bg-primary-hover focus:outline-none focus:ring-3 focus:ring-primary/15 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                                    className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary px-6 text-xs font-bold text-white! transition-colors hover:bg-primary-hover focus:outline-none focus:ring-3 focus:ring-primary/15 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
                                 >
                                     {loading ? (
                                         <>

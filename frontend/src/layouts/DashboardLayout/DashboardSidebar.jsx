@@ -1,41 +1,41 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from 'react';
 
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from 'react-router-dom';
 
-import logo from "@/assets/shared/footerLogo.png";
+import logo from '@/assets/shared/footerLogo.png';
 
 import {
-  LogOut,
-  ChevronRight,
-  UserRound,
-  Settings,
-  CircleHelp,
-  PanelLeftClose,
-  PanelLeftOpen,
-} from "lucide-react";
+    LogOut,
+    ChevronRight,
+    UserRound,
+    Settings,
+    CircleHelp,
+    PanelLeftClose,
+    PanelLeftOpen,
+} from 'lucide-react';
 
-import { NAV_CONFIG, ROLE_LABELS } from "@/routes/dashboardNav";
+import { NAV_CONFIG, ROLE_LABELS } from '@/routes/dashboardNav';
 
 // ============================================================
 // ROUTES
 // ============================================================
 
 const ROOT_PATHS = {
-  individual: "/individual/dashboard",
-  organization: "/organization/dashboard",
-  admin: "/admin/dashboard",
+    individual: '/individual/dashboard',
+    organization: '/organization/dashboard',
+    admin: '/admin/dashboard',
 };
 
 const PROFILE_PATHS = {
-  individual: "/individual/dashboard/profile",
-  organization: "/organization/dashboard/profile",
-  admin: null,
+    individual: '/individual/dashboard/profile',
+    organization: '/organization/dashboard/profile',
+    admin: null,
 };
 
 const SETTINGS_PATHS = {
-  individual: "/individual/dashboard/settings",
-  organization: "/organization/dashboard/settings",
-  admin: "/admin/dashboard/settings",
+    individual: '/individual/dashboard/settings',
+    organization: '/organization/dashboard/settings',
+    admin: '/admin/dashboard/settings',
 };
 
 // ============================================================
@@ -43,40 +43,40 @@ const SETTINGS_PATHS = {
 // ============================================================
 
 const MENU_ITEM_BASE =
-  "group flex w-full items-center gap-3 px-4 py-2.5 text-[11px] whitespace-nowrap transition-colors duration-150";
+    'group flex w-full items-center gap-3 px-4 py-2.5 text-[11px] whitespace-nowrap transition-colors duration-150';
 
-const MENU_ITEM_MUTED = "text-white/55 hover:bg-white/5 hover:text-white";
+const MENU_ITEM_MUTED = 'text-white!/55 hover:bg-white/5 hover:text-white!';
 
 const MENU_ICON =
-  "h-4 w-4 shrink-0 text-white/30 transition-colors duration-150 group-hover:text-white/65";
+    'h-4 w-4 shrink-0 text-white!/30 transition-colors duration-150 group-hover:text-white!/65';
 
-const MENU_CHEVRON = "h-3.5 w-3.5 shrink-0 text-white/20";
+const MENU_CHEVRON = 'h-3.5 w-3.5 shrink-0 text-white!/20';
 
 // ============================================================
 // HELPERS
 // ============================================================
 
-const getInitials = (name = "") =>
-  name
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((word) => word.charAt(0))
-    .join("")
-    .toUpperCase();
+const getInitials = (name = '') =>
+    name
+        .trim()
+        .split(/\s+/)
+        .slice(0, 2)
+        .map((word) => word.charAt(0))
+        .join('')
+        .toUpperCase();
 
 const isRootDashboard = (path) => Object.values(ROOT_PATHS).includes(path);
 
 const isItemActive = (item, currentPath) => {
-  if (!item?.path) {
-    return false;
-  }
+    if (!item?.path) {
+        return false;
+    }
 
-  if (isRootDashboard(item.path)) {
-    return currentPath === item.path;
-  }
+    if (isRootDashboard(item.path)) {
+        return currentPath === item.path;
+    }
 
-  return currentPath === item.path || currentPath.startsWith(`${item.path}/`);
+    return currentPath === item.path || currentPath.startsWith(`${item.path}/`);
 };
 
 // ============================================================
@@ -84,8 +84,8 @@ const isItemActive = (item, currentPath) => {
 // ============================================================
 
 const AccountAvatar = ({ user, initials }) => (
-  <div
-    className="
+    <div
+        className="
             flex
             h-8
             w-8
@@ -98,21 +98,22 @@ const AccountAvatar = ({ user, initials }) => (
             text-[9px]
             font-bold
             text-[#0b5f5b]
-        ">
-    {user?.avatar ? (
-      <img
-        src={user.avatar}
-        alt={user.name || ""}
-        className="
+        "
+    >
+        {user?.avatar ? (
+            <img
+                src={user.avatar}
+                alt={user.name || ''}
+                className="
                     h-full
                     w-full
                     object-cover
                 "
-      />
-    ) : (
-      initials || "A"
-    )}
-  </div>
+            />
+        ) : (
+            initials || 'A'
+        )}
+    </div>
 );
 
 // ============================================================
@@ -120,18 +121,19 @@ const AccountAvatar = ({ user, initials }) => (
 // ============================================================
 
 const AccountLink = ({ to, icon: Icon, children, onClick }) => (
-  <NavLink
-    to={to}
-    onClick={onClick}
-    className={`${MENU_ITEM_BASE} ${MENU_ITEM_MUTED}`}>
-    <Icon className={MENU_ICON} strokeWidth={1.7} />
+    <NavLink
+        to={to}
+        onClick={onClick}
+        className={`${MENU_ITEM_BASE} ${MENU_ITEM_MUTED}`}
+    >
+        <Icon className={MENU_ICON} strokeWidth={1.7} />
 
-    <span className="min-w-0 flex-1 truncate whitespace-nowrap">
-      {children}
-    </span>
+        <span className="min-w-0 flex-1 truncate whitespace-nowrap">
+            {children}
+        </span>
 
-    <ChevronRight className={MENU_CHEVRON} strokeWidth={1.7} />
-  </NavLink>
+        <ChevronRight className={MENU_CHEVRON} strokeWidth={1.7} />
+    </NavLink>
 );
 
 // ============================================================
@@ -139,101 +141,104 @@ const AccountLink = ({ to, icon: Icon, children, onClick }) => (
 // ============================================================
 
 const DashboardSidebar = ({ role, currentPath, onCollapsedChange, user }) => {
-  const navigate = useNavigate();
+    const navigate = useNavigate();
 
-  /*
-   * IMPORTANT:
-   *
-   * The sidebar owns its visual collapsed state.
-   *
-   * It ALWAYS starts collapsed on a fresh mount/reload.
-   *
-   * This gives:
-   *
-   *     reload → rail only
-   *
-   * without needing setState inside an effect.
-   */
-  const [collapsed, setCollapsed] = useState(true);
+    /*
+     * IMPORTANT:
+     *
+     * The sidebar owns its visual collapsed state.
+     *
+     * It ALWAYS starts collapsed on a fresh mount/reload.
+     *
+     * This gives:
+     *
+     *     reload → rail only
+     *
+     * without needing setState inside an effect.
+     */
+    const [collapsed, setCollapsed] = useState(true);
 
-  const [accountOpen, setAccountOpen] = useState(false);
+    const [accountOpen, setAccountOpen] = useState(false);
 
-  const accountRef = useRef(null);
+    const accountRef = useRef(null);
 
-  const navItems = NAV_CONFIG[role] || [];
+    const navItems = NAV_CONFIG[role] || [];
 
-  const roleLabel = ROLE_LABELS[role] || "User";
+    const roleLabel = ROLE_LABELS[role] || 'User';
 
-  const profilePath = PROFILE_PATHS[role];
+    const profilePath = PROFILE_PATHS[role];
 
-  const settingsPath = SETTINGS_PATHS[role];
+    const settingsPath = SETTINGS_PATHS[role];
 
-  const initials = getInitials(user?.name);
+    const initials = getInitials(user?.name);
 
-  // ========================================================
-  // OUTSIDE CLICK
-  // ========================================================
+    // ========================================================
+    // OUTSIDE CLICK
+    // ========================================================
 
-  useEffect(() => {
-    const handleOutsideClick = (event) => {
-      if (accountRef.current && !accountRef.current.contains(event.target)) {
+    useEffect(() => {
+        const handleOutsideClick = (event) => {
+            if (
+                accountRef.current &&
+                !accountRef.current.contains(event.target)
+            ) {
+                setAccountOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleOutsideClick);
+
+        return () => {
+            document.removeEventListener('mousedown', handleOutsideClick);
+        };
+    }, []);
+
+    // ========================================================
+    // ACCOUNT
+    // ========================================================
+
+    const closeAccountMenu = () => {
         setAccountOpen(false);
-      }
     };
 
-    document.addEventListener("mousedown", handleOutsideClick);
+    const toggleAccountMenu = () => {
+        if (collapsed) {
+            return;
+        }
 
-    return () => {
-      document.removeEventListener("mousedown", handleOutsideClick);
+        setAccountOpen((previous) => !previous);
     };
-  }, []);
 
-  // ========================================================
-  // ACCOUNT
-  // ========================================================
+    // ========================================================
+    // SIGN OUT
+    // ========================================================
 
-  const closeAccountMenu = () => {
-    setAccountOpen(false);
-  };
+    const handleSignOut = () => {
+        setAccountOpen(false);
+        navigate('/');
+    };
 
-  const toggleAccountMenu = () => {
-    if (collapsed) {
-      return;
-    }
+    // ========================================================
+    // SIDEBAR TOGGLE
+    // ========================================================
 
-    setAccountOpen((previous) => !previous);
-  };
+    const toggleSidebar = () => {
+        setAccountOpen(false);
 
-  // ========================================================
-  // SIGN OUT
-  // ========================================================
+        setCollapsed((previous) => {
+            const nextCollapsed = !previous;
 
-  const handleSignOut = () => {
-    setAccountOpen(false);
-    navigate("/");
-  };
+            if (onCollapsedChange) {
+                onCollapsedChange(nextCollapsed);
+            }
 
-  // ========================================================
-  // SIDEBAR TOGGLE
-  // ========================================================
+            return nextCollapsed;
+        });
+    };
 
-  const toggleSidebar = () => {
-    setAccountOpen(false);
-
-    setCollapsed((previous) => {
-      const nextCollapsed = !previous;
-
-      if (onCollapsedChange) {
-        onCollapsedChange(nextCollapsed);
-      }
-
-      return nextCollapsed;
-    });
-  };
-
-  return (
-    <aside
-      className={`
+    return (
+        <aside
+            className={`
                 fixed
                 inset-y-0
                 left-0
@@ -245,9 +250,10 @@ const DashboardSidebar = ({ role, currentPath, onCollapsedChange, user }) => {
                 transition-[width]
                 duration-300
                 ease-out
-                ${collapsed ? "w-15" : "w-72"}
-            `}>
-      {/* =================================================
+                ${collapsed ? 'w-15' : 'w-72'}
+            `}
+        >
+            {/* =================================================
                 FIXED SIDEBAR CONTENT
 
                 15 + 57 = 72
@@ -256,20 +262,21 @@ const DashboardSidebar = ({ role, currentPath, onCollapsedChange, user }) => {
                 The outer aside clips the main menu when collapsed.
             ================================================= */}
 
-      <div
-        className="
+            <div
+                className="
                     flex
                     h-full
                     w-72
                     min-w-72
                     shrink-0
-                ">
-        {/* =================================================
+                "
+            >
+                {/* =================================================
                     ICON RAIL
                 ================================================= */}
 
-        <div
-          className="
+                <div
+                    className="
                         flex
                         h-full
                         w-15
@@ -279,13 +286,14 @@ const DashboardSidebar = ({ role, currentPath, onCollapsedChange, user }) => {
                         border-r
                         border-white/7
                         bg-[#09534f]
-                    ">
-          {/* =================================================
+                    "
+                >
+                    {/* =================================================
                         LOGO
                     ================================================= */}
 
-          <div
-            className="
+                    <div
+                        className="
                             flex
                             h-16
                             min-h-16
@@ -296,9 +304,10 @@ const DashboardSidebar = ({ role, currentPath, onCollapsedChange, user }) => {
                             xl:min-h-17
                             2xl:h-18
                             2xl:min-h-18
-                        ">
-            <div
-              className="
+                        "
+                    >
+                        <div
+                            className="
                                 flex
                                 h-9
                                 w-9
@@ -307,27 +316,28 @@ const DashboardSidebar = ({ role, currentPath, onCollapsedChange, user }) => {
                                 justify-center
                                 rounded-xl
                                 bg-white
-                            ">
-              <img
-                src={logo}
-                alt="Stand For People"
-                className="
+                            "
+                        >
+                            <img
+                                src={logo}
+                                alt="Stand For People"
+                                className="
                                     h-7
                                     w-7
                                     shrink-0
                                     object-contain
                                 "
-              />
-            </div>
-          </div>
+                            />
+                        </div>
+                    </div>
 
-          {/* =================================================
+                    {/* =================================================
                         RAIL NAVIGATION
                     ================================================= */}
 
-          <nav
-            aria-label="Quick navigation"
-            className="
+                    <nav
+                        aria-label="Quick navigation"
+                        className="
                             flex
                             min-h-0
                             flex-1
@@ -337,13 +347,14 @@ const DashboardSidebar = ({ role, currentPath, onCollapsedChange, user }) => {
                             pt-2
                             xl:pt-4
                             2xl:pt-5
-                        ">
-            {navItems.map((item, index) => {
-              if (item.type === "divider") {
-                return (
-                  <div
-                    key={`rail-divider-${index}`}
-                    className="
+                        "
+                    >
+                        {navItems.map((item, index) => {
+                            if (item.type === 'divider') {
+                                return (
+                                    <div
+                                        key={`rail-divider-${index}`}
+                                        className="
                                             my-1.5
                                             h-px
                                             w-6
@@ -353,27 +364,27 @@ const DashboardSidebar = ({ role, currentPath, onCollapsedChange, user }) => {
                                             xl:my-2
                                             2xl:my-2.5
                                         "
-                  />
-                );
-              }
+                                    />
+                                );
+                            }
 
-              if (!item.path || !item.icon) {
-                return null;
-              }
+                            if (!item.path || !item.icon) {
+                                return null;
+                            }
 
-              const Icon = item.icon;
+                            const Icon = item.icon;
 
-              const isActive = isItemActive(item, currentPath);
+                            const isActive = isItemActive(item, currentPath);
 
-              return (
-                <NavLink
-                  key={item.key}
-                  to={item.path}
-                  end={isRootDashboard(item.path)}
-                  aria-label={item.label}
-                  title={item.label}
-                  onClick={closeAccountMenu}
-                  className="
+                            return (
+                                <NavLink
+                                    key={item.key}
+                                    to={item.path}
+                                    end={isRootDashboard(item.path)}
+                                    aria-label={item.label}
+                                    title={item.label}
+                                    onClick={closeAccountMenu}
+                                    className="
                                         group
                                         relative
                                         flex
@@ -388,10 +399,11 @@ const DashboardSidebar = ({ role, currentPath, onCollapsedChange, user }) => {
                                         xl:min-h-10
                                         2xl:h-11
                                         2xl:min-h-11
-                                    ">
-                  {isActive && (
-                    <span
-                      className="
+                                    "
+                                >
+                                    {isActive && (
+                                        <span
+                                            className="
                                                 absolute
                                                 left-0
                                                 h-5
@@ -400,11 +412,11 @@ const DashboardSidebar = ({ role, currentPath, onCollapsedChange, user }) => {
                                                 rounded-r-full
                                                 bg-accent
                                             "
-                    />
-                  )}
+                                        />
+                                    )}
 
-                  <span
-                    className={`
+                                    <span
+                                        className={`
                                             flex
                                             h-8
                                             w-8
@@ -415,31 +427,32 @@ const DashboardSidebar = ({ role, currentPath, onCollapsedChange, user }) => {
                                             transition-colors
                                             duration-150
                                             ${
-                                              isActive
-                                                ? "bg-[#e6f1ef] text-[#0b5f5b]"
-                                                : "text-white/38 group-hover:bg-white/6 group-hover:text-white/75"
+                                                isActive
+                                                    ? 'bg-[#e6f1ef] text-[#0b5f5b]'
+                                                    : 'text-white!/38 group-hover:bg-white/6 group-hover:text-white!/75'
                                             }
-                                        `}>
-                    <Icon
-                      className="
+                                        `}
+                                    >
+                                        <Icon
+                                            className="
                                                 h-4
                                                 w-4
                                                 shrink-0
                                             "
-                      strokeWidth={isActive ? 2 : 1.7}
-                    />
-                  </span>
-                </NavLink>
-              );
-            })}
-          </nav>
+                                            strokeWidth={isActive ? 2 : 1.7}
+                                        />
+                                    </span>
+                                </NavLink>
+                            );
+                        })}
+                    </nav>
 
-          {/* =================================================
+                    {/* =================================================
                         RAIL FOOTER
                     ================================================= */}
 
-          <div
-            className="
+                    <div
+                        className="
                             flex
                             h-12
                             min-h-12
@@ -450,13 +463,22 @@ const DashboardSidebar = ({ role, currentPath, onCollapsedChange, user }) => {
                             xl:min-h-14
                             2xl:h-16
                             2xl:min-h-16
-                        ">
-            <button
-              type="button"
-              onClick={toggleSidebar}
-              aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-              title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-              className="
+                        "
+                    >
+                        <button
+                            type="button"
+                            onClick={toggleSidebar}
+                            aria-label={
+                                collapsed
+                                    ? 'Expand sidebar'
+                                    : 'Collapse sidebar'
+                            }
+                            title={
+                                collapsed
+                                    ? 'Expand sidebar'
+                                    : 'Collapse sidebar'
+                            }
+                            className="
                                 flex
                                 h-8
                                 w-8
@@ -464,36 +486,37 @@ const DashboardSidebar = ({ role, currentPath, onCollapsedChange, user }) => {
                                 items-center
                                 justify-center
                                 rounded-lg
-                                text-white/50
+                                text-white!/50
                                 transition-colors
                                 duration-150
                                 hover:bg-white/8
-                                hover:text-white
-                            ">
-              {collapsed ? (
-                <PanelLeftOpen
-                  className="
+                                hover:text-white!
+                            "
+                        >
+                            {collapsed ? (
+                                <PanelLeftOpen
+                                    className="
                                         h-4
                                         w-4
                                         shrink-0
                                     "
-                  strokeWidth={1.7}
-                />
-              ) : (
-                <PanelLeftClose
-                  className="
+                                    strokeWidth={1.7}
+                                />
+                            ) : (
+                                <PanelLeftClose
+                                    className="
                                         h-4
                                         w-4
                                         shrink-0
                                     "
-                  strokeWidth={1.7}
-                />
-              )}
-            </button>
-          </div>
-        </div>
+                                    strokeWidth={1.7}
+                                />
+                            )}
+                        </button>
+                    </div>
+                </div>
 
-        {/* =================================================
+                {/* =================================================
                     MAIN PANEL
 
                     This is always 57 wide.
@@ -507,8 +530,8 @@ const DashboardSidebar = ({ role, currentPath, onCollapsedChange, user }) => {
                         main panel = visible
                 ================================================= */}
 
-        <div
-          className="
+                <div
+                    className="
                         flex
                         h-full
                         w-57
@@ -518,13 +541,14 @@ const DashboardSidebar = ({ role, currentPath, onCollapsedChange, user }) => {
                         overflow-hidden
                         bg-[#0d625d]
                     "
-          aria-hidden={collapsed}>
-          {/* =================================================
+                    aria-hidden={collapsed}
+                >
+                    {/* =================================================
                         HEADER
                     ================================================= */}
 
-          <header
-            className="
+                    <header
+                        className="
                             shrink-0
                             px-5
                             pt-5
@@ -534,33 +558,36 @@ const DashboardSidebar = ({ role, currentPath, onCollapsedChange, user }) => {
                             xl:pb-5
                             2xl:pt-7
                             2xl:pb-6
-                        ">
-            <div
-              className="
+                        "
+                    >
+                        <div
+                            className="
                                 flex
                                 items-center
                                 justify-between
                                 gap-3
                                 whitespace-nowrap
-                            ">
-              <div className="min-w-0 shrink-0">
-                <div
-                  className="
+                            "
+                        >
+                            <div className="min-w-0 shrink-0">
+                                <div
+                                    className="
                                         whitespace-nowrap
                                         font-fraunces
                                         text-[21px]
                                         font-semibold
                                         leading-none
                                         tracking-[-0.045em]
-                                        text-white
+                                        text-white!
                                         2xl:text-[22px]
-                                    ">
-                  Stand
-                  <span className="text-accent"> For</span>
-                </div>
+                                    "
+                                >
+                                    Stand
+                                    <span className="text-accent"> For</span>
+                                </div>
 
-                <div
-                  className="
+                                <div
+                                    className="
                                         mt-1
                                         whitespace-nowrap
                                         font-fraunces
@@ -568,15 +595,16 @@ const DashboardSidebar = ({ role, currentPath, onCollapsedChange, user }) => {
                                         font-semibold
                                         leading-none
                                         tracking-[-0.045em]
-                                        text-white
+                                        text-white!
                                         2xl:text-[22px]
-                                    ">
-                  People
-                </div>
-              </div>
+                                    "
+                                >
+                                    People
+                                </div>
+                            </div>
 
-              <span
-                className="
+                            <span
+                                className="
                                     mt-0.5
                                     shrink-0
                                     whitespace-nowrap
@@ -590,14 +618,15 @@ const DashboardSidebar = ({ role, currentPath, onCollapsedChange, user }) => {
                                     font-bold
                                     uppercase
                                     tracking-widest
-                                    text-white/65
-                                ">
-                {roleLabel}
-              </span>
-            </div>
+                                    text-white!/65
+                                "
+                            >
+                                {roleLabel}
+                            </span>
+                        </div>
 
-            <div
-              className="
+                        <div
+                            className="
                                 mt-4
                                 h-px
                                 shrink-0
@@ -605,16 +634,16 @@ const DashboardSidebar = ({ role, currentPath, onCollapsedChange, user }) => {
                                 xl:mt-5
                                 2xl:mt-6
                             "
-            />
-          </header>
+                        />
+                    </header>
 
-          {/* =================================================
+                    {/* =================================================
                         MAIN NAVIGATION
                     ================================================= */}
 
-          <nav
-            aria-label="Dashboard navigation"
-            className="
+                    <nav
+                        aria-label="Dashboard navigation"
+                        className="
                             min-h-0
                             flex-1
                             overflow-hidden
@@ -624,38 +653,40 @@ const DashboardSidebar = ({ role, currentPath, onCollapsedChange, user }) => {
                             xl:py-2
                             2xl:px-5
                             2xl:py-3
-                        ">
-            {navItems.map((item, index) => {
-              if (item.type === "divider") {
-                return (
-                  <div
-                    key={`divider-${index}`}
-                    className="
+                        "
+                    >
+                        {navItems.map((item, index) => {
+                            if (item.type === 'divider') {
+                                return (
+                                    <div
+                                        key={`divider-${index}`}
+                                        className="
                                             my-2
                                             shrink-0
                                             px-2
                                             xl:my-2.5
                                             2xl:my-3.5
-                                        ">
-                    <div className="h-px shrink-0 bg-white/8" />
-                  </div>
-                );
-              }
+                                        "
+                                    >
+                                        <div className="h-px shrink-0 bg-white/8" />
+                                    </div>
+                                );
+                            }
 
-              if (!item.path) {
-                return null;
-              }
+                            if (!item.path) {
+                                return null;
+                            }
 
-              const isActive = isItemActive(item, currentPath);
+                            const isActive = isItemActive(item, currentPath);
 
-              return (
-                <NavLink
-                  key={item.key}
-                  to={item.path}
-                  end={isRootDashboard(item.path)}
-                  aria-current={isActive ? "page" : undefined}
-                  onClick={closeAccountMenu}
-                  className={`
+                            return (
+                                <NavLink
+                                    key={item.key}
+                                    to={item.path}
+                                    end={isRootDashboard(item.path)}
+                                    aria-current={isActive ? 'page' : undefined}
+                                    onClick={closeAccountMenu}
+                                    className={`
                                         group
                                         relative
                                         flex
@@ -673,13 +704,14 @@ const DashboardSidebar = ({ role, currentPath, onCollapsedChange, user }) => {
                                         2xl:h-11
                                         2xl:min-h-11
                                         ${
-                                          isActive
-                                            ? "text-white"
-                                            : "text-white/45 hover:text-white/80"
+                                            isActive
+                                                ? 'text-white!'
+                                                : 'text-white!/45 hover:text-white!/80'
                                         }
-                                    `}>
-                  <span
-                    className={`
+                                    `}
+                                >
+                                    <span
+                                        className={`
                                             mr-3
                                             h-1.5
                                             w-1.5
@@ -689,15 +721,15 @@ const DashboardSidebar = ({ role, currentPath, onCollapsedChange, user }) => {
                                             transition-opacity
                                             duration-150
                                             ${
-                                              isActive
-                                                ? "opacity-100"
-                                                : "opacity-0 group-hover:opacity-100"
+                                                isActive
+                                                    ? 'opacity-100'
+                                                    : 'opacity-0 group-hover:opacity-100'
                                             }
                                         `}
-                  />
+                                    />
 
-                  <span
-                    className={`
+                                    <span
+                                        className={`
                                             block
                                             shrink-0
                                             whitespace-nowrap
@@ -706,35 +738,37 @@ const DashboardSidebar = ({ role, currentPath, onCollapsedChange, user }) => {
                                             xl:text-[11.5px]
                                             2xl:text-[12px]
                                             ${
-                                              isActive
-                                                ? "font-semibold"
-                                                : "font-medium"
+                                                isActive
+                                                    ? 'font-semibold'
+                                                    : 'font-medium'
                                             }
-                                        `}>
-                    {item.label}
-                  </span>
-                </NavLink>
-              );
-            })}
-          </nav>
+                                        `}
+                                    >
+                                        {item.label}
+                                    </span>
+                                </NavLink>
+                            );
+                        })}
+                    </nav>
 
-          {/* =================================================
+                    {/* =================================================
                         ACCOUNT
                     ================================================= */}
 
-          <div
-            ref={accountRef}
-            className="
+                    <div
+                        ref={accountRef}
+                        className="
                             relative
                             shrink-0
-                        ">
-            {/* =================================================
+                        "
+                    >
+                        {/* =================================================
                             ACCOUNT POPUP
                         ================================================= */}
 
-            {accountOpen && !collapsed && (
-              <div
-                className="
+                        {accountOpen && !collapsed && (
+                            <div
+                                className="
                                     absolute
                                     bottom-[calc(100%-6px)]
                                     left-4
@@ -747,31 +781,37 @@ const DashboardSidebar = ({ role, currentPath, onCollapsedChange, user }) => {
                                     bg-[#084c49]
                                     shadow-[0_18px_40px_rgba(0,0,0,0.25)]
                                 "
-                role="menu">
-                <div className="px-3 py-3">
-                  <div
-                    className="
+                                role="menu"
+                            >
+                                <div className="px-3 py-3">
+                                    <div
+                                        className="
                                             flex
                                             items-center
                                             gap-3
                                             whitespace-nowrap
-                                        ">
-                    <AccountAvatar user={user} initials={initials} />
+                                        "
+                                    >
+                                        <AccountAvatar
+                                            user={user}
+                                            initials={initials}
+                                        />
 
-                    <div className="min-w-0 shrink-0">
-                      <p
-                        className="
+                                        <div className="min-w-0 shrink-0">
+                                            <p
+                                                className="
                                                     truncate
                                                     whitespace-nowrap
                                                     text-[11px]
                                                     font-semibold
-                                                    text-white
-                                                ">
-                        {user?.name || "Account"}
-                      </p>
+                                                    text-white!
+                                                "
+                                            >
+                                                {user?.name || 'Account'}
+                                            </p>
 
-                      <p
-                        className="
+                                            <p
+                                                className="
                                                     mt-0.5
                                                     truncate
                                                     whitespace-nowrap
@@ -779,72 +819,79 @@ const DashboardSidebar = ({ role, currentPath, onCollapsedChange, user }) => {
                                                     font-bold
                                                     uppercase
                                                     tracking-[0.12em]
-                                                    text-white/30
-                                                ">
-                        {roleLabel}
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                                                    text-white!/30
+                                                "
+                                            >
+                                                {roleLabel}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
 
-                <div className="h-px shrink-0 bg-white/8" />
+                                <div className="h-px shrink-0 bg-white/8" />
 
-                {profilePath && (
-                  <AccountLink
-                    to={profilePath}
-                    icon={UserRound}
-                    onClick={closeAccountMenu}>
-                    Profile
-                  </AccountLink>
-                )}
+                                {profilePath && (
+                                    <AccountLink
+                                        to={profilePath}
+                                        icon={UserRound}
+                                        onClick={closeAccountMenu}
+                                    >
+                                        Profile
+                                    </AccountLink>
+                                )}
 
-                {settingsPath && (
-                  <AccountLink
-                    to={settingsPath}
-                    icon={Settings}
-                    onClick={closeAccountMenu}>
-                    Account settings
-                  </AccountLink>
-                )}
+                                {settingsPath && (
+                                    <AccountLink
+                                        to={settingsPath}
+                                        icon={Settings}
+                                        onClick={closeAccountMenu}
+                                    >
+                                        Account settings
+                                    </AccountLink>
+                                )}
 
-                <AccountLink
-                  to="/help"
-                  icon={CircleHelp}
-                  onClick={closeAccountMenu}>
-                  Help & support
-                </AccountLink>
+                                <AccountLink
+                                    to="/help"
+                                    icon={CircleHelp}
+                                    onClick={closeAccountMenu}
+                                >
+                                    Help & support
+                                </AccountLink>
 
-                <div className="mx-4 h-px shrink-0 bg-white/8" />
+                                <div className="mx-4 h-px shrink-0 bg-white/8" />
 
-                <button
-                  type="button"
-                  onClick={handleSignOut}
-                  className={`
+                                <button
+                                    type="button"
+                                    onClick={handleSignOut}
+                                    className={`
                                         ${MENU_ITEM_BASE}
                                         ${MENU_ITEM_MUTED}
                                         text-left
-                                    `}>
-                  <LogOut
-                    className="
+                                    `}
+                                >
+                                    <LogOut
+                                        className="
                                             h-4
                                             w-4
                                             shrink-0
-                                            text-white/25
+                                            text-white!/25
                                         "
-                    strokeWidth={1.7}
-                  />
+                                        strokeWidth={1.7}
+                                    />
 
-                  <span className="whitespace-nowrap">Sign out</span>
-                </button>
-              </div>
-            )}
+                                    <span className="whitespace-nowrap">
+                                        Sign out
+                                    </span>
+                                </button>
+                            </div>
+                        )}
 
-            {/* =================================================
+                        {/* =================================================
                             ACCOUNT TRIGGER
                         ================================================= */}
 
-            <div
-              className="
+                        <div
+                            className="
                                 border-t
                                 border-white/8
                                 px-5
@@ -852,13 +899,14 @@ const DashboardSidebar = ({ role, currentPath, onCollapsedChange, user }) => {
                                 xl:py-4
                                 2xl:px-6
                                 2xl:py-5
-                            ">
-              <button
-                type="button"
-                onClick={toggleAccountMenu}
-                aria-expanded={accountOpen && !collapsed}
-                aria-haspopup="menu"
-                className="
+                            "
+                        >
+                            <button
+                                type="button"
+                                onClick={toggleAccountMenu}
+                                aria-expanded={accountOpen && !collapsed}
+                                aria-haspopup="menu"
+                                className="
                                     group
                                     flex
                                     w-full
@@ -867,12 +915,16 @@ const DashboardSidebar = ({ role, currentPath, onCollapsedChange, user }) => {
                                     gap-3
                                     text-left
                                     whitespace-nowrap
-                                ">
-                <div className="relative shrink-0">
-                  <AccountAvatar user={user} initials={initials} />
+                                "
+                            >
+                                <div className="relative shrink-0">
+                                    <AccountAvatar
+                                        user={user}
+                                        initials={initials}
+                                    />
 
-                  <span
-                    className="
+                                    <span
+                                        className="
                                             absolute
                                             bottom-0
                                             right-0
@@ -884,23 +936,24 @@ const DashboardSidebar = ({ role, currentPath, onCollapsedChange, user }) => {
                                             border-[#0d625d]
                                             bg-[#72c6a2]
                                         "
-                  />
-                </div>
+                                    />
+                                </div>
 
-                <div className="min-w-0 flex-1 overflow-hidden">
-                  <p
-                    className="
+                                <div className="min-w-0 flex-1 overflow-hidden">
+                                    <p
+                                        className="
                                             truncate
                                             whitespace-nowrap
                                             text-[11px]
                                             font-semibold
-                                            text-white
-                                        ">
-                    {user?.name || "Account"}
-                  </p>
+                                            text-white!
+                                        "
+                                    >
+                                        {user?.name || 'Account'}
+                                    </p>
 
-                  <p
-                    className="
+                                    <p
+                                        className="
                                             mt-0.5
                                             truncate
                                             whitespace-nowrap
@@ -908,35 +961,36 @@ const DashboardSidebar = ({ role, currentPath, onCollapsedChange, user }) => {
                                             font-bold
                                             uppercase
                                             tracking-[0.12em]
-                                            text-white/30
-                                        ">
-                    {roleLabel}
-                  </p>
-                </div>
+                                            text-white!/30
+                                        "
+                                    >
+                                        {roleLabel}
+                                    </p>
+                                </div>
 
-                <ChevronRight
-                  className={`
+                                <ChevronRight
+                                    className={`
                                         h-4
                                         w-4
                                         shrink-0
-                                        text-white/25
+                                        text-white!/25
                                         transition-transform
                                         duration-150
                                         ${
-                                          accountOpen && !collapsed
-                                            ? "rotate-90"
-                                            : ""
+                                            accountOpen && !collapsed
+                                                ? 'rotate-90'
+                                                : ''
                                         }
                                     `}
-                  strokeWidth={1.7}
-                />
-              </button>
+                                    strokeWidth={1.7}
+                                />
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </div>
-        </div>
-      </div>
-    </aside>
-  );
+        </aside>
+    );
 };
 
 export default DashboardSidebar;

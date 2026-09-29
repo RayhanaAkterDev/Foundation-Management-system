@@ -513,7 +513,7 @@ const Dashboard = () => {
                 <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
                     {/* Brand */}
                     <div className="flex items-center gap-3">
-                        <div className="flex h-7 w-7 items-center justify-center bg-primary text-[9px] font-semibold text-white">
+                        <div className="flex h-7 w-7 items-center justify-center bg-primary text-[9px] font-semibold text-white!">
                             SP
                         </div>
 

@@ -16,7 +16,7 @@ const HelpRequestPageHeader = ({ onNewRequest, onExport, exportDisabled }) => (
                             <span className="h-1.5 w-1.5 rounded-full bg-white" />
                         </span>
 
-                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/70">
+                        <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white!/70">
                             Personal support
                         </span>
 
@@ -24,12 +24,12 @@ const HelpRequestPageHeader = ({ onNewRequest, onExport, exportDisabled }) => (
                     </div>
 
                     {/* Title */}
-                    <h1 className="text-3xl font-extrabold leading-[1.08] tracking-[-0.03em] text-white sm:text-4xl lg:text-[42px]">
+                    <h1 className="text-3xl font-extrabold leading-[1.08] tracking-[-0.03em] text-white! sm:text-4xl lg:text-[42px]">
                         My Help Requests
                     </h1>
 
                     {/* Description */}
-                    <p className="mt-4 max-w-xl text-[14px] font-medium leading-6 text-white/70 sm:text-[15px] sm:leading-7">
+                    <p className="mt-4 max-w-xl text-[14px] font-medium leading-6 text-white!/70 sm:text-[15px] sm:leading-7">
                         Track the requests you've submitted, follow their
                         progress, and stay connected with the organizations
                         helping you.
@@ -67,7 +67,7 @@ const HelpRequestPageHeader = ({ onNewRequest, onExport, exportDisabled }) => (
                         <button
                             type="button"
                             onClick={onNewRequest}
-                            className="group inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-3 text-sm font-bold text-white shadow-sm transition-all duration-200 hover:bg-primary-hover hover:shadow-md sm:px-4"
+                            className="group inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-3 text-sm font-bold text-white! shadow-sm transition-all duration-200 hover:bg-primary-hover hover:shadow-md sm:px-4"
                         >
                             <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-white/15">
                                 <Plus size={16} strokeWidth={2.4} />

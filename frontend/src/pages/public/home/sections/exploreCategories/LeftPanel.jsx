@@ -95,7 +95,7 @@ const LeftPanel = ({ current, campaigns = [] }) => {
                                     text-[11px]
                                     font-medium
                                     leading-[1.8]
-                                    text-white/85
+                                    text-white!/85
                                 "
                             >
                                 সহায়তার একটি ক্ষেত্র
@@ -140,7 +140,7 @@ const LeftPanel = ({ current, campaigns = [] }) => {
                                             text-[12px]
                                             font-normal
                                             leading-[1.95]
-                                            text-white/78
+                                            text-white!/78
                                             sm:text-[13px]
                                             lg:text-[13px]
                                             xl:text-[15px]

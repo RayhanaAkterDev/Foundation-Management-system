@@ -26,7 +26,7 @@ const RequestTypeSelector = ({ form, setForm, error }) => {
                         }
                         className={`p-3 border rounded-xl text-sm ${
                             form.requestType === t
-                                ? 'bg-primary text-white border-primary'
+                                ? 'bg-primary text-white! border-primary'
                                 : 'border-border'
                         }`}
                     >

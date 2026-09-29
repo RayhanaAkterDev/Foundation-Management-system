@@ -11,8 +11,7 @@ import {
 
 import PageHeader from '@/components/dashboard/PageHeader';
 
-const API_URL =
-    import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
 
 const Field = ({ label, children, className = '' }) => (
     <div className={`min-w-0 ${className}`}>
@@ -314,7 +313,7 @@ const IndividualProfile = () => {
                 <div className="border-b border-border px-5 py-7 sm:px-8">
                     <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex min-w-0 items-center gap-4">
-                            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-primary text-xl font-semibold text-white shadow-sm">
+                            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-primary text-xl font-semibold text-white! shadow-sm">
                                 {firstLetter}
                             </div>
 
@@ -543,7 +542,7 @@ const IndividualProfile = () => {
                         className="
                             inline-flex h-10 items-center justify-center gap-2
                             bg-primary px-5
-                            text-sm font-semibold text-white
+                            text-sm font-semibold text-white!
                             shadow-sm
                             transition-all
                             hover:bg-primary-hover

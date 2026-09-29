@@ -59,7 +59,7 @@ function Button({
     const variants = {
         primary: `
             bg-primary
-            text-white
+            text-white!
             shadow-none
             hover:bg-primary-hover
 
@@ -70,7 +70,7 @@ function Button({
 
         accent: `
             bg-accent
-            text-white
+            text-white!
             shadow-none
             hover:bg-accent-hover
 

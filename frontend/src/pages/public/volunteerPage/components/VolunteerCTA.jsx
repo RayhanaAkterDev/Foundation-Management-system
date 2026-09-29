@@ -10,9 +10,9 @@ const stats = [
 
 const VolunteerCTA = ({ onClickJoin }) => {
     return (
-        <section className="section-gap bg-primary text-white">
+        <section className="section-gap bg-primary text-white!">
             <div className="container-width text-center">
-                <p className="text-[11px] sm:text-xs tracking-[0.35em] uppercase text-white/70 mb-6">
+                <p className="text-[11px] sm:text-xs tracking-[0.35em] uppercase text-white!/70 mb-6">
                     Volunteer with StandForPeople
                 </p>
 
@@ -36,7 +36,7 @@ const VolunteerCTA = ({ onClickJoin }) => {
                         </>
                     }
                     descriptionSize="hero"
-                    descriptionClass="text-white/80!"
+                    descriptionClass="text-white!/80!"
                 />
 
                 <div className="my-6 max-w-2xl mx-auto">
@@ -53,7 +53,7 @@ const VolunteerCTA = ({ onClickJoin }) => {
                         Join as Volunteer
                     </Button>
 
-                    <p className="mt-4 text-xs sm:text-sm text-white/60">
+                    <p className="mt-4 text-xs sm:text-sm text-white!/60">
                         Takes less than 2 minutes to get started
                     </p>
                 </div>

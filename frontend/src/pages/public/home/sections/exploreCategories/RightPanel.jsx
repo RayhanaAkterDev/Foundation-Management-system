@@ -124,7 +124,7 @@ const RightPanel = ({ categories = [], active, setActive, campaigns = [] }) => {
                                     transition-colors
                                     ${
                                         isActive
-                                            ? 'bg-primary text-white'
+                                            ? 'bg-primary text-white!'
                                             : 'bg-background-alt text-text-muted group-hover:text-primary'
                                     }
                                 `}

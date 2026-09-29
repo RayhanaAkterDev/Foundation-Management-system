@@ -313,7 +313,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                     rounded-[10px]
                                     bg-primary
                                     text-[11px] font-semibold
-                                    text-white
+                                    text-white!
                                     ring-1 ring-primary/10
                                     transition-all duration-200
                                     group-hover:ring-primary/20
@@ -444,7 +444,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                             font-semibold
                             leading-6
                             tracking-tight
-                            text-white
+                            text-white!
                         "
                                             >
                                                 {userName}
@@ -456,7 +456,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                             truncate
                             text-[11px]
                             leading-4
-                            text-white/65
+                            text-white!/65
                         "
                                             >
                                                 {userEmail || 'Account'}
@@ -485,7 +485,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                             bg-primary-hover
                             text-[14px]
                             font-semibold
-                            text-white
+                            text-white!
                             shadow-[0_5px_16px_rgba(15,23,42,0.18)]
                         "
                                             >
@@ -526,7 +526,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                             font-semibold
                             uppercase
                             tracking-widest
-                            text-white/65
+                            text-white!/65
                         "
                                             >
                                                 {roleLabel}

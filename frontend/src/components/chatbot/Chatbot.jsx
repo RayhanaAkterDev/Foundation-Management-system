@@ -106,7 +106,7 @@ const Chatbot = () => {
                             bg-[#083c36]
                             px-5
                             py-4
-                            text-white
+                            text-white!
                         "
                     >
                         <div className="flex items-center gap-3">
@@ -129,7 +129,7 @@ const Chatbot = () => {
                                     SP Assistant
                                 </p>
 
-                                <p className="mt-0.5 font-sans text-[11px] text-white/65">
+                                <p className="mt-0.5 font-sans text-[11px] text-white!/65">
                                     Stand For People
                                 </p>
                             </div>
@@ -146,10 +146,10 @@ const Chatbot = () => {
                                 items-center
                                 justify-center
                                 rounded-full
-                                text-white/75
+                                text-white!/75
                                 transition
                                 hover:bg-white/10
-                                hover:text-white
+                                hover:text-white!
                             "
                         >
                             <X size={19} strokeWidth={1.8} />
@@ -187,7 +187,7 @@ const Chatbot = () => {
                                                 py-3.5
                                                 ${
                                                     isUser
-                                                        ? 'rounded-br-md bg-[#083c36] text-white'
+                                                        ? 'rounded-br-md bg-[#083c36] text-white!'
                                                         : 'rounded-tl-md border border-black/6 bg-white text-[#183b36] shadow-sm'
                                                 }
                                             `}
@@ -199,7 +199,7 @@ const Chatbot = () => {
                                                     leading-[1.7]
                                                     ${
                                                         isUser
-                                                            ? 'text-white'
+                                                            ? 'text-white!'
                                                             : 'text-[#183b36]'
                                                     }
                                                 `}
@@ -321,7 +321,7 @@ const Chatbot = () => {
                                     justify-center
                                     rounded-xl
                                     bg-[#ed864a]
-                                    text-white
+                                    text-white!
                                     transition
                                     hover:bg-[#d96f35]
                                     disabled:cursor-not-allowed
@@ -360,7 +360,7 @@ const Chatbot = () => {
                         justify-center
                         rounded-full
                         bg-[#083c36]
-                        text-white
+                        text-white!
                         shadow-[0_12px_35px_rgba(8,60,54,0.28)]
                         transition
                         duration-200

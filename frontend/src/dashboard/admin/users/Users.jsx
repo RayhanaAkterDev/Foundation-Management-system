@@ -731,7 +731,7 @@ const Users = () => {
                                     bg-primary
                                     px-4
                                     text-sm font-semibold
-                                    text-white
+                                    text-white!
                                     shadow-sm
                                     transition-all
                                     hover:bg-primary-hover
@@ -1093,7 +1093,7 @@ const Users = () => {
                         font-bold
                         uppercase
                         tracking-[0.18em]
-                        text-white/45
+                        text-white!/45
                     "
                                 >
                                     Directory controls
@@ -1105,7 +1105,7 @@ const Users = () => {
                         font-fraunces
                         text-[21px]
                         leading-tight
-                        text-white
+                        text-white!
                     "
                                 >
                                     Refine users
@@ -1117,7 +1117,7 @@ const Users = () => {
                         max-w-55
                         text-[12px]
                         leading-5
-                        text-white/50
+                        text-white!/50
                     "
                                 >
                                     Narrow the user directory by account role,
@@ -1142,7 +1142,7 @@ const Users = () => {
                             font-bold
                             uppercase
                             tracking-[0.16em]
-                            text-white/45
+                            text-white!/45
                         "
                                     >
                                         User role
@@ -1153,7 +1153,7 @@ const Users = () => {
                             text-[10px]
                             font-medium
                             tabular-nums
-                            text-white/30
+                            text-white!/30
                         "
                                     >
                                         {categoryTabs.length}
@@ -1176,7 +1176,7 @@ const Users = () => {
                             font-bold
                             uppercase
                             tracking-[0.16em]
-                            text-white/45
+                            text-white!/45
                         "
                                     >
                                         Account filters
@@ -1187,7 +1187,7 @@ const Users = () => {
                             mt-1
                             text-[11px]
                             leading-4
-                            text-white/30
+                            text-white!/30
                         "
                                     >
                                         Filter accounts by their current state

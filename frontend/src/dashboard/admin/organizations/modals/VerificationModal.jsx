@@ -223,7 +223,7 @@ const VerificationModal = ({
                                 font-bold
                                 uppercase
                                 tracking-[0.22em]
-                                text-white/50
+                                text-white!/50
                             "
                         >
                             Organization
@@ -270,7 +270,7 @@ const VerificationModal = ({
                                 font-semibold
                                 leading-[1.05]
                                 tracking-[-0.035em]
-                                text-white
+                                text-white!
                                 sm:mt-7
                                 sm:max-w-72
                                 sm:text-[32px]
@@ -287,7 +287,7 @@ const VerificationModal = ({
                                 font-semibold
                                 uppercase
                                 tracking-widest
-                                text-white/45
+                                text-white!/45
                                 sm:mt-3
                                 sm:text-[9px]
                             "
@@ -314,7 +314,7 @@ const VerificationModal = ({
                                     font-bold
                                     uppercase
                                     tracking-[0.18em]
-                                    text-white/40
+                                    text-white!/40
                                     sm:text-[8px]
                                 "
                             >
@@ -358,7 +358,7 @@ const VerificationModal = ({
                                         font-jost
                                         text-[9.5px]
                                         font-semibold
-                                        text-white
+                                        text-white!
                                         sm:text-[10px]
                                     "
                                 >
@@ -375,7 +375,7 @@ const VerificationModal = ({
                                     font-semibold
                                     uppercase
                                     tracking-[0.14em]
-                                    text-white/25
+                                    text-white!/25
                                 "
                             >
                                 Review
@@ -553,7 +553,7 @@ const VerificationModal = ({
                                                         items-center
                                                         justify-center
                                                         rounded-full
-                                                        text-white
+                                                        text-white!
                                                         sm:right-2
                                                         sm:top-2
                                                         sm:h-4

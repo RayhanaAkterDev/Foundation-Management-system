@@ -395,7 +395,7 @@ const VolunteerRequestModal = ({
                                                     transition-all
                                                     ${
                                                         selected
-                                                            ? 'border-primary bg-primary text-white'
+                                                            ? 'border-primary bg-primary text-white!'
                                                             : 'border-slate-300 bg-white text-transparent group-hover:border-primary/50'
                                                     }
                                                 `}
@@ -636,7 +636,7 @@ const VolunteerRequestModal = ({
                                     px-4
                                     text-xs
                                     font-semibold
-                                    text-white
+                                    text-white!
                                     shadow-sm
                                     transition-all
                                     hover:bg-primary-hover

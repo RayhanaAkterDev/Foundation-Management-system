@@ -897,7 +897,7 @@ const Organizations = () => {
             bg-primary
             px-4
             text-sm font-semibold
-            text-white
+            text-white!
             shadow-sm
             transition-all
             hover:bg-primary-hover
@@ -1276,7 +1276,7 @@ const Organizations = () => {
                     font-bold
                     uppercase
                     tracking-[0.18em]
-                    text-white/45
+                    text-white!/45
                 "
                                 >
                                     Directory controls
@@ -1288,7 +1288,7 @@ const Organizations = () => {
                     font-fraunces
                     text-[21px]
                     leading-tight
-                    text-white
+                    text-white!
                 "
                                 >
                                     Refine organizations
@@ -1300,7 +1300,7 @@ const Organizations = () => {
                     max-w-55
                     text-[12px]
                     leading-5
-                    text-white/50
+                    text-white!/50
                 "
                                 >
                                     Narrow the organization directory by
@@ -1326,7 +1326,7 @@ const Organizations = () => {
                         font-bold
                         uppercase
                         tracking-[0.16em]
-                        text-white/45
+                        text-white!/45
                     "
                                     >
                                         Organization status
@@ -1337,7 +1337,7 @@ const Organizations = () => {
                         text-[10px]
                         font-medium
                         tabular-nums
-                        text-white/30
+                        text-white!/30
                     "
                                     >
                                         {categoryTabs.length}
@@ -1371,7 +1371,7 @@ const Organizations = () => {
                             font-bold
                             uppercase
                             tracking-[0.16em]
-                            text-white/45
+                            text-white!/45
                         "
                                         >
                                             Verification filter
@@ -1382,7 +1382,7 @@ const Organizations = () => {
                             mt-1
                             text-[11px]
                             leading-4
-                            text-white/30
+                            text-white!/30
                         "
                                         >
                                             Filter organizations by their

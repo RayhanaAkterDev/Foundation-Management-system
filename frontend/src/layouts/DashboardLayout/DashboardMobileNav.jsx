@@ -135,12 +135,12 @@ const AccountMenuLink = ({ to, icon: Icon, children, onClick }) => (
             py-2.5
             text-[12px]
             font-medium
-            text-white/65
+            text-white!/65
             whitespace-nowrap
             transition-colors
             duration-200
             hover:bg-white/8
-            hover:text-white
+            hover:text-white!
         "
     >
         <Icon
@@ -148,10 +148,10 @@ const AccountMenuLink = ({ to, icon: Icon, children, onClick }) => (
                 h-4
                 w-4
                 shrink-0
-                text-white/40
+                text-white!/40
                 transition-colors
                 duration-200
-                group-hover:text-white
+                group-hover:text-white!
             "
             strokeWidth={1.8}
         />
@@ -163,7 +163,7 @@ const AccountMenuLink = ({ to, icon: Icon, children, onClick }) => (
                 h-3.5
                 w-3.5
                 shrink-0
-                text-white/20
+                text-white!/20
             "
             strokeWidth={1.8}
         />
@@ -365,7 +365,7 @@ const DashboardMobileNav = ({ role, currentPath, open, onClose }) => {
                                     font-semibold
                                     leading-[0.92]
                                     tracking-[-0.04em]
-                                    text-white
+                                    text-white!
                                 "
                             >
                                 Stand
@@ -382,7 +382,7 @@ const DashboardMobileNav = ({ role, currentPath, open, onClose }) => {
                                     font-semibold
                                     uppercase
                                     tracking-[0.15em]
-                                    text-white/35
+                                    text-white!/35
                                 "
                             >
                                 Social Impact Platform
@@ -405,11 +405,11 @@ const DashboardMobileNav = ({ role, currentPath, open, onClose }) => {
                             items-center
                             justify-center
                             rounded-lg
-                            text-white/45
+                            text-white!/45
                             transition-colors
                             duration-200
                             hover:bg-white/8
-                            hover:text-white
+                            hover:text-white!
                         "
                     >
                         <X className="h-5 w-5" strokeWidth={1.7} />
@@ -448,7 +448,7 @@ const DashboardMobileNav = ({ role, currentPath, open, onClose }) => {
                                 font-medium
                                 uppercase
                                 tracking-[0.15em]
-                                text-white/35
+                                text-white!/35
                             "
                         >
                             Workspace
@@ -468,7 +468,7 @@ const DashboardMobileNav = ({ role, currentPath, open, onClose }) => {
                             font-bold
                             uppercase
                             tracking-widest
-                            text-white/40
+                            text-white!/40
                         "
                     >
                         {roleLabel}
@@ -546,13 +546,13 @@ const DashboardMobileNav = ({ role, currentPath, open, onClose }) => {
                                                     ? `
                                                         bg-white/10
                                                         font-semibold
-                                                        text-white
+                                                        text-white!
                                                     `
                                                     : `
                                                         font-medium
-                                                        text-white/50
+                                                        text-white!/50
                                                         hover:bg-white/6
-                                                        hover:text-white/90
+                                                        hover:text-white!/90
                                                     `
                                             }
                                         `}
@@ -594,8 +594,8 @@ const DashboardMobileNav = ({ role, currentPath, open, onClose }) => {
                                                 duration-200
                                                 ${
                                                     active
-                                                        ? 'bg-white/10 text-white'
-                                                        : 'text-white/40 group-hover:text-white/80'
+                                                        ? 'bg-white/10 text-white!'
+                                                        : 'text-white!/40 group-hover:text-white!/80'
                                                 }
                                             `}
                                     >
@@ -632,7 +632,7 @@ const DashboardMobileNav = ({ role, currentPath, open, onClose }) => {
                                                     h-3.5
                                                     w-3.5
                                                     shrink-0
-                                                    text-white/30
+                                                    text-white!/30
                                                 "
                                             strokeWidth={1.9}
                                         />
@@ -695,7 +695,7 @@ const DashboardMobileNav = ({ role, currentPath, open, onClose }) => {
                                                 whitespace-nowrap
                                                 text-[11px]
                                                 font-semibold
-                                                text-white
+                                                text-white!
                                             "
                                         >
                                             {user.name}
@@ -709,7 +709,7 @@ const DashboardMobileNav = ({ role, currentPath, open, onClose }) => {
                                                 font-bold
                                                 uppercase
                                                 tracking-[0.12em]
-                                                text-white/30
+                                                text-white!/30
                                             "
                                         >
                                             {roleLabel}
@@ -773,7 +773,7 @@ const DashboardMobileNav = ({ role, currentPath, open, onClose }) => {
                                     text-left
                                     text-[12px]
                                     font-medium
-                                    text-white/60
+                                    text-white!/60
                                     whitespace-nowrap
                                     transition-colors
                                     duration-200
@@ -786,7 +786,7 @@ const DashboardMobileNav = ({ role, currentPath, open, onClose }) => {
                                         h-4
                                         w-4
                                         shrink-0
-                                        text-white/40
+                                        text-white!/40
                                         transition-colors
                                         duration-200
                                         group-hover:text-red-200
@@ -857,7 +857,7 @@ const DashboardMobileNav = ({ role, currentPath, open, onClose }) => {
                                     whitespace-nowrap
                                     text-[11px]
                                     font-semibold
-                                    text-white
+                                    text-white!
                                 "
                             >
                                 {user.name}
@@ -872,7 +872,7 @@ const DashboardMobileNav = ({ role, currentPath, open, onClose }) => {
                                     font-bold
                                     uppercase
                                     tracking-[0.12em]
-                                    text-white/30
+                                    text-white!/30
                                 "
                             >
                                 {roleLabel}
@@ -886,7 +886,7 @@ const DashboardMobileNav = ({ role, currentPath, open, onClose }) => {
                                 h-4
                                 w-4
                                 shrink-0
-                                text-white/25
+                                text-white!/25
                                 transition-transform
                                 duration-200
                                 ${accountOpen ? 'rotate-90' : ''}

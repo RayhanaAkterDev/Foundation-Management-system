@@ -363,7 +363,7 @@ const RequestForm = ({ setSuccess }) => {
                                     font-bengali
                                     text-sm
                                     font-semibold
-                                    text-white
+                                    text-white!
                                     transition
                                     hover:bg-primary-dark
                                 "

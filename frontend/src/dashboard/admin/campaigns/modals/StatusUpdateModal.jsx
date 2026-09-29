@@ -225,7 +225,7 @@ const StatusUpdateModal = ({
                         <button
                             type="submit"
                             disabled={loading || !isActive || !selectedStatus}
-                            className="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+                            className="inline-flex h-10 items-center justify-center rounded-lg bg-primary px-5 text-sm font-semibold text-white! transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             {loading ? 'Updating...' : 'Update Status'}
                         </button>

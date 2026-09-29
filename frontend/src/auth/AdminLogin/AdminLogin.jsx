@@ -29,11 +29,11 @@ const AdminLogin = () => {
                             />
 
                             <div>
-                                <p className="font-fraunces text-xl leading-none text-white">
+                                <p className="font-fraunces text-xl leading-none text-white!">
                                     Stand For People
                                 </p>
 
-                                <p className="mt-1 text-xs text-white/60">
+                                <p className="mt-1 text-xs text-white!/60">
                                     Centralized humanitarian coordination.
                                 </p>
                             </div>
@@ -45,19 +45,19 @@ const AdminLogin = () => {
                                 <div className="flex items-center gap-3">
                                     <span className="h-px w-8 bg-white/40" />
 
-                                    <span className="text-[11px] font-medium uppercase tracking-[0.25em] text-white/65">
+                                    <span className="text-[11px] font-medium uppercase tracking-[0.25em] text-white!/65">
                                         Administration
                                     </span>
                                 </div>
 
-                                <h1 className="mt-7 max-w-lg font-fraunces text-5xl font-medium leading-[1.08] text-white xl:text-[58px]">
+                                <h1 className="mt-7 max-w-lg font-fraunces text-5xl font-medium leading-[1.08] text-white! xl:text-[58px]">
                                     Coordinate
-                                    <span className="block text-white/65">
+                                    <span className="block text-white!/65">
                                         with purpose.
                                     </span>
                                 </h1>
 
-                                <p className="mt-7 max-w-md text-base leading-7 text-white/70 xl:text-lg xl:leading-8">
+                                <p className="mt-7 max-w-md text-base leading-7 text-white!/70 xl:text-lg xl:leading-8">
                                     Access the Stand For People administration
                                     workspace to coordinate users,
                                     organizations, requests, campaigns,
@@ -68,7 +68,7 @@ const AdminLogin = () => {
 
                         {/* Bottom */}
                         <div>
-                            <p className="max-w-xs text-xs leading-5 text-white/40">
+                            <p className="max-w-xs text-xs leading-5 text-white!/40">
                                 Authorized administrators only. This area is
                                 reserved for managing the SP platform.
                             </p>

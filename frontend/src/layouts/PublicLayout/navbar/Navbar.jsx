@@ -323,7 +323,7 @@ const Navbar = () => {
                                                 text-primary
                                                 transition-colors
                                                 group-hover:bg-primary
-                                                group-hover:text-white
+                                                group-hover:text-white!
                                             "
                                         >
                                             <UserRound

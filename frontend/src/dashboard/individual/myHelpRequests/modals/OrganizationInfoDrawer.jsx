@@ -498,7 +498,7 @@ const OrganizationInfoDrawer = ({
                     <button
                         type="button"
                         onClick={onClose}
-                        className="h-11 w-full rounded-xl bg-[#0f766e] text-[11px] font-bold text-white shadow-[0_4px_12px_rgba(15,118,110,0.15)] transition-all hover:bg-[#115e59] hover:shadow-[0_6px_16px_rgba(15,118,110,0.2)] focus:outline-none focus:ring-4 focus:ring-[#0f766e]/10"
+                        className="h-11 w-full rounded-xl bg-[#0f766e] text-[11px] font-bold text-white! shadow-[0_4px_12px_rgba(15,118,110,0.15)] transition-all hover:bg-[#115e59] hover:shadow-[0_6px_16px_rgba(15,118,110,0.2)] focus:outline-none focus:ring-4 focus:ring-[#0f766e]/10"
                     >
                         Close
                     </button>

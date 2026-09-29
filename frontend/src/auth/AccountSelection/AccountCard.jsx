@@ -76,8 +76,8 @@ const AccountCard = ({
                         duration-300
                         ${
                             isPrimary
-                                ? 'bg-primary/8 text-primary group-hover:translate-x-1 group-hover:bg-primary group-hover:text-white'
-                                : 'bg-accent/10 text-accent group-hover:translate-x-1 group-hover:bg-accent group-hover:text-white'
+                                ? 'bg-primary/8 text-primary group-hover:translate-x-1 group-hover:bg-primary group-hover:text-white!'
+                                : 'bg-accent/10 text-accent group-hover:translate-x-1 group-hover:bg-accent group-hover:text-white!'
                         }
                     `}
                 >

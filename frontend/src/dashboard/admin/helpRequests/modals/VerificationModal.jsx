@@ -34,7 +34,7 @@ const VerificationModal = ({
             selectedWrapper:
                 'border-emerald-400 bg-emerald-50 ring-2 ring-emerald-100',
             iconClass: 'bg-emerald-100 text-emerald-600',
-            selectedIconClass: 'bg-emerald-600 text-white',
+            selectedIconClass: 'bg-emerald-600 text-white!',
             accent: 'bg-emerald-500',
         },
         {
@@ -45,10 +45,9 @@ const VerificationModal = ({
             icon: CircleX,
             wrapper:
                 'border-red-200 bg-red-50/50 hover:border-red-300 hover:bg-red-50',
-            selectedWrapper:
-                'border-red-400 bg-red-50 ring-2 ring-red-100',
+            selectedWrapper: 'border-red-400 bg-red-50 ring-2 ring-red-100',
             iconClass: 'bg-red-100 text-red-600',
-            selectedIconClass: 'bg-red-600 text-white',
+            selectedIconClass: 'bg-red-600 text-white!',
             accent: 'bg-red-500',
         },
     ];
@@ -148,8 +147,7 @@ const VerificationModal = ({
                         {options.map((option) => {
                             const Icon = option.icon;
 
-                            const isSelected =
-                                selectedStatus === option.status;
+                            const isSelected = selectedStatus === option.status;
 
                             const isSubmitting = loading && isSelected;
 
@@ -158,9 +156,7 @@ const VerificationModal = ({
                                     key={option.status}
                                     type="button"
                                     disabled={loading}
-                                    onClick={() =>
-                                        handleConfirm(option.status)
-                                    }
+                                    onClick={() => handleConfirm(option.status)}
                                     className={`group relative flex w-full items-center gap-4 overflow-hidden rounded-xl border px-4 py-4 text-left transition-all duration-200 disabled:cursor-not-allowed ${
                                         isSelected
                                             ? option.selectedWrapper
@@ -185,10 +181,7 @@ const VerificationModal = ({
                                                 className="animate-spin"
                                             />
                                         ) : (
-                                            <Icon
-                                                size={18}
-                                                strokeWidth={1.9}
-                                            />
+                                            <Icon size={18} strokeWidth={1.9} />
                                         )}
                                     </span>
 

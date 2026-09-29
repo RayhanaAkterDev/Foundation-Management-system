@@ -334,18 +334,18 @@ const FormModal = ({
                             <div className="absolute left-12 top-[42%] h-24 w-24 rounded-full border border-white/6" />
                         </div>
 
-                        <div className="relative flex h-full flex-col px-10 py-10 text-white">
+                        <div className="relative flex h-full flex-col px-10 py-10 text-white!">
                             <div className="flex items-center gap-3">
                                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-primary shadow-sm">
                                     <Building2 size={22} strokeWidth={1.6} />
                                 </div>
 
                                 <div>
-                                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/40">
+                                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white!/40">
                                         Management
                                     </p>
 
-                                    <p className="mt-0.5 text-[13px] font-semibold text-white/85">
+                                    <p className="mt-0.5 text-[13px] font-semibold text-white!/85">
                                         Organizations
                                     </p>
                                 </div>
@@ -355,7 +355,7 @@ const FormModal = ({
                                 <div className="mb-4 flex items-center gap-2">
                                     <span className="h-px w-7 bg-white/20" />
 
-                                    <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/40">
+                                    <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-white!/40">
                                         New organization
                                     </span>
                                 </div>
@@ -364,7 +364,7 @@ const FormModal = ({
                                     Create a place for their work.
                                 </h2>
 
-                                <p className="mt-6 max-w-62.5 text-[14px] leading-7 text-white/50">
+                                <p className="mt-6 max-w-62.5 text-[14px] leading-7 text-white!/50">
                                     Add the organization’s core information. You
                                     can build out the rest of its profile later.
                                 </p>
@@ -377,7 +377,7 @@ const FormModal = ({
                                         />
                                     </span>
 
-                                    <span className="text-[12px] font-medium text-white/45">
+                                    <span className="text-[12px] font-medium text-white!/45">
                                         Basic information first
                                     </span>
                                 </div>
@@ -477,7 +477,7 @@ const FormModal = ({
 
                                 <section>
                                     <div className="mb-7 flex items-center gap-4">
-                                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary text-white shadow-sm shadow-primary/20">
+                                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary text-white! shadow-sm shadow-primary/20">
                                             {isEdit ? (
                                                 <PencilLine
                                                     size={19}
@@ -918,7 +918,7 @@ const FormModal = ({
                                         px-6 py-3
                                         text-[13px]
                                         font-semibold
-                                        text-white
+                                        text-white!
                                         shadow-sm
                                         transition-all duration-200
                                         hover:bg-primary-hover

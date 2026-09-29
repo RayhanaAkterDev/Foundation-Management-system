@@ -19,7 +19,7 @@ const Filters = ({ typeFilter, onTypeChange }) => {
             {/* Organization Type */}
             <div>
                 <div className="mb-2.5 px-1">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/35">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white!/35">
                         Organization type
                     </p>
                 </div>
@@ -41,7 +41,7 @@ const Filters = ({ typeFilter, onTypeChange }) => {
                                     ${
                                         active
                                             ? 'bg-white text-primary'
-                                            : 'text-white/60 hover:bg-white/[0.07] hover:text-white'
+                                            : 'text-white!/60 hover:bg-white/[0.07] hover:text-white!'
                                     }
                                 `}
                             >

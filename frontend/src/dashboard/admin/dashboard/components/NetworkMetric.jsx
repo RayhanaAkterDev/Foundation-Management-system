@@ -30,7 +30,7 @@ const NetworkMetric = ({
                     flex h-10 w-10 items-center justify-center
                     ${
                         featured
-                            ? 'bg-primary text-white'
+                            ? 'bg-primary text-white!'
                             : 'bg-background-alt text-text-secondary'
                     }
                 `}

@@ -33,11 +33,11 @@ const Login = () => {
                             />
 
                             <div>
-                                <p className="font-fraunces text-xl leading-none text-white">
+                                <p className="font-fraunces text-xl leading-none text-white!">
                                     Stand For People
                                 </p>
 
-                                <p className="mt-1 text-xs text-white/60">
+                                <p className="mt-1 text-xs text-white!/60">
                                     মানুষের পাশে। শক্তিশালী সমাজ গড়ার পথে।
                                 </p>
                             </div>
@@ -50,19 +50,19 @@ const Login = () => {
                                 <div className="flex items-center gap-3">
                                     <span className="h-px w-8 bg-white/40" />
 
-                                    <span className="font-bengali text-[11px] font-medium uppercase tracking-[0.18em] text-white/65">
+                                    <span className="font-bengali text-[11px] font-medium uppercase tracking-[0.18em] text-white!/65">
                                         আবার স্বাগতম
                                     </span>
                                 </div>
 
-                                <h1 className="mt-7 max-w-lg font-bengali text-5xl font-semibold leading-[1.12] tracking-[-0.035em] text-white xl:text-[58px]">
+                                <h1 className="mt-7 max-w-lg font-bengali text-5xl font-semibold leading-[1.12] tracking-[-0.035em] text-white! xl:text-[58px]">
                                     পরিবর্তনের পথে
-                                    <span className="block text-white/65">
+                                    <span className="block text-white!/65">
                                         আবারও এগিয়ে চলুন।
                                     </span>
                                 </h1>
 
-                                <p className="mt-7 max-w-md font-bengali text-base font-normal leading-7 text-white/70 xl:text-lg xl:leading-8">
+                                <p className="mt-7 max-w-md font-bengali text-base font-normal leading-7 text-white!/70 xl:text-lg xl:leading-8">
                                     মানুষের পাশে থাকা, আপনার কার্যক্রম পরিচালনা
                                     করা এবং যেসব মানুষের সহায়তা প্রয়োজন তাদের
                                     সঙ্গে সংযুক্ত থাকতে লগইন করুন।
@@ -71,11 +71,11 @@ const Login = () => {
                                 {/* Simple stat */}
                                 <div className="mt-10 flex items-center gap-5">
                                     <div>
-                                        <p className="font-fraunces text-3xl text-white">
+                                        <p className="font-fraunces text-3xl text-white!">
                                             12,800+
                                         </p>
 
-                                        <p className="mt-1 font-bengali text-xs text-white/55">
+                                        <p className="mt-1 font-bengali text-xs text-white!/55">
                                             সহায়তা পাওয়া মানুষ
                                         </p>
                                     </div>
@@ -83,11 +83,11 @@ const Login = () => {
                                     <div className="h-10 w-px bg-white/15" />
 
                                     <div>
-                                        <p className="font-fraunces text-3xl text-white">
+                                        <p className="font-fraunces text-3xl text-white!">
                                             2026
                                         </p>
 
-                                        <p className="mt-1 font-bengali text-xs text-white/55">
+                                        <p className="mt-1 font-bengali text-xs text-white!/55">
                                             একসঙ্গে এগিয়ে চলার বছর
                                         </p>
                                     </div>
@@ -97,13 +97,13 @@ const Login = () => {
 
                         {/* Bottom */}
                         <div className="flex items-end justify-between gap-8">
-                            <p className="max-w-xs font-bengali text-xs leading-5 text-white/40">
+                            <p className="max-w-xs font-bengali text-xs leading-5 text-white!/40">
                                 ব্যক্তি ও প্রতিষ্ঠানকে একসঙ্গে কাজ করার মাধ্যমে
                                 আরও শক্তিশালী ও সহায়ক সমাজ গড়ার একটি
                                 নির্ভরযোগ্য প্ল্যাটফর্ম।
                             </p>
 
-                            <span className="whitespace-nowrap text-[10px] uppercase tracking-[0.25em] text-white/35">
+                            <span className="whitespace-nowrap text-[10px] uppercase tracking-[0.25em] text-white!/35">
                                 Stand For People
                             </span>
                         </div>

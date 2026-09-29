@@ -11,6 +11,7 @@ use App\Http\Controllers\DonationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\EmailVerificationController;
 use App\Http\Controllers\PublicCampaignController;
+use App\Http\Controllers\PublicCommunityController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ChatbotController;
 
@@ -79,6 +80,11 @@ Route::prefix('public')->group(function () {
         [PublicCampaignController::class, 'categories']
     );
 });
+
+Route::get(
+    '/public/community',
+    [PublicCommunityController::class, 'index']
+);
 
 // =============================================================
 // PUBLIC CHATBOT

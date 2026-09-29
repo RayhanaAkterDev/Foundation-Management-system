@@ -92,7 +92,7 @@ const RoleBasedView = () => {
             {/* ACTIVE PANEL */}
             <div className="mt-16 max-w-4xl mx-auto rounded-3xl bg-primary p-7 sm:p-9 md:p-10 flex gap-6 items-start shadow-lg">
                 {/* ICON */}
-                <div className="w-12 h-12 rounded-xl bg-white/15 flex items-center justify-center text-white shrink-0">
+                <div className="w-12 h-12 rounded-xl bg-white/15 flex items-center justify-center text-white! shrink-0">
                     <ActiveIcon size={22} />
                 </div>
 
@@ -106,7 +106,7 @@ const RoleBasedView = () => {
                         {activeRole.desc}
                     </p>
 
-                    <div className="text-sm text-white font-semibold">
+                    <div className="text-sm text-white! font-semibold">
                         System Action: {activeRole.action}
                     </div>
                 </div>

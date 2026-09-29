@@ -141,7 +141,7 @@ const WithdrawalModal = ({
                         type="button"
                         onClick={onSubmit}
                         disabled={loading || (reason ?? '').trim().length < 10}
-                        className="inline-flex items-center gap-2 bg-[#ad554b] px-5 py-2.5 text-[10px] font-bold text-white shadow-[0_5px_14px_rgba(173,85,75,0.14)] transition hover:bg-[#98483f] disabled:cursor-not-allowed disabled:opacity-50"
+                        className="inline-flex items-center gap-2 bg-[#ad554b] px-5 py-2.5 text-[10px] font-bold text-white! shadow-[0_5px_14px_rgba(173,85,75,0.14)] transition hover:bg-[#98483f] disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         <RotateCcw className="h-3.5 w-3.5" />
 

@@ -1,13 +1,7 @@
 import React from 'react';
 import { AlertTriangle, X } from 'lucide-react';
 
-const DeleteModal = ({
-    request,
-    loading,
-    error,
-    onClose,
-    onConfirm,
-}) => {
+const DeleteModal = ({ request, loading, error, onClose, onConfirm }) => {
     if (!request) {
         return null;
     }
@@ -97,7 +91,7 @@ const DeleteModal = ({
                         type="button"
                         onClick={onConfirm}
                         disabled={loading}
-                        className="inline-flex h-10 items-center gap-2 rounded-lg bg-red-600 px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="inline-flex h-10 items-center gap-2 rounded-lg bg-red-600 px-5 text-sm font-semibold text-white! shadow-sm transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                         {loading && (
                             <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />

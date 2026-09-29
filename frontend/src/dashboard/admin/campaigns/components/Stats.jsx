@@ -100,7 +100,7 @@ const Stats = ({
             ========================================================== */}
             <header className="flex min-h-24 items-center justify-between gap-4 border-b border-border px-5 py-4 sm:px-6 lg:px-7">
                 <div className="flex min-w-0 items-center gap-3">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary text-white">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary text-white!">
                         <Megaphone size={17} strokeWidth={1.8} />
                     </div>
 
@@ -131,7 +131,7 @@ const Stats = ({
                 {/* =====================================================
                     TOTAL CAMPAIGNS
                 ====================================================== */}
-                <div className="relative overflow-hidden bg-primary px-6 py-7 flex flex-col justify-between text-white sm:px-7 sm:py-8 lg:px-8 lg:py-9">
+                <div className="relative overflow-hidden bg-primary px-6 py-7 flex flex-col justify-between text-white! sm:px-7 sm:py-8 lg:px-8 lg:py-9">
                     {/* Decorative circles */}
                     <div className="pointer-events-none absolute -right-14 -top-14 h-40 w-40 rounded-full border border-white/10" />
 
@@ -142,7 +142,7 @@ const Stats = ({
                         <div className="flex items-center gap-2">
                             <span className="h-1.5 w-1.5 rounded-full bg-white/70" />
 
-                            <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/65">
+                            <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-white!/65">
                                 Total campaigns
                             </span>
                         </div>
@@ -154,12 +154,12 @@ const Stats = ({
                                     {totalValue}
                                 </span>
 
-                                <span className="mb-1.5 text-[12px] font-medium text-white/60">
+                                <span className="mb-1.5 text-[12px] font-medium text-white!/60">
                                     campaigns
                                 </span>
                             </div>
 
-                            <p className="mt-6 max-w-56.25 text-[12px] leading-[1.7] text-white/65">
+                            <p className="mt-6 max-w-56.25 text-[12px] leading-[1.7] text-white!/65">
                                 Total campaigns currently recorded across the
                                 platform.
                             </p>
@@ -170,11 +170,11 @@ const Stats = ({
                             <div className="border-t border-white/15 pt-5">
                                 <div className="flex items-center justify-between gap-4">
                                     <div>
-                                        <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white/45">
+                                        <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white!/45">
                                             Campaign activity
                                         </p>
 
-                                        <p className="mt-1.5 text-[11px] text-white/65">
+                                        <p className="mt-1.5 text-[11px] text-white!/65">
                                             {totalValue === 0
                                                 ? 'No campaigns recorded'
                                                 : `${totalValue} campaigns across ${statusRows.length} states`}

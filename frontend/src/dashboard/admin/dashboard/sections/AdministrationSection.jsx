@@ -138,7 +138,7 @@ const AdministrationSection = ({ onNavigate }) => {
                                         items-center
                                         justify-center
                                         bg-primary
-                                        text-white
+                                        text-white!
                                         sm:h-9
                                         sm:w-9
                                     "

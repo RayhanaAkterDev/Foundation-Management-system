@@ -110,7 +110,7 @@ const RejectionModal = ({
                         type="button"
                         onClick={onSubmit}
                         disabled={loading}
-                        className="inline-flex items-center gap-2 bg-[#b43d3d] px-4 py-2.5 text-[10px] font-bold uppercase tracking-[0.08em] text-white transition hover:bg-[#983333] disabled:cursor-not-allowed disabled:opacity-60"
+                        className="inline-flex items-center gap-2 bg-[#b43d3d] px-4 py-2.5 text-[10px] font-bold uppercase tracking-[0.08em] text-white! transition hover:bg-[#983333] disabled:cursor-not-allowed disabled:opacity-60"
                     >
                         {loading ? (
                             <>

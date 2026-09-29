@@ -131,7 +131,7 @@ const OrganizationHero = () => {
                             CENTER
                         ================================================= */}
                         <div className="absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2 text-center">
-                            <div className="mx-auto flex size-20 items-center justify-center rounded-full bg-primary text-white shadow-xl sm:size-24 lg:size-25 xl:size-28">
+                            <div className="mx-auto flex size-20 items-center justify-center rounded-full bg-primary text-white! shadow-xl sm:size-24 lg:size-25 xl:size-28">
                                 <TbHeartHandshake className="text-4xl sm:text-[2.75rem]" />
                             </div>
 

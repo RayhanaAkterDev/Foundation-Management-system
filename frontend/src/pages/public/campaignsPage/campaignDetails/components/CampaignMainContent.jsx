@@ -155,7 +155,7 @@ const CampaignMainContent = ({ campaign }) => {
 
                         {campaign.location && (
                             <div className="absolute bottom-5 left-5 sm:bottom-7 sm:left-7">
-                                <div className="flex items-center gap-2 text-white">
+                                <div className="flex items-center gap-2 text-white!">
                                     <TbMapPin size={14} />
 
                                     <span className="font-bengali text-[10px]">

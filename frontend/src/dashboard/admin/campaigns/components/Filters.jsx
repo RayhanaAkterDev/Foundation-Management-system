@@ -70,7 +70,7 @@ const Filters = ({
 
             <div>
                 <div className="mb-2.5 px-1">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/45">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white!/45">
                         Campaign type
                     </p>
                 </div>
@@ -122,7 +122,7 @@ const Filters = ({
 
             <div>
                 <div className="mb-2.5 px-1">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/45">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white!/45">
                         Category
                     </p>
                 </div>
@@ -166,7 +166,7 @@ const Filters = ({
 
             <div>
                 <div className="mb-2.5 px-1">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/45">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white!/45">
                         Organization
                     </p>
                 </div>

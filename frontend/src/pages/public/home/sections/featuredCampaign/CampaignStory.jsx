@@ -27,9 +27,9 @@ const CampaignStory = ({ campaign }) => {
                         label: `${campaign.category} • ${campaign.location}`,
                     }}
                     title={campaign.title}
-                    headingClass="text-white"
+                    headingClass="text-white!"
                     description={campaign.shortDescription}
-                    descriptionClass="text-white/80"
+                    descriptionClass="text-white!/80"
                 />
 
                 <ImpactRibbon />

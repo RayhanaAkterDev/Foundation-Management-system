@@ -33,8 +33,7 @@ const getAssignedOrganizationId = (request) => {
     if (Array.isArray(request.assignments)) {
         const organizationAssignment = request.assignments.find(
             (assignment) =>
-                assignment?.organization ||
-                assignment?.organization_id,
+                assignment?.organization || assignment?.organization_id,
         );
 
         if (organizationAssignment?.organization?.id) {
@@ -69,8 +68,7 @@ const getAssignedOrganizationName = (request) => {
     if (Array.isArray(request.assignments)) {
         const organizationAssignment = request.assignments.find(
             (assignment) =>
-                assignment?.organization ||
-                assignment?.organization_id,
+                assignment?.organization || assignment?.organization_id,
         );
 
         if (organizationAssignment?.organization?.name) {
@@ -167,9 +165,7 @@ const ReassignmentForm = ({
 
         onSubmit({
             help_request_id: request.id,
-            organization_id: organizationId
-                ? Number(organizationId)
-                : null,
+            organization_id: organizationId ? Number(organizationId) : null,
             volunteer_ids: selectedVolunteerIds.map(Number),
             assignment_note: assignmentNote.trim() || null,
         });
@@ -282,7 +278,8 @@ const ReassignmentForm = ({
                                                                     size={12}
                                                                 />
                                                                 {volunteer.name ||
-                                                                    volunteer.user
+                                                                    volunteer
+                                                                        .user
                                                                         ?.name ||
                                                                     'Volunteer'}
                                                             </span>
@@ -310,9 +307,7 @@ const ReassignmentForm = ({
                                     id="reassignment-organization"
                                     value={organizationId}
                                     onChange={(event) =>
-                                        setOrganizationId(
-                                            event.target.value,
-                                        )
+                                        setOrganizationId(event.target.value)
                                     }
                                     disabled={loading}
                                     className="w-full appearance-none rounded-xl border border-border bg-white px-4 py-3 pr-10 text-sm text-text-primary outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10 disabled:cursor-not-allowed disabled:bg-background-alt"
@@ -430,7 +425,7 @@ const ReassignmentForm = ({
                                                 <span
                                                     className={`ml-3 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
                                                         selected
-                                                            ? 'border-primary bg-primary text-white'
+                                                            ? 'border-primary bg-primary text-white!'
                                                             : 'border-border'
                                                     }`}
                                                 >
@@ -491,7 +486,7 @@ const ReassignmentForm = ({
                         type="button"
                         onClick={handleSubmit}
                         disabled={!canSubmit}
-                        className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+                        className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white! transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         {loading ? 'Reassigning...' : 'Reassign Request'}
                     </button>

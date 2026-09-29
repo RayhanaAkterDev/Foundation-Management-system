@@ -684,7 +684,7 @@ const Donate = () => {
                                                 transition-all
                                                 ${
                                                     amount === val
-                                                        ? 'border-primary bg-primary text-white shadow-sm'
+                                                        ? 'border-primary bg-primary text-white! shadow-sm'
                                                         : isSuggested
                                                           ? 'border-primary bg-primary/5 text-primary'
                                                           : 'border-border bg-surface-soft hover:border-primary/40'
@@ -704,7 +704,7 @@ const Donate = () => {
                                                         py-0.5
                                                         font-bengali
                                                         text-[10px]
-                                                        text-white
+                                                        text-white!
                                                     "
                                                 >
                                                     জনপ্রিয়
@@ -829,7 +829,7 @@ const Donate = () => {
                                 font-bengali
                                 text-lg
                                 font-semibold
-                                text-white
+                                text-white!
                                 transition
                                 hover:bg-primary-dark
                                 disabled:cursor-not-allowed

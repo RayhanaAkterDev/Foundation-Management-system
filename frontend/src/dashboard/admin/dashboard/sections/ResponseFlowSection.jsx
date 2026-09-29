@@ -171,7 +171,7 @@ const CampaignRow = ({ campaign, onClick }) => {
                     duration-200
                     group-hover:border-primary/25
                     group-hover:bg-primary
-                    group-hover:text-white
+                    group-hover:text-white!
                     sm:flex
                 "
             >
@@ -259,7 +259,7 @@ const ResponseFlowSection = ({
                     {/* =================================================
                         FEATURED CAMPAIGN
                     ================================================== */}
-                    <div className="min-w-0 overflow-hidden bg-primary text-white">
+                    <div className="min-w-0 overflow-hidden bg-primary text-white!">
                         {loading ? (
                             <div className="px-7 py-8 sm:px-8">
                                 <div className="space-y-6">
@@ -297,7 +297,7 @@ const ResponseFlowSection = ({
                                             font-semibold
                                             uppercase
                                             tracking-widest
-                                            text-white/60
+                                            text-white!/60
                                         "
                                     >
                                         Latest submission
@@ -310,7 +310,7 @@ const ResponseFlowSection = ({
                                             text-[9px]
                                             font-medium
                                             capitalize
-                                            text-white/70
+                                            text-white!/70
                                         "
                                     >
                                         {featuredStatus}
@@ -326,7 +326,7 @@ const ResponseFlowSection = ({
                                             text-[28px]
                                             leading-[1.14]
                                             tracking-tight
-                                            text-white
+                                            text-white!
                                             sm:text-[31px]
                                         "
                                     >
@@ -340,7 +340,7 @@ const ResponseFlowSection = ({
                                             font-jost
                                             text-[12px]
                                             leading-7
-                                            text-white/72
+                                            text-white!/72
                                         "
                                     >
                                         {featuredDescription}
@@ -358,7 +358,7 @@ const ResponseFlowSection = ({
                                                     font-semibold
                                                     uppercase
                                                     tracking-widest
-                                                    text-white/45
+                                                    text-white!/45
                                                 "
                                             >
                                                 Organization
@@ -371,7 +371,7 @@ const ResponseFlowSection = ({
                                                     font-jost
                                                     text-[12px]
                                                     leading-5
-                                                    text-white/90
+                                                    text-white!/90
                                                 "
                                             >
                                                 {featuredOrganization}
@@ -386,7 +386,7 @@ const ResponseFlowSection = ({
                                                     font-semibold
                                                     uppercase
                                                     tracking-widest
-                                                    text-white/45
+                                                    text-white!/45
                                                 "
                                             >
                                                 Location
@@ -396,7 +396,7 @@ const ResponseFlowSection = ({
                                                 <MapPin
                                                     size={12}
                                                     strokeWidth={1.5}
-                                                    className="shrink-0 text-white/60"
+                                                    className="shrink-0 text-white!/60"
                                                 />
 
                                                 <p
@@ -405,7 +405,7 @@ const ResponseFlowSection = ({
                                                         font-jost
                                                         text-[12px]
                                                         leading-5
-                                                        text-white/90
+                                                        text-white!/90
                                                     "
                                                 >
                                                     {featuredLocation}
@@ -421,7 +421,7 @@ const ResponseFlowSection = ({
                                                     font-semibold
                                                     uppercase
                                                     tracking-widest
-                                                    text-white/45
+                                                    text-white!/45
                                                 "
                                             >
                                                 Campaign type
@@ -435,7 +435,7 @@ const ResponseFlowSection = ({
                                                     text-[12px]
                                                     capitalize
                                                     leading-5
-                                                    text-white/90
+                                                    text-white!/90
                                                 "
                                             >
                                                 {featuredType}
@@ -464,7 +464,7 @@ const ResponseFlowSection = ({
                                             font-semibold
                                             uppercase
                                             tracking-widest
-                                            text-white
+                                            text-white!
                                             transition-colors
                                             hover:border-white
                                         "
@@ -501,7 +501,7 @@ const ResponseFlowSection = ({
                                         font-semibold
                                         uppercase
                                         tracking-widest
-                                        text-white/55
+                                        text-white!/55
                                     "
                                 >
                                     Review status
@@ -515,7 +515,7 @@ const ResponseFlowSection = ({
                                         text-[28px]
                                         leading-[1.15]
                                         tracking-tight
-                                        text-white
+                                        text-white!
                                     "
                                 >
                                     Campaign desk is clear
@@ -528,7 +528,7 @@ const ResponseFlowSection = ({
                                         font-jost
                                         text-[12px]
                                         leading-7
-                                        text-white/68
+                                        text-white!/68
                                     "
                                 >
                                     There are currently no unverified campaigns

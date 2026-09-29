@@ -10,7 +10,7 @@ const UrgencyBadge = ({ urgency, dark = false }) => {
     const darkStyles = {
         High: 'bg-[#ffffff]/10 text-[#ffd3c9]',
         Medium: 'bg-[#ffffff]/10 text-[#ffe0a0]',
-        Low: 'bg-[#ffffff]/10 text-white/65',
+        Low: 'bg-[#ffffff]/10 text-white!/65',
         Critical: 'bg-[#ffffff]/10 text-[#ffd3c9]',
         Normal: 'bg-[#ffffff]/10 text-[#ffe0a0]',
     };

@@ -141,7 +141,7 @@ const FeaturedCampaigns = () => {
                                     <button
                                         type="button"
                                         onClick={handleLoadMore}
-                                        className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white px-6 py-3 font-sans text-sm font-semibold text-primary transition-all duration-200 hover:border-primary hover:bg-primary hover:text-white"
+                                        className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white px-6 py-3 font-sans text-sm font-semibold text-primary transition-all duration-200 hover:border-primary hover:bg-primary hover:text-white!"
                                     >
                                         আরও ক্যাম্পেইন দেখুন
                                         <ArrowRight size={16} />
@@ -161,7 +161,7 @@ const FeaturedCampaigns = () => {
 
                             <Link
                                 to="/campaigns"
-                                className="mt-6 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 font-sans text-sm font-semibold text-white"
+                                className="mt-6 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 font-sans text-sm font-semibold text-white!"
                             >
                                 ক্যাম্পেইন দেখুন
                                 <ArrowRight size={16} />

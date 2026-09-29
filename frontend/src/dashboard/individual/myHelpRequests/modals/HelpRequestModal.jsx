@@ -225,11 +225,11 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                             </div>
 
                             <div className="min-w-0">
-                                <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white">
+                                <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white!">
                                     Stand For People
                                 </p>
 
-                                <p className="mt-0.5 text-[10px] text-white/40">
+                                <p className="mt-0.5 text-[10px] text-white!/40">
                                     Community support
                                 </p>
                             </div>
@@ -245,7 +245,7 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                                 </span>
                             </div>
 
-                            <h2 className="text-[clamp(32px,3vw,39px)] font-semibold leading-[1.03] tracking-[-0.045em] text-white">
+                            <h2 className="text-[clamp(32px,3vw,39px)] font-semibold leading-[1.03] tracking-[-0.045em] text-white!">
                                 Let us know
                                 <br />
                                 what you
@@ -253,17 +253,17 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                                 <span className="text-accent">need.</span>
                             </h2>
 
-                            <p className="mt-6 max-w-55 text-[12px] leading-6 text-white/50">
+                            <p className="mt-6 max-w-55 text-[12px] leading-6 text-white!/50">
                                 Tell us what is happening and what kind of
                                 support would make a difference.
                             </p>
 
                             <div className="mt-8 border-l border-accent/40 pl-4">
-                                <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-white/65">
+                                <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-white!/65">
                                     Your information matters
                                 </p>
 
-                                <p className="mt-1.5 max-w-53.75 text-[10px] leading-5 text-white/35">
+                                <p className="mt-1.5 max-w-53.75 text-[10px] leading-5 text-white!/35">
                                     Clear and accurate details help us
                                     understand your request better.
                                 </p>
@@ -275,7 +275,7 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                             <div className="flex items-center gap-2">
                                 <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
 
-                                <span className="text-[9px] font-medium text-white/40">
+                                <span className="text-[9px] font-medium text-white!/40">
                                     Community assistance request
                                 </span>
                             </div>
@@ -381,7 +381,7 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                                 <section>
                                     <div className="flex items-center justify-between gap-3 border-b border-slate-200 pb-3.5">
                                         <div className="flex min-w-0 items-center gap-3">
-                                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-[9px] font-extrabold text-white">
+                                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-[9px] font-extrabold text-white!">
                                                 01
                                             </span>
 
@@ -636,7 +636,7 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                                 <section className="mt-8">
                                     <div className="flex items-center justify-between gap-3 border-b border-slate-200 pb-3.5">
                                         <div className="flex min-w-0 items-center gap-3">
-                                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-[9px] font-extrabold text-white">
+                                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-[9px] font-extrabold text-white!">
                                                 03
                                             </span>
 
@@ -735,7 +735,7 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                                     <button
                                         type="submit"
                                         disabled={submitting}
-                                        className="inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-[12px] font-bold text-white shadow-[0_6px_18px_rgba(15,118,110,0.16)] transition-all hover:bg-primary-hover hover:shadow-[0_8px_22px_rgba(15,118,110,0.22)] focus:outline-none focus:ring-4 focus:ring-primary/15 disabled:cursor-not-allowed disabled:opacity-60 sm:min-w-41.25 sm:flex-none sm:px-7"
+                                        className="inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-[12px] font-bold text-white! shadow-[0_6px_18px_rgba(15,118,110,0.16)] transition-all hover:bg-primary-hover hover:shadow-[0_8px_22px_rgba(15,118,110,0.22)] focus:outline-none focus:ring-4 focus:ring-primary/15 disabled:cursor-not-allowed disabled:opacity-60 sm:min-w-41.25 sm:flex-none sm:px-7"
                                     >
                                         {submitting ? (
                                             <>

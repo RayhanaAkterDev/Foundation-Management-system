@@ -171,7 +171,7 @@ const ContactHighlight = ({ email, status }) => (
     <div className="mb-6 overflow-hidden border border-border bg-surface sm:mb-7">
         <div className="flex flex-col sm:flex-row sm:items-stretch sm:justify-between">
             <div className="flex min-w-0 flex-1 items-center gap-3.5 px-4 py-4 sm:gap-4 sm:px-5">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-primary text-white sm:h-11 sm:w-11">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-primary text-white! sm:h-11 sm:w-11">
                     <Mail size={18} strokeWidth={1.7} />
                 </div>
 
@@ -300,7 +300,7 @@ const ViewModal = ({ user, loading, error, onClose }) => {
                         overflow-hidden
                         bg-primary
                         p-6
-                        text-white
+                        text-white!
                         lg:flex
                         lg:p-7
                     "
@@ -353,11 +353,11 @@ const ViewModal = ({ user, loading, error, onClose }) => {
                             </div>
 
                             <div>
-                                <p className="text-[11px] font-semibold tracking-wide text-white">
+                                <p className="text-[11px] font-semibold tracking-wide text-white!">
                                     Account record
                                 </p>
 
-                                <p className="mt-0.5 font-[Poppins] text-[8px] font-medium uppercase tracking-[0.17em] text-white/45">
+                                <p className="mt-0.5 font-[Poppins] text-[8px] font-medium uppercase tracking-[0.17em] text-white!/45">
                                     Stand For People
                                 </p>
                             </div>
@@ -382,7 +382,7 @@ const ViewModal = ({ user, loading, error, onClose }) => {
                             )}
                         </div>
 
-                        <p className="mb-2 font-[Poppins] text-[9px] font-semibold uppercase tracking-[0.18em] text-white/50">
+                        <p className="mb-2 font-[Poppins] text-[9px] font-semibold uppercase tracking-[0.18em] text-white!/50">
                             {roleLabel}
                         </p>
 
@@ -394,7 +394,7 @@ const ViewModal = ({ user, loading, error, onClose }) => {
                                 font-semibold
                                 leading-[1.08]
                                 tracking-tight
-                                text-white
+                                text-white!
                                 xl:text-[29px]
                             "
                         >
@@ -409,16 +409,16 @@ const ViewModal = ({ user, loading, error, onClose }) => {
                             <div className="flex items-start gap-3">
                                 <Calendar
                                     size={15}
-                                    className="mt-0.5 shrink-0 text-white/45"
+                                    className="mt-0.5 shrink-0 text-white!/45"
                                     strokeWidth={1.7}
                                 />
 
                                 <div>
-                                    <p className="font-[Poppins] text-[8px] font-semibold uppercase tracking-[0.16em] text-white/40">
+                                    <p className="font-[Poppins] text-[8px] font-semibold uppercase tracking-[0.16em] text-white!/40">
                                         Registered
                                     </p>
 
-                                    <p className="mt-1.5 text-[12px] font-medium text-white/85">
+                                    <p className="mt-1.5 text-[12px] font-medium text-white!/85">
                                         {formatDate(user?.created_at)}
                                     </p>
                                 </div>
@@ -427,11 +427,11 @@ const ViewModal = ({ user, loading, error, onClose }) => {
                     </div>
 
                     <div className="relative border-t border-white/15 pt-5">
-                        <p className="text-[11px] font-semibold text-white/90">
+                        <p className="text-[11px] font-semibold text-white!/90">
                             Stand For People
                         </p>
 
-                        <p className="mt-1.5 max-w-51.25 text-[10px] leading-5 text-white/50">
+                        <p className="mt-1.5 max-w-51.25 text-[10px] leading-5 text-white!/50">
                             Connecting people, organizations and resources with
                             verified humanitarian needs.
                         </p>
@@ -829,7 +829,7 @@ const ViewModal = ({ user, loading, error, onClose }) => {
                                 px-5
                                 text-[12px]
                                 font-semibold
-                                text-white
+                                text-white!
                                 shadow-sm
                                 shadow-primary/15
                                 transition-colors

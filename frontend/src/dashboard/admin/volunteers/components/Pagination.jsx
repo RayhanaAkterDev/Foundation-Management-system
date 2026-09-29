@@ -95,7 +95,7 @@ const Pagination = ({
                                 flex h-8 min-w-8 items-center justify-center border px-2 text-[11px] font-semibold transition-colors
                                 ${
                                     active
-                                        ? 'border-primary bg-primary text-white'
+                                        ? 'border-primary bg-primary text-white!'
                                         : 'border-border bg-white text-text-secondary hover:bg-background-alt hover:text-text-primary'
                                 }
                             `}

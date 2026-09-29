@@ -306,7 +306,7 @@ const CategoriesPage = () => {
                                             justify-center
                                             rounded-full
                                             bg-[#0f766e]
-                                            !text-white
+                                            !text-white!
                                             transition-all
                                             duration-300
                                             group-hover:bg-[#115e59]

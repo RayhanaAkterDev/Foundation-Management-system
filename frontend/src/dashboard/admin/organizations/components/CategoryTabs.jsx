@@ -19,7 +19,7 @@ const CategoryTabs = ({ tabs, activeCategory, onChange }) => {
                             ${
                                 active
                                     ? 'bg-white text-primary'
-                                    : 'text-white/65 hover:bg-white/[0.07] hover:text-white'
+                                    : 'text-white!/65 hover:bg-white/[0.07] hover:text-white!'
                             }
                         `}
                     >
@@ -32,7 +32,7 @@ const CategoryTabs = ({ tabs, activeCategory, onChange }) => {
                                 ${
                                     active
                                         ? 'bg-primary/10 text-primary'
-                                        : 'bg-white/8 text-white/40 group-hover:bg-white/10 group-hover:text-white/70'
+                                        : 'bg-white/8 text-white!/40 group-hover:bg-white/10 group-hover:text-white!/70'
                                 }
                             `}
                         >
@@ -44,11 +44,7 @@ const CategoryTabs = ({ tabs, activeCategory, onChange }) => {
                             <span
                                 className={`
                                     block truncate text-[13px] leading-5
-                                    ${
-                                        active
-                                            ? 'font-semibold'
-                                            : 'font-medium'
-                                    }
+                                    ${active ? 'font-semibold' : 'font-medium'}
                                 `}
                             >
                                 {tab.label}
@@ -62,7 +58,7 @@ const CategoryTabs = ({ tabs, activeCategory, onChange }) => {
                                 ${
                                     active
                                         ? 'font-bold text-primary'
-                                        : 'font-medium text-white/35 group-hover:text-white/65'
+                                        : 'font-medium text-white!/35 group-hover:text-white!/65'
                                 }
                             `}
                         >

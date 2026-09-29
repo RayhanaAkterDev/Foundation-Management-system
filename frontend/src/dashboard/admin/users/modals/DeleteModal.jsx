@@ -188,7 +188,7 @@ const DeleteModal = ({ user, loading, error, onClose, onConfirm }) => {
                                 font-fraunces
                                 text-[14px]
                                 font-medium
-                                text-white
+                                text-white!
                                 sm:h-11
                                 sm:w-11
                                 sm:text-[15px]
@@ -447,7 +447,7 @@ const DeleteModal = ({ user, loading, error, onClose, onConfirm }) => {
                             font-jost
                             text-[11.5px]
                             font-semibold
-                            text-white
+                            text-white!
                             transition-colors
                             hover:bg-red-700
                             focus:outline-none

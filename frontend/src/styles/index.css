@@ -444,7 +444,7 @@ nav .bangla {
             py-3
             text-sm
             font-medium
-            text-white
+            text-white!
             transition-colors
             duration-200
             hover:bg-primary-hover

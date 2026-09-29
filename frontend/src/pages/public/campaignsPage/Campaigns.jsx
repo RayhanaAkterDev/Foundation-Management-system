@@ -347,7 +347,6 @@ const Campaigns = () => {
         "
                                     >
                                         গল্পগুলো
-
                                     </span>
                                 </h1>
                                 {/* DESCRIPTION */}
@@ -393,7 +392,7 @@ const Campaigns = () => {
                                 justify-center
                                 rounded-full
                                 bg-primary
-                                text-white
+                                text-white!
                                 transition-transform
                                 duration-300
 
@@ -816,7 +815,7 @@ const Campaigns = () => {
                                     transition-colors
 
                                     hover:bg-red-600
-                                    hover:text-white
+                                    hover:text-white!
                                 "
                             >
                                 আবার চেষ্টা করুন
@@ -929,7 +928,7 @@ const Campaigns = () => {
 
                                             hover:border-primary
                                             hover:bg-primary
-                                            hover:text-white
+                                            hover:text-white!
 
                                             disabled:pointer-events-none
                                             disabled:opacity-25
@@ -981,7 +980,7 @@ const Campaigns = () => {
 
                                                         ${
                                                             active
-                                                                ? 'bg-primary text-white'
+                                                                ? 'bg-primary text-white!'
                                                                 : 'text-text-secondary hover:bg-background-alt hover:text-primary'
                                                         }
                                                     `}
@@ -1012,7 +1011,7 @@ const Campaigns = () => {
 
                                             hover:border-primary
                                             hover:bg-primary
-                                            hover:text-white
+                                            hover:text-white!
 
                                             disabled:pointer-events-none
                                             disabled:opacity-25

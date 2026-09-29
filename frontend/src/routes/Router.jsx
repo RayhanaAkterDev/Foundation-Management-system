@@ -33,7 +33,6 @@ import Community from '@/pages/public/communityPage/Community';
 
 // Account pages
 import AuthLayout from '@/layouts/AuthLayout/AuthLayout';
-import AccountSelection from '@/auth/AccountSelection/AccountSelection';
 import Login from '@/auth/Login/Login';
 import Register from '@/auth/Register/Register';
 import AdminLogin from '@/auth/AdminLogin/AdminLogin';
@@ -96,10 +95,6 @@ const router = createBrowserRouter([
             {
                 index: true,
                 element: <Home />,
-            },
-            {
-                path: 'account',
-                element: <AccountSelection />,
             },
             {
                 path: 'how-it-works',
@@ -212,15 +207,21 @@ const router = createBrowserRouter([
     // =====================================================
 
     {
-        path: '/account',
+        path: '/login',
         element: <AuthLayout />,
         children: [
             {
-                path: 'login',
+                index: true,
                 element: <Login />,
             },
+        ],
+    },
+    {
+        path: '/register',
+        element: <AuthLayout />,
+        children: [
             {
-                path: 'register',
+                index: true,
                 element: <Register />,
             },
         ],

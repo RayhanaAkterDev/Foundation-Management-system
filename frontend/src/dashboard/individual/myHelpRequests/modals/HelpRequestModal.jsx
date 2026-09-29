@@ -9,7 +9,7 @@ import {
     ChevronDown,
 } from 'lucide-react';
 
-import logo from '@/assets/shared/footerLogo.png';
+import logo from '@/assets/shared/logo.png';
 import { createHelpRequest } from '../api/helpRequestAPI';
 
 const initialForm = {

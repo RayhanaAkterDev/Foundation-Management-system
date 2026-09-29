@@ -1,5 +1,7 @@
 import React from 'react';
+
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+
 import { IoChevronDown } from 'react-icons/io5';
 
 import navLinks from './data/navLinks';
@@ -9,10 +11,6 @@ const NavMenu = ({ mobile = false, onClose, activeMenu, setActiveMenu }) => {
     const navigate = useNavigate();
 
     const [openId, setOpenId] = React.useState(null);
-
-    /* =========================================================
-       ACTIVE LINK CHECKER
-    ========================================================= */
 
     const isActiveLink = (link) => {
         if (link.type === 'single') {
@@ -31,13 +29,13 @@ const NavMenu = ({ mobile = false, onClose, activeMenu, setActiveMenu }) => {
     };
 
     /* =========================================================
-       MOBILE MENU
+       MOBILE — REDESIGNED
     ========================================================= */
 
     if (mobile) {
         return (
-            <nav aria-label="মোবাইল নেভিগেশন">
-                <ul className="flex flex-col">
+            <nav aria-label="মোবাইল নেভিগেশন" className="font-bengali">
+                <ul>
                     {navLinks.map((link) => {
                         const active = isActiveLink(link);
                         const isOpen = openId === link.id;
@@ -47,13 +45,13 @@ const NavMenu = ({ mobile = false, onClose, activeMenu, setActiveMenu }) => {
                                 key={link.id}
                                 className="
                                     border-b
-                                    border-border/70
+                                    border-border
                                     last:border-b-0
                                 "
                             >
-                                {/* =====================================
+                                {/* =================================
                                     MAIN ITEM
-                                ===================================== */}
+                                ================================= */}
 
                                 <button
                                     type="button"
@@ -71,108 +69,111 @@ const NavMenu = ({ mobile = false, onClose, activeMenu, setActiveMenu }) => {
                                             ? isOpen
                                             : undefined
                                     }
-                                    className={`
+                                    className="
                                         group
+                                        relative
+
                                         flex
                                         w-full
                                         items-center
                                         justify-between
-                                        px-2
-                                        py-4
+                                        gap-6
+
+                                        py-[18px]
+
                                         text-left
-                                        text-[15px]
-                                        leading-[1.7]
-                                        font-medium
-                                        transition-colors
-                                        duration-200
-                                        ${
-                                            active
-                                                ? 'text-primary'
-                                                : 'text-text-primary'
-                                        }
-                                        hover:text-primary
-                                        focus:outline-none
-                                        focus-visible:ring-2
-                                        focus-visible:ring-primary
-                                        focus-visible:ring-inset
-                                    `}
+                                    "
                                 >
-                                    <span className="flex items-center gap-3">
-                                        {/* Active indicator */}
+                                    <span
+                                        className={`
+                                            font-bengali
+                                            text-[16px]
+                                            font-medium!
+                                            leading-[1.5]
 
-                                        <span
-                                            className={`
-                                                h-1.5
-                                                w-1.5
-                                                shrink-0
-                                                rounded-full
-                                                bg-primary
-                                                transition-all
-                                                duration-200
-                                                ${
-                                                    active
-                                                        ? 'scale-100 opacity-100'
-                                                        : 'scale-0 opacity-0'
-                                                }
-                                            `}
-                                            aria-hidden="true"
-                                        />
+                                            transition-colors
+                                            duration-200
 
-                                        <span>{link.name}</span>
+                                            ${
+                                                active || isOpen
+                                                    ? 'text-primary-deep'
+                                                    : 'text-text-primary group-hover:text-primary'
+                                            }
+                                        `}
+                                    >
+                                        {link.name}
                                     </span>
 
                                     {link.type === 'mega' && (
                                         <IoChevronDown
                                             className={`
                                                 shrink-0
-                                                text-[17px]
-                                                text-text-muted
-                                                transition-transform
+
+                                                text-[15px]
+
+                                                transition-[transform,color]
                                                 duration-200
+
                                                 ${
                                                     isOpen
                                                         ? 'rotate-180 text-primary'
-                                                        : ''
+                                                        : 'text-text-muted group-hover:text-primary'
                                                 }
                                             `}
                                         />
                                     )}
                                 </button>
 
-                                {/* =====================================
-                                    SUBMENU
-                                ===================================== */}
+                                {/* =================================
+                                    SUB NAVIGATION
+                                ================================= */}
 
                                 {link.type === 'mega' && isOpen && (
                                     <div
                                         className="
-                                            mb-4
-                                            ml-3
-                                            border-l
-                                            border-primary/20
-                                            pl-4
+                                            pb-5
+                                            pt-0.5
                                         "
                                     >
-                                        <div className="space-y-6">
-                                            {link.groups.map((group) => (
-                                                <div key={group.title}>
-                                                    {/* Group label */}
+                                        {link.groups.map(
+                                            (group, groupIndex) => (
+                                                <div
+                                                    key={group.title}
+                                                    className={
+                                                        groupIndex > 0
+                                                            ? 'mt-5'
+                                                            : ''
+                                                    }
+                                                >
+                                                    {/* GROUP TITLE */}
 
                                                     <p
                                                         className="
-                                                            mb-2
+                                                            mb-1.5
+
+                                                            font-bengali
                                                             text-[11px]
-                                                            font-semibold
-                                                            tracking-[0.08em]
+                                                            font-medium!
+                                                            leading-[1.5]
                                                             text-text-muted
                                                         "
                                                     >
                                                         {group.title}
                                                     </p>
 
-                                                    {/* Group items */}
+                                                    {/* GROUP LINKS */}
 
-                                                    <div className="space-y-0.5">
+                                                    <div
+                                                        className="
+                                                            relative
+                                                            ml-[2px]
+
+                                                            border-l
+                                                            border-primary-muted
+
+                                                            pl-4
+                                                        "
+                                                    >
                                                         {group.items.map(
                                                             (item) => {
                                                                 const itemActive =
@@ -182,37 +183,60 @@ const NavMenu = ({ mobile = false, onClose, activeMenu, setActiveMenu }) => {
 
                                                                 return (
                                                                     <button
-                                                                        type="button"
                                                                         key={
                                                                             item.id
                                                                         }
+                                                                        type="button"
                                                                         onClick={() => {
                                                                             navigate(
                                                                                 item.path,
                                                                             );
+
                                                                             onClose?.();
                                                                         }}
                                                                         className={`
-                                                                            flex
+                                                                            relative
+
+                                                                            block
                                                                             w-full
-                                                                            items-center
-                                                                            rounded-md
-                                                                            px-3
-                                                                            py-2.5
+
+                                                                            py-[8px]
+
                                                                             text-left
-                                                                            text-[14px]
-                                                                            leading-[1.7]
+
+                                                                            font-bengali
+                                                                            text-[13.5px]
+                                                                            font-medium!
+                                                                            leading-[1.55]
+
                                                                             transition-colors
                                                                             duration-200
+
                                                                             ${
                                                                                 itemActive
-                                                                                    ? 'bg-background-teal font-medium text-primary'
-                                                                                    : 'font-normal text-text-secondary'
+                                                                                    ? 'text-primary-deep'
+                                                                                    : 'text-text-secondary hover:text-primary'
                                                                             }
-                                                                            hover:bg-background-teal
-                                                                            hover:text-primary
                                                                         `}
                                                                     >
+                                                                        {itemActive && (
+                                                                            <span
+                                                                                aria-hidden="true"
+                                                                                className="
+                                                                                    absolute
+                                                                                    -left-[17px]
+                                                                                    top-1/2
+
+                                                                                    h-5
+                                                                                    w-[2px]
+
+                                                                                    -translate-y-1/2
+
+                                                                                    bg-primary
+                                                                                "
+                                                                            />
+                                                                        )}
+
                                                                         {
                                                                             item.name
                                                                         }
@@ -222,8 +246,8 @@ const NavMenu = ({ mobile = false, onClose, activeMenu, setActiveMenu }) => {
                                                         )}
                                                     </div>
                                                 </div>
-                                            ))}
-                                        </div>
+                                            ),
+                                        )}
                                     </div>
                                 )}
                             </li>
@@ -235,129 +259,143 @@ const NavMenu = ({ mobile = false, onClose, activeMenu, setActiveMenu }) => {
     }
 
     /* =========================================================
-       DESKTOP MENU
+       DESKTOP — UNTOUCHED
     ========================================================= */
 
     return (
-        <nav aria-label="প্রধান নেভিগেশন">
-            <ul className="flex items-center gap-7 xl:gap-9">
+        <nav aria-label="প্রধান নেভিগেশন" className="h-full font-bengali">
+            <ul
+                className="
+                    flex
+                    h-full
+                    items-center
+                    gap-7
+                    xl:gap-9
+                "
+            >
                 {navLinks.map((link) => {
                     const active = isActiveLink(link);
                     const isOpen = activeMenu === link.id;
+                    const selected = active || isOpen;
 
-                    return (
-                        <li key={link.id} className="relative">
-                            {link.type === 'single' ? (
+                    if (link.type === 'single') {
+                        return (
+                            <li key={link.id} className="h-full">
                                 <NavLink
                                     to={link.path}
                                     className={`
-                                        relative
-                                        inline-flex
-                                        items-center
-                                        py-2
-                                        text-[14px]
-                                        xl:text-[15px]
-                                        leading-[1.4]
-                                        transition-colors
-                                        duration-200
-                                        ${
-                                            active
-                                                ? 'font-semibold text-primary'
-                                                : 'font-medium text-text-secondary hover:text-primary'
-                                        }
-                                        focus:outline-none
-                                        focus-visible:ring-2
-                                        focus-visible:ring-primary
-                                        focus-visible:ring-offset-4
-                                        rounded-sm
-                                    `}
-                                >
-                                    {link.name}
-
-                                    {/* Active underline */}
-
-                                    <span
-                                        className={`
-                                            absolute
-                                            -bottom-1
-                                            left-0
-                                            h-[2px]
-                                            rounded-full
-                                            bg-primary
-                                            transition-all
-                                            duration-200
-                                            ${
-                                                active
-                                                    ? 'w-full opacity-100'
-                                                    : 'w-0 opacity-0'
-                                            }
-                                        `}
-                                        aria-hidden="true"
-                                    />
-                                </NavLink>
-                            ) : (
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        setActiveMenu?.(isOpen ? null : link.id)
-                                    }
-                                    aria-expanded={isOpen}
-                                    className={`
+                                        group
                                         relative
                                         flex
+                                        h-full
                                         items-center
-                                        gap-1.5
-                                        py-2
-                                        text-[14px]
-                                        xl:text-[15px]
-                                        leading-[1.4]
+                                        font-bengali
+                                        text-[15px]
+                                        leading-none
                                         transition-colors
                                         duration-200
-                                        focus:outline-none
-                                        focus-visible:ring-2
-                                        focus-visible:ring-primary
-                                        focus-visible:ring-offset-4
-                                        rounded-sm
+                                        xl:text-[16px]
+
                                         ${
-                                            active || isOpen
-                                                ? 'font-semibold text-primary'
-                                                : 'font-medium text-text-secondary hover:text-primary'
+                                            active
+                                                ? 'text-primary-deep'
+                                                : 'text-text-body hover:text-primary'
                                         }
                                     `}
                                 >
                                     <span>{link.name}</span>
 
-                                    <IoChevronDown
-                                        className={`
-                                            text-[15px]
-                                            transition-transform
-                                            duration-200
-                                            ${isOpen ? 'rotate-180' : ''}
-                                        `}
-                                    />
-
-                                    {/* Active/open underline */}
-
                                     <span
+                                        aria-hidden="true"
                                         className={`
                                             absolute
-                                            -bottom-1
+                                            bottom-0
                                             left-0
-                                            h-[2px]
-                                            rounded-full
+                                            h-[3px]
                                             bg-primary
                                             transition-all
                                             duration-200
+
                                             ${
-                                                active || isOpen
+                                                active
                                                     ? 'w-full opacity-100'
-                                                    : 'w-0 opacity-0'
+                                                    : 'w-0 opacity-0 group-hover:w-full group-hover:opacity-100'
                                             }
                                         `}
-                                        aria-hidden="true"
                                     />
-                                </button>
-                            )}
+                                </NavLink>
+                            </li>
+                        );
+                    }
+
+                    return (
+                        <li key={link.id} className="h-full">
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    setActiveMenu?.(isOpen ? null : link.id)
+                                }
+                                aria-expanded={isOpen}
+                                className={`
+                                    group
+                                    relative
+                                    flex
+                                    h-full
+                                    items-center
+                                    gap-1.5
+                                    font-bengali
+                                    text-[15px]
+                                    font-medium!
+                                    leading-none
+                                    transition-colors
+                                    duration-200
+                                    xl:text-[16px]
+
+                                    ${
+                                        selected
+                                            ? 'text-primary-deep'
+                                            : 'text-text-body hover:text-primary'
+                                    }
+                                `}
+                            >
+                                <span>{link.name}</span>
+
+                                <IoChevronDown
+                                    className={`
+                                        mt-[1px]
+                                        text-[14px]
+                                        transition-all
+                                        duration-200
+
+                                        ${
+                                            isOpen
+                                                ? 'rotate-180 text-primary'
+                                                : selected
+                                                  ? 'text-primary'
+                                                  : 'text-text-muted group-hover:text-primary'
+                                        }
+                                    `}
+                                />
+
+                                <span
+                                    aria-hidden="true"
+                                    className={`
+                                        absolute
+                                        bottom-0
+                                        left-0
+                                        h-[3px]
+                                        bg-primary
+                                        transition-all
+                                        duration-200
+
+                                        ${
+                                            selected
+                                                ? 'w-full opacity-100'
+                                                : 'w-0 opacity-0 group-hover:w-full group-hover:opacity-100'
+                                        }
+                                    `}
+                                />
+                            </button>
                         </li>
                     );
                 })}

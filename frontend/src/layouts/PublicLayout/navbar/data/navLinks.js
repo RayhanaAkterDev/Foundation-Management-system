@@ -1,3 +1,7 @@
+import megaMenuImg1 from '@/assets/navbar/megaMenuImg1.png';
+import megaMenuImg2 from '@/assets/navbar/megaMenuImg2.png';
+import megaMenuImg3 from '@/assets/navbar/megaMenuImg3.png';
+
 const navLinks = [
     {
         id: 'home',
@@ -15,7 +19,7 @@ const navLinks = [
             title: 'আমাদের সাথে অংশ নিন',
             desc: 'দান, স্বেচ্ছাসেবা ও অংশীদারিত্বের মাধ্যমে মানুষের পাশে দাঁড়ান।',
             highlight: 'মানুষের পাশে দাঁড়ানোর সুযোগ খুঁজে নিন',
-            image: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=1200&q=80',
+            image: megaMenuImg1,
             cta: '/donate',
         },
 
@@ -36,11 +40,11 @@ const navLinks = [
                         path: '/volunteer',
                     },
                     {
-    id: 'organizations',
-    name: 'সংযুক্ত প্রতিষ্ঠান',
-    desc: 'Stand For People-এর সাথে যুক্ত নিবন্ধিত প্রতিষ্ঠানগুলো দেখুন।',
-    path: '/organizations',
-},
+                        id: 'organizations',
+                        name: 'সংযুক্ত প্রতিষ্ঠান',
+                        desc: 'Stand For People-এর সাথে যুক্ত নিবন্ধিত প্রতিষ্ঠানগুলো দেখুন।',
+                        path: '/organizations',
+                    },
                 ],
             },
 
@@ -73,7 +77,7 @@ const navLinks = [
             title: 'আমাদের কার্যক্রম দেখুন',
             desc: 'চলমান ক্যাম্পেইন, জরুরি প্রয়োজন এবং মানুষের জীবনে আসা পরিবর্তনের গল্প জানুন।',
             highlight: 'কোন উদ্যোগে আপনার সহায়তা সবচেয়ে বেশি কাজে আসতে পারে, দেখুন',
-            image: 'https://hopeww.org.bd/wp-content/uploads/2022/07/Refief-2022-2-1024x576.jpg',
+            image: megaMenuImg2,
             cta: '/campaigns',
         },
 
@@ -131,7 +135,7 @@ const navLinks = [
             title: 'Stand For People সম্পর্কে',
             desc: 'আমাদের লক্ষ্য, কাজ এবং এই প্ল্যাটফর্মের পেছনে থাকা মানুষদের সম্পর্কে জানুন।',
             highlight: 'বিশ্বাস ও স্বচ্ছতার ভিত্তিতে আমরা কাজ করি',
-            image: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1200&q=80',
+            image: megaMenuImg3,
             cta: '/about',
         },
 
@@ -173,19 +177,19 @@ const navLinks = [
                         id: 'impact',
                         name: 'আমাদের প্রভাব',
                         desc: 'আমাদের কার্যক্রম মানুষের জীবনে কী পরিবর্তন আনছে তা দেখুন।',
-                        path: 'about/impact',
+                        path: '/about/impact',
                     },
                     {
                         id: 'reports',
                         name: 'প্রতিবেদন',
                         desc: 'আমাদের আর্থিক ও কার্যক্রমের তথ্য দেখুন।',
-                        path: 'about/reports',
+                        path: '/about/reports',
                     },
                     {
                         id: 'safety',
                         name: 'বিশ্বাস ও নিরাপত্তা',
                         desc: 'যাচাই প্রক্রিয়া ও নিরাপত্তা ব্যবস্থা সম্পর্কে জানুন।',
-                        path: 'about/trust-safety',
+                        path: '/about/trust-safety',
                     },
                 ],
             },
@@ -193,10 +197,10 @@ const navLinks = [
     },
 
     {
-        id: 'account',
-        name: 'অ্যাকাউন্ট',
+        id: 'register',
+        name: 'যুক্ত হোন',
+        path: '/register',
         type: 'single',
-        path: '/account',
     },
 ];
 

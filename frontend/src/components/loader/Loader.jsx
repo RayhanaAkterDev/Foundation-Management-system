@@ -1,4 +1,4 @@
-import logo from '@/assets/shared/footerLogo.png';
+import logo from '@/assets/shared/logo.png';
 
 const Loader = () => {
     return (

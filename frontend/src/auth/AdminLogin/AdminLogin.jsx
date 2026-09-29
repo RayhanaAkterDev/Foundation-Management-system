@@ -1,5 +1,5 @@
 import LoginForm from '../Login/LoginForm';
-import logo from '@/assets/shared/footerLogo.png';
+import logo from '@/assets/shared/logo.png';
 
 const AdminLogin = () => {
     return (

@@ -6,7 +6,9 @@ import {
     useNavigate,
     useSearchParams,
 } from 'react-router-dom';
-import { Eye, EyeOff, LockKeyhole, Mail } from 'lucide-react';
+
+import { Eye, EyeOff, Loader2, LockKeyhole, Mail } from 'lucide-react';
+
 import { useState } from 'react';
 
 const LoginForm = ({ loginRole = null }) => {
@@ -14,8 +16,6 @@ const LoginForm = ({ loginRole = null }) => {
     const location = useLocation();
     const [searchParams] = useSearchParams();
 
-    // Public login gets its role from the URL.
-    // Admin login can pass the role directly as a prop.
     const role = loginRole || searchParams.get('role');
 
     const [showPassword, setShowPassword] = useState(false);
@@ -33,7 +33,9 @@ const LoginForm = ({ loginRole = null }) => {
 
         try {
             const response = await fetch(
-                `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api'}/login`,
+                `${
+                    import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api'
+                }/login`,
                 {
                     method: 'POST',
                     headers: {
@@ -51,17 +53,18 @@ const LoginForm = ({ loginRole = null }) => {
             const data = await response.json();
 
             /* =========================================================
-           Demo account requires demo verification
-        ========================================================= */
+               Demo verification
+            ========================================================= */
+
             if (
                 response.status === 403 &&
                 data.verification_method === 'demo' &&
                 data.user_id
             ) {
                 navigate(
-                    `/email-verification?status=demo&user_id=${data.user_id}&email=${encodeURIComponent(
-                        email.trim(),
-                    )}`,
+                    `/email-verification?status=demo&user_id=${
+                        data.user_id
+                    }&email=${encodeURIComponent(email.trim())}`,
                     {
                         state: {
                             from: location.state?.from,
@@ -73,8 +76,9 @@ const LoginForm = ({ loginRole = null }) => {
             }
 
             /* =========================================================
-           Real email verification required
-        ========================================================= */
+               Email verification
+            ========================================================= */
+
             if (
                 response.status === 403 &&
                 data.verification_method === 'email' &&
@@ -97,8 +101,9 @@ const LoginForm = ({ loginRole = null }) => {
             }
 
             /* =========================================================
-           Other login errors
-        ========================================================= */
+               Login errors
+            ========================================================= */
+
             if (!response.ok) {
                 throw new Error(
                     data.error ||
@@ -108,32 +113,25 @@ const LoginForm = ({ loginRole = null }) => {
             }
 
             /* =========================================================
-           Store authentication data
-        ========================================================= */
+               Store authentication
+            ========================================================= */
+
             const storage = rememberMe ? localStorage : sessionStorage;
 
             const otherStorage = rememberMe ? sessionStorage : localStorage;
 
-            // Remove any old authentication data from the other storage.
             otherStorage.removeItem('auth_token');
             otherStorage.removeItem('user');
 
             storage.setItem('auth_token', data.token);
             storage.setItem('user', JSON.stringify(data.user));
 
-            // Notify the public site that authentication has changed.
             window.dispatchEvent(new Event('auth-changed'));
 
             /* =========================================================
-           Redirect
+               Redirect
+            ========================================================= */
 
-           Individual / Organization:
-           - Return to the page that initiated login.
-           - Otherwise go to the public homepage.
-
-           Admin:
-           - Continue directly to the admin dashboard.
-        ========================================================= */
             if (data.user.role === 'admin') {
                 navigate('/admin/dashboard', {
                     replace: true,
@@ -144,8 +142,6 @@ const LoginForm = ({ loginRole = null }) => {
 
             const from = location.state?.from;
 
-            // Case 1: Login was opened with a simple string path.
-            // Example: state={{ from: '/volunteer' }}
             if (typeof from === 'string') {
                 navigate(from, {
                     replace: true,
@@ -154,8 +150,6 @@ const LoginForm = ({ loginRole = null }) => {
                 return;
             }
 
-            // Case 2: Login was opened with a React Router location object.
-            // Example: state={{ from: location }}
             if (from?.pathname) {
                 navigate(
                     `${from.pathname}${from.search || ''}${from.hash || ''}`,
@@ -167,7 +161,6 @@ const LoginForm = ({ loginRole = null }) => {
                 return;
             }
 
-            // Case 3: Login was opened directly or from Navbar.
             navigate('/', {
                 replace: true,
             });
@@ -180,73 +173,98 @@ const LoginForm = ({ loginRole = null }) => {
         }
     };
 
+    const needsEmailVerification = loginError
+        .toLowerCase()
+        .includes('verify your email');
+
     return (
         <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Email */}
+            {/* =====================================================
+                EMAIL
+            ====================================================== */}
+
             <div>
                 <label
                     htmlFor="email"
-                    className="mb-2 block font-bengali text-sm font-medium text-text-primary"
+                    className="
+                        mb-2
+                        block
+                        font-bengali
+                        text-[13px]
+                        font-medium
+                        text-text-primary
+                    "
                 >
                     ইমেইল ঠিকানা
                 </label>
 
-                <div className="relative">
+                <div className="group relative">
                     <Mail
-                        size={17}
-                        strokeWidth={1.8}
+                        size={18}
+                        strokeWidth={1.7}
                         className="
                             pointer-events-none
                             absolute
                             left-4
                             top-1/2
                             -translate-y-1/2
-                            text-text-secondary/70
+                            text-[#94a3b8]
+                            transition-colors
+
+                            group-focus-within:text-primary
                         "
                     />
 
                     <input
                         id="email"
                         type="email"
-                        placeholder="you@example.com"
-                        autoComplete="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
+                        placeholder="name@example.com"
+                        autoComplete="email"
                         required
                         disabled={isSubmitting}
                         className="
-                            h-13
+                            h-[52px]
                             w-full
-                            rounded-xl
                             border
-                            border-border
-                            bg-background
+                            border-[#dce3e0]
+                            bg-white
                             pl-11
                             pr-4
-                            text-sm
+                            font-bengali
+                            text-[14px]
                             text-text-primary
                             outline-none
                             transition-all
                             duration-200
-                            placeholder:text-text-secondary/50
-                            hover:border-border
+
+                            placeholder:font-sans
+                            placeholder:text-[#a8b2bd]
+
+                            hover:border-[#c7d2ce]
+
                             focus:border-primary
-                            focus:bg-surface
-                            focus:ring-4
-                            focus:ring-primary/8
+                            focus:ring-[3px]
+                            focus:ring-primary/[0.08]
+
                             disabled:cursor-not-allowed
-                            disabled:opacity-60
+                            disabled:bg-[#f8faf9]
+                            disabled:opacity-70
                         "
                     />
                 </div>
             </div>
 
-            {/* Password */}
+            {/* =====================================================
+                PASSWORD
+            ====================================================== */}
+
             <div>
-                <div className="mb-2 flex items-center justify-between">
+                <div className="mb-2 flex items-center justify-between gap-4">
                     <label
                         htmlFor="password"
-                        className="font-bengali text-sm font-medium text-text-primary"
+                        className="font-bengali text-[13px] font-medium text-text-primary"
                     >
                         পাসওয়ার্ড
                     </label>
@@ -255,88 +273,97 @@ const LoginForm = ({ loginRole = null }) => {
                         to="/account/forgot-password"
                         className="
                             font-bengali
-                            text-xs
-                            font-semibold
+                            text-[12px]
+                            font-medium
                             text-primary
                             transition-colors
+
                             hover:text-primary-hover
-                            sm:text-sm
                         "
                     >
                         পাসওয়ার্ড ভুলে গেছেন?
                     </Link>
                 </div>
 
-                <div className="relative">
+                <div className="group relative">
                     <LockKeyhole
-                        size={17}
-                        strokeWidth={1.8}
+                        size={18}
+                        strokeWidth={1.7}
                         className="
                             pointer-events-none
                             absolute
                             left-4
                             top-1/2
                             -translate-y-1/2
-                            text-text-secondary/70
+                            text-[#94a3b8]
+                            transition-colors
+
+                            group-focus-within:text-primary
                         "
                     />
 
                     <input
                         id="password"
                         type={showPassword ? 'text' : 'password'}
-                        placeholder="আপনার পাসওয়ার্ড লিখুন"
-                        autoComplete="current-password"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
+                        placeholder="আপনার পাসওয়ার্ড লিখুন"
+                        autoComplete="current-password"
                         required
                         disabled={isSubmitting}
                         className="
-                            h-13
+                            h-[52px]
                             w-full
-                            rounded-xl
                             border
-                            border-border
-                            bg-background
+                            border-[#dce3e0]
+                            bg-white
                             pl-11
                             pr-12
-                            text-sm
+                            font-bengali
+                            text-[14px]
                             text-text-primary
                             outline-none
                             transition-all
                             duration-200
-                            placeholder:text-text-secondary/50
+
+                            placeholder:text-[#a8b2bd]
+
+                            hover:border-[#c7d2ce]
+
                             focus:border-primary
-                            focus:bg-surface
-                            focus:ring-4
-                            focus:ring-primary/8
+                            focus:ring-[3px]
+                            focus:ring-primary/[0.08]
+
                             disabled:cursor-not-allowed
-                            disabled:opacity-60
+                            disabled:bg-[#f8faf9]
+                            disabled:opacity-70
                         "
                     />
 
                     <button
                         type="button"
                         onClick={() => setShowPassword((prev) => !prev)}
+                        disabled={isSubmitting}
                         aria-label={
                             showPassword
                                 ? 'পাসওয়ার্ড লুকান'
                                 : 'পাসওয়ার্ড দেখুন'
                         }
-                        disabled={isSubmitting}
                         className="
                             absolute
-                            right-3.5
+                            right-2.5
                             top-1/2
                             flex
+                            h-9
+                            w-9
                             -translate-y-1/2
                             items-center
                             justify-center
-                            rounded-lg
-                            p-1.5
-                            text-text-secondary/70
+                            text-[#8492a3]
                             transition-colors
-                            hover:bg-primary/5
+
                             hover:text-primary
+
                             disabled:cursor-not-allowed
                             disabled:opacity-50
                         "
@@ -350,166 +377,208 @@ const LoginForm = ({ loginRole = null }) => {
                 </div>
             </div>
 
-            {/* Login Error */}
+            {/* =====================================================
+                ERROR
+            ====================================================== */}
+
             {loginError && (
                 <div
                     role="alert"
                     className={`
-                        flex
-                        items-center
-                        gap-3
-                        rounded-lg
                         border
                         px-4
                         py-3.5
+
                         ${
-                            loginError
-                                .toLowerCase()
-                                .includes('verify your email')
-                                ? 'border-amber-200 bg-amber-50 text-amber-900'
-                                : 'border-red-200 bg-red-50 text-red-700'
+                            needsEmailVerification
+                                ? 'border-amber-200 bg-amber-50'
+                                : 'border-red-200 bg-red-50'
                         }
                     `}
                 >
-                    {loginError.toLowerCase().includes('verify your email') && (
-                        <div
-                            className="
-                                mt-0.5
-                                flex
-                                h-7
-                                w-7
-                                shrink-0
-                                items-center
-                                justify-center
-                                rounded-md
-                                bg-amber-100
-                                text-amber-700
-                            "
-                        >
-                            <Mail size={14} strokeWidth={2} />
-                        </div>
-                    )}
+                    <div className="flex items-start gap-3">
+                        {needsEmailVerification && (
+                            <Mail
+                                size={17}
+                                className="mt-0.5 shrink-0 text-amber-700"
+                            />
+                        )}
 
-                    <p className="font-bengali text-[12px] leading-5 sm:text-[13px]">
-                        {loginError}
-                    </p>
+                        <p
+                            className={`
+                                font-bengali
+                                text-[12px]
+                                leading-6
+
+                                ${
+                                    needsEmailVerification
+                                        ? 'text-amber-800'
+                                        : 'text-red-700'
+                                }
+                            `}
+                        >
+                            {loginError}
+                        </p>
+                    </div>
                 </div>
             )}
 
-            {/* Remember me */}
-            <div className="flex items-center">
-                <label className="flex cursor-pointer items-center gap-2.5">
-                    <input
-                        type="checkbox"
-                        checked={rememberMe}
-                        onChange={(e) => setRememberMe(e.target.checked)}
-                        disabled={isSubmitting}
-                        className="
-                            h-4
-                            w-4
-                            cursor-pointer
-                            rounded
-                            border-border
-                            text-primary
-                            focus:ring-2
-                            focus:ring-primary/20
-                        "
-                    />
+            {/* =====================================================
+                REMEMBER
+            ====================================================== */}
 
-                    <span className="font-bengali text-sm text-text-secondary">
+            <div className="flex items-center justify-between">
+                <label className="flex cursor-pointer items-center gap-2.5">
+                    <span className="relative flex h-[18px] w-[18px] shrink-0">
+                        <input
+                            type="checkbox"
+                            checked={rememberMe}
+                            onChange={(e) => setRememberMe(e.target.checked)}
+                            disabled={isSubmitting}
+                            className="
+                                peer
+                                h-[18px]
+                                w-[18px]
+                                cursor-pointer
+                                appearance-none
+                                border
+                                border-[#cbd5d1]
+                                bg-white
+                                transition-all
+
+                                checked:border-primary
+                                checked:bg-primary
+
+                                focus:outline-none
+                                focus:ring-2
+                                focus:ring-primary/15
+
+                                disabled:cursor-not-allowed
+                                disabled:opacity-50
+                            "
+                        />
+
+                        <svg
+                            viewBox="0 0 12 10"
+                            aria-hidden="true"
+                            className="
+                                pointer-events-none
+                                absolute
+                                left-[4px]
+                                top-[5px]
+                                hidden
+                                h-[7px]
+                                w-[10px]
+                                fill-none
+                                stroke-white
+                                stroke-[2]
+
+                                peer-checked:block
+                            "
+                        >
+                            <path d="M1 5L4 8L11 1" />
+                        </svg>
+                    </span>
+
+                    <span className="font-bengali text-[13px] text-text-secondary">
                         আমাকে মনে রাখুন
                     </span>
                 </label>
             </div>
 
-            {/* Submit */}
+            {/* =====================================================
+                SUBMIT
+            ====================================================== */}
+
             <button
                 type="submit"
                 disabled={isSubmitting}
                 className="
                     flex
-                    h-13
+                    h-[52px]
                     w-full
                     items-center
                     justify-center
-                    rounded-xl
+                    gap-2
                     bg-primary
+                    px-5
                     font-bengali
-                    text-sm
+                    text-[14px]
                     font-semibold
                     text-white!
-                    shadow-sm
                     transition-all
                     duration-200
-                    hover:-translate-y-0.5
+
                     hover:bg-primary-hover
-                    hover:shadow-md
-                    active:translate-y-0
+
+                    active:translate-y-px
+
                     disabled:cursor-not-allowed
-                    disabled:opacity-70
-                    disabled:hover:translate-y-0
+                    disabled:opacity-65
                 "
             >
-                {isSubmitting ? 'লগইন হচ্ছে...' : 'লগইন করুন'}
+                {isSubmitting ? (
+                    <>
+                        <Loader2 size={17} className="animate-spin" />
+                        লগইন হচ্ছে...
+                    </>
+                ) : (
+                    'লগইন করুন'
+                )}
             </button>
 
-            {/* Divider */}
-            <div className="relative py-1">
-                <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-border" />
-                </div>
+            {/* =====================================================
+                ALTERNATIVE LOGIN
+            ====================================================== */}
 
-                <div className="relative flex justify-center">
-                    <span
-                        className="
-                            bg-surface
-                            px-4
-                            font-bengali
-                            text-[10px]
-                            font-medium
-                            uppercase
-                            tracking-[0.2em]
-                            text-text-secondary
-                        "
-                    >
-                        অথবা
-                    </span>
-                </div>
+            <div className="flex items-center gap-3 py-1">
+                <span className="h-px flex-1 bg-border" />
+
+                <span className="font-bengali text-[11px] text-text-secondary/70">
+                    অথবা
+                </span>
+
+                <span className="h-px flex-1 bg-border" />
             </div>
 
-            {/* Google */}
+            {/* =====================================================
+                GOOGLE
+            ====================================================== */}
+
             <button
                 type="button"
                 disabled={isSubmitting}
                 className="
                     flex
-                    h-13
+                    h-[50px]
                     w-full
                     items-center
                     justify-center
                     gap-3
-                    rounded-xl
                     border
-                    border-border
-                    bg-surface
+                    border-[#dce3e0]
+                    bg-white
+                    px-5
                     font-bengali
-                    text-sm
+                    text-[13px]
                     font-medium
                     text-text-primary
                     transition-all
                     duration-200
-                    hover:border-primary/20
-                    hover:bg-primary/3
+
+                    hover:border-[#bccbc6]
+                    hover:bg-[#fafcfb]
+
                     disabled:cursor-not-allowed
                     disabled:opacity-60
                 "
             >
                 <img
                     src="https://www.svgrepo.com/show/475656/google-color.svg"
-                    alt="Google"
-                    className="h-5 w-5"
+                    alt=""
+                    className="h-[18px] w-[18px]"
                 />
-                Google দিয়ে চালিয়ে যান
+                Google দিয়ে চালিয়ে যান
             </button>
         </form>
     );

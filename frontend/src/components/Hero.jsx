@@ -38,16 +38,16 @@ const Hero = ({
                 <div
                     className="
                         pb-8
-                        pt-10
+                        pt-12
 
                         sm:pb-10
-                        sm:pt-12
+                        sm:pt-16
 
                         lg:pb-12
-                        lg:pt-16
+                        lg:pt-20
 
                         xl:pb-14
-                        xl:pt-20
+                        xl:pt-24
                     "
                 >
                     <div
@@ -107,46 +107,46 @@ const Hero = ({
                                 treatment="editorial"
                                 wrapperClass="max-w-none"
                                 headingClass="
-            max-w-[15ch]
+    max-w-[16ch]
 
-            !text-[2.7rem]
-            !leading-[1.3]
-            !tracking-[-0.015em]
+    !text-[3rem]
+    !leading-[1.28]
+    !tracking-[-0.012em]
 
-            sm:!text-[3.35rem]
-            sm:!leading-[1.26]
-            sm:!tracking-[-0.018em]
+    sm:!text-[3.75rem]
+    sm:!leading-[1.25]
+    sm:!tracking-[-0.014em]
 
-            lg:!text-[3.85rem]
-            lg:!leading-[1.22]
-            lg:!tracking-[-0.02em]
+    lg:!text-[4.5rem]
+    lg:!leading-[1.22]
+    lg:!tracking-[-0.016em]
 
-            xl:!text-[4.5rem]
-            xl:!leading-[1.18]
-            xl:!tracking-[-0.022em]
-        "
+    xl:!text-[5.25rem]
+    xl:!leading-[1.2]
+    xl:!tracking-[-0.018em]
+"
                                 description={null}
                             />
                         </Motion>
 
                         <div
                             className="
-                                mt-7
-                                flex
-                                flex-col
-                                gap-7
+    mt-9
+    flex
+    flex-col
+    gap-8
 
-                                sm:mt-8
+    sm:mt-10
 
-                                lg:mt-9
-                                lg:flex-row
-                                lg:items-end
-                                lg:justify-between
-                                lg:gap-12
+    lg:mt-12
+    lg:flex-row
+    lg:items-end
+    lg:justify-between
+    lg:gap-14
 
-                                xl:mt-10
-                                xl:gap-16
-                            "
+    xl:mt-14
+    xl:gap-20
+"
                         >
                             {description && (
                                 <Motion variant="fadeUp">

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 
-import logo from '@/assets/shared/footerLogo.png';
+import logo from '@/assets/shared/logo.png';
 
 import {
     X,

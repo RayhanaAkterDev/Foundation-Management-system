@@ -199,7 +199,7 @@ const CategoryTile = ({ category, index }) => {
                     text-[11px]
                     font-medium
                     leading-none
-                    !text-white!
+                    text-white!
                     backdrop-blur-[2px]
                 "
                 >
@@ -224,7 +224,7 @@ const CategoryTile = ({ category, index }) => {
                                 border
                                 border-white/30
                                 bg-white/10
-                                !text-white!
+                                text-white!
                                 backdrop-blur-[2px]
                             "
                             >
@@ -237,7 +237,7 @@ const CategoryTile = ({ category, index }) => {
                                 text-[12px]
                                 font-medium
                                 leading-[1.6]
-                                !text-white!/85
+                                text-white/85
                             "
                             >
                                 {visual.tone}
@@ -253,7 +253,7 @@ const CategoryTile = ({ category, index }) => {
                             font-semibold
                             leading-[1.45]
                             tracking-[-0.015em]
-                            !text-white!
+                            text-white!
                             sm:text-[21px]
                             lg:text-[22px]
                         "
@@ -343,7 +343,7 @@ const MobileCategory = ({ category, index }) => {
                     text-[10px]
                     font-medium
                     leading-none
-                    !text-white!
+                    text-white!
                 "
                 >
                     {bengaliNumbers[index] || '০০'}
@@ -406,7 +406,7 @@ const MobileCategory = ({ category, index }) => {
                 duration-300
                 group-hover:border-[#087f78]
                 group-hover:bg-[#087f78]
-                group-hover:!text-white!
+                group-hover:text-white!
             "
             >
                 <ArrowIcon />

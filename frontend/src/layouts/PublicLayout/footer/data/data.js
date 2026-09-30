@@ -3,10 +3,6 @@ export const footerLinks = [
         title: 'সহায়তা',
         links: [
             {
-                label: 'জরুরি সহায়তা',
-                to: '/campaigns/urgent',
-            },
-            {
                 label: 'সব ক্যাম্পেইন',
                 to: '/campaigns',
             },
@@ -33,10 +29,6 @@ export const footerLinks = [
                 to: '/volunteer',
             },
             {
-                label: 'অংশীদার হোন',
-                to: '/partner',
-            },
-            {
                 label: 'কীভাবে কাজ করে',
                 to: '/how-it-works',
             },
@@ -51,16 +43,8 @@ export const footerLinks = [
                 to: '/about',
             },
             {
-                label: 'আমাদের গল্প',
-                to: '/about/story',
-            },
-            {
-                label: 'আমাদের টিম',
-                to: '/about/team',
-            },
-            {
                 label: 'স্বচ্ছতা',
-                to: '/trust-safety',
+                to: '/about/trust-safety',
             },
         ],
     },

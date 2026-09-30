@@ -15,7 +15,6 @@ use App\Http\Controllers\PublicCommunityController;
 use App\Http\Controllers\TestimonialController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ChatbotController;
-
 use Illuminate\Support\Facades\Route;
 
 // =============================================================
@@ -67,6 +66,11 @@ Route::get(
 
 Route::prefix('public')->group(function () {
     Route::get(
+        '/campaigns/featured',
+        [PublicCampaignController::class, 'featured']
+    );
+
+    Route::get(
         '/campaigns',
         [PublicCampaignController::class, 'index']
     );
@@ -85,6 +89,24 @@ Route::prefix('public')->group(function () {
 Route::get(
     '/public/community',
     [PublicCommunityController::class, 'index']
+);
+
+// =============================================================
+// PUBLIC TESTIMONIALS
+// =============================================================
+//
+// Public website can read published testimonials.
+// Only authenticated users can submit testimonials.
+//
+
+Route::get(
+    '/testimonials/featured',
+    [TestimonialController::class, 'featured']
+);
+
+Route::get(
+    '/testimonials',
+    [TestimonialController::class, 'index']
 );
 
 // =============================================================
@@ -173,7 +195,6 @@ Route::post(
 // =============================================================
 
 Route::middleware('auth:sanctum')->group(function () {
-
     // ---------------------------------------------------------
     // AUTHENTICATION / PROFILE
     // ---------------------------------------------------------
@@ -193,19 +214,14 @@ Route::middleware('auth:sanctum')->group(function () {
         [AuthController::class, 'updateProfile']
     );
 
-
     // ---------------------------------------------------------
     // COMMUNITY TESTIMONIALS
     // ---------------------------------------------------------
-
+    //
     // Authenticated individual and organization accounts can
     // submit their experience. The controller determines the
     // authenticated user and allowed account type.
-
-    Route::get(
-        '/testimonials',
-        [TestimonialController::class, 'index']
-    );
+    //
 
     Route::post(
         '/testimonials',
@@ -284,7 +300,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // =========================================================
     // INDIVIDUAL VOLUNTEER
     // =========================================================
-
+    //
     // Individual submits a volunteer application.
     // Individual = sender.
 
@@ -313,7 +329,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // ---------------------------------------------------------
     // VOLUNTEER REQUESTS
     // ---------------------------------------------------------
-
+    //
     // Individual receives an admin invitation.
     // Individual = receiver.
     // Receiver can accept or reject.
@@ -471,7 +487,6 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::middleware('auth:sanctum')
     ->prefix('admin')
     ->group(function () {
-
         // ---------------------------------------------------------
         // DASHBOARD
         // ---------------------------------------------------------

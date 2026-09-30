@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
+
 import { RouterProvider } from 'react-router-dom';
 
 import router from './routes/Router';
+
 import Loader from './components/loader/Loader';
 
 const App = () => {
@@ -10,7 +12,7 @@ const App = () => {
     useEffect(() => {
         const timer = setTimeout(() => {
             setLoading(false);
-        }, 1000); // 1 second
+        }, 3000);
 
         return () => clearTimeout(timer);
     }, []);

@@ -9,9 +9,10 @@ import {
     TbShieldCheck,
     TbUsers,
 } from 'react-icons/tb';
+
 import { Link } from 'react-router-dom';
 
-import { fetchPublicCampaigns } from '@/api/publicCampaignsApi';
+import { fetchFeaturedCampaign } from '@/api/publicCampaignsApi';
 
 import Button from '@/components/Button';
 import Motion from '@/components/motion/Motion';
@@ -48,6 +49,146 @@ const formatBanglaAmount = (value) => {
 };
 
 /* =========================================================
+   FEATURED CAMPAIGN SKELETON
+========================================================= */
+
+const FeaturedCampaignSkeleton = () => {
+    return (
+        <section className="section-gap overflow-hidden bg-[#f6f8f7]">
+            <div className="container-width">
+                <div className="animate-pulse">
+                    {/* Section heading */}
+                    <div className="mb-10 flex flex-col gap-5 sm:mb-12 lg:mb-14 lg:flex-row lg:items-end lg:justify-between">
+                        <div className="max-w-3xl">
+                            <div className="mb-4 flex items-center gap-3">
+                                <span className="h-2 w-2 rounded-full bg-primary/20" />
+                                <span className="h-4 w-24 rounded bg-primary/10" />
+                            </div>
+
+                            <div className="space-y-3">
+                                <div className="h-9 w-[min(100%,_520px)] rounded bg-black/5 sm:h-11 lg:h-12" />
+                                <div className="h-9 w-[min(100%,_430px)] rounded bg-primary/10 sm:h-11 lg:h-12" />
+                            </div>
+                        </div>
+
+                        <div className="flex max-w-xs items-start gap-3 border-l border-primary/10 pl-4">
+                            <span className="mt-0.5 h-5 w-5 shrink-0 rounded-full bg-primary/10" />
+
+                            <div className="w-full space-y-2">
+                                <div className="h-3 w-full rounded bg-black/5" />
+                                <div className="h-3 w-[85%] rounded bg-black/5" />
+                                <div className="h-3 w-[65%] rounded bg-black/5" />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Campaign header */}
+                    <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-y border-border py-4">
+                        <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+                            <span className="h-4 w-24 rounded bg-primary/10" />
+                            <span className="h-3 w-28 rounded bg-black/5" />
+                        </div>
+
+                        <span className="h-3 w-24 rounded bg-black/5" />
+                    </div>
+
+                    {/* Campaign image */}
+                    <div
+                        className="
+                            aspect-[4/3]
+                            overflow-hidden
+                            bg-[#e5ece8]
+                            sm:aspect-[16/9]
+                            lg:aspect-[2.05/1]
+                        "
+                    >
+                        <div className="flex h-full w-full items-center justify-center">
+                            <TbHeartHandshake
+                                size={72}
+                                strokeWidth={1}
+                                className="text-primary/10"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Campaign details */}
+                    <div className="grid gap-10 border-b border-border py-8 sm:py-10 lg:grid-cols-[1fr_0.85fr] lg:gap-16 lg:py-12">
+                        {/* Story skeleton */}
+                        <div>
+                            <div className="mb-5 flex items-center gap-3">
+                                <span className="h-px w-7 bg-primary/20" />
+                                <span className="h-3 w-24 rounded bg-primary/10" />
+                            </div>
+
+                            <div className="max-w-2xl space-y-3">
+                                <div className="h-4 w-full rounded bg-black/5" />
+                                <div className="h-4 w-[95%] rounded bg-black/5" />
+                                <div className="h-4 w-[80%] rounded bg-black/5" />
+                            </div>
+
+                            <div className="mt-7 h-4 w-36 rounded bg-black/5" />
+                        </div>
+
+                        {/* Funding skeleton */}
+                        <div className="lg:border-l lg:border-border lg:pl-10">
+                            <div className="h-4 w-32 rounded bg-black/5" />
+
+                            <div className="mt-4 flex items-baseline gap-3">
+                                <div className="h-12 w-44 rounded bg-black/5 sm:h-14" />
+                                <div className="h-4 w-20 rounded bg-primary/10" />
+                            </div>
+
+                            <div className="mt-6 h-2 w-full overflow-hidden bg-[#dfe9e5]">
+                                <div className="h-full w-[42%] bg-primary/15" />
+                            </div>
+
+                            <div className="mt-3 flex items-center justify-between gap-3">
+                                <span className="h-3 w-24 rounded bg-black/5" />
+                                <span className="h-3 w-20 rounded bg-black/5" />
+                            </div>
+
+                            <div className="mt-7 grid grid-cols-2 border-t border-border pt-5">
+                                <div className="flex items-center gap-3">
+                                    <span className="h-5 w-5 rounded bg-primary/10" />
+
+                                    <div className="space-y-2">
+                                        <div className="h-3 w-16 rounded bg-black/5" />
+                                        <div className="h-4 w-12 rounded bg-black/5" />
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-3 border-l border-border pl-4">
+                                    <span className="h-5 w-5 rounded bg-primary/10" />
+
+                                    <div className="space-y-2">
+                                        <div className="h-3 w-16 rounded bg-black/5" />
+                                        <div className="h-4 w-12 rounded bg-black/5" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Footer skeleton */}
+                    <div className="flex flex-col gap-5 py-7 sm:flex-row sm:items-center sm:justify-between sm:py-8">
+                        <div className="flex items-start gap-3">
+                            <span className="mt-0.5 h-5 w-5 shrink-0 rounded bg-primary/10" />
+
+                            <div className="space-y-2">
+                                <div className="h-4 w-64 rounded bg-black/5" />
+                                <div className="h-3 w-80 max-w-full rounded bg-black/5" />
+                            </div>
+                        </div>
+
+                        <div className="h-12 w-full rounded bg-primary/10 sm:w-[230px]" />
+                    </div>
+                </div>
+            </div>
+        </section>
+    );
+};
+
+/* =========================================================
    FEATURED CAMPAIGN
 ========================================================= */
 
@@ -56,43 +197,38 @@ const FeaturedCampaign = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        let isMounted = true;
-
-        const loadFeaturedCampaign = async () => {
+        const loadCampaign = async () => {
             try {
-                const campaigns = await fetchPublicCampaigns();
+                setLoading(true);
 
-                const latestCampaign = [...campaigns]
-                    .filter((item) => item?.status === 'active')
-                    .sort(
-                        (a, b) =>
-                            new Date(b.created_at) - new Date(a.created_at),
-                    )[0];
+                const featuredCampaign = await fetchFeaturedCampaign();
 
-                if (isMounted) {
-                    setCampaign(latestCampaign || null);
-                }
+                setCampaign(featuredCampaign);
             } catch (error) {
                 console.error('Failed to load featured campaign:', error);
 
-                if (isMounted) {
-                    setCampaign(null);
-                }
+                setCampaign(null);
             } finally {
-                if (isMounted) {
-                    setLoading(false);
-                }
+                setLoading(false);
             }
         };
 
-        loadFeaturedCampaign();
-
-        return () => {
-            isMounted = false;
-        };
+        loadCampaign();
     }, []);
 
-    if (loading || !campaign) {
+    /* =====================================================
+       LOADING
+    ====================================================== */
+
+    if (loading) {
+        return <FeaturedCampaignSkeleton />;
+    }
+
+    /* =====================================================
+       NO ACTIVE CAMPAIGN
+    ====================================================== */
+
+    if (!campaign) {
         return null;
     }
 
@@ -140,7 +276,7 @@ const FeaturedCampaign = () => {
 
                             <h2 className="font-bengali text-[2rem]! font-semibold! leading-[1.45]! text-text-primary! sm:text-[2.6rem]! lg:text-[3rem]!">
                                 একটি উদ্যোগ,
-                                <span className="text-primary">
+                                <span className="block text-primary">
                                     {' '}
                                     অনেক মানুষের আশার গল্প।
                                 </span>
@@ -206,9 +342,7 @@ const FeaturedCampaign = () => {
                                 aspect-[4/3]
                                 overflow-hidden
                                 bg-[#e5ece8]
-
                                 sm:aspect-[16/9]
-
                                 lg:aspect-[2.05/1]
                             "
                         >
@@ -338,7 +472,9 @@ const FeaturedCampaign = () => {
                                 >
                                     <div
                                         className="h-full bg-primary transition-[width] duration-700 ease-out"
-                                        style={{ width: `${progress}%` }}
+                                        style={{
+                                            width: `${progress}%`,
+                                        }}
                                     />
                                 </div>
 

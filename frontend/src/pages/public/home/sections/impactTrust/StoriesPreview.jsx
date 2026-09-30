@@ -2,10 +2,11 @@ import React, { useEffect, useState } from 'react';
 
 import { TbQuote, TbShieldCheck } from 'react-icons/tb';
 
-import { fetchTestimonials } from '@/api/testimonials';
+import { fetchFeaturedTestimonial } from '@/api/testimonials';
 
 const StoriesPreview = () => {
     const [testimonial, setTestimonial] = useState(null);
+
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -15,15 +16,13 @@ const StoriesPreview = () => {
             try {
                 setLoading(true);
 
-                const response = await fetchTestimonials();
+                const response = await fetchFeaturedTestimonial();
 
                 if (!isMounted) {
                     return;
                 }
 
-                const testimonials = response?.testimonials || [];
-
-                setTestimonial(testimonials[0] || null);
+                setTestimonial(response?.testimonial || null);
             } catch {
                 if (isMounted) {
                     setTestimonial(null);

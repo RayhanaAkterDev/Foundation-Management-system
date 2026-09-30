@@ -69,7 +69,7 @@ frontend/src/
 │   │   └── trustSystem.png
 │   │
 │   └── shared/
-│       ├── footerLogo.png
+│       ├── logo.png
 │       └── logo.png
 │
 ├── auth/

@@ -6,6 +6,12 @@ export const fetchTestimonials = async () => {
     });
 };
 
+export const fetchFeaturedTestimonial = async () => {
+    return apiRequest('/testimonials/featured', {
+        method: 'GET',
+    });
+};
+
 export const submitTestimonial = async ({
     message,
     consent_to_publish,

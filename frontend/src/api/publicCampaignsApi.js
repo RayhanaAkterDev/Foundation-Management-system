@@ -64,6 +64,33 @@ export const fetchPublicCampaigns = async (params = {}) => {
 };
 
 /**
+ * Fetch the latest active campaign for the homepage.
+ *
+ * This uses the lightweight featured endpoint instead of
+ * downloading the complete public campaign collection.
+ */
+export const fetchFeaturedCampaign = async () => {
+    const url =
+        `${API_BASE_URL}/public/campaigns/featured`;
+
+    const response = await fetch(url, {
+        headers: {
+            Accept: 'application/json',
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error(
+            `Failed to fetch featured campaign (HTTP ${response.status})`
+        );
+    }
+
+    const result = await response.json();
+
+    return result?.data || null;
+};
+
+/**
  * Fetch a single active campaign by ID.
  */
 export const fetchPublicCampaignById = async (id) => {

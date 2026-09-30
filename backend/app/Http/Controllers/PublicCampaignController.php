@@ -103,6 +103,37 @@ class PublicCampaignController extends Controller
     }
 
     /**
+     * Display the latest publicly visible active campaign.
+     *
+     * This endpoint is optimized for homepage usage.
+     * It returns only one campaign instead of loading the
+     * complete public campaign collection.
+     */
+    public function featured(): JsonResponse
+    {
+        $campaign = Campaign::query()
+            ->where('status', Campaign::STATUS_ACTIVE)
+            ->with([
+                'organization:id,name',
+            ])
+            ->withCount('donations')
+            ->latest()
+            ->first();
+
+        if (!$campaign) {
+            return response()->json([
+                'success' => true,
+                'data' => null,
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $this->formatCampaign($campaign),
+        ]);
+    }
+
+    /**
      * Display a single active campaign by ID.
      */
     public function show(int $id): JsonResponse

@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { Bot, Loader2, MessageCircle, Send, X } from 'lucide-react';
+
+import { HeartHandshake, Loader2, Send, X, MessageCircle } from 'lucide-react';
+
 import { sendChatbotMessage } from '@/api/chatbot';
 import { useChatbotContext } from '@/components/chatbot/useChatbotContext';
 
 const Chatbot = () => {
     const { pageContext } = useChatbotContext();
-    const [isOpen, setIsOpen] = useState(false);
 
+    const [isOpen, setIsOpen] = useState(false);
     const [message, setMessage] = useState('');
 
     const [messages, setMessages] = useState([
@@ -20,6 +22,9 @@ const Chatbot = () => {
 
     const [isLoading, setIsLoading] = useState(false);
 
+    /* =========================================================
+       LOGIC — UNCHANGED
+    ========================================================== */
     const handleSubmit = async (event) => {
         event.preventDefault();
 
@@ -77,60 +82,113 @@ const Chatbot = () => {
 
     return (
         <>
+            {/* =========================================================
+                CHAT WINDOW
+            ========================================================== */}
             {isOpen && (
                 <div
                     className="
                         fixed
-                        bottom-24
                         right-4
+                        bottom-24
                         z-100
+
                         flex
-                        h-[min(620px,calc(100vh-120px))]
+                        h-[min(560px,calc(100vh-120px))]
                         w-[min(390px,calc(100vw-32px))]
                         flex-col
+
                         overflow-hidden
-                        rounded-3xl
+                        rounded-[22px]
+
                         border
-                        border-black/10
-                        bg-white
-                        shadow-[0_24px_70px_rgba(0,0,0,0.18)]
+                        border-[#e5e1d8]
+
+                        bg-[#fcfbf8]
+
+                        shadow-[0_24px_70px_rgba(32,42,40,0.16)]
+
                         sm:right-6
                     "
                 >
-                    {/* Header */}
+                    {/* =================================================
+                        HEADER
+                    ================================================== */}
                     <div
                         className="
                             flex
                             items-center
                             justify-between
-                            bg-[#083c36]
+                            gap-4
+
                             px-5
-                            py-4
-                            text-white!
+                            pt-5
+                            pb-4
                         "
                     >
                         <div className="flex items-center gap-3">
                             <div
                                 className="
+                                    relative
+
                                     flex
-                                    h-10
-                                    w-10
+                                    h-9
+                                    w-9
+                                    shrink-0
                                     items-center
                                     justify-center
+
                                     rounded-full
-                                    bg-white/10
+
+                                    bg-[#e7f1ef]
+
+                                    text-primary
                                 "
                             >
-                                <Bot size={21} strokeWidth={1.8} />
+                                <HeartHandshake size={18} strokeWidth={1.8} />
+
+                                <span
+                                    className="
+                                        absolute
+                                        right-0
+                                        bottom-0
+
+                                        h-2.5
+                                        w-2.5
+
+                                        rounded-full
+
+                                        border-2
+                                        border-[#fcfbf8]
+
+                                        bg-[#65a889]
+                                    "
+                                />
                             </div>
 
                             <div>
-                                <p className="font-sans text-[15px] font-semibold">
+                                <p
+                                    className="
+                                        text-[14px]
+                                        font-semibold
+                                        leading-none
+                                        text-[#183b36]
+                                    "
+                                >
                                     SP Assistant
                                 </p>
 
-                                <p className="mt-0.5 font-sans text-[11px] text-white!/65">
-                                    Stand For People
+                                <p
+                                    className="
+                                        mt-1.5
+
+                                        font-bengali
+                                        text-[11px]
+                                        leading-none
+                                        text-[#7b8985]
+                                    "
+                                >
+                                    আপনার সহায়তায় আছি
                                 </p>
                             </div>
                         </div>
@@ -141,121 +199,263 @@ const Chatbot = () => {
                             aria-label="Close chat"
                             className="
                                 flex
-                                h-9
-                                w-9
+                                h-8
+                                w-8
                                 items-center
                                 justify-center
+
                                 rounded-full
-                                text-white!/75
-                                transition
-                                hover:bg-white/10
-                                hover:text-white!
+
+                                text-[#87918e]
+
+                                transition-colors
+                                duration-200
+
+                                hover:bg-black/[0.04]
+                                hover:text-[#183b36]
+
+                                focus:outline-none
                             "
                         >
-                            <X size={19} strokeWidth={1.8} />
+                            <X size={17} strokeWidth={1.8} />
                         </button>
                     </div>
 
-                    {/* Messages */}
+                    <div className="mx-5 h-px bg-[#ebe7df]" />
+
+                    {/* =================================================
+                        MESSAGES
+                    ================================================== */}
                     <div
                         className="
                             flex-1
                             overflow-y-auto
-                            bg-text-on-dark
-                            px-4
-                            py-5
+
+                            px-5
+                            py-6
                         "
                     >
-                        <div className="space-y-3">
+                        <div className="space-y-5">
                             {messages.map((chatMessage) => {
                                 const isUser = chatMessage.role === 'user';
 
                                 return (
                                     <div
                                         key={chatMessage.id}
-                                        className={`flex ${
-                                            isUser
-                                                ? 'justify-end'
-                                                : 'justify-start'
-                                        }`}
+                                        className={`
+                                            flex
+
+                                            ${
+                                                isUser
+                                                    ? 'justify-end'
+                                                    : 'justify-start'
+                                            }
+                                        `}
                                     >
-                                        <div
-                                            className={`
-                                                max-w-[88%]
-                                                rounded-[18px]
-                                                px-4
-                                                py-3.5
-                                                ${
-                                                    isUser
-                                                        ? 'rounded-br-md bg-[#083c36] text-white!'
-                                                        : 'rounded-tl-md border border-black/6 bg-white text-[#183b36] shadow-sm'
-                                                }
-                                            `}
-                                        >
-                                            <p
-                                                className={`
-                                                    font-bengali
-                                                    text-[14px]
-                                                    leading-[1.7]
-                                                    ${
-                                                        isUser
-                                                            ? 'text-white!'
-                                                            : 'text-[#183b36]'
-                                                    }
-                                                `}
+                                        {isUser ? (
+                                            /* =========================
+                                                USER MESSAGE
+                                            ========================== */
+                                            <div
+                                                className="
+                                                    max-w-[78%]
+
+                                                    rounded-[18px]
+                                                    rounded-br-[6px]
+
+                                                    bg-[#183f3a]
+
+                                                    px-4
+                                                    py-3
+                                                "
                                             >
-                                                {chatMessage.content}
-                                            </p>
-                                        </div>
+                                                <p
+                                                    className="
+                                                        font-bengali
+                                                        text-[13.5px]
+                                                        leading-[1.75]
+                                                        text-white!
+                                                    "
+                                                >
+                                                    {chatMessage.content}
+                                                </p>
+                                            </div>
+                                        ) : (
+                                            /* =========================
+                                                ASSISTANT MESSAGE
+                                            ========================== */
+                                            <div
+                                                className="
+                                                    flex
+                                                    max-w-[88%]
+                                                    items-start
+                                                    gap-2.5
+                                                "
+                                            >
+                                                <div
+                                                    className="
+                                                        mt-1
+
+                                                        flex
+                                                        h-6
+                                                        w-6
+                                                        shrink-0
+                                                        items-center
+                                                        justify-center
+
+                                                        rounded-full
+
+                                                        bg-[#e7f1ef]
+
+                                                        text-primary
+                                                    "
+                                                >
+                                                    <HeartHandshake
+                                                        size={12}
+                                                        strokeWidth={1.8}
+                                                    />
+                                                </div>
+
+                                                <div>
+                                                    <p
+                                                        className="
+                                                            mb-1.5
+
+                                                            text-[10px]
+                                                            font-medium
+                                                            tracking-[0.02em]
+                                                            text-[#91a09c]
+                                                        "
+                                                    >
+                                                        SP Assistant
+                                                    </p>
+
+                                                    <p
+                                                        className="
+                                                            font-bengali
+                                                            text-[13.5px]
+                                                            leading-[1.85]
+                                                            text-[#294641]
+                                                        "
+                                                    >
+                                                        {chatMessage.content}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 );
                             })}
 
+                            {/* =========================================
+                                LOADING
+                            ========================================== */}
                             {isLoading && (
-                                <div className="flex justify-start">
+                                <div
+                                    className="
+                                        flex
+                                        items-start
+                                        gap-2.5
+                                    "
+                                >
                                     <div
                                         className="
+                                            mt-1
+
                                             flex
+                                            h-6
+                                            w-6
+                                            shrink-0
                                             items-center
-                                            gap-2
-                                            rounded-[18px]
-                                            rounded-tl-md
-                                            border
-                                            border-black/6
-                                            bg-white
-                                            px-4
-                                            py-3.5
-                                            text-[#183b36]
-                                            shadow-sm
+                                            justify-center
+
+                                            rounded-full
+
+                                            bg-[#e7f1ef]
+
+                                            text-primary
                                         "
                                     >
-                                        <Loader2
-                                            size={15}
-                                            className="animate-spin"
+                                        <HeartHandshake
+                                            size={12}
+                                            strokeWidth={1.8}
                                         />
+                                    </div>
 
-                                        <span
+                                    <div>
+                                        <p
                                             className="
-                                                font-bengali
-                                                text-[13px]
-                                                text-black/55
+                                                mb-2
+
+                                                text-[10px]
+                                                font-medium
+                                                text-[#91a09c]
                                             "
                                         >
-                                            উত্তর তৈরি হচ্ছে...
-                                        </span>
+                                            SP Assistant
+                                        </p>
+
+                                        <div
+                                            className="
+                                                flex
+                                                items-center
+                                                gap-1.5
+                                            "
+                                        >
+                                            <span
+                                                className="
+                                                    h-1.5
+                                                    w-1.5
+
+                                                    animate-pulse
+                                                    rounded-full
+
+                                                    bg-[#9eaaa7]
+                                                "
+                                            />
+
+                                            <span
+                                                className="
+                                                    h-1.5
+                                                    w-1.5
+
+                                                    animate-pulse
+                                                    rounded-full
+
+                                                    bg-[#9eaaa7]
+
+                                                    [animation-delay:150ms]
+                                                "
+                                            />
+
+                                            <span
+                                                className="
+                                                    h-1.5
+                                                    w-1.5
+
+                                                    animate-pulse
+                                                    rounded-full
+
+                                                    bg-[#9eaaa7]
+
+                                                    [animation-delay:300ms]
+                                                "
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             )}
                         </div>
                     </div>
 
-                    {/* Input */}
+                    {/* =================================================
+                        COMPOSER
+                    ================================================== */}
                     <div
                         className="
-                            border-t
-                            border-black/[0.07]
-                            bg-white
-                            p-3
+                            px-4
+                            pt-2
+                            pb-4
                         "
                     >
                         <form
@@ -264,13 +464,32 @@ const Chatbot = () => {
                                 flex
                                 items-end
                                 gap-2
-                                rounded-2xl
+
+                                overflow-hidden
+
+                                rounded-[18px]
+
                                 border
-                                border-black/10
-                                bg-text-on-dark
-                                p-2
+                                border-[#dedbd3]
+
+                                bg-white
+
+                                p-1.5
+
+                                shadow-[0_4px_18px_rgba(24,59,54,0.05)]
+
+                                transition-all
+                                duration-200
+
+                                focus-within:border-[#b4c9c4]
+                                focus-within:shadow-[0_4px_22px_rgba(24,59,54,0.08)]
                             "
                         >
+                            {/* =========================================
+                                IMPORTANT:
+                                Local inline styles intentionally reset
+                                global textarea focus styling.
+                            ========================================== */}
                             <textarea
                                 value={message}
                                 onChange={(event) =>
@@ -289,22 +508,33 @@ const Chatbot = () => {
                                 placeholder="আপনার প্রশ্ন লিখুন..."
                                 rows={1}
                                 disabled={isLoading}
+                                style={{
+                                    backgroundColor: 'transparent',
+                                    border: 'none',
+                                    borderRadius: '12px',
+                                    outline: 'none',
+                                    boxShadow: 'none',
+                                    WebkitAppearance: 'none',
+                                    appearance: 'none',
+                                }}
                                 className="
                                     max-h-28
                                     min-h-10
                                     flex-1
                                     resize-none
-                                    bg-transparent
-                                    px-2
-                                    py-2
+
+                                    px-3
+                                    py-2.5
+
                                     font-bengali
                                     text-[13px]
                                     leading-normal
-                                    text-[#183b36]
-                                    outline-none
-                                    placeholder:text-black/35
+                                    text-[#294641]
+
+                                    placeholder:text-[#96a09d]
+
                                     disabled:cursor-not-allowed
-                                    disabled:opacity-60
+                                    disabled:opacity-50
                                 "
                             />
 
@@ -319,60 +549,116 @@ const Chatbot = () => {
                                     shrink-0
                                     items-center
                                     justify-center
-                                    rounded-xl
-                                    bg-[#ed864a]
+
+                                    rounded-[13px]
+
+                                    bg-[#183f3a]
+
                                     text-white!
-                                    transition
-                                    hover:bg-[#d96f35]
+
+                                    transition-all
+                                    duration-200
+
+                                    hover:bg-primary
+
                                     disabled:cursor-not-allowed
-                                    disabled:opacity-35
+                                    disabled:bg-[#d9dfdd]
+
+                                    focus:outline-none
                                 "
                             >
                                 {isLoading ? (
                                     <Loader2
-                                        size={17}
-                                        strokeWidth={2}
+                                        size={16}
                                         className="animate-spin"
                                     />
                                 ) : (
-                                    <Send size={17} strokeWidth={2} />
+                                    <Send size={16} strokeWidth={1.9} />
                                 )}
                             </button>
                         </form>
+
+                        <div
+                            className="
+                                mt-2.5
+
+                                flex
+                                items-center
+                                justify-center
+                                gap-1.5
+                            "
+                        >
+                            <HeartHandshake size={10} className="text-accent" />
+
+                            <p
+                                className="
+                                    font-bengali
+                                    text-[9.5px]
+                                    text-[#a0aaa7]
+                                "
+                            >
+                                Stand For People সহায়তা
+                            </p>
+                        </div>
                     </div>
                 </div>
             )}
 
-            {!isOpen && (
-                <button
-                    type="button"
-                    onClick={() => setIsOpen(true)}
-                    aria-label="Open SP Assistant"
-                    className="
-                        fixed
-                        bottom-5
-                        right-4
-                        z-100
-                        flex
-                        h-14
-                        w-14
-                        items-center
-                        justify-center
-                        rounded-full
-                        bg-[#083c36]
-                        text-white!
-                        shadow-[0_12px_35px_rgba(8,60,54,0.28)]
-                        transition
-                        duration-200
-                        hover:-translate-y-0.5
-                        hover:bg-[#0f6258]
-                        sm:bottom-6
-                        sm:right-6
-                    "
-                >
-                    <MessageCircle size={23} strokeWidth={1.8} />
-                </button>
-            )}
+            {/* =========================================================
+    ASSISTANT LAUNCHER
+========================================================== */}
+{!isOpen && (
+    <button
+        type="button"
+        onClick={() => setIsOpen(true)}
+        aria-label="সহায়তা খুলুন"
+        title="সহায়তা"
+        className="
+            fixed
+            right-5
+            bottom-5
+            z-100
+
+            inline-flex
+            size-14
+            items-center
+            justify-center
+
+            rounded-full
+            border-0
+
+            bg-primary
+            text-white
+
+            shadow-[0_6px_20px_rgba(15,118,110,0.24)]
+
+            transition
+            duration-200
+            ease-out
+
+            hover:-translate-y-0.5
+            hover:bg-primary-hover
+            hover:shadow-[0_9px_26px_rgba(15,118,110,0.30)]
+
+            active:translate-y-0
+            active:scale-[0.96]
+
+            focus-visible:outline-none
+            focus-visible:ring-3
+            focus-visible:ring-primary/25
+            focus-visible:ring-offset-3
+
+            sm:right-6
+            sm:bottom-6
+        "
+    >
+        <MessageCircle
+            size={23}
+            strokeWidth={2}
+            aria-hidden="true"
+        />
+    </button>
+)}
         </>
     );
 };

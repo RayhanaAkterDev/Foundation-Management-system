@@ -1,6 +1,9 @@
 import React from 'react';
+
 import { Link } from 'react-router-dom';
+
 import {
+    TbArrowUpRight,
     TbBrandFacebook,
     TbBrandInstagram,
     TbBrandLinkedin,
@@ -9,281 +12,485 @@ import {
 
 import { footerLinks, legalLinks } from './data/data.js';
 
-const iconMap = {
-    facebook: TbBrandFacebook,
-    twitter: TbBrandTwitter,
-    instagram: TbBrandInstagram,
-    linkedin: TbBrandLinkedin,
-};
+const socials = [
+    {
+        label: 'Facebook',
+        icon: TbBrandFacebook,
+        href: '/',
+    },
+    {
+        label: 'Instagram',
+        icon: TbBrandInstagram,
+        href: '/',
+    },
+    {
+        label: 'LinkedIn',
+        icon: TbBrandLinkedin,
+        href: '/',
+    },
+    {
+        label: 'Twitter',
+        icon: TbBrandTwitter,
+        href: '/',
+    },
+];
 
 const Footer = () => {
     return (
-        <footer className="border-t border-border bg-background">
-            <div className="container-width">
-                {/* ================================
-                    MAIN FOOTER
-                ================================= */}
-                <div className="grid grid-cols-1 gap-12 xl:gap-24 py-14 md:grid-cols-12 md:gap-10 lg:py-16">
-                    {/* BRAND */}
-                    <div className="md:col-span-5">
+        <footer className="relative overflow-hidden bg-primary-deep text-white!">
+            {/* =========================================================
+                SUBTLE BACKGROUND DETAIL
+            ========================================================== */}
+
+            <div
+                aria-hidden="true"
+                className="
+                    pointer-events-none
+                    absolute
+                    -right-28
+                    top-16
+                    h-72
+                    w-72
+                    rounded-full
+                    bg-accent/[0.035]
+                    blur-3xl
+                "
+            />
+
+            <div
+                aria-hidden="true"
+                className="
+                    pointer-events-none
+                    absolute
+                    -bottom-32
+                    left-1/2
+                    h-[30rem]
+                    w-[30rem]
+                    -translate-x-1/2
+                    -translate-y-1/2
+                    rounded-full
+                    bg-white/[0.018]
+                    blur-3xl
+                "
+            />
+
+            <div className="container-width relative z-10">
+                {/* =====================================================
+                    INTRO
+                ====================================================== */}
+
+                <div
+                    className="
+                        grid
+                        gap-10
+                        py-12
+                        sm:py-14
+                        lg:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.55fr)]
+                        lg:items-end
+                        lg:gap-20
+                        lg:py-16
+                        xl:py-20
+                    "
+                >
+                    {/* =================================================
+                        BRAND / MESSAGE
+                    ================================================== */}
+
+                    <div>
                         <Link
                             to="/"
+                            aria-label="Stand For People-এর হোমপেজ"
                             className="
-                                inline-block
+                                group
+                                inline-flex
+                                items-center
+                                gap-3
                                 rounded-sm
                                 focus:outline-none
                                 focus-visible:ring-2
-                                focus-visible:ring-primary
+                                focus-visible:ring-accent
                                 focus-visible:ring-offset-4
+                                focus-visible:ring-offset-primary-deep
                             "
-                            aria-label="Stand For People-এর হোমপেজ"
                         >
                             <span
                                 className="
-                                    text-[24px]
-                                    font-bold
-                                    tracking-[-0.02em]
-                                    text-primary
+                                    h-2
+                                    w-2
+                                    rounded-full
+                                    bg-accent
+                                    transition-transform
+                                    duration-300
+                                    group-hover:scale-125
+                                "
+                            />
+
+                            <span
+                                className="
+                                    text-[12px]
+                                    font-semibold
+                                    uppercase
+                                    tracking-[0.16em]
+                                    text-white!
                                 "
                             >
                                 Stand For People
                             </span>
                         </Link>
 
-                        <p
+                        <h2
                             className="
-                                mt-5
-                                max-w-md
-                                text-[14px]
-                                leading-[1.9]
-                                text-text-secondary
+                                mt-6
+                                max-w-[680px]
+                                font-bengali
+                                text-[1.75rem]
+                                font-semibold
+                                leading-[1.5]
+                                tracking-[-0.025em]
+                                text-white!
+                                sm:text-[2rem]
+                                lg:mt-7
+                                lg:text-[2.45rem]
+                                lg:leading-[1.48]
+                                xl:text-[2.7rem]
                             "
                         >
-                            প্রয়োজনের সময় মানুষের পাশে দাঁড়ানো, সহায়তা পৌঁছে
-                            দেওয়া এবং দাতা, স্বেচ্ছাসেবী ও সংগঠনকে একসাথে কাজ
-                            করার সুযোগ তৈরি করাই আমাদের লক্ষ্য।
-                        </p>
+                            একজন মানুষের প্রয়োজন
+                            <span className="text-white/45">
+                                {' '}
+                                আরেকজন মানুষের কাছে পৌঁছে দেওয়ার
+                            </span>{' '}
+                            একটি বিশ্বাসযোগ্য জায়গা।
+                        </h2>
 
-                        {/* SOCIAL */}
-                        <div className="mt-6 flex items-center gap-2.5">
-                            {Object.entries(iconMap).map(
-                                ([key, IconComponent]) => {
-                                    const Icon = IconComponent;
+                        {/* =================================================
+                            SOCIAL ICONS
+                            DESKTOP/LG POSITION LEFT EXACTLY AS ORIGINAL
+                        ================================================== */}
+
+                        <div
+                            className="
+                                mt-12
+                                flex
+                                flex-col
+                                items-start
+                                sm:mt-14
+                                sm:col-span-2
+                                lg:mt-20
+                                lg:col-span-1
+                                lg:items-end
+                            "
+                        >
+                            <span
+                                className="
+                                    mb-4
+                                    font-bengali
+                                    text-[13px]
+                                    font-medium
+                                    leading-none
+                                    text-white/45
+                                    sm:mb-5
+                                "
+                            >
+                                আমাদের সাথে থাকুন
+                            </span>
+
+                            <div className="flex items-center gap-2.5 mb-4 lg:mb-0">
+                                {socials.map((social) => {
+                                    const Icon = social.icon;
 
                                     return (
                                         <a
-                                            key={key}
-                                            href="/"
-                                            aria-label={key}
+                                            key={social.label}
+                                            href={social.href}
+                                            aria-label={social.label}
                                             className="
+                                                group
                                                 flex
                                                 h-9
                                                 w-9
+                                                shrink-0
                                                 items-center
                                                 justify-center
-                                                rounded-lg
+                                                rounded-full
                                                 border
-                                                border-border
-                                                bg-surface
-                                                text-text-muted
+                                                border-white/10
+                                                text-white/45
                                                 transition-all
                                                 duration-200
-                                                hover:border-primary/40
-                                                hover:bg-background-teal
-                                                hover:text-primary
+                                                hover:border-accent/40
+                                                hover:bg-accent/10
+                                                hover:text-white!
                                                 focus:outline-none
-                                                focus-visible:ring-2
-                                                focus-visible:ring-primary
-                                                focus-visible:ring-offset-2
+                                                focus-visible:border-accent
+                                                focus-visible:text-accent
                                             "
                                         >
-                                            <Icon size={17} />
+                                            <Icon
+                                                size={16}
+                                                strokeWidth={1.8}
+                                                className="
+                                                    transition-colors
+                                                    duration-200
+                                                    group-hover:text-accent
+                                                "
+                                            />
                                         </a>
                                     );
-                                },
-                            )}
+                                })}
+                            </div>
                         </div>
                     </div>
 
-                    {/* LINK GROUPS */}
+                    {/* =================================================
+                        SUPPORTING MESSAGE
+                    ================================================== */}
+
                     <div
                         className="
-                            md:col-span-7
-                            grid
-                            grid-cols-2
-                            gap-x-8
-                            gap-y-10
-                            sm:grid-cols-3
+                            border-l
+                            border-white/10
+                            pl-5
+                            sm:pl-6
+                            lg:mb-1
+                            lg:max-w-[310px]
                         "
                     >
-                        {footerLinks.map((group, i) => (
-                            <div key={i} className="min-w-0">
-                                <h4
+                        <p
+                            className="
+                                font-bengali
+                                text-[14px]
+                                font-medium
+                                leading-[1.9]
+                                text-white!
+                                sm:text-[15px]
+                            "
+                        >
+                            সহায়তা যেখানে শুধু লেনদেন নয়—
+                            <br />
+                            মানুষের সাথে মানুষের সংযোগ।
+                        </p>
+
+                        <Link
+                            to="/how-it-works"
+                            className="
+                                group
+                                mt-5
+                                inline-flex
+                                items-center
+                                gap-2
+                                text-[12px]
+                                font-medium
+                                text-white/55
+                                transition-colors
+                                duration-200
+                                hover:text-white!
+                                focus:outline-none
+                                focus-visible:text-accent
+                            "
+                        >
+                            <span>কীভাবে কাজ করে</span>
+
+                            <TbArrowUpRight
+                                size={15}
+                                className="
+                                    transition-transform
+                                    duration-200
+                                    group-hover:translate-x-0.5
+                                    group-hover:-translate-y-0.5
+                                "
+                            />
+                        </Link>
+                    </div>
+                </div>
+
+                {/* =====================================================
+                    DIVIDER
+                ====================================================== */}
+
+                <div className="h-px bg-white/10" />
+
+                {/* =====================================================
+                    NAVIGATION
+                ====================================================== */}
+
+                <div
+                    className="
+                        grid
+                        gap-8
+                        py-10
+                        sm:grid-cols-2
+                        sm:gap-x-10
+                        sm:gap-y-10
+                        sm:py-12
+                        lg:grid-cols-3
+                        lg:gap-12
+                        lg:py-14
+                    "
+                >
+                    {footerLinks.map((group, groupIndex) => (
+                        <div key={groupIndex} className="min-w-0">
+                            <div
+                                className="
+                                    mb-4
+                                    flex
+                                    items-center
+                                    gap-3
+                                    sm:mb-5
+                                "
+                            >
+                                <span
                                     className="
-                                        mb-4
-                                        text-[12px]
+                                        h-px
+                                        w-6
+                                        shrink-0
+                                        bg-accent
+                                    "
+                                />
+
+                                <h3
+                                    className="
+                                        font-bengali
+                                        text-[13px]
                                         font-semibold
-                                        tracking-[0.04em]
-                                        text-text-primary
+                                        text-white!
+                                        sm:text-[15px]
                                     "
                                 >
                                     {group.title}
-                                </h4>
-
-                                <div className="space-y-2.5">
-                                    {group.links.map((item, idx) => (
-                                        <Link
-                                            key={idx}
-                                            to={item.to}
-                                            className="
-                                                block
-                                                w-fit
-                                                max-w-full
-                                                text-[13px]
-                                                font-normal
-                                                leading-[1.7]
-                                                text-text-muted
-                                                transition-colors
-                                                duration-200
-                                                hover:text-primary
-                                                focus:outline-none
-                                                focus-visible:text-primary
-                                            "
-                                        >
-                                            {item.label}
-                                        </Link>
-                                    ))}
-                                </div>
+                                </h3>
                             </div>
-                        ))}
-                    </div>
+
+                            <nav
+                                className="
+                                    flex
+                                    flex-col
+                                    items-start
+                                    gap-2.5
+                                    sm:gap-3
+                                "
+                            >
+                                {group.links.map((item, index) => (
+                                    <Link
+                                        key={index}
+                                        to={item.to}
+                                        className="
+                                            group
+                                            inline-flex
+                                            items-center
+                                            font-bengali
+                                            text-[12px]
+                                            leading-[1.8]
+                                            text-white/55
+                                            transition-all
+                                            duration-200
+                                            hover:translate-x-1
+                                            hover:text-white!
+                                            focus:outline-none
+                                            focus-visible:text-accent
+                                            sm:text-[14px]
+                                        "
+                                    >
+                                        <span
+                                            className="
+                                                mr-2
+                                                h-1
+                                                w-1
+                                                shrink-0
+                                                scale-0
+                                                rounded-full
+                                                bg-accent
+                                                transition-transform
+                                                duration-200
+                                                group-hover:scale-100
+                                            "
+                                        />
+
+                                        {item.label}
+                                    </Link>
+                                ))}
+                            </nav>
+                        </div>
+                    ))}
                 </div>
+            </div>
 
-                {/* ================================
-                    SUPPORT STRIP
-                ================================= */}
-                <div
-                    className="
-                        mb-10
-                        flex
-                        flex-col
-                        gap-4
-                        rounded-xl
-                        border
-                        border-primary/10
-                        bg-background-teal
-                        px-5
-                        py-5
-                        sm:flex-row
-                        sm:items-center
-                        sm:justify-between
-                        sm:px-6
-                    "
-                >
-                    <div>
-                        <p
-                            className="
-                                text-[14px]
-                                font-semibold
-                                text-text-primary
-                            "
-                        >
-                            মানুষের পাশে দাঁড়াতে চান?
-                        </p>
+            {/* =========================================================
+                DEEPER BOTTOM BAR
+            ========================================================== */}
 
-                        <p
-                            className="
-                                mt-1
-                                text-[12px]
-                                leading-[1.7]
-                                text-text-secondary
-                            "
-                        >
-                            আপনার ছোট একটি উদ্যোগও কারও জীবনে বড় পরিবর্তন আনতে
-                            পারে।
-                        </p>
-                    </div>
-
-                    <Link
-                        to="/donate"
-                        className="
-                            inline-flex
-                            w-fit
-                            shrink-0
-                            items-center
-                            justify-center
-                            rounded-lg
-                            bg-primary
-                            px-4
-                            py-2.5
-                            text-[13px]
-                            font-semibold
-                            text-white!
-                            transition-colors
-                            duration-200
-                            hover:bg-primary-hover
-                            focus:outline-none
-                            focus-visible:ring-2
-                            focus-visible:ring-primary
-                            focus-visible:ring-offset-2
-                        "
-                    >
-                        দান করুন
-                    </Link>
-                </div>
-
-                {/* ================================
-                    BOTTOM
-                ================================= */}
-                <div
-                    className="
-                        border-t
-                        border-border
-                        py-6
-                    "
-                >
+            <div
+                className="
+                    relative
+                    border-t
+                    border-white/[0.06]
+                    bg-black/15
+                "
+            >
+                <div className="container-width">
                     <div
                         className="
                             flex
+                            min-h-[58px]
                             flex-col
-                            gap-4
-                            md:flex-row
-                            md:items-center
-                            md:justify-between
+                            gap-3
+                            py-4
+                            sm:flex-row
+                            sm:items-center
+                            sm:justify-between
+                            sm:gap-6
+                            sm:py-0
                         "
                     >
-                        {/* LEGAL */}
-                        <div className="flex flex-wrap gap-x-5 gap-y-2">
-                            {legalLinks.map((item, i) => (
+                        {/* Brand + copyright */}
+
+                        <p
+                            className="
+                                shrink-0
+                                text-[11px]
+                                font-medium
+                                text-white/35
+                                sm:text-[12px]
+                            "
+                        >
+                            Stand For People
+                            <span className="mx-2 text-white/15">•</span>© 2026
+                        </p>
+
+                        {/* Legal links */}
+
+                        <div
+                            className="
+                                flex
+                                flex-wrap
+                                items-center
+                                gap-x-4
+                                gap-y-2
+                                sm:justify-end
+                                sm:gap-x-5
+                            "
+                        >
+                            {legalLinks.map((item, index) => (
                                 <Link
-                                    key={i}
+                                    key={index}
                                     to={item.to}
                                     className="
+                                        whitespace-nowrap
+                                        font-bengali
                                         text-[11px]
-                                        font-normal
-                                        text-text-muted
+                                        text-white/35
                                         transition-colors
                                         duration-200
-                                        hover:text-primary
+                                        hover:text-white!
                                         focus:outline-none
-                                        focus-visible:text-primary
+                                        focus-visible:text-accent
+                                        sm:text-[12px]
                                     "
                                 >
                                     {item.label}
                                 </Link>
                             ))}
                         </div>
-
-                        {/* COPYRIGHT */}
-                        <p
-                            className="
-                                text-[11px]
-                                leading-relaxed
-                                text-text-muted
-                            "
-                        >
-                            © 2026 Stand For People
-                        </p>
                     </div>
                 </div>
             </div>

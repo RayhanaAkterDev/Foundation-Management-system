@@ -33,6 +33,28 @@ class TestimonialController extends Controller
     }
 
     /**
+     * Return one featured public testimonial for homepage usage.
+     *
+     * Featured testimonials appear first.
+     * If none are featured, the latest consented testimonial is returned.
+     */
+    public function featured(): JsonResponse
+    {
+        $testimonial = Testimonial::query()
+            ->where('consent_to_publish', true)
+            ->with([
+                'user:id,name,role',
+            ])
+            ->orderByDesc('is_featured')
+            ->latest()
+            ->first();
+
+        return response()->json([
+            'testimonial' => $testimonial,
+        ]);
+    }
+
+    /**
      * Submit a testimonial from an authenticated
      * individual or organization account.
      */

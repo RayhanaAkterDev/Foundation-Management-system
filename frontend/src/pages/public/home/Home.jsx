@@ -13,7 +13,7 @@ import heroBG from '@/assets/home/hero/hero.jpg';
 // Page sections
 import ExploreCategories from './sections/exploreCategories/ExploreCategories';
 import FeaturedCampaign from './sections/featuredCampaign/FeaturedCampaign';
-import LocalImpact from './sections/localImpact/LocalImpact';
+// import LocalImpact from './sections/localImpact/LocalImpact';
 import ImpactTrust from './sections/impactTrust/ImpactTrust';
 
 const Home = () => {
@@ -48,7 +48,7 @@ const Home = () => {
 
             <FeaturedCampaign />
             <ExploreCategories />
-            <LocalImpact />
+            {/* <LocalImpact /> */}
             <ImpactTrust />
         </>
     );

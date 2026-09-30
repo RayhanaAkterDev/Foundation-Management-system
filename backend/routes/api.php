@@ -50,6 +50,19 @@ Route::get(
 );
 
 // =============================================================
+// PUBLIC VOLUNTEERS
+// =============================================================
+//
+// Public directory of active volunteers.
+// Only public-safe volunteer information is returned.
+//
+
+Route::get(
+    '/public/volunteers',
+    [VolunteerController::class, 'publicIndex']
+);
+
+// =============================================================
 // CENTRAL CATEGORIES
 // =============================================================
 //

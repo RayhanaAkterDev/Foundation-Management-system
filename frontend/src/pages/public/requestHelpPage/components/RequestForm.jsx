@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from 'react';
+
 import { Link } from 'react-router-dom';
+
 import Button from '@/components/Button';
+
 import { fetchCategories } from '@/api/categories';
+
 import {
     analyzeHelpRequest,
     createHelpRequest,
@@ -61,6 +65,57 @@ const getCategoryName = (category) => {
 };
 
 // =========================================================
+// Shared field styles
+// =========================================================
+
+const inputClassName = `
+    mt-2.5
+    w-full
+    rounded-xl
+    border
+    border-border
+    bg-background
+    px-4
+    text-[14px]
+    text-text-primary
+    outline-none
+    transition
+
+    placeholder:text-text-muted
+
+    focus:border-primary
+    focus:ring-2
+    focus:ring-primary/10
+
+    disabled:cursor-not-allowed
+    disabled:opacity-60
+`;
+
+const selectClassName = `
+    ${inputClassName}
+    h-12
+    appearance-none
+    font-bengali
+`;
+
+const labelClassName = `
+    font-bengali
+    text-[14px]
+    font-medium
+    text-text-primary
+
+    sm:text-[15px]
+`;
+
+const errorClassName = `
+    mt-2
+    font-bengali
+    text-xs
+    leading-5
+    text-red-600
+`;
+
+// =========================================================
 // Component
 // =========================================================
 
@@ -83,13 +138,10 @@ const RequestForm = ({ setSuccess }) => {
     // =====================================================
 
     const [analysis, setAnalysis] = useState(null);
-
     const [categories, setCategories] = useState([]);
 
     const [analyzing, setAnalyzing] = useState(false);
-
     const [submitting, setSubmitting] = useState(false);
-
     const [loadingCategories, setLoadingCategories] = useState(false);
 
     const [error, setError] = useState({});
@@ -139,8 +191,6 @@ const RequestForm = ({ setSuccess }) => {
             analyze: '',
         }));
 
-        // If the original description changes,
-        // the previous AI analysis is no longer reliable.
         if (name === 'description') {
             setAnalysis(null);
         }
@@ -253,15 +303,10 @@ const RequestForm = ({ setSuccess }) => {
         }
 
         const title = analysis.title?.trim() || '';
-
         const description = form.description.trim();
-
         const category = analysis.category?.trim() || '';
-
         const district = analysis.district?.trim() || '';
-
         const address = analysis.address?.trim() || '';
-
         const urgency = analysis.urgency?.trim() || '';
 
         const validationErrors = {};
@@ -292,7 +337,6 @@ const RequestForm = ({ setSuccess }) => {
 
         if (Object.keys(validationErrors).length > 0) {
             setError(validationErrors);
-
             return;
         }
 
@@ -331,41 +375,44 @@ const RequestForm = ({ setSuccess }) => {
 
     if (!isLoggedIn) {
         return (
-            <div className="flex min-h-130 flex-col justify-center p-6 sm:p-8 lg:p-10">
-                <div className="mx-auto w-full max-w-xl">
-                    <div className="rounded-2xl border border-border bg-background p-6 sm:p-8">
-                        <p className="font-bengali text-sm font-medium text-text-muted">
-                            সাহায্যের অনুরোধ জানাতে প্রথমে আপনার অ্যাকাউন্টে
-                            প্রবেশ করুন।
+            <div className="flex min-h-[520px] items-center px-5 py-10 sm:px-8 sm:py-12 lg:px-10">
+                <div className="mx-auto w-full max-w-[620px]">
+                    <div className="border-y border-border py-8 sm:py-10">
+                        <p className="font-bengali text-[13px] font-medium text-primary">
+                            অ্যাকাউন্ট প্রয়োজন
                         </p>
 
-                        <h2 className="mt-3 font-bengali text-2xl font-semibold tracking-tight text-text-primary sm:text-3xl">
+                        <h2 className="mt-2.5 font-bengali text-[1.8rem] font-medium leading-[1.4] tracking-[-0.02em] text-text-primary sm:text-[2.15rem]">
                             আপনার সাহায্যের আবেদন তৈরি করুন
                         </h2>
 
-                        <p className="mt-3 font-bengali text-[15px] leading-8 text-text-muted sm:text-base">
-                            আপনার পরিস্থিতি বিস্তারিত লিখুন। আমরা আপনার অনুরোধটি
-                            সাজিয়ে দেওয়ার পর আপনি নিজে পর্যালোচনা করে পাঠাতে
-                            পারবেন।
+                        <p className="mt-3 max-w-xl font-bengali text-[14px] leading-7 text-text-secondary sm:text-[15px] sm:leading-8">
+                            সাহায্যের অনুরোধ জানাতে প্রথমে আপনার অ্যাকাউন্টে
+                            প্রবেশ করুন। এরপর আপনার পরিস্থিতি লিখে আবেদনটি
+                            পর্যালোচনা করে পাঠাতে পারবেন।
                         </p>
 
-                        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                        <div className="mt-7 flex flex-col gap-3 sm:flex-row">
                             <Link
-                                to="/account/login?role=individual"
+                                to="/login?role=individual"
                                 className="
                                     inline-flex
                                     min-h-11
                                     items-center
                                     justify-center
-                                    rounded-xl
+                                    rounded-lg
                                     bg-primary
                                     px-5
                                     font-bengali
                                     text-sm
-                                    font-semibold
+                                    font-medium
                                     text-white!
                                     transition
                                     hover:bg-primary-dark
+                                    focus:outline-none
+                                    focus-visible:ring-2
+                                    focus-visible:ring-primary
+                                    focus-visible:ring-offset-2
                                 "
                             >
                                 লগইন করুন
@@ -378,17 +425,21 @@ const RequestForm = ({ setSuccess }) => {
                                     min-h-11
                                     items-center
                                     justify-center
-                                    rounded-xl
+                                    rounded-lg
                                     border
                                     border-border
                                     bg-surface
                                     px-5
                                     font-bengali
                                     text-sm
-                                    font-semibold
+                                    font-medium
                                     text-text-primary
                                     transition
                                     hover:bg-background
+                                    focus:outline-none
+                                    focus-visible:ring-2
+                                    focus-visible:ring-primary
+                                    focus-visible:ring-offset-2
                                 "
                             >
                                 নতুন অ্যাকাউন্ট তৈরি করুন
@@ -415,39 +466,118 @@ const RequestForm = ({ setSuccess }) => {
                     handleAnalyze();
                 }
             }}
-            className="px-5 py-7 sm:px-8 sm:py-9 lg:px-10 lg:py-11 xl:px-12"
+            className="
+                px-5
+                py-8
+
+                sm:px-8
+                sm:py-10
+
+                lg:px-10
+                lg:py-12
+
+                xl:px-12
+                xl:py-14
+            "
         >
             {/* =================================================
-                Header
-            ================================================= */}
+                FORM INTRO
+            ================================================== */}
 
-            <div className="max-w-2xl">
-                <p className="font-bengali text-[15px] font-semibold text-primary">
-                    আপনার পরিস্থিতি
-                </p>
+            <div
+                className="
+                    flex
+                    flex-col
+                    gap-5
 
-                <h2 className="mt-2 font-bengali text-[1.8rem] font-semibold leading-[1.35] text-text-primary sm:text-[2.1rem]">
-                    কী ধরনের সাহায্য প্রয়োজন?
-                </h2>
+                    border-b
+                    border-border
+                    pb-7
 
-                <p className="mt-3 font-bengali text-[15px] leading-8 text-text-muted sm:text-base">
-                    আপনার পরিস্থিতি নিজের ভাষায় বিস্তারিত লিখুন। বিশ্লেষণের পর
-                    প্রয়োজনীয় তথ্যগুলো সাজিয়ে দেওয়া হবে এবং পাঠানোর আগে আপনি
-                    নিজে সবকিছু পর্যালোচনা করতে পারবেন।
-                </p>
+                    sm:pb-8
+
+                    lg:flex-row
+                    lg:items-end
+                    lg:justify-between
+                    lg:gap-10
+                "
+            >
+                <div className="max-w-[700px]">
+                    <p className="font-bengali text-[12px] font-medium text-primary sm:text-[13px]">
+                        ধাপ ১ · আপনার পরিস্থিতি
+                    </p>
+
+                    <h2
+                        className="
+                            mt-2
+
+                            font-bengali
+                            text-[1.7rem]
+                            font-medium
+                            leading-[1.4]
+                            tracking-[-0.015em]
+                            text-text-primary
+
+                            sm:text-[2rem]
+
+                            lg:text-[2.2rem]
+                        "
+                    >
+                        কী ধরনের সাহায্য প্রয়োজন?
+                    </h2>
+
+                    <p
+                        className="
+                            mt-2.5
+                            max-w-[650px]
+
+                            font-bengali
+                            text-[13px]
+                            leading-7
+                            text-text-secondary
+
+                            sm:text-[14px]
+                            sm:leading-7
+                        "
+                    >
+                        আপনার পরিস্থিতি নিজের ভাষায় বিস্তারিত লিখুন। এরপর
+                        প্রয়োজনীয় তথ্যগুলো সাজিয়ে দেওয়া হবে এবং পাঠানোর আগে আপনি
+                        নিজে সবকিছু পর্যালোচনা করতে পারবেন।
+                    </p>
+                </div>
+
+                <div
+                    className="
+                        hidden
+                        shrink-0
+
+                        lg:block
+                    "
+                >
+                    <p className="font-bengali text-[11px] font-medium uppercase tracking-[0.08em] text-text-muted">
+                        ০১ / ০২
+                    </p>
+
+                    <p className="mt-1 font-bengali text-xs text-text-secondary">
+                        প্রথমে আপনার কথা
+                    </p>
+                </div>
             </div>
 
             {/* =================================================
-                Description
-            ================================================= */}
+                DESCRIPTION
+            ================================================== */}
 
             <div className="mt-8">
-                <label
-                    htmlFor="description"
-                    className="font-bengali text-[15px] font-semibold text-text-primary"
-                >
-                    আপনার পরিস্থিতি *
-                </label>
+                <div className="flex items-baseline justify-between gap-4">
+                    <label htmlFor="description" className={labelClassName}>
+                        আপনার পরিস্থিতি <span className="text-accent">*</span>
+                    </label>
+
+                    <span className="shrink-0 text-[11px] text-text-muted">
+                        {form.description.length}/5000
+                    </span>
+                </div>
 
                 <textarea
                     id="description"
@@ -455,401 +585,410 @@ const RequestForm = ({ setSuccess }) => {
                     value={form.description}
                     onChange={handleChange}
                     rows={8}
-                    placeholder="আপনার কী সমস্যা হয়েছে, কী ধরনের সাহায্য প্রয়োজন এবং পরিস্থিতি সম্পর্কে প্রাসঙ্গিক তথ্য নিজের ভাষায় লিখুন..."
-                    className="
-                        mt-3
-                        w-full
-                        resize-none
-                        rounded-[18px]
-                        border
-                        border-border
-                        bg-surface
-                        px-4
+                    maxLength={5000}
+                    placeholder="আপনার কী সমস্যা হয়েছে, কী ধরনের সাহায্য প্রয়োজন এবং পরিস্থিতি সম্পর্কে প্রাসঙ্গিক তথ্য নিজের ভাষায় লিখুন..."
+                    className={`
+                        ${inputClassName}
+
+                        min-h-[190px]
+                        resize-y
+
                         py-4
+
                         font-bengali
-                        text-[15px]
-                        leading-8
-                        text-text-primary
-                        outline-none
-                        transition
-                        placeholder:text-text-muted
-                        focus:border-primary
-                        focus:ring-2
-                        focus:ring-primary/10
-                    "
+                        leading-7
+                    `}
                 />
 
-                <div className="mt-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                    <p className="font-bengali text-xs leading-5 text-text-muted">
-                        প্রয়োজনে আপনার অবস্থান, ঠিকানা, সময়সীমা বা পরিস্থিতির
-                        জরুরিতার মতো তথ্যও এখানে লিখতে পারেন।
-                    </p>
-
-                    <p className="shrink-0 text-xs text-text-muted">
-                        {form.description.length}/5000
+                <div className="mt-2.5 flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+                    <p className="max-w-2xl font-bengali text-[11px] leading-5 text-text-muted sm:text-xs">
+                        প্রয়োজনে অবস্থান, ঠিকানা, সময়সীমা বা পরিস্থিতির জরুরিতার
+                        মতো তথ্যও এখানে লিখতে পারেন।
                     </p>
                 </div>
 
                 {error.description && (
-                    <p className="mt-2 font-bengali text-xs text-red-600">
-                        {error.description}
-                    </p>
+                    <p className={errorClassName}>{error.description}</p>
                 )}
             </div>
 
             {/* =================================================
-                Analysis loading
-            ================================================= */}
+                ANALYSIS LOADING
+            ================================================== */}
 
             {analyzing && (
-                <div className="mt-8 rounded-2xl border border-primary/15 bg-primary/5 p-5">
-                    <div className="flex items-center gap-3">
-                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary/20 border-t-primary" />
+                <div
+                    className="
+                        mt-7
+                        flex
+                        items-start
+                        gap-3
 
+                        border-y
+                        border-primary/15
+
+                        bg-primary/5
+
+                        px-4
+                        py-4
+
+                        sm:px-5
+                    "
+                >
+                    <div
+                        className="
+                            mt-0.5
+                            h-4
+                            w-4
+                            shrink-0
+                            animate-spin
+                            rounded-full
+                            border-2
+                            border-primary/20
+                            border-t-primary
+                        "
+                    />
+
+                    <div>
                         <p className="font-bengali text-sm font-medium text-text-primary">
                             আপনার অনুরোধ বিশ্লেষণ করা হচ্ছে...
                         </p>
-                    </div>
 
-                    <p className="mt-2 font-bengali text-xs leading-6 text-text-muted">
-                        আপনার লেখা থেকে প্রাসঙ্গিক তথ্য সাজিয়ে দেওয়া হচ্ছে।
-                    </p>
+                        <p className="mt-1 font-bengali text-[11px] leading-5 text-text-secondary sm:text-xs">
+                            আপনার লেখা থেকে প্রাসঙ্গিক তথ্য সাজিয়ে দেওয়া হচ্ছে।
+                        </p>
+                    </div>
                 </div>
             )}
 
             {/* =================================================
-                AI analysis result
-            ================================================= */}
+                AI ANALYSIS RESULT
+            ================================================== */}
 
             {analysis && !analyzing && (
-                <div className="mt-9 border-t border-border pt-8 sm:pt-9">
-                    {/* =================================================
-                        Review header
-                    ================================================= */}
+                <div className="mt-9 border-t border-border pt-8 sm:mt-10 sm:pt-9">
+                    {/* Review heading */}
 
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                    <div
+                        className="
+                            flex
+                            flex-col
+                            gap-2
+
+                            sm:flex-row
+                            sm:items-end
+                            sm:justify-between
+                            sm:gap-6
+                        "
+                    >
                         <div>
-                            <p className="font-bengali text-[15px] font-semibold text-primary">
-                                পর্যালোচনা করুন
+                            <p className="font-bengali text-[12px] font-medium text-primary sm:text-[13px]">
+                                ধাপ ২ · পর্যালোচনা
                             </p>
 
-                            <h3 className="mt-1 font-bengali text-2xl font-semibold leading-snug text-text-primary">
+                            <h3
+                                className="
+                                    mt-1.5
+
+                                    font-bengali
+                                    text-[1.5rem]
+                                    font-medium
+                                    leading-[1.4]
+                                    text-text-primary
+
+                                    sm:text-[1.75rem]
+                                "
+                            >
                                 আপনার অনুরোধের তথ্য
                             </h3>
                         </div>
 
-                        <p className="font-bengali text-xs text-text-muted">
-                            পাঠানোর আগে তথ্য পরিবর্তন করতে পারবেন
+                        <p className="font-bengali text-[11px] leading-5 text-text-muted sm:text-xs">
+                            প্রয়োজন হলে নিচের তথ্য পরিবর্তন করুন
                         </p>
                     </div>
 
                     {/* =================================================
-                        Title
-                    ================================================= */}
+                        Review fields
+                    ================================================== */}
 
-                    <div className="mt-6">
-                        <label
-                            htmlFor="analysis-title"
-                            className="font-bengali text-[15px] font-semibold text-text-primary"
-                        >
-                            শিরোনাম *
-                        </label>
-
-                        <input
-                            id="analysis-title"
-                            type="text"
-                            value={analysis.title || ''}
-                            onChange={(e) =>
-                                handleAnalysisChange('title', e.target.value)
-                            }
-                            className="
-                                mt-2
-                                h-12
-                                w-full
-                                rounded-xl
-                                border
-                                border-border
-                                bg-surface
-                                px-4
-                                font-bengali
-                                text-sm
-                                font-medium
-                                text-text-primary
-                                outline-none
-                                transition
-                                focus:border-primary
-                                focus:ring-2
-                                focus:ring-primary/10
-                            "
-                        />
-
-                        {error.title && (
-                            <p className="mt-2 font-bengali text-xs text-red-600">
-                                {error.title}
-                            </p>
-                        )}
-                    </div>
-
-                    {/* =================================================
-                        Category + urgency
-                    ================================================= */}
-
-                    <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2">
-                        {/* Category */}
+                    <div className="mt-7 space-y-5">
+                        {/* Title */}
 
                         <div>
                             <label
-                                htmlFor="analysis-category"
-                                className="font-bengali text-[15px] font-semibold text-text-primary"
+                                htmlFor="analysis-title"
+                                className={labelClassName}
                             >
-                                বিভাগ *
+                                শিরোনাম <span className="text-accent">*</span>
                             </label>
 
-                            <select
-                                id="analysis-category"
-                                value={analysis.category || ''}
+                            <input
+                                id="analysis-title"
+                                type="text"
+                                value={analysis.title || ''}
                                 onChange={(e) =>
                                     handleAnalysisChange(
-                                        'category',
+                                        'title',
                                         e.target.value,
                                     )
                                 }
-                                disabled={loadingCategories}
-                                className="
-                                    mt-2
+                                className={`
+                                    ${inputClassName}
                                     h-12
-                                    w-full
-                                    rounded-xl
-                                    border
-                                    border-border
-                                    bg-surface
-                                    px-4
                                     font-bengali
-                                    text-sm
-                                    text-text-primary
-                                    outline-none
-                                    transition
-                                    focus:border-primary
-                                    focus:ring-2
-                                    focus:ring-primary/10
-                                    disabled:cursor-not-allowed
-                                    disabled:opacity-60
-                                "
+                                    font-medium
+                                `}
+                            />
+
+                            {error.title && (
+                                <p className={errorClassName}>{error.title}</p>
+                            )}
+                        </div>
+
+                        {/* Category + urgency */}
+
+                        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                            {/* Category */}
+
+                            <div>
+                                <label
+                                    htmlFor="analysis-category"
+                                    className={labelClassName}
+                                >
+                                    বিভাগ <span className="text-accent">*</span>
+                                </label>
+
+                                <select
+                                    id="analysis-category"
+                                    value={analysis.category || ''}
+                                    onChange={(e) =>
+                                        handleAnalysisChange(
+                                            'category',
+                                            e.target.value,
+                                        )
+                                    }
+                                    disabled={loadingCategories}
+                                    className={selectClassName}
+                                >
+                                    <option value="">
+                                        বিভাগ নির্বাচন করুন
+                                    </option>
+
+                                    {categories.map((category) => {
+                                        const slug = getCategorySlug(category);
+                                        const name = getCategoryName(category);
+
+                                        return (
+                                            <option key={slug} value={slug}>
+                                                {name}
+                                            </option>
+                                        );
+                                    })}
+                                </select>
+
+                                {error.category && (
+                                    <p className={errorClassName}>
+                                        {error.category}
+                                    </p>
+                                )}
+                            </div>
+
+                            {/* Urgency */}
+
+                            <div>
+                                <label
+                                    htmlFor="analysis-urgency"
+                                    className={labelClassName}
+                                >
+                                    জরুরিতা{' '}
+                                    <span className="text-accent">*</span>
+                                </label>
+
+                                <select
+                                    id="analysis-urgency"
+                                    value={analysis.urgency || ''}
+                                    onChange={(e) =>
+                                        handleAnalysisChange(
+                                            'urgency',
+                                            e.target.value,
+                                        )
+                                    }
+                                    className={selectClassName}
+                                >
+                                    <option value="">
+                                        জরুরিতা নির্বাচন করুন
+                                    </option>
+
+                                    <option value="low">কম</option>
+                                    <option value="medium">মাঝারি</option>
+                                    <option value="high">জরুরি</option>
+                                </select>
+
+                                {error.urgency && (
+                                    <p className={errorClassName}>
+                                        {error.urgency}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* District */}
+
+                        <div>
+                            <label
+                                htmlFor="analysis-district"
+                                className={labelClassName}
                             >
-                                <option value="">বিভাগ নির্বাচন করুন</option>
+                                জেলা <span className="text-accent">*</span>
+                            </label>
 
-                                {categories.map((category) => {
-                                    const slug = getCategorySlug(category);
-                                    const name = getCategoryName(category);
+                            <input
+                                id="analysis-district"
+                                type="text"
+                                value={analysis.district || ''}
+                                onChange={(e) =>
+                                    handleAnalysisChange(
+                                        'district',
+                                        e.target.value,
+                                    )
+                                }
+                                placeholder="যেমন: কুমিল্লা"
+                                className={`
+                                    ${inputClassName}
+                                    h-12
+                                    font-bengali
+                                `}
+                            />
 
-                                    return (
-                                        <option key={slug} value={slug}>
-                                            {name}
-                                        </option>
-                                    );
-                                })}
-                            </select>
-
-                            {error.category && (
-                                <p className="mt-2 font-bengali text-xs text-red-600">
-                                    {error.category}
+                            {error.district && (
+                                <p className={errorClassName}>
+                                    {error.district}
                                 </p>
                             )}
                         </div>
 
-                        {/* Urgency */}
+                        {/* Address */}
 
                         <div>
                             <label
-                                htmlFor="analysis-urgency"
-                                className="font-bengali text-[15px] font-semibold text-text-primary"
+                                htmlFor="analysis-address"
+                                className={labelClassName}
                             >
-                                জরুরিতা *
+                                ঠিকানা <span className="text-accent">*</span>
                             </label>
 
-                            <select
-                                id="analysis-urgency"
-                                value={analysis.urgency || ''}
+                            <textarea
+                                id="analysis-address"
+                                value={analysis.address || ''}
                                 onChange={(e) =>
                                     handleAnalysisChange(
-                                        'urgency',
+                                        'address',
                                         e.target.value,
                                     )
                                 }
-                                className="
-                                    mt-2
-                                    h-12
-                                    w-full
-                                    rounded-xl
-                                    border
-                                    border-border
-                                    bg-surface
-                                    px-4
+                                rows={3}
+                                placeholder="আপনার সাহায্যের প্রয়োজনীয় স্থান বা ঠিকানা"
+                                className={`
+                                    ${inputClassName}
+
+                                    min-h-[92px]
+                                    resize-y
+
+                                    py-3
+
                                     font-bengali
-                                    text-sm
-                                    text-text-primary
-                                    outline-none
-                                    transition
-                                    focus:border-primary
-                                    focus:ring-2
-                                    focus:ring-primary/10
-                                "
-                            >
-                                <option value="">জরুরিতা নির্বাচন করুন</option>
+                                    leading-6
+                                `}
+                            />
 
-                                <option value="low">কম</option>
-
-                                <option value="medium">মাঝারি</option>
-
-                                <option value="high">জরুরি</option>
-                            </select>
-
-                            {error.urgency && (
-                                <p className="mt-2 font-bengali text-xs text-red-600">
-                                    {error.urgency}
+                            {error.address && (
+                                <p className={errorClassName}>
+                                    {error.address}
                                 </p>
                             )}
                         </div>
-                    </div>
 
-                    {/* =================================================
-                        District
-                    ================================================= */}
+                        {/* Deadline */}
 
-                    <div className="mt-5">
-                        <label
-                            htmlFor="analysis-district"
-                            className="font-bengali text-[15px] font-semibold text-text-primary"
-                        >
-                            জেলা *
-                        </label>
+                        {analysis.deadline && (
+                            <div
+                                className="
+                                    border-l-2
+                                    border-primary/30
 
-                        <input
-                            id="analysis-district"
-                            type="text"
-                            value={analysis.district || ''}
-                            onChange={(e) =>
-                                handleAnalysisChange('district', e.target.value)
-                            }
-                            placeholder="যেমন: কুমিল্লা"
-                            className="
-                                mt-2
-                                h-12
-                                w-full
-                                rounded-xl
-                                border
-                                border-border
-                                bg-surface
-                                px-4
-                                font-bengali
-                                text-sm
-                                text-text-primary
-                                outline-none
-                                transition
-                                placeholder:text-text-muted
-                                focus:border-primary
-                                focus:ring-2
-                                focus:ring-primary/10
-                            "
-                        />
+                                    bg-background-warm
 
-                        {error.district && (
-                            <p className="mt-2 font-bengali text-xs text-red-600">
-                                {error.district}
-                            </p>
+                                    px-4
+                                    py-3.5
+
+                                    sm:px-5
+                                "
+                            >
+                                <p className="font-bengali text-xs font-medium text-text-primary">
+                                    প্রয়োজনের সময়সীমা
+                                </p>
+
+                                <p className="mt-1 font-bengali text-sm leading-6 text-text-secondary">
+                                    {analysis.deadline}
+                                </p>
+
+                                <p className="mt-1 font-bengali text-[11px] leading-5 text-text-muted">
+                                    এটি আপনার বর্ণনা থেকে পাওয়া তথ্য। প্রয়োজন
+                                    হলে মূল পরিস্থিতির বিবরণে এটি পরিবর্তন করতে
+                                    পারেন।
+                                </p>
+                            </div>
                         )}
                     </div>
 
-                    {/* =================================================
-                        Address
-                    ================================================= */}
+                    {/* Review notice */}
 
-                    <div className="mt-5">
-                        <label
-                            htmlFor="analysis-address"
-                            className="font-bengali text-[15px] font-semibold text-text-primary"
-                        >
-                            ঠিকানা *
-                        </label>
+                    <div
+                        className="
+                            mt-6
 
-                        <textarea
-                            id="analysis-address"
-                            value={analysis.address || ''}
-                            onChange={(e) =>
-                                handleAnalysisChange('address', e.target.value)
-                            }
-                            rows={3}
-                            placeholder="আপনার সাহায্যের প্রয়োজনীয় স্থান বা ঠিকানা"
+                            flex
+                            items-start
+                            gap-3
+
+                            border-t
+                            border-border
+
+                            pt-5
+                        "
+                    >
+                        <span
+                            aria-hidden="true"
                             className="
                                 mt-2
-                                w-full
-                                resize-none
-                                rounded-xl
-                                border
-                                border-border
-                                bg-surface
-                                px-4
-                                py-3
-                                font-bengali
-                                text-sm
-                                leading-6
-                                text-text-primary
-                                outline-none
-                                transition
-                                placeholder:text-text-muted
-                                focus:border-primary
-                                focus:ring-2
-                                focus:ring-primary/10
+                                size-1.5
+                                shrink-0
+                                rounded-full
+                                bg-primary
                             "
                         />
 
-                        {error.address && (
-                            <p className="mt-2 font-bengali text-xs text-red-600">
-                                {error.address}
-                            </p>
-                        )}
-                    </div>
-
-                    {/* =================================================
-                        Extracted deadline metadata
-                    ================================================= */}
-
-                    {analysis.deadline && (
-                        <div className="mt-5 rounded-xl border border-border bg-surface px-4 py-3">
-                            <p className="font-bengali text-xs font-semibold text-text-primary">
-                                প্রয়োজনের সময়সীমা
-                            </p>
-
-                            <p className="mt-1 font-bengali text-sm leading-6 text-text-muted">
-                                {analysis.deadline}
-                            </p>
-
-                            <p className="mt-1 font-bengali text-xs leading-5 text-text-muted">
-                                এটি আপনার বর্ণনা থেকে পাওয়া তথ্য; প্রয়োজনে
-                                আপনি মূল পরিস্থিতির বিবরণে এটি পরিবর্তন করতে
-                                পারেন।
-                            </p>
-                        </div>
-                    )}
-
-                    {/* =================================================
-                        Review notice
-                    ================================================= */}
-
-                    <div className="mt-5 rounded-xl border border-border bg-surface px-4 py-3">
-                        <p className="font-bengali text-xs leading-6 text-text-muted">
+                        <p className="font-bengali text-[11px] leading-6 text-text-secondary sm:text-xs">
                             অনুরোধ পাঠানোর আগে উপরের তথ্যগুলো যাচাই করুন।
                             বিশ্লেষণ শুধু আপনার তথ্য সাজাতে সাহায্য করে; আপনার
-                            অনুমতি ছাড়া কোনো অনুরোধ পাঠানো হয় না।
+                            অনুমতি ছাড়া কোনো অনুরোধ পাঠানো হবে না।
                         </p>
                     </div>
 
-                    {/* =================================================
-                        Submit error
-                    ================================================= */}
+                    {/* Submit error */}
 
                     {error.submit && (
-                        <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+                        <div
+                            className="
+                                mt-5
+                                border
+                                border-red-200
+                                bg-red-50
+                                px-4
+                                py-3
+                            "
+                        >
                             <p className="font-bengali text-sm leading-6 text-red-700">
                                 {error.submit}
                             </p>
@@ -859,11 +998,20 @@ const RequestForm = ({ setSuccess }) => {
             )}
 
             {/* =================================================
-                Analysis error
-            ================================================= */}
+                ANALYSIS ERROR
+            ================================================== */}
 
             {error.analyze && (
-                <div className="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+                <div
+                    className="
+                        mt-6
+                        border
+                        border-red-200
+                        bg-red-50
+                        px-4
+                        py-3
+                    "
+                >
                     <p className="font-bengali text-sm leading-6 text-red-700">
                         {error.analyze}
                     </p>
@@ -871,11 +1019,20 @@ const RequestForm = ({ setSuccess }) => {
             )}
 
             {/* =================================================
-                Category loading error
-            ================================================= */}
+                CATEGORY ERROR
+            ================================================== */}
 
             {error.categories && (
-                <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+                <div
+                    className="
+                        mt-4
+                        border
+                        border-red-200
+                        bg-red-50
+                        px-4
+                        py-3
+                    "
+                >
                     <p className="font-bengali text-sm leading-6 text-red-700">
                         {error.categories}
                     </p>
@@ -883,10 +1040,26 @@ const RequestForm = ({ setSuccess }) => {
             )}
 
             {/* =================================================
-                Actions
-            ================================================= */}
+                ACTIONS
+            ================================================== */}
 
-            <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div
+                className="
+                    mt-8
+
+                    flex
+                    flex-col-reverse
+                    gap-3
+
+                    border-t
+                    border-border
+                    pt-6
+
+                    sm:flex-row
+                    sm:items-center
+                    sm:justify-between
+                "
+            >
                 {analysis ? (
                     <button
                         type="button"
@@ -897,17 +1070,30 @@ const RequestForm = ({ setSuccess }) => {
                             min-h-11
                             items-center
                             justify-center
-                            rounded-xl
+
+                            rounded-lg
+
                             border
                             border-border
+
                             bg-surface
+
                             px-5
+
                             font-bengali
                             text-sm
-                            font-semibold
+                            font-medium
                             text-text-primary
+
                             transition
+
                             hover:bg-background
+
+                            focus:outline-none
+                            focus-visible:ring-2
+                            focus-visible:ring-primary
+                            focus-visible:ring-offset-2
+
                             disabled:cursor-not-allowed
                             disabled:opacity-50
                         "
@@ -917,7 +1103,9 @@ const RequestForm = ({ setSuccess }) => {
                             : 'আবার বিশ্লেষণ করুন'}
                     </button>
                 ) : (
-                    <div />
+                    <p className="hidden text-[11px] leading-5 text-text-muted sm:block">
+                        আপনার তথ্য পর্যালোচনা না করে কোনো আবেদন পাঠানো হবে না।
+                    </p>
                 )}
 
                 <Button

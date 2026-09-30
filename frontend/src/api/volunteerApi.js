@@ -11,3 +11,16 @@ export const fetchVolunteerStatus = async () => {
         method: 'GET',
     });
 };
+
+/**
+ * Public directory of active volunteers.
+ *
+ * This endpoint does not require authentication.
+ * The backend intentionally returns only public-safe
+ * volunteer information.
+ */
+export const fetchPublicVolunteers = async () => {
+    return apiRequest('/public/volunteers', {
+        method: 'GET',
+    });
+};

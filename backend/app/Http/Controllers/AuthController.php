@@ -6,7 +6,9 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
+use ImageKit\ImageKit;
 
 class AuthController extends Controller
 {
@@ -48,10 +50,23 @@ class AuthController extends Controller
 
             'profile.dob' => 'nullable|date',
 
-            'profile.profilePhoto' => 'nullable|string|max:255',
+            /*
+            |--------------------------------------------------------------------------
+            | Individual profile photo
+            |--------------------------------------------------------------------------
+            |
+            | The frontend sends an actual uploaded image file.
+            |
+            */
+
+            'profile.profilePhoto' => [
+                'nullable',
+                'image',
+                'mimes:jpeg,jpg,png,webp',
+                'max:5120',
+            ],
 
             'preferences.participationTypes' => 'nullable|array',
-
             'preferences.causes' => 'nullable|array',
 
             'profile.organizationType' => [
@@ -78,135 +93,322 @@ class AuthController extends Controller
             ],
 
             'details.focusAreas' => 'nullable|array',
-
             'details.communitiesServed' => 'nullable|array',
-
             'details.teamSize' => 'nullable|string|max:20',
-
             'details.primaryActivities' => 'nullable|array',
 
-            'profile.organizationLogo' => 'nullable|string|max:255',
+            /*
+            |--------------------------------------------------------------------------
+            | Organization logo
+            |--------------------------------------------------------------------------
+            |
+            | The organization logo is stored in users.photo because
+            | users.photo is the common identity image for all account types.
+            |
+            */
+
+            'profile.organizationLogo' => [
+                'nullable',
+                'image',
+                'mimes:jpeg,jpg,png,webp',
+                'max:5120',
+            ],
         ]);
 
-        $user = DB::transaction(function () use ($validated) {
-            $role = $validated['accountType'];
+        /*
+        |--------------------------------------------------------------------------
+        | ImageKit
+        |--------------------------------------------------------------------------
+        |
+        | Both individuals and organizations use users.photo.
+        |
+        | Individual:
+        |     profile.profilePhoto
+        |
+        | Organization:
+        |     profile.organizationLogo
+        |
+        | The actual image is uploaded to ImageKit.
+        | The database stores the ImageKit file URL.
+        |
+        */
 
-            $user = User::create([
-                'name' => $validated['credentials']['name'],
-                'email' => $validated['credentials']['email'],
-                'password' => Hash::make(
-                    $validated['credentials']['password']
-                ),
-                'role' => $role,
+        $photoUrl = null;
 
-                // All public registrations use real email verification.
-                'verification_method' => 'email',
+        try {
+            $imageKit = new ImageKit(
+                config('services.imagekit.public_key'),
+                config('services.imagekit.private_key'),
+                config('services.imagekit.url_endpoint')
+            );
 
-                // Account remains inactive until email is verified.
-                'status' => 'inactive',
+            /*
+            |--------------------------------------------------------------------------
+            | Individual photo
+            |--------------------------------------------------------------------------
+            */
 
-                'phone' => $validated['profile']['phone'] ?? null,
+            /*
+|--------------------------------------------------------------------------
+| Individual photo
+|--------------------------------------------------------------------------
+*/
+
+            if (
+                $request->hasFile('profile.profilePhoto') &&
+                $request->file('profile.profilePhoto')->isValid()
+            ) {
+                $file = $request->file('profile.profilePhoto');
+
+                $realPath = $file->getRealPath();
+                $mimeType = $file->getMimeType();
+                $fileContents = file_get_contents($realPath);
+
+                if ($fileContents === false) {
+                    throw new \RuntimeException(
+                        'Could not read the uploaded profile photo.'
+                    );
+                }
+
+                if (!str_starts_with($mimeType, 'image/')) {
+                    throw new \RuntimeException(
+                        "Uploaded profile photo was detected as {$mimeType}, not an image."
+                    );
+                }
+
+                $uploadResponse = $imageKit->uploadFile([
+                    'file' => base64_encode($fileContents),
+                    'fileName' => $file->getClientOriginalName(),
+                    'folder' => '/users/photos',
+                    'useUniqueFileName' => true,
+                ]);
+
+                if ($uploadResponse->error) {
+                    throw new \RuntimeException(
+                        $uploadResponse->error->message ??
+                            'Failed to upload profile photo to ImageKit.'
+                    );
+                }
+
+                $photoUrl = $uploadResponse->result->url ?? null;
+
+                if (!$photoUrl) {
+                    throw new \RuntimeException(
+                        'ImageKit uploaded the profile photo but did not return a URL.'
+                    );
+                }
+
+                Log::info('Profile photo uploaded to ImageKit.', [
+                    'original_name' => $file->getClientOriginalName(),
+                    'mime_type' => $mimeType,
+                    'size' => $file->getSize(),
+                    'imagekit_file_type' =>
+                    $uploadResponse->result->fileType ?? null,
+                    'imagekit_url' =>
+                    $photoUrl,
+                ]);
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Organization logo
+            |--------------------------------------------------------------------------
+            */
+
+            /*
+|--------------------------------------------------------------------------
+| Organization logo
+|--------------------------------------------------------------------------
+*/
+
+            if (
+                $request->hasFile('profile.organizationLogo') &&
+                $request->file('profile.organizationLogo')->isValid()
+            ) {
+                $file = $request->file('profile.organizationLogo');
+
+                $realPath = $file->getRealPath();
+                $mimeType = $file->getMimeType();
+                $fileContents = file_get_contents($realPath);
+
+                if ($fileContents === false) {
+                    throw new \RuntimeException(
+                        'Could not read the uploaded organization logo.'
+                    );
+                }
+
+                if (!str_starts_with($mimeType, 'image/')) {
+                    throw new \RuntimeException(
+                        "Uploaded organization logo was detected as {$mimeType}, not an image."
+                    );
+                }
+
+                $uploadResponse = $imageKit->uploadFile([
+                    'file' => base64_encode($fileContents),
+                    'fileName' => $file->getClientOriginalName(),
+                    'folder' => '/users/photos',
+                    'useUniqueFileName' => true,
+                ]);
+
+                if ($uploadResponse->error) {
+                    throw new \RuntimeException(
+                        $uploadResponse->error->message ??
+                            'Failed to upload organization logo to ImageKit.'
+                    );
+                }
+
+                $photoUrl = $uploadResponse->result->url ?? null;
+
+                if (!$photoUrl) {
+                    throw new \RuntimeException(
+                        'ImageKit uploaded the organization logo but did not return a URL.'
+                    );
+                }
+
+                Log::info('Organization logo uploaded to ImageKit.', [
+                    'original_name' => $file->getClientOriginalName(),
+                    'mime_type' => $mimeType,
+                    'size' => $file->getSize(),
+                    'imagekit_file_type' =>
+                    $uploadResponse->result->fileType ?? null,
+                    'imagekit_url' =>
+                    $photoUrl,
+                ]);
+            }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Database transaction
+            |--------------------------------------------------------------------------
+            */
+
+            $user = DB::transaction(function () use (
+                $validated,
+                $photoUrl
+            ) {
+                $role = $validated['accountType'];
+
+                $user = User::create([
+                    'name' => $validated['credentials']['name'],
+                    'email' => $validated['credentials']['email'],
+                    'password' => Hash::make(
+                        $validated['credentials']['password']
+                    ),
+                    'role' => $role,
+
+                    // Public registration currently uses the demo verification flow.
+                    'verification_method' => 'demo',
+
+                    // Account remains inactive until demo verification is completed.
+                    'status' => 'inactive',
+
+                    'phone' =>
+                    $validated['profile']['phone'] ?? null,
+
+                    'photo' => $photoUrl,
+                ]);
+
+                /*
+                |--------------------------------------------------------------------------
+                | Explicitly reset verification state.
+                |--------------------------------------------------------------------------
+                */
+
+                $user->email_verified_at = null;
+                $user->verification_email_sent_at = null;
+                $user->save();
+
+                /*
+                |--------------------------------------------------------------------------
+                | Individual Profile
+                |--------------------------------------------------------------------------
+                */
+
+                if ($role === 'individual') {
+                    $user->individualProfile()->create([
+                        'district' =>
+                        $validated['profile']['district'] ?? null,
+
+                        'address' =>
+                        $validated['profile']['address'] ?? null,
+
+                        'date_of_birth' =>
+                        $validated['profile']['dob'] ?? null,
+                    ]);
+                }
+
+                /*
+                |--------------------------------------------------------------------------
+                | Organization Profile
+                |--------------------------------------------------------------------------
+                */
+
+                if ($role === 'organization') {
+                    $user->organization()->create([
+                        'name' =>
+                        $validated['credentials']['name'],
+
+                        'organization_type' =>
+                        $validated['profile']['organizationType'] ?? null,
+
+                        'registration_number' =>
+                        $validated['profile']['registrationNumber'] ?? null,
+
+                        'website' =>
+                        $validated['profile']['website'] ?? null,
+
+                        'address' =>
+                        $validated['profile']['address'] ?? null,
+
+                        'mission' =>
+                        $validated['details']['mission'] ?? null,
+
+                        'focus_areas' =>
+                        !empty($validated['details']['focusAreas'])
+                            ? json_encode(
+                                $validated['details']['focusAreas']
+                            )
+                            : null,
+
+                        'communities_served' =>
+                        !empty($validated['details']['communitiesServed'])
+                            ? json_encode(
+                                $validated['details']['communitiesServed']
+                            )
+                            : null,
+
+                        'team_size' =>
+                        $validated['details']['teamSize'] ?? null,
+
+                        'primary_activities' =>
+                        !empty($validated['details']['primaryActivities'])
+                            ? json_encode(
+                                $validated['details']['primaryActivities']
+                            )
+                            : null,
+                    ]);
+                }
+
+                return $user;
+            });
+        } catch (\Throwable $e) {
+            Log::error('Registration failed.', [
+                'message' => $e->getMessage(),
+                'exception' => get_class($e),
             ]);
 
-            /*
-        |--------------------------------------------------------------------------
-        | Explicitly reset verification state.
-        |--------------------------------------------------------------------------
-        */
-
-            $user->email_verified_at = null;
-            $user->verification_email_sent_at = null;
-            $user->save();
-
-            /*
-        |--------------------------------------------------------------------------
-        | Individual Profile
-        |--------------------------------------------------------------------------
-        */
-
-            if ($role === 'individual') {
-                $user->individualProfile()->create([
-                    'district' =>
-                    $validated['profile']['district'] ?? null,
-
-                    'address' =>
-                    $validated['profile']['address'] ?? null,
-
-                    'date_of_birth' =>
-                    $validated['profile']['dob'] ?? null,
-
-                    'profile_photo' =>
-                    $validated['profile']['profilePhoto'] ?? null,
-                ]);
-            }
-
-            /*
-        |--------------------------------------------------------------------------
-        | Organization Profile
-        |--------------------------------------------------------------------------
-        */
-
-            if ($role === 'organization') {
-                $user->organization()->create([
-                    'name' =>
-                    $validated['credentials']['name'],
-
-                    'organization_type' =>
-                    $validated['profile']['organizationType'] ?? null,
-
-                    'registration_number' =>
-                    $validated['profile']['registrationNumber'] ?? null,
-
-                    'website' =>
-                    $validated['profile']['website'] ?? null,
-
-                    'address' =>
-                    $validated['profile']['address'] ?? null,
-
-                    'mission' =>
-                    $validated['details']['mission'] ?? null,
-
-                    'focus_areas' =>
-                    !empty($validated['details']['focusAreas'])
-                        ? json_encode(
-                            $validated['details']['focusAreas']
-                        )
-                        : null,
-
-                    'communities_served' =>
-                    !empty($validated['details']['communitiesServed'])
-                        ? json_encode(
-                            $validated['details']['communitiesServed']
-                        )
-                        : null,
-
-                    'team_size' =>
-                    $validated['details']['teamSize'] ?? null,
-
-                    'primary_activities' =>
-                    !empty($validated['details']['primaryActivities'])
-                        ? json_encode(
-                            $validated['details']['primaryActivities']
-                        )
-                        : null,
-
-                    'logo' =>
-                    $validated['profile']['organizationLogo'] ?? null,
-                ]);
-            }
-
-            return $user;
-        });
+            throw $e;
+        }
 
         /*
-    |--------------------------------------------------------------------------
-    | IMPORTANT:
-    |
-    | Do NOT send verification email here.
-    |
-    | The first login attempt triggers verification email.
-    |--------------------------------------------------------------------------
-    */
+        |--------------------------------------------------------------------------
+        | IMPORTANT:
+        |
+        | Do NOT send verification email here.
+        |
+        | The first login attempt triggers verification email.
+        |--------------------------------------------------------------------------
+        */
 
         return response()->json([
             'message' =>
@@ -220,9 +422,7 @@ class AuthController extends Controller
     {
         $validated = $request->validate([
             'email' => 'required|email',
-
             'password' => 'required|string',
-
             'role' => 'required|in:individual,organization,admin',
         ]);
 
@@ -305,7 +505,7 @@ class AuthController extends Controller
 
             if (!$user->verification_email_sent_at) {
                 try {
-                    \Illuminate\Support\Facades\Log::info('MAIL BEFORE VERIFICATION', [
+                    Log::info('MAIL BEFORE VERIFICATION', [
                         'default' => config('mail.default'),
                         'host' => config('mail.mailers.smtp.host'),
                         'port' => config('mail.mailers.smtp.port'),
@@ -321,15 +521,28 @@ class AuthController extends Controller
                     $verificationEmailSent = true;
                 } catch (\Throwable $e) {
                     return response()->json([
-                        'message' => 'Failed to send verification email.',
+                        'message' =>
+                        'Failed to send verification email.',
+
                         'error' => $e->getMessage(),
+
                         'exception' => get_class($e),
+
                         'mail_config' => [
-                            'default' => config('mail.default'),
-                            'smtp_host' => config('mail.mailers.smtp.host'),
-                            'smtp_port' => config('mail.mailers.smtp.port'),
-                            'smtp_scheme' => config('mail.mailers.smtp.scheme'),
-                            'smtp_url' => config('mail.mailers.smtp.url'),
+                            'default' =>
+                            config('mail.default'),
+
+                            'smtp_host' =>
+                            config('mail.mailers.smtp.host'),
+
+                            'smtp_port' =>
+                            config('mail.mailers.smtp.port'),
+
+                            'smtp_scheme' =>
+                            config('mail.mailers.smtp.scheme'),
+
+                            'smtp_url' =>
+                            config('mail.mailers.smtp.url'),
                         ],
                     ], 500);
                 }
@@ -420,6 +633,7 @@ class AuthController extends Controller
                 'required',
                 'email',
                 'max:255',
+
                 Rule::unique('users', 'email')
                     ->ignore($user->id),
             ],
@@ -428,6 +642,7 @@ class AuthController extends Controller
                 'nullable',
                 'string',
                 'regex:/^01[0-9]{9}$/',
+
                 Rule::unique('users', 'phone')
                     ->ignore($user->id),
             ],
@@ -449,7 +664,6 @@ class AuthController extends Controller
         */
 
         $user->name = $validated['name'];
-
         $user->phone = $validated['phone'] ?? null;
 
         if ($emailChanged) {
@@ -464,7 +678,6 @@ class AuthController extends Controller
             */
 
             $user->email_verified_at = null;
-
             $user->status = 'inactive';
 
             /*

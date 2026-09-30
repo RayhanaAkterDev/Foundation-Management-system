@@ -1,13 +1,17 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import {
     TbArrowRight,
     TbClockHour4,
     TbHeartHandshake,
     TbMapPin,
-    TbQuote,
     TbShieldCheck,
+    TbUsers,
 } from 'react-icons/tb';
+
+import hero from '@/assets/volunteer/hero.png';
+import { fetchPublicVolunteers } from '@/api/volunteerApi';
+import VolunteerCommunityVisual from './components/VolunteerCommunityVisual';
 
 import Button from '@/components/Button';
 
@@ -19,23 +23,34 @@ import VolunteerForm from './components/VolunteerForm';
 
 const roles = [
     {
+        number: '০১',
+        eyebrow: 'সরাসরি মানুষের সঙ্গে',
         title: 'মাঠ পর্যায়ে স্বেচ্ছাসেবা',
         description:
-            'খাদ্য, ওষুধ ও প্রয়োজনীয় সামগ্রী সরাসরি মানুষের কাছে পৌঁছে দিতে মাঠ পর্যায়ের কার্যক্রমে যুক্ত হোন।',
-        meta: ['সরাসরি মাঠে কাজ', 'সময় অনুযায়ী অংশগ্রহণ'],
-        image: 'https://images.unsplash.com/photo-1608686207856-001b95cf60ca?q=80&w=1600&auto=format&fit=crop',
+            'খাদ্য, প্রয়োজনীয় সামগ্রী ও মানবিক সহায়তা মানুষের কাছে পৌঁছে দেওয়ার কাজে সরাসরি অংশ নিন।',
+        meta: ['মাঠ পর্যায়ে কাজ', 'সময় অনুযায়ী অংশগ্রহণ'],
+        image: 'https://images.unsplash.com/photo-1710093072228-8c3129f27357?auto=format&fit=crop&w=1400&q=85',
+        position: 'center',
     },
     {
+        number: '০২',
+        eyebrow: 'যেখান থেকেই সম্ভব',
         title: 'দূরবর্তী সহায়তা',
         description:
-            'যেকোনো স্থান থেকে সাহায্যের অনুরোধ সমন্বয়, তথ্য যাচাই এবং প্রয়োজনীয় যোগাযোগে সহায়তা করুন।',
+            'তথ্য যাচাই, প্রয়োজনীয় যোগাযোগ এবং সহায়তার অনুরোধ সমন্বয়ের কাজে দূর থেকেই যুক্ত থাকুন।',
         meta: ['দূর থেকে কাজ', 'নমনীয় সময়'],
+        image: 'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1400&q=85',
+        position: 'center',
     },
     {
+        number: '০৩',
+        eyebrow: 'প্রয়োজনের গুরুত্বপূর্ণ সময়ে',
         title: 'জরুরি সাড়া',
         description:
-            'বন্যা, অগ্নিকাণ্ড বা অন্য জরুরি পরিস্থিতিতে দ্রুত সাড়া দেওয়া দলের সঙ্গে কাজ করুন।',
-        meta: ['জরুরি কার্যক্রম', 'অগ্রাধিকারভিত্তিক ভূমিকা'],
+            'দুর্যোগ বা জরুরি পরিস্থিতিতে দ্রুত সাড়া দেওয়া মানবিক কার্যক্রমে দায়িত্বশীলভাবে অংশ নিন।',
+        meta: ['জরুরি কার্যক্রম', 'প্রয়োজনভিত্তিক অংশগ্রহণ'],
+        image: 'https://images.unsplash.com/photo-1469571486292-0ba58a3f068b?auto=format&fit=crop&w=1400&q=85',
+        position: 'center',
     },
 ];
 
@@ -69,9 +84,9 @@ const journey = [
 const benefits = [
     {
         number: '০১',
-        title: 'বাস্তব মানবিক কাজের অভিজ্ঞতা',
+        title: 'বাস্তব কাজের অভিজ্ঞতা',
         description:
-            'মানুষ ও কমিউনিটির সঙ্গে সরাসরি কাজ করে মানবিক সহায়তার বাস্তব প্রক্রিয়া সম্পর্কে জানুন।',
+            'মানুষ ও কমিউনিটির সঙ্গে কাজ করে মানবিক সহায়তার বাস্তব প্রক্রিয়া সম্পর্কে জানুন।',
     },
     {
         number: '০২',
@@ -83,26 +98,12 @@ const benefits = [
         number: '০৩',
         title: 'দক্ষতা ও অভিজ্ঞতা',
         description:
-            'সমন্বয়, নেতৃত্ব, যোগাযোগ, সহমর্মিতা এবং সমস্যা সমাধানের দক্ষতা আরও সমৃদ্ধ করুন।',
+            'সমন্বয়, নেতৃত্ব, যোগাযোগ এবং সমস্যা সমাধানের দক্ষতা আরও সমৃদ্ধ করুন।',
     },
     {
         number: '০৪',
-        title: 'নিজের সময় অনুযায়ী অংশগ্রহণ',
-        description:
-            'চাপ ছাড়াই নিজের সময় ও সুযোগ অনুযায়ী মানবিক কার্যক্রমে অবদান রাখুন।',
-    },
-];
-
-const stories = [
-    {
-        quote: 'শিক্ষার্থী হিসেবে স্বেচ্ছাসেবী কাজ শুরু করেছিলাম। এখন পর্যন্ত দুই শতাধিক পরিবারের কাছে সহায়তা পৌঁছে দেওয়ার কাজে যুক্ত হতে পেরেছি।',
-        name: 'আয়েশা রহমান',
-        role: 'শিক্ষার্থী স্বেচ্ছাসেবক',
-    },
-    {
-        quote: 'সপ্তাহে মাত্র কয়েক ঘণ্টা সময় দিয়েও বুঝেছি, ছোট একটি অবদানও কারও প্রয়োজনের মুহূর্তে অনেক গুরুত্বপূর্ণ হতে পারে।',
-        name: 'তানভীর হাসান',
-        role: 'কমিউনিটি স্বেচ্ছাসেবক',
+        title: 'নিজের সময় অনুযায়ী',
+        description: 'নিজের সময় ও সুযোগ অনুযায়ী মানবিক কার্যক্রমে অবদান রাখুন।',
     },
 ];
 
@@ -129,6 +130,53 @@ const Volunteer = () => {
     const [focusForm, setFocusForm] = useState(false);
     const [openFaq, setOpenFaq] = useState(null);
 
+    const [volunteers, setVolunteers] = useState([]);
+    const [volunteersLoading, setVolunteersLoading] = useState(true);
+
+    /* =====================================================
+       LOAD PUBLIC VOLUNTEERS
+    ====================================================== */
+
+    useEffect(() => {
+        let mounted = true;
+
+        const loadVolunteers = async () => {
+            try {
+                const response = await fetchPublicVolunteers();
+
+                if (!mounted) {
+                    return;
+                }
+
+                setVolunteers(
+                    Array.isArray(response?.volunteers)
+                        ? response.volunteers
+                        : [],
+                );
+            } catch (error) {
+                console.error('Failed to load public volunteers:', error);
+
+                if (mounted) {
+                    setVolunteers([]);
+                }
+            } finally {
+                if (mounted) {
+                    setVolunteersLoading(false);
+                }
+            }
+        };
+
+        loadVolunteers();
+
+        return () => {
+            mounted = false;
+        };
+    }, []);
+
+    /* =====================================================
+       FORM SCROLL
+    ====================================================== */
+
     const goToForm = () => {
         setFocusForm(true);
 
@@ -141,38 +189,143 @@ const Volunteer = () => {
     };
 
     return (
-        <main className="overflow-hidden bg-surface">
+        <main
+            lang="bn"
+            className="
+                overflow-hidden
+                bg-surface
+                font-bengali
+            "
+        >
             {/* =====================================================
                 HERO
             ====================================================== */}
 
-            <section className="border-b border-border pt-28 sm:pt-32 lg:pt-36">
-                <div className="container-width px-4 sm:px-6 lg:px-0">
-                    <div className="grid gap-10 pb-14 lg:grid-cols-[1fr_0.82fr] lg:items-end lg:gap-20 lg:pb-20">
-                        {/* Copy */}
+            <section
+                className="
+                    border-b
+                    border-border
+                    bg-surface
+                    pt-20
+                "
+            >
+                <div className="container-width">
+                    <div
+                        className="
+                            grid
+                            gap-9
 
-                        <div className="max-w-3xl">
-                            <p className="font-bengali text-sm font-semibold text-primary sm:text-base">
-                                স্বেচ্ছাসেবক হিসেবে যুক্ত হোন
-                            </p>
+                            py-10
 
-                            <h1 className="mt-4 max-w-3xl font-bengali text-[2.6rem] font-semibold leading-[1.25] text-text-primary sm:text-[3.4rem] lg:text-[4.1rem]">
-                                মানুষের প্রয়োজনের মুহূর্তে
-                                <span className="block">পাশে দাঁড়ান।</span>
+                            sm:py-12
+
+                            lg:grid-cols-[minmax(0,0.92fr)_minmax(420px,0.72fr)]
+                            lg:items-center
+                            lg:gap-14
+                            lg:py-16
+
+                            xl:grid-cols-[minmax(0,1fr)_500px]
+                            xl:gap-20
+                            xl:py-20
+                        "
+                    >
+                        {/* COPY */}
+
+                        <div className="max-w-[760px]">
+                            <div
+                                className="
+                                    mb-5
+                                    flex
+                                    items-center
+                                    gap-3
+                                "
+                            >
+                                <span className="h-px w-8 bg-primary" />
+
+                                <p
+                                    className="
+                                        text-[12px]
+                                        font-medium
+                                        text-primary
+
+                                        sm:text-[13px]
+                                    "
+                                >
+                                    স্বেচ্ছাসেবক হিসেবে যুক্ত হোন
+                                </p>
+                            </div>
+
+                            <h1
+                                className="
+                                    max-w-[720px]
+
+                                    text-[2.15rem]
+                                    font-medium
+                                    leading-[1.42]
+                                    tracking-normal
+                                    text-text-primary
+
+                                    sm:text-[2.75rem]
+                                    sm:leading-[1.37]
+
+                                    md:text-[3rem]
+
+                                    lg:text-[3.3rem]
+                                    lg:leading-[1.34]
+
+                                    xl:text-[3.55rem]
+                                "
+                            >
+                                আপনার সময় হতে পারে
+                                <span
+                                    className="
+                                        block
+                                        text-primary
+                                    "
+                                >
+                                    কারও প্রয়োজনের সহায়তা।
+                                </span>
                             </h1>
 
-                            <p className="mt-6 max-w-2xl font-bengali text-base leading-8 text-text-muted sm:text-lg sm:leading-9">
-                                আপনার সময়, দক্ষতা ও আন্তরিকতা মানুষের জীবনে
-                                বাস্তব পরিবর্তন আনতে পারে। Stand For People-এর
-                                সঙ্গে যুক্ত হয়ে প্রয়োজনের সময় মানুষের পাশে থাকার
-                                কাজে অংশ নিন।
+                            <p
+                                className="
+                                    mt-5
+                                    max-w-[610px]
+
+                                    text-[14px]
+                                    leading-7
+                                    text-text-secondary
+
+                                    sm:text-[15px]
+                                    sm:leading-8
+
+                                    lg:mt-6
+                                    lg:text-base
+                                "
+                            >
+                                Stand For People-এর সঙ্গে যুক্ত হয়ে নিজের সময় ও
+                                দক্ষতা দিয়ে মানুষের পাশে কাজ করুন।
                             </p>
 
-                            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                            <div
+                                className="
+                                    mt-7
+                                    flex
+                                    flex-col
+                                    gap-3
+
+                                    min-[440px]:flex-row
+
+                                    sm:mt-8
+                                "
+                            >
                                 <Button
                                     size="lg"
-                                    className="w-full sm:w-auto"
                                     onClick={goToForm}
+                                    className="
+                                        w-full
+                                        min-[440px]:w-auto
+                                    "
                                 >
                                     স্বেচ্ছাসেবক হতে আবেদন করুন
                                 </Button>
@@ -181,56 +334,191 @@ const Volunteer = () => {
                                     to="/how-it-works"
                                     variant="outline"
                                     size="lg"
-                                    className="w-full sm:w-auto"
+                                    className="
+                                        w-full
+                                        min-[440px]:w-auto
+                                    "
                                 >
                                     কীভাবে কাজ করে
                                 </Button>
                             </div>
+
+                            <div
+                                className="
+                                    mt-7
+                                    flex
+                                    items-start
+                                    gap-2.5
+
+                                    sm:mt-8
+                                "
+                            >
+                                <TbShieldCheck
+                                    size={17}
+                                    className="
+                                        mt-1
+                                        shrink-0
+                                        text-primary
+                                    "
+                                />
+
+                                <p
+                                    className="
+                                        max-w-md
+
+                                        text-[11.5px]
+                                        leading-6
+                                        text-text-muted
+
+                                        sm:text-[12.5px]
+                                    "
+                                >
+                                    আবেদন পর্যালোচনার পর প্রয়োজন ও সুযোগ অনুযায়ী
+                                    স্বেচ্ছাসেবী কাজে যুক্ত হওয়ার সুযোগ পাবেন।
+                                </p>
+                            </div>
                         </div>
 
-                        {/* Image */}
+                        {/* IMAGE */}
 
-                        <div className="relative lg:translate-y-8">
-                            <div className="aspect-[4/3] overflow-hidden sm:aspect-[16/10] lg:aspect-[4/5]">
+                        <div
+                            className="
+                                relative
+
+                                lg:justify-self-end
+                            "
+                        >
+                            <div
+                                className="
+        relative
+
+        aspect-[4/3]
+        overflow-hidden
+
+        sm:aspect-[16/10]
+
+        lg:aspect-[4/5]
+        lg:max-h-[560px]
+
+        xl:h-[560px]
+        xl:w-[480px]
+    "
+                            >
+                                {/* IMAGE */}
                                 <img
-                                    src="https://images.unsplash.com/photo-1593113598332-cd288d649433?q=80&w=1400&auto=format&fit=crop"
-                                    alt="মানুষের পাশে কাজ করছেন স্বেচ্ছাসেবকেরা"
-                                    className="h-full w-full object-cover"
+                                    src={hero}
+                                    alt="মানুষের কাছে সহায়তা পৌঁছে দিচ্ছেন স্বেচ্ছাসেবকেরা"
+                                    className="
+            h-full
+            w-full
+            object-cover
+            object-center
+        "
                                 />
-                            </div>
 
-                            <div className="border-x border-b border-border px-5 py-4 sm:px-6">
-                                <div className="flex items-center justify-between gap-5">
-                                    <p className="font-bengali text-sm leading-6 text-text-muted">
-                                        প্রতিটি অবদান একটি মানুষের প্রয়োজনের
-                                        সঙ্গে যুক্ত।
-                                    </p>
+                                {/* FULL IMAGE OVERLAY */}
+                                <div
+                                    className="
+            pointer-events-none
+            absolute
+            inset-0
 
-                                    <TbHeartHandshake className="shrink-0 text-2xl text-primary" />
+            bg-gradient-to-t
+            from-black/65
+            via-black/15
+            to-transparent
+        "
+                                />
+
+                                {/* BOTTOM CONTENT */}
+                                <div
+                                    className="
+            absolute
+            inset-x-0
+            bottom-0
+
+            px-5
+            pb-5
+
+            sm:px-6
+            sm:pb-6
+        "
+                                >
+                                    <div
+                                        className="
+                flex
+                items-end
+                justify-between
+                gap-6
+            "
+                                    >
+                                        <p
+                                            className="
+                    max-w-[290px]
+
+                    text-[12px]
+                    leading-6
+                    text-white!
+
+                    sm:text-[13px]
+                "
+                                        >
+                                            মানুষের পাশে থাকা শুরু হয় উপস্থিতি ও
+                                            দায়িত্ব নেওয়ার ইচ্ছা থেকে।
+                                        </p>
+
+                                        <TbHeartHandshake
+                                            size={25}
+                                            className="
+                    shrink-0
+                    text-white
+                "
+                                        />
+                                    </div>
                                 </div>
                             </div>
+
+                            <div
+                                className="
+                                    ml-auto
+
+                                    flex
+                                    w-[88%]
+                                    items-center
+                                    justify-between
+
+                                    border-x
+                                    border-b
+                                    border-border
+
+                                    bg-background-warm
+
+                                    px-4
+                                    py-3.5
+
+                                    sm:px-5
+                                "
+                            >
+                                <span
+                                    className="
+                                        text-[11px]
+                                        text-text-muted
+
+                                        sm:text-[12px]
+                                    "
+                                >
+                                    সময় · দক্ষতা · দায়িত্ব
+                                </span>
+
+                                <span
+                                    className="
+                                        size-1.5
+                                        rounded-full
+                                        bg-accent
+                                    "
+                                />
+                            </div>
                         </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* =====================================================
-                INTRO STATEMENT
-            ====================================================== */}
-
-            <section className="bg-background">
-                <div className="container-width px-4 py-14 sm:px-6 sm:py-16 lg:px-0 lg:py-20">
-                    <div className="grid gap-7 lg:grid-cols-[240px_1fr] lg:gap-20">
-                        <p className="font-bengali text-sm font-semibold text-primary">
-                            কেন স্বেচ্ছাসেবক
-                        </p>
-
-                        <p className="max-w-4xl font-bengali text-2xl font-medium leading-[1.65] text-text-primary sm:text-3xl sm:leading-[1.6] lg:text-[2rem]">
-                            সব সহায়তা অর্থ দিয়ে শুরু হয় না। কখনও একজন মানুষের
-                            সময়, উপস্থিতি এবং দায়িত্ব নেওয়ার মানসিকতাই অন্য
-                            একজন মানুষের কাছে সবচেয়ে গুরুত্বপূর্ণ সহায়তা হয়ে
-                            ওঠে।
-                        </p>
                     </div>
                 </div>
             </section>
@@ -239,116 +527,336 @@ const Volunteer = () => {
                 ROLES
             ====================================================== */}
 
-            <section className="border-b border-border">
-                <div className="container-width px-4 py-16 sm:px-6 sm:py-20 lg:px-0 lg:py-24">
-                    <div className="grid gap-10 lg:grid-cols-[280px_1fr] lg:gap-20">
-                        {/* Heading */}
+            <section
+                className="
+                    border-b
+                    border-border
+                    bg-background
+                "
+            >
+                <div
+                    className="
+                        container-width
 
+                        py-12
+                        sm:py-16
+                        lg:py-20
+                        xl:py-24
+                    "
+                >
+                    {/* HEADING */}
+
+                    <div
+                        className="
+                            grid
+                            gap-4
+
+                            border-b
+                            border-border
+
+                            pb-7
+
+                            md:grid-cols-[minmax(0,1fr)_340px]
+                            md:items-end
+                            md:gap-12
+
+                            lg:pb-9
+                        "
+                    >
                         <div>
-                            <p className="font-bengali text-sm font-semibold text-primary">
+                            <p
+                                className="
+                                    text-[12px]
+                                    font-medium
+                                    text-primary
+
+                                    sm:text-[13px]
+                                "
+                            >
                                 অংশগ্রহণের ক্ষেত্র
                             </p>
 
-                            <h2 className="mt-3 font-bengali text-3xl font-semibold leading-[1.35] text-text-primary sm:text-4xl">
-                                যেভাবে আপনি
-                                <span className="block">পাশে থাকতে পারেন</span>
-                            </h2>
+                            <h2
+                                className="
+                                    mt-2
+                                    max-w-[650px]
 
-                            <p className="mt-4 max-w-sm font-bengali text-base leading-8 text-text-muted">
-                                বিশেষ কোনো পরিচয়ের চেয়ে সাহায্য করার মানসিকতা
-                                এবং দায়িত্বশীল অংশগ্রহণই এখানে বেশি
-                                গুরুত্বপূর্ণ।
-                            </p>
+                                    text-[1.8rem]
+                                    font-medium
+                                    leading-[1.45]
+                                    tracking-normal
+                                    text-text-primary
+
+                                    sm:text-[2.15rem]
+                                    lg:text-[2.4rem]
+                                "
+                            >
+                                যেভাবে মানুষের পাশে
+                                <span className="text-primary">
+                                    {' '}
+                                    কাজ করতে পারেন
+                                </span>
+                            </h2>
                         </div>
 
-                        {/* Roles */}
+                        <p
+                            className="
+                                max-w-sm
 
-                        <div>
-                            {/* Main role */}
+                                text-[13px]
+                                leading-7
+                                text-text-secondary
 
-                            <article className="grid border-y border-border py-7 sm:grid-cols-[220px_1fr] sm:gap-8 lg:grid-cols-[260px_1fr]">
-                                <div className="mb-6 aspect-[4/3] overflow-hidden sm:mb-0">
-                                    <img
-                                        src={roles[0].image}
-                                        alt="মাঠ পর্যায়ে স্বেচ্ছাসেবী কার্যক্রম"
-                                        className="h-full w-full object-cover"
-                                    />
-                                </div>
+                                sm:text-[14px]
 
-                                <div className="flex flex-col justify-center">
-                                    <p className="font-bengali text-xs font-semibold text-primary">
-                                        সরাসরি মানুষের সঙ্গে
-                                    </p>
+                                md:justify-self-end
+                            "
+                        >
+                            আপনার সময়, অবস্থান ও সক্ষমতার সঙ্গে মানানসই কাজে অংশ
+                            নিন।
+                        </p>
+                    </div>
 
-                                    <h3 className="mt-2 font-bengali text-2xl font-semibold text-text-primary">
-                                        {roles[0].title}
-                                    </h3>
+                    {/* ROLE STORIES */}
 
-                                    <p className="mt-3 max-w-xl font-bengali text-sm leading-7 text-text-muted sm:text-base">
-                                        {roles[0].description}
-                                    </p>
+                    <div>
+                        {roles.map((role, index) => {
+                            const reverse = index % 2 === 1;
 
-                                    <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 font-bengali text-sm text-text-muted">
-                                        <span className="inline-flex items-center gap-2">
-                                            <TbMapPin className="text-primary" />
-                                            {roles[0].meta[0]}
-                                        </span>
-
-                                        <span className="inline-flex items-center gap-2">
-                                            <TbClockHour4 className="text-primary" />
-                                            {roles[0].meta[1]}
-                                        </span>
-                                    </div>
-
-                                    <button
-                                        type="button"
-                                        onClick={goToForm}
-                                        className="mt-6 inline-flex w-fit items-center gap-2 font-bengali text-sm font-semibold text-primary transition hover:gap-3"
-                                    >
-                                        এই কাজে যুক্ত হোন
-                                        <TbArrowRight />
-                                    </button>
-                                </div>
-                            </article>
-
-                            {/* Other roles */}
-
-                            {roles.slice(1).map((role, index) => (
+                            return (
                                 <article
                                     key={role.title}
-                                    className="group grid gap-4 border-b border-border py-7 sm:grid-cols-[56px_1fr_auto] sm:items-start sm:gap-6"
+                                    className="
+                                        grid
+                                        gap-6
+
+                                        border-b
+                                        border-border
+
+                                        py-8
+
+                                        sm:py-10
+
+                                        lg:grid-cols-2
+                                        lg:items-center
+                                        lg:gap-14
+                                        lg:py-14
+
+                                        xl:gap-20
+                                    "
                                 >
-                                    <span className="font-bengali text-sm text-text-muted">
-                                        ০{index + 2}
-                                    </span>
+                                    {/* IMAGE */}
 
-                                    <div>
-                                        <h3 className="font-bengali text-xl font-semibold text-text-primary transition group-hover:text-primary sm:text-2xl">
-                                            {role.title}
-                                        </h3>
+                                    <div
+                                        className={`
+                                            relative
 
-                                        <p className="mt-2 max-w-xl font-bengali text-sm leading-7 text-text-muted sm:text-base">
-                                            {role.description}
-                                        </p>
+                                            ${reverse ? 'lg:order-2' : ''}
+                                        `}
+                                    >
+                                        <div
+                                            className="
+                                                aspect-[16/10]
+                                                overflow-hidden
 
-                                        <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 font-bengali text-xs text-text-muted">
-                                            {role.meta.map((item) => (
-                                                <span key={item}>{item}</span>
-                                            ))}
+                                                sm:aspect-[16/9]
+
+                                                lg:aspect-[4/3]
+                                            "
+                                        >
+                                            <img
+                                                src={role.image}
+                                                alt={role.title}
+                                                loading="lazy"
+                                                className="
+                                                    h-full
+                                                    w-full
+                                                    object-cover
+
+                                                    transition-transform
+                                                    duration-700
+
+                                                    hover:scale-[1.025]
+                                                "
+                                                style={{
+                                                    objectPosition:
+                                                        role.position,
+                                                }}
+                                            />
+                                        </div>
+
+                                        <div
+                                            className="
+                                                absolute
+                                                top-0
+                                                left-0
+
+                                                bg-primary
+
+                                                px-3.5
+                                                py-2
+
+                                                text-[11px]
+                                                font-medium
+                                                text-white!
+
+                                                sm:px-4
+                                                sm:text-[12px]
+                                            "
+                                        >
+                                            {role.number}
                                         </div>
                                     </div>
 
-                                    <button
-                                        type="button"
-                                        onClick={goToForm}
-                                        aria-label={`${role.title} সম্পর্কে আবেদন করুন`}
-                                        className="hidden h-10 w-10 items-center justify-center rounded-full border border-border text-primary transition hover:border-primary sm:flex"
+                                    {/* COPY */}
+
+                                    <div
+                                        className={`
+                                            max-w-[560px]
+
+                                            ${
+                                                reverse
+                                                    ? 'lg:justify-self-start'
+                                                    : 'lg:justify-self-end'
+                                            }
+                                        `}
                                     >
-                                        <TbArrowRight />
-                                    </button>
+                                        <p
+                                            className="
+                                                text-[11.5px]
+                                                font-medium
+                                                text-primary
+
+                                                sm:text-[12.5px]
+                                            "
+                                        >
+                                            {role.eyebrow}
+                                        </p>
+
+                                        <h3
+                                            className="
+                                                mt-2
+
+                                                text-[1.55rem]
+                                                font-medium
+                                                leading-[1.45]
+                                                text-text-primary
+
+                                                sm:text-[1.8rem]
+                                                lg:text-[2rem]
+                                            "
+                                        >
+                                            {role.title}
+                                        </h3>
+
+                                        <p
+                                            className="
+                                                mt-3
+
+                                                text-[13px]
+                                                leading-7
+                                                text-text-secondary
+
+                                                sm:text-[14px]
+                                                sm:leading-8
+                                            "
+                                        >
+                                            {role.description}
+                                        </p>
+
+                                        <div
+                                            className="
+                                                mt-5
+
+                                                flex
+                                                flex-wrap
+                                                gap-x-6
+                                                gap-y-2
+
+                                                border-t
+                                                border-border
+
+                                                pt-4
+                                            "
+                                        >
+                                            <span
+                                                className="
+                                                    inline-flex
+                                                    items-center
+                                                    gap-2
+
+                                                    text-[11.5px]
+                                                    text-text-muted
+
+                                                    sm:text-[12.5px]
+                                                "
+                                            >
+                                                <TbMapPin
+                                                    size={15}
+                                                    className="text-primary"
+                                                />
+
+                                                {role.meta[0]}
+                                            </span>
+
+                                            <span
+                                                className="
+                                                    inline-flex
+                                                    items-center
+                                                    gap-2
+
+                                                    text-[11.5px]
+                                                    text-text-muted
+
+                                                    sm:text-[12.5px]
+                                                "
+                                            >
+                                                <TbClockHour4
+                                                    size={15}
+                                                    className="text-primary"
+                                                />
+
+                                                {role.meta[1]}
+                                            </span>
+                                        </div>
+
+                                        <button
+                                            type="button"
+                                            onClick={goToForm}
+                                            className="
+                                                group
+
+                                                mt-5
+
+                                                inline-flex
+                                                items-center
+                                                gap-2
+
+                                                text-[13px]
+                                                font-medium
+                                                text-primary
+
+                                                transition-colors
+
+                                                hover:text-primary-hover
+
+                                                sm:text-[14px]
+                                            "
+                                        >
+                                            এই কাজে যুক্ত হোন
+                                            <TbArrowRight
+                                                className="
+                                                    transition-transform
+                                                    duration-200
+
+                                                    group-hover:translate-x-1
+                                                "
+                                            />
+                                        </button>
+                                    </div>
                                 </article>
-                            ))}
-                        </div>
+                            );
+                        })}
                     </div>
                 </div>
             </section>
@@ -357,41 +865,178 @@ const Volunteer = () => {
                 JOURNEY
             ====================================================== */}
 
-            <section className="bg-background">
-                <div className="container-width px-4 py-16 sm:px-6 sm:py-20 lg:px-0 lg:py-24">
-                    <div className="grid gap-10 lg:grid-cols-[300px_1fr] lg:gap-20">
+            <section className="bg-background-warm">
+                <div
+                    className="
+                        container-width
+
+                        py-12
+                        sm:py-16
+                        lg:py-20
+                        xl:py-24
+                    "
+                >
+                    <div
+                        className="
+                            grid
+                            gap-9
+
+                            lg:grid-cols-[300px_minmax(0,1fr)]
+                            lg:gap-16
+
+                            xl:grid-cols-[330px_minmax(0,1fr)]
+                            xl:gap-24
+                        "
+                    >
+                        {/* HEADING */}
+
                         <div>
-                            <p className="font-bengali text-sm font-semibold text-primary">
+                            <p
+                                className="
+                                    text-[12px]
+                                    font-medium
+                                    text-primary
+
+                                    sm:text-[13px]
+                                "
+                            >
                                 যুক্ত হওয়ার প্রক্রিয়া
                             </p>
 
-                            <h2 className="mt-3 font-bengali text-3xl font-semibold leading-[1.4] text-text-primary sm:text-4xl">
-                                শুরু থেকে
-                                <span className="block">মানুষের পাশে</span>
+                            <h2
+                                className="
+                                    mt-2
+
+                                    text-[1.75rem]
+                                    font-medium
+                                    leading-[1.45]
+                                    text-text-primary
+
+                                    sm:text-[2.05rem]
+                                    lg:text-[2.2rem]
+                                "
+                            >
+                                আবেদন থেকে
+                                <span
+                                    className="
+                                        block
+                                        text-primary
+                                    "
+                                >
+                                    সক্রিয় অংশগ্রহণ
+                                </span>
                             </h2>
 
-                            <p className="mt-4 max-w-xs font-bengali text-base leading-8 text-text-muted">
-                                আবেদন থেকে স্বেচ্ছাসেবী কাজে যুক্ত হওয়া পর্যন্ত
-                                প্রক্রিয়াটি সহজ রাখা হয়েছে।
+                            <p
+                                className="
+                                    mt-3
+                                    max-w-xs
+
+                                    text-[13px]
+                                    leading-7
+                                    text-text-secondary
+
+                                    sm:text-[14px]
+                                "
+                            >
+                                কয়েকটি পরিষ্কার ধাপ পেরিয়ে স্বেচ্ছাসেবী কাজে
+                                যুক্ত হোন।
                             </p>
                         </div>
 
-                        <div className="border-t border-border">
-                            {journey.map((step) => (
+                        {/* TIMELINE */}
+
+                        <div
+                            className="
+                                relative
+
+                                border-l
+                                border-primary-muted
+
+                                pl-6
+
+                                sm:pl-8
+                            "
+                        >
+                            {journey.map((step, index) => (
                                 <div
                                     key={step.number}
-                                    className="group grid grid-cols-[44px_1fr] gap-4 border-b border-border py-6 sm:grid-cols-[70px_1fr] sm:gap-6 sm:py-7"
-                                >
-                                    <span className="font-bengali text-sm font-medium text-text-muted transition group-hover:text-primary">
-                                        {step.number}
-                                    </span>
+                                    className={`
+                                        relative
 
-                                    <div className="grid gap-2 sm:grid-cols-[220px_1fr] sm:gap-8">
-                                        <h3 className="font-bengali text-lg font-semibold text-text-primary sm:text-xl">
+                                        ${
+                                            index !== journey.length - 1
+                                                ? 'pb-9 sm:pb-11'
+                                                : ''
+                                        }
+                                    `}
+                                >
+                                    <span
+                                        className="
+                                            absolute
+                                            top-1
+                                            -left-[29px]
+
+                                            size-3
+
+                                            rounded-full
+
+                                            border-[3px]
+                                            border-background-warm
+
+                                            bg-primary
+
+                                            sm:-left-[37px]
+                                        "
+                                    />
+
+                                    <div
+                                        className="
+                                            grid
+                                            gap-2
+
+                                            sm:grid-cols-[48px_190px_minmax(0,1fr)]
+                                            sm:gap-5
+
+                                            lg:grid-cols-[55px_210px_minmax(0,1fr)]
+                                            lg:gap-7
+                                        "
+                                    >
+                                        <span
+                                            className="
+                                                text-[11px]
+                                                font-medium
+                                                text-primary
+                                            "
+                                        >
+                                            {step.number}
+                                        </span>
+
+                                        <h3
+                                            className="
+                                                text-[15px]
+                                                font-medium
+                                                leading-6
+                                                text-text-primary
+
+                                                sm:text-[16px]
+                                            "
+                                        >
                                             {step.title}
                                         </h3>
 
-                                        <p className="max-w-xl font-bengali text-sm leading-7 text-text-muted sm:text-base">
+                                        <p
+                                            className="
+                                                max-w-lg
+
+                                                text-[12.5px]
+                                                leading-6
+                                                text-text-secondary
+
+                                                sm:text-[13px]
+                                                sm:leading-7
+                                            "
+                                        >
                                             {step.description}
                                         </p>
                                     </div>
@@ -406,91 +1051,135 @@ const Volunteer = () => {
                 BENEFITS
             ====================================================== */}
 
-            <section>
-                <div className="container-width px-4 py-16 sm:px-6 sm:py-20 lg:px-0 lg:py-24">
-                    <div className="max-w-2xl">
-                        <p className="font-bengali text-sm font-semibold text-primary">
-                            আপনার অভিজ্ঞতা
-                        </p>
+            <section
+                className="
+                    border-y
+                    border-border
+                    bg-surface
+                "
+            >
+                <div
+                    className="
+                        container-width
 
-                        <h2 className="mt-3 font-bengali text-3xl font-semibold leading-[1.4] text-text-primary sm:text-4xl">
-                            মানুষের পাশে থাকার সঙ্গে
-                            <span className="block">নিজেরও শেখার সুযোগ</span>
-                        </h2>
-                    </div>
+                        py-12
+                        sm:py-16
+                        lg:py-20
+                        xl:py-24
+                    "
+                >
+                    <div
+                        className="
+                            grid
+                            gap-8
 
-                    <div className="mt-10 border-t border-border sm:mt-12">
-                        {benefits.map((benefit) => (
-                            <article
-                                key={benefit.number}
-                                className="group grid gap-3 border-b border-border py-6 sm:grid-cols-[70px_260px_1fr] sm:gap-7 sm:py-7 lg:grid-cols-[90px_320px_1fr]"
-                            >
-                                <span className="font-bengali text-sm text-text-muted transition group-hover:text-primary">
-                                    {benefit.number}
-                                </span>
+                            lg:grid-cols-[300px_minmax(0,1fr)]
+                            lg:gap-16
 
-                                <h3 className="font-bengali text-lg font-semibold text-text-primary sm:text-xl">
-                                    {benefit.title}
-                                </h3>
+                            xl:grid-cols-[330px_minmax(0,1fr)]
+                            xl:gap-24
+                        "
+                    >
+                        {/* HEADING */}
 
-                                <p className="max-w-2xl font-bengali text-sm leading-7 text-text-muted sm:text-base">
-                                    {benefit.description}
-                                </p>
-                            </article>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* =====================================================
-                STORIES
-            ====================================================== */}
-
-            <section className="bg-background">
-                <div className="container-width px-4 py-16 sm:px-6 sm:py-20 lg:px-0 lg:py-24">
-                    <div className="grid gap-10 lg:grid-cols-[260px_1fr] lg:gap-20">
                         <div>
-                            <TbQuote className="text-3xl text-primary" />
+                            <p
+                                className="
+                                    text-[12px]
+                                    font-medium
+                                    text-primary
 
-                            <p className="mt-5 font-bengali text-sm font-semibold text-primary">
-                                স্বেচ্ছাসেবকদের অভিজ্ঞতা
+                                    sm:text-[13px]
+                                "
+                            >
+                                আপনার অভিজ্ঞতা
                             </p>
 
-                            <h2 className="mt-2 font-bengali text-3xl font-semibold leading-[1.4] text-text-primary">
-                                যারা ইতিমধ্যে
-                                <span className="block">পাশে দাঁড়িয়েছেন</span>
+                            <h2
+                                className="
+                                    mt-2
+
+                                    text-[1.75rem]
+                                    font-medium
+                                    leading-[1.45]
+                                    text-text-primary
+
+                                    sm:text-[2.05rem]
+                                "
+                            >
+                                পাশে থাকার সঙ্গে
+                                <span className="block">
+                                    নিজেরও শেখার সুযোগ
+                                </span>
                             </h2>
                         </div>
 
+                        {/* BENEFIT LIST */}
+
                         <div className="border-t border-border">
-                            {stories.map((story, index) => (
+                            {benefits.map((benefit) => (
                                 <article
-                                    key={story.name}
-                                    className="grid gap-5 border-b border-border py-8 sm:grid-cols-[55px_1fr] sm:gap-7"
+                                    key={benefit.number}
+                                    className="
+                                        group
+
+                                        grid
+                                        gap-2
+
+                                        border-b
+                                        border-border
+
+                                        py-5
+
+                                        sm:grid-cols-[48px_210px_minmax(0,1fr)]
+                                        sm:gap-5
+                                        sm:py-6
+
+                                        lg:grid-cols-[55px_230px_minmax(0,1fr)]
+                                        lg:gap-7
+                                    "
                                 >
-                                    <span className="font-bengali text-sm text-text-muted">
-                                        ০{index + 1}
+                                    <span
+                                        className="
+                                            text-[11px]
+                                            font-medium
+                                            text-text-muted
+
+                                            transition-colors
+
+                                            group-hover:text-primary
+                                        "
+                                    >
+                                        {benefit.number}
                                     </span>
 
-                                    <div>
-                                        <blockquote className="max-w-3xl font-bengali text-xl leading-[1.75] text-text-primary sm:text-2xl">
-                                            “{story.quote}”
-                                        </blockquote>
+                                    <h3
+                                        className="
+                                            text-[15px]
+                                            font-medium
+                                            leading-6
+                                            text-text-primary
 
-                                        <div className="mt-5 flex items-center gap-3">
-                                            <span className="h-px w-7 bg-primary" />
+                                            sm:text-[16px]
+                                        "
+                                    >
+                                        {benefit.title}
+                                    </h3>
 
-                                            <div>
-                                                <p className="font-bengali text-sm font-semibold text-text-primary">
-                                                    {story.name}
-                                                </p>
+                                    <p
+                                        className="
+                                            max-w-xl
 
-                                                <p className="mt-0.5 font-bengali text-xs text-text-muted">
-                                                    {story.role}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
+                                            text-[12.5px]
+                                            leading-6
+                                            text-text-secondary
+
+                                            sm:text-[13px]
+                                            sm:leading-7
+                                        "
+                                    >
+                                        {benefit.description}
+                                    </p>
                                 </article>
                             ))}
                         </div>
@@ -499,25 +1188,162 @@ const Volunteer = () => {
             </section>
 
             {/* =====================================================
+                ACTIVE VOLUNTEERS
+            ====================================================== */}
+
+            <section className="bg-background">
+                <div
+                    className="
+                        container-width
+
+                        py-12
+                        sm:py-16
+                        lg:py-20
+                        xl:py-24
+                    "
+                >
+                    <div
+                        className="
+                            grid
+                            gap-9
+
+                            lg:grid-cols-[300px_minmax(0,1fr)]
+                            lg:gap-16
+
+                            xl:grid-cols-[330px_minmax(0,1fr)]
+                            xl:gap-24
+                        "
+                    >
+                        {/* INTRO */}
+
+                        <div>
+                            <TbUsers size={27} className="text-primary" />
+
+                            <p
+                                className="
+                                    mt-5
+
+                                    text-[12px]
+                                    font-medium
+                                    text-primary
+
+                                    sm:text-[13px]
+                                "
+                            >
+                                স্বেচ্ছাসেবক কমিউনিটি
+                            </p>
+
+                            <h2
+                                className="
+                                    mt-2
+
+                                    text-[1.75rem]
+                                    font-medium
+                                    leading-[1.45]
+                                    text-text-primary
+
+                                    sm:text-[2.05rem]
+                                "
+                            >
+                                যারা ইতিমধ্যে
+                                <span className="block">পাশে দাঁড়িয়েছেন</span>
+                            </h2>
+
+                            <p
+                                className="
+                                    mt-3
+                                    max-w-xs
+
+                                    text-[13px]
+                                    leading-7
+                                    text-text-secondary
+
+                                    sm:text-[14px]
+                                "
+                            >
+                                Stand For People-এর সঙ্গে যুক্ত সক্রিয়
+                                স্বেচ্ছাসেবকদের একটি অংশ।
+                            </p>
+                        </div>
+
+                        {/* DIRECTORY */}
+
+                        <VolunteerCommunityVisual
+                            volunteers={volunteers}
+                            volunteersLoading={volunteersLoading}
+                            onJoin={goToForm}
+                        />
+                    </div>
+                </div>
+            </section>
+
+            {/* =====================================================
                 CTA
             ====================================================== */}
 
-            <section className="bg-primary">
-                <div className="container-width px-4 py-14 sm:px-6 sm:py-16 lg:px-0">
-                    <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
-                        <div className="max-w-2xl">
-                            <p className="font-bengali text-sm font-semibold text-white/70">
+            <section className="bg-background-dark">
+                <div
+                    className="
+                        container-width
+
+                        py-11
+                        sm:py-14
+                        lg:py-16
+                    "
+                >
+                    <div
+                        className="
+                            grid
+                            gap-7
+
+                            lg:grid-cols-[minmax(0,1fr)_auto]
+                            lg:items-center
+                            lg:gap-14
+                        "
+                    >
+                        <div className="max-w-[700px]">
+                            <p
+                                className="
+                                    text-[12px]
+                                    font-medium
+                                    text-primary-muted
+
+                                    sm:text-[13px]
+                                "
+                            >
                                 আপনার সময়ও গুরুত্বপূর্ণ
                             </p>
 
-                            <h2 className="mt-3 font-bengali text-3xl font-semibold leading-[1.45] text-white sm:text-4xl">
-                                মানুষের পাশে দাঁড়ানোর
-                                <span className="block">যাত্রা শুরু করুন</span>
+                            <h2
+                                className="
+                                    mt-2
+
+                                    text-[1.8rem]
+                                    font-medium
+                                    leading-[1.45]
+                                    text-white!
+
+                                    sm:text-[2.15rem]
+                                "
+                            >
+                                মানুষের পাশে থাকার
+                                <span className="block">যাত্রা শুরু করুন।</span>
                             </h2>
 
-                            <p className="mt-4 max-w-xl font-bengali text-base leading-8 text-white/75">
-                                আপনার একটি সিদ্ধান্তই প্রয়োজনের মুহূর্তে কারও
-                                কাছে বাস্তব সহায়তা পৌঁছানোর অংশ হতে পারে।
+                            <p
+                                className="
+                                    mt-3
+                                    max-w-xl
+
+                                    text-[13px]
+                                    leading-7
+                                    text-white/60
+
+                                    sm:text-[14px]
+                                "
+                            >
+                                আপনার সময় ও সামর্থ্য অনুযায়ী মানবিক কাজে যুক্ত
+                                হোন।
                             </p>
                         </div>
 
@@ -525,7 +1351,12 @@ const Volunteer = () => {
                             size="lg"
                             variant="accent"
                             onClick={goToForm}
-                            className="shrink-0"
+                            className="
+                                w-full
+
+                                sm:w-fit
+                                lg:shrink-0
+                            "
                         >
                             স্বেচ্ছাসেবক হতে আবেদন করুন
                         </Button>
@@ -534,7 +1365,7 @@ const Volunteer = () => {
             </section>
 
             {/* =====================================================
-                EXISTING APPLICATION LOGIC
+                EXISTING APPLICATION FORM
             ====================================================== */}
 
             <VolunteerForm focus={focusForm} />
@@ -543,19 +1374,85 @@ const Volunteer = () => {
                 FAQ
             ====================================================== */}
 
-            <section className="border-t border-border">
-                <div className="container-width px-4 py-16 sm:px-6 sm:py-20 lg:px-0 lg:py-24">
-                    <div className="grid gap-10 lg:grid-cols-[300px_1fr] lg:gap-20">
+            <section
+                className="
+                    border-t
+                    border-border
+                    bg-surface
+                "
+            >
+                <div
+                    className="
+                        container-width
+
+                        py-12
+                        sm:py-16
+                        lg:py-20
+                        xl:py-24
+                    "
+                >
+                    <div
+                        className="
+                            grid
+                            gap-8
+
+                            lg:grid-cols-[300px_minmax(0,1fr)]
+                            lg:gap-16
+
+                            xl:grid-cols-[330px_minmax(0,720px)]
+                            xl:justify-between
+                            xl:gap-24
+                        "
+                    >
+                        {/* HEADING */}
+
                         <div>
-                            <p className="font-bengali text-sm font-semibold text-primary">
+                            <p
+                                className="
+                                    text-[12px]
+                                    font-medium
+                                    text-primary
+
+                                    sm:text-[13px]
+                                "
+                            >
                                 সাধারণ প্রশ্ন
                             </p>
 
-                            <h2 className="mt-3 font-bengali text-3xl font-semibold leading-[1.4] text-text-primary sm:text-4xl">
+                            <h2
+                                className="
+                                    mt-2
+
+                                    text-[1.75rem]
+                                    font-medium
+                                    leading-[1.45]
+                                    text-text-primary
+
+                                    sm:text-[2.05rem]
+                                "
+                            >
                                 যুক্ত হওয়ার আগে
                                 <span className="block">যা জানতে পারেন</span>
                             </h2>
+
+                            <p
+                                className="
+                                    mt-3
+                                    max-w-xs
+
+                                    text-[13px]
+                                    leading-7
+                                    text-text-secondary
+
+                                    sm:text-[14px]
+                                "
+                            >
+                                স্বেচ্ছাসেবী হিসেবে যুক্ত হওয়া নিয়ে সাধারণ কিছু
+                                প্রশ্নের উত্তর।
+                            </p>
                         </div>
+
+                        {/* FAQ */}
 
                         <div className="border-t border-border">
                             {faqs.map((faq, index) => {
@@ -564,7 +1461,10 @@ const Volunteer = () => {
                                 return (
                                     <div
                                         key={faq.question}
-                                        className="border-b border-border"
+                                        className="
+                                            border-b
+                                            border-border
+                                        "
                                     >
                                         <button
                                             type="button"
@@ -573,31 +1473,87 @@ const Volunteer = () => {
                                                     isOpen ? null : index,
                                                 )
                                             }
-                                            className="flex w-full items-start justify-between gap-6 py-6 text-left"
+                                            aria-expanded={isOpen}
+                                            className="
+                                                flex
+                                                w-full
+                                                items-start
+                                                justify-between
+                                                gap-6
+
+                                                py-5
+
+                                                text-left
+
+                                                sm:py-6
+                                            "
                                         >
-                                            <span className="font-bengali text-base font-semibold leading-7 text-text-primary sm:text-lg">
+                                            <span
+                                                className="
+                                                    text-[14px]
+                                                    font-medium
+                                                    leading-7
+                                                    text-text-primary
+
+                                                    sm:text-[15px]
+                                                    lg:text-[16px]
+                                                "
+                                            >
                                                 {faq.question}
                                             </span>
 
                                             <span
-                                                className={`mt-1 text-xl leading-none text-primary transition-transform duration-300 ${
-                                                    isOpen ? 'rotate-45' : ''
-                                                }`}
+                                                className={`
+                                                    mt-0.5
+
+                                                    text-[20px]
+                                                    font-light
+                                                    leading-none
+                                                    text-primary
+
+                                                    transition-transform
+                                                    duration-300
+
+                                                    ${isOpen ? 'rotate-45' : ''}
+                                                `}
+                                                aria-hidden="true"
                                             >
                                                 +
                                             </span>
                                         </button>
 
                                         <div
-                                            className={`overflow-hidden transition-all duration-300 ${
-                                                isOpen
-                                                    ? 'max-h-60 pb-6'
-                                                    : 'max-h-0'
-                                            }`}
+                                            className={`
+                                                grid
+
+                                                transition-all
+                                                duration-300
+
+                                                ${
+                                                    isOpen
+                                                        ? 'grid-rows-[1fr] opacity-100'
+                                                        : 'grid-rows-[0fr] opacity-0'
+                                                }
+                                            `}
                                         >
-                                            <p className="max-w-2xl font-bengali text-sm leading-7 text-text-muted sm:text-base sm:leading-8">
-                                                {faq.answer}
-                                            </p>
+                                            <div className="overflow-hidden">
+                                                <p
+                                                    className="
+                                                        max-w-2xl
+
+                                                        pb-5
+
+                                                        text-[13px]
+                                                        leading-7
+                                                        text-text-secondary
+
+                                                        sm:pb-6
+                                                        sm:text-[14px]
+                                                    "
+                                                >
+                                                    {faq.answer}
+                                                </p>
+                                            </div>
                                         </div>
                                     </div>
                                 );

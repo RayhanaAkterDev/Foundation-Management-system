@@ -1,15 +1,21 @@
 import React from 'react';
 
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+
 import { FiArrowRight } from 'react-icons/fi';
 
 const MegaMenu = ({ item, onClose }) => {
+    const location = useLocation();
+
     if (!item) return null;
 
     const preview = item.preview;
 
     return (
         <>
+            {/* =============================================
+                BACKDROP
+            ============================================= */}
             <button
                 type="button"
                 aria-label="মেনু বন্ধ করুন"
@@ -24,11 +30,14 @@ const MegaMenu = ({ item, onClose }) => {
                 "
             />
 
+            {/* =============================================
+                MEGA MENU
+            ============================================= */}
             <div
                 className="
                     fixed
                     inset-x-0
-                    top-[92px]
+                    top-[89px]
                     z-[1000]
                     border-b
                     border-border
@@ -48,7 +57,6 @@ const MegaMenu = ({ item, onClose }) => {
                     {/* =============================================
                         INTRO
                     ============================================= */}
-
                     <div
                         className="
                             col-span-3
@@ -133,7 +141,6 @@ const MegaMenu = ({ item, onClose }) => {
                     {/* =============================================
                         NAVIGATION
                     ============================================= */}
-
                     <div
                         className="
                             col-span-6
@@ -177,80 +184,103 @@ const MegaMenu = ({ item, onClose }) => {
                                 </div>
 
                                 <div className="space-y-1">
-                                    {group.items.map((link) => (
-                                        <Link
-                                            key={link.id}
-                                            to={link.path}
-                                            onClick={onClose}
-                                            className="
-                                                group
-                                                relative
-                                                block
-                                                rounded-lg
-                                                px-3
-                                                py-2.5
-                                                transition-colors
-                                                duration-200
-                                                hover:bg-primary-soft
-                                            "
-                                        >
-                                            <div
-                                                className="
-                                                    flex
-                                                    items-center
-                                                    justify-between
-                                                    gap-4
-                                                "
+                                    {group.items.map((link) => {
+                                        const isActive =
+                                            location.pathname === link.path ||
+                                            location.pathname.startsWith(
+                                                `${link.path}/`,
+                                            );
+
+                                        return (
+                                            <Link
+                                                key={link.id}
+                                                to={link.path}
+                                                onClick={onClose}
+                                                className={`
+                                                    group
+                                                    relative
+                                                    block
+                                                    rounded-lg
+                                                    px-3
+                                                    py-2.5
+                                                    transition-colors
+                                                    duration-200
+
+                                                    ${
+                                                        isActive
+                                                            ? 'bg-primary-soft'
+                                                            : 'hover:bg-primary-soft'
+                                                    }
+                                                `}
                                             >
-                                                <h3
+                                                <div
                                                     className="
-                                                        font-bengali!
-                                                        text-[14px]
-                                                        font-medium!
-                                                        leading-[1.5]!
-                                                        tracking-normal!
-                                                        text-text-primary
-                                                        transition-colors
-                                                        duration-200
-                                                        group-hover:text-primary-deep
+                                                        flex
+                                                        items-center
+                                                        justify-between
+                                                        gap-4
                                                     "
                                                 >
-                                                    {link.name}
-                                                </h3>
+                                                    <h3
+                                                        className={`
+                                                            font-bengali!
+                                                            text-[14px]
+                                                            font-medium!
+                                                            leading-[1.5]!
+                                                            tracking-normal!
+                                                            transition-colors
+                                                            duration-200
 
-                                                <FiArrowRight
-                                                    className="
-                                                        shrink-0
-                                                        -translate-x-1
-                                                        text-[14px]
-                                                        text-primary
-                                                        opacity-0
-                                                        transition-all
-                                                        duration-200
-                                                        group-hover:translate-x-0
-                                                        group-hover:opacity-100
-                                                    "
-                                                />
-                                            </div>
+                                                            ${
+                                                                isActive
+                                                                    ? 'text-primary-deep'
+                                                                    : 'text-text-primary group-hover:text-primary-deep'
+                                                            }
+                                                        `}
+                                                    >
+                                                        {link.name}
+                                                    </h3>
 
-                                            {link.desc && (
-                                                <p
-                                                    className="
-                                                        mt-1
-                                                        max-w-[300px]
-                                                        font-bengali
-                                                        text-[11.5px]
-                                                        leading-[1.7]
-                                                        text-text-muted
-                                                        transition-colors
-                                                        group-hover:text-text-secondary
-                                                    "
-                                                >
-                                                    {link.desc}
-                                                </p>
-                                            )}
-                                        </Link>
-                                    ))}
+                                                    <FiArrowRight
+                                                        className={`
+                                                            shrink-0
+                                                            text-[14px]
+                                                            text-primary
+                                                            transition-all
+                                                            duration-200
+
+                                                            ${
+                                                                isActive
+                                                                    ? 'translate-x-0 opacity-100'
+                                                                    : '-translate-x-1 opacity-0 group-hover:translate-x-0 group-hover:opacity-100'
+                                                            }
+                                                        `}
+                                                    />
+                                                </div>
+
+                                                {link.desc && (
+                                                    <p
+                                                        className={`
+                                                            mt-1
+                                                            max-w-[300px]
+                                                            font-bengali
+                                                            text-[11.5px]
+                                                            leading-[1.7]
+                                                            transition-colors
+
+                                                            ${
+                                                                isActive
+                                                                    ? 'text-text-secondary'
+                                                                    : 'text-text-muted group-hover:text-text-secondary'
+                                                            }
+                                                        `}
+                                                    >
+                                                        {link.desc}
+                                                    </p>
+                                                )}
+                                            </Link>
+                                        );
+                                    })}
                                 </div>
                             </section>
                         ))}
@@ -259,7 +289,6 @@ const MegaMenu = ({ item, onClose }) => {
                     {/* =============================================
                         PREVIEW
                     ============================================= */}
-
                     <div
                         className="
                             col-span-3

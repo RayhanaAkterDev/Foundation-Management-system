@@ -21,16 +21,16 @@ https://foundation-management-system.vercel.app/
   https://foundation-management-system.vercel.app/admin/login
 
 * **Account Registration:**
-  https://foundation-management-system.vercel.app/account/register
+  https://foundation-management-system.vercel.app/register
 
 * **Account Selection:**
   https://foundation-management-system.vercel.app/account/
 
 * **Individual Login:**
-  https://foundation-management-system.vercel.app/account/login?role=individual
+  https://foundation-management-system.vercel.app/login?role=individual
 
 * **Organization Login:**
-  https://foundation-management-system.vercel.app/account/login?role=organization
+  https://foundation-management-system.vercel.app/login?role=organization
 
 ---
 

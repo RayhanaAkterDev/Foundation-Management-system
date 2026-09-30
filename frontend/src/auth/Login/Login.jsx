@@ -271,7 +271,7 @@ const Login = () => {
                             <p className="mt-7 text-center font-bengali text-[13px] text-text-secondary">
                                 Stand For People-এ নতুন?{' '}
                                 <Link
-                                    to="/account/register"
+                                    to="/register"
                                     className="font-semibold text-primary transition-colors hover:text-primary-hover"
                                 >
                                     অ্যাকাউন্ট তৈরি করুন
@@ -437,7 +437,7 @@ const Login = () => {
                             <p className="text-center font-bengali text-sm text-text-secondary">
                                 এখনো অ্যাকাউন্ট নেই?{' '}
                                 <Link
-                                    to="/account/register"
+                                    to="/register"
                                     className="font-semibold text-primary"
                                 >
                                     নতুন অ্যাকাউন্ট তৈরি করুন

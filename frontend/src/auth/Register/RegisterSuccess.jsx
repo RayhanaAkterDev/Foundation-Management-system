@@ -7,7 +7,7 @@ const RegisterSuccess = ({ accountType }) => {
     const isOrganization = accountType === 'organization';
 
     const handleSignIn = () => {
-        navigate('/account');
+        navigate('/login?role=individual');
     };
 
     return (

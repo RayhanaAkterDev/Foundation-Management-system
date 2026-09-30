@@ -17,70 +17,104 @@ import StepOrganizationDetails from './steps/StepOrganizationDetails';
 // ---------------------------------------------------------------------------
 
 async function submitRegistration(payload) {
-    const requestData = {
-        accountType: payload.accountType,
+    const formData = new FormData();
 
-        credentials: {
-            name: payload.credentials.name,
-            email: payload.credentials.email,
-            password: payload.credentials.password,
-            password_confirmation: payload.credentials.confirmPassword,
-        },
+    formData.append('accountType', payload.accountType);
 
-        ...(payload.accountType === 'individual'
-            ? {
-                  profile: {
-                      phone: payload.profile.phone,
-                      district: payload.profile.district,
-                      address: payload.profile.address,
-                      dob: payload.profile.dob || null,
-                      profilePhoto: null,
-                  },
-
-                  preferences: payload.preferences,
-              }
-            : {
-                  profile: {
-                      phone: payload.profile.phone,
-                      organizationType: payload.profile.organizationType,
-                      registrationNumber: payload.profile.registrationNumber,
-                      address: payload.profile.address,
-                      website: payload.profile.website || null,
-                      organizationLogo: null,
-                  },
-
-                  details: {
-                      ...payload.details,
-                      teamSize: payload.details.teamSize || null,
-                  },
-              }),
-    };
-
-    console.log('Sending registration data:', requestData);
-
-    console.log('Password:', requestData.credentials.password);
-
-    console.log(
-        'Password confirmation:',
-        requestData.credentials.password_confirmation,
+    formData.append('credentials[name]', payload.credentials.name);
+    formData.append('credentials[email]', payload.credentials.email);
+    formData.append('credentials[password]', payload.credentials.password);
+    formData.append(
+        'credentials[password_confirmation]',
+        payload.credentials.confirmPassword,
     );
+
+    if (payload.accountType === 'individual') {
+        formData.append('profile[phone]', payload.profile.phone || '');
+        formData.append('profile[district]', payload.profile.district || '');
+        formData.append('profile[address]', payload.profile.address || '');
+        formData.append('profile[dob]', payload.profile.dob || '');
+
+        if (payload.profile.profilePhoto instanceof File) {
+            formData.append(
+                'profile[profilePhoto]',
+                payload.profile.profilePhoto,
+            );
+        }
+
+        if (payload.preferences?.participationTypes) {
+            payload.preferences.participationTypes.forEach((value) => {
+                formData.append('preferences[participationTypes][]', value);
+            });
+        }
+
+        if (payload.preferences?.causes) {
+            payload.preferences.causes.forEach((value) => {
+                formData.append('preferences[causes][]', value);
+            });
+        }
+    } else {
+        formData.append('profile[phone]', payload.profile.phone || '');
+        formData.append(
+            'profile[organizationType]',
+            payload.profile.organizationType || '',
+        );
+        formData.append(
+            'profile[registrationNumber]',
+            payload.profile.registrationNumber || '',
+        );
+        formData.append('profile[address]', payload.profile.address || '');
+        formData.append('profile[website]', payload.profile.website || '');
+
+        if (payload.profile.organizationLogo instanceof File) {
+            formData.append(
+                'profile[organizationLogo]',
+                payload.profile.organizationLogo,
+            );
+        }
+
+        formData.append('details[mission]', payload.details.mission || '');
+
+        payload.details.focusAreas?.forEach((value) => {
+            formData.append('details[focusAreas][]', value);
+        });
+
+        payload.details.communitiesServed?.forEach((value) => {
+            formData.append('details[communitiesServed][]', value);
+        });
+
+        formData.append('details[teamSize]', payload.details.teamSize || '');
+
+        payload.details.primaryActivities?.forEach((value) => {
+            formData.append('details[primaryActivities][]', value);
+        });
+    }
+
+    console.log('Sending registration FormData:');
+
+    for (const [key, value] of formData.entries()) {
+        if (value instanceof File) {
+            console.log(
+                key,
+                `File: ${value.name} (${value.type}, ${value.size} bytes)`,
+            );
+        } else {
+            console.log(key, value);
+        }
+    }
 
     const response = await fetch(
         `${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api'}/register`,
         {
             method: 'POST',
-
             headers: {
-                'Content-Type': 'application/json',
                 Accept: 'application/json',
             },
-
-            body: JSON.stringify(requestData),
+            body: formData,
         },
     );
 
     let data = {};
-
     const contentType = response.headers.get('content-type') || '';
 
     if (contentType.includes('application/json')) {
@@ -96,7 +130,6 @@ async function submitRegistration(payload) {
     }
 
     console.log('Registration status:', response.status);
-
     console.log('Registration response:', data);
 
     if (!response.ok) {
@@ -561,7 +594,7 @@ const Register = () => {
                             Already have an account?{' '}
                             <button
                                 type="button"
-                                onClick={() => navigate('/login')}
+                                onClick={() => navigate('/login?role=individual')}
                                 className="font-semibold text-primary hover:underline"
                             >
                                 Sign in

@@ -11,27 +11,92 @@ use Illuminate\Http\Request;
 class OrganizationController extends Controller
 {
     /**
-     * Public: View registered and verified organizations.
+     * --------------------------------------------------------------------------
+     * Public Organizations
+     * --------------------------------------------------------------------------
      *
-     * Only verified organizations are shown on the public website.
+     * Returns verified and active organizations for the public website.
      *
-     * This is a read-only public directory and does not create
-     * a separate partnership workflow.
+     * Public directory rules:
+     *
+     * 1. Organization verification_status must be "verified".
+     * 2. The connected user account must be active.
+     * 3. The connected user must have a verified email/demo verification.
+     * 4. Organization logo/avatar comes from users.photo.
+     * 5. Organization banner comes from organizations.banner.
+     *
+     * This endpoint is intentionally public.
      */
     public function publicIndex()
     {
         $organizations = Organization::query()
-            ->where('verification_status', 'verified')
-            ->select([
-                'id',
-                'name',
-                'organization_type',
-                'address',
-                'logo',
-                'verification_status',
+            ->with([
+                'user:id,name,email,phone,photo,role,status,email_verified_at',
             ])
-            ->latest('id')
-            ->get();
+            ->where('verification_status', 'verified')
+            ->whereHas('user', function ($query) {
+                $query
+                    ->where('role', 'organization')
+                    ->where('status', 'active')
+                    ->whereNotNull('email_verified_at');
+            })
+            ->latest('organizations.updated_at')
+            ->get()
+            ->map(function ($organization) {
+                return [
+                    'id' => $organization->id,
+
+                    'name' => $organization->name,
+
+                    'organization_type' =>
+                    $organization->organization_type,
+
+                    'registration_number' =>
+                    $organization->registration_number,
+
+                    'phone' =>
+                    $organization->phone,
+
+                    'website' =>
+                    $organization->website,
+
+                    'address' =>
+                    $organization->address,
+
+                    'mission' =>
+                    $organization->mission,
+
+                    'focus_areas' =>
+                    $organization->focus_areas,
+
+                    'communities_served' =>
+                    $organization->communities_served,
+
+                    'team_size' =>
+                    $organization->team_size,
+
+                    'primary_activities' =>
+                    $organization->primary_activities,
+
+                    'banner' =>
+                    $organization->banner,
+
+                    'photo' =>
+                    $organization->user?->photo,
+
+                    'verification_status' =>
+                    $organization->verification_status,
+
+                    'user' => $organization->user
+                        ? [
+                            'id' => $organization->user->id,
+                            'name' => $organization->user->name,
+                            'photo' => $organization->user->photo,
+                        ]
+                        : null,
+                ];
+            })
+            ->values();
 
         return response()->json([
             'organizations' => $organizations,

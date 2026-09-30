@@ -21,7 +21,7 @@ class Organization extends Model
         'communities_served',
         'team_size',
         'primary_activities',
-        'logo',
+        'banner',
         'verification_status',
     ];
 

@@ -13,7 +13,6 @@ class IndividualProfile extends Model
         'district',
         'address',
         'date_of_birth',
-        'profile_photo',
     ];
 
     public function user(): BelongsTo

@@ -37,6 +37,8 @@ import Login from '@/auth/Login/Login';
 import Register from '@/auth/Register/Register';
 import AdminLogin from '@/auth/AdminLogin/AdminLogin';
 import EmailVerification from '@/auth/EmailVerification/EmailVerification';
+import ResetPassword from '@/auth/ResetPassword/ResetPassword';
+import ForgotPassword from '@/auth/ForgotPassword/ForgotPassword';
 
 // Dashboard layout
 import DashboardLayout from '@/layouts/DashboardLayout/DashboardLayout';
@@ -234,6 +236,24 @@ const router = createBrowserRouter([
     {
         path: '/email-verification',
         element: <EmailVerification />,
+    },
+
+    // =====================================================
+    // PASSWORD RESET
+    // =====================================================
+
+    {
+        path: '/password-reset',
+        element: <ResetPassword />,
+    },
+
+    // =====================================================
+    // FORGOT PASSWORD
+    // =====================================================
+
+    {
+        path: '/forgot-password',
+        element: <ForgotPassword />,
     },
 
     // =====================================================

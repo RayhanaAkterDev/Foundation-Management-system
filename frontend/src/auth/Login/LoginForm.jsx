@@ -1,120 +1,94 @@
 // src/pages/Auth/Login/LoginForm.jsx
 
-import {
-    Link,
-    useLocation,
-    useNavigate,
-    useSearchParams,
-} from 'react-router-dom';
-
-import { Eye, EyeOff, Loader2, LockKeyhole, Mail } from 'lucide-react';
-
 import { useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import {
+    TbArrowRight,
+    TbEye,
+    TbEyeOff,
+    TbKey,
+    TbLock,
+    TbMail,
+    TbShieldCheck,
+} from 'react-icons/tb';
 
-const LoginForm = ({ loginRole = null }) => {
+const LoginForm = () => {
     const navigate = useNavigate();
-    const location = useLocation();
     const [searchParams] = useSearchParams();
 
-    const role = loginRole || searchParams.get('role');
+    const role = searchParams.get('role') || 'individual';
 
-    const [showPassword, setShowPassword] = useState(false);
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+    const [formData, setFormData] = useState({
+        email: '',
+        password: '',
+    });
+
     const [rememberMe, setRememberMe] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [loginError, setLoginError] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const handleChange = (event) => {
+        const { name, value } = event.target;
 
-        setLoginError('');
-        setIsSubmitting(true);
+        setFormData((previous) => ({
+            ...previous,
+            [name]: value,
+        }));
+
+        if (error) {
+            setError('');
+        }
+    };
+
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+
+        setError('');
+        setLoading(true);
 
         try {
-            const response = await fetch(
-                `${
-                    import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api'
-                }/login`,
-                {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Accept: 'application/json',
-                    },
-                    body: JSON.stringify({
-                        email: email.trim(),
-                        password,
-                        role,
-                    }),
+            const apiUrl =
+                import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
+
+            const response = await fetch(`${apiUrl}/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
                 },
-            );
+                body: JSON.stringify({
+                    email: formData.email,
+                    password: formData.password,
+                    role,
+                }),
+            });
 
             const data = await response.json();
 
-            /* =========================================================
-               Demo verification
-            ========================================================= */
-
-            if (
-                response.status === 403 &&
-                data.verification_method === 'demo' &&
-                data.user_id
-            ) {
-                navigate(
-                    `/email-verification?status=demo&user_id=${
-                        data.user_id
-                    }&email=${encodeURIComponent(email.trim())}`,
-                    {
-                        state: {
-                            from: location.state?.from,
-                        },
-                    },
-                );
-
-                return;
-            }
-
-            /* =========================================================
-               Email verification
-            ========================================================= */
-
-            if (
-                response.status === 403 &&
-                data.verification_method === 'email' &&
-                data.user_id
-            ) {
-                navigate(
-                    `/email-verification?status=email&user_id=${
-                        data.user_id
-                    }&email=${encodeURIComponent(
-                        email.trim(),
-                    )}&role=${encodeURIComponent(role || '')}`,
-                    {
-                        state: {
-                            from: location.state?.from,
-                        },
-                    },
-                );
-
-                return;
-            }
-
-            /* =========================================================
-               Login errors
-            ========================================================= */
-
             if (!response.ok) {
-                throw new Error(
-                    data.error ||
-                        data.message ||
-                        'লগইন করা সম্ভব হয়নি। আবার চেষ্টা করুন।',
-                );
+                if (data?.errors) {
+                    const firstError = Object.values(data.errors)
+                        .flat()
+                        .find(Boolean);
+
+                    setError(
+                        firstError || data?.message || 'লগইন করা সম্ভব হয়নি।',
+                    );
+                } else {
+                    setError(data?.message || 'ইমেইল অথবা পাসওয়ার্ড সঠিক নয়।');
+                }
+
+                return;
             }
 
-            /* =========================================================
-               Store authentication
-            ========================================================= */
+            if (!data?.token || !data?.user) {
+                setError(
+                    'লগইন সম্পন্ন হয়েছে, কিন্তু প্রয়োজনীয় তথ্য পাওয়া যায়নি।',
+                );
+
+                return;
+            }
 
             const storage = rememberMe ? localStorage : sessionStorage;
 
@@ -126,461 +100,539 @@ const LoginForm = ({ loginRole = null }) => {
             storage.setItem('auth_token', data.token);
             storage.setItem('user', JSON.stringify(data.user));
 
-            window.dispatchEvent(new Event('auth-changed'));
+            const userRole = data.user?.role || role;
 
-            /* =========================================================
-               Redirect
-            ========================================================= */
-
-            if (data.user.role === 'admin') {
-                navigate('/admin/dashboard', {
-                    replace: true,
-                });
-
-                return;
+            if (userRole === 'admin') {
+                navigate('/admin/dashboard');
+            } else if (userRole === 'organization') {
+                navigate('/organization/dashboard');
+            } else {
+                navigate('/individual/dashboard');
             }
+        } catch (requestError) {
+            console.error('Login error:', requestError);
 
-            const from = location.state?.from;
-
-            if (typeof from === 'string') {
-                navigate(from, {
-                    replace: true,
-                });
-
-                return;
-            }
-
-            if (from?.pathname) {
-                navigate(
-                    `${from.pathname}${from.search || ''}${from.hash || ''}`,
-                    {
-                        replace: true,
-                    },
-                );
-
-                return;
-            }
-
-            navigate('/', {
-                replace: true,
-            });
-        } catch (error) {
-            setLoginError(
-                error.message || 'কিছু একটা সমস্যা হয়েছে। আবার চেষ্টা করুন।',
+            setError(
+                'সার্ভারের সঙ্গে সংযোগ করা যাচ্ছে না। কিছুক্ষণ পর আবার চেষ্টা করুন।',
             );
         } finally {
-            setIsSubmitting(false);
+            setLoading(false);
         }
     };
 
-    const needsEmailVerification = loginError
-        .toLowerCase()
-        .includes('verify your email');
-
     return (
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="w-full">
             {/* =====================================================
-                EMAIL
+                CARD
             ====================================================== */}
-
-            <div>
-                <label
-                    htmlFor="email"
+            <div
+                className="
+                    overflow-hidden
+                    border
+                    border-[#d7e1de]
+                    bg-[#fbfcf9]
+                    shadow-[0_24px_65px_rgba(4,45,40,0.16)]
+                "
+            >
+                {/* =================================================
+                    CARD HEADER
+                ================================================== */}
+                <div
                     className="
-                        mb-2
-                        block
-                        font-bengali
-                        text-[13px]
-                        font-medium
-                        text-text-primary
+                        border-b
+                        border-[#e0e7e4]
+                        px-6
+                        py-5
+                        sm:px-7
+                        sm:py-6
                     "
                 >
-                    ইমেইল ঠিকানা
-                </label>
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-2.5">
+                            <span className="h-[3px] w-7 bg-[#f59e0b]" />
 
-                <div className="group relative">
-                    <Mail
-                        size={18}
-                        strokeWidth={1.7}
-                        className="
-                            pointer-events-none
-                            absolute
-                            left-4
-                            top-1/2
-                            -translate-y-1/2
-                            text-[#94a3b8]
-                            transition-colors
+                            <span
+                                className="
+                                    font-sans
+                                    text-[9px]
+                                    font-semibold
+                                    tracking-[0.1em]
+                                    text-[#0f766e]
+                                "
+                            >
+                                SECURE LOGIN
+                            </span>
+                        </div>
 
-                            group-focus-within:text-primary
-                        "
-                    />
-
-                    <input
-                        id="email"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="name@example.com"
-                        autoComplete="email"
-                        required
-                        disabled={isSubmitting}
-                        className="
-                            h-[52px]
-                            w-full
-                            border
-                            border-[#dce3e0]
-                            bg-white
-                            pl-11
-                            pr-4
-                            font-bengali
-                            text-[14px]
-                            text-text-primary
-                            outline-none
-                            transition-all
-                            duration-200
-
-                            placeholder:font-sans
-                            placeholder:text-[#a8b2bd]
-
-                            hover:border-[#c7d2ce]
-
-                            focus:border-primary
-                            focus:ring-[3px]
-                            focus:ring-primary/[0.08]
-
-                            disabled:cursor-not-allowed
-                            disabled:bg-[#f8faf9]
-                            disabled:opacity-70
-                        "
-                    />
-                </div>
-            </div>
-
-            {/* =====================================================
-                PASSWORD
-            ====================================================== */}
-
-            <div>
-                <div className="mb-2 flex items-center justify-between gap-4">
-                    <label
-                        htmlFor="password"
-                        className="font-bengali text-[13px] font-medium text-text-primary"
-                    >
-                        পাসওয়ার্ড
-                    </label>
-
-                    <Link
-                        to="/account/forgot-password"
-                        className="
-                            font-bengali
-                            text-[12px]
-                            font-medium
-                            text-primary
-                            transition-colors
-
-                            hover:text-primary-hover
-                        "
-                    >
-                        পাসওয়ার্ড ভুলে গেছেন?
-                    </Link>
-                </div>
-
-                <div className="group relative">
-                    <LockKeyhole
-                        size={18}
-                        strokeWidth={1.7}
-                        className="
-                            pointer-events-none
-                            absolute
-                            left-4
-                            top-1/2
-                            -translate-y-1/2
-                            text-[#94a3b8]
-                            transition-colors
-
-                            group-focus-within:text-primary
-                        "
-                    />
-
-                    <input
-                        id="password"
-                        type={showPassword ? 'text' : 'password'}
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="আপনার পাসওয়ার্ড লিখুন"
-                        autoComplete="current-password"
-                        required
-                        disabled={isSubmitting}
-                        className="
-                            h-[52px]
-                            w-full
-                            border
-                            border-[#dce3e0]
-                            bg-white
-                            pl-11
-                            pr-12
-                            font-bengali
-                            text-[14px]
-                            text-text-primary
-                            outline-none
-                            transition-all
-                            duration-200
-
-                            placeholder:text-[#a8b2bd]
-
-                            hover:border-[#c7d2ce]
-
-                            focus:border-primary
-                            focus:ring-[3px]
-                            focus:ring-primary/[0.08]
-
-                            disabled:cursor-not-allowed
-                            disabled:bg-[#f8faf9]
-                            disabled:opacity-70
-                        "
-                    />
-
-                    <button
-                        type="button"
-                        onClick={() => setShowPassword((prev) => !prev)}
-                        disabled={isSubmitting}
-                        aria-label={
-                            showPassword
-                                ? 'পাসওয়ার্ড লুকান'
-                                : 'পাসওয়ার্ড দেখুন'
-                        }
-                        className="
-                            absolute
-                            right-2.5
-                            top-1/2
-                            flex
-                            h-9
-                            w-9
-                            -translate-y-1/2
-                            items-center
-                            justify-center
-                            text-[#8492a3]
-                            transition-colors
-
-                            hover:text-primary
-
-                            disabled:cursor-not-allowed
-                            disabled:opacity-50
-                        "
-                    >
-                        {showPassword ? (
-                            <EyeOff size={18} />
-                        ) : (
-                            <Eye size={18} />
-                        )}
-                    </button>
-                </div>
-            </div>
-
-            {/* =====================================================
-                ERROR
-            ====================================================== */}
-
-            {loginError && (
-                <div
-                    role="alert"
-                    className={`
-                        border
-                        px-4
-                        py-3.5
-
-                        ${
-                            needsEmailVerification
-                                ? 'border-amber-200 bg-amber-50'
-                                : 'border-red-200 bg-red-50'
-                        }
-                    `}
-                >
-                    <div className="flex items-start gap-3">
-                        {needsEmailVerification && (
-                            <Mail
-                                size={17}
-                                className="mt-0.5 shrink-0 text-amber-700"
-                            />
-                        )}
-
-                        <p
-                            className={`
-                                font-bengali
-                                text-[12px]
-                                leading-6
-
-                                ${
-                                    needsEmailVerification
-                                        ? 'text-amber-800'
-                                        : 'text-red-700'
-                                }
-                            `}
-                        >
-                            {loginError}
-                        </p>
-                    </div>
-                </div>
-            )}
-
-            {/* =====================================================
-                REMEMBER
-            ====================================================== */}
-
-            <div className="flex items-center justify-between">
-                <label className="flex cursor-pointer items-center gap-2.5">
-                    <span className="relative flex h-[18px] w-[18px] shrink-0">
-                        <input
-                            type="checkbox"
-                            checked={rememberMe}
-                            onChange={(e) => setRememberMe(e.target.checked)}
-                            disabled={isSubmitting}
+                        <div
                             className="
-                                peer
-                                h-[18px]
-                                w-[18px]
-                                cursor-pointer
-                                appearance-none
+                                flex
+                                h-8
+                                w-8
+                                items-center
+                                justify-center
+                                bg-[#eaf4f2]
+                                text-[#0f766e]
+                            "
+                        >
+                            <TbShieldCheck size={17} />
+                        </div>
+                    </div>
+
+                    <h2
+                        className="
+                            mt-4
+                            font-bengali
+                            text-[24px]
+                            font-semibold
+                            leading-[1.45]
+                            tracking-[-0.02em]
+                            text-[#163c37]
+                            sm:text-[27px]
+                        "
+                    >
+                        আপনার অ্যাকাউন্টে প্রবেশ করুন
+                    </h2>
+
+                    <p
+                        className="
+                            mt-1.5
+                            max-w-[390px]
+                            font-bengali
+                            text-[10.5px]
+                            leading-[1.8]
+                            text-[#7b8b86]
+                            sm:text-[11px]
+                        "
+                    >
+                        আপনার অ্যাকাউন্টের তথ্য ব্যবহার করে নিরাপদে Stand For
+                        People-এ প্রবেশ করুন।
+                    </p>
+                </div>
+
+                {/* =================================================
+                    FORM BODY
+                ================================================== */}
+                <form
+                    onSubmit={handleSubmit}
+                    className="
+                        px-6
+                        py-6
+                        sm:px-7
+                        sm:py-7
+                    "
+                >
+                    {/* ERROR */}
+                    {error && (
+                        <div
+                            role="alert"
+                            className="
+                                mb-5
+                                flex
+                                gap-3
                                 border
-                                border-[#cbd5d1]
+                                border-[#efc9bf]
+                                bg-[#fff6f2]
+                                px-4
+                                py-3
+                            "
+                        >
+                            <div className="mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#c65f45]" />
+
+                            <p
+                                className="
+                                    font-bengali
+                                    text-[10px]
+                                    leading-[1.7]
+                                    text-[#a84d38]
+                                "
+                            >
+                                {error}
+                            </p>
+                        </div>
+                    )}
+
+                    {/* =================================================
+                        EMAIL
+                    ================================================== */}
+                    <div>
+                        <label
+                            htmlFor="email"
+                            className="
+                                mb-2
+                                block
+                                font-bengali
+                                text-[10.5px]
+                                font-semibold
+                                text-[#445c56]
+                            "
+                        >
+                            ইমেইল ঠিকানা
+                        </label>
+
+                        <div
+                            className="
+                                group
+                                flex
+                                h-[50px]
+                                items-center
+                                border
+                                border-[#d5e0dd]
                                 bg-white
                                 transition-all
-
-                                checked:border-primary
-                                checked:bg-primary
-
-                                focus:outline-none
-                                focus:ring-2
-                                focus:ring-primary/15
-
-                                disabled:cursor-not-allowed
-                                disabled:opacity-50
-                            "
-                        />
-
-                        <svg
-                            viewBox="0 0 12 10"
-                            aria-hidden="true"
-                            className="
-                                pointer-events-none
-                                absolute
-                                left-[4px]
-                                top-[5px]
-                                hidden
-                                h-[7px]
-                                w-[10px]
-                                fill-none
-                                stroke-white
-                                stroke-[2]
-
-                                peer-checked:block
+                                duration-200
+                                focus-within:border-[#0f766e]
+                                focus-within:ring-2
+                                focus-within:ring-[#0f766e]/10
                             "
                         >
-                            <path d="M1 5L4 8L11 1" />
-                        </svg>
-                    </span>
+                            <div
+                                className="
+                                    flex
+                                    h-full
+                                    w-[46px]
+                                    shrink-0
+                                    items-center
+                                    justify-center
+                                    border-r
+                                    border-[#e3e9e7]
+                                    text-[#8ca09a]
+                                    transition-colors
+                                    group-focus-within:text-[#0f766e]
+                                "
+                            >
+                                <TbMail size={18} />
+                            </div>
 
-                    <span className="font-bengali text-[13px] text-text-secondary">
-                        আমাকে মনে রাখুন
-                    </span>
-                </label>
+                            <input
+                                id="email"
+                                name="email"
+                                type="email"
+                                value={formData.email}
+                                onChange={handleChange}
+                                autoComplete="email"
+                                placeholder="আপনার ইমেইল লিখুন"
+                                required
+                                className="
+                                    h-full
+                                    min-w-0
+                                    flex-1
+                                    bg-transparent
+                                    px-4
+                                    font-sans
+                                    text-[12px]
+                                    text-[#25433d]
+                                    outline-none
+                                    placeholder:text-[#a4b0ad]
+                                "
+                            />
+                        </div>
+                    </div>
+
+                    {/* =================================================
+                        PASSWORD
+                    ================================================== */}
+                    <div className="mt-5">
+                        <div className="mb-2 flex items-center justify-between gap-3">
+                            <label
+                                htmlFor="password"
+                                className="
+                                    font-bengali
+                                    text-[10.5px]
+                                    font-semibold
+                                    text-[#445c56]
+                                "
+                            >
+                                পাসওয়ার্ড
+                            </label>
+
+                            <Link
+                                to="/account/forgot-password"
+                                className="
+                                    font-bengali
+                                    text-[9.5px]
+                                    font-medium
+                                    text-[#0f766e]
+                                    transition-colors
+                                    hover:text-[#115e59]
+                                    focus-visible:outline-none
+                                    focus-visible:underline
+                                "
+                            >
+                                পাসওয়ার্ড ভুলে গেছেন?
+                            </Link>
+                        </div>
+
+                        <div
+                            className="
+                                group
+                                flex
+                                h-[50px]
+                                items-center
+                                border
+                                border-[#d5e0dd]
+                                bg-white
+                                transition-all
+                                duration-200
+                                focus-within:border-[#0f766e]
+                                focus-within:ring-2
+                                focus-within:ring-[#0f766e]/10
+                            "
+                        >
+                            <div
+                                className="
+                                    flex
+                                    h-full
+                                    w-[46px]
+                                    shrink-0
+                                    items-center
+                                    justify-center
+                                    border-r
+                                    border-[#e3e9e7]
+                                    text-[#8ca09a]
+                                    transition-colors
+                                    group-focus-within:text-[#0f766e]
+                                "
+                            >
+                                <TbLock size={18} />
+                            </div>
+
+                            <input
+                                id="password"
+                                name="password"
+                                type={showPassword ? 'text' : 'password'}
+                                value={formData.password}
+                                onChange={handleChange}
+                                autoComplete="current-password"
+                                placeholder="আপনার পাসওয়ার্ড লিখুন"
+                                required
+                                className="
+                                    h-full
+                                    min-w-0
+                                    flex-1
+                                    bg-transparent
+                                    px-4
+                                    font-sans
+                                    text-[12px]
+                                    text-[#25433d]
+                                    outline-none
+                                    placeholder:text-[#a4b0ad]
+                                "
+                            />
+
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    setShowPassword((previous) => !previous)
+                                }
+                                aria-label={
+                                    showPassword
+                                        ? 'পাসওয়ার্ড লুকান'
+                                        : 'পাসওয়ার্ড দেখুন'
+                                }
+                                className="
+                                    flex
+                                    h-full
+                                    w-[46px]
+                                    shrink-0
+                                    items-center
+                                    justify-center
+                                    text-[#8ca09a]
+                                    transition-colors
+                                    hover:text-[#0f766e]
+                                    focus-visible:outline-none
+                                "
+                            >
+                                {showPassword ? (
+                                    <TbEyeOff size={18} />
+                                ) : (
+                                    <TbEye size={18} />
+                                )}
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* =================================================
+                        OPTIONS
+                    ================================================== */}
+                    <div className="mt-4 flex items-center justify-between gap-4">
+                        <label
+                            htmlFor="rememberMe"
+                            className="
+                                inline-flex
+                                cursor-pointer
+                                items-center
+                                gap-2
+                            "
+                        >
+                            <input
+                                id="rememberMe"
+                                type="checkbox"
+                                checked={rememberMe}
+                                onChange={(event) =>
+                                    setRememberMe(event.target.checked)
+                                }
+                                className="
+                                    h-3.5
+                                    w-3.5
+                                    cursor-pointer
+                                    accent-[#0f766e]
+                                "
+                            />
+
+                            <span
+                                className="
+                                    font-bengali
+                                    text-[9.5px]
+                                    text-[#7e8d89]
+                                "
+                            >
+                                আমাকে মনে রাখুন
+                            </span>
+                        </label>
+
+                        <div className="flex items-center gap-1.5">
+                            <TbKey size={12} className="text-[#a1afab]" />
+
+                            <span
+                                className="
+                                    font-bengali
+                                    text-[8.5px]
+                                    text-[#9aa7a3]
+                                "
+                            >
+                                নিরাপদ প্রবেশ
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* =================================================
+                        SUBMIT
+                    ================================================== */}
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="
+                            group
+                            relative
+                            mt-6
+                            flex
+                            h-[52px]
+                            w-full
+                            items-center
+                            justify-between
+                            overflow-hidden
+                            bg-[#0f766e]
+                            px-5
+                            font-bengali
+                            text-[11.5px]
+                            font-semibold
+                            text-white
+                            transition-all
+                            duration-200
+                            hover:bg-[#115e59]
+                            focus-visible:outline-none
+                            focus-visible:ring-2
+                            focus-visible:ring-[#0f766e]
+                            focus-visible:ring-offset-2
+                            disabled:cursor-not-allowed
+                            disabled:opacity-60
+                        "
+                    >
+                        <span>
+                            {loading
+                                ? 'প্রবেশ করা হচ্ছে...'
+                                : 'অ্যাকাউন্টে প্রবেশ করুন'}
+                        </span>
+
+                        {!loading && (
+                            <span
+                                className="
+                                    flex
+                                    h-8
+                                    w-8
+                                    items-center
+                                    justify-center
+                                    bg-white/10
+                                    transition-transform
+                                    duration-200
+                                    group-hover:translate-x-1
+                                "
+                            >
+                                <TbArrowRight size={17} />
+                            </span>
+                        )}
+
+                        {loading && (
+                            <span
+                                className="
+                                    h-4
+                                    w-4
+                                    animate-spin
+                                    rounded-full
+                                    border-2
+                                    border-white/25
+                                    border-t-white
+                                "
+                            />
+                        )}
+                    </button>
+                </form>
+
+                {/* =================================================
+                    CARD FOOTER
+                ================================================== */}
+                <div
+                    className="
+                        border-t
+                        border-[#e0e7e4]
+                        bg-[#f5f8f6]
+                        px-6
+                        py-4
+                        sm:px-7
+                    "
+                >
+                    <div className="flex items-center justify-between gap-4">
+                        <p
+                            className="
+                                font-bengali
+                                text-[9.5px]
+                                text-[#87958f]
+                            "
+                        >
+                            নতুন ব্যবহারকারী?
+                        </p>
+
+                        <Link
+                            to="/register"
+                            className="
+                                group
+                                inline-flex
+                                items-center
+                                gap-1.5
+                                font-bengali
+                                text-[10px]
+                                font-semibold
+                                text-[#0f766e]
+                                transition-colors
+                                hover:text-[#115e59]
+                            "
+                        >
+                            অ্যাকাউন্ট তৈরি করুন
+                            <span
+                                className="
+                                    transition-transform
+                                    duration-200
+                                    group-hover:translate-x-1
+                                "
+                            >
+                                →
+                            </span>
+                        </Link>
+                    </div>
+                </div>
             </div>
-
-            {/* =====================================================
-                SUBMIT
-            ====================================================== */}
-
-            <button
-                type="submit"
-                disabled={isSubmitting}
-                className="
-                    flex
-                    h-[52px]
-                    w-full
-                    items-center
-                    justify-center
-                    gap-2
-                    bg-primary
-                    px-5
-                    font-bengali
-                    text-[14px]
-                    font-semibold
-                    text-white!
-                    transition-all
-                    duration-200
-
-                    hover:bg-primary-hover
-
-                    active:translate-y-px
-
-                    disabled:cursor-not-allowed
-                    disabled:opacity-65
-                "
-            >
-                {isSubmitting ? (
-                    <>
-                        <Loader2 size={17} className="animate-spin" />
-                        লগইন হচ্ছে...
-                    </>
-                ) : (
-                    'লগইন করুন'
-                )}
-            </button>
-
-            {/* =====================================================
-                ALTERNATIVE LOGIN
-            ====================================================== */}
-
-            <div className="flex items-center gap-3 py-1">
-                <span className="h-px flex-1 bg-border" />
-
-                <span className="font-bengali text-[11px] text-text-secondary/70">
-                    অথবা
-                </span>
-
-                <span className="h-px flex-1 bg-border" />
-            </div>
-
-            {/* =====================================================
-                GOOGLE
-            ====================================================== */}
-
-            <button
-                type="button"
-                disabled={isSubmitting}
-                className="
-                    flex
-                    h-[50px]
-                    w-full
-                    items-center
-                    justify-center
-                    gap-3
-                    border
-                    border-[#dce3e0]
-                    bg-white
-                    px-5
-                    font-bengali
-                    text-[13px]
-                    font-medium
-                    text-text-primary
-                    transition-all
-                    duration-200
-
-                    hover:border-[#bccbc6]
-                    hover:bg-[#fafcfb]
-
-                    disabled:cursor-not-allowed
-                    disabled:opacity-60
-                "
-            >
-                <img
-                    src="https://www.svgrepo.com/show/475656/google-color.svg"
-                    alt=""
-                    className="h-[18px] w-[18px]"
-                />
-                Google দিয়ে চালিয়ে যান
-            </button>
-        </form>
+        </div>
     );
 };
 

@@ -65,9 +65,9 @@ const LeftPanel = ({ current, campaigns = [] }) => {
                                 absolute
                                 inset-0
                                 bg-gradient-to-t
-                                from-black/80
-                                via-black/25
-                                to-black/5
+                                from-black/50
+                                via-black/35
+                                to-black/15
                             "
                         />
 
@@ -95,7 +95,7 @@ const LeftPanel = ({ current, campaigns = [] }) => {
                                     text-[11px]
                                     font-medium
                                     leading-[1.8]
-                                    text-white!/85
+                                    text-white/85!
                                 "
                             >
                                 সহায়তার একটি ক্ষেত্র
@@ -140,7 +140,7 @@ const LeftPanel = ({ current, campaigns = [] }) => {
                                             text-[12px]
                                             font-normal
                                             leading-[1.95]
-                                            text-white!/78
+                                            text-white/78!
                                             sm:text-[13px]
                                             lg:text-[13px]
                                             xl:text-[15px]

@@ -13,7 +13,18 @@ class IndividualProfile extends Model
         'district',
         'address',
         'date_of_birth',
+        'participation_preferences',
+        'category_preferences',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'participation_preferences' => 'array',
+            'category_preferences' => 'array',
+            'date_of_birth' => 'date',
+        ];
+    }
 
     public function user(): BelongsTo
     {

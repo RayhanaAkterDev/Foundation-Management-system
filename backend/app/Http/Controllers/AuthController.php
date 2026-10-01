@@ -2,11 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Auth\Passwords\PasswordBroker;
+
 use App\Models\User;
+use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use ImageKit\ImageKit;
 
@@ -14,123 +19,273 @@ class AuthController extends Controller
 {
     public function register(Request $request)
     {
-        $validated = $request->validate([
-            'accountType' => 'required|in:individual,organization',
+        $validated = $request->validate(
+            [
+                'accountType' => 'required|in:individual,organization',
 
-            'credentials.name' => 'required|string|max:255',
+                'credentials.name' => 'required|string|max:255',
 
-            'credentials.email' => [
-                'required',
-                'email',
-                'unique:users,email',
+                'credentials.email' => [
+                    'required',
+                    'email',
+                    'unique:users,email',
+                ],
+
+                'credentials.password' => [
+                    'required',
+                    'string',
+                    'min:8',
+                    'confirmed',
+                ],
+
+                'profile.phone' => [
+                    'nullable',
+                    'string',
+                    'regex:/^01[0-9]{9}$/',
+                    Rule::unique('users', 'phone'),
+                ],
+
+                'profile.address' => 'nullable|string|max:500',
+
+                'profile.district' => [
+                    'required_if:accountType,individual',
+                    'nullable',
+                    'string',
+                    'max:100',
+                ],
+
+                'profile.dob' => 'nullable|date',
+
+                /*
+                |--------------------------------------------------------------------------
+                | Individual profile photo
+                |--------------------------------------------------------------------------
+                */
+
+                'profile.profilePhoto' => [
+                    'nullable',
+                    'image',
+                    'mimes:jpeg,jpg,png,webp',
+                    'max:5120',
+                ],
+
+                /*
+                |--------------------------------------------------------------------------
+                | Individual participation preferences
+                |--------------------------------------------------------------------------
+                */
+
+                'preferences.participationTypes' => [
+                    'nullable',
+                    'array',
+                ],
+
+                'preferences.participationTypes.*' => [
+                    'string',
+                    'in:hr,volunteer,donor',
+                ],
+
+                /*
+                |--------------------------------------------------------------------------
+                | Individual category preferences
+                |--------------------------------------------------------------------------
+                */
+
+                'preferences.causes' => [
+                    'nullable',
+                    'array',
+                ],
+
+                'preferences.causes.*' => [
+                    'string',
+                    'max:100',
+                ],
+
+                /*
+                |--------------------------------------------------------------------------
+                | Organization profile
+                |--------------------------------------------------------------------------
+                */
+
+                'profile.organizationType' => [
+                    'required_if:accountType,organization',
+                    'nullable',
+                    'string',
+                    'max:100',
+                ],
+
+                'profile.website' => 'nullable|url|max:255',
+
+                'details.mission' => [
+                    'required_if:accountType,organization',
+                    'nullable',
+                    'string',
+                    'max:1000',
+                ],
+
+                'details.focusAreas' => 'nullable|array',
+
+                'details.communitiesServed' => 'nullable|array',
+
+                'details.teamSize' => 'nullable|string|max:20',
+
+                'details.primaryActivities' => 'nullable|array',
+
+                /*
+                |--------------------------------------------------------------------------
+                | Organization logo
+                |--------------------------------------------------------------------------
+                */
+
+                'profile.organizationLogo' => [
+                    'nullable',
+                    'image',
+                    'mimes:jpeg,jpg,png,webp',
+                    'max:5120',
+                ],
             ],
+            [
+                'accountType.required' =>
+                'অ্যাকাউন্টের ধরন নির্বাচন করুন।',
 
-            'credentials.password' => [
-                'required',
-                'string',
-                'min:8',
-                'confirmed',
-            ],
+                'accountType.in' =>
+                'সঠিক অ্যাকাউন্টের ধরন নির্বাচন করুন।',
 
-            'profile.phone' => [
-                'nullable',
-                'string',
-                'regex:/^01[0-9]{9}$/',
-                Rule::unique('users', 'phone'),
-            ],
+                'credentials.name.required' =>
+                'নাম লিখুন.',
 
-            'profile.address' => 'nullable|string|max:500',
+                'credentials.name.string' =>
+                'নাম অবশ্যই সঠিকভাবে লিখতে হবে।',
 
-            'profile.district' => [
-                'required_if:accountType,individual',
-                'nullable',
-                'string',
-                'max:100',
-            ],
+                'credentials.name.max' =>
+                'নাম সর্বোচ্চ ২৫৫ অক্ষরের হতে পারে।',
 
-            'profile.dob' => 'nullable|date',
+                'credentials.email.required' =>
+                'ইমেইল ঠিকানা লিখুন।',
 
-            /*
-            |--------------------------------------------------------------------------
-            | Individual profile photo
-            |--------------------------------------------------------------------------
-            |
-            | The frontend sends an actual uploaded image file.
-            |
-            */
+                'credentials.email.email' =>
+                'সঠিক ইমেইল ঠিকানা লিখুন।',
 
-            'profile.profilePhoto' => [
-                'nullable',
-                'image',
-                'mimes:jpeg,jpg,png,webp',
-                'max:5120',
-            ],
+                'credentials.email.unique' =>
+                'এই ইমেইল ঠিকানা দিয়ে ইতোমধ্যে একটি অ্যাকাউন্ট রয়েছে।',
 
-            'preferences.participationTypes' => 'nullable|array',
-            'preferences.causes' => 'nullable|array',
+                'credentials.password.required' =>
+                'পাসওয়ার্ড লিখুন।',
 
-            'profile.organizationType' => [
-                'required_if:accountType,organization',
-                'nullable',
-                'string',
-                'max:100',
-            ],
+                'credentials.password.string' =>
+                'পাসওয়ার্ড সঠিক ফরম্যাটে দিতে হবে।',
 
-            'profile.registrationNumber' => [
-                'required_if:accountType,organization',
-                'nullable',
-                'string',
-                'max:100',
-            ],
+                'credentials.password.min' =>
+                'পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে।',
 
-            'profile.website' => 'nullable|url|max:255',
+                'credentials.password.confirmed' =>
+                'পাসওয়ার্ড এবং নিশ্চিতকরণ পাসওয়ার্ড মিলছে না।',
 
-            'details.mission' => [
-                'required_if:accountType,organization',
-                'nullable',
-                'string',
-                'max:1000',
-            ],
+                'profile.phone.regex' =>
+                'সঠিক ১১ সংখ্যার বাংলাদেশি মোবাইল নম্বর দিন।',
 
-            'details.focusAreas' => 'nullable|array',
-            'details.communitiesServed' => 'nullable|array',
-            'details.teamSize' => 'nullable|string|max:20',
-            'details.primaryActivities' => 'nullable|array',
+                'profile.phone.unique' =>
+                'এই মোবাইল নম্বর দিয়ে ইতোমধ্যে একটি অ্যাকাউন্ট রয়েছে।',
 
-            /*
-            |--------------------------------------------------------------------------
-            | Organization logo
-            |--------------------------------------------------------------------------
-            |
-            | The organization logo is stored in users.photo because
-            | users.photo is the common identity image for all account types.
-            |
-            */
+                'profile.address.string' =>
+                'ঠিকানাটি সঠিকভাবে লিখুন।',
 
-            'profile.organizationLogo' => [
-                'nullable',
-                'image',
-                'mimes:jpeg,jpg,png,webp',
-                'max:5120',
-            ],
-        ]);
+                'profile.address.max' =>
+                'ঠিকানা সর্বোচ্চ ৫০০ অক্ষরের হতে পারে।',
+
+                'profile.district.required_if' =>
+                'জেলা নির্বাচন বা লিখুন।',
+
+                'profile.district.string' =>
+                'জেলার তথ্য সঠিকভাবে দিন।',
+
+                'profile.district.max' =>
+                'জেলার নাম সর্বোচ্চ ১০০ অক্ষরের হতে পারে।',
+
+                'profile.dob.date' =>
+                'সঠিক জন্মতারিখ দিন।',
+
+                'profile.profilePhoto.image' =>
+                'প্রোফাইল ছবিটি অবশ্যই একটি ছবি হতে হবে।',
+
+                'profile.profilePhoto.mimes' =>
+                'প্রোফাইল ছবির ফরম্যাট JPEG, JPG, PNG অথবা WebP হতে হবে।',
+
+                'profile.profilePhoto.max' =>
+                'প্রোফাইল ছবির আকার সর্বোচ্চ ৫ MB হতে পারে।',
+
+                'preferences.participationTypes.array' =>
+                'অংশগ্রহণের পছন্দগুলো সঠিকভাবে নির্বাচন করুন।',
+
+                'preferences.participationTypes.*.string' =>
+                'অংশগ্রহণের পছন্দের তথ্য সঠিক নয়।',
+
+                'preferences.participationTypes.*.in' =>
+                'নির্বাচিত অংশগ্রহণের পছন্দটি সঠিক নয়।',
+
+                'preferences.causes.array' =>
+                'আগ্রহের বিষয়গুলো সঠিকভাবে নির্বাচন করুন।',
+
+                'preferences.causes.*.string' =>
+                'আগ্রহের বিষয়ের তথ্য সঠিক নয়।',
+
+                'preferences.causes.*.max' =>
+                'আগ্রহের বিষয়ের নাম সর্বোচ্চ ১০০ অক্ষরের হতে পারে।',
+
+                'profile.organizationType.required_if' =>
+                'প্রতিষ্ঠানের ধরন লিখুন।',
+
+                'profile.organizationType.string' =>
+                'প্রতিষ্ঠানের ধরন সঠিকভাবে দিন।',
+
+                'profile.organizationType.max' =>
+                'প্রতিষ্ঠানের ধরন সর্বোচ্চ ১০০ অক্ষরের হতে পারে।',
+
+                'profile.website.url' =>
+                'সঠিক ওয়েবসাইট ঠিকানা দিন।',
+
+                'profile.website.max' =>
+                'ওয়েবসাইটের ঠিকানা সর্বোচ্চ ২৫৫ অক্ষরের হতে পারে।',
+
+                'details.mission.required_if' =>
+                'প্রতিষ্ঠানের উদ্দেশ্য লিখুন।',
+
+                'details.mission.string' =>
+                'প্রতিষ্ঠানের উদ্দেশ্য সঠিকভাবে লিখুন।',
+
+                'details.mission.max' =>
+                'প্রতিষ্ঠানের উদ্দেশ্য সর্বোচ্চ ১০০০ অক্ষরের হতে পারে।',
+
+                'details.focusAreas.array' =>
+                'কাজের ক্ষেত্রগুলো সঠিকভাবে নির্বাচন করুন।',
+
+                'details.communitiesServed.array' =>
+                'সেবাপ্রাপ্ত কমিউনিটির তথ্য সঠিকভাবে দিন।',
+
+                'details.teamSize.string' =>
+                'দলের আকার সঠিকভাবে দিন।',
+
+                'details.teamSize.max' =>
+                'দলের আকার সর্বোচ্চ ২০ অক্ষরের হতে পারে।',
+
+                'details.primaryActivities.array' =>
+                'প্রধান কার্যক্রমগুলো সঠিকভাবে নির্বাচন করুন।',
+
+                'profile.organizationLogo.image' =>
+                'প্রতিষ্ঠানের লোগো অবশ্যই একটি ছবি হতে হবে।',
+
+                'profile.organizationLogo.mimes' =>
+                'প্রতিষ্ঠানের লোগোর ফরম্যাট JPEG, JPG, PNG অথবা WebP হতে হবে।',
+
+                'profile.organizationLogo.max' =>
+                'প্রতিষ্ঠানের লোগোর আকার সর্বোচ্চ ৫ MB হতে পারে।',
+            ]
+        );
 
         /*
         |--------------------------------------------------------------------------
         | ImageKit
         |--------------------------------------------------------------------------
-        |
-        | Both individuals and organizations use users.photo.
-        |
-        | Individual:
-        |     profile.profilePhoto
-        |
-        | Organization:
-        |     profile.organizationLogo
-        |
-        | The actual image is uploaded to ImageKit.
-        | The database stores the ImageKit file URL.
-        |
         */
 
         $photoUrl = null;
@@ -148,31 +303,24 @@ class AuthController extends Controller
             |--------------------------------------------------------------------------
             */
 
-            /*
-|--------------------------------------------------------------------------
-| Individual photo
-|--------------------------------------------------------------------------
-*/
-
             if (
                 $request->hasFile('profile.profilePhoto') &&
                 $request->file('profile.profilePhoto')->isValid()
             ) {
                 $file = $request->file('profile.profilePhoto');
-
                 $realPath = $file->getRealPath();
                 $mimeType = $file->getMimeType();
                 $fileContents = file_get_contents($realPath);
 
                 if ($fileContents === false) {
                     throw new \RuntimeException(
-                        'Could not read the uploaded profile photo.'
+                        'প্রোফাইল ছবিটি পড়া যায়নি।'
                     );
                 }
 
                 if (!str_starts_with($mimeType, 'image/')) {
                     throw new \RuntimeException(
-                        "Uploaded profile photo was detected as {$mimeType}, not an image."
+                        "আপলোড করা প্রোফাইল ছবির ধরন {$mimeType}, যা একটি ছবি নয়।"
                     );
                 }
 
@@ -186,7 +334,7 @@ class AuthController extends Controller
                 if ($uploadResponse->error) {
                     throw new \RuntimeException(
                         $uploadResponse->error->message ??
-                            'Failed to upload profile photo to ImageKit.'
+                            'প্রোফাইল ছবি আপলোড করা যায়নি।'
                     );
                 }
 
@@ -194,7 +342,7 @@ class AuthController extends Controller
 
                 if (!$photoUrl) {
                     throw new \RuntimeException(
-                        'ImageKit uploaded the profile photo but did not return a URL.'
+                        'প্রোফাইল ছবি আপলোড হয়েছে, কিন্তু ছবির ঠিকানা পাওয়া যায়নি।'
                     );
                 }
 
@@ -204,8 +352,7 @@ class AuthController extends Controller
                     'size' => $file->getSize(),
                     'imagekit_file_type' =>
                     $uploadResponse->result->fileType ?? null,
-                    'imagekit_url' =>
-                    $photoUrl,
+                    'imagekit_url' => $photoUrl,
                 ]);
             }
 
@@ -215,31 +362,24 @@ class AuthController extends Controller
             |--------------------------------------------------------------------------
             */
 
-            /*
-|--------------------------------------------------------------------------
-| Organization logo
-|--------------------------------------------------------------------------
-*/
-
             if (
                 $request->hasFile('profile.organizationLogo') &&
                 $request->file('profile.organizationLogo')->isValid()
             ) {
                 $file = $request->file('profile.organizationLogo');
-
                 $realPath = $file->getRealPath();
                 $mimeType = $file->getMimeType();
                 $fileContents = file_get_contents($realPath);
 
                 if ($fileContents === false) {
                     throw new \RuntimeException(
-                        'Could not read the uploaded organization logo.'
+                        'প্রতিষ্ঠানের লোগোটি পড়া যায়নি।'
                     );
                 }
 
                 if (!str_starts_with($mimeType, 'image/')) {
                     throw new \RuntimeException(
-                        "Uploaded organization logo was detected as {$mimeType}, not an image."
+                        "আপলোড করা প্রতিষ্ঠানের লোগোর ধরন {$mimeType}, যা একটি ছবি নয়।"
                     );
                 }
 
@@ -253,7 +393,7 @@ class AuthController extends Controller
                 if ($uploadResponse->error) {
                     throw new \RuntimeException(
                         $uploadResponse->error->message ??
-                            'Failed to upload organization logo to ImageKit.'
+                            'প্রতিষ্ঠানের লোগো আপলোড করা যায়নি।'
                     );
                 }
 
@@ -261,7 +401,7 @@ class AuthController extends Controller
 
                 if (!$photoUrl) {
                     throw new \RuntimeException(
-                        'ImageKit uploaded the organization logo but did not return a URL.'
+                        'প্রতিষ্ঠানের লোগো আপলোড হয়েছে, কিন্তু ছবির ঠিকানা পাওয়া যায়নি।'
                     );
                 }
 
@@ -271,8 +411,7 @@ class AuthController extends Controller
                     'size' => $file->getSize(),
                     'imagekit_file_type' =>
                     $uploadResponse->result->fileType ?? null,
-                    'imagekit_url' =>
-                    $photoUrl,
+                    'imagekit_url' => $photoUrl,
                 ]);
             }
 
@@ -295,24 +434,12 @@ class AuthController extends Controller
                         $validated['credentials']['password']
                     ),
                     'role' => $role,
-
-                    // Public registration currently uses the demo verification flow.
                     'verification_method' => 'demo',
-
-                    // Account remains inactive until demo verification is completed.
                     'status' => 'inactive',
-
                     'phone' =>
                     $validated['profile']['phone'] ?? null,
-
                     'photo' => $photoUrl,
                 ]);
-
-                /*
-                |--------------------------------------------------------------------------
-                | Explicitly reset verification state.
-                |--------------------------------------------------------------------------
-                */
 
                 $user->email_verified_at = null;
                 $user->verification_email_sent_at = null;
@@ -334,6 +461,16 @@ class AuthController extends Controller
 
                         'date_of_birth' =>
                         $validated['profile']['dob'] ?? null,
+
+                        'participation_preferences' =>
+                        array_values(
+                            $validated['preferences']['participationTypes'] ?? []
+                        ),
+
+                        'category_preferences' =>
+                        array_values(
+                            $validated['preferences']['causes'] ?? []
+                        ),
                     ]);
                 }
 
@@ -350,9 +487,6 @@ class AuthController extends Controller
 
                         'organization_type' =>
                         $validated['profile']['organizationType'] ?? null,
-
-                        'registration_number' =>
-                        $validated['profile']['registrationNumber'] ?? null,
 
                         'website' =>
                         $validated['profile']['website'] ?? null,
@@ -400,31 +534,42 @@ class AuthController extends Controller
             throw $e;
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | IMPORTANT:
-        |
-        | Do NOT send verification email here.
-        |
-        | The first login attempt triggers verification email.
-        |--------------------------------------------------------------------------
-        */
-
         return response()->json([
             'message' =>
-            'Registration successful. Please sign in to receive your email verification link.',
-
+            'নিবন্ধন সফল হয়েছে। লগইন করলে আপনার ইমেইল যাচাইয়ের লিংক পাঠানো হবে।',
             'user' => $user,
         ], 201);
     }
 
     public function login(Request $request)
     {
-        $validated = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required|string',
-            'role' => 'required|in:individual,organization,admin',
-        ]);
+        $validated = $request->validate(
+            [
+                'email' => 'required|email',
+                'password' => 'required|string',
+                'role' => 'required|in:individual,organization,admin',
+                'remember' => 'nullable|boolean',
+            ],
+            [
+                'email.required' =>
+                'ইমেইল ঠিকানা লিখুন।',
+
+                'email.email' =>
+                'সঠিক ইমেইল ঠিকানা লিখুন।',
+
+                'password.required' =>
+                'পাসওয়ার্ড লিখুন।',
+
+                'password.string' =>
+                'পাসওয়ার্ড সঠিক ফরম্যাটে দিতে হবে।',
+
+                'role.required' =>
+                'অ্যাকাউন্টের ধরন নির্বাচন করুন।',
+
+                'role.in' =>
+                'সঠিক অ্যাকাউন্টের ধরন নির্বাচন করুন।',
+            ]
+        );
 
         $user = User::where(
             'email',
@@ -439,14 +584,15 @@ class AuthController extends Controller
             )
         ) {
             return response()->json([
-                'message' => 'Invalid email or password.',
+                'message' =>
+                'ইমেইল অথবা পাসওয়ার্ড সঠিক নয়।',
             ], 401);
         }
 
         if ($user->role !== $validated['role']) {
             return response()->json([
                 'message' =>
-                'This account does not belong to the selected account type.',
+                'এই অ্যাকাউন্টটি নির্বাচিত অ্যাকাউন্টের ধরনের সঙ্গে মিলছে না।',
             ], 403);
         }
 
@@ -469,7 +615,7 @@ class AuthController extends Controller
             if ($user->verification_method === 'demo') {
                 return response()->json([
                     'message' =>
-                    'Please verify this demo account before logging in.',
+                    'লগইন করার আগে এই ডেমো অ্যাকাউন্টটি যাচাই করুন।',
 
                     'verification_method' => 'demo',
 
@@ -494,23 +640,18 @@ class AuthController extends Controller
 
             $verificationEmailSent = false;
 
-            /*
-            |--------------------------------------------------------------------------
-            | FIRST LOGIN:
-            |
-            | No verification email has ever been sent.
-            | Send it now.
-            |--------------------------------------------------------------------------
-            */
-
             if (!$user->verification_email_sent_at) {
                 try {
                     Log::info('MAIL BEFORE VERIFICATION', [
                         'default' => config('mail.default'),
-                        'host' => config('mail.mailers.smtp.host'),
-                        'port' => config('mail.mailers.smtp.port'),
-                        'scheme' => config('mail.mailers.smtp.scheme'),
-                        'url' => config('mail.mailers.smtp.url'),
+                        'host' =>
+                        config('mail.mailers.smtp.host'),
+                        'port' =>
+                        config('mail.mailers.smtp.port'),
+                        'scheme' =>
+                        config('mail.mailers.smtp.scheme'),
+                        'url' =>
+                        config('mail.mailers.smtp.url'),
                     ]);
 
                     $user->sendEmailVerificationNotification();
@@ -522,7 +663,7 @@ class AuthController extends Controller
                 } catch (\Throwable $e) {
                     return response()->json([
                         'message' =>
-                        'Failed to send verification email.',
+                        'ইমেইল যাচাইকরণ বার্তা পাঠানো যায়নি।',
 
                         'error' => $e->getMessage(),
 
@@ -548,18 +689,9 @@ class AuthController extends Controller
                 }
             }
 
-            /*
-            |--------------------------------------------------------------------------
-            | Existing unverified account:
-            |
-            | Do NOT automatically send another email.
-            | User must use Resend Verification.
-            |--------------------------------------------------------------------------
-            */
-
             return response()->json([
                 'message' =>
-                'Please verify your email address before logging in.',
+                'লগইন করার আগে আপনার ইমেইল ঠিকানা যাচাই করুন।',
 
                 'verification_method' => 'email',
 
@@ -590,9 +722,10 @@ class AuthController extends Controller
             ->plainTextToken;
 
         return response()->json([
-            'message' => 'Login successful.',
+            'message' => 'লগইন সফল হয়েছে।',
             'user' => $user,
             'token' => $token,
+            'remember' => $request->boolean('remember'),
         ], 200);
     }
 
@@ -603,7 +736,7 @@ class AuthController extends Controller
             ->delete();
 
         return response()->json([
-            'message' => 'Logout successful.',
+            'message' => 'লগআউট সফল হয়েছে।',
         ]);
     }
 
@@ -622,37 +755,127 @@ class AuthController extends Controller
     {
         $user = $request->user();
 
-        $validated = $request->validate([
-            'name' => [
-                'required',
-                'string',
-                'max:255',
+        $validated = $request->validate(
+            [
+                'name' => [
+                    'required',
+                    'string',
+                    'max:255',
+                ],
+
+                'email' => [
+                    'required',
+                    'email',
+                    'max:255',
+                    Rule::unique('users', 'email')
+                        ->ignore($user->id),
+                ],
+
+                'phone' => [
+                    'nullable',
+                    'string',
+                    'regex:/^01[0-9]{9}$/',
+                    Rule::unique('users', 'phone')
+                        ->ignore($user->id),
+                ],
+
+                'district' => 'nullable|string|max:255',
+
+                'address' => 'nullable|string',
+
+                'date_of_birth' => 'nullable|date',
+
+                /*
+                |--------------------------------------------------------------------------
+                | Individual participation preferences
+                |--------------------------------------------------------------------------
+                */
+
+                'participation_preferences' => [
+                    'nullable',
+                    'array',
+                ],
+
+                'participation_preferences.*' => [
+                    'string',
+                    'in:hr,volunteer,donor',
+                ],
+
+                /*
+                |--------------------------------------------------------------------------
+                | Individual category preferences
+                |--------------------------------------------------------------------------
+                */
+
+                'category_preferences' => [
+                    'nullable',
+                    'array',
+                ],
+
+                'category_preferences.*' => [
+                    'string',
+                    'max:100',
+                ],
             ],
+            [
+                'name.required' =>
+                'নাম লিখুন।',
 
-            'email' => [
-                'required',
-                'email',
-                'max:255',
+                'name.string' =>
+                'নাম সঠিকভাবে লিখুন।',
 
-                Rule::unique('users', 'email')
-                    ->ignore($user->id),
-            ],
+                'name.max' =>
+                'নাম সর্বোচ্চ ২৫৫ অক্ষরের হতে পারে।',
 
-            'phone' => [
-                'nullable',
-                'string',
-                'regex:/^01[0-9]{9}$/',
+                'email.required' =>
+                'ইমেইল ঠিকানা লিখুন।',
 
-                Rule::unique('users', 'phone')
-                    ->ignore($user->id),
-            ],
+                'email.email' =>
+                'সঠিক ইমেইল ঠিকানা লিখুন।',
 
-            'district' => 'nullable|string|max:255',
+                'email.max' =>
+                'ইমেইল ঠিকানা সর্বোচ্চ ২৫৫ অক্ষরের হতে পারে।',
 
-            'address' => 'nullable|string',
+                'email.unique' =>
+                'এই ইমেইল ঠিকানা দিয়ে ইতোমধ্যে একটি অ্যাকাউন্ট রয়েছে।',
 
-            'date_of_birth' => 'nullable|date',
-        ]);
+                'phone.regex' =>
+                'সঠিক ১১ সংখ্যার বাংলাদেশি মোবাইল নম্বর দিন।',
+
+                'phone.unique' =>
+                'এই মোবাইল নম্বর দিয়ে ইতোমধ্যে একটি অ্যাকাউন্ট রয়েছে।',
+
+                'district.string' =>
+                'জেলার তথ্য সঠিকভাবে দিন।',
+
+                'district.max' =>
+                'জেলার নাম সর্বোচ্চ ২৫৫ অক্ষরের হতে পারে।',
+
+                'address.string' =>
+                'ঠিকানাটি সঠিকভাবে লিখুন।',
+
+                'date_of_birth.date' =>
+                'সঠিক জন্মতারিখ দিন।',
+
+                'participation_preferences.array' =>
+                'অংশগ্রহণের পছন্দগুলো সঠিকভাবে নির্বাচন করুন।',
+
+                'participation_preferences.*.string' =>
+                'অংশগ্রহণের পছন্দের তথ্য সঠিক নয়।',
+
+                'participation_preferences.*.in' =>
+                'নির্বাচিত অংশগ্রহণের পছন্দটি সঠিক নয়।',
+
+                'category_preferences.array' =>
+                'আগ্রহের বিষয়গুলো সঠিকভাবে নির্বাচন করুন।',
+
+                'category_preferences.*.string' =>
+                'আগ্রহের বিষয়ের তথ্য সঠিক নয়।',
+
+                'category_preferences.*.max' =>
+                'আগ্রহের বিষয়ের নাম সর্বোচ্চ ১০০ অক্ষরের হতে পারে।',
+            ]
+        );
 
         $emailChanged =
             $user->email !== $validated['email'];
@@ -664,28 +887,15 @@ class AuthController extends Controller
         */
 
         $user->name = $validated['name'];
+
         $user->phone = $validated['phone'] ?? null;
 
         if ($emailChanged) {
             $user->email = $validated['email'];
 
-            /*
-            |--------------------------------------------------------------------------
-            | New email must be verified again.
-            |
-            | Keep the current verification method.
-            |--------------------------------------------------------------------------
-            */
-
             $user->email_verified_at = null;
-            $user->status = 'inactive';
 
-            /*
-            |--------------------------------------------------------------------------
-            | A new email means the previous verification email
-            | is no longer relevant.
-            |--------------------------------------------------------------------------
-            */
+            $user->status = 'inactive';
 
             $user->verification_email_sent_at = null;
         }
@@ -712,6 +922,16 @@ class AuthController extends Controller
 
                     'date_of_birth' =>
                     $validated['date_of_birth'] ?? null,
+
+                    'participation_preferences' =>
+                    array_values(
+                        $validated['participation_preferences'] ?? []
+                    ),
+
+                    'category_preferences' =>
+                    array_values(
+                        $validated['category_preferences'] ?? []
+                    ),
                 ]
             );
         }
@@ -724,10 +944,137 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => $emailChanged
-                ? 'Profile updated. Please sign in to receive a verification link for your new email address.'
-                : 'Profile updated successfully.',
+                ? 'প্রোফাইল আপডেট হয়েছে। নতুন ইমেইল ঠিকানা যাচাই করার জন্য লগইন করুন।'
+                : 'প্রোফাইল সফলভাবে আপডেট হয়েছে।',
 
             'user' => $user,
         ]);
+    }
+
+    /**
+     * Send or generate a password reset link.
+     */
+    public function forgotPassword(Request $request)
+    {
+        $request->validate(
+            [
+                'email' => 'required|email',
+            ],
+            [
+                'email.required' => 'ইমেইল দেওয়া আবশ্যক।',
+                'email.email' => 'সঠিক ইমেইল ঠিকানা দিন।',
+            ]
+        );
+
+        $email = trim($request->email);
+
+        $user = User::where('email', $email)->first();
+
+        /*
+    |--------------------------------------------------------------------------
+    | Demo account
+    |--------------------------------------------------------------------------
+    |
+    | Demo accounts do not depend on real email delivery.
+    | Generate a temporary Laravel password-reset token and return
+    | the reset URL directly for the manual/demo flow.
+    |
+    */
+
+        if ($user && $user->verification_method === 'demo') {
+            /** @var PasswordBroker $broker */
+            $broker = Password::broker('users');
+
+            $token = $broker->createToken($user);
+
+            $frontendUrl = rtrim(
+                config(
+                    'app.frontend_url',
+                    env('FRONTEND_URL', 'http://localhost:5173')
+                ),
+                '/'
+            );
+
+            $resetUrl = $frontendUrl
+                . '/account/reset-password?token='
+                . urlencode($token)
+                . '&email='
+                . urlencode($user->email);
+
+            return response()->json([
+                'message' => 'ডেমো অ্যাকাউন্টের জন্য পাসওয়ার্ড রিসেট লিংক তৈরি হয়েছে।',
+                'reset_url' => $resetUrl,
+            ], 200);
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Real-email account
+    |--------------------------------------------------------------------------
+    |
+    | Keep Laravel's existing password broker for accounts that use
+    | actual email-based password reset.
+    |
+    */
+
+        Password::broker('users')->sendResetLink([
+            'email' => $email,
+        ]);
+
+        return response()->json([
+            'message' => 'যদি এই ইমেইল ঠিকানায় একটি অ্যাকাউন্ট থাকে, তাহলে পাসওয়ার্ড রিসেট করার নির্দেশনা পাঠানো হয়েছে।',
+        ], 200);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $request->validate(
+            [
+                'token' => 'required|string',
+                'email' => 'required|email',
+                'password' => [
+                    'required',
+                    'string',
+                    'min:8',
+                    'confirmed',
+                ],
+            ],
+            [
+                'token.required' => 'পাসওয়ার্ড রিসেট টোকেন প্রয়োজন।',
+                'email.required' => 'ইমেইল দেওয়া আবশ্যক।',
+                'email.email' => 'সঠিক ইমেইল ঠিকানা দিন।',
+                'password.required' => 'নতুন পাসওয়ার্ড দেওয়া আবশ্যক।',
+                'password.min' => 'পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে।',
+                'password.confirmed' => 'পাসওয়ার্ড নিশ্চিতকরণ মিলছে না।',
+            ]
+        );
+
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function (User $user, string $password) {
+                $user->forceFill([
+                    'password' => $password,
+                    'remember_token' => Str::random(60),
+                ])->save();
+
+                $user->tokens()->delete();
+
+                event(new PasswordReset($user));
+            }
+        );
+
+        if ($status !== Password::PASSWORD_RESET) {
+            return response()->json([
+                'message' => match ($status) {
+                    Password::INVALID_TOKEN => 'পাসওয়ার্ড রিসেট লিংকটি অবৈধ অথবা মেয়াদ শেষ হয়ে গেছে।',
+                    Password::INVALID_USER => 'এই ইমেইল ঠিকানার জন্য কোনো অ্যাকাউন্ট পাওয়া যায়নি।',
+                    default => 'পাসওয়ার্ড রিসেট করা যায়নি। আবার চেষ্টা করুন।',
+                },
+            ], 422);
+        }
+
+        return response()->json([
+            'message' => 'পাসওয়ার্ড সফলভাবে পরিবর্তন হয়েছে।',
+        ], 200);
     }
 }

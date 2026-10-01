@@ -31,402 +31,453 @@ const Login = () => {
 
     return (
         <main className="min-h-screen bg-[#f7f8f5]">
-            {/* =========================================================
-                DESKTOP
-            ========================================================== */}
-            <div className="hidden min-h-screen lg:block">
-                <div className="mx-auto flex min-h-screen max-w-[1680px] flex-col">
-                    {/* =================================================
-                        HEADER
-                    ================================================== */}
-                    <header
+            <div className="container-width">
+                {/* =========================================================
+                    HEADER
+                ========================================================== */}
+                <header
+                    className="
+                        flex
+                        h-[72px]
+                        items-center
+                        justify-between
+
+                        sm:h-[78px]
+                        lg:h-20
+                        xl:h-22
+                    "
+                >
+                    <Link
+                        to="/"
                         className="
+                            group
                             flex
-                            h-[78px]
-                            shrink-0
+                            min-w-0
                             items-center
-                            justify-between
-                            px-7
-                            xl:h-[86px]
-                            xl:px-12
-                            2xl:h-[92px]
-                            2xl:px-20
+                            gap-2.5
+
+                            sm:gap-3
+                            xl:gap-4
                         "
                     >
-                        <Link
-                            to="/"
-                            className="group flex items-center gap-3 xl:gap-4"
-                        >
-                            <img
-                                src={logo}
-                                alt="Stand For People"
-                                className="
-                                    h-9
-                                    w-auto
-                                    object-contain
-                                    transition-opacity
-                                    duration-200
-                                    group-hover:opacity-85
-                                    xl:h-10
-                                    2xl:h-11
-                                "
-                            />
+                        <img
+                            src={logo}
+                            alt="Stand For People"
+                            className="
+                                h-13
+                                w-auto
+                                shrink-0
+                                object-contain
+                                transition-opacity
+                                duration-200
 
-                            <span className="h-6 w-px bg-[#d9e2df] xl:h-7" />
+                                group-hover:opacity-85
+
+                                sm:h-15
+                                lg:h-18
+                            "
+                        />
+
+                        <span
+                            className="
+                                hidden
+                                h-6
+                                w-px
+                                shrink-0
+                                bg-[#d9e2df]
+
+                                sm:block
+                                xl:h-7
+                            "
+                        />
+
+                        <p
+                            className="
+                                hidden
+                                font-bengali
+                                text-[9px]
+                                font-medium
+                                text-[#73857f]
+
+                                sm:block
+                                sm:text-[9.5px]
+
+                                lg:text-[10px]
+                                xl:text-[11px]
+                                2xl:text-[11.5px]
+                            "
+                        >
+                            মানুষের পাশে, মানুষের জন্য
+                        </p>
+                    </Link>
+
+                    <Link
+                        to="/"
+                        className="
+                            group
+                            inline-flex
+                            shrink-0
+                            items-center
+                            gap-1.5
+                            font-bengali
+                            text-[9.5px]
+                            font-medium
+                            text-[#60736d]
+                            transition-colors
+                            duration-200
+
+                            hover:text-[#0f766e]
+
+                            focus-visible:outline-none
+                            focus-visible:ring-2
+                            focus-visible:ring-[#0f766e]
+                            focus-visible:ring-offset-4
+
+                            sm:gap-2
+                            sm:text-[10px]
+
+                            lg:text-[10.5px]
+                            xl:gap-2.5
+                            xl:text-[11.5px]
+                            2xl:text-[12px]
+                        "
+                    >
+                        <TbArrowLeft
+                            size={16}
+                            className="
+                                transition-transform
+                                duration-200
+                                group-hover:-translate-x-1
+                            "
+                        />
+                        হোমে ফিরে যান
+                    </Link>
+                </header>
+
+                {/* =========================================================
+                    MAIN
+                ========================================================== */}
+                <div
+                    className="
+                        flex
+                        min-h-[calc(100vh-72px)]
+                        flex-col
+                        gap-0
+
+                        sm:min-h-[calc(100vh-78px)]
+
+                        lg:min-h-[calc(100vh-80px)]
+                        lg:flex-row
+                        lg:gap-8
+
+                        xl:min-h-[calc(100vh-88px)]
+                        xl:gap-12
+
+                        2xl:gap-16
+                    "
+                >
+                    {/* =====================================================
+                        LEFT — EDITORIAL SIDE
+                    ====================================================== */}
+                    <section
+                        className="
+                            relative
+                            w-full
+                            overflow-hidden
+
+                            lg:w-1/2
+                        "
+                    >
+                        {/* INTRO */}
+                        <div
+                            className="
+                                relative
+                                z-20
+                                pt-6
+                                pb-8
+
+                                sm:pt-8
+                                sm:pb-10
+
+                                lg:pt-9
+                                lg:pb-0
+
+                                xl:pt-12
+                                2xl:pt-14
+                            "
+                        >
+                            <div className="flex items-center gap-3">
+                                <span className="h-[2px] w-8 bg-[#f59e0b]" />
+
+                                <span
+                                    className="
+                                        font-sans
+                                        text-[9px]
+                                        font-semibold
+                                        tracking-[0.07em]
+                                        text-[#0f766e]
+
+                                        sm:text-[9.5px]
+                                        lg:text-[10px]
+                                        xl:text-[11px]
+                                    "
+                                >
+                                    STAND FOR PEOPLE
+                                </span>
+                            </div>
+
+                            <h1
+                                className="
+                                    mt-4
+                                    max-w-[580px]
+                                    font-bengali
+                                    text-[29px]
+                                    font-semibold
+                                    leading-[1.45]
+                                    tracking-[-0.03em]
+                                    text-[#163c37]
+
+                                    sm:mt-5
+                                    sm:text-[34px]
+
+                                    lg:text-[34px]
+
+                                    xl:mt-6
+                                    xl:text-[42px]
+
+                                    2xl:text-[48px]
+                                "
+                            >
+                                মানুষের পাশে থাকার
+                                <span className="block text-[#0f766e]">
+                                    কাজটি আবার শুরু করুন।
+                                </span>
+                            </h1>
 
                             <p
                                 className="
+                                    mt-3
+                                    max-w-[620px]
                                     font-bengali
-                                    text-[10px]
-                                    font-medium
-                                    text-[#73857f]
-                                    xl:text-[11px]
-                                    2xl:text-[11.5px]
+                                    text-[11.5px]
+                                    leading-[1.9]
+                                    text-[#71827d]
+
+                                    sm:mt-4
+                                    sm:text-[12.5px]
+
+                                    lg:text-[12px]
+                                    xl:text-[14px]
+                                    2xl:text-[15px]
                                 "
                             >
-                                মানুষের পাশে, মানুষের জন্য
+                                আপনার সহায়তা, স্বেচ্ছাসেবা এবং মানবিক উদ্যোগের
+                                সঙ্গে তৈরি হওয়া সংযোগগুলো এক জায়গা থেকে পরিচালনা
+                                করুন।
                             </p>
-                        </Link>
+                        </div>
 
-                        <Link
-                            to="/"
+                        {/* IMAGE AREA */}
+                        <div
                             className="
-                                group
-                                inline-flex
-                                items-center
-                                gap-2
-                                font-bengali
-                                text-[10.5px]
-                                font-medium
-                                text-[#60736d]
-                                transition-colors
-                                duration-200
-                                hover:text-[#0f766e]
-                                focus-visible:outline-none
-                                focus-visible:ring-2
-                                focus-visible:ring-[#0f766e]
-                                focus-visible:ring-offset-4
-                                xl:gap-2.5
-                                xl:text-[11.5px]
-                                2xl:text-[12px]
+                                relative hidden lg:block
+                                mb-7
+                                h-[280px]
+                                w-full
+                                overflow-hidden
+
+                                sm:mb-10
+                                sm:h-[360px]
+
+                                md:h-[420px]
+
+                                lg:absolute
+                                lg:top-70
+                                xl:top-84
+                                2xl:top-100
+                                lg:bottom-10
+                                lg:mb-0
+                                lg:h-auto
+
+                                rounded-2xl
                             "
                         >
-                            <TbArrowLeft
-                                size={16}
+                            <div
                                 className="
-                                    transition-transform
-                                    duration-200
-                                    group-hover:-translate-x-1
+                                    absolute
+                                    inset-0
+                                    bg-[#dfe9e6]
                                 "
-                            />
-                            হোমে ফিরে যান
-                        </Link>
-                    </header>
+                            >
+                                <img
+                                    src={login}
+                                    alt="মানুষের পাশে স্বেচ্ছাসেবকেরা"
+                                    className="
+                                        h-full
+                                        w-full
+                                        object-cover
+                                        object-center
+                                    "
+                                />
+                            </div>
 
-                    {/* =================================================
-                        MAIN
-                    ================================================== */}
-                    <div
+
+                            <div
+                                className="
+                                    absolute
+                                    top-0
+                                    right-0
+                                    bottom-0
+                                    flex
+                                    w-[11%]
+                                    items-center
+                                    justify-center
+                                    bg-black/30
+
+                                    sm:w-[10%]
+                                    2xl:w-[13%]
+                                "
+                            >
+                                <p
+                                    className="
+                                        rotate-180
+                                        font-bengali
+                                        text-[9px]
+                                        font-medium
+                                        tracking-[0.1em]
+                                        text-white/70
+                                        [writing-mode:vertical-rl]
+
+                                        sm:text-[10px]
+                                        lg:text-[12px]
+                                    "
+                                >
+                                    মর্যাদা · সংহতি · মানবিক উদ্যোগ
+                                </p>
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* =====================================================
+                        RIGHT — LOGIN ENVIRONMENT
+                    ====================================================== */}
+                    <section
                         className="
-                            grid
-                            flex-1
-                            grid-cols-[minmax(0,1fr)_520px]
-                            overflow-hidden
-                            xl:grid-cols-[minmax(0,1fr)_560px]
-                            2xl:grid-cols-[minmax(50%_50%)]
+                            relative
+                            flex
+                            w-full
+                            items-center
+                            px-0
+                            pt-2
+                            pb-8
+
+                            sm:pt-3
+                            sm:pb-10
+
+                            lg:w-1/2
+                            lg:p-4
+
+                            xl:p-6
+                            2xl:p-10
                         "
                     >
                         {/* =================================================
-                            LEFT — EDITORIAL SIDE
+                            COMPLETE AUTH CARD
                         ================================================== */}
-                        <section
+                        <div
                             className="
                                 relative
-                                min-h-[650px]
+                                mx-auto
+                                w-full
                                 overflow-hidden
-                                border-t
-                                border-[#dce4e1]
-                                bg-[#f7f8f5]
-                                px-7
-                                xl:min-h-[680px]
-                                xl:px-12
-                                2xl:px-20
+                                rounded-xl
+                                border
+                                border-[#d8e4e0]
+                                bg-white
+                                shadow-[0_18px_50px_rgba(17,62,55,0.10)]
+
+                                sm:max-w-[680px]
+
+                                lg:max-w-none
+                                lg:shadow-[0_24px_70px_rgba(17,62,55,0.13)]
                             "
                         >
-                            {/* INTRO */}
+                            {/* =============================================
+                                CARD TOP / IDENTITY
+                            ============================================== */}
                             <div
                                 className="
                                     relative
-                                    z-20
-                                    max-w-[600px]
-                                    pt-9
-                                    xl:pt-12
-                                    2xl:pt-14
+                                    overflow-hidden
+                                    bg-[#0f6b61]
+                                    px-5
+                                    pt-5
+                                    pb-5
+
+                                    sm:px-7
+                                    sm:pt-7
+                                    sm:pb-6
+
+                                    lg:px-6
+                                    lg:pt-6
+                                    lg:pb-5
+
+                                    xl:px-9
+                                    xl:pt-8
+                                    xl:pb-7
                                 "
                             >
-                                <div className="flex items-center gap-3">
-                                    <span className="h-[2px] w-8 bg-[#f59e0b]" />
-
-                                    <span
-                                        className="
-                                            font-sans
-                                            text-[10px]
-                                            font-semibold
-                                            tracking-[0.07em]
-                                            text-[#0f766e]
-                                            xl:text-[11px]
-                                        "
-                                    >
-                                        STAND FOR PEOPLE
-                                    </span>
-                                </div>
-
-                                <h1
-                                    className="
-                                        mt-5
-                                        max-w-[600px]
-                                        font-bengali
-                                        text-[34px]
-                                        font-semibold
-                                        leading-[1.45]
-                                        tracking-[-0.03em]
-                                        text-[#163c37]
-                                        xl:mt-6
-                                        xl:text-[42px]
-                                        2xl:text-[48px]
-                                    "
-                                >
-                                    মানুষের পাশে থাকার
-                                    <span className="block text-[#0f766e]">
-                                        কাজটি আবার শুরু করুন।
-                                    </span>
-                                </h1>
-
-                                <p
-                                    className="
-                                        mt-4
-                                        max-w-[500px]
-                                        font-bengali
-                                        text-[12px]
-                                        leading-[1.9]
-                                        text-[#71827d]
-                                        xl:text-[14px]
-                                        2xl:text-[15px]
-                                    "
-                                >
-                                    আপনার সহায়তা, স্বেচ্ছাসেবা এবং মানবিক
-                                    উদ্যোগের সঙ্গে তৈরি হওয়া সংযোগগুলো এক জায়গা
-                                    থেকে পরিচালনা করুন।
-                                </p>
-                            </div>
-
-                            {/* IMAGE AREA */}
-                            <div
-                                className="
-                                    absolute
-                                    inset-x-7
-                                    bottom-0
-                                    top-[285px]
-                                    xl:inset-x-12
-                                    xl:top-[330px]
-                                    2xl:inset-x-20
-                                    2xl:top-[350px]
-                                "
-                            >
+                                {/* subtle visual detail */}
                                 <div
                                     className="
+                                        pointer-events-none
                                         absolute
-                                        inset-y-0
-                                        left-0
-                                        w-[72%]
-                                        overflow-hidden
-                                        bg-[#dfe9e6]
-                                        xl:w-[70%]
-                                        2xl:w-[68%]
+                                        -top-20
+                                        -right-16
+                                        h-56
+                                        w-56
+                                        rounded-full
+                                        border
+                                        border-white/[0.06]
                                     "
-                                >
-                                    <img
-                                        src={login}
-                                        alt="মানুষের পাশে স্বেচ্ছাসেবকেরা"
-                                        className="
-                                            h-full
-                                            w-full
-                                            object-cover
-                                            object-center
-                                        "
-                                    />
-                                </div>
+                                />
 
                                 <div
                                     className="
+                                        pointer-events-none
                                         absolute
-                                        bottom-0
-                                        left-[30%]
-                                        z-10
-                                        w-[48%]
-                                        bg-black/40
-                                        px-5
-                                        py-5
-                                        xl:left-[30%]
-                                        xl:w-[44%]
-                                        xl:px-6
-                                        xl:py-6
-                                        2xl:left-[36%]
-                                        2xl:w-[42%]
-                                        2xl:px-8
-                                        2xl:py-8
+                                        -top-5
+                                        -right-2
+                                        h-32
+                                        w-32
+                                        rounded-full
+                                        border
+                                        border-white/[0.06]
                                     "
-                                >
-                                    <span className="block h-[2px] w-8 bg-[#f59e0b]" />
+                                />
 
-                                    <p
-                                        className="
-                                            mt-4
-                                            font-bengali
-                                            text-[12px]
-                                            font-medium
-                                            leading-[1.8]
-                                            text-white
-                                            xl:text-[14px]
-                                            2xl:text-[15px]
-                                        "
-                                    >
-                                        একটি উদ্যোগ তখনই অর্থবহ হয়, যখন সেটি
-                                        প্রয়োজনের মানুষটির কাছে পৌঁছায়।
-                                    </p>
-
-                                    <div
-                                        className="
-                                            mt-4
-                                            flex
-                                            items-center
-                                            gap-2
-                                            border-t
-                                            border-white/15
-                                            pt-3
-                                        "
-                                    >
-                                        <TbShieldCheck
-                                            size={15}
-                                            className="text-[#b9ddd7]"
-                                        />
-
-                                        <span className="font-bengali text-[9px] text-white/75">
-                                            নিরাপদ ও সমন্বিত মানবিক প্ল্যাটফর্ম
-                                        </span>
-                                    </div>
-                                </div>
-
-
-                                <div
-                                    className="
-                                        absolute
-                                        bottom-0
-                                        right-0
-                                        top-0
-                                        flex
-                                        w-[10%]
-                                        items-center
-                                        justify-center
-                                        border-l
-                                        border-[#dce4e1]
-                                        2xl:w-[13%]
-                                    "
-                                >
-                                    <p
-                                        className="
-                                            rotate-180
-                                            font-bengali
-                                            text-[9px]
-                                            font-medium
-                                            tracking-[0.1em]
-                                            text-[#9aa8a4]
-                                            [writing-mode:vertical-rl]
-                                        "
-                                    >
-                                        মর্যাদা · সংহতি · মানবিক উদ্যোগ
-                                    </p>
-                                </div>
-
-                            </div>
-                        </section>
-
-                        {/* =================================================
-                            RIGHT — LOGIN ENVIRONMENT
-                        ================================================== */}
-                        <section
-                            className="
-                                relative
-                                flex
-                                min-h-[650px]
-                                items-center
-                                overflow-hidden
-                                bg-[#0f6258]
-                                px-7
-                                py-9
-                                xl:min-h-[680px]
-                                xl:px-10
-                                xl:py-10
-                                2xl:px-14
-                            "
-                        >
-                            {/* DECORATIVE CIRCLES */}
-                            <div
-                                aria-hidden="true"
-                                className="
-                                    pointer-events-none
-                                    absolute
-                                    -right-32
-                                    -top-32
-                                    h-[420px]
-                                    w-[420px]
-                                    rounded-full
-                                    border
-                                    border-white/[0.07]
-                                    2xl:h-[500px]
-                                    2xl:w-[500px]
-                                "
-                            />
-
-                            <div
-                                aria-hidden="true"
-                                className="
-                                    pointer-events-none
-                                    absolute
-                                    -bottom-40
-                                    -left-40
-                                    h-[460px]
-                                    w-[460px]
-                                    rounded-full
-                                    border
-                                    border-[#f59e0b]/[0.08]
-                                "
-                            />
-
-                            {/* LOGIN CONTENT */}
-                            <div
-                                className="
-                                    relative
-                                    z-10
-                                    mx-auto
-                                    w-full
-                                    max-w-[430px]
-                                    xl:max-w-[450px]
-                                    2xl:max-w-[470px]
-                                "
-                            >
                                 {/* TOP MARKER */}
-                                <div className="mb-6 flex items-center justify-between xl:mb-7">
-                                    <div className="flex items-center gap-3">
-                                        <span className="h-[2px] w-8 bg-[#f59e0b]" />
+                                <div className="relative z-10 flex items-center justify-between">
+                                    <div className="flex items-center gap-2.5 sm:gap-3">
+                                        <span
+                                            className="
+                                                h-[2px]
+                                                w-6
+                                                bg-[#f59e0b]
+
+                                                sm:w-8
+                                            "
+                                        />
 
                                         <span
                                             className="
                                                 font-sans
-                                                text-[9px]
+                                                text-[8px]
                                                 font-semibold
-                                                tracking-[0.12em]
+                                                tracking-[0.13em]
                                                 text-white/55
+
+                                                sm:text-[9px]
                                                 xl:text-[10px]
                                             "
                                         >
@@ -434,20 +485,47 @@ const Login = () => {
                                         </span>
                                     </div>
 
-                                    <TbShieldCheck
-                                        size={20}
-                                        className="text-white/40"
-                                    />
+                                    <div
+                                        className="
+                                            flex
+                                            h-8
+                                            w-8
+                                            items-center
+                                            justify-center
+                                            rounded-[9px]
+                                            border
+                                            border-white/10
+                                            bg-white/[0.06]
+                                            text-white/60
+
+                                            sm:h-9
+                                            sm:w-9
+                                            sm:rounded-[10px]
+                                        "
+                                    >
+                                        <TbShieldCheck size={18} />
+                                    </div>
                                 </div>
 
                                 {/* HEADING */}
-                                <div>
+                                <div
+                                    className="
+                                        relative
+                                        z-10
+                                        mt-5
+
+                                        sm:mt-6
+                                    "
+                                >
                                     <p
                                         className="
                                             font-bengali
-                                            text-[11px]
+                                            text-[10px]
                                             font-medium
                                             text-[#f6c27d]
+
+                                            sm:text-[11px]
+                                            xl:text-[12px]
                                         "
                                     >
                                         অ্যাকাউন্টে প্রবেশ
@@ -455,15 +533,20 @@ const Login = () => {
 
                                     <h2
                                         className="
-                                            mt-1
+                                            mt-1.5
                                             font-bengali
-                                            text-[31px]
+                                            text-[25px]
                                             font-semibold
                                             leading-[1.4]
                                             tracking-[-0.025em]
-                                            text-white
-                                            xl:text-[35px]
-                                            2xl:text-[39px]
+                                            text-white!
+
+                                            sm:text-[29px]
+
+                                            lg:text-[27px]
+
+                                            xl:text-[33px]
+                                            2xl:text-[36px]
                                         "
                                     >
                                         আবার স্বাগতম
@@ -471,14 +554,18 @@ const Login = () => {
 
                                     <p
                                         className="
-                                            mt-1.5
-                                            max-w-[380px]
+                                            mt-2
+                                            max-w-[390px]
                                             font-bengali
-                                            text-[11px]
+                                            text-[10.5px]
                                             leading-[1.85]
                                             text-white/55
-                                            xl:text-[12px]
-                                            2xl:text-[13px]
+
+                                            sm:text-[11.5px]
+
+                                            lg:text-[11px]
+
+                                            xl:text-[12.5px]
                                         "
                                     >
                                         আপনার পরিচয় নির্বাচন করে অ্যাকাউন্টে
@@ -486,15 +573,28 @@ const Login = () => {
                                     </p>
                                 </div>
 
-                                {/* ROLE SWITCHER */}
-                                <div className="mt-6 xl:mt-7">
+                                {/* =========================================
+                                    ROLE SWITCHER
+                                ========================================== */}
+                                <div
+                                    className="
+                                        relative
+                                        z-10
+                                        mt-5
+
+                                        sm:mt-6
+                                    "
+                                >
                                     <p
                                         className="
-                                            mb-2.5
+                                            mb-2
                                             font-bengali
-                                            text-[10px]
+                                            text-[9px]
                                             font-medium
                                             text-white/50
+
+                                            sm:mb-2.5
+                                            sm:text-[10px]
                                         "
                                     >
                                         প্রবেশের পরিচয়
@@ -505,9 +605,11 @@ const Login = () => {
                                             grid
                                             grid-cols-2
                                             overflow-hidden
+                                            rounded-[12px]
                                             border
                                             border-white/15
-                                            bg-white/[0.05]
+                                            bg-white/[0.06]
+                                            p-1
                                         "
                                     >
                                         <button
@@ -519,33 +621,71 @@ const Login = () => {
                                             className={`
                                                 relative
                                                 flex
-                                                h-[61px]
+                                                h-[48px]
+                                                min-w-0
                                                 items-center
-                                                gap-3
-                                                px-4
+                                                gap-2
+                                                rounded-[9px]
+                                                px-3
                                                 text-left
                                                 transition-all
                                                 duration-200
+
+                                                sm:h-[52px]
+                                                sm:gap-3
+                                                sm:px-4
+
                                                 focus-visible:outline-none
                                                 focus-visible:ring-2
-                                                focus-visible:ring-inset
                                                 focus-visible:ring-[#f59e0b]
+
                                                 ${
                                                     isIndividual
-                                                        ? 'bg-[#f7f8f5] text-[#0f6258]'
-                                                        : 'text-white/65 hover:bg-white/[0.08] hover:text-white'
+                                                        ? `
+                                                            bg-white
+                                                            text-[#0f6258]
+                                                            shadow-[0_4px_14px_rgba(0,0,0,0.08)]
+                                                          `
+                                                        : `
+                                                            text-white/60
+                                                            hover:bg-white/[0.06]
+                                                            hover:text-white!
+                                                          `
                                                 }
                                             `}
                                         >
-                                            {isIndividual && (
-                                                <span className="absolute inset-x-0 bottom-0 h-[3px] bg-[#f59e0b]" />
-                                            )}
+                                            <TbUser
+                                                size={19}
+                                                className="shrink-0"
+                                            />
 
-                                            <TbUser size={19} />
+                                            <span
+                                                className="
+                                                    truncate
+                                                    font-bengali
+                                                    text-[10.5px]
+                                                    font-semibold
 
-                                            <span className="font-bengali text-[11px] font-semibold">
+                                                    sm:text-[11.5px]
+                                                "
+                                            >
                                                 ব্যক্তি
                                             </span>
+
+                                            {isIndividual && (
+                                                <span
+                                                    className="
+                                                        absolute
+                                                        right-2.5
+                                                        h-1.5
+                                                        w-1.5
+                                                        rounded-full
+                                                        bg-[#f59e0b]
+
+                                                        sm:right-3
+                                                    "
+                                                />
+                                            )}
                                         </button>
 
                                         <button
@@ -557,55 +697,202 @@ const Login = () => {
                                             className={`
                                                 relative
                                                 flex
-                                                h-[61px]
+                                                h-[48px]
+                                                min-w-0
                                                 items-center
-                                                gap-3
-                                                border-l
-                                                border-white/15
-                                                px-4
+                                                gap-2
+                                                rounded-[9px]
+                                                px-3
                                                 text-left
                                                 transition-all
                                                 duration-200
+
+                                                sm:h-[52px]
+                                                sm:gap-3
+                                                sm:px-4
+
                                                 focus-visible:outline-none
                                                 focus-visible:ring-2
-                                                focus-visible:ring-inset
                                                 focus-visible:ring-[#f59e0b]
+
                                                 ${
                                                     isOrganization
-                                                        ? 'bg-[#f7f8f5] text-[#0f6258]'
-                                                        : 'text-white/65 hover:bg-white/[0.08] hover:text-white'
+                                                        ? `
+                                                            bg-white
+                                                            text-[#0f6258]
+                                                            shadow-[0_4px_14px_rgba(0,0,0,0.08)]
+                                                          `
+                                                        : `
+                                                            text-white/60
+                                                            hover:bg-white/[0.06]
+                                                            hover:text-white!
+                                                          `
                                                 }
                                             `}
                                         >
-                                            {isOrganization && (
-                                                <span className="absolute inset-x-0 bottom-0 h-[3px] bg-[#f59e0b]" />
-                                            )}
+                                            <TbBuildingCommunity
+                                                size={19}
+                                                className="shrink-0"
+                                            />
 
-                                            <TbBuildingCommunity size={19} />
+                                            <span
+                                                className="
+                                                    truncate
+                                                    font-bengali
+                                                    text-[10.5px]
+                                                    font-semibold
 
-                                            <span className="font-bengali text-[11px] font-semibold">
+                                                    sm:text-[11.5px]
+                                                "
+                                            >
                                                 প্রতিষ্ঠান
                                             </span>
+
+                                            {isOrganization && (
+                                                <span
+                                                    className="
+                                                        absolute
+                                                        right-2.5
+                                                        h-1.5
+                                                        w-1.5
+                                                        rounded-full
+                                                        bg-[#f59e0b]
+
+                                                        sm:right-3
+                                                    "
+                                                />
+                                            )}
                                         </button>
                                     </div>
                                 </div>
+                            </div>
 
-                                {/* LOGIN FORM */}
-                                <div className="mt-6 xl:mt-7">
-                                    <LoginForm />
-                                </div>
+                            {/* =============================================
+                                LOGIN FORM AREA
+                            ============================================== */}
+                            <div
+                                className="
+                                    bg-white
+                                    px-5
+                                    py-6
 
-                                {/* REGISTER */}
+                                    sm:px-7
+                                    sm:py-7
+
+                                    lg:px-6
+                                    lg:py-6
+
+                                    xl:px-9
+                                    xl:py-8
+                                "
+                            >
+                                <LoginForm />
+                            </div>
+
+                            {/* =============================================
+                                BOTTOM AREA
+                            ============================================== */}
+                            <div
+                                className="
+                                    border-t
+                                    border-[#e5ece9]
+                                    bg-[#f7faf8]
+                                    px-5
+                                    py-4
+
+                                    sm:px-7
+                                    sm:py-5
+
+                                    lg:px-6
+
+                                    xl:px-9
+                                "
+                            >
                                 <div
                                     className="
-                                        mt-6
-                                        border-t
-                                        border-white/10
-                                        pt-5
+                                        flex
+                                        flex-col
+                                        gap-4
+
+                                        sm:flex-row
+                                        sm:items-center
+                                        sm:justify-between
+                                        sm:gap-5
+
+                                        lg:flex-col
+                                        lg:items-start
+
+                                        xl:flex-row
+                                        xl:items-center
                                     "
                                 >
-                                    <div className="flex items-center justify-between gap-4">
-                                        <p className="font-bengali text-[10px] text-white/45">
+                                    <div
+                                        className="
+                                            flex
+                                            flex-wrap
+                                            items-center
+                                            gap-x-4
+                                            gap-y-2
+                                            font-bengali
+                                            text-[8.5px]
+                                            text-[#81918c]
+
+                                            sm:text-[9px]
+                                            2xl:text-[10px]
+                                        "
+                                    >
+                                        <Link
+                                            to="/terms"
+                                            className="
+                                                transition-colors
+                                                hover:text-[#0f766e]
+                                            "
+                                        >
+                                            ব্যবহারের শর্তাবলি
+                                        </Link>
+
+                                        <Link
+                                            to="/privacy"
+                                            className="
+                                                transition-colors
+                                                hover:text-[#0f766e]
+                                            "
+                                        >
+                                            গোপনীয়তা নীতি
+                                        </Link>
+
+                                        <Link
+                                            to="/contact"
+                                            className="
+                                                transition-colors
+                                                hover:text-[#0f766e]
+                                            "
+                                        >
+                                            যোগাযোগ
+                                        </Link>
+                                    </div>
+
+                                    <div
+                                        className="
+                                            flex
+                                            w-full
+                                            items-center
+                                            justify-between
+                                            gap-3
+
+                                            sm:w-auto
+                                            sm:justify-start
+                                        "
+                                    >
+                                        <p
+                                            className="
+                                                font-bengali
+                                                text-[9.5px]
+                                                text-[#84938e]
+
+                                                sm:text-[10px]
+                                            "
+                                        >
                                             এখনো অ্যাকাউন্ট নেই?
                                         </p>
 
@@ -614,349 +901,38 @@ const Login = () => {
                                             className="
                                                 group
                                                 inline-flex
+                                                shrink-0
                                                 items-center
                                                 gap-1.5
                                                 whitespace-nowrap
                                                 font-bengali
-                                                text-[10.5px]
+                                                text-[10px]
                                                 font-semibold
-                                                text-white
+                                                text-[#0f766e]
                                                 transition-colors
-                                                hover:text-[#f6c27d]
+
+                                                hover:text-[#115e59]
+
+                                                sm:text-[10.5px]
                                             "
                                         >
                                             অ্যাকাউন্ট তৈরি করুন
-                                            <span className="transition-transform duration-200 group-hover:translate-x-1">
+                                            <span
+                                                className="
+                                                    transition-transform
+                                                    duration-200
+                                                    group-hover:translate-x-1
+                                                "
+                                            >
                                                 →
                                             </span>
                                         </Link>
                                     </div>
                                 </div>
                             </div>
-                        </section>
-                    </div>
-
-                    {/* FOOTER */}
-                    <footer
-                        className="
-                            flex
-                            h-[48px]
-                            shrink-0
-                            items-center
-                            justify-between
-                            border-t
-                            border-[#e1e7e5]
-                            px-7
-                            xl:h-[50px]
-                            xl:px-12
-                            2xl:h-[54px]
-                            2xl:px-20
-                        "
-                    >
-                        <p
-                            className="
-                                font-sans
-                                text-[8px]
-                                uppercase
-                                tracking-[0.18em]
-                                text-[#a0aba8]
-                                2xl:text-[9px]
-                            "
-                        >
-                            Stand For People
-                        </p>
-
-                        <div
-                            className="
-                                flex
-                                items-center
-                                gap-4
-                                font-bengali
-                                text-[9px]
-                                text-[#899793]
-                                2xl:text-[10px]
-                            "
-                        >
-                            <Link
-                                to="/terms"
-                                className="transition-colors hover:text-[#0f766e]"
-                            >
-                                ব্যবহারের শর্তাবলি
-                            </Link>
-
-                            <Link
-                                to="/privacy"
-                                className="transition-colors hover:text-[#0f766e]"
-                            >
-                                গোপনীয়তা নীতি
-                            </Link>
-
-                            <Link
-                                to="/contact"
-                                className="transition-colors hover:text-[#0f766e]"
-                            >
-                                যোগাযোগ
-                            </Link>
                         </div>
-                    </footer>
+                    </section>
                 </div>
-            </div>
-
-            {/* =========================================================
-                MOBILE / TABLET
-            ========================================================== */}
-            <div className="min-h-screen lg:hidden">
-                {/* HEADER */}
-                <header className="border-b border-[#dfe6e4] bg-[#f7f8f5]">
-                    <div className="mx-auto flex h-[70px] max-w-[600px] items-center justify-between px-5 sm:px-7">
-                        <Link to="/" aria-label="হোম পেজ">
-                            <img
-                                src={logo}
-                                alt="Stand For People"
-                                className="h-10 w-auto object-contain"
-                            />
-                        </Link>
-
-                        <Link
-                            to="/"
-                            aria-label="হোমে ফিরে যান"
-                            className="
-                                flex
-                                h-9
-                                w-9
-                                items-center
-                                justify-center
-                                border
-                                border-[#d4dfdc]
-                                text-[#60736d]
-                                transition-colors
-                                hover:border-[#0f766e]
-                                hover:bg-[#eaf4f2]
-                                hover:text-[#0f766e]
-                            "
-                        >
-                            <TbArrowLeft size={17} />
-                        </Link>
-                    </div>
-                </header>
-
-                {/* INTRO */}
-                <section className="bg-[#eaf4f2] px-5 py-7 sm:px-7 sm:py-9">
-                    <div className="mx-auto max-w-[560px]">
-                        <div className="flex items-center gap-2.5">
-                            <span className="h-[2px] w-7 bg-[#f59e0b]" />
-
-                            <p className="font-sans text-[10px] font-semibold tracking-[0.06em] text-[#0f766e]">
-                                STAND FOR PEOPLE
-                            </p>
-                        </div>
-
-                        <h1
-                            className="
-                                mt-4
-                                max-w-[430px]
-                                font-bengali
-                                text-[27px]
-                                font-semibold
-                                leading-[1.5]
-                                tracking-[-0.02em]
-                                text-[#163c37]
-                                sm:text-[31px]
-                            "
-                        >
-                            মানুষের পাশে থাকার কাজে
-                            <span className="block text-[#0f766e]">
-                                আবার স্বাগতম।
-                            </span>
-                        </h1>
-
-                        <p className="mt-3 max-w-[420px] font-bengali text-[12px] leading-[1.9] text-[#71827d]">
-                            আপনার মানবিক উদ্যোগ ও সহায়তার সংযোগগুলো এখান থেকেই
-                            এগিয়ে নিন।
-                        </p>
-                    </div>
-                </section>
-
-                {/* MOBILE AUTH */}
-                <section className="bg-[#0f6258] px-4 py-7 sm:px-7 sm:py-10">
-                    <div className="mx-auto max-w-[560px]">
-                        <div
-                            className="
-                                relative
-                                overflow-hidden
-                                border
-                                border-white/10
-                                bg-[#0f6258]
-                            "
-                        >
-                            <div
-                                aria-hidden="true"
-                                className="
-                                    pointer-events-none
-                                    absolute
-                                    -right-24
-                                    -top-24
-                                    h-64
-                                    w-64
-                                    rounded-full
-                                    border
-                                    border-white/[0.06]
-                                "
-                            />
-
-                            <div className="relative z-10 px-5 py-7 sm:px-8 sm:py-8">
-                                {/* MARKER */}
-                                <div className="mb-6 flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <span className="h-[2px] w-7 bg-[#f59e0b]" />
-
-                                        <span className="font-sans text-[9px] font-semibold tracking-[0.1em] text-white/55">
-                                            ACCOUNT ACCESS
-                                        </span>
-                                    </div>
-
-                                    <TbShieldCheck
-                                        size={19}
-                                        className="text-white/40"
-                                    />
-                                </div>
-
-                                {/* HEADING */}
-                                <p className="font-bengali text-[11px] font-medium text-[#f6c27d]">
-                                    অ্যাকাউন্টে প্রবেশ
-                                </p>
-
-                                <h2 className="mt-1 font-bengali text-[27px] font-semibold leading-[1.45] text-white">
-                                    আবার স্বাগতম
-                                </h2>
-
-                                <p className="mt-1.5 font-bengali text-[11px] leading-6 text-white/55">
-                                    আপনার পরিচয় নির্বাচন করে অ্যাকাউন্টে প্রবেশ
-                                    করুন।
-                                </p>
-
-                                {/* ROLE */}
-                                <div className="mt-6">
-                                    <p className="mb-2.5 font-bengali text-[10px] font-medium text-white/50">
-                                        প্রবেশের পরিচয়
-                                    </p>
-
-                                    <div className="grid grid-cols-2 overflow-hidden border border-white/15">
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                handleRoleChange('individual')
-                                            }
-                                            aria-pressed={isIndividual}
-                                            className={`
-                                                relative
-                                                flex
-                                                h-[58px]
-                                                items-center
-                                                justify-center
-                                                gap-2.5
-                                                font-bengali
-                                                text-[11px]
-                                                font-semibold
-                                                transition-all
-                                                ${
-                                                    isIndividual
-                                                        ? 'bg-[#f7f8f5] text-[#0f6258]'
-                                                        : 'bg-white/[0.04] text-white/65'
-                                                }
-                                            `}
-                                        >
-                                            {isIndividual && (
-                                                <span className="absolute inset-x-0 bottom-0 h-[3px] bg-[#f59e0b]" />
-                                            )}
-                                            <TbUser size={18} />
-                                            ব্যক্তি
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                handleRoleChange('organization')
-                                            }
-                                            aria-pressed={isOrganization}
-                                            className={`
-                                                relative
-                                                flex
-                                                h-[58px]
-                                                items-center
-                                                justify-center
-                                                gap-2.5
-                                                border-l
-                                                border-white/15
-                                                font-bengali
-                                                text-[11px]
-                                                font-semibold
-                                                transition-all
-                                                ${
-                                                    isOrganization
-                                                        ? 'bg-[#f7f8f5] text-[#0f6258]'
-                                                        : 'bg-white/[0.04] text-white/65'
-                                                }
-                                            `}
-                                        >
-                                            {isOrganization && (
-                                                <span className="absolute inset-x-0 bottom-0 h-[3px] bg-[#f59e0b]" />
-                                            )}
-                                            <TbBuildingCommunity size={18} />
-                                            প্রতিষ্ঠান
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* FORM */}
-                                <div className="mt-6 border-t border-white/10 pt-6">
-                                    <LoginForm />
-                                </div>
-
-                                {/* REGISTER */}
-                                <div className="mt-6 border-t border-white/10 pt-5 text-center">
-                                    <p className="font-bengali text-[10.5px] text-white/45">
-                                        এখনো অ্যাকাউন্ট নেই?{' '}
-                                        <Link
-                                            to="/register"
-                                            className="font-semibold text-white transition-colors hover:text-[#f6c27d]"
-                                        >
-                                            নতুন অ্যাকাউন্ট তৈরি করুন
-                                        </Link>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* FOOTER LINKS */}
-                        <div className="mt-6 flex flex-wrap justify-center gap-x-4 gap-y-2 font-bengali text-[9.5px] text-white/45">
-                            <Link
-                                to="/terms"
-                                className="transition-colors hover:text-white"
-                            >
-                                ব্যবহারের শর্তাবলি
-                            </Link>
-
-                            <span>•</span>
-
-                            <Link
-                                to="/privacy"
-                                className="transition-colors hover:text-white"
-                            >
-                                গোপনীয়তা নীতি
-                            </Link>
-
-                            <span>•</span>
-
-                            <Link
-                                to="/contact"
-                                className="transition-colors hover:text-white"
-                            >
-                                যোগাযোগ
-                            </Link>
-                        </div>
-                    </div>
-                </section>
             </div>
         </main>
     );

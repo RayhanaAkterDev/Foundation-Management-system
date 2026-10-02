@@ -166,10 +166,8 @@ const LoginForm = ({ loginRole }) => {
 
             if (userRole === 'admin') {
                 navigate('/admin/dashboard');
-            } else if (userRole === 'organization') {
-                navigate('/organization/dashboard');
             } else {
-                navigate('/individual/dashboard');
+                navigate('/');
             }
         } catch (requestError) {
             console.error('Login error:', requestError);
@@ -380,7 +378,7 @@ const LoginForm = ({ loginRole }) => {
                     </label>
 
                     <Link
-                        to="/account/forgot-password"
+                        to="/forgot-password"
                         className={`
                             min-w-0
                             text-right

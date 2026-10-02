@@ -1,111 +1,260 @@
-import React from "react";
-import { TrendingUp, TrendingDown, Minus, ArrowUpRight } from "lucide-react";
+import React from 'react';
 
-/**
- * StatCard — displays a single metric with label, value, optional icon, and optional trend.
- *
- * Props:
- *   label      {string}   — metric label
- *   value      {string|number} — main value to display
- *   icon       {Component} — lucide-react icon component
- *   iconColor  {string}   — tailwind bg class for icon background (defaults to teal)
- *   trend      {number}   — percentage change; positive=up, negative=down, 0/null=neutral
- *   trendLabel {string}   — context string shown next to trend (e.g. "vs last month")
- *   subtext    {string}   — small supplementary text below value
- */
-const StatCard = ({
-  label,
-  value,
-  icon: Icon,
-  iconColor,
-  trend,
-  trendLabel,
-  subtext,
-}) => {
-  const hasTrend = trend !== null && trend !== undefined;
+import { ArrowDownRight, ArrowUpRight, Minus } from 'lucide-react';
 
-  const trendEl = hasTrend ? (
-    <span
-      className={`inline-flex items-center gap-1.5 text-xs font-semibold ${
-        trend > 0
-          ? "text-emerald-600"
-          : trend < 0
-            ? "text-red-500"
-            : "text-slate-500"
-      }`}>
-      <span
-        className={`flex h-5 w-5 items-center justify-center ${
-          trend > 0 ? "bg-emerald-50" : trend < 0 ? "bg-red-50" : "bg-slate-100"
-        }`}>
-        {trend > 0 ? (
-          <TrendingUp className="h-3 w-3" strokeWidth={2.2} />
-        ) : trend < 0 ? (
-          <TrendingDown className="h-3 w-3" strokeWidth={2.2} />
-        ) : (
-          <Minus className="h-3 w-3" strokeWidth={2.2} />
-        )}
-      </span>
+/* ==========================================================================
+   TREND
+============================================================================ */
 
-      {trend > 0 ? `+${trend}%` : `${trend}%`}
+const Trend = ({ value, label }) => {
+    if (value === null || value === undefined) {
+        return null;
+    }
 
-      {trendLabel && (
-        <span className="font-normal text-slate-400">{trendLabel}</span>
-      )}
-    </span>
-  ) : null;
+    const positive = value > 0;
+    const negative = value < 0;
 
-  return (
-    <div className="group relative overflow-hidden border border-slate-200 bg-white transition-colors duration-200 hover:border-slate-300">
-      {/* Top content */}
-      <div className="p-5 sm:p-6">
-        <div className="flex items-start justify-between gap-5">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="h-1.5 w-1.5 shrink-0 bg-primary" />
+    const Icon = positive ? ArrowUpRight : negative ? ArrowDownRight : Minus;
 
-              <p className="truncate text-xs font-semibold tracking-wide text-slate-500">
-                {label}
-              </p>
-            </div>
+    const tone = positive
+        ? {
+              text: 'text-[#8EC5A3]!',
+              bg: 'bg-[#22362D]',
+              border: 'border-[#315140]',
+          }
+        : negative
+          ? {
+                text: 'text-[#D99A9F]!',
+                bg: 'bg-[#38272C]',
+                border: 'border-[#54353C]',
+            }
+          : {
+                text: 'text-[#9299A6]!',
+                bg: 'bg-[#2C303A]',
+                border: 'border-[#404754]',
+            };
 
-            <p className="mt-4 font-jost text-3xl font-semibold leading-none tracking-[-0.035em] text-slate-900 tabular-nums sm:text-[32px]">
-              {value}
-            </p>
-          </div>
-
-          {Icon && (
+    return (
+        <div
+            className="
+                flex
+                min-w-0
+                flex-wrap
+                items-center
+                gap-2
+            "
+        >
             <span
-              className={`flex h-11 w-11 shrink-0 items-center justify-center ${
-                iconColor || "bg-primary/10"
-              }`}>
-              <Icon
-                className={`h-[19px] w-[19px] ${
-                  iconColor ? "" : "text-primary"
-                }`}
-                strokeWidth={1.8}
-              />
+                className={`
+                    inline-flex
+                    h-6
+                    items-center
+                    gap-1
+
+                    rounded-md
+
+                    border
+
+                    px-1.5
+
+                    text-[10px]
+                    font-semibold
+
+                    ${tone.text}
+                    ${tone.bg}
+                    ${tone.border}
+                `}
+            >
+                <Icon size={12} strokeWidth={1.9} />
+
+                <span>
+                    {positive ? '+' : ''}
+                    {value}%
+                </span>
             </span>
-          )}
-        </div>
 
-        {/* Supporting information */}
-        {(subtext || hasTrend) && (
-          <div className="mt-5 flex min-h-5 flex-wrap items-center gap-x-3 gap-y-1 border-t border-slate-100 pt-3.5">
-            {trendEl}
+            {label && (
+                <span
+                    className="
+                        truncate
 
-            {subtext && (
-              <span className="text-xs text-slate-400">{subtext}</span>
+                        text-[10.5px]
+
+                        text-[#6F7785]!
+                    "
+                >
+                    {label}
+                </span>
             )}
-          </div>
-        )}
-      </div>
+        </div>
+    );
+};
 
-      {/* Subtle bottom indicator */}
-      <div className="absolute inset-x-0 bottom-0 h-0.5 bg-slate-100">
-        <div className="h-full w-0 bg-primary transition-all duration-300 group-hover:w-full" />
-      </div>
-    </div>
-  );
+/* ==========================================================================
+   STAT CARD
+============================================================================ */
+
+const StatCard = ({
+    label,
+    value,
+    icon: Icon,
+    iconColor,
+    trend,
+    trendLabel,
+    subtext,
+}) => {
+    return (
+        <article
+            className="
+                group
+
+                relative
+
+                min-w-0
+                overflow-hidden
+
+                border
+                border-[#343944]
+
+                bg-[#22252D]
+
+                transition-colors
+                duration-150
+
+                hover:border-[#404754]
+                hover:bg-[#242830]
+            "
+        >
+            <div
+                className="
+                    flex
+                    min-h-[138px]
+                    flex-col
+
+                    p-4
+
+                    sm:min-h-[148px]
+                    sm:p-5
+                "
+            >
+                {/* =========================================================
+                    TOP
+                ========================================================= */}
+
+                <div
+                    className="
+                        flex
+                        items-start
+                        justify-between
+                        gap-4
+                    "
+                >
+                    <p
+                        className="
+                            min-w-0
+                            truncate
+
+                            text-[10px]
+                            font-semibold
+                            uppercase
+                            tracking-[0.11em]
+
+                            text-[#9299A6]!
+                        "
+                    >
+                        {label}
+                    </p>
+
+                    {Icon && (
+                        <span
+                            className={`
+                                flex
+                                h-8
+                                w-8
+                                shrink-0
+                                items-center
+                                justify-center
+
+                                rounded-md
+
+                                border
+                                border-[#3A404B]
+
+                                bg-[#2C303A]
+
+                                ${iconColor ? iconColor : 'text-[#A8AFBB]!'}
+                            `}
+                        >
+                            <Icon size={16} strokeWidth={1.7} />
+                        </span>
+                    )}
+                </div>
+
+                {/* =========================================================
+                    VALUE
+                ========================================================= */}
+
+                <p
+                    className="
+                        mt-4
+
+                        font-sans!
+
+                        text-[27px]
+                        font-semibold
+                        leading-none
+                        tracking-[-0.035em]
+
+                        text-[#F1F2F4]!
+
+                        tabular-nums
+
+                        sm:text-[30px]
+                    "
+                >
+                    {value}
+                </p>
+
+                {/* =========================================================
+                    FOOTER
+                ========================================================= */}
+
+                {(subtext || (trend !== null && trend !== undefined)) && (
+                    <div
+                        className="
+                            mt-auto
+
+                            flex
+                            min-w-0
+                            flex-wrap
+                            items-center
+                            gap-x-3
+                            gap-y-2
+
+                            pt-4
+                        "
+                    >
+                        <Trend value={trend} label={trendLabel} />
+
+                        {subtext && (
+                            <span
+                                className="
+                                    min-w-0
+                                    truncate
+
+                                    text-[10.5px]
+
+                                    text-[#6F7785]!
+                                "
+                            >
+                                {subtext}
+                            </span>
+                        )}
+                    </div>
+                )}
+            </div>
+        </article>
+    );
 };
 
 export default StatCard;

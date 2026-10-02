@@ -1,15 +1,14 @@
 import React from 'react';
-import { Inbox } from 'lucide-react';
 
-/**
- * EmptyState — shown when a list or table has no data.
- *
- * Props:
- *   icon     {Component}  — lucide-react icon (defaults to Inbox)
- *   title    {string}     — short heading
- *   message  {string}     — supporting explanation
- *   action   {object}     — optional CTA: { label, onClick }
- */
+import {
+    ArrowRight,
+    Inbox,
+} from 'lucide-react';
+
+/* ==========================================================================
+   EMPTY STATE
+============================================================================ */
+
 const EmptyState = ({
     icon: Icon = Inbox,
     title = 'Nothing here yet',
@@ -17,25 +16,148 @@ const EmptyState = ({
     action,
 }) => {
     return (
-        <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-            <span className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#eef3f6] text-[#6b7280]">
-                <Icon className="h-7 w-7" strokeWidth={1.5} />
-            </span>
-            <p className="font-['Fraunces'] text-base font-semibold text-text-primary">
+        <div
+            className="
+                flex
+                min-h-[250px]
+                flex-col
+                items-center
+                justify-center
+
+                px-5
+                py-10
+
+                text-center
+
+                sm:min-h-[280px]
+                sm:px-8
+                sm:py-12
+            "
+        >
+            {/* =============================================================
+                ICON
+            ============================================================= */}
+
+            <div
+                className="
+                    flex
+                    h-11
+                    w-11
+                    items-center
+                    justify-center
+
+                    rounded-lg
+
+                    border
+                    border-[#3A404B]
+
+                    bg-[#2C303A]
+
+                    text-[#9299A6]!
+                "
+            >
+                <Icon
+                    size={20}
+                    strokeWidth={1.6}
+                />
+            </div>
+
+            {/* =============================================================
+                CONTENT
+            ============================================================= */}
+
+            <h3
+                className="
+                    mt-4
+
+                    font-sans!
+
+                    text-[14px]
+                    font-semibold
+                    tracking-[-0.01em]
+
+                    text-[#E5E7EB]!
+                "
+            >
                 {title}
-            </p>
+            </h3>
+
             {message && (
-                <p className="mt-1.5 max-w-xs text-sm leading-relaxed text-[#6b7280]">
+                <p
+                    className="
+                        mt-1.5
+                        max-w-[360px]
+
+                        text-[11.5px]
+                        leading-5
+
+                        text-[#7F8794]!
+                    "
+                >
                     {message}
                 </p>
             )}
+
+            {/* =============================================================
+                ACTION
+            ============================================================= */}
+
             {action && (
                 <button
                     type="button"
                     onClick={action.onClick}
-                    className="mt-5 inline-flex h-10 items-center justify-center rounded-xl bg-primary px-5 text-sm font-medium text-white! transition-colors hover:bg-primary-hover"
+                    className="
+                        group
+
+                        mt-5
+
+                        inline-flex
+                        min-h-9
+                        items-center
+                        justify-center
+                        gap-2
+
+                        rounded-md
+
+                        border
+                        border-[#404754]
+
+                        bg-[#303641]
+
+                        px-3.5
+
+                        text-[11px]
+                        font-semibold
+
+                        text-[#E5E7EB]!
+
+                        transition-colors
+                        duration-150
+
+                        hover:border-[#515966]
+                        hover:bg-[#393F4C]
+                        hover:text-[#FFFFFF]!
+
+                        focus:outline-none
+                    "
                 >
-                    {action.label}
+                    <span>
+                        {action.label}
+                    </span>
+
+                    <ArrowRight
+                        size={13}
+                        strokeWidth={1.8}
+                        className="
+                            text-[#9299A6]!
+
+                            transition-transform
+                            duration-150
+
+                            group-hover:translate-x-0.5
+                            group-hover:text-[#D3D6DC]!
+                        "
+                    />
                 </button>
             )}
         </div>

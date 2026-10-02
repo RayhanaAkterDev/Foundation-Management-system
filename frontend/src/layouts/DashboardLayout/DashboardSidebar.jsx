@@ -1,35 +1,28 @@
-import React, { useEffect, useRef, useState } from 'react';
-
-import { NavLink, useNavigate } from 'react-router-dom';
-
-import logo from '@/assets/shared/logo.png';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
 import {
-    LogOut,
+    ChevronDown,
+    ChevronLeft,
     ChevronRight,
-    UserRound,
-    Settings,
     CircleHelp,
-    PanelLeftClose,
-    PanelLeftOpen,
+    ExternalLink,
+    LogOut,
+    Settings,
+    UserCircle,
 } from 'lucide-react';
 
+import logo from '@/assets/shared/logo.png';
 import { NAV_CONFIG, ROLE_LABELS } from '@/routes/dashboardNav';
 
-// ============================================================
-// ROUTES
-// ============================================================
-
-const ROOT_PATHS = {
-    individual: '/individual/dashboard',
-    organization: '/organization/dashboard',
-    admin: '/admin/dashboard',
-};
+/* ==========================================================================
+   PATHS
+============================================================================ */
 
 const PROFILE_PATHS = {
     individual: '/individual/dashboard/profile',
     organization: '/organization/dashboard/profile',
-    admin: null,
+    admin: '/admin/dashboard/profile',
 };
 
 const SETTINGS_PATHS = {
@@ -38,146 +31,787 @@ const SETTINGS_PATHS = {
     admin: '/admin/dashboard/settings',
 };
 
-// ============================================================
-// SHARED CLASSES
-// ============================================================
+/* ==========================================================================
+   HELPERS
+============================================================================ */
 
-const MENU_ITEM_BASE =
-    'group flex w-full items-center gap-3 px-4 py-2.5 text-[11px] whitespace-nowrap transition-colors duration-150';
+const normalizePath = (path = '') => {
+    if (!path) return '/';
 
-const MENU_ITEM_MUTED = 'text-white!/55 hover:bg-white/5 hover:text-white!';
+    const normalized = path.replace(/\/+$/, '');
 
-const MENU_ICON =
-    'h-4 w-4 shrink-0 text-white!/30 transition-colors duration-150 group-hover:text-white!/65';
+    return normalized || '/';
+};
 
-const MENU_CHEVRON = 'h-3.5 w-3.5 shrink-0 text-white!/20';
+const isPathActive = (itemPath, currentPath) => {
+    if (!itemPath) return false;
 
-// ============================================================
-// HELPERS
-// ============================================================
+    const target = normalizePath(itemPath);
+    const current = normalizePath(currentPath);
 
-const getInitials = (name = '') =>
-    name
-        .trim()
-        .split(/\s+/)
-        .slice(0, 2)
-        .map((word) => word.charAt(0))
-        .join('')
-        .toUpperCase();
+    const isDashboardRoot =
+        target === '/individual/dashboard' ||
+        target === '/organization/dashboard' ||
+        target === '/admin/dashboard';
 
-const isRootDashboard = (path) => Object.values(ROOT_PATHS).includes(path);
+    if (isDashboardRoot) {
+        return current === target;
+    }
 
-const isItemActive = (item, currentPath) => {
-    if (!item?.path) {
+    return current === target || current.startsWith(`${target}/`);
+};
+
+const hasActiveChild = (item, currentPath) => {
+    if (!item?.children?.length) {
         return false;
     }
 
-    if (isRootDashboard(item.path)) {
-        return currentPath === item.path;
-    }
+    return item.children.some((child) => {
+        if (isPathActive(child.path, currentPath)) {
+            return true;
+        }
 
-    return currentPath === item.path || currentPath.startsWith(`${item.path}/`);
+        return hasActiveChild(child, currentPath);
+    });
 };
 
-// ============================================================
-// ACCOUNT AVATAR
-// ============================================================
+const isNavItemActive = (item, currentPath) => {
+    if (!item) return false;
 
-const AccountAvatar = ({ user, initials }) => (
-    <div
-        className="
-            flex
-            h-8
-            w-8
-            shrink-0
-            items-center
-            justify-center
-            overflow-hidden
-            rounded-full
-            bg-[#e6f1ef]
-            text-[9px]
-            font-bold
-            text-[#0b5f5b]
-        "
-    >
-        {user?.avatar ? (
-            <img
-                src={user.avatar}
-                alt={user.name || ''}
+    if (isPathActive(item.path, currentPath)) {
+        return true;
+    }
+
+    return hasActiveChild(item, currentPath);
+};
+
+const getInitials = (value = '') => {
+    const cleaned = value.trim();
+
+    if (!cleaned) return 'SP';
+
+    return cleaned
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part.charAt(0))
+        .join('')
+        .toUpperCase();
+};
+
+const getStoredUser = () => {
+    if (typeof window === 'undefined') {
+        return null;
+    }
+
+    const sources = [
+        window.localStorage.getItem('user'),
+        window.sessionStorage.getItem('user'),
+    ];
+
+    for (const source of sources) {
+        if (!source) continue;
+
+        try {
+            const parsed = JSON.parse(source);
+
+            return parsed?.user || parsed;
+        } catch {
+            // Ignore malformed values.
+        }
+    }
+
+    return null;
+};
+
+const getUserName = (user, role) => {
+    return (
+        user?.name ||
+        user?.username ||
+        user?.full_name ||
+        user?.fullName ||
+        user?.organization_name ||
+        user?.organizationName ||
+        user?.email ||
+        ROLE_LABELS[role] ||
+        'Account'
+    );
+};
+
+const getUserEmail = (user) => user?.email || '';
+
+const getUserAvatar = (user) =>
+    user?.avatar ||
+    user?.avatar_url ||
+    user?.avatarUrl ||
+    user?.profile_image ||
+    user?.profileImage ||
+    null;
+
+/* ==========================================================================
+   SECTION LABEL
+============================================================================ */
+
+const SectionLabel = ({ label, collapsed }) => {
+    if (collapsed) {
+        return (
+            <div
                 className="
-                    h-full
-                    w-full
-                    object-cover
+                    flex
+                    h-7
+                    items-center
+                    justify-center
                 "
+                aria-hidden="true"
+            >
+                <span
+                    className="
+                        h-px
+                        w-4
+                        bg-[#343944]
+                    "
+                />
+            </div>
+        );
+    }
+
+    return (
+        <div
+            className="
+                mb-1.5
+                mt-5
+                px-3
+                first:mt-0
+            "
+        >
+            <p
+                className="
+                    text-[9px]
+                    font-semibold
+                    uppercase
+                    tracking-[0.17em]
+                    !text-[#6F7785]
+                "
+            >
+                {label}
+            </p>
+        </div>
+    );
+};
+
+/* ==========================================================================
+   SUB MENU
+============================================================================ */
+
+const SubMenu = ({ item, currentPath, open, collapsed, onNavigate }) => {
+    if (!item.children?.length || collapsed || !open) {
+        return null;
+    }
+
+    return (
+        <div
+            className="
+                relative
+                ml-7
+                mt-1
+                space-y-0.5
+                pb-1
+                pl-3
+
+                before:absolute
+                before:bottom-1
+                before:left-0
+                before:top-0
+                before:w-px
+                before:bg-[#343944]
+            "
+        >
+            {item.children.map((child) => {
+                const active = isNavItemActive(child, currentPath);
+
+                return (
+                    <Link
+                        key={child.key}
+                        to={child.path}
+                        onClick={onNavigate}
+                        className={`
+                                group/sub
+                                relative
+
+                                flex
+                                min-h-8
+                                items-center
+                                gap-2.5
+
+                                rounded-md
+
+                                px-2.5
+
+                                text-[11.5px]
+                                font-medium
+
+                                transition-colors
+                                duration-150
+
+                                ${
+                                    active
+                                        ? `
+                                            bg-[#303641]
+                                            !text-[#F1F2F4]
+                                        `
+                                        : `
+                                            !text-[#8B93A1]
+
+                                            hover:bg-[#2C303A]
+                                            hover:!text-[#D3D6DC]
+                                        `
+                                }
+                            `}
+                    >
+
+                        <span className="min-w-0 truncate">{child.label} </span>
+                    </Link>
+                );
+            })}
+        </div>
+    );
+};
+
+/* ==========================================================================
+   NAV ITEM
+============================================================================ */
+
+const NavItem = ({
+    item,
+    currentPath,
+    collapsed,
+    open,
+    onToggle,
+    onNavigate,
+}) => {
+    const Icon = item.icon;
+
+    const hasChildren = Boolean(item.children?.length);
+
+    const active = isNavItemActive(item, currentPath);
+
+    const childActive = hasActiveChild(item, currentPath);
+
+    /* ======================================================================
+       DIRECT ITEM
+    ====================================================================== */
+
+    if (!hasChildren && item.path) {
+        return (
+            <Link
+                to={item.path}
+                onClick={onNavigate}
+                title={collapsed ? item.label : undefined}
+                className={`
+                    group
+                    relative
+
+                    flex
+                    min-h-10
+                    items-center
+
+                    rounded-md
+
+                    transition-colors
+                    duration-150
+
+                    ${
+                        collapsed
+                            ? `
+                                mx-auto
+                                w-10
+                                justify-center
+                            `
+                            : `
+                                w-full
+                                gap-3
+                                px-3
+                            `
+                    }
+
+                    ${
+                        active
+                            ? `
+                                bg-[#303641]
+                                !text-[#F1F2F4]
+                            `
+                            : `
+                                !text-[#C3C7CF]
+
+                                hover:bg-[#2C303A]
+                                hover:!text-[#F1F2F4]
+                            `
+                    }
+                `}
+            >
+                {active && (
+                    <span
+                        className="
+                            absolute
+                            bottom-2.5
+                            left-0
+                            top-2.5
+
+                            w-0.5
+
+                            rounded-r-full
+
+                            bg-[#D1D4DB]
+                        "
+                    />
+                )}
+
+                {Icon && (
+                    <Icon
+                        size={17}
+                        strokeWidth={1.7}
+                        className={`
+                            shrink-0
+
+                            transition-colors
+                            duration-150
+
+                            ${
+                                active
+                                    ? '!text-[#E5E7EB]'
+                                    : `
+                                        !text-[#969EAC]
+                                        group-hover:!text-[#D3D6DC]
+                                    `
+                            }
+                        `}
+                    />
+                )}
+
+                {!collapsed && (
+                    <span
+                        className={`
+                            min-w-0
+                            flex-1
+                            truncate
+
+                            text-[13px]
+
+                            ${active ? 'font-semibold' : 'font-medium'}
+                        `}
+                    >
+                        {item.label}
+                    </span>
+                )}
+            </Link>
+        );
+    }
+
+    /* ======================================================================
+       EXPANDABLE ITEM
+    ====================================================================== */
+
+    return (
+        <div>
+            <button
+                type="button"
+                onClick={onToggle}
+                title={collapsed ? item.label : undefined}
+                aria-expanded={open}
+                className={`
+                    group
+
+                    flex
+                    min-h-10
+                    items-center
+
+                    rounded-md
+
+                    text-left
+
+                    transition-colors
+                    duration-150
+
+                    ${
+                        collapsed
+                            ? `
+                                mx-auto
+                                w-10
+                                justify-center
+                            `
+                            : `
+                                w-full
+                                gap-3
+                                px-3
+                            `
+                    }
+
+                    ${
+                        childActive
+                            ? `
+                                !text-[#F1F2F4]
+                            `
+                            : `
+                                !text-[#C3C7CF]
+
+                                hover:bg-[#2C303A]
+                                hover:!text-[#F1F2F4]
+                            `
+                    }
+                `}
+            >
+                {Icon && (
+                    <Icon
+                        size={17}
+                        strokeWidth={1.7}
+                        className={`
+                            shrink-0
+
+                            ${
+                                childActive
+                                    ? '!text-[#D3D6DC]'
+                                    : `
+                                        !text-[#969EAC]
+                                        group-hover:!text-[#D3D6DC]
+                                    `
+                            }
+                        `}
+                    />
+                )}
+
+                {!collapsed && (
+                    <>
+                        <span
+                            className={`
+                                min-w-0
+                                flex-1
+                                truncate
+
+                                text-[13px]
+
+                                ${childActive ? 'font-semibold' : 'font-medium'}
+                            `}
+                        >
+                            {item.label}
+                        </span>
+
+                        <ChevronDown
+                            size={13}
+                            strokeWidth={1.8}
+                            className={`
+                                shrink-0
+
+                                !text-[#6F7785]
+
+                                transition-transform
+                                duration-200
+
+                                group-hover:!text-[#C3C7CF]
+
+                                ${open ? 'rotate-180' : ''}
+                            `}
+                        />
+                    </>
+                )}
+            </button>
+
+            <SubMenu
+                item={item}
+                currentPath={currentPath}
+                open={open}
+                collapsed={collapsed}
+                onNavigate={onNavigate}
             />
-        ) : (
-            initials || 'A'
-        )}
-    </div>
-);
+        </div>
+    );
+};
 
-// ============================================================
-// ACCOUNT LINK
-// ============================================================
+/* ==========================================================================
+   ACCOUNT MENU
+============================================================================ */
 
-const AccountLink = ({ to, icon: Icon, children, onClick }) => (
-    <NavLink
-        to={to}
-        onClick={onClick}
-        className={`${MENU_ITEM_BASE} ${MENU_ITEM_MUTED}`}
-    >
-        <Icon className={MENU_ICON} strokeWidth={1.7} />
-
-        <span className="min-w-0 flex-1 truncate whitespace-nowrap">
-            {children}
-        </span>
-
-        <ChevronRight className={MENU_CHEVRON} strokeWidth={1.7} />
-    </NavLink>
-);
-
-// ============================================================
-// DASHBOARD SIDEBAR
-// ============================================================
-
-const DashboardSidebar = ({ role, currentPath, onCollapsedChange, user }) => {
-    const navigate = useNavigate();
-
-    /*
-     * IMPORTANT:
-     *
-     * The sidebar owns its visual collapsed state.
-     *
-     * It ALWAYS starts collapsed on a fresh mount/reload.
-     *
-     * This gives:
-     *
-     *     reload → rail only
-     *
-     * without needing setState inside an effect.
-     */
-    const [collapsed, setCollapsed] = useState(true);
-
-    const [accountOpen, setAccountOpen] = useState(false);
-
-    const accountRef = useRef(null);
-
-    const navItems = NAV_CONFIG[role] || [];
-
-    const roleLabel = ROLE_LABELS[role] || 'User';
-
+const AccountMenu = ({
+    role,
+    userName,
+    userEmail,
+    avatar,
+    onClose,
+    onSignOut,
+}) => {
     const profilePath = PROFILE_PATHS[role];
 
     const settingsPath = SETTINGS_PATHS[role];
 
-    const initials = getInitials(user?.name);
+    const menuItemClass = `
+        group
 
-    // ========================================================
-    // OUTSIDE CLICK
-    // ========================================================
+        flex
+        min-h-10
+        items-center
+        gap-3
+
+        rounded-md
+
+        px-3
+
+        text-[12px]
+        font-medium
+
+        !text-[#C3C7CF]
+
+        transition-colors
+        duration-150
+
+        hover:bg-[#303641]
+        hover:!text-[#F1F2F4]
+    `;
+
+    return (
+        <div
+            className="
+                absolute
+                bottom-[calc(100%+10px)]
+                left-1
+                right-1
+
+                overflow-hidden
+
+                rounded-lg
+
+                border
+                border-[#343944]
+
+                bg-[#272B34]
+
+                shadow-[0_18px_50px_rgba(7,8,11,0.3)]
+            "
+        >
+            <div
+                className="
+                    border-b
+                    border-[#343944]
+
+                    bg-[#24272F]
+
+                    px-3.5
+                    py-3.5
+                "
+            >
+                <div className="flex items-center gap-3">
+                    <div
+                        className="
+                            flex
+                            h-9
+                            w-9
+                            shrink-0
+                            items-center
+                            justify-center
+                            overflow-hidden
+
+                            rounded-md
+
+                            border
+                            border-[#404754]
+
+                            bg-[#303641]
+
+                            text-[10.5px]
+                            font-semibold
+
+                            !text-[#F1F2F4]
+                        "
+                    >
+                        {avatar ? (
+                            <img
+                                src={avatar}
+                                alt={userName}
+                                className="
+                                    h-full
+                                    w-full
+                                    object-cover
+                                "
+                            />
+                        ) : (
+                            getInitials(userName)
+                        )}
+                    </div>
+
+                    <div className="min-w-0">
+                        <p
+                            className="
+                                truncate
+
+                                text-[12.5px]
+                                font-semibold
+
+                                !text-[#F1F2F4]
+                            "
+                        >
+                            {userName}
+                        </p>
+
+                        <p
+                            className="
+                                mt-0.5
+                                truncate
+
+                                text-[10px]
+
+                                !text-[#9299A6]
+                            "
+                        >
+                            {userEmail || ROLE_LABELS[role]}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div className="p-2">
+                {profilePath && (
+                    <Link
+                        to={profilePath}
+                        onClick={onClose}
+                        className={menuItemClass}
+                    >
+                        <UserCircle
+                            size={16}
+                            strokeWidth={1.7}
+                            className="
+                                !text-[#969EAC]
+                                group-hover:!text-[#D3D6DC]
+                            "
+                        />
+
+                        <span>Profile</span>
+                    </Link>
+                )}
+
+                {settingsPath && (
+                    <Link
+                        to={settingsPath}
+                        onClick={onClose}
+                        className={menuItemClass}
+                    >
+                        <Settings
+                            size={16}
+                            strokeWidth={1.7}
+                            className="
+                                !text-[#969EAC]
+                                group-hover:!text-[#D3D6DC]
+                            "
+                        />
+
+                        <span>Settings</span>
+                    </Link>
+                )}
+
+                <a href="/contact" className={menuItemClass}>
+                    <CircleHelp
+                        size={16}
+                        strokeWidth={1.7}
+                        className="
+                            !text-[#969EAC]
+                            group-hover:!text-[#D3D6DC]
+                        "
+                    />
+
+                    <span className="flex-1">Help & Support</span>
+
+                    <ExternalLink
+                        size={12}
+                        strokeWidth={1.7}
+                        className="
+                            !text-[#6F7785]
+                        "
+                    />
+                </a>
+            </div>
+
+            <div
+                className="
+                    border-t
+                    border-[#343944]
+
+                    p-2
+                "
+            >
+                <button
+                    type="button"
+                    onClick={onSignOut}
+                    className="
+                        flex
+                        min-h-10
+                        w-full
+                        items-center
+                        gap-3
+
+                        rounded-md
+
+                        px-3
+
+                        text-left
+                        text-[12px]
+                        font-medium
+
+                        !text-[#CBA2A7]
+
+                        transition-colors
+                        duration-150
+
+                        hover:bg-[#38272C]
+                        hover:!text-[#E9A1A8]
+                    "
+                >
+                    <LogOut size={16} strokeWidth={1.7} />
+
+                    <span>Sign out</span>
+                </button>
+            </div>
+        </div>
+    );
+};
+
+/* ==========================================================================
+   SIDEBAR
+============================================================================ */
+
+const DashboardSidebar = ({
+    role,
+    currentPath,
+    collapsed = true,
+    onCollapsedChange,
+    user: providedUser,
+}) => {
+    const navigate = useNavigate();
+
+    const accountRef = useRef(null);
+
+    const [accountOpen, setAccountOpen] = useState(false);
+
+    const [openMenus, setOpenMenus] = useState({});
+
+    const navItems = useMemo(() => NAV_CONFIG[role] || [], [role]);
+
+    const storedUser = useMemo(() => getStoredUser(), []);
+
+    const user = providedUser || storedUser;
+
+    const userName = getUserName(user, role);
+
+    const userEmail = getUserEmail(user);
+
+    const avatar = getUserAvatar(user);
+
+    /* ======================================================================
+       OUTSIDE CLICK
+    ====================================================================== */
 
     useEffect(() => {
-        const handleOutsideClick = (event) => {
+        if (!accountOpen) {
+            return undefined;
+        }
+
+        const handlePointerDown = (event) => {
             if (
                 accountRef.current &&
                 !accountRef.current.contains(event.target)
@@ -186,54 +820,87 @@ const DashboardSidebar = ({ role, currentPath, onCollapsedChange, user }) => {
             }
         };
 
-        document.addEventListener('mousedown', handleOutsideClick);
+        document.addEventListener('mousedown', handlePointerDown);
 
         return () => {
-            document.removeEventListener('mousedown', handleOutsideClick);
+            document.removeEventListener('mousedown', handlePointerDown);
         };
-    }, []);
+    }, [accountOpen]);
 
-    // ========================================================
-    // ACCOUNT
-    // ========================================================
+    /* ======================================================================
+       MENUS
+    ====================================================================== */
 
-    const closeAccountMenu = () => {
-        setAccountOpen(false);
+    const isMenuOpen = (item) => {
+        const explicit = Object.prototype.hasOwnProperty.call(
+            openMenus,
+            item.key,
+        );
+
+        if (explicit) {
+            return openMenus[item.key];
+        }
+
+        return hasActiveChild(item, currentPath);
     };
 
-    const toggleAccountMenu = () => {
+    const toggleMenu = (item) => {
         if (collapsed) {
+            onCollapsedChange?.(false);
+
+            setOpenMenus((previous) => ({
+                ...previous,
+                [item.key]: true,
+            }));
+
             return;
         }
 
-        setAccountOpen((previous) => !previous);
+        setOpenMenus((previous) => {
+            const explicit = Object.prototype.hasOwnProperty.call(
+                previous,
+                item.key,
+            );
+
+            const currentlyOpen = explicit
+                ? previous[item.key]
+                : hasActiveChild(item, currentPath);
+
+            return {
+                ...previous,
+                [item.key]: !currentlyOpen,
+            };
+        });
     };
 
-    // ========================================================
-    // SIGN OUT
-    // ========================================================
+    /* ======================================================================
+       COLLAPSE
+    ====================================================================== */
+
+    const handleCollapseToggle = () => {
+        if (!collapsed) {
+            setAccountOpen(false);
+        }
+
+        onCollapsedChange?.(!collapsed);
+    };
+
+    /* ======================================================================
+       SIGN OUT
+    ====================================================================== */
 
     const handleSignOut = () => {
-        setAccountOpen(false);
+        window.localStorage.removeItem('auth_token');
+        window.localStorage.removeItem('user');
+        window.localStorage.removeItem('token');
+        window.localStorage.removeItem('authToken');
+
+        window.sessionStorage.removeItem('auth_token');
+        window.sessionStorage.removeItem('user');
+        window.sessionStorage.removeItem('token');
+        window.sessionStorage.removeItem('authToken');
+
         navigate('/');
-    };
-
-    // ========================================================
-    // SIDEBAR TOGGLE
-    // ========================================================
-
-    const toggleSidebar = () => {
-        setAccountOpen(false);
-
-        setCollapsed((previous) => {
-            const nextCollapsed = !previous;
-
-            if (onCollapsedChange) {
-                onCollapsedChange(nextCollapsed);
-            }
-
-            return nextCollapsed;
-        });
     };
 
     return (
@@ -242,753 +909,384 @@ const DashboardSidebar = ({ role, currentPath, onCollapsedChange, user }) => {
                 fixed
                 inset-y-0
                 left-0
-                z-50
+                z-40
+
                 hidden
-                overflow-hidden
-                bg-[#0d625d]
+                flex-col
+
+                border-r
+                border-[#343944]
+
+                bg-[#22252D]
+
                 lg:flex
+
+                ${collapsed ? 'w-[60px]' : 'w-[264px]'}
+
                 transition-[width]
                 duration-300
                 ease-out
-                ${collapsed ? 'w-15' : 'w-72'}
             `}
         >
-            {/* =================================================
-                FIXED SIDEBAR CONTENT
-
-                15 + 57 = 72
-
-                The inner sidebar never changes width.
-                The outer aside clips the main menu when collapsed.
-            ================================================= */}
+            {/* =============================================================
+                BRAND
+            ============================================================= */}
 
             <div
-                className="
+                className={`
                     flex
-                    h-full
-                    w-72
-                    min-w-72
+                    h-16
                     shrink-0
-                "
+                    items-center
+
+                    border-b
+                    border-[#343944]
+
+                    bg-[#20232A]
+
+                    ${
+                        collapsed
+                            ? `
+                                justify-center
+                                px-2
+                            `
+                            : 'px-4'
+                    }
+                `}
             >
-                {/* =================================================
-                    ICON RAIL
-                ================================================= */}
-
-                <div
-                    className="
+                <Link
+                    to="/"
+                    title={collapsed ? 'Stand For People' : undefined}
+                    className={`
                         flex
-                        h-full
-                        w-15
-                        min-w-15
-                        shrink-0
-                        flex-col
-                        border-r
-                        border-white/7
-                        bg-[#09534f]
-                    "
-                >
-                    {/* =================================================
-                        LOGO
-                    ================================================= */}
+                        min-w-0
+                        items-center
 
+                        ${collapsed ? 'justify-center' : 'gap-2.5'}
+                    `}
+                >
                     <div
                         className="
                             flex
-                            h-16
-                            min-h-16
+                            h-8
+                            w-8
                             shrink-0
                             items-center
                             justify-center
-                            xl:h-17
-                            xl:min-h-17
-                            2xl:h-18
-                            2xl:min-h-18
-                        "
-                    >
-                        <div
-                            className="
-                                flex
-                                h-9
-                                w-9
-                                shrink-0
-                                items-center
-                                justify-center
-                                rounded-xl
-                                bg-white
-                            "
-                        >
-                            <img
-                                src={logo}
-                                alt="Stand For People"
-                                className="
-                                    h-7
-                                    w-7
-                                    shrink-0
-                                    object-contain
-                                "
-                            />
-                        </div>
-                    </div>
-
-                    {/* =================================================
-                        RAIL NAVIGATION
-                    ================================================= */}
-
-                    <nav
-                        aria-label="Quick navigation"
-                        className="
-                            flex
-                            min-h-0
-                            flex-1
-                            flex-col
-                            items-center
                             overflow-hidden
-                            pt-2
-                            xl:pt-4
-                            2xl:pt-5
                         "
                     >
-                        {navItems.map((item, index) => {
-                            if (item.type === 'divider') {
-                                return (
-                                    <div
-                                        key={`rail-divider-${index}`}
-                                        className="
-                                            my-1.5
-                                            h-px
-                                            w-6
-                                            min-h-px
-                                            shrink-0
-                                            bg-white/8
-                                            xl:my-2
-                                            2xl:my-2.5
-                                        "
-                                    />
-                                );
-                            }
-
-                            if (!item.path || !item.icon) {
-                                return null;
-                            }
-
-                            const Icon = item.icon;
-
-                            const isActive = isItemActive(item, currentPath);
-
-                            return (
-                                <NavLink
-                                    key={item.key}
-                                    to={item.path}
-                                    end={isRootDashboard(item.path)}
-                                    aria-label={item.label}
-                                    title={item.label}
-                                    onClick={closeAccountMenu}
-                                    className="
-                                        group
-                                        relative
-                                        flex
-                                        h-9
-                                        min-h-9
-                                        w-full
-                                        shrink-0
-                                        items-center
-                                        justify-center
-                                        whitespace-nowrap
-                                        xl:h-10
-                                        xl:min-h-10
-                                        2xl:h-11
-                                        2xl:min-h-11
-                                    "
-                                >
-                                    {isActive && (
-                                        <span
-                                            className="
-                                                absolute
-                                                left-0
-                                                h-5
-                                                w-0.5
-                                                shrink-0
-                                                rounded-r-full
-                                                bg-accent
-                                            "
-                                        />
-                                    )}
-
-                                    <span
-                                        className={`
-                                            flex
-                                            h-8
-                                            w-8
-                                            shrink-0
-                                            items-center
-                                            justify-center
-                                            rounded-lg
-                                            transition-colors
-                                            duration-150
-                                            ${
-                                                isActive
-                                                    ? 'bg-[#e6f1ef] text-[#0b5f5b]'
-                                                    : 'text-white!/38 group-hover:bg-white/6 group-hover:text-white!/75'
-                                            }
-                                        `}
-                                    >
-                                        <Icon
-                                            className="
-                                                h-4
-                                                w-4
-                                                shrink-0
-                                            "
-                                            strokeWidth={isActive ? 2 : 1.7}
-                                        />
-                                    </span>
-                                </NavLink>
-                            );
-                        })}
-                    </nav>
-
-                    {/* =================================================
-                        RAIL FOOTER
-                    ================================================= */}
-
-                    <div
-                        className="
-                            flex
-                            h-12
-                            min-h-12
-                            shrink-0
-                            items-center
-                            justify-center
-                            xl:h-14
-                            xl:min-h-14
-                            2xl:h-16
-                            2xl:min-h-16
-                        "
-                    >
-                        <button
-                            type="button"
-                            onClick={toggleSidebar}
-                            aria-label={
-                                collapsed
-                                    ? 'Expand sidebar'
-                                    : 'Collapse sidebar'
-                            }
-                            title={
-                                collapsed
-                                    ? 'Expand sidebar'
-                                    : 'Collapse sidebar'
-                            }
+                        <img
+                            src={logo}
+                            alt="Stand For People"
                             className="
-                                flex
-                                h-8
-                                w-8
-                                shrink-0
-                                items-center
-                                justify-center
-                                rounded-lg
-                                text-white!/50
-                                transition-colors
-                                duration-150
-                                hover:bg-white/8
-                                hover:text-white!
-                            "
-                        >
-                            {collapsed ? (
-                                <PanelLeftOpen
-                                    className="
-                                        h-4
-                                        w-4
-                                        shrink-0
-                                    "
-                                    strokeWidth={1.7}
-                                />
-                            ) : (
-                                <PanelLeftClose
-                                    className="
-                                        h-4
-                                        w-4
-                                        shrink-0
-                                    "
-                                    strokeWidth={1.7}
-                                />
-                            )}
-                        </button>
-                    </div>
-                </div>
-
-                {/* =================================================
-                    MAIN PANEL
-
-                    This is always 57 wide.
-
-                    When collapsed:
-                        outer aside = 15 wide
-                        main panel = clipped
-
-                    When expanded:
-                        outer aside = 72 wide
-                        main panel = visible
-                ================================================= */}
-
-                <div
-                    className="
-                        flex
-                        h-full
-                        w-57
-                        min-w-57
-                        shrink-0
-                        flex-col
-                        overflow-hidden
-                        bg-[#0d625d]
-                    "
-                    aria-hidden={collapsed}
-                >
-                    {/* =================================================
-                        HEADER
-                    ================================================= */}
-
-                    <header
-                        className="
-                            shrink-0
-                            px-5
-                            pt-5
-                            pb-4
-                            xl:px-6
-                            xl:pt-6
-                            xl:pb-5
-                            2xl:pt-7
-                            2xl:pb-6
-                        "
-                    >
-                        <div
-                            className="
-                                flex
-                                items-center
-                                justify-between
-                                gap-3
-                                whitespace-nowrap
-                            "
-                        >
-                            <div className="min-w-0 shrink-0">
-                                <div
-                                    className="
-                                        whitespace-nowrap
-                                        font-fraunces
-                                        text-[21px]
-                                        font-semibold
-                                        leading-none
-                                        tracking-[-0.045em]
-                                        text-white!
-                                        2xl:text-[22px]
-                                    "
-                                >
-                                    Stand
-                                    <span className="text-accent"> For</span>
-                                </div>
-
-                                <div
-                                    className="
-                                        mt-1
-                                        whitespace-nowrap
-                                        font-fraunces
-                                        text-[21px]
-                                        font-semibold
-                                        leading-none
-                                        tracking-[-0.045em]
-                                        text-white!
-                                        2xl:text-[22px]
-                                    "
-                                >
-                                    People
-                                </div>
-                            </div>
-
-                            <span
-                                className="
-                                    mt-0.5
-                                    shrink-0
-                                    whitespace-nowrap
-                                    rounded-full
-                                    border
-                                    border-white/10
-                                    bg-white/10
-                                    px-2
-                                    py-1
-                                    text-[7px]
-                                    font-bold
-                                    uppercase
-                                    tracking-widest
-                                    text-white!/65
-                                "
-                            >
-                                {roleLabel}
-                            </span>
-                        </div>
-
-                        <div
-                            className="
-                                mt-4
-                                h-px
-                                shrink-0
-                                bg-white/8
-                                xl:mt-5
-                                2xl:mt-6
+                                h-full
+                                w-full
+                                object-contain
                             "
                         />
-                    </header>
+                    </div>
 
-                    {/* =================================================
-                        MAIN NAVIGATION
-                    ================================================= */}
+                    {!collapsed && (
+                        <div className="min-w-0">
+                            <p
+                                className="
+                                    truncate
 
-                    <nav
-                        aria-label="Dashboard navigation"
-                        className="
-                            min-h-0
-                            flex-1
-                            overflow-hidden
-                            px-4
-                            py-1
-                            xl:px-4
-                            xl:py-2
-                            2xl:px-5
-                            2xl:py-3
-                        "
-                    >
-                        {navItems.map((item, index) => {
-                            if (item.type === 'divider') {
-                                return (
-                                    <div
-                                        key={`divider-${index}`}
-                                        className="
-                                            my-2
-                                            shrink-0
-                                            px-2
-                                            xl:my-2.5
-                                            2xl:my-3.5
-                                        "
-                                    >
-                                        <div className="h-px shrink-0 bg-white/8" />
-                                    </div>
-                                );
-                            }
+                                    text-[13px]
+                                    font-semibold
+                                    tracking-[-0.01em]
 
-                            if (!item.path) {
-                                return null;
-                            }
+                                    !text-[#F1F2F4]
+                                "
+                            >
+                                Stand For People
+                            </p>
 
-                            const isActive = isItemActive(item, currentPath);
+                            <p
+                                className="
+                                    mt-0.5
+                                    truncate
 
+                                    text-[8.5px]
+                                    font-semibold
+                                    uppercase
+                                    tracking-[0.15em]
+
+                                    !text-[#6F7785]
+                                "
+                            >
+                                {ROLE_LABELS[role]} workspace
+                            </p>
+                        </div>
+                    )}
+                </Link>
+            </div>
+
+            {/* =============================================================
+                NAVIGATION
+            ============================================================= */}
+
+            <nav
+                className={`
+                    min-h-0
+                    flex-1
+
+                    overflow-x-hidden
+                    overflow-y-auto
+
+                    py-4
+
+                    ${collapsed ? 'px-2' : 'px-3'}
+
+                    [&::-webkit-scrollbar]:w-1
+                    [&::-webkit-scrollbar-track]:bg-transparent
+                    [&::-webkit-scrollbar-thumb]:rounded-full
+                    [&::-webkit-scrollbar-thumb]:bg-[#343944]
+
+                    hover:[&::-webkit-scrollbar-thumb]:bg-[#404754]
+                `}
+            >
+                <div className="space-y-1">
+                    {navItems.map((item) => {
+                        if (item.type === 'section') {
                             return (
-                                <NavLink
+                                <SectionLabel
                                     key={item.key}
-                                    to={item.path}
-                                    end={isRootDashboard(item.path)}
-                                    aria-current={isActive ? 'page' : undefined}
-                                    onClick={closeAccountMenu}
-                                    className={`
-                                        group
-                                        relative
-                                        flex
-                                        h-9
-                                        min-h-9
-                                        w-full
-                                        shrink-0
-                                        items-center
-                                        px-3
-                                        whitespace-nowrap
-                                        transition-colors
-                                        duration-150
-                                        xl:h-10
-                                        xl:min-h-10
-                                        2xl:h-11
-                                        2xl:min-h-11
-                                        ${
-                                            isActive
-                                                ? 'text-white!'
-                                                : 'text-white!/45 hover:text-white!/80'
-                                        }
-                                    `}
-                                >
-                                    <span
-                                        className={`
-                                            mr-3
-                                            h-1.5
-                                            w-1.5
-                                            shrink-0
-                                            rounded-full
-                                            bg-accent
-                                            transition-opacity
-                                            duration-150
-                                            ${
-                                                isActive
-                                                    ? 'opacity-100'
-                                                    : 'opacity-0 group-hover:opacity-100'
-                                            }
-                                        `}
-                                    />
-
-                                    <span
-                                        className={`
-                                            block
-                                            shrink-0
-                                            whitespace-nowrap
-                                            text-[11px]
-                                            tracking-[-0.01em]
-                                            xl:text-[11.5px]
-                                            2xl:text-[12px]
-                                            ${
-                                                isActive
-                                                    ? 'font-semibold'
-                                                    : 'font-medium'
-                                            }
-                                        `}
-                                    >
-                                        {item.label}
-                                    </span>
-                                </NavLink>
+                                    label={item.label}
+                                    collapsed={collapsed}
+                                />
                             );
-                        })}
-                    </nav>
+                        }
 
-                    {/* =================================================
-                        ACCOUNT
-                    ================================================= */}
+                        return (
+                            <NavItem
+                                key={item.key}
+                                item={item}
+                                currentPath={currentPath}
+                                collapsed={collapsed}
+                                open={isMenuOpen(item)}
+                                onToggle={() => toggleMenu(item)}
+                                onNavigate={() => setAccountOpen(false)}
+                            />
+                        );
+                    })}
+                </div>
+            </nav>
 
+            {/* =============================================================
+                ACCOUNT
+            ============================================================= */}
+
+            <div
+                ref={accountRef}
+                className="
+                    relative
+                    shrink-0
+
+                    border-t
+                    border-[#343944]
+
+                    bg-[#20232A]
+
+                    p-2
+                "
+            >
+                {!collapsed && accountOpen && (
+                    <AccountMenu
+                        role={role}
+                        userName={userName}
+                        userEmail={userEmail}
+                        avatar={avatar}
+                        onClose={() => setAccountOpen(false)}
+                        onSignOut={handleSignOut}
+                    />
+                )}
+
+                <button
+                    type="button"
+                    onClick={() => {
+                        if (collapsed) {
+                            onCollapsedChange?.(false);
+
+                            return;
+                        }
+
+                        setAccountOpen((previous) => !previous);
+                    }}
+                    title={collapsed ? userName : undefined}
+                    className={`
+                        group
+
+                        flex
+                        min-h-12
+                        items-center
+
+                        rounded-md
+
+                        transition-colors
+                        duration-150
+
+                        ${
+                            collapsed
+                                ? `
+                                    w-full
+                                    justify-center
+                                `
+                                : `
+                                    w-full
+                                    gap-2.5
+                                    px-2
+                                `
+                        }
+
+                        ${accountOpen ? 'bg-[#303641]' : 'hover:bg-[#2C303A]'}
+                    `}
+                >
                     <div
-                        ref={accountRef}
                         className="
-                            relative
+                            flex
+                            h-8
+                            w-8
                             shrink-0
+                            items-center
+                            justify-center
+                            overflow-hidden
+
+                            rounded-md
+
+                            border
+                            border-[#404754]
+
+                            bg-[#303641]
+
+                            text-[10px]
+                            font-semibold
+
+                            !text-[#F1F2F4]
                         "
                     >
-                        {/* =================================================
-                            ACCOUNT POPUP
-                        ================================================= */}
+                        {avatar ? (
+                            <img
+                                src={avatar}
+                                alt={userName}
+                                className="
+                                    h-full
+                                    w-full
+                                    object-cover
+                                "
+                            />
+                        ) : (
+                            getInitials(userName)
+                        )}
+                    </div>
 
-                        {accountOpen && !collapsed && (
+                    {!collapsed && (
+                        <>
                             <div
                                 className="
-                                    absolute
-                                    bottom-[calc(100%-6px)]
-                                    left-4
-                                    right-4
-                                    z-30
-                                    overflow-hidden
-                                    rounded-xl
-                                    border
-                                    border-white/10
-                                    bg-[#084c49]
-                                    shadow-[0_18px_40px_rgba(0,0,0,0.25)]
-                                "
-                                role="menu"
-                            >
-                                <div className="px-3 py-3">
-                                    <div
-                                        className="
-                                            flex
-                                            items-center
-                                            gap-3
-                                            whitespace-nowrap
-                                        "
-                                    >
-                                        <AccountAvatar
-                                            user={user}
-                                            initials={initials}
-                                        />
-
-                                        <div className="min-w-0 shrink-0">
-                                            <p
-                                                className="
-                                                    truncate
-                                                    whitespace-nowrap
-                                                    text-[11px]
-                                                    font-semibold
-                                                    text-white!
-                                                "
-                                            >
-                                                {user?.name || 'Account'}
-                                            </p>
-
-                                            <p
-                                                className="
-                                                    mt-0.5
-                                                    truncate
-                                                    whitespace-nowrap
-                                                    text-[7px]
-                                                    font-bold
-                                                    uppercase
-                                                    tracking-[0.12em]
-                                                    text-white!/30
-                                                "
-                                            >
-                                                {roleLabel}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="h-px shrink-0 bg-white/8" />
-
-                                {profilePath && (
-                                    <AccountLink
-                                        to={profilePath}
-                                        icon={UserRound}
-                                        onClick={closeAccountMenu}
-                                    >
-                                        Profile
-                                    </AccountLink>
-                                )}
-
-                                {settingsPath && (
-                                    <AccountLink
-                                        to={settingsPath}
-                                        icon={Settings}
-                                        onClick={closeAccountMenu}
-                                    >
-                                        Account settings
-                                    </AccountLink>
-                                )}
-
-                                <AccountLink
-                                    to="/help"
-                                    icon={CircleHelp}
-                                    onClick={closeAccountMenu}
-                                >
-                                    Help & support
-                                </AccountLink>
-
-                                <div className="mx-4 h-px shrink-0 bg-white/8" />
-
-                                <button
-                                    type="button"
-                                    onClick={handleSignOut}
-                                    className={`
-                                        ${MENU_ITEM_BASE}
-                                        ${MENU_ITEM_MUTED}
-                                        text-left
-                                    `}
-                                >
-                                    <LogOut
-                                        className="
-                                            h-4
-                                            w-4
-                                            shrink-0
-                                            text-white!/25
-                                        "
-                                        strokeWidth={1.7}
-                                    />
-
-                                    <span className="whitespace-nowrap">
-                                        Sign out
-                                    </span>
-                                </button>
-                            </div>
-                        )}
-
-                        {/* =================================================
-                            ACCOUNT TRIGGER
-                        ================================================= */}
-
-                        <div
-                            className="
-                                border-t
-                                border-white/8
-                                px-5
-                                py-3
-                                xl:py-4
-                                2xl:px-6
-                                2xl:py-5
-                            "
-                        >
-                            <button
-                                type="button"
-                                onClick={toggleAccountMenu}
-                                aria-expanded={accountOpen && !collapsed}
-                                aria-haspopup="menu"
-                                className="
-                                    group
-                                    flex
-                                    w-full
-                                    shrink-0
-                                    items-center
-                                    gap-3
+                                    min-w-0
+                                    flex-1
                                     text-left
-                                    whitespace-nowrap
                                 "
                             >
-                                <div className="relative shrink-0">
-                                    <AccountAvatar
-                                        user={user}
-                                        initials={initials}
-                                    />
+                                <p
+                                    className="
+                                        truncate
 
-                                    <span
-                                        className="
-                                            absolute
-                                            bottom-0
-                                            right-0
-                                            h-2
-                                            w-2
-                                            shrink-0
-                                            rounded-full
-                                            border-2
-                                            border-[#0d625d]
-                                            bg-[#72c6a2]
-                                        "
-                                    />
-                                </div>
+                                        text-[12px]
+                                        font-semibold
 
-                                <div className="min-w-0 flex-1 overflow-hidden">
-                                    <p
-                                        className="
-                                            truncate
-                                            whitespace-nowrap
-                                            text-[11px]
-                                            font-semibold
-                                            text-white!
-                                        "
-                                    >
-                                        {user?.name || 'Account'}
-                                    </p>
+                                        !text-[#E5E7EB]
+                                    "
+                                >
+                                    {userName}
+                                </p>
 
-                                    <p
-                                        className="
-                                            mt-0.5
-                                            truncate
-                                            whitespace-nowrap
-                                            text-[7px]
-                                            font-bold
-                                            uppercase
-                                            tracking-[0.12em]
-                                            text-white!/30
-                                        "
-                                    >
-                                        {roleLabel}
-                                    </p>
-                                </div>
+                                <p
+                                    className="
+                                        mt-0.5
+                                        truncate
 
-                                <ChevronRight
-                                    className={`
-                                        h-4
-                                        w-4
-                                        shrink-0
-                                        text-white!/25
-                                        transition-transform
-                                        duration-150
-                                        ${
-                                            accountOpen && !collapsed
-                                                ? 'rotate-90'
-                                                : ''
-                                        }
-                                    `}
-                                    strokeWidth={1.7}
-                                />
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                                        text-[9.5px]
+
+                                        !text-[#9299A6]
+                                    "
+                                >
+                                    {ROLE_LABELS[role]}
+                                </p>
+                            </div>
+
+                            <ChevronDown
+                                size={13}
+                                strokeWidth={1.8}
+                                className={`
+                                    shrink-0
+
+                                    !text-[#6F7785]
+
+                                    transition-transform
+                                    duration-200
+
+                                    group-hover:!text-[#C3C7CF]
+
+                                    ${accountOpen ? 'rotate-180' : ''}
+                                `}
+                            />
+                        </>
+                    )}
+                </button>
             </div>
+
+            {/* =============================================================
+                COLLAPSE
+            ============================================================= */}
+
+            <button
+                type="button"
+                onClick={handleCollapseToggle}
+                aria-label={
+                    collapsed
+                        ? 'Expand dashboard sidebar'
+                        : 'Collapse dashboard sidebar'
+                }
+                title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                className="
+                    absolute
+                    -right-3
+                    top-21
+
+                    flex
+                    h-6
+                    w-6
+                    items-center
+                    justify-center
+
+                    rounded-md
+
+                    border
+                    border-[#404754]
+
+                    bg-[#272B34]
+
+                    !text-[#9299A6]
+
+                    shadow-[0_3px_10px_rgba(7,8,11,0.25)]
+
+                    transition-colors
+                    duration-150
+
+                    hover:border-[#505866]
+                    hover:bg-[#303641]
+                    hover:!text-[#F1F2F4]
+                "
+            >
+                {collapsed ? (
+                    <ChevronRight size={13} strokeWidth={2} />
+                ) : (
+                    <ChevronLeft size={13} strokeWidth={2} />
+                )}
+            </button>
         </aside>
     );
 };

@@ -1,50 +1,217 @@
 import React from 'react';
 
-/**
- * QuickActions — renders a row of action buttons.
- *
- * Props:
- *   actions {Array} — [{ label, icon: LucideComponent, onClick, variant? }]
- *   title   {string} — optional section title
- *
- *   variant: 'primary' | 'secondary' (default secondary)
- */
+import { ArrowUpRight } from 'lucide-react';
+
+/* ==========================================================================
+   QUICK ACTIONS
+============================================================================ */
+
 const QuickActions = ({ actions = [], title = 'Quick Actions' }) => {
     return (
-        <div className="rounded-2xl border border-[#e5e7eb] bg-white p-5 shadow-sm">
+        <section
+            className="
+                overflow-hidden
+
+                border
+                border-[#343944]
+
+                bg-[#22252D]
+            "
+        >
+            {/* =============================================================
+                HEADER
+            ============================================================= */}
+
             {title && (
-                <h2 className="mb-4 font-['Fraunces'] text-base font-semibold text-[#0f172a]">
-                    {title}
-                </h2>
+                <header
+                    className="
+                        flex
+                        min-h-12
+                        items-center
+
+                        border-b
+                        border-[#343944]
+
+                        bg-[#20232A]
+
+                        px-4
+
+                        sm:px-5
+                    "
+                >
+                    <h2
+                        className="
+                            font-sans!
+
+                            text-[12px]
+                            font-semibold
+
+                            text-[#E5E7EB]!
+                        "
+                    >
+                        {title}
+                    </h2>
+                </header>
             )}
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                {actions.map((action, idx) => {
+
+            {/* =============================================================
+                ACTIONS
+            ============================================================= */}
+
+            <div
+                className="
+                    divide-y
+                    divide-[#2F333D]
+                "
+            >
+                {actions.map((action, index) => {
                     const Icon = action.icon;
-                    const isPrimary = action.variant === 'primary';
+
+                    const primary = action.variant === 'primary';
+
                     return (
                         <button
-                            key={idx}
+                            key={action.id ?? action.key ?? index}
                             type="button"
                             onClick={action.onClick}
-                            className={`flex flex-col items-center justify-center gap-2 rounded-xl border px-3 py-4 text-center text-sm font-medium transition-colors ${
-                                isPrimary
-                                    ? 'border-[#0f766e] bg-[#0f766e] text-white! hover:bg-[#115e59]'
-                                    : 'border-[#e5e7eb] bg-white text-[#0f172a] hover:bg-[#eef3f6]'
-                            }`}
+                            className={`
+                                    group
+
+                                    flex
+                                    min-h-[58px]
+                                    w-full
+                                    items-center
+                                    gap-3
+
+                                    px-4
+
+                                    text-left
+
+                                    transition-colors
+                                    duration-150
+
+                                    sm:px-5
+
+                                    ${
+                                        primary
+                                            ? 'bg-[#272B34]'
+                                            : 'bg-transparent'
+                                    }
+
+                                    hover:bg-[#2C303A]
+
+                                    focus:outline-none
+                                `}
                         >
+                            {/* =========================================
+                                    ICON
+                                ========================================= */}
+
                             {Icon && (
-                                <Icon
-                                    className={`h-5 w-5 ${isPrimary ? 'text-white!' : 'text-[#0f766e]'}`}
-                                />
+                                <span
+                                    className={`
+                                            flex
+                                            h-8
+                                            w-8
+                                            shrink-0
+                                            items-center
+                                            justify-center
+
+                                            rounded-md
+
+                                            border
+
+                                            transition-colors
+                                            duration-150
+
+                                            ${
+                                                primary
+                                                    ? `
+                                                        border-[#4A515E]
+                                                        bg-[#303641]
+                                                        text-[#D3D6DC]!
+                                                    `
+                                                    : `
+                                                        border-[#3A404B]
+                                                        bg-[#272B34]
+                                                        text-[#9299A6]!
+
+                                                        group-hover:border-[#4A515E]
+                                                        group-hover:bg-[#303641]
+                                                        group-hover:text-[#D3D6DC]!
+                                                    `
+                                            }
+                                        `}
+                                >
+                                    <Icon size={15} strokeWidth={1.7} />
+                                </span>
                             )}
-                            <span className="leading-tight">
+
+                            {/* =========================================
+                                    LABEL
+                                ========================================= */}
+
+                            <span
+                                className="
+                                        min-w-0
+                                        flex-1
+                                        truncate
+
+                                        text-[11.5px]
+                                        font-medium
+
+                                        text-[#C3C7CF]!
+
+                                        transition-colors
+
+                                        group-hover:text-[#F1F2F4]!
+                                    "
+                            >
                                 {action.label}
                             </span>
+
+                            {/* =========================================
+                                    ARROW
+                                ========================================= */}
+
+                            <ArrowUpRight
+                                size={14}
+                                strokeWidth={1.7}
+                                className="
+                                        shrink-0
+
+                                        text-[#626A78]!
+
+                                        transition-all
+                                        duration-150
+
+                                        group-hover:-translate-y-px
+                                        group-hover:translate-x-px
+                                        group-hover:text-[#A8AFBB]!
+                                    "
+                            />
                         </button>
                     );
                 })}
+
+                {actions.length === 0 && (
+                    <div
+                        className="
+                            px-5
+                            py-8
+
+                            text-center
+
+                            text-[11px]
+
+                            text-[#6F7785]!
+                        "
+                    >
+                        No actions available.
+                    </div>
+                )}
             </div>
-        </div>
+        </section>
     );
 };
 

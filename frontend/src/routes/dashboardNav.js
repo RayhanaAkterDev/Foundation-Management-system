@@ -340,23 +340,29 @@ export const NAV_CONFIG = {
             label: 'People & Network',
         },
 
+       {
+    key: 'users',
+    label: 'Users',
+    icon: Users,
+
+    children: [
         {
-            key: 'users',
-            label: 'Users',
-            icon: Users,
-
-            children: [
-                {
-                    key: 'users-all',
-                    label: 'View All Users',
-                    path: '/admin/dashboard/users',
-                },
-
-                // Future:
-                // User Verification
-                // Suspended Users
-            ],
+            key: 'users-all',
+            label: 'All Users',
+            path: '/admin/dashboard/users',
         },
+        {
+            key: 'users-add',
+            label: 'Add User',
+            path: '/admin/dashboard/users/add',
+        },
+        {
+            key: 'users-trash',
+            label: 'Trash',
+            path: '/admin/dashboard/users/trash',
+        },
+    ],
+},
 
         {
             key: 'organizations',

@@ -2,13 +2,23 @@
 
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { TbArrowLeft, TbCheck, TbKey, TbMail, TbRefresh } from 'react-icons/tb';
+
+import {
+    TbArrowLeft,
+    TbArrowRight,
+    TbCheck,
+    TbKey,
+    TbMail,
+    TbRefresh,
+    TbShieldCheck,
+} from 'react-icons/tb';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
 
 const ForgotPassword = () => {
     const [email, setEmail] = useState('');
     const [loading, setLoading] = useState(false);
+
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [resetUrl, setResetUrl] = useState('');
@@ -46,13 +56,13 @@ const ForgotPassword = () => {
             if (!response.ok) {
                 throw new Error(
                     data?.message ||
-                        'পাসওয়ার্ড রিসেটের অনুরোধ সম্পন্ন করা যায়নি।',
+                        'পাসওয়ার্ড রিসেট অনুরোধ সম্পন্ন করা যায়নি।',
                 );
             }
 
             setSuccess(
                 data?.message ||
-                    'পাসওয়ার্ড রিসেট করার নির্দেশনা প্রস্তুত হয়েছে।',
+                    'আপনার ইমেইলে পাসওয়ার্ড পরিবর্তনের নির্দেশনা পাঠানো হয়েছে।',
             );
 
             if (data?.reset_url) {
@@ -66,58 +76,175 @@ const ForgotPassword = () => {
     };
 
     return (
-        <main className="min-h-screen bg-[#f6f8fb] px-4 py-8 sm:px-6 lg:px-8">
-            <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-[520px] items-center justify-center">
-                <div className="w-full">
+        <main className="min-h-screen bg-[#f6f8fb]">
+            <div className="mx-auto flex min-h-screen w-full max-w-[1440px] items-center justify-center px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+                <div className="w-full max-w-[440px]">
                     {/* Back */}
                     <Link
                         to="/login"
-                        className="mb-6 inline-flex items-center gap-2 text-sm font-medium text-[#083c36] transition-colors hover:text-[#0f6258]"
+                        className="
+                            group
+                            mb-6
+                            inline-flex
+                            items-center
+                            gap-2
+                            font-bengali
+                            text-[14px]
+                            font-medium!
+                            text-slate-500
+                            transition-colors
+                            duration-200
+                            hover:text-[#0f766e]
+                        "
                     >
-                        <TbArrowLeft className="text-lg" />
+                        <TbArrowLeft
+                            size={18}
+                            className="
+                                transition-transform
+                                duration-200
+                                group-hover:-translate-x-0.5
+                            "
+                        />
                         লগইনে ফিরে যান
                     </Link>
 
-                    {/* Card */}
-                    <div className="rounded-[28px] border border-black/[0.06] bg-white p-6 shadow-[0_20px_60px_rgba(8,60,54,0.08)] sm:p-8">
-                        {/* Icon */}
-                        <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#083c36] text-white shadow-lg shadow-[#083c36]/15">
-                            <TbKey className="text-[27px]" />
-                        </div>
+                    {/* Main Card */}
+                    <section
+                        className="
+                            rounded-[18px]
+                            border
+                            border-slate-200/90
+                            bg-white
+                            p-6
+                            shadow-[0_20px_55px_rgba(15,23,42,0.055)]
 
-                        {/* Heading */}
-                        <div className="mb-7">
-                            <p className="mb-2 text-[12px] font-semibold uppercase tracking-[0.16em] text-[#ed864a]">
-                                অ্যাকাউন্ট পুনরুদ্ধার
-                            </p>
+                            sm:p-8
+                        "
+                    >
+                        {/* Header */}
+                        <header className="mb-7">
+                            <div
+                                className="
+                                    mb-5
+                                    flex
+                                    h-11
+                                    w-11
+                                    items-center
+                                    justify-center
+                                    rounded-[10px]
+                                    bg-[#eaf4f2]
+                                    text-[#0f766e]
+                                "
+                            >
+                                <TbKey size={22} strokeWidth={2} />
+                            </div>
 
-                            <h1 className="font-bengali text-[30px] font-semibold leading-[1.2] tracking-[-0.025em] text-[#083c36] sm:text-[34px]">
+                            <h1
+                                className="
+                                    font-bengali
+                                    text-[27px]
+                                    font-semibold!
+                                    leading-[1.35]
+                                    text-[#0f172a]
+
+                                    sm:text-[29px]
+                                "
+                            >
                                 পাসওয়ার্ড ভুলে গেছেন?
                             </h1>
 
-                            <p className="mt-3 font-bengali text-[14px] leading-7 text-slate-500">
-                                আপনার অ্যাকাউন্টের ইমেইল ঠিকানা দিন। আমরা
-                                পাসওয়ার্ড পরিবর্তনের পরবর্তী ধাপে নিয়ে যাব।
+                            <p
+                                className="
+                                    mt-2
+                                    max-w-[370px]
+                                    font-bengali
+                                    text-[14px]
+                                    leading-7
+                                    text-slate-500
+                                "
+                            >
+                                আপনার অ্যাকাউন্টে ব্যবহৃত ইমেইল ঠিকানা দিন। আমরা
+                                পাসওয়ার্ড পরিবর্তনের জন্য একটি রিসেট লিংক পাঠাব।
                             </p>
-                        </div>
+                        </header>
 
                         {/* Error */}
                         {error && (
-                            <div className="mb-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm leading-6 text-red-700">
-                                {error}
+                            <div
+                                className="
+                                    mb-5
+                                    flex
+                                    items-start
+                                    gap-3
+                                    rounded-lg
+                                    border
+                                    border-red-200
+                                    bg-red-50
+                                    px-4
+                                    py-3
+                                "
+                            >
+                                <span
+                                    className="
+                                        mt-[2px]
+                                        flex
+                                        h-5
+                                        w-5
+                                        shrink-0
+                                        items-center
+                                        justify-center
+                                        rounded-full
+                                        bg-red-100
+                                        text-[12px]
+                                        font-bold
+                                        text-red-600
+                                    "
+                                >
+                                    !
+                                </span>
+
+                                <p className="font-bengali text-[13px] leading-6 text-red-700">
+                                    {error}
+                                </p>
                             </div>
                         )}
 
                         {/* Success */}
                         {success && (
-                            <div className="mb-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm leading-6 text-emerald-800">
-                                <div className="flex items-start gap-3">
-                                    <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white">
-                                        <TbCheck className="text-base" />
-                                    </div>
+                            <div
+                                className="
+                                    mb-5
+                                    flex
+                                    items-start
+                                    gap-3
+                                    rounded-lg
+                                    border
+                                    border-[#cce5e1]
+                                    bg-[#f1f8f6]
+                                    px-4
+                                    py-3
+                                "
+                            >
+                                <span
+                                    className="
+                                        mt-[2px]
+                                        flex
+                                        h-5
+                                        w-5
+                                        shrink-0
+                                        items-center
+                                        justify-center
+                                        rounded-full
+                                        bg-[#0f766e]
+                                        text-white!
+                                    "
+                                >
+                                    <TbCheck size={13} strokeWidth={2.5} />
+                                </span>
 
-                                    <p>{success}</p>
-                                </div>
+                                <p className="font-bengali text-[13px] leading-6 text-[#134e4a]">
+                                    {success}
+                                </p>
                             </div>
                         )}
 
@@ -125,87 +252,282 @@ const ForgotPassword = () => {
                         <form onSubmit={handleSubmit} className="space-y-5">
                             <div>
                                 <label
-                                    htmlFor="forgot-password-email"
-                                    className="mb-2 block text-sm font-semibold text-[#083c36]"
+                                    htmlFor="forgot-email"
+                                    className="
+                                        mb-2
+                                        block
+                                        font-bengali
+                                        text-[14px]
+                                        font-semibold!
+                                        text-[#334155]
+                                    "
                                 >
                                     ইমেইল ঠিকানা
                                 </label>
 
-                                <div className="relative">
-                                    <TbMail className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[20px] text-slate-400" />
+                                <div className="group relative">
+                                    <TbMail
+                                        size={19}
+                                        className="
+                                            pointer-events-none
+                                            absolute
+                                            left-4
+                                            top-1/2
+                                            -translate-y-1/2
+                                            text-slate-400
+                                            transition-colors
+                                            duration-200
+
+                                            group-focus-within:text-[#0f766e]
+                                        "
+                                    />
 
                                     <input
-                                        id="forgot-password-email"
+                                        id="forgot-email"
                                         type="email"
                                         value={email}
-                                        onChange={(event) =>
-                                            setEmail(event.target.value)
+                                        onChange={(e) =>
+                                            setEmail(e.target.value)
                                         }
-                                        placeholder="আপনার ইমেইল লিখুন"
                                         autoComplete="email"
                                         disabled={loading}
-                                        className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#0f6258] focus:ring-4 focus:ring-[#0f6258]/10 disabled:cursor-not-allowed disabled:bg-slate-50"
+                                        placeholder="name@example.com"
+                                        className="
+                                            h-[52px]
+                                            w-full
+                                            rounded-lg
+                                            border
+                                            border-slate-200
+                                            bg-white
+                                            pl-11
+                                            pr-4
+                                            text-[14px]
+                                            text-slate-800
+                                            outline-none
+                                            transition-all
+                                            duration-200
+
+                                            placeholder:text-slate-400
+
+                                            hover:border-slate-300
+
+                                            focus:border-[#0f766e]!
+                                            focus:outline-none!
+                                            focus:ring-[3px]!
+                                            focus:ring-[#0f766e]/10!
+
+                                            disabled:cursor-not-allowed
+                                            disabled:bg-slate-50
+                                            disabled:text-slate-400
+                                        "
                                     />
                                 </div>
                             </div>
 
                             <button
-                                type="submit"
                                 disabled={loading}
-                                className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#083c36] px-5 text-sm font-semibold text-white shadow-[0_10px_25px_rgba(8,60,54,0.16)] transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#0f6258] hover:shadow-[0_14px_30px_rgba(8,60,54,0.2)] disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-60"
+                                type="submit"
+                                className="
+                                    group
+                                    flex
+                                    h-[52px]
+                                    w-full
+                                    items-center
+                                    justify-center
+                                    gap-2
+                                    rounded-lg
+                                    bg-[#0f766e]
+                                    px-5
+                                    font-bengali
+                                    text-[14px]
+                                    font-semibold!
+                                    text-white!
+                                    transition-all
+                                    duration-200
+
+                                    hover:bg-[#115e59]
+
+                                    focus:outline-none!
+                                    focus:ring-4!
+                                    focus:ring-[#0f766e]/15!
+
+                                    disabled:cursor-not-allowed
+                                    disabled:opacity-60
+                                "
                             >
                                 {loading ? (
                                     <>
-                                        <TbRefresh className="animate-spin text-lg" />
+                                        <TbRefresh
+                                            size={19}
+                                            className="animate-spin"
+                                        />
                                         অনুরোধ পাঠানো হচ্ছে...
                                     </>
                                 ) : (
                                     <>
-                                        <TbKey className="text-lg" />
-                                        পাসওয়ার্ড রিসেট করুন
+                                        রিসেট লিংক পাঠান
+                                        <TbArrowRight
+                                            size={18}
+                                            className="
+                                                transition-transform
+                                                duration-200
+                                                group-hover:translate-x-0.5
+                                            "
+                                        />
                                     </>
                                 )}
                             </button>
                         </form>
 
-                        {/* Demo reset link */}
-                        {resetUrl && (
-                            <div className="mt-6 rounded-2xl border border-[#ed864a]/25 bg-[#fff8f3] p-4">
-                                <div className="mb-2 flex items-center gap-2">
-                                    <TbCheck className="text-lg text-[#ed864a]" />
+                        {/* Security Note */}
+                        {!resetUrl && (
+                            <div
+                                className="
+                                    mt-5
+                                    flex
+                                    items-start
+                                    gap-2.5
+                                    border-t
+                                    border-slate-100
+                                    pt-5
+                                "
+                            >
+                                <TbShieldCheck
+                                    size={18}
+                                    className="
+                                        mt-[2px]
+                                        shrink-0
+                                        text-slate-400
+                                    "
+                                />
 
-                                    <p className="font-bengali text-sm font-semibold text-[#083c36]">
-                                        রিসেট লিংক প্রস্তুত হয়েছে
-                                    </p>
-                                </div>
-
-                                <p className="mb-3 font-bengali text-xs leading-5 text-slate-500">
-                                    ডেমো অ্যাকাউন্টের জন্য নিচের বাটনে ক্লিক করে
-                                    নতুন পাসওয়ার্ড সেট করুন।
+                                <p
+                                    className="
+                                        font-bengali
+                                        text-[12px]
+                                        leading-[1.7]
+                                        text-slate-400
+                                    "
+                                >
+                                    নিরাপত্তার জন্য রিসেট লিংকটি শুধুমাত্র আপনার
+                                    অ্যাকাউন্টের সাথে যুক্ত ইমেইলে পাঠানো হবে।
                                 </p>
+                            </div>
+                        )}
+
+                        {/* Development Reset URL */}
+                        {resetUrl && (
+                            <div
+                                className="
+                                    mt-5
+                                    rounded-lg
+                                    border
+                                    border-[#fde3a7]
+                                    bg-[#fffaf0]
+                                    p-4
+                                "
+                            >
+                                <div className="flex items-start gap-3">
+                                    <TbShieldCheck
+                                        size={20}
+                                        className="
+                                            mt-0.5
+                                            shrink-0
+                                            text-[#d97706]
+                                        "
+                                    />
+
+                                    <div className="min-w-0 flex-1">
+                                        <p
+                                            className="
+                                                font-bengali
+                                                text-[13px]
+                                                font-semibold!
+                                                text-[#0f172a]
+                                            "
+                                        >
+                                            ডেভেলপমেন্ট রিসেট লিংক
+                                        </p>
+
+                                        <p
+                                            className="
+                                                mt-1
+                                                font-bengali
+                                                text-[12px]
+                                                leading-5
+                                                text-slate-500
+                                            "
+                                        >
+                                            নিচের লিংক ব্যবহার করে নতুন
+                                            পাসওয়ার্ড সেট করুন।
+                                        </p>
+                                    </div>
+                                </div>
 
                                 <a
                                     href={resetUrl}
-                                    className="flex h-11 items-center justify-center rounded-xl bg-[#ed864a] px-4 text-sm font-semibold text-white transition hover:bg-[#d96f35]"
+                                    className="
+                                        group
+                                        mt-3
+                                        flex
+                                        h-10
+                                        w-full
+                                        items-center
+                                        justify-center
+                                        gap-2
+                                        rounded-lg
+                                        border
+                                        border-[#f59e0b]
+                                        bg-white
+                                        px-4
+                                        font-bengali
+                                        text-[13px]
+                                        font-semibold!
+                                        text-[#b45309]
+                                        transition-colors
+                                        duration-200
+
+                                        hover:bg-[#fff7e6]
+                                    "
                                 >
-                                    পাসওয়ার্ড পরিবর্তন করুন
+                                    নতুন পাসওয়ার্ড সেট করুন
+                                    <TbArrowRight
+                                        size={17}
+                                        className="
+                                            transition-transform
+                                            group-hover:translate-x-0.5
+                                        "
+                                    />
                                 </a>
                             </div>
                         )}
 
-                        {/* Footer */}
-                        <div className="mt-7 border-t border-slate-100 pt-6 text-center">
-                            <p className="text-sm text-slate-500">
+                        {/* Login */}
+                        <div
+                            className="
+                                mt-6
+                                border-t
+                                border-slate-100
+                                pt-5
+                                text-center
+                            "
+                        >
+                            <p className="font-bengali text-[13px] text-slate-500">
                                 পাসওয়ার্ড মনে পড়ে গেছে?{' '}
                                 <Link
                                     to="/login"
-                                    className="font-semibold text-[#0f6258] transition hover:text-[#083c36]"
+                                    className="
+                                        font-semibold!
+                                        text-[#0f766e]
+                                        transition-colors
+                                        hover:text-[#134e4a]
+                                    "
                                 >
                                     লগইন করুন
                                 </Link>
                             </p>
                         </div>
-                    </div>
+                    </section>
                 </div>
             </div>
         </main>

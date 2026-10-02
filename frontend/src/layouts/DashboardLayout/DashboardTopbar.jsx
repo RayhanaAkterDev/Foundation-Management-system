@@ -10,30 +10,36 @@ import {
     Menu,
     Settings,
     UserRound,
-    ChevronRight,
 } from 'lucide-react';
+
+/* ==========================================================================
+   DASHBOARD TOPBAR
+============================================================================ */
 
 const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
     const navigate = useNavigate();
 
     const [userMenuOpen, setUserMenuOpen] = useState(false);
 
-    // =========================================================
-    // USER
-    // =========================================================
+    /* ======================================================================
+       USER
+    ====================================================================== */
 
     const getStoredUser = () => {
         try {
             const storedUser =
                 localStorage.getItem('user') || sessionStorage.getItem('user');
 
-            if (!storedUser) return null;
+            if (!storedUser) {
+                return null;
+            }
 
             const parsedUser = JSON.parse(storedUser);
 
             return parsedUser?.user || parsedUser;
         } catch (error) {
             console.error('Failed to parse stored user:', error);
+
             return null;
         }
     };
@@ -77,20 +83,22 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
             .join('')
             .toUpperCase() || 'U';
 
-    // =========================================================
-    // CLOSE MENU
-    // =========================================================
+    /* ======================================================================
+       CLOSE MENU
+    ====================================================================== */
 
     const closeUserMenu = () => {
         setUserMenuOpen(false);
     };
 
-    // =========================================================
-    // ESCAPE KEY
-    // =========================================================
+    /* ======================================================================
+       ESCAPE
+    ====================================================================== */
 
     useEffect(() => {
-        if (!userMenuOpen) return;
+        if (!userMenuOpen) {
+            return undefined;
+        }
 
         const handleKeyDown = (event) => {
             if (event.key === 'Escape') {
@@ -105,9 +113,9 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
         };
     }, [userMenuOpen]);
 
-    // =========================================================
-    // SIGN OUT
-    // =========================================================
+    /* ======================================================================
+       SIGN OUT
+    ====================================================================== */
 
     const handleSignOut = () => {
         localStorage.removeItem('auth_token');
@@ -125,9 +133,9 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
         navigate('/');
     };
 
-    // =========================================================
-    // QUICK ACTIONS
-    // =========================================================
+    /* ======================================================================
+       QUICK ACTIONS
+    ====================================================================== */
 
     const dashboardBase = `/${userRole}/dashboard`;
 
@@ -149,70 +157,124 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
         },
     ];
 
+    /* ======================================================================
+       RENDER
+    ====================================================================== */
+
     return (
-        <header className="sticky top-0 z-30 border-b border-border bg-surface">
+        <header
+            className="
+                sticky
+                top-0
+                z-30
+
+                border-b
+                border-[#343944]
+
+                bg-[#1F2229]
+            "
+        >
             <div
                 className="
-                    flex min-h-19 items-center justify-between
-                    gap-3 px-4
-                    sm:min-h-20 sm:px-6
-                    lg:px-8
+                    flex
+                    min-h-16
+                    items-center
+                    justify-between
+                    gap-4
+
+                    px-4
+                    sm:px-6
+                    lg:px-7
                 "
             >
-                {/* =====================================================
+                {/* =========================================================
                     LEFT
-                ====================================================== */}
+                ========================================================= */}
 
-                <div className="flex min-w-0 items-center gap-3 sm:gap-4">
-                    {/* Mobile menu */}
-
+                <div
+                    className="
+                        flex
+                        min-w-0
+                        items-center
+                        gap-3
+                    "
+                >
                     <button
                         type="button"
                         onClick={onMenuOpen}
                         aria-label="Open navigation menu"
                         className="
-                            flex h-10 w-10 shrink-0 items-center justify-center
-                            rounded-lg
-                            border border-border
-                            bg-surface
-                            text-text-secondary
-                            transition-all duration-200
-                            hover:border-primary/25
-                            hover:bg-primary/4
-                            hover:text-primary
+                            flex
+                            h-9
+                            w-9
+                            shrink-0
+                            items-center
+                            justify-center
+
+                            rounded-md
+
+                            border
+                            border-[#343944]
+
+                            bg-[#272B34]
+
+                            !text-[#969EAC]
+
+                            transition-colors
+                            duration-150
+
+                            hover:border-[#404754]
+                            hover:bg-[#2C303A]
+                            hover:!text-[#F1F2F4]
+
                             focus:outline-none
-                            focus-visible:ring-2
-                            focus-visible:ring-primary/20
+
                             lg:hidden
                         "
                     >
-                        <Menu size={19} strokeWidth={1.9} />
+                        <Menu size={18} strokeWidth={1.8} />
                     </button>
 
-                    {/* Page heading */}
-
                     <div className="min-w-0">
-                        <div className="mb-1 flex items-center gap-2">
+                        <div
+                            className="
+                                mb-0.5
+                                flex
+                                items-center
+                                gap-2
+                            "
+                        >
                             <span
                                 className="
                                     truncate
-                                    text-[9px] font-semibold
-                                    uppercase tracking-[0.17em]
-                                    text-primary
-                                    sm:text-[10px]
+
+                                    text-[9px]
+                                    font-semibold
+                                    uppercase
+                                    tracking-[0.18em]
+
+                                    !text-[#9299A6]
                                 "
                             >
                                 {roleLabel}
                             </span>
 
-                            <span className="h-px w-4 shrink-0 bg-border sm:w-5" />
+                            <span
+                                className="
+                                    h-px
+                                    w-5
+                                    bg-[#404754]
+                                "
+                            />
 
                             <span
                                 className="
-                                    text-[9px] font-medium
-                                    uppercase tracking-[0.15em]
-                                    text-text-secondary
-                                    sm:text-[10px]
+                                    text-[9px]
+                                    font-semibold
+                                    uppercase
+                                    tracking-[0.18em]
+
+                                    !text-[#6F7785]
                                 "
                             >
                                 SP
@@ -223,12 +285,18 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                             className="
                                 max-w-[calc(100vw-170px)]
                                 truncate
-                                text-[19px] font-medium
-                                leading-tight
-                                tracking-[-0.02em]
-                                text-text-primary
+
+                                !font-sans
+
+                                text-[18px]
+                                font-semibold
+                                leading-5
+                                tracking-[-0.015em]
+
+                                !text-[#F1F2F4]
+
                                 sm:max-w-125
-                                sm:text-[22px]
+                                sm:text-[19px]
                             "
                         >
                             {pageTitle}
@@ -236,53 +304,80 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                     </div>
                 </div>
 
-                {/* =====================================================
+                {/* =========================================================
                     RIGHT
-                ====================================================== */}
+                ========================================================= */}
 
-                <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-                    {/* Notification */}
-
+                <div
+                    className="
+                        flex
+                        shrink-0
+                        items-center
+                        gap-2
+                    "
+                >
                     <button
                         type="button"
                         aria-label="Notifications"
                         className="
                             relative
-                            flex h-10 w-10 items-center justify-center
-                            rounded-lg
-                            text-text-secondary
-                            transition-all duration-200
-                            hover:bg-primary/4
-                            hover:text-text-primary
+
+                            flex
+                            h-9
+                            w-9
+                            items-center
+                            justify-center
+
+                            rounded-md
+
+                            !text-[#969EAC]
+
+                            transition-colors
+                            duration-150
+
+                            hover:bg-[#2C303A]
+                            hover:!text-[#F1F2F4]
+
                             focus:outline-none
-                            focus-visible:ring-2
-                            focus-visible:ring-primary/20
                         "
                     >
-                        <Bell size={19} strokeWidth={1.8} />
+                        <Bell size={18} strokeWidth={1.75} />
 
                         <span
                             className="
-                                absolute right-2 top-1.75
-                                h-1.5 w-1.5
+                                absolute
+                                right-1.5
+                                top-1.5
+
+                                h-1.5
+                                w-1.5
+
                                 rounded-full
-                                bg-accent
-                                ring-2 ring-surface
+
+                                bg-[#E6A15C]
+
+                                ring-2
+                                ring-[#1F2229]
                             "
                         />
                     </button>
 
-                    {/* Divider */}
+                    <div
+                        className="
+                            hidden
+                            h-6
+                            w-px
+                            bg-[#343944]
 
-                    <div className="mx-1 hidden h-7 w-px bg-border sm:block" />
+                            sm:block
+                        "
+                    />
 
-                    {/* =================================================
+                    {/* =====================================================
                         ACCOUNT
-                    ================================================== */}
+                    ===================================================== */}
 
                     <div className="relative">
-                        {/* Account trigger */}
-
                         <button
                             type="button"
                             onClick={() => setUserMenuOpen((open) => !open)}
@@ -291,39 +386,61 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                             aria-controls="account-menu"
                             className="
                                 group
-                                flex items-center gap-2
-                                rounded-xl
-                                px-1 py-1
-                                transition-colors duration-200
-                                hover:bg-primary/4
+
+                                flex
+                                items-center
+                                gap-2.5
+
+                                rounded-md
+
+                                px-1.5
+                                py-1
+
+                                transition-colors
+                                duration-150
+
+                                hover:bg-[#2C303A]
+
                                 focus:outline-none
-                                focus-visible:ring-2
-                                focus-visible:ring-primary/20
-                                sm:gap-2.5
                             "
                         >
-                            {/* Avatar */}
-
                             <div
                                 className="
-                                    relative
-                                    flex h-9 w-9 shrink-0
-                                    items-center justify-center
+                                    flex
+                                    h-8
+                                    w-8
+                                    shrink-0
+                                    items-center
+                                    justify-center
                                     overflow-hidden
-                                    rounded-[10px]
-                                    bg-primary
-                                    text-[11px] font-semibold
-                                    text-white!
-                                    ring-1 ring-primary/10
-                                    transition-all duration-200
-                                    group-hover:ring-primary/20
+
+                                    rounded-md
+
+                                    border
+                                    border-[#404754]
+
+                                    bg-[#303641]
+
+                                    text-[10px]
+                                    font-semibold
+
+                                    !text-[#F1F2F4]
+
+                                    transition-colors
+                                    duration-150
+
+                                    group-hover:border-[#505866]
                                 "
                             >
                                 {userAvatar ? (
                                     <img
                                         src={userAvatar}
                                         alt={userName}
-                                        className="h-full w-full object-cover"
+                                        className="
+                                            h-full
+                                            w-full
+                                            object-cover
+                                        "
                                         onError={(event) => {
                                             event.currentTarget.style.display =
                                                 'none';
@@ -334,16 +451,25 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                 )}
                             </div>
 
-                            {/* Name */}
+                            <div
+                                className="
+                                    hidden
+                                    min-w-0
+                                    text-left
 
-                            <div className="hidden min-w-0 text-left sm:block">
+                                    sm:block
+                                "
+                            >
                                 <p
                                     className="
                                         max-w-37.5
                                         truncate
-                                        text-[13px] font-semibold
+
+                                        text-[12px]
+                                        font-semibold
                                         leading-4
-                                        text-text-primary
+
+                                        !text-[#E5E7EB]
                                     "
                                 >
                                     {userName}
@@ -354,28 +480,36 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                         mt-0.5
                                         max-w-37.5
                                         truncate
-                                        text-[10px] font-medium
+
+                                        text-[9.5px]
+                                        font-medium
                                         leading-3
-                                        text-text-secondary
+
+                                        !text-[#9299A6]
                                     "
                                 >
                                     {roleLabel}
                                 </p>
                             </div>
 
-                            {/* Chevron */}
-
                             <ChevronDown
-                                size={15}
-                                strokeWidth={1.9}
+                                size={13}
+                                strokeWidth={1.8}
                                 className={`
                                     hidden
-                                    text-text-secondary
-                                    transition-transform duration-200
+                                    !text-[#6F7785]
+
+                                    transition-transform
+                                    duration-200
+
                                     sm:block
+
                                     ${
                                         userMenuOpen
-                                            ? 'rotate-180 text-primary'
+                                            ? `
+                                                rotate-180
+                                                !text-[#C3C7CF]
+                                            `
                                             : ''
                                     }
                                 `}
@@ -383,179 +517,166 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                         </button>
 
                         {/* =================================================
-    ACCOUNT DROPDOWN
-================================================= */}
+                            DROPDOWN
+                        ================================================= */}
 
                         {userMenuOpen && (
                             <>
-                                {/* Backdrop */}
                                 <button
                                     type="button"
                                     aria-label="Close account menu"
                                     onClick={closeUserMenu}
                                     className="
-                fixed
-                inset-0
-                z-40
-                h-full
-                w-full
-                cursor-default
-            "
+                                        fixed
+                                        inset-0
+                                        z-40
+                                        h-full
+                                        w-full
+                                        cursor-default
+                                    "
                                 />
 
-                                {/* Dropdown */}
                                 <div
                                     id="account-menu"
                                     role="menu"
                                     aria-label="Account menu"
                                     className="
-                absolute
-                right-0
-                top-[calc(100%+10px)]
-                z-50
-                w-[min(330px,calc(100vw-24px))]
-                overflow-hidden
-                rounded-2xl
-                border
-                border-border
-                bg-surface
-                shadow-[0_20px_55px_rgba(15,23,42,0.14)]
-            "
+                                        absolute
+                                        right-0
+                                        top-[calc(100%+10px)]
+                                        z-50
+
+                                        w-[min(320px,calc(100vw-24px))]
+
+                                        overflow-hidden
+
+                                        rounded-xl
+
+                                        border
+                                        border-[#343944]
+
+                                        bg-[#272B34]
+
+                                        shadow-[0_18px_55px_rgba(7,8,11,0.28)]
+                                    "
                                 >
-                                    {/* =================================================
-                ACCOUNT HEADER
-            ================================================== */}
+                                    {/* =====================================
+                                        USER
+                                    ===================================== */}
 
                                     <div
                                         className="
-                    relative
-                    bg-primary
-                    px-5
-                    pb-9
-                    pt-5
-                "
+                                            flex
+                                            items-center
+                                            gap-3
+
+                                            border-b
+                                            border-[#343944]
+
+                                            bg-[#24272F]
+
+                                            px-4
+                                            py-4
+                                        "
                                     >
-                                        {/* User information */}
-                                        <div className="min-w-0 pr-16">
+                                        <div
+                                            className="
+                                                flex
+                                                h-10
+                                                w-10
+                                                shrink-0
+                                                items-center
+                                                justify-center
+                                                overflow-hidden
+
+                                                rounded-lg
+
+                                                border
+                                                border-[#404754]
+
+                                                bg-[#303641]
+
+                                                text-[11px]
+                                                font-semibold
+
+                                                !text-[#F1F2F4]
+                                            "
+                                        >
+                                            {userAvatar ? (
+                                                <img
+                                                    src={userAvatar}
+                                                    alt={userName}
+                                                    className="
+                                                        h-full
+                                                        w-full
+                                                        object-cover
+                                                    "
+                                                />
+                                            ) : (
+                                                initials
+                                            )}
+                                        </div>
+
+                                        <div className="min-w-0">
                                             <p
                                                 className="
-                            truncate
-                            text-[20px]
-                            font-semibold
-                            leading-6
-                            tracking-tight
-                            text-white!
-                        "
+                                                    truncate
+                                                    text-[13px]
+                                                    font-semibold
+                                                    !text-[#F1F2F4]
+                                                "
                                             >
                                                 {userName}
                                             </p>
 
                                             <p
                                                 className="
-                            mt-1
-                            truncate
-                            text-[11px]
-                            leading-4
-                            text-white!/65
-                        "
+                                                    mt-0.5
+                                                    truncate
+                                                    text-[10px]
+                                                    !text-[#9299A6]
+                                                "
                                             >
                                                 {userEmail || 'Account'}
                                             </p>
-                                        </div>
 
-                                        {/* Floating avatar */}
-                                        <div
-                                            className="
-                        absolute
-                        -bottom-6
-                        left-5
-                    "
-                                        >
-                                            <div
+                                            <p
                                                 className="
-                            flex
-                            h-12
-                            w-12
-                            items-center
-                            justify-center
-                            overflow-hidden
-                            rounded-xl
-                            border-[3px]
-                            border-surface
-                            bg-primary-hover
-                            text-[14px]
-                            font-semibold
-                            text-white!
-                            shadow-[0_5px_16px_rgba(15,23,42,0.18)]
-                        "
-                                            >
-                                                {userAvatar ? (
-                                                    <img
-                                                        src={userAvatar}
-                                                        alt={userName}
-                                                        className="
-                                    h-full
-                                    w-full
-                                    object-cover
-                                "
-                                                        onError={(event) => {
-                                                            event.currentTarget.style.display =
-                                                                'none';
-                                                        }}
-                                                    />
-                                                ) : (
-                                                    initials
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        {/* Role */}
-                                        <div
-                                            className="
-                        absolute
-                        bottom-3
-                        right-5
-                        max-w-30
-                    "
-                                        >
-                                            <span
-                                                className="
-                            block
-                            truncate
-                            text-[9px]
-                            font-semibold
-                            uppercase
-                            tracking-widest
-                            text-white!/65
-                        "
+                                                    mt-1
+                                                    text-[8.5px]
+                                                    font-semibold
+                                                    uppercase
+                                                    tracking-[0.14em]
+                                                    !text-[#6F7785]
+                                                "
                                             >
                                                 {roleLabel}
-                                            </span>
+                                            </p>
                                         </div>
                                     </div>
 
-                                    {/* =================================================
-    QUICK ACTIONS
-================================================= */}
+                                    {/* =====================================
+                                        QUICK ACCESS
+                                    ===================================== */}
 
-                                    <div className="px-5 pb-4 pt-8">
-                                        <div className="mb-3 flex items-center justify-between">
-                                            <span
-                                                className="
-                text-[10px]
-                font-semibold
-                uppercase
-                tracking-[0.12em]
-                text-text-secondary
-            "
-                                            >
-                                                Quick access
-                                            </span>
+                                    <div className="p-3">
+                                        <p
+                                            className="
+                                                mb-2
+                                                px-1
 
-                                            <span className="h-px flex-1 bg-border ml-3" />
-                                        </div>
+                                                text-[9px]
+                                                font-semibold
+                                                uppercase
+                                                tracking-[0.14em]
 
-                                        <div className="grid grid-cols-3 gap-2">
+                                                !text-[#6F7785]
+                                            "
+                                        >
+                                            Quick access
+                                        </p>
+
+                                        <div className="space-y-0.5">
                                             {quickActions.map(
                                                 ({ label, icon: Icon, to }) => (
                                                     <NavLink
@@ -564,68 +685,44 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                                         onClick={closeUserMenu}
                                                         role="menuitem"
                                                         className="
-                    group
-                    flex
-                    min-h-20
-                    flex-col
-                    items-center
-                    justify-center
-                    rounded-xl
-                    border
-                    border-border
-                    bg-surface
-                    px-2
-                    py-3
-                    text-center
-                    transition-all
-                    duration-150
-                    hover:border-primary/20
-                    hover:bg-primary/4
-                    focus:outline-none
-                    focus-visible:border-primary/30
-                    focus-visible:ring-2
-                    focus-visible:ring-primary/10
-                "
+                                                            group
+
+                                                            flex
+                                                            min-h-10
+                                                            items-center
+                                                            gap-3
+
+                                                            rounded-md
+
+                                                            px-2.5
+
+                                                            transition-colors
+                                                            duration-150
+
+                                                            hover:bg-[#303641]
+                                                        "
                                                     >
-                                                        <div
+                                                        <Icon
+                                                            size={16}
+                                                            strokeWidth={1.75}
                                                             className="
-                        mb-2
-                        flex
-                        h-8
-                        w-8
-                        items-center
-                        justify-center
-                        rounded-lg
-                        bg-primary/8
-                        transition-colors
-                        duration-150
-                        group-hover:bg-primary/12
-                    "
-                                                        >
-                                                            <Icon
-                                                                size={16}
-                                                                strokeWidth={
-                                                                    1.8
-                                                                }
-                                                                className="
-                            text-primary
-                            transition-transform
-                            duration-150
-                            group-hover:scale-105
-                        "
-                                                            />
-                                                        </div>
+                                                                !text-[#969EAC]
+
+                                                                transition-colors
+
+                                                                group-hover:!text-[#D3D6DC]
+                                                            "
+                                                        />
 
                                                         <span
                                                             className="
-                        text-[10px]
-                        font-semibold
-                        leading-3
-                        text-text-primary
-                        transition-colors
-                        duration-150
-                        group-hover:text-primary
-                    "
+                                                                text-[11px]
+                                                                font-medium
+
+                                                                !text-[#C3C7CF]
+
+                                                                group-hover:!text-[#F1F2F4]
+                                                            "
                                                         >
                                                             {label}
                                                         </span>
@@ -635,77 +732,64 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                         </div>
                                     </div>
 
-                                    {/* =================================================
-                SIGN OUT
-            ================================================== */}
+                                    {/* =====================================
+                                        SIGN OUT
+                                    ===================================== */}
 
                                     <div
                                         className="
-                    border-t
-                    border-border
-                    px-4
-                    py-3
-                "
+                                            border-t
+                                            border-[#343944]
+
+                                            p-3
+                                        "
                                     >
                                         <button
                                             type="button"
                                             onClick={handleSignOut}
                                             role="menuitem"
                                             className="
-                        group
-                        flex
-                        w-full
-                        items-center
-                        gap-3
-                        rounded-lg
-                        px-2
-                        py-2
-                        text-left
-                        transition-colors
-                        duration-150
-                        focus:outline-none
-                        focus-visible:ring-2
-                        focus-visible:ring-primary/20
-                    "
-                                        >
-                                            {/* Icon */}
-                                            <div
-                                                className="
-                            flex
-                            h-8
-                            w-8
-                            shrink-0
-                            items-center
-                            justify-center
-                            rounded-[9px]
-                            bg-primary/6
-                            transition-colors
-                            duration-150
-                            group-hover:bg-primary/10
-                        "
-                                            >
-                                                <LogOut
-                                                    size={15}
-                                                    strokeWidth={1.8}
-                                                    className="
-                                text-text-secondary
-                                transition-colors
-                                duration-150
-                                group-hover:text-primary
-                            "
-                                                />
-                                            </div>
+                                                group
 
-                                            {/* Label */}
+                                                flex
+                                                min-h-10
+                                                w-full
+                                                items-center
+                                                gap-3
+
+                                                rounded-md
+
+                                                px-2.5
+
+                                                text-left
+
+                                                transition-colors
+                                                duration-150
+
+                                                hover:bg-[#38272C]
+
+                                                focus:outline-none
+                                            "
+                                        >
+                                            <LogOut
+                                                size={16}
+                                                strokeWidth={1.75}
+                                                className="
+                                                    !text-[#B08B91]
+
+                                                    group-hover:!text-[#E9A1A8]
+                                                "
+                                            />
+
                                             <span
                                                 className="
-                            text-[11px]
-                            font-semibold
-                            text-text-primary
-                            transition-colors
-                            duration-150
-                            group-hover:text-primary
-                        "
+                                                    text-[11px]
+                                                    font-medium
+
+                                                    !text-[#CBA2A7]
+
+                                                    group-hover:!text-[#E9A1A8]
+                                                "
                                             >
                                                 Sign out
                                             </span>

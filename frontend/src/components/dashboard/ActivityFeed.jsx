@@ -1,65 +1,280 @@
 import React from 'react';
+
 import {
-  HandCoins,
-  HeartHandshake,
-  Users,
-  Megaphone,
-  Building2,
-  ShieldCheck,
-  User,
-  Activity,
+    Activity,
+    Building2,
+    HandCoins,
+    HeartHandshake,
+    Megaphone,
+    ShieldCheck,
+    User,
+    Users,
 } from 'lucide-react';
 
+/* ==========================================================================
+   ACTIVITY TYPES
+============================================================================ */
+
 const TYPE_ICON = {
-  donation:    { icon: HandCoins,     color: 'bg-emerald-50 text-emerald-600' },
-  helpRequest: { icon: HeartHandshake,color: 'bg-[#0f766e]/10 text-[#0f766e]' },
-  volunteer:   { icon: Users,         color: 'bg-blue-50 text-blue-600' },
-  campaign:    { icon: Megaphone,     color: 'bg-amber-50 text-amber-600' },
-  organization:{ icon: Building2,     color: 'bg-purple-50 text-purple-600' },
-  verification:{ icon: ShieldCheck,   color: 'bg-emerald-50 text-emerald-600' },
-  user:        { icon: User,          color: 'bg-[#f3f4f6] text-[#6b7280]' },
-  response:    { icon: HeartHandshake,color: 'bg-[#0f766e]/10 text-[#0f766e]' },
+    donation: HandCoins,
+    helpRequest: HeartHandshake,
+    volunteer: Users,
+    campaign: Megaphone,
+    organization: Building2,
+    verification: ShieldCheck,
+    user: User,
+    response: HeartHandshake,
 };
 
-/**
- * ActivityFeed — renders a list of activity events.
- *
- * Props:
- *   items  {Array}  — [{ id, type, text, time }]
- *   title  {string} — section title (default: "Recent Activity")
- */
-const ActivityFeed = ({ items = [], title = 'Recent Activity' }) => {
-  return (
-    <div className="rounded-2xl border border-[#e5e7eb] bg-white shadow-sm">
-      <div className="border-b border-[#e5e7eb] px-5 py-4">
-        <h2 className="font-['Fraunces'] text-base font-semibold text-text-primary">{title}</h2>
-      </div>
+/* ==========================================================================
+   ACTIVITY FEED
+============================================================================ */
 
-      {items.length === 0 ? (
-        <p className="px-5 py-8 text-center text-sm text-[#6b7280]">No recent activity.</p>
-      ) : (
-        <ul className="divide-y divide-[#e5e7eb]">
-          {items.map((item) => {
-            const cfg = TYPE_ICON[item.type] || { icon: Activity, color: 'bg-[#f3f4f6] text-[#6b7280]' };
-            const Icon = cfg.icon;
-            return (
-              <li key={item.id} className="flex items-start gap-3 px-5 py-4">
-                <span
-                  className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${cfg.color}`}
+const ActivityFeed = ({ items = [], title = 'Recent Activity' }) => {
+    return (
+        <section
+            className="
+                overflow-hidden
+
+                border
+                border-[#343944]
+
+                bg-[#22252D]
+            "
+        >
+            {/* =============================================================
+                HEADER
+            ============================================================= */}
+
+            {title && (
+                <header
+                    className="
+                        flex
+                        min-h-12
+                        items-center
+
+                        border-b
+                        border-[#343944]
+
+                        bg-[#20232A]
+
+                        px-4
+
+                        sm:px-5
+                    "
                 >
-                  <Icon className="h-4 w-4" />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm text-text-primary leading-snug">{item.text}</p>
-                  <p className="mt-0.5 text-xs text-[#6b7280]">{item.time}</p>
+                    <div
+                        className="
+                            flex
+                            items-center
+                            gap-2.5
+                        "
+                    >
+                        <span
+                            aria-hidden="true"
+                            className="
+                                h-1.5
+                                w-1.5
+
+                                rounded-full
+
+                                bg-[#9299A6]
+                            "
+                        />
+
+                        <h2
+                            className="
+                                font-sans!
+
+                                text-[12px]
+                                font-semibold
+
+                                text-[#E5E7EB]!
+                            "
+                        >
+                            {title}
+                        </h2>
+                    </div>
+                </header>
+            )}
+
+            {/* =============================================================
+                EMPTY
+            ============================================================= */}
+
+            {items.length === 0 ? (
+                <div
+                    className="
+                        flex
+                        min-h-[180px]
+                        items-center
+                        justify-center
+
+                        px-5
+                        py-8
+                    "
+                >
+                    <div className="text-center">
+                        <Activity
+                            size={19}
+                            strokeWidth={1.6}
+                            className="
+                                mx-auto
+                                text-[#626A78]!
+                            "
+                        />
+
+                        <p
+                            className="
+                                mt-3
+
+                                text-[11.5px]
+
+                                text-[#7F8794]!
+                            "
+                        >
+                            No recent activity.
+                        </p>
+                    </div>
                 </div>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </div>
-  );
+            ) : (
+                /* =========================================================
+                   LIST
+                ========================================================= */
+
+                <ol>
+                    {items.map((item, index) => {
+                        const Icon = TYPE_ICON[item.type] || Activity;
+
+                        const last = index === items.length - 1;
+
+                        return (
+                            <li
+                                key={item.id ?? index}
+                                className="
+                                        group
+
+                                        relative
+
+                                        flex
+                                        gap-3.5
+
+                                        px-4
+                                        py-4
+
+                                        transition-colors
+                                        duration-150
+
+                                        hover:bg-[#272B34]
+
+                                        sm:px-5
+                                    "
+                            >
+                                {/* =====================================
+                                        TIMELINE
+                                    ===================================== */}
+
+                                <div
+                                    className="
+                                            relative
+
+                                            flex
+                                            shrink-0
+                                            flex-col
+                                            items-center
+                                        "
+                                >
+                                    <span
+                                        className="
+                                                relative
+                                                z-10
+
+                                                flex
+                                                h-8
+                                                w-8
+                                                items-center
+                                                justify-center
+
+                                                rounded-md
+
+                                                border
+                                                border-[#3A404B]
+
+                                                bg-[#2C303A]
+
+                                                text-[#A8AFBB]!
+
+                                                transition-colors
+                                                duration-150
+
+                                                group-hover:border-[#4A515E]
+                                                group-hover:bg-[#303641]
+                                                group-hover:text-[#D3D6DC]!
+                                            "
+                                    >
+                                        <Icon size={15} strokeWidth={1.7} />
+                                    </span>
+
+                                    {!last && (
+                                        <span
+                                            aria-hidden="true"
+                                            className="
+                                                    absolute
+                                                    bottom-[-16px]
+                                                    top-8
+
+                                                    w-px
+
+                                                    bg-[#343944]
+                                                "
+                                        />
+                                    )}
+                                </div>
+
+                                {/* =====================================
+                                        CONTENT
+                                    ===================================== */}
+
+                                <div
+                                    className="
+                                            min-w-0
+                                            flex-1
+
+                                            pt-0.5
+                                        "
+                                >
+                                    <p
+                                        className="
+                                                text-[11.5px]
+                                                leading-5
+
+                                                text-[#C3C7CF]!
+                                            "
+                                    >
+                                        {item.text}
+                                    </p>
+
+                                    {item.time && (
+                                        <p
+                                            className="
+                                                    mt-1
+
+                                                    text-[9.5px]
+
+                                                    text-[#6F7785]!
+                                                "
+                                        >
+                                            {item.time}
+                                        </p>
+                                    )}
+                                </div>
+                            </li>
+                        );
+                    })}
+                </ol>
+            )}
+        </section>
+    );
 };
 
 export default ActivityFeed;

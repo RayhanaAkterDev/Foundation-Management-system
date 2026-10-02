@@ -996,7 +996,7 @@ class AuthController extends Controller
             );
 
             $resetUrl = $frontendUrl
-                . '/account/reset-password?token='
+                . '/reset-password?token='
                 . urlencode($token)
                 . '&email='
                 . urlencode($user->email);

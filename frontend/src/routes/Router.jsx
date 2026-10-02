@@ -48,7 +48,12 @@ import DashboardLayout from '@/layouts/DashboardLayout/DashboardLayout';
 // =========================
 
 import AdminDashboard from '@/dashboard/admin/dashboard/Dashboard';
+
+// admin users routes
 import AdminUsers from '@/dashboard/admin/users/Users';
+import AdminAddUser from '@/dashboard/admin/users/AddUser';
+import AdminUserDetails from '@/dashboard/admin/users/UserDetails';
+
 import AdminOrganizations from '@/dashboard/admin/organizations/Organizations';
 import AdminHelpRequests from '@/dashboard/admin/helpRequests/HelpRequests';
 import AdminDonations from '@/dashboard/admin/donations/Donations';
@@ -243,7 +248,7 @@ const router = createBrowserRouter([
     // =====================================================
 
     {
-        path: '/password-reset',
+        path: '/reset-password',
         element: <ResetPassword />,
     },
 
@@ -280,10 +285,22 @@ const router = createBrowserRouter([
                         index: true,
                         element: <AdminDashboard />,
                     },
+
+                    // admin users routes
                     {
                         path: 'users',
                         element: <AdminUsers />,
                     },
+                    {
+                        path: 'users/add',
+                        element: <AdminAddUser />,
+                    },
+                    {
+                        path: 'users/:userId/details',
+                        element: <AdminUserDetails />,
+                    },
+                    // ========================
+
                     {
                         path: 'organizations',
                         element: <AdminOrganizations />,

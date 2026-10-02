@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import {
     Plus,
@@ -7,12 +8,13 @@ import {
     ArrowDown,
     ArrowUp,
     ChevronsUpDown,
+    SlidersHorizontal,
+    X,
+    UsersRound,
 } from 'lucide-react';
 
 import PageHeader from '@/components/dashboard/PageHeader';
 
-import UserViewModal from './modals/ViewModal';
-import UserFormModal from './modals/FormModal';
 import UserDeleteModal from './modals/DeleteModal';
 
 import UserStats from './components/Stats';
@@ -22,17 +24,13 @@ import UserTable from './components/Table';
 import UserPagination from './components/Pagination';
 import UserSuccessToast from './components/SuccessToast';
 
-import {
-    createUser,
-    fetchUsers,
-    fetchUser,
-    updateUser,
-    deleteUser,
-} from './api/userApi';
+import { fetchUsers, deleteUser } from './api/userApi';
 
 const USERS_PER_PAGE = 25;
 
 const Users = () => {
+    const navigate = useNavigate();
+
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -49,32 +47,20 @@ const Users = () => {
 
     const [currentPage, setCurrentPage] = useState(1);
 
-    const [selectedUser, setSelectedUser] = useState(null);
-    const [viewLoading, setViewLoading] = useState(false);
-    const [viewError, setViewError] = useState('');
-
-    const [showAddModal, setShowAddModal] = useState(false);
-    const [addLoading, setAddLoading] = useState(false);
-    const [addError, setAddError] = useState('');
-    const [addFieldErrors, setAddFieldErrors] = useState({});
-
-    const [selectedEditUser, setSelectedEditUser] = useState(null);
-    const [editLoading, setEditLoading] = useState(false);
-    const [editError, setEditError] = useState('');
-    const [editFieldErrors, setEditFieldErrors] = useState({});
-
     const [selectedDeleteUser, setSelectedDeleteUser] = useState(null);
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [deleteError, setDeleteError] = useState('');
+
+    const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
     const [toast, setToast] = useState({
         show: false,
         message: '',
     });
 
-    // --------------------------------
-    // Success toast
-    // --------------------------------
+    // ============================================================
+    // SUCCESS TOAST
+    // ============================================================
 
     const showSuccessToast = (message) => {
         setToast({
@@ -90,9 +76,9 @@ const Users = () => {
         }, 3000);
     };
 
-    // --------------------------------
-    // Load users
-    // --------------------------------
+    // ============================================================
+    // LOAD USERS
+    // ============================================================
 
     const loadUsers = async () => {
         try {
@@ -138,139 +124,9 @@ const Users = () => {
         };
     }, []);
 
-    // --------------------------------
-    // View user
-    // --------------------------------
-
-    const handleViewUser = async (userId) => {
-        setViewLoading(true);
-        setViewError('');
-        setSelectedUser(null);
-
-        try {
-            const data = await fetchUser(userId);
-
-            setSelectedUser(data.user);
-        } catch (err) {
-            setViewError(err.message);
-        } finally {
-            setViewLoading(false);
-        }
-    };
-
-    const closeViewModal = () => {
-        setSelectedUser(null);
-        setViewError('');
-    };
-
-    // --------------------------------
-    // Add user
-    // --------------------------------
-
-    const openAddModal = () => {
-        setAddError('');
-        setAddFieldErrors({});
-        setShowAddModal(true);
-    };
-
-    const closeAddModal = () => {
-        if (addLoading) {
-            return;
-        }
-
-        setShowAddModal(false);
-        setAddError('');
-        setAddFieldErrors({});
-    };
-
-    const handleAddUser = async (formData) => {
-        setAddLoading(true);
-        setAddError('');
-        setAddFieldErrors({});
-
-        try {
-            await createUser(formData);
-
-            setShowAddModal(false);
-
-            await loadUsers();
-
-            setCurrentPage(1);
-
-            showSuccessToast('User added successfully.');
-        } catch (err) {
-            if (err.status === 422 && err.errors) {
-                setAddFieldErrors(err.errors);
-            }
-
-            setAddError(err.message);
-        } finally {
-            setAddLoading(false);
-        }
-    };
-
-    // --------------------------------
-    // Edit user
-    // --------------------------------
-
-    const openEditModal = async (userId) => {
-        setEditLoading(true);
-        setEditError('');
-        setEditFieldErrors({});
-        setSelectedEditUser(null);
-
-        try {
-            const data = await fetchUser(userId);
-
-            setSelectedEditUser(data.user);
-        } catch (err) {
-            setEditError(err.message);
-        } finally {
-            setEditLoading(false);
-        }
-    };
-
-    const closeEditModal = () => {
-        if (editLoading) {
-            return;
-        }
-
-        setSelectedEditUser(null);
-        setEditError('');
-        setEditFieldErrors({});
-    };
-
-    const handleEditUser = async (formData) => {
-        if (!selectedEditUser) {
-            return;
-        }
-
-        setEditLoading(true);
-        setEditError('');
-        setEditFieldErrors({});
-
-        try {
-            await updateUser(selectedEditUser.id, formData);
-
-            setSelectedEditUser(null);
-
-            await loadUsers();
-
-            showSuccessToast('User updated successfully.');
-        } catch (err) {
-            if (err.status === 422 && err.errors) {
-                setEditFieldErrors(err.errors);
-            }
-
-            setEditError(err.message);
-        } finally {
-            setEditLoading(false);
-        }
-    };
-
-    // --------------------------------
-    // Delete user
-    // --------------------------------
+    // ============================================================
+    // DELETE USER
+    // ============================================================
 
     const openDeleteModal = (user) => {
         setDeleteError('');
@@ -309,9 +165,9 @@ const Users = () => {
         }
     };
 
-    // --------------------------------
-    // Statistics
-    // --------------------------------
+    // ============================================================
+    // STATISTICS
+    // ============================================================
 
     const statistics = useMemo(() => {
         return {
@@ -328,9 +184,9 @@ const Users = () => {
         };
     }, [users]);
 
-    // --------------------------------
-    // Category tabs
-    // --------------------------------
+    // ============================================================
+    // CATEGORY TABS
+    // ============================================================
 
     const categoryTabs = useMemo(
         () => [
@@ -358,9 +214,9 @@ const Users = () => {
         [statistics],
     );
 
-    // --------------------------------
-    // Filtering + sorting
-    // --------------------------------
+    // ============================================================
+    // FILTERING + SORTING
+    // ============================================================
 
     const filteredUsers = useMemo(() => {
         let result = [...users];
@@ -435,9 +291,9 @@ const Users = () => {
         sortConfig,
     ]);
 
-    // --------------------------------
-    // Pagination
-    // --------------------------------
+    // ============================================================
+    // PAGINATION
+    // ============================================================
 
     const totalPages = Math.max(
         1,
@@ -452,9 +308,31 @@ const Users = () => {
         return filteredUsers.slice(startIndex, startIndex + USERS_PER_PAGE);
     }, [filteredUsers, safeCurrentPage]);
 
-    // --------------------------------
-    // Controls
-    // --------------------------------
+    // ============================================================
+    // FILTER STATE
+    // ============================================================
+
+    const activeFilterCount = useMemo(() => {
+        let count = 0;
+
+        if (activeCategory !== 'all') {
+            count += 1;
+        }
+
+        if (statusFilter !== 'all') {
+            count += 1;
+        }
+
+        if (verificationFilter !== 'all') {
+            count += 1;
+        }
+
+        return count;
+    }, [activeCategory, statusFilter, verificationFilter]);
+
+    // ============================================================
+    // CONTROLS
+    // ============================================================
 
     const handleCategoryChange = (category) => {
         setActiveCategory(category);
@@ -478,6 +356,13 @@ const Users = () => {
 
     const handleClearSearch = () => {
         setSearchTerm('');
+        setCurrentPage(1);
+    };
+
+    const handleClearFilters = () => {
+        setActiveCategory('all');
+        setStatusFilter('all');
+        setVerificationFilter('all');
         setCurrentPage(1);
     };
 
@@ -520,9 +405,9 @@ const Users = () => {
         return <ChevronsUpDown size={14} strokeWidth={1.8} />;
     };
 
-    // --------------------------------
-    // CSV Export
-    // --------------------------------
+    // ============================================================
+    // CSV EXPORT
+    // ============================================================
 
     const handleExportCSV = () => {
         if (filteredUsers.length === 0) {
@@ -562,9 +447,7 @@ const Users = () => {
         link.download = 'stand-for-people-users.csv';
 
         document.body.appendChild(link);
-
         link.click();
-
         document.body.removeChild(link);
 
         URL.revokeObjectURL(url);
@@ -572,9 +455,9 @@ const Users = () => {
         showSuccessToast('Users exported successfully.');
     };
 
-    // --------------------------------
-    // Table
-    // --------------------------------
+    // ============================================================
+    // TABLE
+    // ============================================================
 
     const rows = paginatedUsers.map((user, index) => ({
         ...user,
@@ -593,7 +476,7 @@ const Users = () => {
         },
         {
             key: 'name',
-            header: 'Name',
+            header: 'User',
             sortable: true,
             sortKey: 'name',
         },
@@ -615,12 +498,6 @@ const Users = () => {
             sortable: true,
             sortKey: 'status',
         },
-        // {
-        //     key: 'joinedDate',
-        //     header: 'Joined',
-        //     sortable: true,
-        //     sortKey: 'created_at',
-        // },
         {
             key: 'actions',
             header: 'Actions',
@@ -628,28 +505,63 @@ const Users = () => {
             width: '110px',
         },
     ];
-    // --------------------------------
-    // Loading
-    // --------------------------------
+
+    // ============================================================
+    // LOADING
+    // ============================================================
 
     if (loading) {
         return (
-            <div className="space-y-8">
+            <div>
                 <PageHeader
                     title="Users"
                     subtitle="Manage all registered users on the Stand For People platform."
                 />
 
-                <div className="flex min-h-70 items-center justify-center border-y border-border bg-white">
+                <div
+                    className="
+                        flex
+                        min-h-[320px]
+                        items-center
+                        justify-center
+                        border
+                        border-[#343944]
+                        bg-[#22252D]
+                    "
+                >
                     <div className="text-center">
-                        <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-border border-t-primary" />
+                        <div
+                            className="
+                                mx-auto
+                                h-8
+                                w-8
+                                animate-spin
+                                rounded-full
+                                border-2
+                                border-[#404754]
+                                border-t-[#C3C7CF]
+                            "
+                        />
 
-                        <p className="text-sm font-semibold text-text-primary">
+                        <p
+                            className="
+                                mt-4
+                                text-sm
+                                font-semibold
+                                text-[#F1F2F4]
+                            "
+                        >
                             Loading users...
                         </p>
 
-                        <p className="mt-1 text-xs text-text-secondary">
-                            Please wait while we retrieve the user list.
+                        <p
+                            className="
+                                mt-1
+                                text-xs
+                                text-[#9299A6]
+                            "
+                        >
+                            Retrieving the user directory.
                         </p>
                     </div>
                 </div>
@@ -657,95 +569,281 @@ const Users = () => {
         );
     }
 
-    // --------------------------------
-    // Error
-    // --------------------------------
+    // ============================================================
+    // ERROR
+    // ============================================================
 
     if (error) {
         return (
-            <div className="space-y-8">
+            <div>
                 <PageHeader
                     title="Users"
                     subtitle="Manage all registered users on the Stand For People platform."
                 />
 
-                <div className="border-l-4 border-red-500 bg-red-50 px-5 py-4 text-sm text-red-600">
+                <div
+                    className="
+                        border
+                        border-[#5A343B]
+                        bg-[#38272C]
+                        px-5
+                        py-4
+                        text-sm
+                        text-[#E9A1A8]
+                    "
+                >
                     {error}
                 </div>
             </div>
         );
     }
 
-    // --------------------------------
-    // Main
-    // --------------------------------
+    // ============================================================
+    // FILTER CONTENT
+    // ============================================================
+
+    const filterContent = (
+        <>
+            <div className="px-5 pb-5 pt-5">
+                <div
+                    className="
+                        flex
+                        items-start
+                        justify-between
+                        gap-4
+                    "
+                >
+                    <div>
+                        <p
+                            className="
+                                text-[10px]
+                                font-semibold
+                                uppercase
+                                tracking-[0.15em]
+                                text-[#6F7785]
+                            "
+                        >
+                            Directory controls
+                        </p>
+
+                        <h3
+                            className="
+                                mt-1.5
+                                text-[15px]
+                                font-semibold
+                                text-[#F1F2F4]
+                            "
+                        >
+                            Filter users
+                        </h3>
+                    </div>
+
+                    {activeFilterCount > 0 && (
+                        <button
+                            type="button"
+                            onClick={handleClearFilters}
+                            className="
+                                text-[11px]
+                                font-medium
+                                text-[#9299A6]
+                                transition-colors
+                                hover:text-[#F1F2F4]
+                            "
+                        >
+                            Clear all
+                        </button>
+                    )}
+                </div>
+
+                <p
+                    className="
+                        mt-2
+                        text-[12px]
+                        leading-5
+                        text-[#9299A6]
+                    "
+                >
+                    Refine the directory by role, account status and
+                    verification.
+                </p>
+            </div>
+
+            <div
+                className="
+                    border-t
+                    border-[#343944]
+                    px-4
+                    py-5
+                "
+            >
+                <div
+                    className="
+                        mb-3
+                        flex
+                        items-center
+                        justify-between
+                        px-1
+                    "
+                >
+                    <p
+                        className="
+                            text-[10px]
+                            font-semibold
+                            uppercase
+                            tracking-[0.14em]
+                            text-[#6F7785]
+                        "
+                    >
+                        User role
+                    </p>
+
+                    <span
+                        className="
+                            text-[10px]
+                            tabular-nums
+                            text-[#6F7785]
+                        "
+                    >
+                        {categoryTabs.length}
+                    </span>
+                </div>
+
+                <UserCategoryTabs
+                    tabs={categoryTabs}
+                    activeCategory={activeCategory}
+                    onChange={handleCategoryChange}
+                />
+            </div>
+
+            <div
+                className="
+                    border-t
+                    border-[#343944]
+                    px-4
+                    py-5
+                "
+            >
+                <p
+                    className="
+                        mb-3
+                        px-1
+                        text-[10px]
+                        font-semibold
+                        uppercase
+                        tracking-[0.14em]
+                        text-[#6F7785]
+                    "
+                >
+                    Account filters
+                </p>
+
+                <UserFilters
+                    statusFilter={statusFilter}
+                    onStatusChange={handleStatusChange}
+                    verificationFilter={verificationFilter}
+                    onVerificationChange={handleVerificationChange}
+                />
+            </div>
+        </>
+    );
+
+    // ============================================================
+    // MAIN
+    // ============================================================
 
     return (
         <>
-            <div className="space-y-9">
-                {/* Header */}
+            <div className="min-w-0">
+                {/* ========================================================
+                    HEADER
+                ======================================================== */}
 
                 <PageHeader
                     title="Users"
-                    subtitle="Review and manage everyone connected to Stand For People, including their roles, account status, and platform access."
+                    subtitle="Manage registered users, account roles, verification and platform access."
                     action={
-                        <div className="flex w-full items-center justify-end gap-3">
+                        <div
+                            className="
+                                flex
+                                w-full
+                                items-center
+                                gap-2
+
+                                sm:w-auto
+                                sm:justify-end
+                            "
+                        >
                             <button
                                 type="button"
                                 onClick={handleExportCSV}
                                 disabled={filteredUsers.length === 0}
                                 className="
-                                    group inline-flex h-10
-                                    items-center gap-2
-                                    border border-border
-                                    bg-surface
-                                    px-4
-                                    text-sm font-medium
-                                    text-text-primary
-                                    transition-all
-                                    hover:border-primary/30
-                                    hover:bg-background-alt
+                                    inline-flex
+                                    h-10
+                                    flex-1
+                                    items-center
+                                    justify-center
+                                    gap-2
+                                    border
+                                    border-[#404754]
+                                    bg-[#22252D]
+                                    px-3.5
+                                    text-[12px]
+                                    font-medium
+                                    text-[#C3C7CF]
+                                    transition-colors
+
+                                    hover:border-[#515866]
+                                    hover:bg-[#272B34]
+                                    hover:text-[#F1F2F4]
+
                                     disabled:cursor-not-allowed
-                                    disabled:opacity-50
+                                    disabled:opacity-40
+
+                                    sm:flex-none
                                 "
                             >
-                                <Download
-                                    size={15}
-                                    strokeWidth={1.8}
-                                    className="
-                                        text-text-secondary
-                                        transition-colors
-                                        group-hover:text-primary
-                                    "
-                                />
-
-                                <span>Export CSV</span>
+                                <Download size={15} strokeWidth={1.8} />
+                                Export CSV
                             </button>
 
                             <button
                                 type="button"
-                                onClick={openAddModal}
+                                onClick={() =>
+                                    navigate('/admin/dashboard/users/add')
+                                }
                                 className="
-                                    inline-flex h-10
-                                    items-center gap-2
-                                    bg-primary
-                                    px-4
-                                    text-sm font-semibold
-                                    text-white!
-                                    shadow-sm
-                                    transition-all
-                                    hover:bg-primary-hover
+                                    inline-flex
+                                    h-10
+                                    flex-1
+                                    items-center
+                                    justify-center
+                                    gap-2
+                                    border
+                                    border-[#4B5260]
+                                    bg-[#303641]
+                                    px-3.5
+                                    text-[12px]
+                                    font-semibold
+                                    text-[#F1F2F4]
+                                    transition-colors
+
+                                    hover:border-[#5A6270]
+                                    hover:bg-[#393F4C]
+
+                                    sm:flex-none
                                 "
                             >
-                                <Plus size={17} strokeWidth={2} />
-
-                                <span>Add User</span>
+                                <Plus size={16} strokeWidth={2} />
+                                Add User
                             </button>
                         </div>
                     }
                 />
 
-                {/* User overview */}
+                {/* ========================================================
+                    STATS
+                ======================================================== */}
 
                 <UserStats
                     total={statistics.total}
@@ -754,310 +852,381 @@ const Users = () => {
                     administrators={statistics.administrators}
                 />
 
-                {/* ==================================================
-    USER MANAGEMENT
-================================================== */}
-                <section className="mt-24">
-                    <div className="mb-6">
-                        <div
-                            className="
-                flex
-                flex-col
-                gap-4
-                border-b
-                border-border
-                pb-5
-                sm:flex-row
-                sm:items-end
-                sm:justify-between
-            "
-                        >
-                            <div className="min-w-0">
-                                <div className="mb-2 flex items-center gap-2.5 px-2">
-                                    <span className="h-1.5 w-1.5 bg-primary" />
+                {/* ========================================================
+                    USER DIRECTORY
+                ======================================================== */}
 
-                                    <span
-                                        className="
-                            text-[10px]
-                            font-bold
-                            uppercase
-                            tracking-[0.18em]
-                            text-primary
-                        "
-                                    >
-                                        Administration
-                                    </span>
-                                </div>
+                <section className="mt-8 sm:mt-10">
+                    {/* Section heading */}
 
-                                <h2
-                                    className="
-                        font-fraunces
-                        text-[25px]
-                        font-semibold
-                        leading-tight
-                        tracking-tight
-                        text-text-primary
-                    "
-                                >
-                                    User management
-                                </h2>
-
-                                <p
-                                    className="
-                        mt-1.5
-                        max-w-xl
-                        text-[13px]
-                        leading-5
-                        text-text-secondary
-                    "
-                                >
-                                    Review accounts, roles, and access across
-                                    the platform.
-                                </p>
-                            </div>
-
-                            <div className="flex shrink-0 items-center gap-2.5">
-                                <span className="h-8 border-l border-border" />
-
-                                <div>
-                                    <p
-                                        className="
-                            text-[9px]
-                            font-semibold
-                            uppercase
-                            tracking-[0.16em]
-                            text-text-secondary
-                        "
-                                    >
-                                        Showing
-                                    </p>
-
-                                    <p className="mt-0.5 text-sm font-semibold text-text-primary">
-                                        {filteredUsers.length}{' '}
-                                        <span className="font-normal text-text-secondary">
-                                            {filteredUsers.length === 1
-                                                ? 'user'
-                                                : 'users'}
-                                        </span>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* ==================================================
-        MANAGEMENT WORKSPACE
-    ================================================== */}
                     <div
                         className="
-            grid
-            items-stretch
-            gap-6
-            xl:grid-cols-[minmax(0,1fr)_280px]
-        "
+                            mb-4
+                            flex
+                            flex-col
+                            gap-3
+
+                            sm:flex-row
+                            sm:items-end
+                            sm:justify-between
+                        "
                     >
-                        {/* ==================================================
-            LEFT — USER TABLE WORKSPACE
-        ================================================== */}
-                        <div
-                            className="
-                flex
-                min-h-0
-                min-w-0
-                flex-col
-                border
-                border-border
-                bg-surface
-            "
-                        >
-                            {/* Workspace toolbar */}
+                        <div className="min-w-0">
                             <div
                                 className="
-                    shrink-0
-                    border-b
-                    border-border
-                    px-5
-                    py-4
-                "
+                                    flex
+                                    items-center
+                                    gap-2
+                                "
                             >
-                                <div
+                                <UsersRound
+                                    size={15}
+                                    strokeWidth={1.8}
+                                    className="text-[#9299A6]"
+                                />
+
+                                <span
                                     className="
-                        flex
-                        flex-col
-                        gap-4
-                        lg:flex-row
-                        lg:items-center
-                        lg:justify-between
-                    "
-                                >
-                                    {/* Search */}
-                                    <div className="min-w-0 flex-1">
-                                        <div className="relative">
-                                            <Search
-                                                size={17}
-                                                strokeWidth={1.8}
-                                                className="
-                                    pointer-events-none
-                                    absolute
-                                    left-3.5
-                                    top-1/2
-                                    -translate-y-1/2
-                                    text-text-secondary
-                                "
-                                            />
-
-                                            <input
-                                                type="text"
-                                                value={searchTerm}
-                                                onChange={handleSearchChange}
-                                                placeholder="Search by name or email"
-                                                className="
-                                    h-10
-                                    w-full
-                                    border
-                                    border-border
-                                    bg-background
-                                    pl-10
-                                    pr-16
-                                    text-[13px]
-                                    font-medium
-                                    text-text-primary
-                                    outline-none
-                                    transition-colors
-                                    placeholder:text-text-secondary/70
-                                    hover:border-text-secondary/30
-                                    focus:border-primary/50
-                                    focus:bg-surface
-                                "
-                                            />
-
-                                            {searchTerm && (
-                                                <button
-                                                    type="button"
-                                                    onClick={handleClearSearch}
-                                                    className="
-                                        absolute
-                                        right-3
-                                        top-1/2
-                                        -translate-y-1/2
                                         text-[10px]
                                         font-semibold
                                         uppercase
-                                        tracking-wide
-                                        text-text-secondary
-                                        transition-colors
-                                        hover:text-primary
+                                        tracking-[0.15em]
+                                        text-[#6F7785]
                                     "
-                                                >
-                                                    Clear
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* Directory context */}
-                                    <div
-                                        className="
-                            flex
-                            shrink-0
-                            items-center
-                            gap-5
-                        "
-                                    >
-                                        <div
-                                            className="
-                                hidden
-                                h-7
-                                border-l
-                                border-border
-                                lg:block
-                            "
-                                        />
-
-                                        <div>
-                                            <p
-                                                className="
-                                    text-[9px]
-                                    font-bold
-                                    uppercase
-                                    tracking-[0.16em]
-                                    text-text-secondary
-                                "
-                                            >
-                                                Directory
-                                            </p>
-
-                                            <p className="mt-0.5 text-xs font-medium text-text-primary">
-                                                {filteredUsers.length}{' '}
-                                                {filteredUsers.length === 1
-                                                    ? 'result'
-                                                    : 'results'}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Table heading */}
-                            <div
-                                className="
-                    flex
-                    shrink-0
-                    flex-col
-                    gap-2
-                    border-b
-                    border-border
-                    bg-white
-                    px-5
-                    py-3.5
-                    sm:flex-row
-                    sm:items-center
-                    sm:justify-between
-                "
-                            >
-                                <div>
-                                    <p className="text-sm font-semibold text-text-primary">
-                                        Registered users
-                                    </p>
-
-                                    <p className="mt-0.5 text-xs text-text-secondary">
-                                        Browse and review platform accounts
-                                    </p>
-                                </div>
-
-                                <span className="text-[11px] font-medium text-text-secondary">
-                                    Sorted by account
+                                >
+                                    User directory
                                 </span>
                             </div>
 
-                            {/* ==================================================
-                TABLE — ONLY THIS AREA SCROLLS
-            ================================================== */}
+                            <h2
+                                className="
+                                    mt-1.5
+                                    text-[17px]
+                                    font-semibold
+                                    tracking-[-0.015em]
+                                    text-[#F1F2F4]
+
+                                    sm:text-[18px]
+                                "
+                            >
+                                Manage accounts
+                            </h2>
+
+                            <p
+                                className="
+                                    mt-1
+                                    max-w-xl
+                                    text-[12px]
+                                    leading-5
+                                    text-[#9299A6]
+                                "
+                            >
+                                Search, review and manage registered platform
+                                accounts.
+                            </p>
+                        </div>
+
+                        <div
+                            className="
+                                flex
+                                items-center
+                                gap-2
+                                text-[11px]
+                                text-[#9299A6]
+                            "
+                        >
+                            <span
+                                className="
+                                    font-semibold
+                                    tabular-nums
+                                    text-[#F1F2F4]
+                                "
+                            >
+                                {filteredUsers.length}
+                            </span>
+
+                            <span>
+                                {filteredUsers.length === 1
+                                    ? 'result'
+                                    : 'results'}
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* ====================================================
+                        DIRECTORY LAYOUT
+                    ==================================================== */}
+
+                    <div
+                        className="
+                            grid
+                            min-w-0
+                            gap-4
+
+                            xl:grid-cols-[minmax(0,1fr)_250px]
+                        "
+                    >
+                        {/* =================================================
+                            TABLE WORKSPACE
+                        ================================================= */}
+
+                        <div
+                            className="
+                                min-w-0
+                                overflow-hidden
+                                border
+                                border-[#343944]
+                                bg-[#22252D]
+                            "
+                        >
+                            {/* Toolbar */}
+
                             <div
                                 className="
-                    min-h-0
-                    flex-1
-                    overflow-x-auto
-                    overflow-y-auto
-                "
+                                    border-b
+                                    border-[#343944]
+                                    bg-[#20232A]
+                                    p-3
+
+                                    sm:p-4
+                                "
                             >
-                                <div className="min-w-190">
+                                <div
+                                    className="
+                                        flex
+                                        flex-col
+                                        gap-3
+
+                                        sm:flex-row
+                                        sm:items-center
+                                    "
+                                >
+                                    {/* Search */}
+
+                                    <div
+                                        className="
+                                            relative
+                                            min-w-0
+                                            flex-1
+                                        "
+                                    >
+                                        <Search
+                                            size={16}
+                                            strokeWidth={1.8}
+                                            className="
+                                                pointer-events-none
+                                                absolute
+                                                left-3
+                                                top-1/2
+                                                -translate-y-1/2
+                                                text-[#6F7785]
+                                            "
+                                        />
+
+                                        <input
+                                            type="text"
+                                            value={searchTerm}
+                                            onChange={handleSearchChange}
+                                            placeholder="Search users by name or email..."
+                                            className="
+                                                h-10
+                                                w-full
+                                                border
+                                                border-[#343944]
+                                                bg-[#181A20]
+                                                pl-9
+                                                pr-14
+                                                text-[12px]
+                                                text-[#F1F2F4]
+                                                outline-none
+                                                transition-colors
+
+                                                placeholder:text-[#6F7785]
+
+                                                hover:border-[#404754]
+
+                                                focus:border-[#515866]
+                                                focus:ring-0
+                                            "
+                                        />
+
+                                        {searchTerm && (
+                                            <button
+                                                type="button"
+                                                onClick={handleClearSearch}
+                                                className="
+                                                    absolute
+                                                    right-3
+                                                    top-1/2
+                                                    -translate-y-1/2
+                                                    text-[10px]
+                                                    font-semibold
+                                                    text-[#9299A6]
+                                                    transition-colors
+                                                    hover:text-[#F1F2F4]
+                                                "
+                                            >
+                                                Clear
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {/* Mobile/tablet filter button */}
+
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            setMobileFiltersOpen(true)
+                                        }
+                                        className="
+                                            inline-flex
+                                            h-10
+                                            shrink-0
+                                            items-center
+                                            justify-center
+                                            gap-2
+                                            border
+                                            border-[#404754]
+                                            bg-[#272B34]
+                                            px-3.5
+                                            text-[12px]
+                                            font-medium
+                                            text-[#C3C7CF]
+                                            transition-colors
+
+                                            hover:bg-[#303641]
+                                            hover:text-[#F1F2F4]
+
+                                            xl:hidden
+                                        "
+                                    >
+                                        <SlidersHorizontal
+                                            size={15}
+                                            strokeWidth={1.8}
+                                        />
+                                        Filters
+                                        {activeFilterCount > 0 && (
+                                            <span
+                                                className="
+                                                    flex
+                                                    h-5
+                                                    min-w-5
+                                                    items-center
+                                                    justify-center
+                                                    rounded-full
+                                                    bg-[#393F4C]
+                                                    px-1
+                                                    text-[10px]
+                                                    font-semibold
+                                                    text-[#F1F2F4]
+                                                "
+                                            >
+                                                {activeFilterCount}
+                                            </span>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Table context */}
+
+                            <div
+                                className="
+                                    flex
+                                    items-center
+                                    justify-between
+                                    gap-4
+                                    border-b
+                                    border-[#343944]
+                                    px-4
+                                    py-3
+                                "
+                            >
+                                <div className="min-w-0">
+                                    <p
+                                        className="
+                                            text-[12px]
+                                            font-semibold
+                                            text-[#F1F2F4]
+                                        "
+                                    >
+                                        Registered users
+                                    </p>
+
+                                    <p
+                                        className="
+                                            mt-0.5
+                                            text-[10px]
+                                            text-[#6F7785]
+
+                                            sm:text-[11px]
+                                        "
+                                    >
+                                        {filteredUsers.length} matching{' '}
+                                        {filteredUsers.length === 1
+                                            ? 'account'
+                                            : 'accounts'}
+                                    </p>
+                                </div>
+
+                                {activeFilterCount > 0 && (
+                                    <button
+                                        type="button"
+                                        onClick={handleClearFilters}
+                                        className="
+                                            hidden
+                                            shrink-0
+                                            text-[11px]
+                                            font-medium
+                                            text-[#9299A6]
+                                            transition-colors
+                                            hover:text-[#F1F2F4]
+
+                                            sm:block
+                                        "
+                                    >
+                                        Clear filters
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* =================================================
+                                TABLE
+                            ================================================= */}
+
+                            <div
+                                className="
+                                    min-w-0
+                                    overflow-x-auto
+                                "
+                            >
+                                <div className="min-w-[760px]">
                                     <UserTable
                                         columns={columns}
                                         rows={rows}
                                         onSort={handleSort}
                                         getSortIcon={getSortIcon}
                                         resultCount={filteredUsers.length}
-                                        onView={handleViewUser}
-                                        onEdit={openEditModal}
+                                        onView={(userId) =>
+                                            navigate(
+                                                `/admin/dashboard/users/${userId}/details`,
+                                            )
+                                        }
                                         onDelete={openDeleteModal}
                                     />
                                 </div>
                             </div>
 
                             {/* Pagination */}
+
                             {filteredUsers.length > 0 && (
-                                <div className="shrink-0 border-t border-border">
+                                <div
+                                    className="
+                                        border-t
+                                        border-[#343944]
+                                        bg-[#20232A]
+                                    "
+                                >
                                     <UserPagination
                                         currentPage={safeCurrentPage}
                                         totalPages={totalPages}
@@ -1069,196 +1238,187 @@ const Users = () => {
                             )}
                         </div>
 
-                        {/* ==================================================
-            RIGHT — USER FILTER SIDEBAR
+                        {/* =================================================
+                            DESKTOP FILTER SIDEBAR
+                        ================================================= */}
 
-            Height comes naturally from its content.
-            No fixed height / no overflow.
-        ================================================== */}
                         <aside
                             className="
-                flex
-                flex-col
-                self-start
-                border
-                border-primary/90
-                bg-primary
-            "
+                                hidden
+                                self-start
+                                overflow-hidden
+                                border
+                                border-[#343944]
+                                bg-[#22252D]
+
+                                xl:block
+                            "
                         >
-                            {/* Sidebar heading */}
-                            <div className="shrink-0 px-5 pb-5 pt-6">
-                                <p
-                                    className="
-                        text-[10px]
-                        font-bold
-                        uppercase
-                        tracking-[0.18em]
-                        text-white!/45
-                    "
-                                >
-                                    Directory controls
-                                </p>
-
-                                <h2
-                                    className="
-                        mt-1.5
-                        font-fraunces
-                        text-[21px]
-                        leading-tight
-                        text-white!
-                    "
-                                >
-                                    Refine users
-                                </h2>
-
-                                <p
-                                    className="
-                        mt-2
-                        max-w-55
-                        text-[12px]
-                        leading-5
-                        text-white!/50
-                    "
-                                >
-                                    Narrow the user directory by account role,
-                                    account status, and email verification.
-                                </p>
-                            </div>
-
-                            {/* User role */}
-                            <div
-                                className="
-                    border-y
-                    border-white/10
-                    bg-black/4
-                    px-4
-                    py-5
-                "
-                            >
-                                <div className="mb-3 flex items-center justify-between px-1">
-                                    <p
-                                        className="
-                            text-[10px]
-                            font-bold
-                            uppercase
-                            tracking-[0.16em]
-                            text-white!/45
-                        "
-                                    >
-                                        User role
-                                    </p>
-
-                                    <span
-                                        className="
-                            text-[10px]
-                            font-medium
-                            tabular-nums
-                            text-white!/30
-                        "
-                                    >
-                                        {categoryTabs.length}
-                                    </span>
-                                </div>
-
-                                <UserCategoryTabs
-                                    tabs={categoryTabs}
-                                    activeCategory={activeCategory}
-                                    onChange={handleCategoryChange}
-                                />
-                            </div>
-
-                            {/* Account filters */}
-                            <div className="bg-black/4 px-4 py-5">
-                                <div className="mb-3 px-1">
-                                    <p
-                                        className="
-                            text-[10px]
-                            font-bold
-                            uppercase
-                            tracking-[0.16em]
-                            text-white!/45
-                        "
-                                    >
-                                        Account filters
-                                    </p>
-
-                                    <p
-                                        className="
-                            mt-1
-                            text-[11px]
-                            leading-4
-                            text-white!/30
-                        "
-                                    >
-                                        Filter accounts by their current state
-                                        and email verification.
-                                    </p>
-                                </div>
-
-                                <UserFilters
-                                    statusFilter={statusFilter}
-                                    onStatusChange={handleStatusChange}
-                                    verificationFilter={verificationFilter}
-                                    onVerificationChange={
-                                        handleVerificationChange
-                                    }
-                                />
-                            </div>
+                            {filterContent}
                         </aside>
                     </div>
                 </section>
             </div>
 
-            {/* Toast */}
+            {/* ========================================================
+                MOBILE / TABLET FILTER DRAWER
+            ======================================================== */}
 
-            <UserSuccessToast show={toast.show} message={toast.message} />
+            {mobileFiltersOpen && (
+                <div
+                    className="
+                        fixed
+                        inset-0
+                        z-50
 
-            {/* View */}
+                        xl:hidden
+                    "
+                >
+                    <button
+                        type="button"
+                        aria-label="Close filters"
+                        onClick={() => setMobileFiltersOpen(false)}
+                        className="
+                            absolute
+                            inset-0
+                            bg-black/55
+                            backdrop-blur-[2px]
+                        "
+                    />
 
-            <UserViewModal
-                user={selectedUser}
-                loading={viewLoading}
-                error={viewError}
-                onClose={closeViewModal}
-            />
+                    <div
+                        className="
+                            absolute
+                            bottom-0
+                            left-0
+                            right-0
+                            max-h-[85vh]
+                            overflow-y-auto
+                            border-t
+                            border-[#404754]
+                            bg-[#22252D]
+                            shadow-2xl
 
-            {/* Add */}
+                            sm:bottom-auto
+                            sm:left-auto
+                            sm:right-0
+                            sm:top-0
+                            sm:h-full
+                            sm:max-h-none
+                            sm:w-[340px]
+                            sm:border-l
+                            sm:border-t-0
+                        "
+                    >
+                        <div
+                            className="
+                                sticky
+                                top-0
+                                z-10
+                                flex
+                                items-center
+                                justify-between
+                                border-b
+                                border-[#343944]
+                                bg-[#20232A]
+                                px-5
+                                py-4
+                            "
+                        >
+                            <div>
+                                <p
+                                    className="
+                                        text-[10px]
+                                        font-semibold
+                                        uppercase
+                                        tracking-[0.15em]
+                                        text-[#6F7785]
+                                    "
+                                >
+                                    Directory
+                                </p>
 
-            <UserFormModal
-                mode="add"
-                open={showAddModal}
-                loading={addLoading}
-                error={addError}
-                fieldErrors={addFieldErrors}
-                onClose={closeAddModal}
-                onSubmit={handleAddUser}
-            />
+                                <p
+                                    className="
+                                        mt-0.5
+                                        text-sm
+                                        font-semibold
+                                        text-[#F1F2F4]
+                                    "
+                                >
+                                    Filters
+                                </p>
+                            </div>
 
-            {/* Edit */}
+                            <button
+                                type="button"
+                                onClick={() => setMobileFiltersOpen(false)}
+                                aria-label="Close filters"
+                                className="
+                                    flex
+                                    h-9
+                                    w-9
+                                    items-center
+                                    justify-center
+                                    border
+                                    border-[#343944]
+                                    text-[#9299A6]
+                                    transition-colors
 
-            <UserFormModal
-                key={selectedEditUser?.id || 'edit-user'}
-                mode="edit"
-                open={Boolean(selectedEditUser)}
-                loading={editLoading}
-                error={editError}
-                fieldErrors={editFieldErrors}
-                user={selectedEditUser}
-                onClose={closeEditModal}
-                onSubmit={handleEditUser}
-            />
+                                    hover:bg-[#272B34]
+                                    hover:text-[#F1F2F4]
+                                "
+                            >
+                                <X size={17} strokeWidth={1.8} />
+                            </button>
+                        </div>
 
-            {editLoading && !selectedEditUser && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-                    <div className="rounded-xl bg-white px-6 py-5 shadow-xl">
-                        <p className="text-sm text-text-secondary">
-                            Loading user details...
-                        </p>
+                        {filterContent}
+
+                        <div
+                            className="
+                                sticky
+                                bottom-0
+                                border-t
+                                border-[#343944]
+                                bg-[#20232A]
+                                p-4
+                            "
+                        >
+                            <button
+                                type="button"
+                                onClick={() => setMobileFiltersOpen(false)}
+                                className="
+                                    flex
+                                    h-10
+                                    w-full
+                                    items-center
+                                    justify-center
+                                    bg-[#303641]
+                                    text-[12px]
+                                    font-semibold
+                                    text-[#F1F2F4]
+                                    transition-colors
+                                    hover:bg-[#393F4C]
+                                "
+                            >
+                                Show {filteredUsers.length}{' '}
+                                {filteredUsers.length === 1 ? 'user' : 'users'}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
 
-            {/* Delete */}
+            {/* ========================================================
+                SUCCESS TOAST
+            ======================================================== */}
+
+            <UserSuccessToast show={toast.show} message={toast.message} />
+
+            {/* ========================================================
+                DELETE DIALOG
+            ======================================================== */}
 
             <UserDeleteModal
                 user={selectedDeleteUser}

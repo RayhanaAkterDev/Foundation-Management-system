@@ -4,6 +4,38 @@ import { ChevronsUpDown } from 'lucide-react';
 
 import EmptyState from './EmptyState';
 
+/* ==========================================================================
+   HELPERS
+============================================================================ */
+
+const getAlignmentClass = (align) => {
+    if (align === 'right') {
+        return 'text-right';
+    }
+
+    if (align === 'center') {
+        return 'text-center';
+    }
+
+    return 'text-left';
+};
+
+const getContentAlignmentClass = (align) => {
+    if (align === 'right') {
+        return 'justify-end';
+    }
+
+    if (align === 'center') {
+        return 'justify-center';
+    }
+
+    return 'justify-start';
+};
+
+/* ==========================================================================
+   DATA TABLE
+============================================================================ */
+
 const DataTable = ({
     columns = [],
     rows = [],
@@ -12,203 +44,303 @@ const DataTable = ({
     onSort,
     getSortIcon,
 }) => {
-    const getAlignmentClass = (align) => {
-        if (align === 'right') return 'text-right';
-        if (align === 'center') return 'text-center';
-        return 'text-left';
-    };
-
     const gridTemplate = columns
-        .map((col) => col.width || 'minmax(0, 1fr)')
+        .map((column) => column.width || 'minmax(0, 1fr)')
         .join(' ');
 
+    /* ======================================================================
+       EMPTY
+    ====================================================================== */
+
+    if (rows.length === 0) {
+        return (
+            <div
+                className="
+                    min-h-65
+                    bg-[#22252D]
+                "
+            >
+                <EmptyState {...(empty || {})} />
+            </div>
+        );
+    }
+
+    /* ======================================================================
+       TABLE
+    ====================================================================== */
+
     return (
-        <section className="overflow-hidden border border-border bg-surface">
-            {rows.length === 0 ? (
-                <div className="px-5 py-14 sm:px-6 sm:py-16">
-                    <EmptyState {...(empty || {})} />
-                </div>
-            ) : (
-                <div className="w-full overflow-x-auto overscroll-x-contain">
-                    <div className="min-w-190 bg-background-alt">
-                        {/* Header */}
-                        <div
-                            className="
-                                grid
-                                items-center
-                                border-b
-                                border-border
-                                bg-background
-                                px-4
-                                py-3.5
-                                sm:px-5
-                            "
-                            style={{
-                                gridTemplateColumns: gridTemplate,
-                            }}
-                        >
-                            {columns.map((col) => {
-                                const sortable = col.sortable && onSort;
-                                const sortKey = col.sortKey || col.key;
+        <div
+            className="
+                w-full
+                min-w-0
+                bg-[#22252D]
+            "
+        >
+            {/* =============================================================
+                SCROLL AREA
+            ============================================================= */}
 
-                                return (
-                                    <div
-                                        key={col.key}
-                                        className={`
-                                            whitespace-nowrap
-                                            text-[10px]
-                                            font-bold
-                                            uppercase
-                                            tracking-widest
-                                            text-text-secondary
-                                            ${getAlignmentClass(col.align)}
-                                        `}
-                                    >
-                                        {sortable ? (
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    onSort(sortKey)
-                                                }
-                                                className={`
-                                                    group
-                                                    inline-flex
-                                                    items-center
-                                                    gap-1.5
-                                                    transition-colors
-                                                    hover:text-text-primary
-                                                    ${
-                                                        col.align === 'right'
-                                                            ? 'ml-auto'
-                                                            : ''
-                                                    }
-                                                `}
-                                            >
-                                                <span>{col.header}</span>
+            <div
+                className="
+                    w-full
+                    overflow-x-auto
+                    overscroll-x-contain
 
-                                                <span
-                                                    className="
-                                                        flex
-                                                        h-4
-                                                        w-4
-                                                        shrink-0
-                                                        items-center
-                                                        justify-center
-                                                        text-text-secondary
-                                                        transition-colors
-                                                        group-hover:text-primary
-                                                    "
-                                                >
-                                                    {getSortIcon ? (
-                                                        getSortIcon(sortKey)
-                                                    ) : (
-                                                        <ChevronsUpDown
-                                                            size={14}
-                                                            strokeWidth={1.8}
-                                                        />
-                                                    )}
-                                                </span>
-                                            </button>
-                                        ) : (
-                                            col.header
-                                        )}
-                                    </div>
-                                );
-                            })}
-                        </div>
+                    [&::-webkit-scrollbar]:h-1.5
+                    [&::-webkit-scrollbar-track]:bg-[#1F2229]
+                    [&::-webkit-scrollbar-thumb]:bg-[#404754]
 
-                        {/* Rows */}
-                        <div className="px-2 py-2 sm:px-2.5 sm:py-2.5">
-                            {rows.map((row) => (
+                    hover:[&::-webkit-scrollbar-thumb]:bg-[#515866]
+                "
+            >
+                <div className="min-w-190">
+                    {/* =====================================================
+                        TABLE HEADER
+                    ===================================================== */}
+
+                    <div
+                        role="row"
+                        className="
+                            grid
+                            min-h-11
+                            items-center
+
+                            border-b
+                            border-[#343944]
+
+                            bg-[#1F2229]
+
+                            px-3
+
+                            sm:px-4
+                        "
+                        style={{
+                            gridTemplateColumns: gridTemplate,
+                        }}
+                    >
+                        {columns.map((column) => {
+                            const sortable = Boolean(column.sortable && onSort);
+
+                            const sortKey = column.sortKey || column.key;
+
+                            return (
                                 <div
-                                    key={row[keyField]}
-                                    className="
-                                        group
-                                        relative
-                                        mb-1.5
-                                        grid
-                                        min-h-17
-                                        items-center
-                                        rounded-lg
-                                        bg-background-alt
+                                    key={column.key}
+                                    role="columnheader"
+                                    className={`
+                                        min-w-0
                                         px-2
-                                        transition-all
-                                        duration-200
-                                        ease-out
-                                        last:mb-0
-                                        hover:-translate-y-px
-                                        hover:bg-white
-                                        hover:shadow-[0_6px_20px_-8px_rgba(15,23,42,0.28)]
-                                        sm:px-2.5
-                                    "
-                                    style={{
-                                        gridTemplateColumns: gridTemplate,
-                                    }}
-                                >
-                                    {/* Hover accent */}
-                                    <span
-                                        className="
-                                            pointer-events-none
-                                            absolute
-                                            left-0
-                                            top-1/2
-                                            h-7
-                                            w-0.5
-                                            -translate-y-1/2
-                                            rounded-full
-                                            bg-primary
-                                            opacity-0
-                                            transition-all
-                                            duration-200
-                                            group-hover:h-9
-                                            group-hover:opacity-100
-                                        "
-                                    />
 
-                                    {columns.map((col) => (
-                                        <div
-                                            key={col.key}
+                                        text-[9px]
+                                        font-semibold
+                                        uppercase
+                                        tracking-[0.13em]
+
+                                        text-[#7F8794]!
+
+                                        ${getAlignmentClass(column.align)}
+                                    `}
+                                >
+                                    {sortable ? (
+                                        <button
+                                            type="button"
+                                            onClick={() => onSort(sortKey)}
                                             className={`
-                                                min-w-0
-                                                px-2
-                                                py-3.5
-                                                text-[13px]
-                                                leading-5
-                                                text-text-primary
+                                                group
+
+                                                inline-flex
+                                                min-h-8
+                                                items-center
+                                                gap-1.5
+
+                                                whitespace-nowrap
+
+                                                text-[#7F8794]!
+
                                                 transition-colors
-                                                duration-200
-                                                group-hover:text-text-primary
-                                                sm:px-2.5
-                                                sm:py-4
-                                                ${getAlignmentClass(col.align)}
+                                                duration-150
+
+                                                hover:text-[#C3C7CF]!
+
+                                                focus:outline-none
+                                                focus:ring-0
+
+                                                ${
+                                                    column.align === 'right'
+                                                        ? 'ml-auto'
+                                                        : ''
+                                                }
+
+                                                ${
+                                                    column.align === 'center'
+                                                        ? 'mx-auto'
+                                                        : ''
+                                                }
                                             `}
                                         >
-                                            <div
-                                                className={`
-                                                    min-w-0
-                                                    ${
-                                                        col.nowrap
-                                                            ? 'whitespace-nowrap'
-                                                            : 'wrap-break-word'
-                                                    }
-                                                `}
+                                            <span>{column.header}</span>
+
+                                            <span
+                                                className="
+                                                    flex
+                                                    h-4
+                                                    w-4
+                                                    shrink-0
+                                                    items-center
+                                                    justify-center
+
+                                                    text-[#626A78]!
+
+                                                    transition-colors
+                                                    duration-150
+
+                                                    group-hover:text-[#A8AFBB]!
+                                                "
                                             >
-                                                {col.render
-                                                    ? col.render(
-                                                          row[col.key],
-                                                          row,
-                                                      )
-                                                    : (row[col.key] ?? '—')}
-                                            </div>
-                                        </div>
-                                    ))}
+                                                {getSortIcon ? (
+                                                    getSortIcon(sortKey)
+                                                ) : (
+                                                    <ChevronsUpDown
+                                                        size={12}
+                                                        strokeWidth={1.8}
+                                                    />
+                                                )}
+                                            </span>
+                                        </button>
+                                    ) : (
+                                        <span
+                                            className={`
+                                                flex
+                                                min-h-8
+                                                items-center
+
+                                                ${getContentAlignmentClass(
+                                                    column.align,
+                                                )}
+                                            `}
+                                        >
+                                            {column.header}
+                                        </span>
+                                    )}
                                 </div>
-                            ))}
-                        </div>
+                            );
+                        })}
+                    </div>
+
+                    {/* =====================================================
+                        TABLE BODY
+                    ===================================================== */}
+
+                    <div role="rowgroup">
+                        {rows.map((row, rowIndex) => (
+                            <div
+                                key={row[keyField] ?? rowIndex}
+                                role="row"
+                                className="
+                                        group
+                                        relative
+
+                                        grid
+                                        min-h-15
+                                        items-center
+
+                                        border-b
+                                        border-[#2F333D]
+
+                                        bg-[#22252D]
+
+                                        px-3
+
+                                        transition-colors
+                                        duration-150
+
+                                        last:border-b-0
+
+                                        hover:bg-[#272B34]
+
+                                        sm:px-4
+                                    "
+                                style={{
+                                    gridTemplateColumns: gridTemplate,
+                                }}
+                            >
+                                {/* =====================================
+                                        ROW HOVER INDICATOR
+                                    ===================================== */}
+
+                                <span
+                                    aria-hidden="true"
+                                    className="
+                                            pointer-events-none
+                                            absolute
+                                            bottom-2.5
+                                            left-0
+                                            top-2.5
+
+                                            w-0.5
+
+                                            bg-[#7F8794]
+
+                                            opacity-0
+
+                                            transition-opacity
+                                            duration-150
+
+                                            group-hover:opacity-100
+                                        "
+                                />
+
+                                {/* =====================================
+                                        CELLS
+                                    ===================================== */}
+
+                                {columns.map((column) => (
+                                    <div
+                                        key={column.key}
+                                        role="cell"
+                                        className={`
+                                                    min-w-0
+
+                                                    px-2
+                                                    py-3
+
+                                                    text-[11.5px]
+                                                    leading-5
+
+                                                    text-[#C3C7CF]!
+
+                                                    ${getAlignmentClass(
+                                                        column.align,
+                                                    )}
+                                                `}
+                                    >
+                                        <div
+                                            className={`
+                                                        min-w-0
+
+                                                        ${
+                                                            column.nowrap
+                                                                ? 'whitespace-nowrap'
+                                                                : 'wrap-break-word'
+                                                        }
+                                                    `}
+                                        >
+                                            {column.render
+                                                ? column.render(
+                                                      row[column.key],
+                                                      row,
+                                                  )
+                                                : (row[column.key] ?? '—')}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ))}
                     </div>
                 </div>
-            )}
-        </section>
+            </div>
+        </div>
     );
 };
 

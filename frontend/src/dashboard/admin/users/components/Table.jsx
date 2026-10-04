@@ -870,7 +870,7 @@ const Table = ({
                 TABLET + DESKTOP TABLE
             ============================================================ */}
 
-            <div className="hidden sm:block">
+            <div className="hidden min-w-0 sm:block">
                 <DataTable
                     columns={enhancedColumns}
                     rows={rows}

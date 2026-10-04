@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+
 import { useNavigate } from 'react-router-dom';
 
 import {
@@ -10,7 +11,6 @@ import {
     ChevronsUpDown,
     SlidersHorizontal,
     X,
-    UsersRound,
 } from 'lucide-react';
 
 import PageHeader from '@/components/dashboard/PageHeader';
@@ -18,7 +18,6 @@ import PageHeader from '@/components/dashboard/PageHeader';
 import UserDeleteModal from './modals/DeleteModal';
 
 import UserStats from './components/Stats';
-import UserCategoryTabs from './components/CategoryTabs';
 import UserFilters from './components/Filters';
 import UserTable from './components/Table';
 import UserPagination from './components/Pagination';
@@ -31,13 +30,20 @@ const USERS_PER_PAGE = 25;
 const Users = () => {
     const navigate = useNavigate();
 
+    // ============================================================
+    // STATE
+    // ============================================================
+
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
     const [activeCategory, setActiveCategory] = useState('all');
+
     const [searchTerm, setSearchTerm] = useState('');
+
     const [statusFilter, setStatusFilter] = useState('all');
+
     const [verificationFilter, setVerificationFilter] = useState('all');
 
     const [sortConfig, setSortConfig] = useState({
@@ -47,11 +53,13 @@ const Users = () => {
 
     const [currentPage, setCurrentPage] = useState(1);
 
-    const [selectedDeleteUser, setSelectedDeleteUser] = useState(null);
-    const [deleteLoading, setDeleteLoading] = useState(false);
-    const [deleteError, setDeleteError] = useState('');
-
     const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+
+    const [selectedDeleteUser, setSelectedDeleteUser] = useState(null);
+
+    const [deleteLoading, setDeleteLoading] = useState(false);
+
+    const [deleteError, setDeleteError] = useState('');
 
     const [toast, setToast] = useState({
         show: false,
@@ -215,6 +223,28 @@ const Users = () => {
     );
 
     // ============================================================
+    // ACTIVE FILTER COUNT
+    // ============================================================
+
+    const activeFilterCount = useMemo(() => {
+        let count = 0;
+
+        if (activeCategory !== 'all') {
+            count += 1;
+        }
+
+        if (statusFilter !== 'all') {
+            count += 1;
+        }
+
+        if (verificationFilter !== 'all') {
+            count += 1;
+        }
+
+        return count;
+    }, [activeCategory, statusFilter, verificationFilter]);
+
+    // ============================================================
     // FILTERING + SORTING
     // ============================================================
 
@@ -255,10 +285,12 @@ const Users = () => {
 
         result.sort((a, b) => {
             let first = a[sortConfig.key];
+
             let second = b[sortConfig.key];
 
             if (sortConfig.key === 'created_at') {
                 first = new Date(first).getTime();
+
                 second = new Date(second).getTime();
             }
 
@@ -267,6 +299,7 @@ const Users = () => {
 
             if (typeof first === 'string') {
                 first = first.toLowerCase();
+
                 second = second.toLowerCase();
             }
 
@@ -309,28 +342,6 @@ const Users = () => {
     }, [filteredUsers, safeCurrentPage]);
 
     // ============================================================
-    // FILTER STATE
-    // ============================================================
-
-    const activeFilterCount = useMemo(() => {
-        let count = 0;
-
-        if (activeCategory !== 'all') {
-            count += 1;
-        }
-
-        if (statusFilter !== 'all') {
-            count += 1;
-        }
-
-        if (verificationFilter !== 'all') {
-            count += 1;
-        }
-
-        return count;
-    }, [activeCategory, statusFilter, verificationFilter]);
-
-    // ============================================================
     // CONTROLS
     // ============================================================
 
@@ -341,16 +352,19 @@ const Users = () => {
 
     const handleStatusChange = (event) => {
         setStatusFilter(event.target.value);
+
         setCurrentPage(1);
     };
 
     const handleVerificationChange = (event) => {
         setVerificationFilter(event.target.value);
+
         setCurrentPage(1);
     };
 
     const handleSearchChange = (event) => {
         setSearchTerm(event.target.value);
+
         setCurrentPage(1);
     };
 
@@ -365,6 +379,10 @@ const Users = () => {
         setVerificationFilter('all');
         setCurrentPage(1);
     };
+
+    // ============================================================
+    // SORT
+    // ============================================================
 
     const handleSort = (key) => {
         setSortConfig((current) => {
@@ -444,6 +462,7 @@ const Users = () => {
         const link = document.createElement('a');
 
         link.href = url;
+
         link.download = 'stand-for-people-users.csv';
 
         document.body.appendChild(link);
@@ -472,39 +491,61 @@ const Users = () => {
             key: 'serialNumber',
             header: '#',
             align: 'center',
-            width: '60px',
+            width: '56px',
         },
         {
             key: 'name',
             header: 'User',
             sortable: true,
             sortKey: 'name',
+            width: 'minmax(220px, 1.5fr)',
         },
         {
             key: 'role',
             header: 'Role',
             sortable: true,
             sortKey: 'role',
+            width: 'minmax(130px, 0.8fr)',
         },
         {
             key: 'emailVerification',
             header: 'Email Verification',
             sortable: true,
             sortKey: 'emailVerification',
+            width: 'minmax(155px, 0.9fr)',
         },
         {
             key: 'status',
             header: 'Status',
             sortable: true,
             sortKey: 'status',
+            width: 'minmax(110px, 0.65fr)',
         },
         {
             key: 'actions',
             header: 'Actions',
             align: 'right',
-            width: '110px',
+            width: '90px',
         },
     ];
+
+    // ============================================================
+    // FILTER COMPONENT
+    // ============================================================
+
+    const filters = (
+        <UserFilters
+            categoryTabs={categoryTabs}
+            activeCategory={activeCategory}
+            onCategoryChange={handleCategoryChange}
+            statusFilter={statusFilter}
+            onStatusChange={handleStatusChange}
+            verificationFilter={verificationFilter}
+            onVerificationChange={handleVerificationChange}
+            activeFilterCount={activeFilterCount}
+            onClearFilters={handleClearFilters}
+        />
+    );
 
     // ============================================================
     // LOADING
@@ -512,7 +553,7 @@ const Users = () => {
 
     if (loading) {
         return (
-            <div>
+            <div className="space-y-8">
                 <PageHeader
                     title="Users"
                     subtitle="Manage all registered users on the Stand For People platform."
@@ -521,11 +562,13 @@ const Users = () => {
                 <div
                     className="
                         flex
-                        min-h-[320px]
+                        min-h-150
                         items-center
                         justify-center
+
                         border
                         border-[#343944]
+
                         bg-[#22252D]
                     "
                 >
@@ -533,20 +576,22 @@ const Users = () => {
                         <div
                             className="
                                 mx-auto
+                                mb-4
                                 h-8
                                 w-8
+
                                 animate-spin
                                 rounded-full
+
                                 border-2
-                                border-[#404754]
-                                border-t-[#C3C7CF]
+                                border-[#343944]
+                                border-t-[#9299A6]
                             "
                         />
 
                         <p
                             className="
-                                mt-4
-                                text-sm
+                                text-[13px]
                                 font-semibold
                                 text-[#F1F2F4]
                             "
@@ -557,11 +602,11 @@ const Users = () => {
                         <p
                             className="
                                 mt-1
-                                text-xs
+                                text-[11px]
                                 text-[#9299A6]
                             "
                         >
-                            Retrieving the user directory.
+                            Please wait while we retrieve the user list.
                         </p>
                     </div>
                 </div>
@@ -575,7 +620,7 @@ const Users = () => {
 
     if (error) {
         return (
-            <div>
+            <div className="space-y-8">
                 <PageHeader
                     title="Users"
                     subtitle="Manage all registered users on the Stand For People platform."
@@ -585,10 +630,13 @@ const Users = () => {
                     className="
                         border
                         border-[#5A343B]
+
                         bg-[#38272C]
+
                         px-5
                         py-4
-                        text-sm
+
+                        text-[12px]
                         text-[#E9A1A8]
                     "
                 >
@@ -599,178 +647,30 @@ const Users = () => {
     }
 
     // ============================================================
-    // FILTER CONTENT
-    // ============================================================
-
-    const filterContent = (
-        <>
-            <div className="px-5 pb-5 pt-5">
-                <div
-                    className="
-                        flex
-                        items-start
-                        justify-between
-                        gap-4
-                    "
-                >
-                    <div>
-                        <p
-                            className="
-                                text-[10px]
-                                font-semibold
-                                uppercase
-                                tracking-[0.15em]
-                                text-[#6F7785]
-                            "
-                        >
-                            Directory controls
-                        </p>
-
-                        <h3
-                            className="
-                                mt-1.5
-                                text-[15px]
-                                font-semibold
-                                text-[#F1F2F4]
-                            "
-                        >
-                            Filter users
-                        </h3>
-                    </div>
-
-                    {activeFilterCount > 0 && (
-                        <button
-                            type="button"
-                            onClick={handleClearFilters}
-                            className="
-                                text-[11px]
-                                font-medium
-                                text-[#9299A6]
-                                transition-colors
-                                hover:text-[#F1F2F4]
-                            "
-                        >
-                            Clear all
-                        </button>
-                    )}
-                </div>
-
-                <p
-                    className="
-                        mt-2
-                        text-[12px]
-                        leading-5
-                        text-[#9299A6]
-                    "
-                >
-                    Refine the directory by role, account status and
-                    verification.
-                </p>
-            </div>
-
-            <div
-                className="
-                    border-t
-                    border-[#343944]
-                    px-4
-                    py-5
-                "
-            >
-                <div
-                    className="
-                        mb-3
-                        flex
-                        items-center
-                        justify-between
-                        px-1
-                    "
-                >
-                    <p
-                        className="
-                            text-[10px]
-                            font-semibold
-                            uppercase
-                            tracking-[0.14em]
-                            text-[#6F7785]
-                        "
-                    >
-                        User role
-                    </p>
-
-                    <span
-                        className="
-                            text-[10px]
-                            tabular-nums
-                            text-[#6F7785]
-                        "
-                    >
-                        {categoryTabs.length}
-                    </span>
-                </div>
-
-                <UserCategoryTabs
-                    tabs={categoryTabs}
-                    activeCategory={activeCategory}
-                    onChange={handleCategoryChange}
-                />
-            </div>
-
-            <div
-                className="
-                    border-t
-                    border-[#343944]
-                    px-4
-                    py-5
-                "
-            >
-                <p
-                    className="
-                        mb-3
-                        px-1
-                        text-[10px]
-                        font-semibold
-                        uppercase
-                        tracking-[0.14em]
-                        text-[#6F7785]
-                    "
-                >
-                    Account filters
-                </p>
-
-                <UserFilters
-                    statusFilter={statusFilter}
-                    onStatusChange={handleStatusChange}
-                    verificationFilter={verificationFilter}
-                    onVerificationChange={handleVerificationChange}
-                />
-            </div>
-        </>
-    );
-
-    // ============================================================
     // MAIN
     // ============================================================
 
     return (
         <>
-            <div className="min-w-0">
-                {/* ========================================================
-                    HEADER
-                ======================================================== */}
+            <div className="space-y-9">
+                {/* ====================================================
+                    PAGE HEADER
+                ==================================================== */}
 
                 <PageHeader
                     title="Users"
-                    subtitle="Manage registered users, account roles, verification and platform access."
+                    subtitle="Review and manage everyone connected to Stand For People, including their roles, account status, and platform access."
                     action={
                         <div
                             className="
                                 flex
                                 w-full
+                                flex-wrap
                                 items-center
+                                justify-end
                                 gap-2
 
-                                sm:w-auto
-                                sm:justify-end
+                                sm:gap-3
                             "
                         >
                             <button
@@ -778,32 +678,43 @@ const Users = () => {
                                 onClick={handleExportCSV}
                                 disabled={filteredUsers.length === 0}
                                 className="
+                                    group
+
                                     inline-flex
                                     h-10
-                                    flex-1
                                     items-center
-                                    justify-center
                                     gap-2
+
                                     border
-                                    border-[#404754]
+                                    border-[#343944]
+
                                     bg-[#22252D]
+
                                     px-3.5
+
                                     text-[12px]
                                     font-medium
                                     text-[#C3C7CF]
+
                                     transition-colors
 
-                                    hover:border-[#515866]
+                                    hover:border-[#404754]
                                     hover:bg-[#272B34]
                                     hover:text-[#F1F2F4]
 
                                     disabled:cursor-not-allowed
                                     disabled:opacity-40
-
-                                    sm:flex-none
                                 "
                             >
-                                <Download size={15} strokeWidth={1.8} />
+                                <Download
+                                    size={15}
+                                    strokeWidth={1.8}
+                                    className="
+                                        text-[#9299A6]
+                                        transition-colors
+                                        group-hover:text-[#C3C7CF]
+                                    "
+                                />
                                 Export CSV
                             </button>
 
@@ -815,23 +726,24 @@ const Users = () => {
                                 className="
                                     inline-flex
                                     h-10
-                                    flex-1
                                     items-center
-                                    justify-center
                                     gap-2
+
                                     border
-                                    border-[#4B5260]
-                                    bg-[#303641]
+                                    border-[#515866]
+
+                                    bg-[#393F4C]
+
                                     px-3.5
+
                                     text-[12px]
                                     font-semibold
-                                    text-[#F1F2F4]
+                                    text-[#F1F2F4]!
+
                                     transition-colors
 
-                                    hover:border-[#5A6270]
-                                    hover:bg-[#393F4C]
-
-                                    sm:flex-none
+                                    hover:border-[#626A78]
+                                    hover:bg-[#454C5A]
                                 "
                             >
                                 <Plus size={16} strokeWidth={2} />
@@ -841,9 +753,9 @@ const Users = () => {
                     }
                 />
 
-                {/* ========================================================
+                {/* ====================================================
                     STATS
-                ======================================================== */}
+                ==================================================== */}
 
                 <UserStats
                     total={statistics.total}
@@ -852,19 +764,27 @@ const Users = () => {
                     administrators={statistics.administrators}
                 />
 
-                {/* ========================================================
-                    USER DIRECTORY
-                ======================================================== */}
+                {/* ====================================================
+                    USER MANAGEMENT
+                ==================================================== */}
 
-                <section className="mt-8 sm:mt-10">
-                    {/* Section heading */}
+                <section className="pt-1">
+                    {/* ===============================================
+                        SECTION HEADING
+                    =============================================== */}
 
                     <div
                         className="
-                            mb-4
+                            mb-5
+
                             flex
                             flex-col
-                            gap-3
+                            gap-4
+
+                            border-b
+                            border-[#343944]
+
+                            pb-5
 
                             sm:flex-row
                             sm:items-end
@@ -874,333 +794,486 @@ const Users = () => {
                         <div className="min-w-0">
                             <div
                                 className="
+                                    mb-2
                                     flex
                                     items-center
                                     gap-2
                                 "
                             >
-                                <UsersRound
-                                    size={15}
-                                    strokeWidth={1.8}
-                                    className="text-[#9299A6]"
+                                <span
+                                    className="
+                                        h-1.5
+                                        w-1.5
+                                        bg-[#7F8794]
+                                    "
                                 />
 
                                 <span
                                     className="
-                                        text-[10px]
+                                        text-[9px]
                                         font-semibold
                                         uppercase
                                         tracking-[0.15em]
-                                        text-[#6F7785]
+                                        text-[#7F8794]
                                     "
                                 >
-                                    User directory
+                                    Administration
                                 </span>
                             </div>
 
                             <h2
                                 className="
-                                    mt-1.5
-                                    text-[17px]
+                                    text-[20px]
                                     font-semibold
-                                    tracking-[-0.015em]
-                                    text-[#F1F2F4]
-
-                                    sm:text-[18px]
+                                    leading-tight
+                                    text-[#F1F2F4]!
                                 "
                             >
-                                Manage accounts
+                                User management
                             </h2>
 
                             <p
                                 className="
-                                    mt-1
+                                    mt-1.5
                                     max-w-xl
+
                                     text-[12px]
                                     leading-5
                                     text-[#9299A6]
                                 "
                             >
-                                Search, review and manage registered platform
-                                accounts.
+                                Review accounts, roles, and access across the
+                                platform.
                             </p>
                         </div>
 
                         <div
                             className="
                                 flex
+                                shrink-0
                                 items-center
-                                gap-2
-                                text-[11px]
-                                text-[#9299A6]
+                                gap-3
                             "
                         >
                             <span
                                 className="
-                                    font-semibold
-                                    tabular-nums
-                                    text-[#F1F2F4]
-                                "
-                            >
-                                {filteredUsers.length}
-                            </span>
+                                    hidden
+                                    h-8
+                                    w-px
+                                    bg-[#343944]
 
-                            <span>
-                                {filteredUsers.length === 1
-                                    ? 'result'
-                                    : 'results'}
-                            </span>
+                                    sm:block
+                                "
+                            />
+
+                            <div>
+                                <p
+                                    className="
+                                        text-[9px]
+                                        font-semibold
+                                        uppercase
+                                        tracking-[0.14em]
+                                        text-[#6F7785]
+                                    "
+                                >
+                                    Showing
+                                </p>
+
+                                <p
+                                    className="
+                                        mt-0.5
+                                        text-[12px]
+                                        font-semibold
+                                        text-[#C3C7CF]
+                                    "
+                                >
+                                    {filteredUsers.length}{' '}
+                                    <span
+                                        className="
+                                            font-normal
+                                            text-[#7F8794]
+                                        "
+                                    >
+                                        {filteredUsers.length === 1
+                                            ? 'user'
+                                            : 'users'}
+                                    </span>
+                                </p>
+                            </div>
                         </div>
                     </div>
 
-                    {/* ====================================================
-                        DIRECTORY LAYOUT
-                    ==================================================== */}
+                    {/* ===============================================
+                        MOBILE / TABLET FILTER TRIGGER
+                    =============================================== */}
+
+                    <div className="mb-3 xl:hidden">
+                        <button
+                            type="button"
+                            onClick={() => setMobileFiltersOpen(true)}
+                            className="
+                                flex
+                                h-10
+                                w-full
+                                items-center
+                                justify-between
+
+                                border
+                                border-[#343944]
+
+                                bg-[#22252D]
+
+                                px-3.5
+
+                                text-[11px]
+                                font-medium
+                                text-[#C3C7CF]
+
+                                transition-colors
+
+                                hover:bg-[#272B34]
+                            "
+                        >
+                            <span
+                                className="
+                                    flex
+                                    items-center
+                                    gap-2
+                                "
+                            >
+                                <SlidersHorizontal
+                                    size={14}
+                                    strokeWidth={1.8}
+                                />
+                                Filters
+                            </span>
+
+                            {activeFilterCount > 0 && (
+                                <span
+                                    className="
+                                        flex
+                                        h-5
+                                        min-w-5
+                                        items-center
+                                        justify-center
+
+                                        bg-[#393F4C]
+
+                                        px-1.5
+
+                                        text-[9px]
+                                        font-semibold
+                                        tabular-nums
+                                        text-[#F1F2F4]
+                                    "
+                                >
+                                    {activeFilterCount}
+                                </span>
+                            )}
+                        </button>
+                    </div>
+
+                    {/* ===============================================
+                        WORKSPACE
+                    =============================================== */}
 
                     <div
                         className="
                             grid
                             min-w-0
-                            gap-4
+                            gap-5
 
-                            xl:grid-cols-[minmax(0,1fr)_250px]
+                            xl:grid-cols-[minmax(0,1fr)_340px]
+                            xl:items-stretch
                         "
                     >
-                        {/* =================================================
+                        {/* ===========================================
                             TABLE WORKSPACE
-                        ================================================= */}
+                        =========================================== */}
 
                         <div
                             className="
+                                relative
+                                min-h-0
                                 min-w-0
-                                overflow-hidden
-                                border
-                                border-[#343944]
-                                bg-[#22252D]
+
+                                xl:h-full
                             "
                         >
-                            {/* Toolbar */}
-
                             <div
                                 className="
-                                    border-b
-                                    border-[#343944]
-                                    bg-[#20232A]
-                                    p-3
+                                    flex
+                                    min-h-0
+                                    min-w-0
+                                    flex-col
+                                    overflow-hidden
 
-                                    sm:p-4
+                                    border
+                                    border-[#343944]
+
+                                    bg-[#22252D]
+
+                                    xl:absolute
+                                    xl:inset-0
                                 "
                             >
+                                {/* =======================================
+                                SEARCH TOOLBAR
+                            ======================================= */}
+
                                 <div
                                     className="
+                                    shrink-0
+
+                                    border-b
+                                    border-[#343944]
+
+                                    bg-[#20232A]
+
+                                    px-3
+                                    py-3
+
+                                    sm:px-4
+                                "
+                                >
+                                    <div
+                                        className="
                                         flex
                                         flex-col
                                         gap-3
 
-                                        sm:flex-row
-                                        sm:items-center
+                                        lg:flex-row
+                                        lg:items-center
+                                        lg:justify-between
                                     "
-                                >
-                                    {/* Search */}
-
-                                    <div
-                                        className="
-                                            relative
+                                    >
+                                        <div
+                                            className="
                                             min-w-0
                                             flex-1
                                         "
-                                    >
-                                        <Search
-                                            size={16}
-                                            strokeWidth={1.8}
-                                            className="
-                                                pointer-events-none
-                                                absolute
-                                                left-3
-                                                top-1/2
-                                                -translate-y-1/2
-                                                text-[#6F7785]
-                                            "
-                                        />
-
-                                        <input
-                                            type="text"
-                                            value={searchTerm}
-                                            onChange={handleSearchChange}
-                                            placeholder="Search users by name or email..."
-                                            className="
-                                                h-10
-                                                w-full
-                                                border
-                                                border-[#343944]
-                                                bg-[#181A20]
-                                                pl-9
-                                                pr-14
-                                                text-[12px]
-                                                text-[#F1F2F4]
-                                                outline-none
-                                                transition-colors
-
-                                                placeholder:text-[#6F7785]
-
-                                                hover:border-[#404754]
-
-                                                focus:border-[#515866]
-                                                focus:ring-0
-                                            "
-                                        />
-
-                                        {searchTerm && (
-                                            <button
-                                                type="button"
-                                                onClick={handleClearSearch}
-                                                className="
+                                        >
+                                            <div className="relative">
+                                                <Search
+                                                    size={15}
+                                                    strokeWidth={1.8}
+                                                    className="
+                                                    pointer-events-none
                                                     absolute
-                                                    right-3
+                                                    left-3
                                                     top-1/2
                                                     -translate-y-1/2
-                                                    text-[10px]
-                                                    font-semibold
-                                                    text-[#9299A6]
-                                                    transition-colors
-                                                    hover:text-[#F1F2F4]
+                                                    text-[#6F7785]
                                                 "
-                                            >
-                                                Clear
-                                            </button>
-                                        )}
-                                    </div>
+                                                />
 
-                                    {/* Mobile/tablet filter button */}
+                                                <input
+                                                    type="text"
+                                                    value={searchTerm}
+                                                    onChange={
+                                                        handleSearchChange
+                                                    }
+                                                    placeholder="Search by name or email"
+                                                    className="
+                                                    h-10
+                                                    w-full
 
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            setMobileFiltersOpen(true)
-                                        }
-                                        className="
-                                            inline-flex
-                                            h-10
+                                                    border
+                                                    border-[#343944]
+
+                                                    bg-[#181A20]
+
+                                                    pl-9
+                                                    pr-16
+
+                                                    text-[12px]
+                                                    font-medium
+                                                    text-[#F1F2F4]
+
+                                                    outline-none
+
+                                                    transition-colors
+
+                                                    placeholder:text-[#626A78]
+
+                                                    hover:border-[#404754]
+
+                                                    focus:border-[#515866]
+                                                    focus:ring-0
+                                                "
+                                                />
+
+                                                {searchTerm && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={
+                                                            handleClearSearch
+                                                        }
+                                                        className="
+                                                        absolute
+                                                        right-3
+                                                        top-1/2
+                                                        -translate-y-1/2
+
+                                                        text-[9px]
+                                                        font-semibold
+                                                        uppercase
+                                                        tracking-[0.08em]
+
+                                                        text-[#7F8794]
+
+                                                        transition-colors
+
+                                                        hover:text-[#F1F2F4]
+
+                                                        focus:outline-none
+                                                        focus:ring-0
+                                                    "
+                                                    >
+                                                        Clear
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div
+                                            className="
+                                            flex
                                             shrink-0
                                             items-center
-                                            justify-center
-                                            gap-2
-                                            border
-                                            border-[#404754]
-                                            bg-[#272B34]
-                                            px-3.5
-                                            text-[12px]
-                                            font-medium
-                                            text-[#C3C7CF]
-                                            transition-colors
-
-                                            hover:bg-[#303641]
-                                            hover:text-[#F1F2F4]
-
-                                            xl:hidden
+                                            gap-4
                                         "
-                                    >
-                                        <SlidersHorizontal
-                                            size={15}
-                                            strokeWidth={1.8}
-                                        />
-                                        Filters
-                                        {activeFilterCount > 0 && (
+                                        >
                                             <span
                                                 className="
-                                                    flex
-                                                    h-5
-                                                    min-w-5
-                                                    items-center
-                                                    justify-center
-                                                    rounded-full
-                                                    bg-[#393F4C]
-                                                    px-1
-                                                    text-[10px]
+                                                hidden
+                                                h-7
+                                                w-px
+                                                bg-[#343944]
+
+                                                lg:block
+                                            "
+                                            />
+
+                                            <div>
+                                                <p
+                                                    className="
+                                                    text-[8px]
                                                     font-semibold
-                                                    text-[#F1F2F4]
+                                                    uppercase
+                                                    tracking-[0.14em]
+                                                    text-[#6F7785]
                                                 "
-                                            >
-                                                {activeFilterCount}
-                                            </span>
-                                        )}
-                                    </button>
+                                                >
+                                                    Directory
+                                                </p>
+
+                                                <p
+                                                    className="
+                                                    mt-0.5
+                                                    text-[11px]
+                                                    font-medium
+                                                    text-[#C3C7CF]
+                                                "
+                                                >
+                                                    {filteredUsers.length}{' '}
+                                                    {filteredUsers.length === 1
+                                                        ? 'result'
+                                                        : 'results'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
 
-                            {/* Table context */}
+                                {/* =======================================
+                                TABLE CONTEXT
+                            ======================================= */}
 
-                            <div
-                                className="
+                                <div
+                                    className="
                                     flex
+                                    shrink-0
                                     items-center
                                     justify-between
-                                    gap-4
+                                    gap-3
+
                                     border-b
                                     border-[#343944]
+
+                                    bg-[#22252D]
+
                                     px-4
                                     py-3
                                 "
-                            >
-                                <div className="min-w-0">
-                                    <p
-                                        className="
+                                >
+                                    <div className="min-w-0">
+                                        <p
+                                            className="
                                             text-[12px]
                                             font-semibold
                                             text-[#F1F2F4]
                                         "
-                                    >
-                                        Registered users
-                                    </p>
+                                        >
+                                            Registered users
+                                        </p>
 
-                                    <p
-                                        className="
+                                        <p
+                                            className="
                                             mt-0.5
+                                            truncate
+
                                             text-[10px]
                                             text-[#6F7785]
-
-                                            sm:text-[11px]
                                         "
+                                        >
+                                            Browse and review platform accounts
+                                        </p>
+                                    </div>
+
+                                    <span
+                                        className="
+                                        hidden
+                                        shrink-0
+
+                                        text-[9px]
+                                        font-medium
+                                        text-[#6F7785]
+
+                                        sm:block
+                                    "
                                     >
-                                        {filteredUsers.length} matching{' '}
-                                        {filteredUsers.length === 1
-                                            ? 'account'
-                                            : 'accounts'}
-                                    </p>
+                                        Sorted by account
+                                    </span>
                                 </div>
 
-                                {activeFilterCount > 0 && (
-                                    <button
-                                        type="button"
-                                        onClick={handleClearFilters}
-                                        className="
-                                            hidden
-                                            shrink-0
-                                            text-[11px]
-                                            font-medium
-                                            text-[#9299A6]
-                                            transition-colors
-                                            hover:text-[#F1F2F4]
+                                {/* =======================================
+                                SCROLLABLE TABLE AREA
 
-                                            sm:block
-                                        "
-                                    >
-                                        Clear filters
-                                    </button>
-                                )}
-                            </div>
+                                This is the only flexible area.
+                                On desktop the filter sidebar defines the
+                                shared workspace height, so rows scroll here.
+                            ======================================= */}
 
-                            {/* =================================================
-                                TABLE
-                            ================================================= */}
-
-                            <div
-                                className="
+                                <div
+                                    className="
+                                    min-h-0
                                     min-w-0
-                                    overflow-x-auto
+                                    flex-1
+
+                                    overflow-auto
+
+                                    bg-[#22252D]
+
+                                    [&::-webkit-scrollbar]:h-1.5
+                                    [&::-webkit-scrollbar]:w-1.5
+
+                                    [&::-webkit-scrollbar-track]:bg-[#1F2229]
+                                    [&::-webkit-scrollbar-thumb]:bg-[#404754]
+
+                                    hover:[&::-webkit-scrollbar-thumb]:bg-[#515866]
                                 "
-                            >
-                                <div className="min-w-[760px]">
+                                >
                                     <UserTable
                                         columns={columns}
                                         rows={rows}
@@ -1215,46 +1288,56 @@ const Users = () => {
                                         onDelete={openDeleteModal}
                                     />
                                 </div>
-                            </div>
 
-                            {/* Pagination */}
+                                {/* =======================================
+                                PAGINATION
+                            ======================================= */}
 
-                            {filteredUsers.length > 0 && (
-                                <div
-                                    className="
+                                {filteredUsers.length > 0 && (
+                                    <div
+                                        className="
+                                        shrink-0
+
                                         border-t
                                         border-[#343944]
+
                                         bg-[#20232A]
                                     "
-                                >
-                                    <UserPagination
-                                        currentPage={safeCurrentPage}
-                                        totalPages={totalPages}
-                                        totalItems={filteredUsers.length}
-                                        itemsPerPage={USERS_PER_PAGE}
-                                        onPageChange={setCurrentPage}
-                                    />
-                                </div>
-                            )}
+                                    >
+                                        <UserPagination
+                                            currentPage={safeCurrentPage}
+                                            totalPages={totalPages}
+                                            totalItems={filteredUsers.length}
+                                            itemsPerPage={USERS_PER_PAGE}
+                                            onPageChange={setCurrentPage}
+                                        />
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
-                        {/* =================================================
+                        {/* ===========================================
                             DESKTOP FILTER SIDEBAR
-                        ================================================= */}
+
+                            Its natural content height defines the desktop
+                            grid row height. The table workspace fills that
+                            same row without contributing its own content height.
+                        =========================================== */}
 
                         <aside
                             className="
                                 hidden
-                                self-start
-                                overflow-hidden
+                                min-w-0
+
                                 border
                                 border-[#343944]
-                                bg-[#22252D]
+
+                                bg-[#20232A]
 
                                 xl:block
                             "
                         >
-                            {filterContent}
+                            {filters}
                         </aside>
                     </div>
                 </section>
@@ -1269,7 +1352,7 @@ const Users = () => {
                     className="
                         fixed
                         inset-0
-                        z-50
+                        z-100
 
                         xl:hidden
                     "
@@ -1281,7 +1364,9 @@ const Users = () => {
                         className="
                             absolute
                             inset-0
+
                             bg-black/55
+
                             backdrop-blur-[2px]
                         "
                     />
@@ -1292,20 +1377,23 @@ const Users = () => {
                             bottom-0
                             left-0
                             right-0
-                            max-h-[85vh]
-                            overflow-y-auto
-                            border-t
-                            border-[#404754]
-                            bg-[#22252D]
-                            shadow-2xl
 
-                            sm:bottom-auto
+                            max-h-[88vh]
+                            overflow-y-auto
+
+                            border-t
+                            border-[#343944]
+
+                            bg-[#20232A]
+
+                            shadow-[0_-20px_60px_rgba(0,0,0,0.35)]
+
+                            sm:bottom-0
                             sm:left-auto
-                            sm:right-0
                             sm:top-0
                             sm:h-full
                             sm:max-h-none
-                            sm:w-[340px]
+                            sm:w-[380px]
                             sm:border-l
                             sm:border-t-0
                         "
@@ -1314,34 +1402,41 @@ const Users = () => {
                             className="
                                 sticky
                                 top-0
-                                z-10
+                                z-30
+
                                 flex
                                 items-center
                                 justify-between
+
                                 border-b
                                 border-[#343944]
-                                bg-[#20232A]
-                                px-5
-                                py-4
+
+                                bg-[#20232A]/95
+
+                                px-4
+                                py-3
+
+                                backdrop-blur-md
                             "
                         >
                             <div>
                                 <p
                                     className="
-                                        text-[10px]
+                                        text-[9px]
                                         font-semibold
                                         uppercase
-                                        tracking-[0.15em]
+                                        tracking-[0.14em]
                                         text-[#6F7785]
                                     "
                                 >
-                                    Directory
+                                    User directory
                                 </p>
 
                                 <p
                                     className="
                                         mt-0.5
-                                        text-sm
+
+                                        text-[13px]
                                         font-semibold
                                         text-[#F1F2F4]
                                     "
@@ -1360,29 +1455,40 @@ const Users = () => {
                                     w-9
                                     items-center
                                     justify-center
+
                                     border
                                     border-[#343944]
+
+                                    bg-[#272B34]
+
                                     text-[#9299A6]
+
                                     transition-colors
 
-                                    hover:bg-[#272B34]
+                                    hover:border-[#404754]
                                     hover:text-[#F1F2F4]
                                 "
                             >
-                                <X size={17} strokeWidth={1.8} />
+                                <X size={16} strokeWidth={1.8} />
                             </button>
                         </div>
 
-                        {filterContent}
+                        {filters}
 
                         <div
                             className="
                                 sticky
                                 bottom-0
+                                z-30
+
                                 border-t
                                 border-[#343944]
-                                bg-[#20232A]
+
+                                bg-[#20232A]/95
+
                                 p-4
+
+                                backdrop-blur-md
                             "
                         >
                             <button
@@ -1394,12 +1500,19 @@ const Users = () => {
                                     w-full
                                     items-center
                                     justify-center
-                                    bg-[#303641]
-                                    text-[12px]
+
+                                    border
+                                    border-[#515866]
+
+                                    bg-[#393F4C]
+
+                                    text-[11px]
                                     font-semibold
                                     text-[#F1F2F4]
+
                                     transition-colors
-                                    hover:bg-[#393F4C]
+
+                                    hover:bg-[#454C5A]
                                 "
                             >
                                 Show {filteredUsers.length}{' '}
@@ -1417,7 +1530,7 @@ const Users = () => {
             <UserSuccessToast show={toast.show} message={toast.message} />
 
             {/* ========================================================
-                DELETE DIALOG
+                DELETE MODAL
             ======================================================== */}
 
             <UserDeleteModal

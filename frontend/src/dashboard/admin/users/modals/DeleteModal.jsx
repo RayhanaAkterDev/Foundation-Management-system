@@ -1,6 +1,5 @@
 import React from 'react';
-
-import { AlertTriangle, X, Trash2 } from 'lucide-react';
+import { AlertTriangle, Trash2, X } from 'lucide-react';
 
 const DeleteModal = ({ user, loading, error, onClose, onConfirm }) => {
     if (!user) {
@@ -29,15 +28,19 @@ const DeleteModal = ({ user, loading, error, onClose, onConfirm }) => {
                 fixed
                 inset-0
                 z-50
+
                 flex
                 items-center
                 justify-center
+
                 overflow-y-auto
-                bg-slate-950/50
-                p-3
-                backdrop-blur-xs
-                sm:p-5
-                lg:p-6
+
+                bg-[#080A0D]/78
+                p-4
+
+                backdrop-blur-[3px]
+
+                sm:p-6
             "
             role="dialog"
             aria-modal="true"
@@ -46,134 +49,170 @@ const DeleteModal = ({ user, loading, error, onClose, onConfirm }) => {
         >
             <div
                 className="
-                    flex
+                    relative
+
                     w-full
-                    max-w-125
-                    max-h-[calc(100dvh-1.5rem)]
-                    flex-col
+                    max-w-[440px]
+
                     overflow-hidden
+
                     border
-                    border-border
-                    bg-surface
-                    shadow-[0_28px_80px_rgba(15,23,42,0.18)]
-                    sm:max-h-[calc(100dvh-2.5rem)]
-                    lg:max-h-[calc(100dvh-3rem)]
+                    border-[#3A4048]
+
+                    bg-[#202429]
+
+                    shadow-[0_30px_90px_rgba(0,0,0,0.5)]
                 "
             >
-                {/* HEADER */}
-                <header
+                {/* =================================================
+                    CLOSE
+                ================================================== */}
+
+                <button
+                    type="button"
+                    onClick={onClose}
+                    disabled={loading}
+                    aria-label="Close"
                     className="
-                        shrink-0
-                        px-5
-                        pt-5
-                        sm:px-7
-                        sm:pt-7
+                        absolute
+                        top-4
+                        right-4
+                        z-10
+
+                        flex
+                        h-8
+                        w-8
+                        items-center
+                        justify-center
+
+                        text-[#66717B]
+
+                        transition-colors
+
+                        hover:bg-[#292E34]
+                        hover:text-[#DDE0E2]
+
+                        disabled:pointer-events-none
+                        disabled:opacity-40
+
+                        focus:outline-none
+                        focus:ring-0
                     "
                 >
-                    <div className="flex items-start justify-between gap-4 sm:gap-5">
-                        <div className="min-w-0 flex-1">
-                            <div className="mb-2.5 flex items-center gap-2 sm:mb-3">
-                                <span className="h-1.5 w-1.5 shrink-0 bg-red-500" />
+                    <X size={16} strokeWidth={1.8} />
+                </button>
 
-                                <span
-                                    className="
-                                        font-jost
-                                        text-[9px]
-                                        font-bold
-                                        uppercase
-                                        tracking-[0.15em]
-                                        text-red-600
-                                        sm:text-[10px]
-                                        sm:tracking-[0.16em]
-                                    "
-                                >
-                                    Delete account
-                                </span>
-                            </div>
+                {/* =================================================
+                    CONTENT
+                ================================================== */}
 
-                            <h2
-                                id="delete-user-title"
-                                className="
-                                    font-fraunces
-                                    text-[25px]
-                                    font-medium
-                                    leading-[1.1]
-                                    tracking-tight
-                                    text-text-primary
-                                    min-[380px]:text-[27px]
-                                    sm:text-[30px]
-                                "
-                            >
-                                Delete this account?
-                            </h2>
-
-                            <p
-                                id="delete-user-description"
-                                className="
-                                    mt-2
-                                    max-w-105
-                                    font-jost
-                                    text-[11.5px]
-                                    leading-[1.6]
-                                    text-text-secondary
-                                    sm:mt-2.5
-                                    sm:text-[12px]
-                                    sm:leading-[1.65]
-                                "
-                            >
-                                The account and its platform access will be
-                                permanently removed.
-                            </p>
-                        </div>
-
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            disabled={loading}
-                            aria-label="Close"
-                            className="
-                                flex
-                                h-9
-                                w-9
-                                shrink-0
-                                items-center
-                                justify-center
-                                text-text-secondary
-                                transition-colors
-                                hover:bg-background-alt
-                                hover:text-text-primary
-                                disabled:pointer-events-none
-                                disabled:opacity-50
-                                sm:h-9
-                                sm:w-9
-                            "
-                        >
-                            <X size={18} strokeWidth={1.7} />
-                        </button>
-                    </div>
-                </header>
-
-                {/* ACCOUNT */}
-                <section
+                <div
                     className="
-                        shrink-0
-                        px-5
-                        pt-5
-                        sm:px-7
-                        sm:pt-6
+                        px-6
+                        pt-7
+                        pb-7
+
+                        sm:px-8
+                        sm:pt-8
+                        sm:pb-8
                     "
                 >
+                    {/* =================================================
+                        DESTRUCTIVE ICON
+                    ================================================== */}
+
                     <div
                         className="
                             flex
+                            h-11
+                            w-11
+                            items-center
+                            justify-center
+
+                            border
+                            border-[#57373C]
+
+                            bg-[#302326]
+
+                            text-[#D06B74]
+                        "
+                    >
+                        <Trash2 size={18} strokeWidth={1.8} />
+                    </div>
+
+                    {/* =================================================
+                        TITLE
+                    ================================================== */}
+
+                    <div className="mt-5">
+                        <p
+                            className="
+                                text-[11px]
+                                font-semibold!
+                                uppercase
+                                tracking-[0.16em]
+
+                                text-[#A15C63]
+                            "
+                        >
+                            Delete account
+                        </p>
+
+                        <h2
+                            id="delete-user-title"
+                            className="
+                                mt-2
+
+                                pr-8
+
+                                text-[20px]
+                                font-semibold!
+                                leading-[1.3]
+                                tracking-[-0.025em]
+
+                                text-[#F0F1F2]!
+
+                                sm:text-[21px]
+                            "
+                        >
+                            Permanently delete this user?
+                        </h2>
+
+                        <p
+                            id="delete-user-description"
+                            className="
+                                mt-2
+
+                                max-w-[340px]
+
+                                text-[13px]
+                                leading-[1.7]
+
+                                text-[#7B858E]
+                            "
+                        >
+                            This account will be removed from Stand For People
+                            and cannot be recovered.
+                        </p>
+                    </div>
+
+                    {/* =================================================
+                        USER
+                    ================================================== */}
+
+                    <div
+                        className="
+                            mt-7
+
+                            flex
                             min-w-0
                             items-center
-                            gap-3
+                            gap-3.5
+
                             border-y
-                            border-border
-                            py-3.5
-                            sm:gap-3.5
-                            sm:py-4
+                            border-[#343A42]
+
+                            py-4
                         "
                     >
                         <div
@@ -184,225 +223,164 @@ const DeleteModal = ({ user, loading, error, onClose, onConfirm }) => {
                                 shrink-0
                                 items-center
                                 justify-center
-                                bg-primary
-                                font-fraunces
-                                text-[14px]
-                                font-medium
-                                text-white!
-                                sm:h-11
-                                sm:w-11
-                                sm:text-[15px]
+
+                                bg-[#292E33]
+
+                                text-[13px]
+                                font-semibold!
+                                tracking-[-0.01em]
+
+                                text-[#C8CDD1]
                             "
                         >
                             {initials}
                         </div>
 
                         <div className="min-w-0 flex-1">
-                            <p
+                            <div
                                 className="
-                                    truncate
-                                    font-jost
-                                    text-[13px]
-                                    font-semibold
-                                    text-text-primary
-                                    sm:text-[14px]
+                                    flex
+                                    min-w-0
+                                    items-center
+                                    gap-2.5
                                 "
                             >
-                                {user.name}
-                            </p>
+                                <p
+                                    className="
+                                        min-w-0
+                                        truncate
+
+                                        text-[13px]
+                                        font-semibold!
+
+                                        text-[#E1E4E6]
+                                    "
+                                >
+                                    {user.name}
+                                </p>
+
+                                <span
+                                    className="
+                                        shrink-0
+
+                                        text-[11px]
+                                        font-medium!
+
+                                        text-[#77818A]
+                                    "
+                                >
+                                    {roleLabel}
+                                </span>
+                            </div>
 
                             <p
                                 className="
-                                    mt-0.5
+                                    mt-1
                                     truncate
-                                    font-jost
-                                    text-[10.5px]
-                                    text-text-secondary
-                                    sm:text-[11.5px]
+
+                                    text-[12px]
+
+                                    text-[#747E88]
                                 "
                             >
                                 {user.email}
                             </p>
                         </div>
-
-                        <div
-                            className="
-                                hidden
-                                shrink-0
-                                text-right
-                                min-[430px]:block
-                            "
-                        >
-                            <p
-                                className="
-                                    font-jost
-                                    text-[8px]
-                                    font-semibold
-                                    uppercase
-                                    tracking-[0.13em]
-                                    text-text-secondary
-                                    sm:text-[9px]
-                                "
-                            >
-                                Role
-                            </p>
-
-                            <p
-                                className="
-                                    mt-1
-                                    font-jost
-                                    text-[10.5px]
-                                    font-semibold
-                                    text-text-primary
-                                    sm:text-[11.5px]
-                                "
-                            >
-                                {roleLabel}
-                            </p>
-                        </div>
                     </div>
 
-                    {/* Compact role on very narrow screens */}
+                    {/* =================================================
+                        CONSEQUENCE
+                    ================================================== */}
+
                     <div
                         className="
+                            mt-5
+
                             flex
-                            items-center
-                            justify-between
-                            border-b
-                            border-border
-                            py-2.5
-                            min-[430px]:hidden
+                            items-start
+                            gap-2.5
                         "
                     >
-                        <span
-                            className="
-                                font-jost
-                                text-[8px]
-                                font-semibold
-                                uppercase
-                                tracking-[0.13em]
-                                text-text-secondary
-                            "
-                        >
-                            Role
-                        </span>
-
-                        <span
-                            className="
-                                font-jost
-                                text-[10.5px]
-                                font-semibold
-                                text-text-primary
-                            "
-                        >
-                            {roleLabel}
-                        </span>
-                    </div>
-                </section>
-
-                {/* WARNING */}
-                <section
-                    className="
-                        min-h-0
-                        flex-1
-                        overflow-y-auto
-                        px-5
-                        py-4.5
-                        sm:px-7
-                        sm:py-6
-                    "
-                >
-                    <div className="flex items-start gap-3">
                         <AlertTriangle
-                            size={16}
+                            size={15}
                             strokeWidth={1.8}
                             className="
-                                mt-0.5
+                                mt-[2px]
                                 shrink-0
-                                text-accent
+
+                                text-[#A96A70]
                             "
                         />
 
-                        <div className="min-w-0">
-                            <p
-                                className="
-                                    font-jost
-                                    text-[11.5px]
-                                    font-semibold
-                                    text-text-primary
-                                    sm:text-[12px]
-                                "
-                            >
-                                This action cannot be undone
-                            </p>
+                        <p
+                            className="
+                                text-[12px]
+                                leading-[1.65]
 
-                            <p
-                                className="
-                                    mt-1
-                                    max-w-105
-                                    font-jost
-                                    text-[10.5px]
-                                    leading-[1.65]
-                                    text-text-secondary
-                                    sm:text-[11px]
-                                "
-                            >
-                                The user will lose access immediately and the
-                                account will no longer be available through the
-                                platform.
-                            </p>
-                        </div>
+                                text-[#7B858E]
+                            "
+                        >
+                            The user will lose platform access immediately. This
+                            action cannot be undone.
+                        </p>
                     </div>
+
+                    {/* =================================================
+                        ERROR
+                    ================================================== */}
 
                     {error && (
                         <div
-                            className="
-                                mt-4
-                                border-l-2
-                                border-red-500
-                                bg-red-50
-                                px-3
-                                py-2.5
-                                sm:mt-5
-                                sm:px-3.5
-                                sm:py-3
-                            "
                             role="alert"
+                            className="
+                                mt-5
+
+                                border-l-2
+                                border-[#B84F59]
+
+                                bg-[#2A2023]
+
+                                px-3.5
+                                py-2.5
+                            "
                         >
                             <p
                                 className="
-                                    wrap-break-words
-                                    font-jost
-                                    text-[10.5px]
-                                    font-medium
+                                    text-[12px]
+                                    font-medium!
                                     leading-5
-                                    text-red-700
-                                    sm:text-[11px]
+
+                                    text-[#D78C93]
                                 "
                             >
                                 {error}
                             </p>
                         </div>
                     )}
-                </section>
+                </div>
 
-                {/* FOOTER */}
+                {/* =================================================
+                    ACTIONS
+                ================================================== */}
+
                 <footer
                     className="
-                        shrink-0
                         flex
-                        flex-col
+                        flex-col-reverse
                         gap-2.5
+
                         border-t
-                        border-border
-                        bg-background-alt/35
-                        px-5
-                        py-3.5
+                        border-[#343A42]
+
+                        bg-[#1C2024]
+
+                        px-6
+                        py-4
+
                         sm:flex-row
                         sm:items-center
                         sm:justify-end
-                        sm:px-7
-                        sm:py-4
+                        sm:px-8
                     "
                 >
                     <button
@@ -412,20 +390,26 @@ const DeleteModal = ({ user, loading, error, onClose, onConfirm }) => {
                         className="
                             h-10
                             w-full
-                            border
-                            border-border
-                            bg-surface
+
                             px-5
-                            font-jost
-                            text-[11.5px]
-                            font-semibold
-                            text-text-primary
+
+                            text-[12px]
+                            font-semibold!
+
+                            text-[#A3ABB2]
+
                             transition-colors
-                            hover:bg-background-alt
+
+                            hover:bg-[#262B30]
+                            hover:text-[#E1E4E6]
+
                             disabled:pointer-events-none
                             disabled:opacity-50
+
+                            focus:outline-none
+                            focus:ring-0
+
                             sm:w-auto
-                            sm:text-[12px]
                         "
                     >
                         Cancel
@@ -442,22 +426,28 @@ const DeleteModal = ({ user, loading, error, onClose, onConfirm }) => {
                             items-center
                             justify-center
                             gap-2
-                            bg-red-600
+
+                            bg-[#A8444D]
+
                             px-5
-                            font-jost
-                            text-[11.5px]
-                            font-semibold
+
+                            text-[12px]
+                            font-semibold!
+
                             text-white!
+
                             transition-colors
-                            hover:bg-red-700
-                            focus:outline-none
-                            focus:ring-2
-                            focus:ring-red-500/20
+
+                            hover:bg-[#B84C56]
+
                             disabled:pointer-events-none
-                            disabled:opacity-60
+                            disabled:opacity-55
+
+                            focus:outline-none
+                            focus:ring-0
+
+                            sm:min-w-[142px]
                             sm:w-auto
-                            sm:min-w-35
-                            sm:text-[12px]
                         "
                     >
                         {loading ? (
@@ -466,9 +456,13 @@ const DeleteModal = ({ user, loading, error, onClose, onConfirm }) => {
                                     className="
                                         h-3.5
                                         w-3.5
+
                                         animate-spin
+
+                                        rounded-full
+
                                         border-2
-                                        border-white/35
+                                        border-white/30
                                         border-t-white
                                     "
                                 />
@@ -477,7 +471,7 @@ const DeleteModal = ({ user, loading, error, onClose, onConfirm }) => {
                             </>
                         ) : (
                             <>
-                                <Trash2 size={15} strokeWidth={1.9} />
+                                <Trash2 size={14} strokeWidth={1.9} />
 
                                 <span>Delete account</span>
                             </>

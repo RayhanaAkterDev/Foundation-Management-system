@@ -5,7 +5,7 @@ import { mockOrganization } from '@/data/mockOrganization';
 
 const Field = ({ label, children }) => (
     <div className="space-y-1.5">
-        <label className="block text-sm font-medium text-text-primary">
+        <label className="block text-sm font-medium! text-text-primary">
             {label}
         </label>
         {children}
@@ -101,7 +101,7 @@ const OrgProfile = () => {
                         />
                     </Field>
                     <div className="space-y-1.5 md:col-span-2">
-                        <label className="block text-sm font-medium text-text-primary">
+                        <label className="block text-sm font-medium! text-text-primary">
                             Address
                         </label>
                         <textarea
@@ -112,7 +112,7 @@ const OrgProfile = () => {
                         />
                     </div>
                     <div className="space-y-1.5 md:col-span-2">
-                        <label className="block text-sm font-medium text-text-primary">
+                        <label className="block text-sm font-medium! text-text-primary">
                             Mission
                         </label>
                         <textarea
@@ -127,7 +127,7 @@ const OrgProfile = () => {
                 <div className="mt-6 border-t border-[#e5e7eb] pt-5">
                     <button
                         type="button"
-                        className="inline-flex h-10 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-medium text-white! hover:bg-primary-hover transition-colors"
+                        className="inline-flex h-10 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-medium! text-white! hover:bg-primary-hover transition-colors"
                     >
                         <Save className="h-4 w-4" /> Save Changes
                     </button>
@@ -148,7 +148,7 @@ const OrgProfile = () => {
                             {mockOrganization.focusAreas.map((a) => (
                                 <span
                                     key={a}
-                                    className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
+                                    className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium! text-primary"
                                 >
                                     {a}
                                 </span>
@@ -163,7 +163,7 @@ const OrgProfile = () => {
                             {mockOrganization.communitiesServed.map((c) => (
                                 <span
                                     key={c}
-                                    className="rounded-full bg-[#eef3f6] px-3 py-1 text-xs font-medium text-[#6b7280]"
+                                    className="rounded-full bg-[#eef3f6] px-3 py-1 text-xs font-medium! text-[#6b7280]"
                                 >
                                     {c}
                                 </span>

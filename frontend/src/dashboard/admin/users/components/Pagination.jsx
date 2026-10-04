@@ -14,7 +14,6 @@ const Pagination = ({
     }
 
     const startItem = (currentPage - 1) * itemsPerPage + 1;
-
     const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
     const pages = Array.from(
@@ -44,7 +43,8 @@ const Pagination = ({
         <nav
             aria-label="Pagination"
             className="
-                bg-[#20232A]
+                bg-[#121821]
+
                 px-3
                 py-3
 
@@ -80,9 +80,11 @@ const Pagination = ({
                     <p
                         className="
                             whitespace-nowrap
+
                             text-[10px]
                             leading-5
-                            text-[#6F7785]
+
+                            text-[#697586]
 
                             sm:text-[11px]
                         "
@@ -90,9 +92,10 @@ const Pagination = ({
                         Showing{' '}
                         <span
                             className="
-                                font-semibold
+                                font-semibold!
                                 tabular-nums
-                                text-[#C3C7CF]
+
+                                text-[#B8C0CA]
                             "
                         >
                             {startItem}–{endItem}
@@ -100,9 +103,10 @@ const Pagination = ({
                         of{' '}
                         <span
                             className="
-                                font-semibold
+                                font-semibold!
                                 tabular-nums
-                                text-[#C3C7CF]
+
+                                text-[#B8C0CA]
                             "
                         >
                             {totalItems}
@@ -110,11 +114,13 @@ const Pagination = ({
                     </p>
 
                     <span
+                        aria-hidden="true"
                         className="
                             hidden
                             h-3.5
                             w-px
-                            bg-[#343944]
+
+                            bg-[#303A47]
 
                             sm:block
                         "
@@ -124,8 +130,10 @@ const Pagination = ({
                         className="
                             hidden
                             whitespace-nowrap
+
                             text-[10px]
-                            text-[#6F7785]
+
+                            text-[#697586]
 
                             sm:block
                         "
@@ -133,9 +141,10 @@ const Pagination = ({
                         Page{' '}
                         <span
                             className="
-                                font-medium
+                                font-medium!
                                 tabular-nums
-                                text-[#9299A6]
+
+                                text-[#8792A1]
                             "
                         >
                             {currentPage}
@@ -143,9 +152,10 @@ const Pagination = ({
                         of{' '}
                         <span
                             className="
-                                font-medium
+                                font-medium!
                                 tabular-nums
-                                text-[#9299A6]
+
+                                text-[#8792A1]
                             "
                         >
                             {totalPages}
@@ -168,7 +178,9 @@ const Pagination = ({
                         sm:justify-end
                     "
                 >
-                    {/* Previous */}
+                    {/* =================================================
+                        PREVIOUS
+                    ================================================= */}
 
                     <button
                         type="button"
@@ -184,27 +196,34 @@ const Pagination = ({
                             gap-1
 
                             border
-                            border-[#343944]
+                            border-[#29323E]
 
-                            bg-[#22252D]
+                            bg-[#0E1219]
 
                             px-2.5
 
                             text-[10px]
-                            font-medium
-                            text-[#9299A6]
+                            font-medium!
 
-                            transition-colors
+                            text-[#8792A1]
 
-                            hover:border-[#404754]
-                            hover:bg-[#272B34]
-                            hover:text-[#F1F2F4]
+                            transition-[background-color,border-color,color]
+                            duration-150
+                            ease-out
+
+                            hover:border-[#394555]
+                            hover:bg-[#151B24]
+                            hover:text-[#EEF1F5]
+
+                            focus:outline-none
+                            focus:ring-0
 
                             disabled:cursor-not-allowed
                             disabled:opacity-30
-                            disabled:hover:border-[#343944]
-                            disabled:hover:bg-[#22252D]
-                            disabled:hover:text-[#9299A6]
+
+                            disabled:hover:border-[#29323E]
+                            disabled:hover:bg-[#0E1219]
+                            disabled:hover:text-[#8792A1]
 
                             sm:px-3
                         "
@@ -216,7 +235,9 @@ const Pagination = ({
                         </span>
                     </button>
 
-                    {/* Pages */}
+                    {/* =================================================
+                        PAGES
+                    ================================================= */}
 
                     <div
                         className="
@@ -241,15 +262,16 @@ const Pagination = ({
                                         <span
                                             aria-hidden="true"
                                             className="
-                                                    flex
-                                                    h-8
-                                                    w-4
-                                                    items-center
-                                                    justify-center
+                                                flex
+                                                h-8
+                                                w-4
+                                                items-center
+                                                justify-center
 
-                                                    text-[10px]
-                                                    text-[#6F7785]
-                                                "
+                                                text-[10px]
+
+                                                text-[#5E6978]
+                                            "
                                         >
                                             …
                                         </span>
@@ -263,28 +285,45 @@ const Pagination = ({
                                         aria-label={`Go to page ${page}`}
                                         onClick={() => onPageChange(page)}
                                         className={`
-                                                flex
-                                                h-8
-                                                min-w-8
-                                                items-center
-                                                justify-center
+                                            flex
+                                            h-8
+                                            min-w-8
+                                            items-center
+                                            justify-center
 
-                                                border
+                                            border
 
-                                                px-2
+                                            px-2
 
-                                                text-[10px]
-                                                font-semibold
-                                                tabular-nums
+                                            text-[10px]
+                                            font-semibold!
+                                            tabular-nums
 
-                                                transition-colors
+                                            transition-[background-color,border-color,color]
+                                            duration-150
+                                            ease-out
 
-                                                ${
-                                                    active
-                                                        ? 'border-[#515866] bg-[#393F4C] text-[#F1F2F4]'
-                                                        : 'border-transparent text-[#7F8794] hover:border-[#343944] hover:bg-[#272B34] hover:text-[#C3C7CF]'
-                                                }
-                                            `}
+                                            focus:outline-none
+                                            focus:ring-0
+
+                                            ${
+                                                active
+                                                    ? `
+                                                        border-[#394555]
+                                                        bg-[#1D2632]
+                                                        text-[#EEF1F5]
+                                                    `
+                                                    : `
+                                                        border-transparent
+                                                        bg-transparent
+                                                        text-[#697586]
+
+                                                        hover:border-[#29323E]
+                                                        hover:bg-[#151B24]
+                                                        hover:text-[#B8C0CA]
+                                                    `
+                                            }
+                                        `}
                                     >
                                         {page}
                                     </button>
@@ -293,7 +332,9 @@ const Pagination = ({
                         })}
                     </div>
 
-                    {/* Next */}
+                    {/* =================================================
+                        NEXT
+                    ================================================= */}
 
                     <button
                         type="button"
@@ -309,27 +350,34 @@ const Pagination = ({
                             gap-1
 
                             border
-                            border-[#343944]
+                            border-[#29323E]
 
-                            bg-[#22252D]
+                            bg-[#0E1219]
 
                             px-2.5
 
                             text-[10px]
-                            font-medium
-                            text-[#9299A6]
+                            font-medium!
 
-                            transition-colors
+                            text-[#8792A1]
 
-                            hover:border-[#404754]
-                            hover:bg-[#272B34]
-                            hover:text-[#F1F2F4]
+                            transition-[background-color,border-color,color]
+                            duration-150
+                            ease-out
+
+                            hover:border-[#394555]
+                            hover:bg-[#151B24]
+                            hover:text-[#EEF1F5]
+
+                            focus:outline-none
+                            focus:ring-0
 
                             disabled:cursor-not-allowed
                             disabled:opacity-30
-                            disabled:hover:border-[#343944]
-                            disabled:hover:bg-[#22252D]
-                            disabled:hover:text-[#9299A6]
+
+                            disabled:hover:border-[#29323E]
+                            disabled:hover:bg-[#0E1219]
+                            disabled:hover:text-[#8792A1]
 
                             sm:px-3
                         "

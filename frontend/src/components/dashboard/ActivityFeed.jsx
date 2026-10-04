@@ -37,9 +37,9 @@ const ActivityFeed = ({ items = [], title = 'Recent Activity' }) => {
                 overflow-hidden
 
                 border
-                border-[#343944]
+                border-[#252D38]
 
-                bg-[#22252D]
+                bg-[#0E1219]
             "
         >
             {/* =============================================================
@@ -54,9 +54,9 @@ const ActivityFeed = ({ items = [], title = 'Recent Activity' }) => {
                         items-center
 
                         border-b
-                        border-[#343944]
+                        border-[#252D38]
 
-                        bg-[#20232A]
+                        bg-[#121821]
 
                         px-4
 
@@ -78,7 +78,7 @@ const ActivityFeed = ({ items = [], title = 'Recent Activity' }) => {
 
                                 rounded-full
 
-                                bg-[#9299A6]
+                                bg-[#697586]
                             "
                         />
 
@@ -87,9 +87,9 @@ const ActivityFeed = ({ items = [], title = 'Recent Activity' }) => {
                                 font-sans!
 
                                 text-[12px]
-                                font-semibold
+                                font-semibold!
 
-                                text-[#E5E7EB]!
+                                text-[#EEF1F5]!
                             "
                         >
                             {title}
@@ -110,6 +110,8 @@ const ActivityFeed = ({ items = [], title = 'Recent Activity' }) => {
                         items-center
                         justify-center
 
+                        bg-[#0E1219]
+
                         px-5
                         py-8
                     "
@@ -120,7 +122,8 @@ const ActivityFeed = ({ items = [], title = 'Recent Activity' }) => {
                             strokeWidth={1.6}
                             className="
                                 mx-auto
-                                text-[#626A78]!
+
+                                text-[#5F6B7A]!
                             "
                         />
 
@@ -130,7 +133,7 @@ const ActivityFeed = ({ items = [], title = 'Recent Activity' }) => {
 
                                 text-[11.5px]
 
-                                text-[#7F8794]!
+                                text-[#7F8A99]!
                             "
                         >
                             No recent activity.
@@ -145,72 +148,74 @@ const ActivityFeed = ({ items = [], title = 'Recent Activity' }) => {
                 <ol>
                     {items.map((item, index) => {
                         const Icon = TYPE_ICON[item.type] || Activity;
-
                         const last = index === items.length - 1;
 
                         return (
                             <li
                                 key={item.id ?? index}
                                 className="
-                                        group
+                                    group
 
-                                        relative
+                                    relative
 
-                                        flex
-                                        gap-3.5
+                                    flex
+                                    gap-3.5
 
-                                        px-4
-                                        py-4
+                                    bg-[#0E1219]
 
-                                        transition-colors
-                                        duration-150
+                                    px-4
+                                    py-4
 
-                                        hover:bg-[#272B34]
+                                    transition-colors
+                                    duration-150
+                                    ease-out
 
-                                        sm:px-5
-                                    "
+                                    hover:bg-[#151B24]
+
+                                    sm:px-5
+                                "
                             >
-                                {/* =====================================
-                                        TIMELINE
-                                    ===================================== */}
+                                {/* =========================================
+                                    TIMELINE
+                                ========================================= */}
 
                                 <div
                                     className="
-                                            relative
+                                        relative
 
-                                            flex
-                                            shrink-0
-                                            flex-col
-                                            items-center
-                                        "
+                                        flex
+                                        shrink-0
+                                        flex-col
+                                        items-center
+                                    "
                                 >
                                     <span
                                         className="
-                                                relative
-                                                z-10
+                                            relative
+                                            z-10
 
-                                                flex
-                                                h-8
-                                                w-8
-                                                items-center
-                                                justify-center
+                                            flex
+                                            h-8
+                                            w-8
+                                            items-center
+                                            justify-center
 
-                                                rounded-md
+                                            rounded-md
 
-                                                border
-                                                border-[#3A404B]
+                                            border
+                                            border-[#29323E]
 
-                                                bg-[#2C303A]
+                                            bg-[#151B24]
 
-                                                text-[#A8AFBB]!
+                                            text-[#7F8A99]!
 
-                                                transition-colors
-                                                duration-150
+                                            transition-colors
+                                            duration-150
 
-                                                group-hover:border-[#4A515E]
-                                                group-hover:bg-[#303641]
-                                                group-hover:text-[#D3D6DC]!
-                                            "
+                                            group-hover:border-[#394555]
+                                            group-hover:bg-[#1A222D]
+                                            group-hover:text-[#B8C0CA]!
+                                        "
                                     >
                                         <Icon size={15} strokeWidth={1.7} />
                                     </span>
@@ -219,37 +224,42 @@ const ActivityFeed = ({ items = [], title = 'Recent Activity' }) => {
                                         <span
                                             aria-hidden="true"
                                             className="
-                                                    absolute
-                                                    bottom-[-16px]
-                                                    top-8
+                                                absolute
+                                                bottom-[-16px]
+                                                top-8
 
-                                                    w-px
+                                                w-px
 
-                                                    bg-[#343944]
-                                                "
+                                                bg-[#252D38]
+                                            "
                                         />
                                     )}
                                 </div>
 
-                                {/* =====================================
-                                        CONTENT
-                                    ===================================== */}
+                                {/* =========================================
+                                    CONTENT
+                                ========================================= */}
 
                                 <div
                                     className="
-                                            min-w-0
-                                            flex-1
+                                        min-w-0
+                                        flex-1
 
-                                            pt-0.5
-                                        "
+                                        pt-0.5
+                                    "
                                 >
                                     <p
                                         className="
-                                                text-[11.5px]
-                                                leading-5
+                                            text-[11.5px]
+                                            leading-5
 
-                                                text-[#C3C7CF]!
-                                            "
+                                            text-[#B8C0CA]!
+
+                                            transition-colors
+                                            duration-150
+
+                                            group-hover:text-[#D5DAE0]!
+                                        "
                                     >
                                         {item.text}
                                     </p>
@@ -257,12 +267,12 @@ const ActivityFeed = ({ items = [], title = 'Recent Activity' }) => {
                                     {item.time && (
                                         <p
                                             className="
-                                                    mt-1
+                                                mt-1
 
-                                                    text-[9.5px]
+                                                text-[9.5px]
 
-                                                    text-[#6F7785]!
-                                                "
+                                                text-[#697586]!
+                                            "
                                         >
                                             {item.time}
                                         </p>

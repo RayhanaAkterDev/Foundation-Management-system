@@ -142,7 +142,7 @@ const FormField = ({
                         bg-transparent
                         px-4
                         text-[14px]
-                        font-medium
+                        font-medium!
                         tracking-[-0.005em]
                         text-slate-800
                         outline-none
@@ -158,7 +158,7 @@ const FormField = ({
 
             {/* Error */}
             {error && (
-                <p className="mt-1.5 flex items-center gap-1.5 text-[11px] font-medium text-red-600">
+                <p className="mt-1.5 flex items-center gap-1.5 text-[11px] font-medium! text-red-600">
                     <span className="h-1 w-1 rounded-full bg-red-500" />
                     {error}
                 </p>
@@ -274,7 +274,7 @@ const FormModal = ({
         bg-transparent
         px-4
         text-[14px]
-        font-medium
+        font-medium!
         tracking-[-0.005em]
         text-slate-800
         outline-none
@@ -302,7 +302,7 @@ const FormModal = ({
         }
 
         return (
-            <p className="mt-1.5 flex items-center gap-1.5 text-[11px] font-medium text-red-600">
+            <p className="mt-1.5 flex items-center gap-1.5 text-[11px] font-medium! text-red-600">
                 <span className="h-1 w-1 rounded-full bg-red-500" />
                 {error}
             </p>
@@ -377,7 +377,7 @@ const FormModal = ({
                                         />
                                     </span>
 
-                                    <span className="text-[12px] font-medium text-white!/45">
+                                    <span className="text-[12px] font-medium! text-white!/45">
                                         Basic information first
                                     </span>
                                 </div>
@@ -612,7 +612,7 @@ const FormModal = ({
                                                         px-4
                                                         pr-10
                                                         text-[14px]
-                                                        font-medium
+                                                        font-medium!
                                                         tracking-[-0.005em]
                                                         text-slate-800
                                                         outline-none
@@ -823,7 +823,7 @@ const FormModal = ({
                                                         px-4
                                                         py-3.5
                                                         text-[14px]
-                                                        font-medium
+                                                        font-medium!
                                                         leading-6
                                                         tracking-[-0.005em]
                                                         text-slate-800

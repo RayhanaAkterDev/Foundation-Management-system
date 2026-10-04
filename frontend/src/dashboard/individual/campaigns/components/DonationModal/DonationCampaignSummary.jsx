@@ -82,7 +82,7 @@ const DonationCampaignSummary = ({ campaign }) => {
                         {progress}% funded
                     </span>
 
-                    <span className="text-[11px] font-medium text-slate-400">
+                    <span className="text-[11px] font-medium! text-slate-400">
                         {remainingAmount > 0
                             ? `${formatCurrency(remainingAmount)} still needed`
                             : 'Goal reached'}

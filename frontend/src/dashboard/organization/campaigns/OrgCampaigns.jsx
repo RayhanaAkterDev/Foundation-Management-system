@@ -290,7 +290,7 @@ const OrgCampaigns = () => {
 
                 {isLoading ? (
                     <div className="flex min-h-60 items-center justify-center rounded-2xl border border-border bg-surface">
-                        <p className="text-sm font-medium text-text-secondary">
+                        <p className="text-sm font-medium! text-text-secondary">
                             Loading campaigns...
                         </p>
                     </div>

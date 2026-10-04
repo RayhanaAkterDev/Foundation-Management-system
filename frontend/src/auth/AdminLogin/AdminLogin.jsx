@@ -78,7 +78,7 @@ const AdminLogin = () => {
                                 hidden
                                 font-sans
                                 text-[9px]
-                                font-medium
+                                font-medium!
                                 text-[#73857f]
 
                                 sm:block
@@ -102,7 +102,7 @@ const AdminLogin = () => {
                             gap-1.5
                             font-sans
                             text-[9.5px]
-                            font-medium
+                            font-medium!
                             text-[#60736d]
                             transition-colors
                             duration-200
@@ -212,7 +212,7 @@ const AdminLogin = () => {
                                     max-w-[610px]
                                     font-fraunces
                                     text-[32px]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.15]
                                     tracking-[-0.025em]
                                     text-[#163c37]
@@ -314,7 +314,7 @@ const AdminLogin = () => {
                                         rotate-180
                                         font-sans
                                         text-[8px]
-                                        font-medium
+                                        font-medium!
                                         tracking-[0.16em]
                                         text-white/70
                                         [writing-mode:vertical-rl]
@@ -489,7 +489,7 @@ const AdminLogin = () => {
                                             mt-2
                                             font-fraunces
                                             text-[27px]
-                                            font-medium
+                                            font-medium!
                                             leading-[1.15]
                                             tracking-[-0.02em]
                                             text-white!

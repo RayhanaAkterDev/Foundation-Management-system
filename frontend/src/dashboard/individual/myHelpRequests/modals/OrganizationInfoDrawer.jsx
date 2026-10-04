@@ -139,7 +139,7 @@ const ContactItem = ({ icon: Icon, label, value }) => {
                     {label}
                 </p>
 
-                <p className="mt-1.5 break-words text-[12px] font-medium leading-5 text-slate-700">
+                <p className="mt-1.5 break-words text-[12px] font-medium! leading-5 text-slate-700">
                     {value}
                 </p>
             </div>
@@ -266,7 +266,7 @@ const OrganizationInfoDrawer = ({
                                 </h2>
 
                                 {organization.type && (
-                                    <p className="mt-2 text-[12px] font-medium text-slate-500">
+                                    <p className="mt-2 text-[12px] font-medium! text-slate-500">
                                         {organization.type}
                                     </p>
                                 )}
@@ -284,7 +284,7 @@ const OrganizationInfoDrawer = ({
                                         strokeWidth={1.8}
                                     />
 
-                                    <span className="truncate text-[10px] font-medium text-slate-500">
+                                    <span className="truncate text-[10px] font-medium! text-slate-500">
                                         {organization.address}
                                     </span>
                                 </div>
@@ -298,7 +298,7 @@ const OrganizationInfoDrawer = ({
                                         strokeWidth={1.8}
                                     />
 
-                                    <span className="text-[10px] font-medium text-slate-500">
+                                    <span className="text-[10px] font-medium! text-slate-500">
                                         Contact available
                                     </span>
                                 </div>
@@ -481,7 +481,7 @@ const OrganizationInfoDrawer = ({
                                 </div>
                             ) : (
                                 <div className="border-y border-slate-200 py-5">
-                                    <p className="text-[10px] font-medium text-slate-400">
+                                    <p className="text-[10px] font-medium! text-slate-400">
                                         No assignment history available.
                                     </p>
                                 </div>

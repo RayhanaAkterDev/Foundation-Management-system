@@ -57,7 +57,7 @@ const CategoryLoading = () => {
                             shrink-0
                             font-bengali
                             text-[13px]
-                            font-medium
+                            font-medium!
                             leading-6
                             !text-[#718096]
                             sm:block
@@ -228,7 +228,7 @@ const CategoriesPage = () => {
                                 className="
                                     font-bengali
                                     text-[13px]
-                                    font-medium
+                                    font-medium!
                                     leading-5
                                     !text-[#64748b]
                                 "
@@ -329,7 +329,7 @@ const CategoriesPage = () => {
                                         className="
                                             font-bengali
                                             text-[12px]
-                                            font-medium
+                                            font-medium!
                                             leading-none
                                             tracking-[0.01em]
                                             !text-[#64748b]
@@ -410,7 +410,7 @@ const CategoriesPage = () => {
                                             className="
                                                 font-bengali
                                                 text-[12px]
-                                                font-medium
+                                                font-medium!
                                                 leading-none
                                                 !text-[#64748b]
                                                 sm:text-[13px]
@@ -453,7 +453,7 @@ const CategoriesPage = () => {
                                             className="
                                                 font-bengali
                                                 text-[15px]
-                                                font-medium
+                                                font-medium!
                                                 !text-[#0f766e]
                                                 transition-colors
                                                 duration-300

@@ -4,7 +4,7 @@ import PageHeader from '@/components/dashboard/PageHeader';
 const SettingRow = ({ label, description, children }) => (
   <div className="flex flex-col gap-3 py-5 md:flex-row md:items-start md:justify-between">
     <div className="min-w-0">
-      <p className="text-sm font-medium text-text-primary">{label}</p>
+      <p className="text-sm font-medium! text-text-primary">{label}</p>
       {description && <p className="mt-0.5 text-xs text-[#6b7280]">{description}</p>}
     </div>
     <div className="shrink-0">{children}</div>
@@ -53,10 +53,10 @@ const OrgSettings = () => {
         </div>
         <div className="divide-y divide-[#e5e7eb] px-6">
           <SettingRow label="Change Password" description="Update the account password.">
-            <button type="button" className="inline-flex h-9 items-center rounded-xl border border-[#e5e7eb] px-4 text-sm font-medium text-text-primary hover:bg-[#eef3f6] transition-colors">Change</button>
+            <button type="button" className="inline-flex h-9 items-center rounded-xl border border-[#e5e7eb] px-4 text-sm font-medium! text-text-primary hover:bg-[#eef3f6] transition-colors">Change</button>
           </SettingRow>
           <SettingRow label="Deactivate Organization" description="Temporarily disable this organization account.">
-            <button type="button" className="inline-flex h-9 items-center rounded-xl border border-red-200 px-4 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">Deactivate</button>
+            <button type="button" className="inline-flex h-9 items-center rounded-xl border border-red-200 px-4 text-sm font-medium! text-red-600 hover:bg-red-50 transition-colors">Deactivate</button>
           </SettingRow>
         </div>
       </div>

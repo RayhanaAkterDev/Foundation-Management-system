@@ -354,7 +354,7 @@ const AssignmentModal = ({
                                         <Users size={13} />
                                     </div>
 
-                                    <span className="text-[11px] font-medium text-white!/80">
+                                    <span className="text-[11px] font-medium! text-white!/80">
                                         Volunteers
                                     </span>
 

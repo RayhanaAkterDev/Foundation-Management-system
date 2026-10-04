@@ -139,7 +139,7 @@ const CampaignCreateModal = ({
     };
 
     const inputClass =
-        'h-12.5 w-full rounded-lg border border-slate-200 bg-white px-3.5 text-[13px] font-medium text-slate-800 outline-none transition-colors placeholder:text-slate-400 hover:border-slate-300 focus:border-primary focus:ring-3 focus:ring-primary/10 sm:h-13';
+        'h-12.5 w-full rounded-lg border border-slate-200 bg-white px-3.5 text-[13px] font-medium! text-slate-800 outline-none transition-colors placeholder:text-slate-400 hover:border-slate-300 focus:border-primary focus:ring-3 focus:ring-primary/10 sm:h-13';
 
     const labelClass = 'mb-2 block text-[11px] font-semibold text-slate-700';
 
@@ -194,7 +194,7 @@ const CampaignCreateModal = ({
                         </div>
 
                         <div className="border-t border-white/10 pt-5">
-                            <p className="text-[10px] font-medium text-white!/40">
+                            <p className="text-[10px] font-medium! text-white!/40">
                                 Global humanitarian campaign
                             </p>
                         </div>
@@ -244,7 +244,7 @@ const CampaignCreateModal = ({
                                     <div className="mb-6 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 px-3.5 py-3">
                                         <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
 
-                                        <p className="text-xs font-medium leading-5 text-red-700">
+                                        <p className="text-xs font-medium! leading-5 text-red-700">
                                             {validationError || error}
                                         </p>
                                     </div>
@@ -384,7 +384,7 @@ const CampaignCreateModal = ({
                                             rows={6}
                                             placeholder="Describe the humanitarian situation and intended response..."
                                             disabled={loading}
-                                            className="min-h-35 w-full resize-none rounded-lg border border-slate-200 bg-white px-3.5 py-3.5 text-[13px] font-medium leading-6 text-slate-800 outline-none transition-colors placeholder:text-slate-400 hover:border-slate-300 focus:border-primary focus:ring-3 focus:ring-primary/10 sm:min-h-38"
+                                            className="min-h-35 w-full resize-none rounded-lg border border-slate-200 bg-white px-3.5 py-3.5 text-[13px] font-medium! leading-6 text-slate-800 outline-none transition-colors placeholder:text-slate-400 hover:border-slate-300 focus:border-primary focus:ring-3 focus:ring-primary/10 sm:min-h-38"
                                         />
                                     </div>
                                 </section>
@@ -480,7 +480,7 @@ const CampaignCreateModal = ({
                                             rows={3}
                                             placeholder="Describe affected communities or areas..."
                                             disabled={loading}
-                                            className="w-full resize-none rounded-lg border border-slate-200 bg-white px-3.5 py-3.5 text-[13px] font-medium leading-6 text-slate-800 outline-none transition-colors placeholder:text-slate-400 hover:border-slate-300 focus:border-primary focus:ring-3 focus:ring-primary/10"
+                                            className="w-full resize-none rounded-lg border border-slate-200 bg-white px-3.5 py-3.5 text-[13px] font-medium! leading-6 text-slate-800 outline-none transition-colors placeholder:text-slate-400 hover:border-slate-300 focus:border-primary focus:ring-3 focus:ring-primary/10"
                                         />
                                     </div>
                                 </section>

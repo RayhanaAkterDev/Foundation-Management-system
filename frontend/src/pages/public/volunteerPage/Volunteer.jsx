@@ -245,7 +245,7 @@ const Volunteer = () => {
                                 <p
                                     className="
                                         text-[12px]
-                                        font-medium
+                                        font-medium!
                                         text-primary
 
                                         sm:text-[13px]
@@ -260,7 +260,7 @@ const Volunteer = () => {
                                     max-w-[720px]
 
                                     text-[2.15rem]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.42]
                                     tracking-normal
                                     text-text-primary
@@ -567,7 +567,7 @@ const Volunteer = () => {
                             <p
                                 className="
                                     text-[12px]
-                                    font-medium
+                                    font-medium!
                                     text-primary
 
                                     sm:text-[13px]
@@ -582,7 +582,7 @@ const Volunteer = () => {
                                     max-w-[650px]
 
                                     text-[1.8rem]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.45]
                                     tracking-normal
                                     text-text-primary
@@ -697,7 +697,7 @@ const Volunteer = () => {
                                                 py-2
 
                                                 text-[11px]
-                                                font-medium
+                                                font-medium!
                                                 text-white!
 
                                                 sm:px-4
@@ -724,7 +724,7 @@ const Volunteer = () => {
                                         <p
                                             className="
                                                 text-[11.5px]
-                                                font-medium
+                                                font-medium!
                                                 text-primary
 
                                                 sm:text-[12.5px]
@@ -738,7 +738,7 @@ const Volunteer = () => {
                                                 mt-2
 
                                                 text-[1.55rem]
-                                                font-medium
+                                                font-medium!
                                                 leading-[1.45]
                                                 text-text-primary
 
@@ -833,7 +833,7 @@ const Volunteer = () => {
                                                 gap-2
 
                                                 text-[13px]
-                                                font-medium
+                                                font-medium!
                                                 text-primary
 
                                                 transition-colors
@@ -894,7 +894,7 @@ const Volunteer = () => {
                             <p
                                 className="
                                     text-[12px]
-                                    font-medium
+                                    font-medium!
                                     text-primary
 
                                     sm:text-[13px]
@@ -908,7 +908,7 @@ const Volunteer = () => {
                                     mt-2
 
                                     text-[1.75rem]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.45]
                                     text-text-primary
 
@@ -1005,7 +1005,7 @@ const Volunteer = () => {
                                         <span
                                             className="
                                                 text-[11px]
-                                                font-medium
+                                                font-medium!
                                                 text-primary
                                             "
                                         >
@@ -1015,7 +1015,7 @@ const Volunteer = () => {
                                         <h3
                                             className="
                                                 text-[15px]
-                                                font-medium
+                                                font-medium!
                                                 leading-6
                                                 text-text-primary
 
@@ -1086,7 +1086,7 @@ const Volunteer = () => {
                             <p
                                 className="
                                     text-[12px]
-                                    font-medium
+                                    font-medium!
                                     text-primary
 
                                     sm:text-[13px]
@@ -1100,7 +1100,7 @@ const Volunteer = () => {
                                     mt-2
 
                                     text-[1.75rem]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.45]
                                     text-text-primary
 
@@ -1142,7 +1142,7 @@ const Volunteer = () => {
                                     <span
                                         className="
                                             text-[11px]
-                                            font-medium
+                                            font-medium!
                                             text-text-muted
 
                                             transition-colors
@@ -1156,7 +1156,7 @@ const Volunteer = () => {
                                     <h3
                                         className="
                                             text-[15px]
-                                            font-medium
+                                            font-medium!
                                             leading-6
                                             text-text-primary
 
@@ -1224,7 +1224,7 @@ const Volunteer = () => {
                                     mt-5
 
                                     text-[12px]
-                                    font-medium
+                                    font-medium!
                                     text-primary
 
                                     sm:text-[13px]
@@ -1238,7 +1238,7 @@ const Volunteer = () => {
                                     mt-2
 
                                     text-[1.75rem]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.45]
                                     text-text-primary
 
@@ -1305,7 +1305,7 @@ const Volunteer = () => {
                             <p
                                 className="
                                     text-[12px]
-                                    font-medium
+                                    font-medium!
                                     text-primary-muted
 
                                     sm:text-[13px]
@@ -1319,7 +1319,7 @@ const Volunteer = () => {
                                     mt-2
 
                                     text-[1.8rem]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.45]
                                     text-white!
 
@@ -1410,7 +1410,7 @@ const Volunteer = () => {
                             <p
                                 className="
                                     text-[12px]
-                                    font-medium
+                                    font-medium!
                                     text-primary
 
                                     sm:text-[13px]
@@ -1424,7 +1424,7 @@ const Volunteer = () => {
                                     mt-2
 
                                     text-[1.75rem]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.45]
                                     text-text-primary
 
@@ -1491,7 +1491,7 @@ const Volunteer = () => {
                                             <span
                                                 className="
                                                     text-[14px]
-                                                    font-medium
+                                                    font-medium!
                                                     leading-7
                                                     text-text-primary
 

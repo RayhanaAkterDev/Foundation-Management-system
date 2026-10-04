@@ -254,7 +254,7 @@ const HelpRequestDetailModal = ({ isOpen, request, onClose }) => {
                                 </span>
                             </div>
 
-                            <p className="mt-3 break-words text-[11px] font-medium text-white!/40">
+                            <p className="mt-3 break-words text-[11px] font-medium! text-white!/40">
                                 Request #{request.id}
                             </p>
                         </div>
@@ -332,7 +332,7 @@ const HelpRequestDetailModal = ({ isOpen, request, onClose }) => {
 
                                     <span className="h-1 w-1 shrink-0 rounded-full bg-slate-300" />
 
-                                    <span className="break-all text-[9px] font-medium text-slate-400">
+                                    <span className="break-all text-[9px] font-medium! text-slate-400">
                                         #{request.id}
                                     </span>
                                 </div>
@@ -673,7 +673,7 @@ const HelpRequestDetailModal = ({ isOpen, request, onClose }) => {
                         <div className="hidden items-center gap-2 sm:flex">
                             <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#f59e0b]" />
 
-                            <span className="text-[9px] font-medium text-slate-400">
+                            <span className="text-[9px] font-medium! text-slate-400">
                                 Stand For People
                             </span>
                         </div>

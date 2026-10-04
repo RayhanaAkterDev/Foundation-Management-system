@@ -111,7 +111,7 @@ const UserViewModal = ({ user, loading, error, onClose }) => {
                         <div className="flex min-h-48 flex-col items-center justify-center text-center">
                             <div className="mb-3 h-7 w-7 animate-spin rounded-full border-2 border-border border-t-primary" />
 
-                            <p className="text-sm font-medium text-text-primary">
+                            <p className="text-sm font-medium! text-text-primary">
                                 Loading user details...
                             </p>
 
@@ -146,7 +146,7 @@ const UserViewModal = ({ user, loading, error, onClose }) => {
                                 </div>
 
                                 <div className="min-w-0">
-                                    <p className="text-sm font-medium text-text-primary">
+                                    <p className="text-sm font-medium! text-text-primary">
                                         {user.name}
                                     </p>
 
@@ -170,11 +170,11 @@ const UserViewModal = ({ user, loading, error, onClose }) => {
                                         </div>
 
                                         <div className="min-w-0">
-                                            <p className="text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                                            <p className="text-[11px] font-medium! uppercase tracking-wide text-text-secondary">
                                                 Email address
                                             </p>
 
-                                            <p className="mt-1 truncate text-sm font-medium text-text-primary">
+                                            <p className="mt-1 truncate text-sm font-medium! text-text-primary">
                                                 {user.email}
                                             </p>
                                         </div>
@@ -190,11 +190,11 @@ const UserViewModal = ({ user, loading, error, onClose }) => {
                                         </div>
 
                                         <div>
-                                            <p className="text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                                            <p className="text-[11px] font-medium! uppercase tracking-wide text-text-secondary">
                                                 Phone number
                                             </p>
 
-                                            <p className="mt-1 text-sm font-medium text-text-primary">
+                                            <p className="mt-1 text-sm font-medium! text-text-primary">
                                                 {user.phone || 'Not provided'}
                                             </p>
                                         </div>
@@ -210,11 +210,11 @@ const UserViewModal = ({ user, loading, error, onClose }) => {
                                         </div>
 
                                         <div>
-                                            <p className="text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                                            <p className="text-[11px] font-medium! uppercase tracking-wide text-text-secondary">
                                                 Account role
                                             </p>
 
-                                            <p className="mt-1 text-sm font-medium capitalize text-text-primary">
+                                            <p className="mt-1 text-sm font-medium! capitalize text-text-primary">
                                                 {user.role === 'admin'
                                                     ? 'Administrator'
                                                     : user.role}
@@ -232,7 +232,7 @@ const UserViewModal = ({ user, loading, error, onClose }) => {
                                         </div>
 
                                         <div>
-                                            <p className="text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                                            <p className="text-[11px] font-medium! uppercase tracking-wide text-text-secondary">
                                                 Account status
                                             </p>
 
@@ -255,7 +255,7 @@ const UserViewModal = ({ user, loading, error, onClose }) => {
                                             </div>
 
                                             <div>
-                                                <p className="text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                                                <p className="text-[11px] font-medium! uppercase tracking-wide text-text-secondary">
                                                     Verification status
                                                 </p>
 
@@ -280,11 +280,11 @@ const UserViewModal = ({ user, loading, error, onClose }) => {
                                         </div>
 
                                         <div>
-                                            <p className="text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                                            <p className="text-[11px] font-medium! uppercase tracking-wide text-text-secondary">
                                                 Member since
                                             </p>
 
-                                            <p className="mt-1 text-sm font-medium text-text-primary">
+                                            <p className="mt-1 text-sm font-medium! text-text-primary">
                                                 {user.created_at
                                                     ? new Date(
                                                           user.created_at,
@@ -315,11 +315,11 @@ const UserViewModal = ({ user, loading, error, onClose }) => {
                                                 </div>
 
                                                 <div>
-                                                    <p className="text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                                                    <p className="text-[11px] font-medium! uppercase tracking-wide text-text-secondary">
                                                         District
                                                     </p>
 
-                                                    <p className="mt-1 text-sm font-medium text-text-primary">
+                                                    <p className="mt-1 text-sm font-medium! text-text-primary">
                                                         {individualProfile.district ||
                                                             'Not provided'}
                                                     </p>
@@ -336,11 +336,11 @@ const UserViewModal = ({ user, loading, error, onClose }) => {
                                                 </div>
 
                                                 <div className="min-w-0">
-                                                    <p className="text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                                                    <p className="text-[11px] font-medium! uppercase tracking-wide text-text-secondary">
                                                         Address
                                                     </p>
 
-                                                    <p className="mt-1 text-sm font-medium text-text-primary">
+                                                    <p className="mt-1 text-sm font-medium! text-text-primary">
                                                         {individualProfile.address ||
                                                             'Not provided'}
                                                     </p>
@@ -357,11 +357,11 @@ const UserViewModal = ({ user, loading, error, onClose }) => {
                                                 </div>
 
                                                 <div>
-                                                    <p className="text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                                                    <p className="text-[11px] font-medium! uppercase tracking-wide text-text-secondary">
                                                         Date of birth
                                                     </p>
 
-                                                    <p className="mt-1 text-sm font-medium text-text-primary">
+                                                    <p className="mt-1 text-sm font-medium! text-text-primary">
                                                         {individualProfile.date_of_birth
                                                             ? new Date(
                                                                   individualProfile.date_of_birth,
@@ -392,11 +392,11 @@ const UserViewModal = ({ user, loading, error, onClose }) => {
                                             </div>
 
                                             <div>
-                                                <p className="text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                                                <p className="text-[11px] font-medium! uppercase tracking-wide text-text-secondary">
                                                     Organization type
                                                 </p>
 
-                                                <p className="mt-1 text-sm font-medium text-text-primary">
+                                                <p className="mt-1 text-sm font-medium! text-text-primary">
                                                     {formatType(
                                                         organization.organization_type,
                                                     )}
@@ -414,11 +414,11 @@ const UserViewModal = ({ user, loading, error, onClose }) => {
                                             </div>
 
                                             <div>
-                                                <p className="text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                                                <p className="text-[11px] font-medium! uppercase tracking-wide text-text-secondary">
                                                     Registration number
                                                 </p>
 
-                                                <p className="mt-1 text-sm font-medium text-text-primary">
+                                                <p className="mt-1 text-sm font-medium! text-text-primary">
                                                     {organization.registration_number ||
                                                         'Not provided'}
                                                 </p>
@@ -435,11 +435,11 @@ const UserViewModal = ({ user, loading, error, onClose }) => {
                                             </div>
 
                                             <div className="min-w-0">
-                                                <p className="text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                                                <p className="text-[11px] font-medium! uppercase tracking-wide text-text-secondary">
                                                     Website
                                                 </p>
 
-                                                <p className="mt-1 truncate text-sm font-medium text-text-primary">
+                                                <p className="mt-1 truncate text-sm font-medium! text-text-primary">
                                                     {organization.website ||
                                                         'Not provided'}
                                                 </p>
@@ -456,11 +456,11 @@ const UserViewModal = ({ user, loading, error, onClose }) => {
                                             </div>
 
                                             <div className="min-w-0">
-                                                <p className="text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                                                <p className="text-[11px] font-medium! uppercase tracking-wide text-text-secondary">
                                                     Address
                                                 </p>
 
-                                                <p className="mt-1 text-sm font-medium text-text-primary">
+                                                <p className="mt-1 text-sm font-medium! text-text-primary">
                                                     {organization.address ||
                                                         'Not provided'}
                                                 </p>
@@ -477,11 +477,11 @@ const UserViewModal = ({ user, loading, error, onClose }) => {
                                             </div>
 
                                             <div className="min-w-0">
-                                                <p className="text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                                                <p className="text-[11px] font-medium! uppercase tracking-wide text-text-secondary">
                                                     Mission
                                                 </p>
 
-                                                <p className="mt-1 text-sm font-medium leading-6 text-text-primary">
+                                                <p className="mt-1 text-sm font-medium! leading-6 text-text-primary">
                                                     {organization.mission ||
                                                         'Not provided'}
                                                 </p>
@@ -498,11 +498,11 @@ const UserViewModal = ({ user, loading, error, onClose }) => {
                                             </div>
 
                                             <div className="min-w-0">
-                                                <p className="text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                                                <p className="text-[11px] font-medium! uppercase tracking-wide text-text-secondary">
                                                     Focus areas
                                                 </p>
 
-                                                <p className="mt-1 text-sm font-medium leading-6 text-text-primary">
+                                                <p className="mt-1 text-sm font-medium! leading-6 text-text-primary">
                                                     {formatList(
                                                         organization.focus_areas,
                                                     )}
@@ -520,11 +520,11 @@ const UserViewModal = ({ user, loading, error, onClose }) => {
                                             </div>
 
                                             <div className="min-w-0">
-                                                <p className="text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                                                <p className="text-[11px] font-medium! uppercase tracking-wide text-text-secondary">
                                                     Communities served
                                                 </p>
 
-                                                <p className="mt-1 text-sm font-medium leading-6 text-text-primary">
+                                                <p className="mt-1 text-sm font-medium! leading-6 text-text-primary">
                                                     {formatList(
                                                         organization.communities_served,
                                                     )}
@@ -542,11 +542,11 @@ const UserViewModal = ({ user, loading, error, onClose }) => {
                                             </div>
 
                                             <div className="min-w-0">
-                                                <p className="text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                                                <p className="text-[11px] font-medium! uppercase tracking-wide text-text-secondary">
                                                     Primary activities
                                                 </p>
 
-                                                <p className="mt-1 text-sm font-medium leading-6 text-text-primary">
+                                                <p className="mt-1 text-sm font-medium! leading-6 text-text-primary">
                                                     {formatList(
                                                         organization.primary_activities,
                                                     )}
@@ -564,11 +564,11 @@ const UserViewModal = ({ user, loading, error, onClose }) => {
                                             </div>
 
                                             <div>
-                                                <p className="text-[11px] font-medium uppercase tracking-wide text-text-secondary">
+                                                <p className="text-[11px] font-medium! uppercase tracking-wide text-text-secondary">
                                                     Team size
                                                 </p>
 
-                                                <p className="mt-1 text-sm font-medium text-text-primary">
+                                                <p className="mt-1 text-sm font-medium! text-text-primary">
                                                     {organization.team_size !==
                                                         null &&
                                                     organization.team_size !==
@@ -590,7 +590,7 @@ const UserViewModal = ({ user, loading, error, onClose }) => {
                     <button
                         type="button"
                         onClick={onClose}
-                        className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white! transition-all hover:bg-primary-hover"
+                        className="rounded-lg bg-primary px-4 py-2 text-sm font-medium! text-white! transition-all hover:bg-primary-hover"
                     >
                         Done
                     </button>

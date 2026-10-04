@@ -49,14 +49,14 @@ const IndividualCampaigns = () => {
         <div className="mx-auto max-w-7xl">
           {loading ? (
             <div className="flex min-h-80 items-center justify-center">
-              <div className="flex items-center gap-3 text-sm font-medium text-slate-500">
+              <div className="flex items-center gap-3 text-sm font-medium! text-slate-500">
                 <Loader2 className="h-5 w-5 animate-spin text-primary" />
                 Loading campaigns...
               </div>
             </div>
           ) : error ? (
             <div className="rounded-xl border border-red-200 bg-red-50 px-6 py-5">
-              <p className="text-sm font-medium text-red-700">{error}</p>
+              <p className="text-sm font-medium! text-red-700">{error}</p>
             </div>
           ) : campaigns.length === 0 ? (
             <EmptyState

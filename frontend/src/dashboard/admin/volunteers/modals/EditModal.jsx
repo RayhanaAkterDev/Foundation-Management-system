@@ -276,7 +276,7 @@ const EditModal = ({
 
                                 {error && (
                                     <div className="mt-5 border-l-4 border-red-500 bg-red-50 px-4 py-3">
-                                        <p className="text-xs font-medium leading-5 text-red-600">
+                                        <p className="text-xs font-medium! leading-5 text-red-600">
                                             {error}
                                         </p>
                                     </div>

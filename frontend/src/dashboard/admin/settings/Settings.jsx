@@ -216,7 +216,7 @@ const Settings = () => {
             icon={UserRound}
             label="User Roles"
             description="The platform currently supports Individual, Organization, and Admin accounts.">
-            <span className="text-[11px] font-medium text-text-secondary">
+            <span className="text-[11px] font-medium! text-text-secondary">
               3 roles
             </span>
           </SettingRow>

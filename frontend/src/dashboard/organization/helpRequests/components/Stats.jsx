@@ -149,7 +149,7 @@ const Stats = ({
                                     {totalValue}
                                 </span>
 
-                                <span className="mb-1.5 text-[12px] font-medium text-white!/60">
+                                <span className="mb-1.5 text-[12px] font-medium! text-white!/60">
                                     requests
                                 </span>
                             </div>
@@ -327,7 +327,7 @@ const Stats = ({
 
                                         <div className="mt-4 pl-13.5">
                                             <div className="flex items-center justify-between gap-3">
-                                                <span className="text-[10px] font-medium text-text-secondary">
+                                                <span className="text-[10px] font-medium! text-text-secondary">
                                                     Request share
                                                 </span>
 

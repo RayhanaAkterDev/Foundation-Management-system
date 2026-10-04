@@ -11,6 +11,10 @@ import UserDetailsView from './components/UserDetailsView';
 
 import { fetchUser, updateUserAndRefresh } from './api/userApi';
 
+/* ==========================================================================
+   USER DETAILS
+============================================================================ */
+
 const UserDetails = () => {
     const navigate = useNavigate();
     const { userId } = useParams();
@@ -25,9 +29,9 @@ const UserDetails = () => {
     const [fieldErrors, setFieldErrors] = useState({});
     const [successMessage, setSuccessMessage] = useState('');
 
-    /* =========================================================
+    /* ======================================================================
        LOAD USER
-    ========================================================== */
+    ====================================================================== */
 
     useEffect(() => {
         let cancelled = false;
@@ -60,19 +64,21 @@ const UserDetails = () => {
         };
     }, [userId]);
 
-    /* =========================================================
+    /* ======================================================================
        NAVIGATION
-    ========================================================== */
+    ====================================================================== */
 
     const handleBack = () => {
-        if (saving) return;
+        if (saving) {
+            return;
+        }
 
         navigate('/admin/dashboard/users');
     };
 
-    /* =========================================================
+    /* ======================================================================
        EDIT MODE
-    ========================================================== */
+    ====================================================================== */
 
     const handleStartEdit = () => {
         setSaveError('');
@@ -82,19 +88,23 @@ const UserDetails = () => {
     };
 
     const handleCancelEdit = () => {
-        if (saving) return;
+        if (saving) {
+            return;
+        }
 
         setIsEditing(false);
         setSaveError('');
         setFieldErrors({});
     };
 
-    /* =========================================================
+    /* ======================================================================
        UPDATE USER
-    ========================================================== */
+    ====================================================================== */
 
     const handleUpdateUser = async (formData) => {
-        if (!user) return;
+        if (!user) {
+            return;
+        }
 
         setSaving(true);
         setSaveError('');
@@ -119,13 +129,18 @@ const UserDetails = () => {
         }
     };
 
-    /* =========================================================
+    /* ======================================================================
        LOADING
-    ========================================================== */
+    ====================================================================== */
 
     if (loading) {
         return (
-            <div className="space-y-6">
+            <div
+                className="
+                    space-y-8
+                    font-sans!
+                "
+            >
                 <PageHeader
                     title="User Details"
                     subtitle="Loading account information..."
@@ -134,34 +149,47 @@ const UserDetails = () => {
                 <div
                     className="
                         flex
-                        min-h-[480px]
+                        min-h-130
                         items-center
                         justify-center
+
                         border
-                        border-[#343944]
-                        bg-[#202329]
+                        border-[#252D38]
+
+                        bg-[#0E1219]
+
+                        px-6
+                        py-12
                     "
                 >
                     <div className="text-center">
                         <div
                             className="
                                 mx-auto
+
                                 h-8
                                 w-8
+
                                 animate-spin
+
                                 rounded-full
+
                                 border-2
-                                border-[#3A4048]
-                                border-t-[#6E9B91]
+                                border-[#29323E]
+                                border-t-[#8792A1]
                             "
                         />
 
                         <p
                             className="
-                                mt-4
-                                text-[13px]
+                                mt-5
+
+                                font-sans!
+
+                                text-[12px]
                                 font-semibold!
-                                text-[#E8EAEC]
+
+                                text-[#EEF1F5]!
                             "
                         >
                             Loading user details
@@ -169,9 +197,15 @@ const UserDetails = () => {
 
                         <p
                             className="
-                                mt-1
-                                text-[12px]
-                                text-[#747E88]
+                                mt-1.5
+
+                                font-sans!
+
+                                text-[11px]
+                                font-normal!
+                                leading-5
+
+                                text-[#697586]!
                             "
                         >
                             Retrieving account information.
@@ -182,13 +216,18 @@ const UserDetails = () => {
         );
     }
 
-    /* =========================================================
+    /* ======================================================================
        LOAD ERROR
-    ========================================================== */
+    ====================================================================== */
 
     if (loadError || !user) {
         return (
-            <div className="space-y-6">
+            <div
+                className="
+                    space-y-8
+                    font-sans!
+                "
+            >
                 <PageHeader
                     title="User Details"
                     subtitle="The requested account could not be loaded."
@@ -197,27 +236,57 @@ const UserDetails = () => {
                             type="button"
                             onClick={handleBack}
                             className="
+                                group
+
                                 inline-flex
                                 h-10
                                 items-center
-                                gap-2
+                                justify-center
+                                gap-2.5
+
                                 border
-                                border-[#3B424B]
-                                bg-[#22262B]
-                                px-4
-                                text-[12px]
+                                border-[#29323E]
+
+                                bg-[#0E1219]
+
+                                px-3.5
+
+                                font-sans!
+                                text-[11px]
                                 font-medium!
-                                text-[#C5CBD0]
-                                transition-colors
-                                hover:border-[#505963]
-                                hover:bg-[#292E34]
-                                hover:text-[#F1F2F3]
+                                whitespace-nowrap
+
+                                text-[#AEB7C3]!
+
+                                transition-[background-color,border-color,color]
+                                duration-150
+                                ease-out
+
+                                hover:border-[#394555]
+                                hover:bg-[#1A222D]
+                                hover:text-[#EEF1F5]!
+
                                 focus:outline-none
                                 focus:ring-0
                             "
                         >
-                            <ArrowLeft size={14} strokeWidth={1.8} />
-                            Back to users
+                            <ArrowLeft
+                                size={14}
+                                strokeWidth={1.8}
+                                className="
+                                    shrink-0
+
+                                    text-[#697586]
+
+                                    transition-[transform,color]
+                                    duration-150
+
+                                    group-hover:-translate-x-0.5
+                                    group-hover:text-[#AEB7C3]
+                                "
+                            />
+
+                            <span>Back to users</span>
                         </button>
                     }
                 />
@@ -226,30 +295,49 @@ const UserDetails = () => {
                     className="
                         flex
                         items-start
-                        gap-3
+                        gap-3.5
+
                         border
-                        border-[#5B383E]
-                        bg-[#2C2024]
+                        border-[#493038]
+
+                        bg-[#281A1F]
+
                         px-5
                         py-4
+
+                        sm:px-6
+                        sm:py-5
                     "
                 >
-                    <CircleAlert
-                        size={17}
-                        strokeWidth={1.8}
+                    <div
                         className="
-                            mt-0.5
+                            flex
+                            h-8
+                            w-8
                             shrink-0
-                            text-[#D38D96]
-                        "
-                    />
+                            items-center
+                            justify-center
 
-                    <div>
+                            border
+                            border-[#493038]
+
+                            bg-[#301F25]
+
+                            text-[#D99A9F]
+                        "
+                    >
+                        <CircleAlert size={15} strokeWidth={1.8} />
+                    </div>
+
+                    <div className="min-w-0 pt-0.5">
                         <p
                             className="
-                                text-[12px]
+                                font-sans!
+
+                                text-[11.5px]
                                 font-semibold!
-                                text-[#E7B0B6]
+
+                                text-[#E4B0B4]!
                             "
                         >
                             Unable to load user
@@ -258,9 +346,14 @@ const UserDetails = () => {
                         <p
                             className="
                                 mt-1
-                                text-[12px]
+
+                                font-sans!
+
+                                text-[11px]
+                                font-normal!
                                 leading-5
-                                text-[#B98990]
+
+                                text-[#B98289]!
                             "
                         >
                             {loadError ||
@@ -272,13 +365,18 @@ const UserDetails = () => {
         );
     }
 
-    /* =========================================================
+    /* ======================================================================
        EDIT VIEW
-    ========================================================== */
+    ====================================================================== */
 
     if (isEditing) {
         return (
-            <div className="space-y-6">
+            <div
+                className="
+                    space-y-8
+                    font-sans!
+                "
+            >
                 <PageHeader
                     title="Edit User"
                     subtitle={`Update account information and access settings for ${user.name}.`}
@@ -288,29 +386,59 @@ const UserDetails = () => {
                             onClick={handleCancelEdit}
                             disabled={saving}
                             className="
+                                group
+
                                 inline-flex
                                 h-10
                                 items-center
-                                gap-2
+                                justify-center
+                                gap-2.5
+
                                 border
-                                border-[#3B424B]
-                                bg-[#22262B]
-                                px-4
-                                text-[12px]
+                                border-[#29323E]
+
+                                bg-[#0E1219]
+
+                                px-3.5
+
+                                font-sans!
+                                text-[11px]
                                 font-medium!
-                                text-[#BFC5CB]
-                                transition-colors
-                                hover:border-[#505963]
-                                hover:bg-[#292E34]
-                                hover:text-[#F1F2F3]
+                                whitespace-nowrap
+
+                                text-[#AEB7C3]!
+
+                                transition-[background-color,border-color,color]
+                                duration-150
+                                ease-out
+
+                                hover:border-[#394555]
+                                hover:bg-[#1A222D]
+                                hover:text-[#EEF1F5]!
+
                                 disabled:cursor-not-allowed
-                                disabled:opacity-50
+                                disabled:opacity-40
+
                                 focus:outline-none
                                 focus:ring-0
                             "
                         >
-                            <X size={14} strokeWidth={1.8} />
-                            Cancel editing
+                            <X
+                                size={14}
+                                strokeWidth={1.8}
+                                className="
+                                    shrink-0
+
+                                    text-[#697586]
+
+                                    transition-colors
+                                    duration-150
+
+                                    group-hover:text-[#AEB7C3]
+                                "
+                            />
+
+                            <span>Cancel editing</span>
                         </button>
                     }
                 />
@@ -327,67 +455,148 @@ const UserDetails = () => {
         );
     }
 
-    /* =========================================================
+    /* ======================================================================
        DETAILS VIEW
-    ========================================================== */
+    ====================================================================== */
 
     return (
-        <div className="space-y-6">
+        <div
+            className="
+                space-y-8
+                font-sans!
+            "
+        >
             <PageHeader
                 title="User Details"
                 subtitle="Review identity, profile information and platform access."
                 action={
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div
+                        className="
+                            flex
+                            w-full
+                            flex-wrap
+                            items-center
+                            justify-end
+                            gap-2.5
+
+                            sm:w-auto
+                            sm:gap-3
+                        "
+                    >
+                        {/* BACK */}
+
                         <button
                             type="button"
                             onClick={handleBack}
                             className="
+                                group
+
                                 inline-flex
                                 h-10
                                 items-center
-                                gap-2
+                                justify-center
+                                gap-2.5
+
                                 border
-                                border-[#3A4149]
-                                bg-[#22262B]
+                                border-[#29323E]
+
+                                bg-[#0E1219]
+
                                 px-3.5
-                                text-[12px]
+
+                                font-sans!
+                                text-[11px]
                                 font-medium!
-                                text-[#BFC5CB]
-                                transition-colors
-                                hover:border-[#505963]
-                                hover:bg-[#292E34]
-                                hover:text-[#F1F2F3]
+                                whitespace-nowrap
+
+                                text-[#AEB7C3]!
+
+                                transition-[background-color,border-color,color]
+                                duration-150
+                                ease-out
+
+                                hover:border-[#394555]
+                                hover:bg-[#151B24]
+                                hover:text-[#EEF1F5]!
+
                                 focus:outline-none
                                 focus:ring-0
                             "
                         >
-                            <ArrowLeft size={14} strokeWidth={1.8} />
-                            Back
+                            <ArrowLeft
+                                size={14}
+                                strokeWidth={1.8}
+                                className="
+                                    shrink-0
+
+                                    text-[#697586]
+
+                                    transition-[transform,color]
+                                    duration-150
+
+                                    group-hover:-translate-x-0.5
+                                    group-hover:text-[#AEB7C3]
+                                "
+                            />
+
+                            <span>Back</span>
                         </button>
+
+                        {/* EDIT */}
 
                         <button
                             type="button"
                             onClick={handleStartEdit}
                             className="
+                                group
+
                                 inline-flex
                                 h-10
                                 items-center
-                                gap-2
+                                justify-center
+                                gap-2.5
+
                                 border
-                                border-[#168277]
-                                bg-[#0F766E]
+                                border-[#394555]
+
+                                bg-[#1A222D]
+
                                 px-4
-                                text-[12px]
+
+                                font-sans!
+                                text-[11px]
                                 font-semibold!
-                                text-white!
-                                transition-colors
-                                hover:bg-[#128276]
+                                whitespace-nowrap
+
+                                text-[#EEF1F5]!
+
+                                transition-[background-color,border-color,color]
+                                duration-150
+                                ease-out
+
+                                hover:border-[#4B5869]
+                                hover:bg-[#1D2632]
+
                                 focus:outline-none
                                 focus:ring-0
                             "
                         >
-                            <Pencil size={14} strokeWidth={1.8} />
-                            Edit User
+                            <Pencil
+                                size={14}
+                                strokeWidth={1.8}
+                                className="
+                                    shrink-0
+
+                                    text-[#AEB7C3]
+
+                                    transition-colors
+                                    duration-150
+
+                                    group-hover:text-[#EEF1F5]
+                                "
+                            />
+
+                            <span>Edit User</span>
                         </button>
                     </div>
                 }

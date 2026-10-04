@@ -55,7 +55,7 @@ const PaymentResult = () => {
                         />
                     </div>
 
-                    <p className="mt-7 text-sm font-medium uppercase tracking-[0.18em] text-[#64748b]">
+                    <p className="mt-7 text-sm font-medium! uppercase tracking-[0.18em] text-[#64748b]">
                         Stand For People
                     </p>
 

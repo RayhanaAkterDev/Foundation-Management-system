@@ -18,9 +18,9 @@ import {
     UserRound,
 } from 'lucide-react';
 
-/* ============================================================
+/* ==========================================================================
    CONSTANTS
-============================================================ */
+============================================================================ */
 
 const EMPTY_FORM = {
     name: '',
@@ -74,12 +74,14 @@ const STATUS_OPTIONS = [
     },
 ];
 
-/* ============================================================
+/* ==========================================================================
    INITIAL FORM
-============================================================ */
+============================================================================ */
 
 const getInitialForm = (mode, user) => {
     if (mode === 'edit' && user) {
+        const emailVerified = Boolean(user.email_verified_at);
+
         return {
             name: user.name || '',
             email: user.email || '',
@@ -87,16 +89,21 @@ const getInitialForm = (mode, user) => {
             password: '',
             role: user.role || '',
             verification_method: 'demo',
-            status: user.status || 'active',
+            status:
+                emailVerified && user.status === 'active'
+                    ? 'active'
+                    : user.status === 'suspended'
+                      ? 'suspended'
+                      : 'inactive',
         };
     }
 
     return { ...EMPTY_FORM };
 };
 
-/* ============================================================
+/* ==========================================================================
    FIELD ERROR
-============================================================ */
+============================================================================ */
 
 const FieldError = ({ name, fieldErrors }) => {
     const error = fieldErrors?.[name];
@@ -104,7 +111,19 @@ const FieldError = ({ name, fieldErrors }) => {
     if (!error?.length) return null;
 
     return (
-        <div className="mt-2 flex items-start gap-2 text-[11px] leading-5 text-[#E6A0A7]">
+        <div
+            className="
+                mt-2
+                flex
+                items-start
+                gap-2
+
+                font-sans!
+                text-[10.5px]
+                leading-5
+                text-[#D99A9F]!
+            "
+        >
             <AlertCircle
                 size={13}
                 strokeWidth={1.8}
@@ -116,9 +135,9 @@ const FieldError = ({ name, fieldErrors }) => {
     );
 };
 
-/* ============================================================
+/* ==========================================================================
    EDITOR FIELD
-============================================================ */
+============================================================================ */
 
 const EditorField = ({
     id,
@@ -142,49 +161,48 @@ const EditorField = ({
             <label
                 htmlFor={id}
                 className="
-                    mb-2
+                    mb-2.5
                     block
 
-                    text-[10px]
+                    font-sans!
+                    text-[9.5px]
                     font-semibold!
                     uppercase
-                    tracking-[0.1em]
+                    tracking-[0.11em]
 
-                    text-[#858F99]
+                    text-[#8792A1]!
                 "
             >
                 {label}
 
-                {required && (
-                    <span className="ml-1 text-[#66717A]">*</span>
-                )}
+                {required && <span className="ml-1 text-[#697586]!">*</span>}
             </label>
 
             <div
                 className={`
                     relative
-
                     h-[48px]
 
                     border
 
-                    transition-all
+                    transition-[border-color,background-color]
                     duration-150
+                    ease-out
 
                     ${
                         hasError
                             ? `
-                                border-[#7D4B53]
-                                bg-[#211A1D]
+                                border-[#5B3840]
+                                bg-[#281A1F]
                             `
                             : `
-                                border-[#3A4048]
-                                bg-[#1A1E22]
+                                border-[#303A47]
+                                bg-[#151B24]
 
-                                hover:border-[#4A525B]
+                                hover:border-[#394555]
 
-                                focus-within:border-[#59756E]
-                                focus-within:bg-[#1C2124]
+                                focus-within:border-[#4B5869]
+                                focus-within:bg-[#171E28]
                             `
                     }
                 `}
@@ -211,16 +229,18 @@ const EditorField = ({
                         px-4
                         pr-12
 
-                        text-[13px]
+                        font-sans!
+                        text-[12px]
                         font-medium!
-                        text-[#E9ECEE]!
+
+                        text-[#EEF1F5]!
 
                         shadow-none!
                         outline-none!
                         ring-0!
 
                         placeholder:font-normal!
-                        placeholder:text-[#525C66]
+                        placeholder:text-[#657181]!
 
                         focus:border-0!
                         focus:bg-transparent!
@@ -228,46 +248,46 @@ const EditorField = ({
                         focus:ring-0!
 
                         disabled:cursor-not-allowed
-                        disabled:opacity-50
+                        disabled:opacity-45
 
-                        [&:-webkit-autofill]:[-webkit-text-fill-color:#E9ECEE]
+                        [&:-webkit-autofill]:[-webkit-text-fill-color:#EEF1F5]
                         [&:-webkit-autofill]:[transition:background-color_999999s_ease-in-out_0s]
-                        [&:-webkit-autofill]:[box-shadow:0_0_0_1000px_#1A1E22_inset]
-                        [&:-webkit-autofill:hover]:[box-shadow:0_0_0_1000px_#1A1E22_inset]
-                        [&:-webkit-autofill:focus]:[box-shadow:0_0_0_1000px_#1C2124_inset]
+                        [&:-webkit-autofill]:[box-shadow:0_0_0_1000px_#151B24_inset]
+                        [&:-webkit-autofill:hover]:[box-shadow:0_0_0_1000px_#151B24_inset]
+                        [&:-webkit-autofill:focus]:[box-shadow:0_0_0_1000px_#171E28_inset]
                     "
                 />
 
                 {trailing && (
-                    <div className="absolute top-1/2 right-2 -translate-y-1/2">
+                    <div
+                        className="
+                            absolute
+                            right-2
+                            top-1/2
+                            -translate-y-1/2
+                        "
+                    >
                         {trailing}
                     </div>
                 )}
             </div>
 
-            <FieldError
-                name={name}
-                fieldErrors={fieldErrors}
-            />
+            <FieldError name={name} fieldErrors={fieldErrors} />
         </div>
     );
 };
 
-/* ============================================================
+/* ==========================================================================
    SECTION HEADING
-============================================================ */
+============================================================================ */
 
-const FormSectionHeading = ({
-    number,
-    title,
-    description,
-}) => {
+const FormSectionHeading = ({ number, title, description }) => {
     return (
         <div
             className="
                 flex
                 items-start
-                gap-3
+                gap-3.5
             "
         >
             <div
@@ -280,26 +300,32 @@ const FormSectionHeading = ({
                     justify-center
 
                     border
-                    border-[#3A424A]
+                    border-[#303A47]
 
-                    bg-[#1B1F23]
+                    bg-[#171E28]
 
+                    font-sans!
                     text-[9px]
                     font-semibold!
-                    text-[#78838C]
+                    tabular-nums
+
+                    text-[#8792A1]!
                 "
             >
                 {number}
             </div>
 
-            <div className="min-w-0">
+            <div className="min-w-0 pt-px">
                 <h3
                     className="
+                        font-sans!
+
                         text-[13px]
                         font-semibold!
+                        leading-5
                         tracking-[-0.01em]
 
-                        text-[#E0E3E5]!
+                        text-[#EEF1F5]!
                     "
                 >
                     {title}
@@ -308,14 +334,15 @@ const FormSectionHeading = ({
                 {description && (
                     <p
                         className="
-                            mt-1
+                            mt-1.5
+                            max-w-[570px]
 
-                            max-w-[560px]
-
+                            font-sans!
                             text-[10px]
+                            font-normal!
                             leading-[1.65]
 
-                            text-[#68727C]
+                            text-[#697586]!
                         "
                     >
                         {description}
@@ -326,9 +353,9 @@ const FormSectionHeading = ({
     );
 };
 
-/* ============================================================
+/* ==========================================================================
    USER FORM
-============================================================ */
+============================================================================ */
 
 const UserForm = ({
     mode = 'add',
@@ -342,17 +369,25 @@ const UserForm = ({
 }) => {
     const isEdit = mode === 'edit';
 
-    const [form, setForm] = useState(() =>
-        getInitialForm(mode, user),
-    );
+    const [form, setForm] = useState(() => getInitialForm(mode, user));
 
     const [showPassword, setShowPassword] = useState(false);
+
+    const emailVerified = isEdit && Boolean(user?.email_verified_at);
+
+    /* ======================================================================
+       FORM CHANGE CALLBACK
+    ====================================================================== */
 
     useEffect(() => {
         if (onFormChange) {
             onFormChange(form);
         }
     }, [form, onFormChange]);
+
+    /* ======================================================================
+       CHANGE HANDLERS
+    ====================================================================== */
 
     const handleChange = (event) => {
         const { name, value } = event.target;
@@ -364,9 +399,7 @@ const UserForm = ({
     };
 
     const handlePhoneChange = (event) => {
-        const digitsOnly = event.target.value
-            .replace(/\D/g, '')
-            .slice(0, 11);
+        const digitsOnly = event.target.value.replace(/\D/g, '').slice(0, 11);
 
         setForm((previous) => ({
             ...previous,
@@ -374,15 +407,39 @@ const UserForm = ({
         }));
     };
 
+    /* ======================================================================
+       STATUS CHANGE
+    ====================================================================== */
+
+    const handleStatusChange = (status) => {
+        if (status === 'active' && !emailVerified) {
+            return;
+        }
+
+        setForm((previous) => ({
+            ...previous,
+            status,
+        }));
+    };
+
+    /* ======================================================================
+       SUBMIT
+    ====================================================================== */
+
     const handleSubmit = (event) => {
         event.preventDefault();
 
         if (isEdit) {
+            const safeStatus =
+                form.status === 'active' && !emailVerified
+                    ? 'inactive'
+                    : form.status;
+
             onSubmit({
                 name: form.name,
                 email: form.email,
                 phone: form.phone,
-                status: form.status,
+                status: safeStatus,
                 verification_method: 'demo',
             });
 
@@ -397,65 +454,88 @@ const UserForm = ({
     };
 
     return (
-        <form
-            onSubmit={handleSubmit}
-            className="w-full"
-        >
-            {/* =====================================================
+        <form onSubmit={handleSubmit} className="w-full font-sans!">
+            {/* =============================================================
                 GENERAL ERROR
-            ====================================================== */}
+            ============================================================= */}
 
             {error && (
                 <div
                     className="
-                        mb-7
+                        mb-8
 
                         flex
                         items-start
-                        gap-3
+                        gap-3.5
 
                         border
-                        border-[#51383D]
+                        border-[#493038]
 
-                        bg-[#241C1F]
+                        bg-[#281A1F]
 
                         px-4
                         py-3.5
                     "
                 >
-                    <AlertCircle
-                        size={16}
-                        strokeWidth={1.8}
-                        className="mt-0.5 shrink-0 text-[#E6A0A7]"
-                    />
+                    <div
+                        className="
+                            flex
+                            h-8
+                            w-8
+                            shrink-0
+                            items-center
+                            justify-center
 
-                    <div className="min-w-0">
-                        <p className="text-[12px] font-semibold! text-[#EDB5BA]">
+                            border
+                            border-[#493038]
+
+                            bg-[#301F25]
+
+                            text-[#D99A9F]
+                        "
+                    >
+                        <AlertCircle size={14} strokeWidth={1.8} />
+                    </div>
+
+                    <div className="min-w-0 pt-px">
+                        <p
+                            className="
+                                font-sans!
+                                text-[11px]
+                                font-semibold!
+                                text-[#E4B0B4]!
+                            "
+                        >
                             Account could not be saved
                         </p>
 
-                        <p className="mt-1 text-[11px] leading-5 text-[#C7979D]">
+                        <p
+                            className="
+                                mt-1
+
+                                font-sans!
+                                text-[10px]
+                                leading-5
+                                text-[#B98289]!
+                            "
+                        >
                             {error}
                         </p>
                     </div>
                 </div>
             )}
 
-            {/* =====================================================
+            {/* =============================================================
                 PERSONAL DETAILS
-
-                IMPORTANT:
-                lg = heading ABOVE fields
-                xl = heading LEFT of fields
-            ====================================================== */}
+            ============================================================= */}
 
             <section
                 className="
                     grid
-                    gap-6
+                    gap-7
 
                     xl:grid-cols-[180px_minmax(0,1fr)]
-                    xl:gap-8
+                    xl:gap-10
                 "
             >
                 <FormSectionHeading
@@ -472,10 +552,13 @@ const UserForm = ({
                     className="
                         grid
                         min-w-0
-                        gap-x-4
-                        gap-y-5
+
+                        gap-x-5
+                        gap-y-6
 
                         md:grid-cols-2
+
+                        xl:gap-x-6
                     "
                 >
                     <EditorField
@@ -505,19 +588,7 @@ const UserForm = ({
                         onChange={handleChange}
                     />
 
-                    {/* EDIT MODE:
-                        Phone uses the full width of both columns.
-                        ADD MODE:
-                        Phone remains beside temporary password.
-                    */}
-
-                    <div
-                        className={
-                            isEdit
-                                ? 'md:col-span-2'
-                                : ''
-                        }
-                    >
+                    <div className={isEdit ? 'md:col-span-2' : ''}>
                         <EditorField
                             id="user-form-phone"
                             name="phone"
@@ -538,11 +609,7 @@ const UserForm = ({
                             id="user-form-password"
                             name="password"
                             label="Temporary password"
-                            type={
-                                showPassword
-                                    ? 'text'
-                                    : 'password'
-                            }
+                            type={showPassword ? 'text' : 'password'}
                             value={form.password}
                             placeholder="Set initial password"
                             disabled={loading}
@@ -554,9 +621,7 @@ const UserForm = ({
                                 <button
                                     type="button"
                                     onClick={() =>
-                                        setShowPassword(
-                                            (previous) => !previous,
-                                        )
+                                        setShowPassword((previous) => !previous)
                                     }
                                     aria-label={
                                         showPassword
@@ -570,26 +635,21 @@ const UserForm = ({
                                         items-center
                                         justify-center
 
-                                        text-[#66717A]
+                                        text-[#697586]!
 
                                         transition-colors
+                                        duration-150
 
-                                        hover:text-[#C9CED2]
+                                        hover:text-[#B8C0CA]!
 
                                         focus:outline-none
                                         focus:ring-0
                                     "
                                 >
                                     {showPassword ? (
-                                        <EyeOff
-                                            size={15}
-                                            strokeWidth={1.6}
-                                        />
+                                        <EyeOff size={15} strokeWidth={1.65} />
                                     ) : (
-                                        <Eye
-                                            size={15}
-                                            strokeWidth={1.6}
-                                        />
+                                        <Eye size={15} strokeWidth={1.65} />
                                     )}
                                 </button>
                             }
@@ -598,25 +658,25 @@ const UserForm = ({
                 </div>
             </section>
 
-            {/* =====================================================
+            {/* =============================================================
                 ACCOUNT TYPE
-            ====================================================== */}
+            ============================================================= */}
 
             {!isEdit && (
                 <section
                     className="
-                        mt-9
+                        mt-10
 
                         grid
-                        gap-6
+                        gap-7
 
                         border-t
-                        border-[#343A41]
+                        border-[#252D38]
 
                         pt-8
 
                         xl:grid-cols-[180px_minmax(0,1fr)]
-                        xl:gap-8
+                        xl:gap-10
                     "
                 >
                     <FormSectionHeading
@@ -629,16 +689,14 @@ const UserForm = ({
                         <div
                             className="
                                 grid
-                                gap-2.5
+                                gap-3
 
                                 md:grid-cols-3
                             "
                         >
                             {ROLE_OPTIONS.map((option) => {
                                 const Icon = option.icon;
-
-                                const selected =
-                                    form.role === option.value;
+                                const selected = form.role === option.value;
 
                                 return (
                                     <button
@@ -646,12 +704,10 @@ const UserForm = ({
                                         type="button"
                                         disabled={loading}
                                         onClick={() =>
-                                            setForm(
-                                                (previous) => ({
-                                                    ...previous,
-                                                    role: option.value,
-                                                }),
-                                            )
+                                            setForm((previous) => ({
+                                                ...previous,
+                                                role: option.value,
+                                            }))
                                         }
                                         className={`
                                             group
@@ -660,30 +716,31 @@ const UserForm = ({
                                             flex
                                             min-h-[92px]
                                             items-start
-                                            gap-3
+                                            gap-3.5
 
                                             border
 
                                             px-4
-                                            py-4
+                                            py-3.5
 
                                             text-left
 
-                                            transition-all
+                                            transition-[border-color,background-color]
                                             duration-150
+                                            ease-out
 
                                             ${
                                                 selected
                                                     ? `
-                                                        border-[#526B65]
-                                                        bg-[#252C2B]
+                                                        border-[#465261]
+                                                        bg-[#1D2632]
                                                     `
                                                     : `
-                                                        border-[#363C44]
-                                                        bg-[#1A1E22]
+                                                        border-[#303A47]
+                                                        bg-[#121821]
 
-                                                        hover:border-[#48515A]
-                                                        hover:bg-[#1D2226]
+                                                        hover:border-[#394555]
+                                                        hover:bg-[#171E28]
                                                     `
                                             }
 
@@ -693,15 +750,16 @@ const UserForm = ({
                                     >
                                         {selected && (
                                             <span
+                                                aria-hidden="true"
                                                 className="
                                                     absolute
-                                                    top-0
+                                                    bottom-0
                                                     left-0
+                                                    top-0
 
-                                                    h-full
                                                     w-[2px]
 
-                                                    bg-[#6B958B]
+                                                    bg-[#8792A1]
                                                 "
                                             />
                                         )}
@@ -717,26 +775,31 @@ const UserForm = ({
 
                                                 border
 
+                                                transition-[border-color,background-color,color]
+                                                duration-150
+
                                                 ${
                                                     selected
                                                         ? `
-                                                            border-[#536761]
-                                                            bg-[#303937]
-                                                            text-[#C7D5D1]
+                                                            border-[#4B5869]
+                                                            bg-[#222D3A]
+                                                            text-[#C9D0D9]
                                                         `
                                                         : `
-                                                            border-[#373E46]
-                                                            bg-[#22272C]
-                                                            text-[#69737D]
+                                                            border-[#29323E]
+                                                            bg-[#171E28]
+                                                            text-[#697586]
 
-                                                            group-hover:text-[#A1AAB2]
+                                                            group-hover:border-[#394555]
+                                                            group-hover:bg-[#1A222D]
+                                                            group-hover:text-[#AEB7C3]
                                                         `
                                                 }
                                             `}
                                         >
                                             <Icon
-                                                size={16}
-                                                strokeWidth={1.6}
+                                                size={15}
+                                                strokeWidth={1.65}
                                             />
                                         </div>
 
@@ -751,13 +814,14 @@ const UserForm = ({
                                             >
                                                 <p
                                                     className={`
-                                                        text-[12px]
+                                                        font-sans!
+                                                        text-[11px]
                                                         font-semibold!
 
                                                         ${
                                                             selected
-                                                                ? 'text-[#ECEFEE]'
-                                                                : 'text-[#BEC4C9]'
+                                                                ? 'text-[#EEF1F5]!'
+                                                                : 'text-[#B8C0CA]!'
                                                         }
                                                     `}
                                                 >
@@ -776,15 +840,19 @@ const UserForm = ({
                                                         rounded-full
                                                         border
 
+                                                        transition-[border-color,background-color]
+                                                        duration-150
+
                                                         ${
                                                             selected
                                                                 ? `
-                                                                    border-[#C5D0CD]
-                                                                    bg-[#D7DEDC]
-                                                                    text-[#202624]
+                                                                    border-[#AEB7C3]
+                                                                    bg-[#AEB7C3]
+                                                                    text-[#121821]
                                                                 `
                                                                 : `
-                                                                    border-[#424A52]
+                                                                    border-[#465261]
+                                                                    bg-transparent
                                                                     text-transparent
                                                                 `
                                                         }
@@ -801,10 +869,11 @@ const UserForm = ({
                                                 className="
                                                     mt-1.5
 
-                                                    text-[10px]
+                                                    font-sans!
+                                                    text-[9.5px]
                                                     leading-[1.55]
 
-                                                    text-[#66717A]
+                                                    text-[#697586]!
                                                 "
                                             >
                                                 {option.description}
@@ -815,35 +884,29 @@ const UserForm = ({
                             })}
                         </div>
 
-                        <FieldError
-                            name="role"
-                            fieldErrors={fieldErrors}
-                        />
+                        <FieldError name="role" fieldErrors={fieldErrors} />
                     </div>
                 </section>
             )}
 
-            {/* =====================================================
+            {/* =============================================================
                 ACCOUNT ACCESS
-
-                lg = title ABOVE controls
-                xl = title LEFT of controls
-            ====================================================== */}
+            ============================================================= */}
 
             <section
                 className="
-                    mt-9
+                    mt-10
 
                     grid
-                    gap-6
+                    gap-7
 
                     border-t
-                    border-[#343A41]
+                    border-[#252D38]
 
                     pt-8
 
                     xl:grid-cols-[180px_minmax(0,1fr)]
-                    xl:gap-8
+                    xl:gap-10
                 "
             >
                 <FormSectionHeading
@@ -858,159 +921,260 @@ const UserForm = ({
 
                 <div className="min-w-0">
                     {isEdit ? (
-                        <div
-                            className="
-                                grid
-                                gap-2
+                        <>
+                            {!emailVerified && (
+                                <div
+                                    className="
+                                        mb-4
 
-                                sm:grid-cols-3
-                            "
-                        >
-                            {STATUS_OPTIONS.map((option) => {
-                                const Icon = option.icon;
+                                        flex
+                                        items-start
+                                        gap-3.5
 
-                                const selected =
-                                    form.status === option.value;
+                                        border
+                                        border-[#493D2C]
 
-                                return (
-                                    <button
-                                        key={option.value}
-                                        type="button"
-                                        disabled={loading}
-                                        onClick={() =>
-                                            setForm(
-                                                (previous) => ({
-                                                    ...previous,
-                                                    status: option.value,
-                                                }),
-                                            )
-                                        }
-                                        className={`
-                                            group
+                                        bg-[#201D18]
 
+                                        px-4
+                                        py-3.5
+                                    "
+                                >
+                                    <div
+                                        className="
                                             flex
-                                            min-h-[76px]
+                                            h-8
+                                            w-8
+                                            shrink-0
                                             items-center
-                                            gap-3
+                                            justify-center
 
                                             border
+                                            border-[#493D2C]
 
-                                            px-3.5
-                                            py-3
+                                            bg-[#282219]
 
-                                            text-left
-
-                                            transition-all
-                                            duration-150
-
-                                            ${
-                                                selected
-                                                    ? `
-                                                        border-[#586C67]
-                                                        bg-[#272D2C]
-                                                    `
-                                                    : `
-                                                        border-[#373D45]
-                                                        bg-[#1A1E22]
-
-                                                        hover:border-[#4A525B]
-                                                        hover:bg-[#1E2227]
-                                                    `
-                                            }
-
-                                            disabled:cursor-not-allowed
-                                            disabled:opacity-50
-                                        `}
+                                            text-[#C5A06B]
+                                        "
                                     >
-                                        <div
+                                        <Mail size={14} strokeWidth={1.6} />
+                                    </div>
+
+                                    <div className="min-w-0 pt-px">
+                                        <p
+                                            className="
+                                                font-sans!
+                                                text-[10.5px]
+                                                font-semibold!
+
+                                                text-[#D4BB94]!
+                                            "
+                                        >
+                                            Email verification required
+                                        </p>
+
+                                        <p
+                                            className="
+                                                mt-1
+
+                                                font-sans!
+                                                text-[9.5px]
+                                                leading-[1.6]
+
+                                                text-[#8E816F]!
+                                            "
+                                        >
+                                            Active access is unavailable until
+                                            this user's email address has been
+                                            verified.
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div
+                                className="
+                                    grid
+                                    gap-3
+
+                                    sm:grid-cols-3
+                                "
+                            >
+                                {STATUS_OPTIONS.map((option) => {
+                                    const Icon = option.icon;
+
+                                    const selected =
+                                        form.status === option.value;
+
+                                    const isActiveOption =
+                                        option.value === 'active';
+
+                                    const activeBlocked =
+                                        isActiveOption && !emailVerified;
+
+                                    const buttonDisabled =
+                                        loading || activeBlocked;
+
+                                    return (
+                                        <button
+                                            key={option.value}
+                                            type="button"
+                                            disabled={buttonDisabled}
+                                            onClick={() =>
+                                                handleStatusChange(option.value)
+                                            }
                                             className={`
+                                                group
+
                                                 flex
-                                                h-8
-                                                w-8
-                                                shrink-0
+                                                min-h-[80px]
                                                 items-center
-                                                justify-center
+                                                gap-3
 
                                                 border
 
+                                                px-3.5
+                                                py-3
+
+                                                text-left
+
+                                                transition-[border-color,background-color]
+                                                duration-150
+                                                ease-out
+
                                                 ${
-                                                    selected
+                                                    activeBlocked
                                                         ? `
-                                                            border-[#566A64]
-                                                            bg-[#313A38]
-                                                            text-[#C9D7D3]
+                                                            border-[#252D38]
+                                                            bg-[#10151C]
+                                                            opacity-55
                                                         `
-                                                        : `
-                                                            border-[#373E46]
-                                                            bg-[#22272C]
-                                                            text-[#69737D]
-                                                        `
+                                                        : selected
+                                                          ? `
+                                                                border-[#465261]
+                                                                bg-[#1D2632]
+                                                            `
+                                                          : `
+                                                                border-[#303A47]
+                                                                bg-[#121821]
+
+                                                                hover:border-[#394555]
+                                                                hover:bg-[#171E28]
+                                                            `
                                                 }
+
+                                                disabled:cursor-not-allowed
                                             `}
                                         >
-                                            <Icon
-                                                size={14}
-                                                strokeWidth={1.7}
-                                            />
-                                        </div>
-
-                                        <div className="min-w-0 flex-1">
                                             <div
-                                                className="
+                                                className={`
                                                     flex
+                                                    h-8
+                                                    w-8
+                                                    shrink-0
                                                     items-center
-                                                    justify-between
-                                                    gap-2
-                                                "
+                                                    justify-center
+
+                                                    border
+
+                                                    ${
+                                                        activeBlocked
+                                                            ? `
+                                                                border-[#252D38]
+                                                                bg-[#151B24]
+                                                                text-[#4B5664]
+                                                            `
+                                                            : selected
+                                                              ? `
+                                                                    border-[#4B5869]
+                                                                    bg-[#222D3A]
+                                                                    text-[#C9D0D9]
+                                                                `
+                                                              : `
+                                                                    border-[#29323E]
+                                                                    bg-[#171E28]
+                                                                    text-[#697586]
+
+                                                                    group-hover:text-[#AEB7C3]
+                                                                `
+                                                    }
+                                                `}
                                             >
-                                                <span
-                                                    className={`
-                                                        text-[11px]
-                                                        font-semibold!
-
-                                                        ${
-                                                            selected
-                                                                ? 'text-[#E8EBEA]'
-                                                                : 'text-[#AAB1B8]'
-                                                        }
-                                                    `}
-                                                >
-                                                    {option.label}
-                                                </span>
-
-                                                <span
-                                                    className={`
-                                                        h-1.5
-                                                        w-1.5
-                                                        shrink-0
-                                                        rounded-full
-
-                                                        ${
-                                                            selected
-                                                                ? 'bg-[#89A79F]'
-                                                                : 'bg-[#4D565F]'
-                                                        }
-                                                    `}
+                                                <Icon
+                                                    size={14}
+                                                    strokeWidth={1.7}
                                                 />
                                             </div>
 
-                                            <p
-                                                className="
-                                                    mt-1
+                                            <div className="min-w-0 flex-1">
+                                                <div
+                                                    className="
+                                                        flex
+                                                        items-center
+                                                        justify-between
+                                                        gap-2
+                                                    "
+                                                >
+                                                    <span
+                                                        className={`
+                                                            font-sans!
+                                                            text-[10.5px]
+                                                            font-semibold!
 
-                                                    text-[9px]
-                                                    leading-[1.5]
+                                                            ${
+                                                                activeBlocked
+                                                                    ? 'text-[#5E6978]!'
+                                                                    : selected
+                                                                      ? 'text-[#EEF1F5]!'
+                                                                      : 'text-[#AEB7C3]!'
+                                                            }
+                                                        `}
+                                                    >
+                                                        {option.label}
+                                                    </span>
 
-                                                    text-[#626C75]
-                                                "
-                                            >
-                                                {option.description}
-                                            </p>
-                                        </div>
-                                    </button>
-                                );
-                            })}
-                        </div>
+                                                    <span
+                                                        className={`
+                                                            h-1.5
+                                                            w-1.5
+                                                            shrink-0
+                                                            rounded-full
+
+                                                            ${
+                                                                activeBlocked
+                                                                    ? 'bg-[#394555]'
+                                                                    : selected
+                                                                      ? 'bg-[#AEB7C3]'
+                                                                      : 'bg-[#465261]'
+                                                            }
+                                                        `}
+                                                    />
+                                                </div>
+
+                                                <p
+                                                    className={`
+                                                        mt-1
+                                                        font-sans!
+                                                        text-[9px]
+                                                        leading-[1.5]
+
+                                                        ${
+                                                            activeBlocked
+                                                                ? 'text-[#4B5664]!'
+                                                                : 'text-[#697586]!'
+                                                        }
+                                                    `}
+                                                >
+                                                    {activeBlocked
+                                                        ? 'Unavailable until the email address is verified.'
+                                                        : option.description}
+                                                </p>
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </>
                     ) : (
                         <div
                             className="
@@ -1019,24 +1183,25 @@ const UserForm = ({
                                 gap-4
 
                                 border
-                                border-[#363C44]
+                                border-[#303A47]
 
-                                bg-[#1A1E22]
+                                bg-[#121821]
 
                                 px-4
-                                py-4
+                                py-3.5
 
                                 sm:flex-row
                                 sm:items-center
                                 sm:justify-between
+                                sm:px-5
                             "
                         >
                             <div
                                 className="
                                     flex
                                     min-w-0
-                                    items-start
-                                    gap-3
+                                    items-center
+                                    gap-3.5
                                 "
                             >
                                 <div
@@ -1049,25 +1214,24 @@ const UserForm = ({
                                         justify-center
 
                                         border
-                                        border-[#394048]
+                                        border-[#29323E]
 
-                                        bg-[#23282D]
+                                        bg-[#171E28]
 
-                                        text-[#78838D]
+                                        text-[#8792A1]
                                     "
                                 >
-                                    <LockKeyhole
-                                        size={15}
-                                        strokeWidth={1.6}
-                                    />
+                                    <LockKeyhole size={15} strokeWidth={1.65} />
                                 </div>
 
                                 <div className="min-w-0">
                                     <p
                                         className="
-                                            text-[11px]
+                                            font-sans!
+                                            text-[10.5px]
                                             font-semibold!
-                                            text-[#C9CED2]
+
+                                            text-[#C2C9D2]!
                                         "
                                     >
                                         Email verification required
@@ -1076,18 +1240,17 @@ const UserForm = ({
                                     <p
                                         className="
                                             mt-1
-
                                             max-w-lg
 
-                                            text-[10px]
+                                            font-sans!
+                                            text-[9.5px]
                                             leading-[1.6]
 
-                                            text-[#626C75]
+                                            text-[#697586]!
                                         "
                                     >
-                                        The user must verify their
-                                        email address before normal
-                                        account access is enabled.
+                                        The user must verify their email address
+                                        before normal account access is enabled.
                                     </p>
                                 </div>
                             </div>
@@ -1099,38 +1262,40 @@ const UserForm = ({
                                     items-center
                                     gap-2
 
-                                    text-[10px]
+                                    border-l-0
+                                    border-[#29323E]
+
+                                    font-sans!
+                                    text-[9.5px]
                                     font-medium!
-                                    text-[#C29C6B]
+
+                                    text-[#C5A06B]!
+
+                                    sm:border-l
+                                    sm:pl-5
                                 "
                             >
-                                <Mail
-                                    size={13}
-                                    strokeWidth={1.6}
-                                />
+                                <Mail size={13} strokeWidth={1.6} />
 
-                                Email unverified
+                                <span>Email unverified</span>
                             </div>
                         </div>
                     )}
 
-                    <FieldError
-                        name="status"
-                        fieldErrors={fieldErrors}
-                    />
+                    <FieldError name="status" fieldErrors={fieldErrors} />
                 </div>
             </section>
 
-            {/* =====================================================
+            {/* =============================================================
                 ACTION BAR
-            ====================================================== */}
+            ============================================================= */}
 
             <footer
                 className="
-                    mt-9
+                    mt-10
 
                     border-t
-                    border-[#343A41]
+                    border-[#252D38]
 
                     pt-6
                 "
@@ -1149,7 +1314,7 @@ const UserForm = ({
                     <div
                         className="
                             flex
-                            max-w-[410px]
+                            max-w-[430px]
                             items-start
                             gap-2.5
                         "
@@ -1160,16 +1325,16 @@ const UserForm = ({
                             className="
                                 mt-0.5
                                 shrink-0
-                                text-[#687B76]
+                                text-[#697586]
                             "
                         />
 
                         <p
                             className="
-                                text-[10px]
+                                font-sans!
+                                text-[9.5px]
                                 leading-[1.65]
-
-                                text-[#626C75]
+                                text-[#697586]!
                             "
                         >
                             {isEdit
@@ -1197,29 +1362,32 @@ const UserForm = ({
                                 flex-1
 
                                 border
-                                border-[#3A4149]
+                                border-[#303A47]
 
-                                bg-transparent
+                                bg-[#0E1219]
 
                                 px-5
 
-                                text-[11px]
-                                font-semibold!
-                                text-[#858F98]
+                                font-sans!
+                                text-[10.5px]
+                                font-medium!
 
-                                transition-colors
+                                text-[#AEB7C3]!
 
-                                hover:border-[#505962]
-                                hover:bg-[#272B30]
-                                hover:text-[#E0E3E5]
+                                transition-[border-color,background-color,color]
+                                duration-150
+
+                                hover:border-[#3B4655]
+                                hover:bg-[#151B24]
+                                hover:text-[#EEF1F5]!
 
                                 disabled:cursor-not-allowed
-                                disabled:opacity-50
-
-                                sm:flex-none
+                                disabled:opacity-40
 
                                 focus:outline-none
                                 focus:ring-0
+
+                                sm:flex-none
                             "
                         >
                             Cancel
@@ -1233,31 +1401,38 @@ const UserForm = ({
 
                                 flex
                                 h-[42px]
-                                min-w-[158px]
+                                min-w-[160px]
                                 flex-1
                                 items-center
                                 justify-center
                                 gap-2.5
 
-                                bg-[#DDE2E3]
+                                border
+                                border-[#465261]
+
+                                bg-[#1D2632]
 
                                 px-5
 
-                                text-[11px]
+                                font-sans!
+                                text-[10.5px]
                                 font-semibold!
-                                text-[#202427]!
 
-                                transition-all
+                                text-[#EEF1F5]!
 
-                                hover:bg-[#F0F2F2]
+                                transition-[border-color,background-color]
+                                duration-150
+
+                                hover:border-[#5A6878]
+                                hover:bg-[#222D3A]
 
                                 disabled:cursor-not-allowed
                                 disabled:opacity-50
 
-                                sm:flex-none
-
                                 focus:outline-none
                                 focus:ring-0
+
+                                sm:flex-none
                             "
                         >
                             <span>
@@ -1275,7 +1450,11 @@ const UserForm = ({
                                     size={14}
                                     strokeWidth={1.8}
                                     className="
+                                        text-[#AEB7C3]
+
                                         transition-transform
+                                        duration-150
+
                                         group-hover:translate-x-0.5
                                     "
                                 />
@@ -1286,12 +1465,13 @@ const UserForm = ({
                                     className="
                                         h-3.5
                                         w-3.5
+
                                         animate-spin
                                         rounded-full
 
                                         border
-                                        border-[#858D94]
-                                        border-t-[#202427]
+                                        border-[#697586]
+                                        border-t-[#EEF1F5]
                                     "
                                 />
                             )}

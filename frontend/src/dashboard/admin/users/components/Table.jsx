@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 
 import DataTable from '@/components/dashboard/DataTable';
-
 import StatusBadge from '@/components/dashboard/StatusBadge';
 
 import {
@@ -107,9 +106,9 @@ const UserAvatar = ({ row, size = 'default' }) => {
     /*
      * `photo` belongs directly to the users table.
      *
-     * This is the single source we use for the user's identity image,
-     * regardless of whether the user is an individual, organization,
-     * or admin.
+     * This remains the single source for the user's identity image,
+     * regardless of whether the account belongs to an individual,
+     * organization, or administrator.
      */
     const photo =
         typeof row?.photo === 'string' && row.photo.trim()
@@ -117,9 +116,8 @@ const UserAvatar = ({ row, size = 'default' }) => {
             : null;
 
     /*
-     * Only hide the image when this exact photo URL has failed.
-     *
-     * This avoids using an effect to reset state when rows change.
+     * Only hide the image when this exact URL failed.
+     * This avoids requiring an effect to reset the failed state.
      */
     const showImage = Boolean(photo) && failedPhoto !== photo;
 
@@ -136,9 +134,11 @@ const UserAvatar = ({ row, size = 'default' }) => {
                 ${dimensionClass}
                 shrink-0
                 overflow-hidden
+
                 border
-                border-[#404754]
-                bg-[#272B34]
+                border-[#29323E]
+
+                bg-[#151B24]
             `}
         >
             {showImage ? (
@@ -168,9 +168,11 @@ const UserAvatar = ({ row, size = 'default' }) => {
                     <span
                         className={`
                             ${textClass}
-                            font-semibold
+
+                            font-semibold!
                             uppercase
-                            text-[#C3C7CF]
+
+                            text-[#B8C0CA]
                         `}
                     >
                         {initial}
@@ -194,6 +196,7 @@ const VerificationState = ({ row, compact = false }) => {
                 flex
                 min-w-0
                 items-center
+
                 ${compact ? 'gap-1.5' : 'gap-2'}
             `}
         >
@@ -203,21 +206,27 @@ const VerificationState = ({ row, compact = false }) => {
                     shrink-0
                     items-center
                     justify-center
+
                     ${compact ? 'h-5 w-5' : 'h-6 w-6'}
-                    ${isVerified ? 'bg-[#24332F]' : 'bg-[#382F24]'}
+
+                    ${
+                        isVerified
+                            ? 'border border-[#294438] bg-[#14231D]'
+                            : 'border border-[#443723] bg-[#241E15]'
+                    }
                 `}
             >
                 {isVerified ? (
                     <CheckCircle2
                         size={compact ? 12 : 13}
                         strokeWidth={2}
-                        className="text-[#7DB7A3]"
+                        className="text-[#8EC5A3]"
                     />
                 ) : (
                     <CircleAlert
                         size={compact ? 12 : 13}
                         strokeWidth={2}
-                        className="text-[#D5A35E]"
+                        className="text-[#D0AA70]"
                     />
                 )}
             </span>
@@ -226,10 +235,13 @@ const VerificationState = ({ row, compact = false }) => {
                 <p
                     className={`
                         truncate
-                        font-medium
+
+                        font-medium!
                         leading-4
+
                         ${compact ? 'text-[10px]' : 'text-[11px]'}
-                        ${isVerified ? 'text-[#A9CDBF]' : 'text-[#E0B77D]'}
+
+                        ${isVerified ? 'text-[#8EC5A3]' : 'text-[#D0AA70]'}
                     `}
                 >
                     {isVerified ? 'Verified' : 'Unverified'}
@@ -241,9 +253,11 @@ const VerificationState = ({ row, compact = false }) => {
                             mt-0.5
                             max-w-32.5
                             truncate
+
                             text-[10px]
                             leading-4
-                            text-[#6F7785]
+
+                            text-[#697586]
                         "
                     >
                         {isVerified
@@ -275,14 +289,22 @@ const RowActions = ({ row, onView, onDelete, mobile = false }) => {
                         w-9
                         items-center
                         justify-center
+
                         border
-                        border-[#343944]
-                        bg-[#272B34]
-                        text-[#C3C7CF]
-                        transition-colors
-                        hover:border-[#515866]
-                        hover:bg-[#303641]
-                        hover:text-[#F1F2F4]
+                        border-[#29323E]
+
+                        bg-[#151B24]
+
+                        text-[#AEB7C3]
+
+                        transition-[background-color,border-color,color]
+                        duration-150
+                        ease-out
+
+                        hover:border-[#394555]
+                        hover:bg-[#1A222D]
+                        hover:text-[#EEF1F5]
+
                         focus:outline-none
                         focus:ring-0
                     "
@@ -301,13 +323,21 @@ const RowActions = ({ row, onView, onDelete, mobile = false }) => {
                         w-9
                         items-center
                         justify-center
+
                         border
                         border-transparent
-                        text-[#A86E76]
-                        transition-colors
-                        hover:border-[#5A343B]
-                        hover:bg-[#38272C]
-                        hover:text-[#E9A1A8]
+
+                        bg-transparent
+
+                        text-[#B4777E]
+
+                        transition-[background-color,border-color,color]
+                        duration-150
+
+                        hover:border-[#493038]
+                        hover:bg-[#281A1F]
+                        hover:text-[#E1A0A6]
+
                         focus:outline-none
                         focus:ring-0
                     "
@@ -339,13 +369,21 @@ const RowActions = ({ row, onView, onDelete, mobile = false }) => {
                     shrink-0
                     items-center
                     justify-center
+
                     border
                     border-transparent
-                    text-[#9299A6]
-                    transition-colors
-                    hover:border-[#404754]
-                    hover:bg-[#303641]
-                    hover:text-[#F1F2F4]
+
+                    bg-transparent
+
+                    text-[#8792A1]
+
+                    transition-[background-color,border-color,color]
+                    duration-150
+
+                    hover:border-[#303A47]
+                    hover:bg-[#1A222D]
+                    hover:text-[#EEF1F5]
+
                     focus:outline-none
                     focus:ring-0
                 "
@@ -365,13 +403,21 @@ const RowActions = ({ row, onView, onDelete, mobile = false }) => {
                     shrink-0
                     items-center
                     justify-center
+
                     border
                     border-transparent
-                    text-[#A86E76]
-                    transition-colors
-                    hover:border-[#5A343B]
-                    hover:bg-[#38272C]
-                    hover:text-[#E9A1A8]
+
+                    bg-transparent
+
+                    text-[#B4777E]
+
+                    transition-[background-color,border-color,color]
+                    duration-150
+
+                    hover:border-[#493038]
+                    hover:bg-[#281A1F]
+                    hover:text-[#E1A0A6]
+
                     focus:outline-none
                     focus:ring-0
                 "
@@ -391,12 +437,19 @@ const MobileUserRow = ({ row, onView, onDelete }) => {
         <article
             className="
                 border-b
-                border-[#343944]
-                bg-[#22252D]
+                border-[#202832]
+
+                bg-[#0E1219]
+
                 px-4
                 py-4
+
                 transition-colors
+                duration-150
+
                 last:border-b-0
+
+                hover:bg-[#151B24]
             "
         >
             {/* =============================================================
@@ -417,7 +470,11 @@ const MobileUserRow = ({ row, onView, onDelete }) => {
                     className="
                         min-w-0
                         flex-1
+
                         text-left
+
+                        focus:outline-none
+                        focus:ring-0
                     "
                 >
                     <div
@@ -434,10 +491,12 @@ const MobileUserRow = ({ row, onView, onDelete }) => {
                             <p
                                 className="
                                     truncate
+
                                     text-[13px]
-                                    font-semibold
+                                    font-semibold!
                                     leading-5
-                                    text-[#F1F2F4]
+
+                                    text-[#EEF1F5]
                                 "
                             >
                                 {row.name || 'Unnamed user'}
@@ -446,6 +505,7 @@ const MobileUserRow = ({ row, onView, onDelete }) => {
                             <div
                                 className="
                                     mt-0.5
+
                                     flex
                                     min-w-0
                                     items-center
@@ -457,15 +517,17 @@ const MobileUserRow = ({ row, onView, onDelete }) => {
                                     strokeWidth={1.8}
                                     className="
                                         shrink-0
-                                        text-[#6F7785]
+                                        text-[#697586]
                                     "
                                 />
 
                                 <p
                                     className="
                                         truncate
+
                                         text-[10px]
-                                        text-[#9299A6]
+
+                                        text-[#8792A1]
                                     "
                                 >
                                     {row.email || '—'}
@@ -490,26 +552,33 @@ const MobileUserRow = ({ row, onView, onDelete }) => {
             <div
                 className="
                     mt-4
+
                     grid
                     grid-cols-2
                     gap-x-4
                     gap-y-3
+
                     border-t
-                    border-[#343944]
+                    border-[#202832]
+
                     pt-3
                 "
             >
-                {/* Role */}
+                {/* =========================================================
+                    ROLE
+                ========================================================= */}
 
                 <div className="min-w-0">
                     <p
                         className="
                             mb-1.5
+
                             text-[9px]
-                            font-semibold
+                            font-semibold!
                             uppercase
                             tracking-[0.12em]
-                            text-[#6F7785]
+
+                            text-[#697586]
                         "
                     >
                         Role
@@ -529,16 +598,18 @@ const MobileUserRow = ({ row, onView, onDelete }) => {
                             strokeWidth={1.8}
                             className="
                                 shrink-0
-                                text-[#9299A6]
+                                text-[#8792A1]
                             "
                         />
 
                         <span
                             className="
                                 truncate
+
                                 text-[11px]
-                                font-medium
-                                text-[#C3C7CF]
+                                font-medium!
+
+                                text-[#B8C0CA]
                             "
                         >
                             {getRoleLabel(row.role)}
@@ -546,17 +617,21 @@ const MobileUserRow = ({ row, onView, onDelete }) => {
                     </div>
                 </div>
 
-                {/* Status */}
+                {/* =========================================================
+                    STATUS
+                ========================================================= */}
 
                 <div className="min-w-0">
                     <p
                         className="
                             mb-1.5
+
                             text-[9px]
-                            font-semibold
+                            font-semibold!
                             uppercase
                             tracking-[0.12em]
-                            text-[#6F7785]
+
+                            text-[#697586]
                         "
                     >
                         Status
@@ -565,7 +640,9 @@ const MobileUserRow = ({ row, onView, onDelete }) => {
                     <StatusBadge status={row.status} />
                 </div>
 
-                {/* Verification */}
+                {/* =========================================================
+                    VERIFICATION
+                ========================================================= */}
 
                 <div
                     className="
@@ -576,11 +653,13 @@ const MobileUserRow = ({ row, onView, onDelete }) => {
                     <p
                         className="
                             mb-1.5
+
                             text-[9px]
-                            font-semibold
+                            font-semibold!
                             uppercase
                             tracking-[0.12em]
-                            text-[#6F7785]
+
+                            text-[#697586]
                         "
                     >
                         Email verification
@@ -620,9 +699,10 @@ const Table = ({
                         <span
                             className="
                                 text-[11px]
-                                font-medium
+                                font-medium!
                                 tabular-nums
-                                text-[#6F7785]
+
+                                text-[#697586]
                             "
                         >
                             {String(value).padStart(2, '0')}
@@ -660,13 +740,19 @@ const Table = ({
                                         block
                                         max-w-full
                                         truncate
+
                                         text-left
                                         text-[12px]
-                                        font-semibold
+                                        font-semibold!
                                         leading-5
-                                        text-[#F1F2F4]
+
+                                        text-[#EEF1F5]
+
                                         transition-colors
-                                        hover:text-white
+                                        duration-150
+
+                                        hover:text-[#FFFFFF]
+
                                         focus:outline-none
                                         focus:ring-0
                                     "
@@ -680,9 +766,11 @@ const Table = ({
                                         className="
                                             mt-0.5
                                             truncate
+
                                             text-[10px]
                                             leading-4
-                                            text-[#6F7785]
+
+                                            text-[#697586]
                                         "
                                     >
                                         {row.email}
@@ -707,6 +795,7 @@ const Table = ({
                                 flex
                                 items-center
                                 gap-2
+
                                 whitespace-nowrap
                             "
                         >
@@ -716,15 +805,16 @@ const Table = ({
                                 strokeWidth={1.7}
                                 className="
                                     shrink-0
-                                    text-[#9299A6]
+                                    text-[#8792A1]
                                 "
                             />
 
                             <span
                                 className="
                                     text-[11px]
-                                    font-medium
-                                    text-[#C3C7CF]
+                                    font-medium!
+
+                                    text-[#B8C0CA]
                                 "
                             >
                                 {getRoleLabel(value)}
@@ -795,6 +885,9 @@ const Table = ({
                 min-h-65
                 items-center
                 justify-center
+
+                bg-[#0E1219]
+
                 px-6
                 py-10
             "
@@ -803,29 +896,34 @@ const Table = ({
                 <div
                     className="
                         mx-auto
+
                         flex
                         h-10
                         w-10
                         items-center
                         justify-center
+
                         border
-                        border-[#343944]
-                        bg-[#272B34]
+                        border-[#29323E]
+
+                        bg-[#151B24]
                     "
                 >
                     <Users
                         size={17}
                         strokeWidth={1.7}
-                        className="text-[#6F7785]"
+                        className="text-[#697586]"
                     />
                 </div>
 
                 <p
                     className="
                         mt-3
+
                         text-[13px]
-                        font-semibold
-                        text-[#F1F2F4]
+                        font-semibold!
+
+                        text-[#EEF1F5]
                     "
                 >
                     No users found
@@ -836,9 +934,11 @@ const Table = ({
                         mx-auto
                         mt-1
                         max-w-57.5
+
                         text-[11px]
                         leading-5
-                        text-[#6F7785]
+
+                        text-[#697586]
                     "
                 >
                     Try changing your search or filter options.
@@ -853,7 +953,12 @@ const Table = ({
                 MOBILE DIRECTORY
             ============================================================ */}
 
-            <div className="sm:hidden">
+            <div
+                className="
+                    bg-[#0E1219]
+                    sm:hidden
+                "
+            >
                 {rows.length === 0
                     ? mobileEmptyState
                     : rows.map((row) => (
@@ -870,7 +975,15 @@ const Table = ({
                 TABLET + DESKTOP TABLE
             ============================================================ */}
 
-            <div className="hidden min-w-0 sm:block">
+            <div
+                className="
+                    hidden
+                    min-w-0
+                    bg-[#0E1219]
+
+                    sm:block
+                "
+            >
                 <DataTable
                     columns={enhancedColumns}
                     rows={rows}

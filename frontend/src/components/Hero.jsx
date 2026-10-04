@@ -84,7 +84,7 @@ const Hero = ({
                                             !px-0
                                             !py-0
                                             text-sm
-                                            font-medium
+                                            font-medium!
                                             text-primary
                                             sm:text-[15px]
                                             ${badgeClass || ''}

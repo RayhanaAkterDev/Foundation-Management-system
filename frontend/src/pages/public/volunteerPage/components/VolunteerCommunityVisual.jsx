@@ -442,7 +442,7 @@ const VolunteerCard = ({ volunteer, index }) => {
                         bg-primary
 
                         text-[11px]
-                        font-medium
+                        font-medium!
                         text-white!
 
                         sm:size-8
@@ -469,7 +469,7 @@ const VolunteerCard = ({ volunteer, index }) => {
                             truncate
 
                             text-[11.5px]
-                            font-medium
+                            font-medium!
                             text-text-primary
 
                             sm:text-[12.5px]
@@ -617,7 +617,7 @@ const EmptyState = ({ onJoin }) => {
                     gap-2
 
                     text-[13px]
-                    font-medium
+                    font-medium!
                     text-primary
                 "
             >

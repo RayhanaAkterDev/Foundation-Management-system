@@ -1,13 +1,7 @@
 // src/pages/Admin/Users/components/EditUserView.jsx
 
 import React from 'react';
-import {
-    Building2,
-    Mail,
-    PencilLine,
-    ShieldCheck,
-    UserRound,
-} from 'lucide-react';
+import { Building2, PencilLine, ShieldCheck, UserRound } from 'lucide-react';
 
 import UserForm from './UserForm';
 
@@ -59,23 +53,20 @@ const EditUserView = ({
     const userInitial = user.name?.trim()?.charAt(0)?.toUpperCase() || null;
 
     return (
-        <div className="w-full">
+        <div className="w-full font-sans!">
             <section
                 className="
                     overflow-hidden
-
                     border
-                    border-[#343A42]
-
-                    bg-[#1E2227]
+                    border-[#252D38]
+                    bg-[#0E1219]
                 "
             >
                 <div
                     className="
                         grid
-
-                        lg:grid-cols-[260px_minmax(0,1fr)]
-                        xl:grid-cols-[280px_minmax(0,1fr)]
+                        lg:grid-cols-[270px_minmax(0,1fr)]
+                        xl:grid-cols-[290px_minmax(0,1fr)]
                     "
                 >
                     {/* =================================================
@@ -86,29 +77,24 @@ const EditUserView = ({
                         className="
                             relative
                             overflow-hidden
-
                             border-b
-                            border-[#343A42]
-
-                            bg-[#191D21]
-
+                            border-[#252D38]
+                            bg-[#0E1219]
                             lg:border-r
                             lg:border-b-0
                         "
                     >
-                        {/* accent */}
+                        {/* ACCENT */}
 
                         <span
+                            aria-hidden="true"
                             className="
                                 absolute
                                 top-0
                                 left-0
-
-                                h-[3px]
+                                h-[2px]
                                 w-full
-
-                                bg-[#0F766E]
-
+                                bg-[#465261]
                                 lg:h-full
                                 lg:w-[2px]
                             "
@@ -119,21 +105,19 @@ const EditUserView = ({
                                 flex
                                 h-full
                                 flex-col
-
                                 px-5
-                                py-6
-
-                                sm:px-7
-
-                                lg:min-h-[620px]
-                                lg:px-6
-                                lg:py-7
-
-                                xl:px-7
+                                py-5
+                                sm:px-6
+                                sm:py-6
+                                lg:min-h-[640px]
+                                lg:px-7
+                                lg:py-8
+                                xl:px-8
+                                xl:py-9
                             "
                         >
                             {/* =========================================
-                                EDIT CONTEXT LABEL
+                                EDIT CONTEXT
                             ========================================== */}
 
                             <div
@@ -147,6 +131,7 @@ const EditUserView = ({
                                 <div
                                     className="
                                         flex
+                                        min-w-0
                                         items-center
                                         gap-2.5
                                     "
@@ -156,31 +141,30 @@ const EditUserView = ({
                                             flex
                                             h-7
                                             w-7
+                                            shrink-0
                                             items-center
                                             justify-center
-
                                             border
-                                            border-[#344A44]
-
-                                            bg-[#202A27]
-
-                                            text-[#76A096]
+                                            border-[#303A47]
+                                            bg-[#151B24]
+                                            text-[#8792A1]
                                         "
                                     >
                                         <PencilLine
                                             size={12}
-                                            strokeWidth={1.8}
+                                            strokeWidth={1.75}
                                         />
                                     </div>
 
                                     <span
                                         className="
-                                            text-[9px]
+                                            font-sans!
+                                            text-[8.5px]
                                             font-semibold!
                                             uppercase
-                                            tracking-[0.17em]
-
-                                            text-[#73988F]
+                                            tracking-[0.16em]
+                                            text-[#8792A1]!
+                                            sm:text-[9px]
                                         "
                                     >
                                         Editing
@@ -189,12 +173,14 @@ const EditUserView = ({
 
                                 <span
                                     className="
-                                        text-[9px]
+                                        shrink-0
+                                        font-sans!
+                                        text-[8.5px]
                                         font-medium!
                                         uppercase
-                                        tracking-[0.11em]
-
-                                        text-[#59636C]
+                                        tracking-[0.1em]
+                                        text-[#5E6978]!
+                                        sm:text-[9px]
                                     "
                                 >
                                     {roleLabel}
@@ -207,37 +193,38 @@ const EditUserView = ({
 
                             <div
                                 className="
-                                    mt-7
-
+                                    mt-6
                                     flex
+                                    min-w-0
                                     items-center
                                     gap-4
-
+                                    sm:mt-7
+                                    lg:mt-8
                                     lg:block
                                 "
                             >
                                 <div
                                     className="
                                         relative
-
                                         flex
-                                        h-[62px]
-                                        w-[62px]
+                                        h-[58px]
+                                        w-[58px]
                                         shrink-0
                                         items-center
                                         justify-center
-
                                         border
-                                        border-[#3A504A]
-
-                                        bg-[#222D2A]
-
-                                        text-[19px]
+                                        border-[#303A47]
+                                        bg-[#151B24]
+                                        font-sans!
+                                        text-[18px]
                                         font-semibold!
-                                        text-[#E4EBE9]
-
+                                        text-[#DCE1E7]!
+                                        sm:h-[62px]
+                                        sm:w-[62px]
+                                        sm:text-[19px]
                                         lg:h-[68px]
                                         lg:w-[68px]
+                                        lg:text-[20px]
                                     "
                                 >
                                     {userInitial ? (
@@ -245,33 +232,29 @@ const EditUserView = ({
                                     ) : isOrganization ? (
                                         <Building2
                                             size={23}
-                                            strokeWidth={1.5}
+                                            strokeWidth={1.55}
                                         />
                                     ) : (
                                         <UserRound
                                             size={23}
-                                            strokeWidth={1.5}
+                                            strokeWidth={1.55}
                                         />
                                     )}
 
                                     <span
                                         className="
                                             absolute
-                                            right-[-5px]
-                                            bottom-[-5px]
-
+                                            -right-[5px]
+                                            -bottom-[5px]
                                             flex
-                                            h-[20px]
-                                            w-[20px]
+                                            h-5
+                                            w-5
                                             items-center
                                             justify-center
-
                                             border-[3px]
-                                            border-[#191D21]
-
-                                            bg-[#30423D]
-
-                                            text-[#A9C0BA]
+                                            border-[#0E1219]
+                                            bg-[#1D2632]
+                                            text-[#AEB7C3]
                                         "
                                     >
                                         <PencilLine size={8} strokeWidth={2} />
@@ -281,21 +264,20 @@ const EditUserView = ({
                                 <div
                                     className="
                                         min-w-0
-
+                                        flex-1
                                         lg:mt-5
                                     "
                                 >
                                     <h2
                                         className="
                                             truncate
-
-                                            text-[18px]
+                                            font-sans!
+                                            text-[16px]
                                             font-semibold!
                                             leading-[1.35]
-                                            tracking-[-0.025em]
-
-                                            text-[#F1F3F3]!
-
+                                            tracking-[-0.02em]
+                                            text-[#EEF1F5]!
+                                            sm:text-[17px]
                                             lg:whitespace-normal
                                             lg:text-[19px]
                                         "
@@ -306,9 +288,14 @@ const EditUserView = ({
                                     <p
                                         className="
                                             mt-1.5
-
-                                            text-[12px]
-                                            text-[#7B858E]
+                                            truncate
+                                            font-sans!
+                                            text-[10.5px]
+                                            font-normal!
+                                            leading-5
+                                            text-[#8792A1]!
+                                            sm:text-[11px]
+                                            lg:mt-2
                                         "
                                     >
                                         {user.email}
@@ -322,92 +309,93 @@ const EditUserView = ({
 
                             <div
                                 className="
-                                    mt-6 pt-3
-
+                                    mt-6
                                     border-t
-                                    border-[#30363D]
+                                    border-[#252D38]
+                                    pt-5
+                                    sm:mt-7
+                                    sm:pt-6
+                                    lg:mt-8
+                                    lg:pt-7
                                 "
                             >
+                                <p
+                                    className="
+                                        font-sans!
+                                        text-[8.5px]
+                                        font-semibold!
+                                        uppercase
+                                        tracking-[0.14em]
+                                        text-[#697586]!
+                                        sm:text-[9px]
+                                    "
+                                >
+                                    Platform access
+                                </p>
 
-                                {/* status */}
-
-                                <div className="py-4">
-                                    <p
-                                        className="
-                                            text-[9px]
-                                            font-semibold!
-                                            uppercase
-                                            tracking-[0.14em]
-
-                                            text-[#5E6972]
-                                        "
-                                    >
-                                        Platform access
-                                    </p>
-
+                                <div
+                                    className="
+                                        mt-3.5
+                                        flex
+                                        items-center
+                                        justify-between
+                                        gap-4
+                                        sm:mt-4
+                                    "
+                                >
                                     <div
                                         className="
-                                            mt-3
-
                                             flex
+                                            min-w-0
                                             items-center
-                                            justify-between
-                                            gap-4
+                                            gap-2.5
                                         "
                                     >
-                                        <div
-                                            className="
-                                                flex
-                                                min-w-0
-                                                items-center
-                                                gap-2.5
-                                            "
-                                        >
-                                            <span
-                                                className={`
-                                                    h-2
-                                                    w-2
-                                                    shrink-0
-                                                    rounded-full
-
-                                                    ${
-                                                        user.status === 'active'
-                                                            ? 'bg-[#76A398]'
-                                                            : user.status ===
-                                                                'suspended'
-                                                              ? 'bg-[#B98572]'
-                                                              : 'bg-[#77818A]'
-                                                    }
-                                                `}
-                                            />
-
-                                            <span
-                                                className="
-                                                    truncate
-
-                                                    text-[12px]
-                                                    font-medium!
-                                                    text-[#C4C9CD]
-                                                "
-                                            >
-                                                {statusLabel}
-                                            </span>
-                                        </div>
+                                        <span
+                                            className={`
+                                                h-1.5
+                                                w-1.5
+                                                shrink-0
+                                                rounded-full
+                                                ${
+                                                    user.status === 'active'
+                                                        ? 'bg-[#6FA58A]'
+                                                        : user.status ===
+                                                            'suspended'
+                                                          ? 'bg-[#B88963]'
+                                                          : 'bg-[#697586]'
+                                                }
+                                            `}
+                                        />
 
                                         <span
                                             className="
-                                                shrink-0
-
-                                                text-[9px]
-                                                uppercase
-                                                tracking-[0.1em]
-
-                                                text-[#555F68]
+                                                truncate
+                                                font-sans!
+                                                text-[11px]
+                                                font-medium!
+                                                text-[#B8C0CA]!
+                                                sm:text-[11.5px]
                                             "
                                         >
-                                            Current
+                                            {statusLabel}
                                         </span>
                                     </div>
+
+                                    <span
+                                        className="
+                                            shrink-0
+                                            font-sans!
+                                            text-[8px]
+                                            font-medium!
+                                            uppercase
+                                            tracking-[0.11em]
+                                            text-[#5E6978]!
+                                            sm:text-[8.5px]
+                                        "
+                                    >
+                                        Current
+                                    </span>
                                 </div>
                             </div>
 
@@ -418,12 +406,11 @@ const EditUserView = ({
                             <div
                                 className="
                                     mt-6
-
                                     border-t
-                                    border-[#30363D]
-
+                                    border-[#252D38]
                                     pt-4
-
+                                    sm:mt-7
+                                    sm:pt-5
                                     lg:mt-auto
                                 "
                             >
@@ -432,24 +419,28 @@ const EditUserView = ({
                                         flex
                                         items-start
                                         gap-2.5
-
-                                        text-[9px]
-                                        leading-[1.6]
-
-                                        text-[#5F696F]
                                     "
                                 >
                                     <ShieldCheck
-                                        size={12}
+                                        size={13}
                                         strokeWidth={1.7}
                                         className="
                                             mt-0.5
                                             shrink-0
-                                            text-[#657C76]
+                                            text-[#697586]
                                         "
                                     />
 
-                                    <span>
+                                    <span
+                                        className="
+                                            font-sans!
+                                            text-[9px]
+                                            font-normal!
+                                            leading-[1.6]
+                                            text-[#5E6978]!
+                                            sm:text-[9.5px]
+                                        "
+                                    >
                                         Administrative account management
                                     </span>
                                 </div>
@@ -464,20 +455,15 @@ const EditUserView = ({
                     <main
                         className="
                             min-w-0
-
-                            bg-[#202429]
-
+                            bg-[#151A21]
                             px-5
-                            py-7
-
-                            sm:px-7
-                            sm:py-8
-
-                            lg:px-8
-                            lg:py-8
-
+                            py-6
+                            sm:px-6
+                            sm:py-7
+                            lg:px-9
+                            lg:py-9
                             xl:px-10
-
+                            xl:py-10
                             2xl:px-11
                         "
                     >
@@ -488,31 +474,33 @@ const EditUserView = ({
 
                             <div
                                 className="
-                                    mb-8
-
+                                    mb-7
                                     flex
                                     flex-col
                                     gap-3
-
                                     border-b
-                                    border-[#343A41]
-
+                                    border-[#252D38]
                                     pb-5
-
-                                    sm:flex-row
-                                    sm:items-end
-                                    sm:justify-between
+                                    sm:mb-8
+                                    sm:pb-6
+                                    md:flex-row
+                                    md:items-end
+                                    md:justify-between
+                                    md:gap-8
+                                    lg:mb-9
+                                    lg:pb-7
                                 "
                             >
-                                <div>
+                                <div className="min-w-0">
                                     <p
                                         className="
-                                            text-[9px]
+                                            font-sans!
+                                            text-[8.5px]
                                             font-semibold!
                                             uppercase
                                             tracking-[0.16em]
-
-                                            text-[#6C777F]
+                                            text-[#697586]!
+                                            sm:text-[9px]
                                         "
                                     >
                                         Account settings
@@ -521,12 +509,15 @@ const EditUserView = ({
                                     <h3
                                         className="
                                             mt-1.5
-
-                                            text-[17px]
+                                            font-sans!
+                                            text-[16px]
                                             font-semibold!
+                                            leading-[1.35]
                                             tracking-[-0.02em]
-
-                                            text-[#E9EBED]!
+                                            text-[#EEF1F5]!
+                                            sm:text-[17px]
+                                            lg:mt-2
+                                            lg:text-[18px]
                                         "
                                     >
                                         Edit account information
@@ -535,14 +526,15 @@ const EditUserView = ({
 
                                 <p
                                     className="
-                                        max-w-[360px]
-
+                                        max-w-[380px]
+                                        font-sans!
                                         text-[10px]
+                                        font-normal!
                                         leading-[1.65]
-
-                                        text-[#69737D]
-
-                                        sm:text-right
+                                        text-[#697586]!
+                                        sm:text-[10.5px]
+                                        md:text-right
+                                        lg:text-[11px]
                                     "
                                 >
                                     Update identity, contact details and

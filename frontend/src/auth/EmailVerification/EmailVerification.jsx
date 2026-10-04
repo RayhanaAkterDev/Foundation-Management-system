@@ -180,7 +180,7 @@ const EmailVerification = () => {
                             />
 
                             <div>
-                                <p className="text-sm font-medium text-slate-800">
+                                <p className="text-sm font-medium! text-slate-800">
                                     Check your inbox
                                 </p>
 
@@ -235,7 +235,7 @@ const EmailVerification = () => {
                         <div>
                             <label
                                 htmlFor="verification-email"
-                                className="mb-2 block text-sm font-medium text-slate-700"
+                                className="mb-2 block text-sm font-medium! text-slate-700"
                             >
                                 Email address
                             </label>
@@ -264,7 +264,7 @@ const EmailVerification = () => {
                         <div className="mt-4">
                             <label
                                 htmlFor="verification-role"
-                                className="mb-2 block text-sm font-medium text-slate-700"
+                                className="mb-2 block text-sm font-medium! text-slate-700"
                             >
                                 Account type
                             </label>
@@ -304,7 +304,7 @@ const EmailVerification = () => {
                         <button
                             type="submit"
                             disabled={isResending}
-                            className="mt-5 flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white! transition hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-12"
+                            className="mt-5 flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium! text-white! transition hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-12"
                         >
                             {isResending ? (
                                 <>
@@ -327,7 +327,7 @@ const EmailVerification = () => {
                     <div className="mt-5 text-center sm:mt-6">
                         <Link
                             to="/account"
-                            className="inline-flex min-h-10 items-center text-sm font-medium text-slate-500 transition hover:text-primary"
+                            className="inline-flex min-h-10 items-center text-sm font-medium! text-slate-500 transition hover:text-primary"
                         >
                             Back to Sign In
                         </Link>
@@ -408,7 +408,7 @@ const EmailVerification = () => {
                             px-5
                             py-2.5
                             text-sm
-                            font-medium
+                            font-medium!
                             text-white!
                             transition
                             hover:bg-primary-hover
@@ -441,7 +441,7 @@ const EmailVerification = () => {
                     <div className="mt-5 text-center sm:mt-6">
                         <Link
                             to="/account"
-                            className="inline-flex min-h-10 items-center text-sm font-medium text-slate-500 transition hover:text-primary"
+                            className="inline-flex min-h-10 items-center text-sm font-medium! text-slate-500 transition hover:text-primary"
                         >
                             Back to Sign In
                         </Link>
@@ -485,7 +485,7 @@ const EmailVerification = () => {
 
                     <Link
                         to="/account"
-                        className="mt-7 inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white! transition hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 sm:mt-8"
+                        className="mt-7 inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium! text-white! transition hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 sm:mt-8"
                     >
                         Continue to Sign In
                         <ArrowRight size={17} strokeWidth={1.8} />
@@ -524,7 +524,7 @@ const EmailVerification = () => {
 
                     <Link
                         to="/account"
-                        className="mt-7 inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white! transition hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 sm:mt-8"
+                        className="mt-7 inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium! text-white! transition hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 sm:mt-8"
                     >
                         Continue to Sign In
                         <ArrowRight size={17} strokeWidth={1.8} />
@@ -570,7 +570,7 @@ const EmailVerification = () => {
                         <div>
                             <label
                                 htmlFor="verification-email"
-                                className="mb-2 block text-sm font-medium text-slate-700"
+                                className="mb-2 block text-sm font-medium! text-slate-700"
                             >
                                 Email address
                             </label>
@@ -599,7 +599,7 @@ const EmailVerification = () => {
                         <div className="mt-4">
                             <label
                                 htmlFor="verification-role"
-                                className="mb-2 block text-sm font-medium text-slate-700"
+                                className="mb-2 block text-sm font-medium! text-slate-700"
                             >
                                 Account type
                             </label>
@@ -669,7 +669,7 @@ const EmailVerification = () => {
                         <button
                             type="submit"
                             disabled={isResending}
-                            className="mt-5 flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white! transition hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-12"
+                            className="mt-5 flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium! text-white! transition hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-12"
                         >
                             {isResending ? (
                                 <>
@@ -692,7 +692,7 @@ const EmailVerification = () => {
                     <div className="mt-5 text-center sm:mt-6">
                         <Link
                             to="/account"
-                            className="inline-flex min-h-10 items-center text-sm font-medium text-slate-500 transition hover:text-primary"
+                            className="inline-flex min-h-10 items-center text-sm font-medium! text-slate-500 transition hover:text-primary"
                         >
                             Back to Sign In
                         </Link>
@@ -736,7 +736,7 @@ const EmailVerification = () => {
 
                 <Link
                     to="/account"
-                    className="mt-7 inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 transition hover:border-primary hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 sm:mt-8"
+                    className="mt-7 inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-5 py-2.5 text-sm font-medium! text-slate-700 transition hover:border-primary hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 sm:mt-8"
                 >
                     Back to Sign In
                     <ArrowRight size={17} strokeWidth={1.8} />

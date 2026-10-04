@@ -403,7 +403,7 @@ const VolunteerForm = ({ focus }) => {
                                     </p>
 
                                     {user?.name && (
-                                        <p className="mt-4 font-bengali text-sm font-medium text-foreground">
+                                        <p className="mt-4 font-bengali text-sm font-medium! text-foreground">
                                             আবেদন করছেন:{' '}
                                             <span className="text-primary">
                                                 {user.name}

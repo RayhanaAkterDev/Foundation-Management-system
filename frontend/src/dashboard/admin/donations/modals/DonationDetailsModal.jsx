@@ -575,12 +575,12 @@ const UserView = ({ user }) => {
                         label="Email verification"
                         value={
                             user?.email_verified_at ? (
-                                <span className="inline-flex items-center gap-1.5 font-medium text-emerald-700">
+                                <span className="inline-flex items-center gap-1.5 font-medium! text-emerald-700">
                                     <CheckCircle2 size={15} />
                                     Verified
                                 </span>
                             ) : (
-                                <span className="font-medium text-amber-700">
+                                <span className="font-medium! text-amber-700">
                                     Unverified
                                 </span>
                             )
@@ -895,7 +895,7 @@ const InfoRow = ({ icon: Icon, label, value, emphasis = false }) => {
                     className={`mt-1.5 wrap-break-word ${
                         emphasis
                             ? 'text-base font-semibold text-text'
-                            : 'text-sm font-medium text-text'
+                            : 'text-sm font-medium! text-text'
                     }`}
                 >
                     {value !== null && value !== undefined && value !== ''

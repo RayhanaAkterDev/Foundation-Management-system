@@ -1460,7 +1460,7 @@ const HelpRequests = () => {
                             type="button"
                             onClick={handleExportCSV}
                             disabled={filteredHelpRequests.length === 0}
-                            className="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-white px-4 text-sm font-medium text-text-primary transition-colors hover:border-primary/30 hover:bg-background-alt disabled:cursor-not-allowed disabled:opacity-50"
+                            className="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-white px-4 text-sm font-medium! text-text-primary transition-colors hover:border-primary/30 hover:bg-background-alt disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             <Download size={16} />
                             Export
@@ -1545,7 +1545,7 @@ const HelpRequests = () => {
                                                     </span>
                                                 </div>
 
-                                                <p className="mt-1 truncate text-sm font-medium text-text-primary">
+                                                <p className="mt-1 truncate text-sm font-medium! text-text-primary">
                                                     {requestTitle}
                                                 </p>
 
@@ -1688,7 +1688,7 @@ const HelpRequests = () => {
                                                 value={searchTerm}
                                                 onChange={handleSearchChange}
                                                 placeholder="Search requests by title, requester or email..."
-                                                className="h-10 w-full border border-border bg-background pl-10 pr-4 text-[13px] font-medium text-text-primary outline-none transition-colors placeholder:text-text-secondary/70 hover:border-text-secondary/30 focus:border-primary/50 focus:bg-surface"
+                                                className="h-10 w-full border border-border bg-background pl-10 pr-4 text-[13px] font-medium! text-text-primary outline-none transition-colors placeholder:text-text-secondary/70 hover:border-text-secondary/30 focus:border-primary/50 focus:bg-surface"
                                             />
                                         </div>
                                     </div>
@@ -1701,7 +1701,7 @@ const HelpRequests = () => {
                                                 Directory
                                             </p>
 
-                                            <p className="mt-0.5 text-xs font-medium text-text-primary">
+                                            <p className="mt-0.5 text-xs font-medium! text-text-primary">
                                                 {filteredHelpRequests.length}{' '}
                                                 {filteredHelpRequests.length ===
                                                 1
@@ -1727,7 +1727,7 @@ const HelpRequests = () => {
                                     </p>
                                 </div>
 
-                                <span className="text-[11px] font-medium text-text-secondary">
+                                <span className="text-[11px] font-medium! text-text-secondary">
                                     Sorted by request
                                 </span>
                             </div>
@@ -1791,7 +1791,7 @@ const HelpRequests = () => {
                                         Request category
                                     </p>
 
-                                    <span className="text-[10px] font-medium tabular-nums text-white!/30">
+                                    <span className="text-[10px] font-medium! tabular-nums text-white!/30">
                                         {categoryTabs.length}
                                     </span>
                                 </div>
@@ -2126,7 +2126,7 @@ const WithdrawalReviewModal = ({
                                     Requested
                                 </p>
 
-                                <p className="mt-1 text-sm font-medium text-text-primary">
+                                <p className="mt-1 text-sm font-medium! text-text-primary">
                                     {formatDateTime(requestedAt)}
                                 </p>
                             </div>

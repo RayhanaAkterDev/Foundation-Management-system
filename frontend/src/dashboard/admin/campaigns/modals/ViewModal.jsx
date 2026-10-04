@@ -93,7 +93,7 @@ const TimelineItem = ({ date, title, description, last = false }) => (
         </div>
 
         <div className="pb-7">
-            <p className="mb-1 text-[10px] font-medium uppercase tracking-[0.08em] text-slate-400">
+            <p className="mb-1 text-[10px] font-medium! uppercase tracking-[0.08em] text-slate-400">
                 {date}
             </p>
 
@@ -341,7 +341,7 @@ const ViewModal = ({ campaign, loading, error, onClose }) => {
                                     <CircleAlert size={20} />
                                 </div>
 
-                                <p className="text-sm font-medium text-slate-800">
+                                <p className="text-sm font-medium! text-slate-800">
                                     Unable to load campaign
                                 </p>
 
@@ -423,7 +423,7 @@ const ViewModal = ({ campaign, loading, error, onClose }) => {
 
                                                 <span>
                                                     Scope:{' '}
-                                                    <span className="font-medium text-slate-700">
+                                                    <span className="font-medium! text-slate-700">
                                                         {formatValue(
                                                             campaign.scope,
                                                         )}
@@ -452,7 +452,7 @@ const ViewModal = ({ campaign, loading, error, onClose }) => {
                                                         </span>
                                                     </div>
 
-                                                    <span className="max-w-[55%] text-right text-[12px] font-medium text-slate-800">
+                                                    <span className="max-w-[55%] text-right text-[12px] font-medium! text-slate-800">
                                                         {formatValue(
                                                             campaign.district,
                                                         )}
@@ -471,7 +471,7 @@ const ViewModal = ({ campaign, loading, error, onClose }) => {
                                                         </span>
                                                     </div>
 
-                                                    <span className="max-w-[55%] text-right text-[12px] font-medium text-slate-800">
+                                                    <span className="max-w-[55%] text-right text-[12px] font-medium! text-slate-800">
                                                         {formatValue(
                                                             locationValue,
                                                         )}
@@ -490,7 +490,7 @@ const ViewModal = ({ campaign, loading, error, onClose }) => {
                                                         </span>
                                                     </div>
 
-                                                    <span className="max-w-[55%] text-right text-[12px] font-medium leading-5 text-slate-800">
+                                                    <span className="max-w-[55%] text-right text-[12px] font-medium! leading-5 text-slate-800">
                                                         {formatValue(
                                                             campaign.affected_areas,
                                                         )}
@@ -578,7 +578,7 @@ const ViewModal = ({ campaign, loading, error, onClose }) => {
 
                                         <div>
                                             <div className="mb-2.5 flex items-center justify-between">
-                                                <span className="text-[11px] font-medium text-slate-500">
+                                                <span className="text-[11px] font-medium! text-slate-500">
                                                     Funding progress
                                                 </span>
 
@@ -624,7 +624,7 @@ const ViewModal = ({ campaign, loading, error, onClose }) => {
                                                 </span>
                                             </div>
 
-                                            <span className="text-[11px] font-medium text-slate-700">
+                                            <span className="text-[11px] font-medium! text-slate-700">
                                                 {progressPercentage >= 100
                                                     ? 'Funding target reached'
                                                     : `${formatMoney(remainingAmount)} still needed`}
@@ -694,7 +694,7 @@ const ViewModal = ({ campaign, loading, error, onClose }) => {
                                                 Created
                                             </span>
 
-                                            <span className="text-right text-[11px] font-medium text-slate-700">
+                                            <span className="text-right text-[11px] font-medium! text-slate-700">
                                                 {formatDate(
                                                     campaign.created_at,
                                                 )}
@@ -706,7 +706,7 @@ const ViewModal = ({ campaign, loading, error, onClose }) => {
                                                 Updated
                                             </span>
 
-                                            <span className="text-right text-[11px] font-medium text-slate-700">
+                                            <span className="text-right text-[11px] font-medium! text-slate-700">
                                                 {formatDate(
                                                     campaign.updated_at,
                                                 )}
@@ -719,7 +719,7 @@ const ViewModal = ({ campaign, loading, error, onClose }) => {
                                                     Campaign ID
                                                 </span>
 
-                                                <span className="max-w-32.5 truncate text-right font-mono text-[10px] font-medium text-slate-700">
+                                                <span className="max-w-32.5 truncate text-right font-mono text-[10px] font-medium! text-slate-700">
                                                     #{campaign.id}
                                                 </span>
                                             </div>

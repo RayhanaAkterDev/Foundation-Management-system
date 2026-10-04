@@ -30,7 +30,7 @@ const createHelpRequestColumns = ({
                             {value || 'Untitled help request'}
                         </p>
 
-                        <span className="shrink-0 text-[10px] font-medium tracking-wide text-text-secondary/50">
+                        <span className="shrink-0 text-[10px] font-medium! tracking-wide text-text-secondary/50">
                             {row.formattedCreatedDate}
                         </span>
                     </div>
@@ -66,7 +66,7 @@ const createHelpRequestColumns = ({
                     </div>
 
                     {/* Location */}
-                    <div className="mt-2.5 flex min-w-0 items-center text-[11px] font-medium leading-4 text-text-secondary/70">
+                    <div className="mt-2.5 flex min-w-0 items-center text-[11px] font-medium! leading-4 text-text-secondary/70">
                         <span className="min-w-0 truncate">
                             {row.address && (
                                 <>
@@ -147,7 +147,7 @@ const createHelpRequestColumns = ({
                                 Awaiting response
                             </p>
 
-                            <p className="mt-1 text-[10px] font-medium leading-4 text-text-secondary/50">
+                            <p className="mt-1 text-[10px] font-medium! leading-4 text-text-secondary/50">
                                 Organization assignment
                             </p>
                         </div>
@@ -233,7 +233,7 @@ const createHelpRequestColumns = ({
                                 className="
                                     mt-0.5
                                     text-[10px]
-                                    font-medium
+                                    font-medium!
                                     leading-4
                                     text-text-secondary/50
                                     transition-colors
@@ -259,7 +259,7 @@ const createHelpRequestColumns = ({
              */
             return (
                 <div className="py-5">
-                    <span className="text-[11px] font-medium text-text-secondary/55">
+                    <span className="text-[11px] font-medium! text-text-secondary/55">
                         Not assigned
                     </span>
                 </div>

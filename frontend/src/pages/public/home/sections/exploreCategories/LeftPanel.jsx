@@ -93,7 +93,7 @@ const LeftPanel = ({ current, campaigns = [] }) => {
                                 className="
                                     font-bengali
                                     text-[11px]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.8]
                                     text-white/85!
                                 "
@@ -118,7 +118,7 @@ const LeftPanel = ({ current, campaigns = [] }) => {
                                     className="
                                         font-bengali!
                                         text-[1.65rem]!
-                                        font-medium!
+                                        font-medium!!
                                         leading-[1.45]!
                                         tracking-normal
                                         text-white!
@@ -180,7 +180,7 @@ const LeftPanel = ({ current, campaigns = [] }) => {
                                     className="
                                         font-bengali
                                         text-[11px]
-                                        font-medium
+                                        font-medium!
                                         leading-[1.8]
                                         text-text-secondary
                                     "
@@ -194,7 +194,7 @@ const LeftPanel = ({ current, campaigns = [] }) => {
                                     mt-1
                                     font-bengali
                                     text-sm
-                                    font-medium
+                                    font-medium!
                                     leading-[1.8]
                                     text-text-primary
                                 "
@@ -209,7 +209,7 @@ const LeftPanel = ({ current, campaigns = [] }) => {
                                 className="
                                     font-bengali
                                     text-[11px]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.8]
                                     text-text-secondary
                                 "
@@ -222,7 +222,7 @@ const LeftPanel = ({ current, campaigns = [] }) => {
                                     mt-1
                                     font-bengali
                                     text-sm
-                                    font-medium
+                                    font-medium!
                                     leading-[1.8]
                                     text-text-primary
                                 "
@@ -254,7 +254,7 @@ const LeftPanel = ({ current, campaigns = [] }) => {
                                 className="
                                     font-bengali
                                     text-[14px]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.9]
                                     text-primary
                                     sm:text-[15px]
@@ -336,7 +336,7 @@ const LeftPanel = ({ current, campaigns = [] }) => {
                                                     className="
                         font-bengali
                         text-[15px]
-                        font-medium
+                        font-medium!
                         leading-[2]
                         tracking-[-0.01em]
                         text-text-primary
@@ -383,7 +383,7 @@ const LeftPanel = ({ current, campaigns = [] }) => {
                                 pb-2
                                 font-bengali
                                 text-[13px]
-                                font-medium
+                                font-medium!
                                 leading-[1.8]
                                 text-primary
                                 transition-colors

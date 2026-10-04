@@ -302,7 +302,7 @@ const EditModalForm = ({
                                         }}
                                         disabled={loading}
                                         maxLength={255}
-                                        className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3.5 text-sm font-medium text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-primary focus:ring-4 focus:ring-primary/10 disabled:cursor-not-allowed disabled:bg-slate-100"
+                                        className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3.5 text-sm font-medium! text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-primary focus:ring-4 focus:ring-primary/10 disabled:cursor-not-allowed disabled:bg-slate-100"
                                     />
                                 </div>
 
@@ -316,7 +316,7 @@ const EditModalForm = ({
                                             Description
                                         </label>
 
-                                        <span className="text-[10px] font-medium tabular-nums text-slate-400">
+                                        <span className="text-[10px] font-medium! tabular-nums text-slate-400">
                                             {description.length}/1000
                                         </span>
                                     </div>
@@ -358,7 +358,7 @@ const EditModalForm = ({
                                                 clearValidationError();
                                             }}
                                             disabled={loading}
-                                            className="h-11 w-full appearance-none rounded-lg border border-slate-200 bg-white px-3.5 pr-10 text-sm font-medium text-slate-900 outline-none transition-all hover:border-slate-300 focus:border-primary focus:ring-4 focus:ring-primary/10 disabled:cursor-not-allowed disabled:bg-slate-100"
+                                            className="h-11 w-full appearance-none rounded-lg border border-slate-200 bg-white px-3.5 pr-10 text-sm font-medium! text-slate-900 outline-none transition-all hover:border-slate-300 focus:border-primary focus:ring-4 focus:ring-primary/10 disabled:cursor-not-allowed disabled:bg-slate-100"
                                         >
                                             <option value="">
                                                 Select category
@@ -535,7 +535,7 @@ const EditModalForm = ({
                                             }}
                                             disabled={loading}
                                             maxLength={255}
-                                            className="h-11 w-full rounded-lg border border-slate-200 bg-white pl-10 pr-3.5 text-sm font-medium text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-primary focus:ring-4 focus:ring-primary/10 disabled:cursor-not-allowed disabled:bg-slate-100"
+                                            className="h-11 w-full rounded-lg border border-slate-200 bg-white pl-10 pr-3.5 text-sm font-medium! text-slate-900 outline-none transition-all placeholder:text-slate-400 hover:border-slate-300 focus:border-primary focus:ring-4 focus:ring-primary/10 disabled:cursor-not-allowed disabled:bg-slate-100"
                                         />
                                     </div>
                                 </div>
@@ -580,7 +580,7 @@ const EditModalForm = ({
                             <div className="mt-7 flex items-start gap-3 border-l-2 border-red-500 bg-red-50 px-4 py-3">
                                 <div className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-red-500" />
 
-                                <p className="text-xs font-medium leading-5 text-red-700">
+                                <p className="text-xs font-medium! leading-5 text-red-700">
                                     {validationError || error}
                                 </p>
                             </div>

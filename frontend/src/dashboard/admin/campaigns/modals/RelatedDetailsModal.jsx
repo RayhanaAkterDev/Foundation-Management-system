@@ -47,7 +47,7 @@ const DetailItem = ({ label, value, icon: Icon }) => {
                     />
                 )}
 
-                <p className="text-sm font-medium leading-6 text-text-primary">
+                <p className="text-sm font-medium! leading-6 text-text-primary">
                     {value}
                 </p>
             </div>

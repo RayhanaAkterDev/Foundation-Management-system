@@ -63,7 +63,7 @@ const headingStyles = {
         md:text-[2.9rem]
         lg:text-[3rem]
         xl:text-[3.35rem]
-        font-medium
+        font-medium!
         leading-[1.14]
         sm:leading-[1.12]
         lg:leading-[1.1]
@@ -79,7 +79,7 @@ const headingStyles = {
         md:text-[2.5rem]
         lg:text-[2.65rem]
         xl:text-[3.15rem]
-        font-medium
+        font-medium!
         leading-[1.24]
         sm:leading-[1.2]
         lg:leading-[1.16]
@@ -96,7 +96,7 @@ const headingStyles = {
         md:text-[1.9rem]
         lg:text-[2rem]
         xl:text-[2.2rem]
-        font-medium
+        font-medium!
         leading-[1.3]
         text-text-primary
         tracking-[-0.004em]
@@ -107,7 +107,7 @@ const headingStyles = {
         sm:text-xl
         lg:text-[1.2rem]
         xl:text-[1.3rem]
-        font-medium
+        font-medium!
         leading-[1.45]
         text-text-primary
     `,
@@ -285,7 +285,7 @@ const SectionHeading = ({
             <HeadingTag
                 className={`
                     ${headingStyles[headingSize]}
-                    ${isEditorial ? 'font-medium !leading-[1.2]' : ''}
+                    ${isEditorial ? 'font-medium! !leading-[1.2]' : ''}
                     ${isEditorial && (badge || badges) ? 'mt-4 sm:mt-5' : ''}
                     ${headingClass}
                 `}

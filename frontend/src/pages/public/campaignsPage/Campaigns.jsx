@@ -324,7 +324,7 @@ const Campaigns = () => {
         max-w-[620px]
         font-bengali
         text-[2.7rem]
-        font-medium
+        font-medium!
         leading-[1.16]
         tracking-[-0.045em]
         text-text-primary

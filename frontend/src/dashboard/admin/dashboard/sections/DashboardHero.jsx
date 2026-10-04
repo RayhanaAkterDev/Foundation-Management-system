@@ -530,7 +530,7 @@ const DashboardHero = ({
                                                         {item.count}
                                                     </span>
 
-                                                    <span className="font-jost text-[10px] font-medium text-slate-400">
+                                                    <span className="font-jost text-[10px] font-medium! text-slate-400">
                                                         {item.suffix}
                                                     </span>
                                                 </div>

@@ -84,7 +84,7 @@ const StoriesPreview = () => {
                         className="shrink-0 text-primary"
                     />
 
-                    <span className="text-[11px] font-medium uppercase tracking-[0.14em]">
+                    <span className="text-[11px] font-medium! uppercase tracking-[0.14em]">
                         যাচাইকৃত কমিউনিটি অভিজ্ঞতা
                     </span>
                 </div>
@@ -94,7 +94,7 @@ const StoriesPreview = () => {
                         w-fit rounded-full
                         bg-primary/10
                         px-3 py-1
-                        text-[11px] font-medium
+                        text-[11px] font-medium!
                         text-primary
                     "
                 >
@@ -120,7 +120,7 @@ const StoriesPreview = () => {
                     <p
                         className="
                             max-w-4xl
-                            text-lg font-medium
+                            text-lg font-medium!
                             leading-8 text-text-primary
                             sm:text-xl
                         "

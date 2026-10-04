@@ -70,7 +70,7 @@ const UnderstandingDiagram = () => {
                             items-center
                             gap-2
                             text-[0.7rem]
-                            font-medium
+                            font-medium!
                             text-primary
                         "
                     >
@@ -83,7 +83,7 @@ const UnderstandingDiagram = () => {
                     className="
                         mt-5
                         text-[1.05rem]
-                        font-medium
+                        font-medium!
                         leading-[1.75]
 
                         sm:text-[1.15rem]

@@ -180,7 +180,7 @@ const DonationTable = ({
 
                     <span className="min-w-0">
                       <span
-                        className={`block truncate text-sm font-medium ${
+                        className={`block truncate text-sm font-medium! ${
                           hasCampaign
                             ? "text-text group-hover/campaign:text-primary"
                             : "text-text-secondary"
@@ -205,7 +205,7 @@ const DonationTable = ({
                 </td>
 
                 <td className="px-4 py-4">
-                  <span className="inline-flex items-center gap-1.5 text-xs font-medium text-text-secondary">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-medium! text-text-secondary">
                     <CreditCard size={14} strokeWidth={1.7} />
 
                     {formatPayment(
@@ -215,7 +215,7 @@ const DonationTable = ({
                 </td>
 
                 <td className="px-4 py-4">
-                  <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-xs font-medium text-text-secondary">
+                  <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-xs font-medium! text-text-secondary">
                     <CalendarDays size={14} strokeWidth={1.7} />
 
                     {formatDate(donation.created_at)}

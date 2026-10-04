@@ -43,7 +43,7 @@ const AdminLink = ({ icon: Icon, title, description, index, onClick }) => {
                     pt-1
                     font-poppins
                     text-[8px]
-                    font-medium
+                    font-medium!
                     tracking-widest
                     text-text-secondary/65
                     transition-colors

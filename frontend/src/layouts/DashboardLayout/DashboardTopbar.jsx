@@ -169,15 +169,15 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                 z-30
 
                 border-b
-                border-[#343944]
+                border-[#252D38]
 
-                bg-[#1F2229]
+                bg-[#0E1219]
             "
         >
             <div
                 className="
                     flex
-                    min-h-16
+                    min-h-20
                     items-center
                     justify-between
                     gap-4
@@ -214,18 +214,18 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                             rounded-md
 
                             border
-                            border-[#343944]
+                            border-[#29323E]
 
-                            bg-[#272B34]
+                            bg-[#141922]
 
-                            !text-[#969EAC]
+                            !text-[#7F8998]
 
                             transition-colors
                             duration-150
 
-                            hover:border-[#404754]
-                            hover:bg-[#2C303A]
-                            hover:!text-[#F1F2F4]
+                            hover:border-[#36414F]
+                            hover:bg-[#181F28]
+                            hover:!text-[#F1F3F5]
 
                             focus:outline-none
 
@@ -253,7 +253,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                     uppercase
                                     tracking-[0.18em]
 
-                                    !text-[#9299A6]
+                                    !text-[#8792A1]
                                 "
                             >
                                 {roleLabel}
@@ -263,7 +263,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                 className="
                                     h-px
                                     w-5
-                                    bg-[#404754]
+                                    bg-[#303A47]
                                 "
                             />
 
@@ -274,7 +274,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                     uppercase
                                     tracking-[0.18em]
 
-                                    !text-[#6F7785]
+                                    !text-[#657184]
                                 "
                             >
                                 SP
@@ -293,7 +293,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                 leading-5
                                 tracking-[-0.015em]
 
-                                !text-[#F1F2F4]
+                                !text-[#EEF1F5]
 
                                 sm:max-w-125
                                 sm:text-[19px]
@@ -330,13 +330,13 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
 
                             rounded-md
 
-                            !text-[#969EAC]
+                            !text-[#7F8998]
 
                             transition-colors
                             duration-150
 
-                            hover:bg-[#2C303A]
-                            hover:!text-[#F1F2F4]
+                            hover:bg-[#181F28]
+                            hover:!text-[#F1F3F5]
 
                             focus:outline-none
                         "
@@ -357,7 +357,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                 bg-[#E6A15C]
 
                                 ring-2
-                                ring-[#1F2229]
+                                ring-[#0E1219]
                             "
                         />
                     </button>
@@ -367,7 +367,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                             hidden
                             h-6
                             w-px
-                            bg-[#343944]
+                            bg-[#252D38]
 
                             sm:block
                         "
@@ -399,7 +399,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                 transition-colors
                                 duration-150
 
-                                hover:bg-[#2C303A]
+                                hover:bg-[#181F28]
 
                                 focus:outline-none
                             "
@@ -417,19 +417,19 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                     rounded-md
 
                                     border
-                                    border-[#404754]
+                                    border-[#303A47]
 
-                                    bg-[#303641]
+                                    bg-[#1B222C]
 
                                     text-[10px]
                                     font-semibold
 
-                                    !text-[#F1F2F4]
+                                    !text-[#F1F3F5]
 
                                     transition-colors
                                     duration-150
 
-                                    group-hover:border-[#505866]
+                                    group-hover:border-[#414D5C]
                                 "
                             >
                                 {userAvatar ? (
@@ -469,7 +469,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                         font-semibold
                                         leading-4
 
-                                        !text-[#E5E7EB]
+                                        !text-[#E8EBEF]
                                     "
                                 >
                                     {userName}
@@ -482,10 +482,10 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                         truncate
 
                                         text-[9.5px]
-                                        font-medium
+                                        font-medium!
                                         leading-3
 
-                                        !text-[#9299A6]
+                                        !text-[#7F8998]
                                     "
                                 >
                                     {roleLabel}
@@ -497,18 +497,20 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                 strokeWidth={1.8}
                                 className={`
                                     hidden
-                                    !text-[#6F7785]
+                                    !text-[#657184]
 
                                     transition-transform
                                     duration-200
 
                                     sm:block
 
+                                    group-hover:!text-[#B8C0CC]
+
                                     ${
                                         userMenuOpen
                                             ? `
                                                 rotate-180
-                                                !text-[#C3C7CF]
+                                                !text-[#B8C0CC]
                                             `
                                             : ''
                                     }
@@ -543,7 +545,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                     className="
                                         absolute
                                         right-0
-                                        top-[calc(100%+10px)]
+                                        top-[calc(100%+20px)]
                                         z-50
 
                                         w-[min(320px,calc(100vw-24px))]
@@ -553,11 +555,11 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                         rounded-xl
 
                                         border
-                                        border-[#343944]
+                                        border-[#29323E]
 
-                                        bg-[#272B34]
+                                        bg-[#141922]
 
-                                        shadow-[0_18px_55px_rgba(7,8,11,0.28)]
+                                        shadow-[0_18px_55px_rgba(0,0,0,0.38)]
                                     "
                                 >
                                     {/* =====================================
@@ -571,9 +573,9 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                             gap-3
 
                                             border-b
-                                            border-[#343944]
+                                            border-[#252D38]
 
-                                            bg-[#24272F]
+                                            bg-[#11161E]
 
                                             px-4
                                             py-4
@@ -592,14 +594,14 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                                 rounded-lg
 
                                                 border
-                                                border-[#404754]
+                                                border-[#303A47]
 
-                                                bg-[#303641]
+                                                bg-[#1B222C]
 
                                                 text-[11px]
                                                 font-semibold
 
-                                                !text-[#F1F2F4]
+                                                !text-[#F1F3F5]
                                             "
                                         >
                                             {userAvatar ? (
@@ -621,9 +623,11 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                             <p
                                                 className="
                                                     truncate
+
                                                     text-[13px]
                                                     font-semibold
-                                                    !text-[#F1F2F4]
+
+                                                    !text-[#F1F3F5]
                                                 "
                                             >
                                                 {userName}
@@ -633,8 +637,10 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                                 className="
                                                     mt-0.5
                                                     truncate
+
                                                     text-[10px]
-                                                    !text-[#9299A6]
+
+                                                    !text-[#7F8998]
                                                 "
                                             >
                                                 {userEmail || 'Account'}
@@ -643,11 +649,13 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                             <p
                                                 className="
                                                     mt-1
+
                                                     text-[8.5px]
                                                     font-semibold
                                                     uppercase
                                                     tracking-[0.14em]
-                                                    !text-[#6F7785]
+
+                                                    !text-[#657184]
                                                 "
                                             >
                                                 {roleLabel}
@@ -670,7 +678,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                                 uppercase
                                                 tracking-[0.14em]
 
-                                                !text-[#6F7785]
+                                                !text-[#657184]
                                             "
                                         >
                                             Quick access
@@ -699,29 +707,29 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                                             transition-colors
                                                             duration-150
 
-                                                            hover:bg-[#303641]
+                                                            hover:bg-[#1B222C]
                                                         "
                                                     >
                                                         <Icon
                                                             size={16}
                                                             strokeWidth={1.75}
                                                             className="
-                                                                !text-[#969EAC]
+                                                                !text-[#7F8998]
 
                                                                 transition-colors
 
-                                                                group-hover:!text-[#D3D6DC]
+                                                                group-hover:!text-[#CDD3DB]
                                                             "
                                                         />
 
                                                         <span
                                                             className="
                                                                 text-[11px]
-                                                                font-medium
+                                                                font-medium!
 
-                                                                !text-[#C3C7CF]
+                                                                !text-[#B8C0CC]
 
-                                                                group-hover:!text-[#F1F2F4]
+                                                                group-hover:!text-[#F1F3F5]
                                                             "
                                                         >
                                                             {label}
@@ -739,7 +747,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                     <div
                                         className="
                                             border-t
-                                            border-[#343944]
+                                            border-[#252D38]
 
                                             p-3
                                         "
@@ -784,7 +792,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                             <span
                                                 className="
                                                     text-[11px]
-                                                    font-medium
+                                                    font-medium!
 
                                                     !text-[#CBA2A7]
 

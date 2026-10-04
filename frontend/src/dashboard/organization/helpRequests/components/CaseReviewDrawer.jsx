@@ -142,7 +142,7 @@ const EditCasePanel = ({
         <div className="mt-5 rounded-xl border border-[#d9e3e0] bg-[#f8faf9] p-4">
             <div className="grid grid-cols-2 gap-3">
                 <div>
-                    <label className="mb-2 block text-[10px] font-medium text-[#64777b]">
+                    <label className="mb-2 block text-[10px] font-medium! text-[#64777b]">
                         Category
                     </label>
 
@@ -162,7 +162,7 @@ const EditCasePanel = ({
                 </div>
 
                 <div>
-                    <label className="mb-2 block text-[10px] font-medium text-[#64777b]">
+                    <label className="mb-2 block text-[10px] font-medium! text-[#64777b]">
                         Priority
                     </label>
 

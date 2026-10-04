@@ -142,7 +142,7 @@ const IndividualNotifications = () => {
                                 type="button"
                                 onClick={handleMarkAllAsRead}
                                 disabled={markingAllRead}
-                                className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-60"
+                                className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium! text-primary transition-colors hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-60"
                             >
                                 {markingAllRead ? (
                                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -176,7 +176,7 @@ const IndividualNotifications = () => {
 
                                 <div className="min-w-0 flex-1">
                                     <p
-                                        className={`text-sm font-medium ${
+                                        className={`text-sm font-medium! ${
                                             !notification.read
                                                 ? 'text-text-primary'
                                                 : 'text-[#6b7280]'
@@ -202,7 +202,7 @@ const IndividualNotifications = () => {
                                         onClick={() =>
                                             handleMarkAsRead(notification.id)
                                         }
-                                        className="shrink-0 rounded-lg px-2.5 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/5"
+                                        className="shrink-0 rounded-lg px-2.5 py-1.5 text-xs font-medium! text-primary transition-colors hover:bg-primary/5"
                                     >
                                         Mark as read
                                     </button>

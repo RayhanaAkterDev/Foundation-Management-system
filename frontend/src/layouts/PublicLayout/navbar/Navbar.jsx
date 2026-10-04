@@ -427,7 +427,7 @@ const Navbar = () => {
 
                                 font-bengali
                                 text-[14px]
-                                font-medium!
+                                font-medium!!
                                 leading-none
                                 text-text-primary!
 
@@ -469,7 +469,7 @@ const Navbar = () => {
 
                                     font-bengali
                                     text-[15px]
-                                    font-medium!
+                                    font-medium!!
                                     leading-none
 
                                     text-text-body
@@ -529,7 +529,7 @@ const Navbar = () => {
 
                                         font-bengali
                                         text-[14px]
-                                        font-medium!
+                                        font-medium!!
                                         leading-none
 
                                         transition-colors
@@ -665,7 +665,7 @@ const Navbar = () => {
 
                                                         font-bengali
                                                         text-[14px]
-                                                        font-medium!
+                                                        font-medium!!
                                                         leading-normal
 
                                                         text-text-primary
@@ -711,7 +711,7 @@ const Navbar = () => {
 
                                                     font-bengali
                                                     text-[13px]
-                                                    font-medium!
+                                                    font-medium!!
 
                                                     text-text-body
 
@@ -752,7 +752,7 @@ const Navbar = () => {
 
                                                     font-bengali
                                                     text-[13px]
-                                                    font-medium!
+                                                    font-medium!!
 
                                                     text-text-secondary
 
@@ -1014,7 +1014,7 @@ const Navbar = () => {
 
                                                     font-bengali
                                                     text-[14px]
-                                                    font-medium!
+                                                    font-medium!!
                                                     leading-normal
 
                                                     text-text-primary
@@ -1053,7 +1053,7 @@ const Navbar = () => {
                                             className="
                                                 font-bengali
                                                 text-[12px]
-                                                font-medium!
+                                                font-medium!!
 
                                                 text-primary
 
@@ -1081,7 +1081,7 @@ const Navbar = () => {
                                             className="
                                                 font-bengali
                                                 text-[12px]
-                                                font-medium!
+                                                font-medium!!
 
                                                 text-text-secondary
 
@@ -1115,7 +1115,7 @@ const Navbar = () => {
 
                                         font-bengali
                                         text-[15px]
-                                        font-medium!
+                                        font-medium!!
 
                                         text-text-primary!
 
@@ -1156,7 +1156,7 @@ const Navbar = () => {
 
                                         font-bengali
                                         text-[14px]
-                                        font-medium!
+                                        font-medium!!
 
                                         text-text-primary
 
@@ -1185,7 +1185,7 @@ const Navbar = () => {
 
                                         font-bengali
                                         text-[14px]
-                                        font-medium!
+                                        font-medium!!
 
                                         text-text-primary!
 
@@ -1367,7 +1367,7 @@ const Navbar = () => {
                                 font-bengali
 
                                 text-[20px]
-                                font-medium!
+                                font-medium!!
                                 leading-normal
 
                                 text-text-primary

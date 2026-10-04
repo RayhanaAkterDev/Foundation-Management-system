@@ -5,98 +5,118 @@ import React from 'react';
 ============================================================================ */
 
 const STATUS_MAP = {
+    /* ======================================================================
+       POSITIVE / SUCCESS
+    ====================================================================== */
+
     active: {
         label: 'Active',
-        bg: 'bg-[#22362D]',
-        border: 'border-[#315140]',
-        text: 'text-[#91C9A7]!',
-        dot: 'bg-[#75B88F]',
+        bg: 'bg-[#14231D]',
+        border: 'border-[#294438]',
+        text: 'text-[#8EC5A3]!',
+        dot: 'bg-[#6FAE87]',
     },
 
     approved: {
         label: 'Approved',
-        bg: 'bg-[#22362D]',
-        border: 'border-[#315140]',
-        text: 'text-[#91C9A7]!',
-        dot: 'bg-[#75B88F]',
+        bg: 'bg-[#14231D]',
+        border: 'border-[#294438]',
+        text: 'text-[#8EC5A3]!',
+        dot: 'bg-[#6FAE87]',
     },
 
     completed: {
         label: 'Completed',
-        bg: 'bg-[#22362D]',
-        border: 'border-[#315140]',
-        text: 'text-[#91C9A7]!',
-        dot: 'bg-[#75B88F]',
+        bg: 'bg-[#14231D]',
+        border: 'border-[#294438]',
+        text: 'text-[#8EC5A3]!',
+        dot: 'bg-[#6FAE87]',
     },
 
     verified: {
         label: 'Verified',
-        bg: 'bg-[#22362D]',
-        border: 'border-[#315140]',
-        text: 'text-[#91C9A7]!',
-        dot: 'bg-[#75B88F]',
+        bg: 'bg-[#14231D]',
+        border: 'border-[#294438]',
+        text: 'text-[#8EC5A3]!',
+        dot: 'bg-[#6FAE87]',
     },
+
+    /* ======================================================================
+       INFORMATION / PROGRESS
+    ====================================================================== */
 
     in_progress: {
         label: 'In Progress',
-        bg: 'bg-[#252F3B]',
-        border: 'border-[#35465A]',
-        text: 'text-[#9DB8D4]!',
-        dot: 'bg-[#7EA2C7]',
+        bg: 'bg-[#151E28]',
+        border: 'border-[#2B3C4E]',
+        text: 'text-[#91ABC5]!',
+        dot: 'bg-[#7294B5]',
     },
+
+    /* ======================================================================
+       WARNING / WAITING
+    ====================================================================== */
 
     pending: {
         label: 'Pending',
-        bg: 'bg-[#382F23]',
-        border: 'border-[#56452C]',
-        text: 'text-[#D8B278]!',
-        dot: 'bg-[#D39A4A]',
+        bg: 'bg-[#241E15]',
+        border: 'border-[#443723]',
+        text: 'text-[#D0AA70]!',
+        dot: 'bg-[#C28E45]',
     },
 
     under_review: {
         label: 'Under Review',
-        bg: 'bg-[#382F23]',
-        border: 'border-[#56452C]',
-        text: 'text-[#D8B278]!',
-        dot: 'bg-[#D39A4A]',
+        bg: 'bg-[#241E15]',
+        border: 'border-[#443723]',
+        text: 'text-[#D0AA70]!',
+        dot: 'bg-[#C28E45]',
     },
 
     upcoming: {
         label: 'Upcoming',
-        bg: 'bg-[#382F23]',
-        border: 'border-[#56452C]',
-        text: 'text-[#D8B278]!',
-        dot: 'bg-[#D39A4A]',
+        bg: 'bg-[#241E15]',
+        border: 'border-[#443723]',
+        text: 'text-[#D0AA70]!',
+        dot: 'bg-[#C28E45]',
     },
+
+    /* ======================================================================
+       NEUTRAL / INACTIVE
+    ====================================================================== */
 
     inactive: {
         label: 'Inactive',
-        bg: 'bg-[#2C3038]',
-        border: 'border-[#404650]',
-        text: 'text-[#969DA9]!',
-        dot: 'bg-[#737B88]',
+        bg: 'bg-[#151B24]',
+        border: 'border-[#29323E]',
+        text: 'text-[#8792A1]!',
+        dot: 'bg-[#657181]',
     },
 
     unverified: {
         label: 'Unverified',
-        bg: 'bg-[#2C3038]',
-        border: 'border-[#404650]',
-        text: 'text-[#969DA9]!',
-        dot: 'bg-[#737B88]',
+        bg: 'bg-[#151B24]',
+        border: 'border-[#29323E]',
+        text: 'text-[#8792A1]!',
+        dot: 'bg-[#657181]',
     },
+
+    /* ======================================================================
+       NEGATIVE / RESTRICTED
+    ====================================================================== */
 
     suspended: {
         label: 'Suspended',
-        bg: 'bg-[#38272C]',
-        border: 'border-[#54353C]',
+        bg: 'bg-[#281A1F]',
+        border: 'border-[#493038]',
         text: 'text-[#D99A9F]!',
         dot: 'bg-[#C8737B]',
     },
 
     cancelled: {
         label: 'Cancelled',
-        bg: 'bg-[#38272C]',
-        border: 'border-[#54353C]',
+        bg: 'bg-[#281A1F]',
+        border: 'border-[#493038]',
         text: 'text-[#D99A9F]!',
         dot: 'bg-[#C8737B]',
     },
@@ -114,10 +134,10 @@ const StatusBadge = ({ status, showDot = true }) => {
 
     const config = STATUS_MAP[key] || {
         label: status || '—',
-        bg: 'bg-[#2C3038]',
-        border: 'border-[#404650]',
-        text: 'text-[#969DA9]!',
-        dot: 'bg-[#737B88]',
+        bg: 'bg-[#151B24]',
+        border: 'border-[#29323E]',
+        text: 'text-[#8792A1]!',
+        dot: 'bg-[#657181]',
     };
 
     return (
@@ -135,7 +155,7 @@ const StatusBadge = ({ status, showDot = true }) => {
                 px-2
 
                 text-[10px]
-                font-semibold
+                font-semibold!
                 leading-none
 
                 whitespace-nowrap

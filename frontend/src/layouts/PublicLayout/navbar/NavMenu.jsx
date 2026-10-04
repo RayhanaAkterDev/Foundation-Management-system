@@ -88,7 +88,7 @@ const NavMenu = ({ mobile = false, onClose, activeMenu, setActiveMenu }) => {
                                         className={`
                                             font-bengali
                                             text-[16px]
-                                            font-medium!
+                                            font-medium!!
                                             leading-[1.5]
 
                                             transition-colors
@@ -153,7 +153,7 @@ const NavMenu = ({ mobile = false, onClose, activeMenu, setActiveMenu }) => {
 
                                                             font-bengali
                                                             text-[11px]
-                                                            font-medium!
+                                                            font-medium!!
                                                             leading-[1.5]
                                                             text-text-muted
                                                         "
@@ -206,7 +206,7 @@ const NavMenu = ({ mobile = false, onClose, activeMenu, setActiveMenu }) => {
 
                                                                             font-bengali
                                                                             text-[13.5px]
-                                                                            font-medium!
+                                                                            font-medium!!
                                                                             leading-[1.55]
 
                                                                             transition-colors
@@ -345,7 +345,7 @@ const NavMenu = ({ mobile = false, onClose, activeMenu, setActiveMenu }) => {
                                     gap-1.5
                                     font-bengali
                                     text-[15px]
-                                    font-medium!
+                                    font-medium!!
                                     leading-none
                                     transition-colors
                                     duration-200

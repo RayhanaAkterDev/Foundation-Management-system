@@ -54,7 +54,7 @@ const DeleteModal = ({ request, loading, error, onClose, onConfirm }) => {
                     </p>
 
                     <div className="mt-4 border border-border bg-background-alt px-4 py-3">
-                        <p className="text-xs font-medium text-text-secondary">
+                        <p className="text-xs font-medium! text-text-secondary">
                             Request
                         </p>
 

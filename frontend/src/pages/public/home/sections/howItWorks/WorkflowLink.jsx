@@ -29,7 +29,7 @@ const WorkflowLink = () => {
                     gap-3
                     font-bengali
                     text-[15px]
-                    font-medium
+                    font-medium!
                     leading-[1.7]
                     text-text-secondary
                     transition-colors

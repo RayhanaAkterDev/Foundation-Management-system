@@ -80,11 +80,11 @@ const HelpRequestPagination = ({
 
                     <p className="hidden text-[11px] text-text-secondary sm:block">
                         Page{' '}
-                        <span className="font-medium text-text-primary">
+                        <span className="font-medium! text-text-primary">
                             {currentPage}
                         </span>{' '}
                         of{' '}
-                        <span className="font-medium text-text-primary">
+                        <span className="font-medium! text-text-primary">
                             {totalPages}
                         </span>
                     </p>

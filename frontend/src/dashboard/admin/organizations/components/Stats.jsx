@@ -87,7 +87,7 @@ const Stats = ({ total, verified, pending, rejected }) => {
                                 {totalCount}
                             </span>
 
-                            <span className="text-[10px] font-medium text-text-secondary sm:text-[11px]">
+                            <span className="text-[10px] font-medium! text-text-secondary sm:text-[11px]">
                                 organizations
                             </span>
                         </div>
@@ -261,7 +261,7 @@ const StatusRow = ({
             </div>
 
             <div className="flex shrink-0 items-center gap-2.5 sm:gap-3">
-                <span className="text-[9px] font-medium text-text-secondary sm:text-[10px]">
+                <span className="text-[9px] font-medium! text-text-secondary sm:text-[10px]">
                     {percentage}%
                 </span>
 

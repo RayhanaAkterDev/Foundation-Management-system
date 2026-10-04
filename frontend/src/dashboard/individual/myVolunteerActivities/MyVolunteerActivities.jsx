@@ -189,11 +189,11 @@ const CampaignAssignmentRequest = ({
                     </div>
 
                     <div className="min-w-0">
-                        <p className="text-xs font-medium text-slate-400">
+                        <p className="text-xs font-medium! text-slate-400">
                             Location
                         </p>
 
-                        <p className="mt-1 text-sm font-medium text-slate-700">
+                        <p className="mt-1 text-sm font-medium! text-slate-700">
                             {getCampaignLocation(campaign)}
                         </p>
                     </div>
@@ -205,11 +205,11 @@ const CampaignAssignmentRequest = ({
                     </div>
 
                     <div>
-                        <p className="text-xs font-medium text-slate-400">
+                        <p className="text-xs font-medium! text-slate-400">
                             Assigned
                         </p>
 
-                        <p className="mt-1 text-sm font-medium text-slate-700">
+                        <p className="mt-1 text-sm font-medium! text-slate-700">
                             {formatDate(assignment?.assigned_at)}
                         </p>
                     </div>
@@ -217,7 +217,7 @@ const CampaignAssignmentRequest = ({
 
                 {assignment?.assignment_note && (
                     <div className="sm:col-span-2 lg:col-span-1">
-                        <p className="text-xs font-medium text-slate-400">
+                        <p className="text-xs font-medium! text-slate-400">
                             Assignment Note
                         </p>
 
@@ -1158,7 +1158,7 @@ const MyVolunteerActivities = () => {
                     if (row?.status === 'rejected') {
                         return (
                             <div className="min-w-[130px]">
-                                <p className="text-sm font-medium text-red-700">
+                                <p className="text-sm font-medium! text-red-700">
                                     Declined
                                 </p>
 
@@ -1184,7 +1184,7 @@ const MyVolunteerActivities = () => {
                         ].includes(row?.status)
                     ) {
                         return (
-                            <span className="whitespace-nowrap text-sm font-medium text-emerald-700">
+                            <span className="whitespace-nowrap text-sm font-medium! text-emerald-700">
                                 Accepted
                             </span>
                         );
@@ -1247,13 +1247,13 @@ const MyVolunteerActivities = () => {
             />
 
             {error && (
-                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium! text-red-700">
                     {error}
                 </div>
             )}
 
             {requestMessage && (
-                <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium! text-emerald-700">
                     {requestMessage}
                 </div>
             )}
@@ -1352,7 +1352,7 @@ const MyVolunteerActivities = () => {
                                     </p>
                                 </div>
 
-                                <span className="text-sm font-medium text-slate-400">
+                                <span className="text-sm font-medium! text-slate-400">
                                     {pendingAssignments.length} pending
                                 </span>
                             </div>
@@ -1525,7 +1525,7 @@ const MyVolunteerActivities = () => {
 
                                                 {assignment?.status ===
                                                     'withdrawal_requested' && (
-                                                    <div className="flex w-full items-center gap-2 rounded-xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm font-medium text-orange-700">
+                                                    <div className="flex w-full items-center gap-2 rounded-xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm font-medium! text-orange-700">
                                                         <Clock3 className="h-4 w-4 shrink-0" />
                                                         Your withdrawal request
                                                         is awaiting admin

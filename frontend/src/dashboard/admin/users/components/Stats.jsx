@@ -1,9 +1,10 @@
 import React from 'react';
+
 import { Building2, ShieldCheck, UserRound, Users } from 'lucide-react';
 
-// ============================================================
-// STAT ITEM
-// ============================================================
+/* ==========================================================================
+   STAT ITEM
+============================================================================ */
 
 const StatItem = ({
     icon: Icon,
@@ -18,19 +19,36 @@ const StatItem = ({
                 group
                 relative
                 min-w-0
-                px-4
-                py-4
 
-                sm:px-5
-                sm:py-5
+                px-5
+                py-5
+
+                transition-colors
+                duration-200
+                ease-out
+
+                sm:px-6
+                sm:py-6
 
                 lg:px-6
-                lg:py-5
+                lg:py-6
 
-                ${featured ? 'bg-[#272B34]' : 'bg-[#22252D]'}
+                ${
+                    featured
+                        ? `
+                            bg-[#171E28]
+                            hover:bg-[#1A222D]
+                        `
+                        : `
+                            bg-[#0E1219]
+                            hover:bg-[#1A222D]
+                        `
+                }
             `}
         >
-            {/* subtle active edge */}
+            {/* =========================================================
+                FEATURED EDGE
+            ========================================================= */}
 
             {featured && (
                 <span
@@ -40,46 +58,48 @@ const StatItem = ({
                         inset-x-0
                         top-0
                         h-px
-                        bg-[#9299A6]
+                        bg-[#697586]
                     "
                 />
             )}
 
-            <div
-                className="
-                    flex
-                    items-start
-                    justify-between
-                    gap-4
-                "
-            >
-                {/* Content */}
+            <div className="flex items-start justify-between gap-5">
+                {/* =====================================================
+                    CONTENT
+                ===================================================== */}
 
                 <div className="min-w-0">
-                    <div
-                        className="
-                            flex
-                            items-center
-                            gap-2
-                        "
-                    >
+                    <div className="flex items-center gap-2.5">
                         <Icon
                             size={15}
                             strokeWidth={1.7}
                             className="
                                 shrink-0
-                                text-[#969EAC]
+                                text-[#7F8A99]
+
+                                transition-colors
+                                duration-200
+
+                                group-hover:text-[#A5AFBB]
                             "
                         />
 
                         <p
                             className="
                                 truncate
+
+                                font-sans!
                                 text-[10px]
-                                font-semibold
+                                font-semibold!
                                 uppercase
                                 tracking-[0.13em]
-                                text-[#9299A6]
+
+                                text-[#8792A1]
+
+                                transition-colors
+                                duration-200
+
+                                group-hover:text-[#AAB3BF]
 
                                 sm:text-[11px]
                             "
@@ -88,22 +108,21 @@ const StatItem = ({
                         </p>
                     </div>
 
-                    <div
-                        className="
-                            mt-4
-                            flex
-                            items-end
-                            gap-2
-                        "
-                    >
+                    {/* =================================================
+                        VALUE
+                    ================================================= */}
+
+                    <div className="mt-5 flex items-end gap-2">
                         <span
                             className="
-                                font-[Poppins]
+                                font-sans!
+
                                 text-[28px]
-                                font-semibold
+                                font-semibold!
                                 leading-none
                                 tracking-[-0.035em]
-                                text-[#F1F2F4]
+
+                                text-[#EEF1F5]
 
                                 sm:text-[31px]
                                 lg:text-[34px]
@@ -115,9 +134,12 @@ const StatItem = ({
                         <span
                             className="
                                 pb-0.5
+
+                                font-sans!
                                 text-[10px]
-                                font-medium
-                                text-[#6F7785]
+                                font-medium!
+
+                                text-[#697586]
 
                                 sm:text-[11px]
                             "
@@ -126,13 +148,20 @@ const StatItem = ({
                         </span>
                     </div>
 
+                    {/* =================================================
+                        DESCRIPTION
+                    ================================================= */}
+
                     <p
                         className="
-                            mt-2
-                            max-w-[220px]
+                            mt-2.5
+                            max-w-[230px]
+
+                            font-sans!
                             text-[11px]
-                            leading-[1.55]
-                            text-[#9299A6]
+                            leading-[1.65]
+
+                            text-[#8A95A4]
 
                             sm:text-[12px]
                         "
@@ -141,16 +170,20 @@ const StatItem = ({
                     </p>
                 </div>
 
-                {/* Index */}
+                {/* =====================================================
+                    INDEX
+                ===================================================== */}
 
                 <span
                     className="
                         shrink-0
-                        font-[Poppins]
+
+                        font-sans!
                         text-[9px]
-                        font-semibold
+                        font-semibold!
                         tracking-[0.12em]
-                        text-[#6F7785]
+
+                        text-[#5F6B7A]
                     "
                 >
                     {featured ? '01' : null}
@@ -160,9 +193,9 @@ const StatItem = ({
     );
 };
 
-// ============================================================
-// STATS
-// ============================================================
+/* ==========================================================================
+   STATS
+============================================================================ */
 
 const Stats = ({
     total = 0,
@@ -203,30 +236,34 @@ const Stats = ({
     ];
 
     return (
-        <section aria-labelledby="user-overview-heading" className="pt-2">
-            {/* ========================================================
+        <section aria-labelledby="user-overview-heading" className="pt-1">
+            {/* =========================================================
                 SECTION HEADER
-            ======================================================== */}
+            ========================================================= */}
 
             <div
                 className="
-                    mb-3
+                    mb-5
+
                     flex
                     items-end
                     justify-between
-                    gap-4
+                    gap-6
 
-                    sm:mb-4
+                    sm:mb-6
                 "
             >
                 <div className="min-w-0">
                     <p
                         className="
+                            font-sans!
+
                             text-[10px]
-                            font-semibold
+                            font-semibold!
                             uppercase
                             tracking-[0.16em]
-                            text-[#6F7785]
+
+                            text-[#697586]
                         "
                     >
                         Account overview
@@ -235,13 +272,18 @@ const Stats = ({
                     <h2
                         id="user-overview-heading"
                         className="
-                            mt-1
-                            text-[15px]
-                            font-semibold
-                            leading-tight
-                            text-[#F1F2F4]
+                            mt-1.5
 
-                            sm:text-[16px]
+                            font-sans!
+
+                            text-[16px]
+                            font-semibold!
+                            leading-[1.35]
+                            tracking-[-0.015em]
+
+                            text-[#EEF1F5]!
+
+                            sm:text-[17px]
                         "
                     >
                         Platform users
@@ -252,7 +294,8 @@ const Stats = ({
                     className="
                         hidden
                         items-center
-                        gap-2
+                        gap-2.5
+
                         sm:flex
                     "
                 >
@@ -261,15 +304,18 @@ const Stats = ({
                             h-1.5
                             w-1.5
                             rounded-full
-                            bg-[#9299A6]
+                            bg-[#7C8795]
                         "
                     />
 
                     <span
                         className="
+                            font-sans!
+
                             text-[10px]
-                            font-medium
-                            text-[#9299A6]
+                            font-medium!
+
+                            text-[#8792A1]
                         "
                     >
                         {total} registered
@@ -277,19 +323,21 @@ const Stats = ({
                 </div>
             </div>
 
-            {/* ========================================================
+            {/* =========================================================
                 STAT GRID
-            ======================================================== */}
+            ========================================================= */}
 
             <div
                 className="
-                    overflow-hidden
-                    border
-                    border-[#343944]
-                    bg-[#22252D]
-
                     grid
                     grid-cols-2
+
+                    overflow-hidden
+
+                    border
+                    border-[#252D38]
+
+                    bg-[#0E1219]
 
                     lg:grid-cols-4
                 "
@@ -302,17 +350,20 @@ const Stats = ({
 
                             ${
                                 index % 2 !== 0
-                                    ? 'border-l border-[#343944]'
+                                    ? 'border-l border-[#252D38]'
                                     : ''
                             }
 
-                            ${index >= 2 ? 'border-t border-[#343944]' : ''}
+                            ${index >= 2 ? 'border-t border-[#252D38]' : ''}
 
                             lg:border-t-0
 
                             ${
                                 index > 0
-                                    ? 'lg:border-l lg:border-[#343944]'
+                                    ? `
+                                        lg:border-l
+                                        lg:border-[#252D38]
+                                    `
                                     : 'lg:border-l-0'
                             }
                         `}

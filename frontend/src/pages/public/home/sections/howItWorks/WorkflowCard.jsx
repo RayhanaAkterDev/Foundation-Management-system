@@ -219,7 +219,7 @@ const WorkflowCard = ({ item, index, flow }) => {
                             className={`
                                 font-bengali
                                 text-[15px]
-                                font-medium
+                                font-medium!
                                 leading-[1.4]
 
                                 sm:text-[15px]
@@ -269,7 +269,7 @@ const WorkflowCard = ({ item, index, flow }) => {
 
                             font-bengali
                             text-[21px]
-                            font-medium
+                            font-medium!
                             leading-[1.45]
                             tracking-normal
                             text-text-primary
@@ -333,7 +333,7 @@ const WorkflowCard = ({ item, index, flow }) => {
 
                             font-bengali
                             text-[15px]
-                            font-medium
+                            font-medium!
                             leading-[1.72]
                             text-primary
 

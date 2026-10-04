@@ -1,9 +1,6 @@
 import React from 'react';
 
-import {
-    ArrowRight,
-    Inbox,
-} from 'lucide-react';
+import { ArrowRight, Inbox } from 'lucide-react';
 
 /* ==========================================================================
    EMPTY STATE
@@ -49,17 +46,14 @@ const EmptyState = ({
                     rounded-lg
 
                     border
-                    border-[#3A404B]
+                    border-[#29323E]
 
-                    bg-[#2C303A]
+                    bg-[#151B24]
 
-                    text-[#9299A6]!
+                    text-[#7F8A99]!
                 "
             >
-                <Icon
-                    size={20}
-                    strokeWidth={1.6}
-                />
+                <Icon size={20} strokeWidth={1.6} />
             </div>
 
             {/* =============================================================
@@ -73,10 +67,10 @@ const EmptyState = ({
                     font-sans!
 
                     text-[14px]
-                    font-semibold
+                    font-semibold!
                     tracking-[-0.01em]
 
-                    text-[#E5E7EB]!
+                    text-[#EEF1F5]!
                 "
             >
                 {title}
@@ -91,7 +85,7 @@ const EmptyState = ({
                         text-[11.5px]
                         leading-5
 
-                        text-[#7F8794]!
+                        text-[#7F8A99]!
                     "
                 >
                     {message}
@@ -120,42 +114,41 @@ const EmptyState = ({
                         rounded-md
 
                         border
-                        border-[#404754]
+                        border-[#303A47]
 
-                        bg-[#303641]
+                        bg-[#171E28]
 
                         px-3.5
 
                         text-[11px]
-                        font-semibold
+                        font-semibold!
 
-                        text-[#E5E7EB]!
+                        text-[#DCE1E7]!
 
                         transition-colors
                         duration-150
 
-                        hover:border-[#515966]
-                        hover:bg-[#393F4C]
-                        hover:text-[#FFFFFF]!
+                        hover:border-[#465261]
+                        hover:bg-[#1D2632]
+                        hover:text-[#EEF1F5]!
 
                         focus:outline-none
+                        focus:ring-0
                     "
                 >
-                    <span>
-                        {action.label}
-                    </span>
+                    <span>{action.label}</span>
 
                     <ArrowRight
                         size={13}
                         strokeWidth={1.8}
                         className="
-                            text-[#9299A6]!
+                            text-[#7F8A99]!
 
-                            transition-transform
+                            transition-[transform,color]
                             duration-150
 
                             group-hover:translate-x-0.5
-                            group-hover:text-[#D3D6DC]!
+                            group-hover:text-[#B8C0CA]!
                         "
                     />
                 </button>

@@ -148,7 +148,7 @@ const CategoryQuickAccess = () => {
                                         rounded-full
                                         bg-primary
                                         px-5 py-2.5
-                                        text-sm font-medium
+                                        text-sm font-medium!
                                         text-white!
                                     "
                                 >
@@ -171,7 +171,7 @@ const CategoryQuickAccess = () => {
                                 Most active cause
                             </span>
 
-                            <span className="mt-2 text-sm font-medium text-text-primary">
+                            <span className="mt-2 text-sm font-medium! text-text-primary">
                                 Browse related campaigns
                             </span>
                         </div>
@@ -246,7 +246,7 @@ const CategoryQuickAccess = () => {
                         className="
                             inline-flex items-center gap-2
                             text-primary
-                            font-medium
+                            font-medium!
                             transition-all duration-300
                             hover:gap-3
                         "

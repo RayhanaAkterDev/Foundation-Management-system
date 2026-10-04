@@ -123,7 +123,7 @@ const About = () => {
                                 className="
                                     mt-7
                                     text-[2.65rem]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.3]
 
                                     sm:text-[3.3rem]
@@ -178,7 +178,7 @@ const About = () => {
                                         px-6
                                         py-3.5
                                         text-[0.92rem]
-                                        font-medium
+                                        font-medium!
                                         text-white!
                                         transition-colors
 
@@ -206,7 +206,7 @@ const About = () => {
                                         border-primary/40
                                         pb-2
                                         text-[0.9rem]
-                                        font-medium
+                                        font-medium!
                                         text-primary
                                     "
                                 >
@@ -356,7 +356,7 @@ const About = () => {
                                     className="
                                         max-w-[790px]
                                         text-[2.05rem]
-                                        font-medium
+                                        font-medium!
                                         leading-[1.42]
 
                                         sm:text-[2.6rem]
@@ -475,7 +475,7 @@ const About = () => {
                                         className="
                                             max-w-[580px]
                                             text-[1.05rem]
-                                            font-medium
+                                            font-medium!
                                             leading-[1.8]
                                             text-text-primary
 
@@ -528,7 +528,7 @@ const About = () => {
                                         mt-7
                                         max-w-[510px]
                                         text-[2.1rem]
-                                        font-medium
+                                        font-medium!
                                         leading-[1.42]
                                         text-white!
 
@@ -595,7 +595,7 @@ const About = () => {
                                         <h3
                                             className="
                                                 text-[1.15rem]
-                                                font-medium
+                                                font-medium!
                                                 text-white!
                                             "
                                         >
@@ -646,7 +646,7 @@ const About = () => {
                                         <h3
                                             className="
                                                 text-[1.15rem]
-                                                font-medium
+                                                font-medium!
                                                 text-white!
                                             "
                                         >
@@ -697,7 +697,7 @@ const About = () => {
                                         <h3
                                             className="
                                                 text-[1.15rem]
-                                                font-medium
+                                                font-medium!
                                                 text-white!
                                             "
                                         >
@@ -762,7 +762,7 @@ const About = () => {
                                         mt-6
                                         max-w-[650px]
                                         text-[2rem]
-                                        font-medium
+                                        font-medium!
                                         leading-[1.42]
 
                                         sm:text-[2.6rem]
@@ -935,7 +935,7 @@ const About = () => {
                                         mt-6
                                         max-w-[430px]
                                         text-[2rem]
-                                        font-medium
+                                        font-medium!
                                         leading-[1.45]
 
                                         sm:text-[2.45rem]
@@ -1070,7 +1070,7 @@ const About = () => {
                                 className="
                                     mt-6
                                     text-[2.05rem]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.45]
 
                                     sm:text-[2.65rem]
@@ -1236,7 +1236,7 @@ const About = () => {
                                 <span
                                     className="
                                         text-[0.82rem]
-                                        font-medium
+                                        font-medium!
                                         leading-[1.65]
                                         text-primary
                                     "
@@ -1348,7 +1348,7 @@ const About = () => {
                                     mt-6
                                     max-w-[600px]
                                     text-[2.05rem]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.45]
 
                                     sm:text-[2.65rem]
@@ -1450,7 +1450,7 @@ const About = () => {
                                     mt-6
                                     max-w-[710px]
                                     text-[2rem]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.45]
                                     text-white!
 

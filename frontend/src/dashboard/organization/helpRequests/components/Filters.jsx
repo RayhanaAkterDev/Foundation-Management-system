@@ -32,7 +32,7 @@ const HelpRequestFilters = ({
             px-3
             py-2.5
             text-xs
-            font-medium
+            font-medium!
             text-white!
             outline-none
             transition-colors
@@ -185,7 +185,7 @@ const HelpRequestFilters = ({
                                 onClick={() => handleChange('status', 'all')}
                                 className="
                   text-[10px]
-                  font-medium
+                  font-medium!
                   text-white!/45
                   transition-colors
                   hover:text-white!
@@ -249,7 +249,7 @@ const HelpRequestFilters = ({
                                 >
                                     {/* STATUS NAME */}
 
-                                    <span className="text-xs font-medium">
+                                    <span className="text-xs font-medium!">
                                         {optionLabel}
                                     </span>
 

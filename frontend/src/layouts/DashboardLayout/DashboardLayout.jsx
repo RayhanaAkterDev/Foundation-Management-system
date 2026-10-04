@@ -67,7 +67,9 @@ function findBestNavMatch(items, pathname) {
 
 function getPageTitle(pathname, role) {
     const nav = NAV_CONFIG[role] || [];
+
     const dashboardRoot = `/${role}/dashboard`;
+
     const normalizedPath = pathname.replace(/\/+$/, '');
 
     if (normalizedPath === dashboardRoot) {
@@ -100,11 +102,9 @@ const DashboardLayout = () => {
     const location = useLocation();
 
     const [sidebarOpen, setSidebarOpen] = useState(false);
-
     const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
 
     const role = getRoleFromPath(location.pathname);
-
     const pageTitle = getPageTitle(location.pathname, role);
 
     return (
@@ -112,8 +112,10 @@ const DashboardLayout = () => {
             className="
                 min-h-screen
                 w-full
-                bg-[#181A20]
-                !text-[#F1F2F4]
+
+                bg-[#0E1219]
+
+                !text-[#EEF1F5]
             "
         >
             <DashboardSidebar
@@ -137,13 +139,13 @@ const DashboardLayout = () => {
                     min-w-0
                     flex-col
 
-                    bg-[#181A20]
+                    bg-[#171D25]
 
                     transition-[padding-left]
                     duration-300
                     ease-out
 
-                    ${sidebarCollapsed ? 'lg:pl-[60px]' : 'lg:pl-[264px]'}
+                    ${sidebarCollapsed ? 'lg:pl-[64px]' : 'lg:pl-[272px]'}
                 `}
             >
                 <DashboardTopbar
@@ -157,26 +159,24 @@ const DashboardLayout = () => {
                         min-w-0
                         flex-1
                         overflow-y-auto
-                        bg-[#181A20]
-                        !text-[#F1F2F4]
+
+                        bg-[#171D25]
+                        bg-[#161b22]
+
+                        !text-[#EEF1F5]
                     "
                 >
                     <div
                         className="
                             mx-auto
                             w-full
-                            max-w-[1600px]
+                            max-w-400
 
-                            p-4
-                            sm:p-5
+                            p-5
                             lg:p-6
-                            xl:p-7
                         "
                     >
                         <Outlet />
-                        {/* <h1 className="text-5xl font-bold text-white! text-center">
-                            Dashboard
-                        </h1> */}
                     </div>
                 </main>
             </div>

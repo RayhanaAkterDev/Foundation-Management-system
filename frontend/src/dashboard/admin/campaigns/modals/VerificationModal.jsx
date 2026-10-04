@@ -268,7 +268,7 @@ const VerificationModal = ({
                             </label>
 
                             {isRejecting && (
-                                <span className="text-[10px] font-medium text-red-500">
+                                <span className="text-[10px] font-medium! text-red-500">
                                     Required
                                 </span>
                             )}
@@ -295,7 +295,7 @@ const VerificationModal = ({
                         />
 
                         {rejectionNoteMissing && (
-                            <p className="mt-1.5 text-[11px] font-medium text-red-600">
+                            <p className="mt-1.5 text-[11px] font-medium! text-red-600">
                                 A note is required when rejecting a campaign.
                             </p>
                         )}

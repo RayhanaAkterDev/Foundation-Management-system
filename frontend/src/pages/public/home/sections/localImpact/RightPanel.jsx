@@ -36,7 +36,7 @@ const RightPanel = () => {
                 <div className="mt-6 rounded-2xl border border-primary/10 bg-primary/5 p-4 min-w-0">
                     <div className="flex items-center gap-2">
                         <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-                        <span className="text-sm font-medium text-primary">
+                        <span className="text-sm font-medium! text-primary">
                             Active Demand in Your Area
                         </span>
                     </div>
@@ -92,7 +92,7 @@ const RightPanel = () => {
 
                                     {/* CONTENT */}
                                     <div className="flex-1 border-b border-primary/10 pb-4 min-w-0">
-                                        <h5 className="font-medium group-hover:text-primary transition wrap-break-word">
+                                        <h5 className="font-medium! group-hover:text-primary transition wrap-break-word">
                                             {item.title}
                                         </h5>
 
@@ -136,7 +136,7 @@ const RightPanel = () => {
 
                     <div className="mt-4 pt-4 border-t border-primary/10 flex justify-between text-xs text-text-secondary">
                         <span>12 new requests in last 24h</span>
-                        <span className="text-primary font-medium">
+                        <span className="text-primary font-medium!">
                             Live tracking
                         </span>
                     </div>

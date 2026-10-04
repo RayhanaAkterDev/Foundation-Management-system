@@ -72,16 +72,16 @@ const RoleBasedView = () => {
 
                             {/* ACTION */}
                             <div className="mt-5 text-sm">
-                                <span className="text-primary font-medium">
+                                <span className="text-primary font-medium!">
                                     Action:
                                 </span>{' '}
-                                <span className="text-text-primary font-medium">
+                                <span className="text-text-primary font-medium!">
                                     {role.action}
                                 </span>
                             </div>
 
                             {/* MOBILE AFFORDANCE */}
-                            <div className="mt-6 md:hidden text-xs text-primary/70 font-medium">
+                            <div className="mt-6 md:hidden text-xs text-primary/70 font-medium!">
                                 Tap to view details →
                             </div>
                         </button>

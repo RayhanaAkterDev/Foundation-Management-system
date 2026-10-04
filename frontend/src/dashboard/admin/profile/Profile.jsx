@@ -328,7 +328,7 @@ const Profile = () => {
 
                                     <p className="mt-1 text-[13px] text-[#697570]">
                                         Member since{' '}
-                                        <span className="font-medium text-[#4f5b56]">
+                                        <span className="font-medium! text-[#4f5b56]">
                                             {formatMemberSince(memberSince)}
                                         </span>
                                     </p>
@@ -343,7 +343,7 @@ const Profile = () => {
                                 <div className="mt-1.5 flex items-center gap-2">
                                     <span className="h-2 w-2 rounded-full bg-primary" />
 
-                                    <span className="text-[13px] font-medium text-[#34413c]">
+                                    <span className="text-[13px] font-medium! text-[#34413c]">
                                         Active
                                     </span>
                                 </div>
@@ -473,7 +473,7 @@ const Profile = () => {
                         {/* Footer */}
                         <div className="mt-9 flex flex-col gap-4 border-t border-[#e4e9e7] pt-5 sm:flex-row sm:items-center sm:justify-between">
                             <div>
-                                <p className="text-[12px] font-medium text-[#697570]">
+                                <p className="text-[12px] font-medium! text-[#697570]">
                                     Administrator account
                                 </p>
 

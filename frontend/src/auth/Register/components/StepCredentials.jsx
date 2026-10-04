@@ -21,7 +21,7 @@ const FieldLabel = ({ children, hint }) => (
         </label>
 
         {hint && (
-            <span className="font-['Noto_Sans_Bengali'] text-[13px] font-medium text-[#7f8f8c]">
+            <span className="font-['Noto_Sans_Bengali'] text-[13px] font-medium! text-[#7f8f8c]">
                 {hint}
             </span>
         )}
@@ -55,7 +55,7 @@ const getInputClass = (error) => `
 
     font-['Noto_Sans_Bengali']
     text-[15px]
-    font-medium
+    font-medium!
     text-[#172a27]
 
     outline-none
@@ -395,7 +395,7 @@ const StepCredentials = ({ accountType, formData, onChange, errors = {} }) => {
 
                             <span className="hidden h-1 w-1 rounded-full bg-[#a5b5b1] sm:block" />
 
-                            <span className="hidden font-['Noto_Sans_Bengali'] text-[13px] font-medium text-[#70817d] sm:block">
+                            <span className="hidden font-['Noto_Sans_Bengali'] text-[13px] font-medium! text-[#70817d] sm:block">
                                 অতিরিক্ত ধাপ প্রয়োজন নেই
                             </span>
                         </div>

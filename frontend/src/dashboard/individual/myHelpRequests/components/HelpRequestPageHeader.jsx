@@ -29,7 +29,7 @@ const HelpRequestPageHeader = ({ onNewRequest, onExport, exportDisabled }) => (
                     </h1>
 
                     {/* Description */}
-                    <p className="mt-4 max-w-xl text-[14px] font-medium leading-6 text-white!/70 sm:text-[15px] sm:leading-7">
+                    <p className="mt-4 max-w-xl text-[14px] font-medium! leading-6 text-white!/70 sm:text-[15px] sm:leading-7">
                         Track the requests you've submitted, follow their
                         progress, and stay connected with the organizations
                         helping you.

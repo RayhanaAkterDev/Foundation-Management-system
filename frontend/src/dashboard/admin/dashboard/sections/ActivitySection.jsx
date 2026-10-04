@@ -98,7 +98,7 @@ const ActivitySection = ({ recentActivity }) => (
                                 className="text-text-secondary"
                             />
 
-                            <span className="font-jost text-[10px] font-medium text-text-secondary">
+                            <span className="font-jost text-[10px] font-medium! text-text-secondary">
                                 {recentActivity.length} recent
                             </span>
                         </div>

@@ -51,7 +51,7 @@ const Filters = ({ typeFilter, onTypeChange }) => {
                                         ${
                                             active
                                                 ? 'font-semibold'
-                                                : 'font-medium'
+                                                : 'font-medium!'
                                         }
                                     `}
                                 >

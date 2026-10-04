@@ -281,7 +281,7 @@ export default function OrgDashboard() {
                                 setLoading(true);
                                 fetchDashboard();
                             }}
-                            className="mt-6 inline-flex items-center gap-2 bg-teal-700 px-5 py-2.5 text-sm font-medium text-white! transition hover:bg-teal-800"
+                            className="mt-6 inline-flex items-center gap-2 bg-teal-700 px-5 py-2.5 text-sm font-medium! text-white! transition hover:bg-teal-800"
                         >
                             Try again
                             <ArrowRight size={16} />
@@ -336,7 +336,7 @@ export default function OrgDashboard() {
 
                                     <span className="h-1 w-1 rounded-full bg-teal-400" />
 
-                                    <span className="text-[10px] font-medium text-teal-200">
+                                    <span className="text-[10px] font-medium! text-teal-200">
                                         {organization.type || 'Organization'}
                                     </span>
                                 </div>

@@ -217,7 +217,7 @@ const StatusUpdateModal = ({
                             type="button"
                             onClick={handleClose}
                             disabled={loading}
-                            className="h-10 rounded-lg border border-border bg-white px-4 text-sm font-medium text-text-primary transition-colors hover:bg-background-alt disabled:cursor-not-allowed disabled:opacity-50"
+                            className="h-10 rounded-lg border border-border bg-white px-4 text-sm font-medium! text-text-primary transition-colors hover:bg-background-alt disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             Cancel
                         </button>

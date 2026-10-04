@@ -179,7 +179,7 @@ const Impact = () => {
                                     max-w-[630px]
                                     font-bengali
                                     text-[2.65rem]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.28]
                                     text-text-primary
 
@@ -224,7 +224,7 @@ const Impact = () => {
                                     gap-4
                                     font-bengali
                                     text-[0.96rem]
-                                    font-medium
+                                    font-medium!
                                     text-primary
                                 "
                             >
@@ -365,7 +365,7 @@ const Impact = () => {
                                     className="
                                         font-bengali
                                         text-[2rem]
-                                        font-medium
+                                        font-medium!
                                         leading-[1.45]
                                         text-text-primary
 
@@ -418,7 +418,7 @@ const Impact = () => {
                                         mt-5
                                         font-bengali
                                         text-[1.85rem]
-                                        font-medium
+                                        font-medium!
                                         leading-[1.5]
 
                                         sm:text-[2.15rem]
@@ -508,7 +508,7 @@ const Impact = () => {
                                             mt-4
                                             font-bengali
                                             text-[0.95rem]
-                                            font-medium
+                                            font-medium!
                                             text-text-primary
                                         "
                                     >
@@ -547,7 +547,7 @@ const Impact = () => {
                                             mt-4
                                             font-bengali
                                             text-[0.95rem]
-                                            font-medium
+                                            font-medium!
                                             text-text-primary
                                         "
                                     >
@@ -577,7 +577,7 @@ const Impact = () => {
                                         mt-5
                                         font-bengali
                                         text-[1.85rem]
-                                        font-medium
+                                        font-medium!
                                         leading-[1.5]
 
                                         sm:text-[2.15rem]
@@ -649,7 +649,7 @@ const Impact = () => {
                                     gap-3
                                     font-nav
                                     text-[10px]
-                                    font-medium
+                                    font-medium!
                                     uppercase
                                     tracking-[0.18em]
                                     text-secondary
@@ -679,7 +679,7 @@ const Impact = () => {
                                 className="
                                     font-bengali
                                     text-[2.25rem]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.35]
                                     text-primary
 
@@ -837,7 +837,7 @@ const Impact = () => {
                                                     className="
                                                         font-nav
                                                         text-[10px]
-                                                        font-medium
+                                                        font-medium!
                                                         uppercase
                                                         tracking-[0.18em]
                                                         text-secondary
@@ -851,7 +851,7 @@ const Impact = () => {
                                                         mt-3
                                                         font-bengali
                                                         text-[1.45rem]
-                                                        font-medium
+                                                        font-medium!
                                                         leading-[1.4]
                                                         text-primary
 
@@ -965,7 +965,7 @@ const Impact = () => {
                                                             line-clamp-3
                                                             font-bengali
                                                             text-[1.12rem]
-                                                            font-medium
+                                                            font-medium!
                                                             leading-[1.45]
                                                             text-primary
 
@@ -990,7 +990,7 @@ const Impact = () => {
                                             py-7
                                         "
                                     >
-                                        <span className="font-bengali text-sm font-medium text-primary">
+                                        <span className="font-bengali text-sm font-medium! text-primary">
                                             সব কার্যক্রম দেখুন
                                         </span>
 
@@ -1046,7 +1046,7 @@ const Impact = () => {
                                 className="
                                     font-nav
                                     text-[10px]
-                                    font-medium
+                                    font-medium!
                                     uppercase
                                     tracking-[0.18em]
                                     text-secondary
@@ -1091,7 +1091,7 @@ const Impact = () => {
                                         mb-6
                                         font-bengali
                                         text-[0.9rem]
-                                        font-medium
+                                        font-medium!
                                         text-primary
                                     "
                                 >
@@ -1102,7 +1102,7 @@ const Impact = () => {
                                     className="
                                         font-bengali
                                         text-[2.35rem]
-                                        font-medium
+                                        font-medium!
                                         leading-[1.35]
                                         text-primary
 
@@ -1215,7 +1215,7 @@ const Impact = () => {
                                         py-5
                                     "
                                 >
-                                    <span className="font-bengali text-[0.94rem] font-medium text-primary">
+                                    <span className="font-bengali text-[0.94rem] font-medium! text-primary">
                                         সহায়তার প্রয়োজন জানাতে
                                     </span>
 
@@ -1241,7 +1241,7 @@ const Impact = () => {
                                         py-5
                                     "
                                 >
-                                    <span className="font-bengali text-[0.94rem] font-medium text-primary">
+                                    <span className="font-bengali text-[0.94rem] font-medium! text-primary">
                                         স্বেচ্ছাসেবক হিসেবে যুক্ত হতে
                                     </span>
 

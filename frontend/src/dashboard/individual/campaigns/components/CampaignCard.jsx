@@ -96,7 +96,7 @@ const CampaignCard = ({ campaign, onDonate }) => {
                                 {progress}% funded
                             </span>
 
-                            <span className="text-[11px] font-medium text-slate-400">
+                            <span className="text-[11px] font-medium! text-slate-400">
                                 {remainingAmount > 0
                                     ? `${formatCurrency(remainingAmount)} needed`
                                     : 'Goal reached'}
@@ -123,7 +123,7 @@ const CampaignCard = ({ campaign, onDonate }) => {
                         </p>
                     </div>
 
-                    <span className="text-xs font-medium text-slate-400">
+                    <span className="text-xs font-medium! text-slate-400">
                         {progress >= 100 ? 'Fully funded' : 'Open for support'}
                     </span>
                 </div>

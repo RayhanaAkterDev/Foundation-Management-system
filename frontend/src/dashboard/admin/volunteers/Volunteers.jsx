@@ -861,7 +861,7 @@ const Volunteers = () => {
                                 type="button"
                                 onClick={handleExportCSV}
                                 disabled={filteredVolunteers.length === 0}
-                                className="group inline-flex h-10 items-center gap-2 border border-border bg-surface px-4 text-sm font-medium text-text-primary transition-all hover:border-primary/30 hover:bg-background-alt disabled:cursor-not-allowed disabled:opacity-50"
+                                className="group inline-flex h-10 items-center gap-2 border border-border bg-surface px-4 text-sm font-medium! text-text-primary transition-all hover:border-primary/30 hover:bg-background-alt disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 <Download
                                     size={15}
@@ -1172,7 +1172,7 @@ const Volunteers = () => {
                                             value={searchTerm}
                                             onChange={handleSearchChange}
                                             placeholder="Search by volunteer name or email"
-                                            className="h-10 w-full border border-border bg-background px-3.5 text-[13px] font-medium text-text-primary outline-none transition-colors placeholder:text-text-secondary/70 hover:border-text-secondary/30 focus:border-primary/50 focus:bg-surface"
+                                            className="h-10 w-full border border-border bg-background px-3.5 text-[13px] font-medium! text-text-primary outline-none transition-colors placeholder:text-text-secondary/70 hover:border-text-secondary/30 focus:border-primary/50 focus:bg-surface"
                                         />
                                     </div>
 
@@ -1184,7 +1184,7 @@ const Volunteers = () => {
                                                 Directory
                                             </p>
 
-                                            <p className="mt-0.5 text-xs font-medium text-text-primary">
+                                            <p className="mt-0.5 text-xs font-medium! text-text-primary">
                                                 {filteredVolunteers.length}{' '}
                                                 {filteredVolunteers.length === 1
                                                     ? 'result'
@@ -1208,7 +1208,7 @@ const Volunteers = () => {
                                     </p>
                                 </div>
 
-                                <span className="text-[11px] font-medium text-text-secondary">
+                                <span className="text-[11px] font-medium! text-text-secondary">
                                     {filteredVolunteers.length} registered
                                 </span>
                             </div>

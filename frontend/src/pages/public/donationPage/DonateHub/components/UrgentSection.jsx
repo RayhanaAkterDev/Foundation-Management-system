@@ -54,11 +54,11 @@ const UrgentSection = ({ campaigns = [] }) => {
                                         uppercase tracking-[0.2em]
                                         text-surface/90
                                         flex items-center gap-2
-                                        font-medium
+                                        font-medium!
                                     "
                                     >
                                         <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
-                                        Emergency Appeal 
+                                        Emergency Appeal
                                     </span>
 
                                     <span
@@ -153,7 +153,7 @@ const UrgentSection = ({ campaigns = [] }) => {
                                                 Live donations active
                                             </p>
 
-                                            <div className="text-xs sm:text-sm font-medium text-text-primary leading-snug">
+                                            <div className="text-xs sm:text-sm font-medium! text-text-primary leading-snug">
                                                 Help is needed urgently — every
                                                 contribution matters
                                             </div>
@@ -208,7 +208,7 @@ const UrgentSection = ({ campaigns = [] }) => {
                                     >
                                         <p
                                             className="
-                                            text-xs sm:text-sm font-medium text-text-primary
+                                            text-xs sm:text-sm font-medium! text-text-primary
                                             line-clamp-2
                                             group-hover:text-primary
                                             transition
@@ -222,7 +222,7 @@ const UrgentSection = ({ campaigns = [] }) => {
                                         </p>
 
                                         <div className="flex items-center justify-between mt-2">
-                                            <span className="text-[10px] sm:text-[11px] text-primary font-medium">
+                                            <span className="text-[10px] sm:text-[11px] text-primary font-medium!">
                                                 urgent
                                             </span>
                                             <span className="text-[10px] text-text-secondary">

@@ -70,7 +70,7 @@ const DonationSidebar = ({ campaign, organizer }) => {
                             block
                             font-bengali
                             text-[12px]
-                            font-medium
+                            font-medium!
                             text-text-muted
                             sm:text-[13px]
                             lg:text-[14px]
@@ -309,7 +309,7 @@ const DonationSidebar = ({ campaign, organizer }) => {
                             gap-2
                             font-bengali
                             text-[11px]
-                            font-medium
+                            font-medium!
                             text-text-secondary
                             transition-colors
                             hover:text-primary

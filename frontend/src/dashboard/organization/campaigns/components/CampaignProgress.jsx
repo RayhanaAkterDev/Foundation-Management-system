@@ -48,7 +48,7 @@ const CampaignProgress = ({ campaign }) => {
                     {formatCurrency(campaign?.spent)} raised
                 </span>
 
-                <span className="text-[10px] font-medium text-text-secondary">
+                <span className="text-[10px] font-medium! text-text-secondary">
                     of {formatCurrency(campaign?.budget)}
                 </span>
             </div>

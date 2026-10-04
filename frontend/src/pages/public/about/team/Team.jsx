@@ -181,7 +181,7 @@ const SectionIndex = ({ number, label, dark = false }) => (
         />
 
         <span
-            className={`text-xs font-medium ${
+            className={`text-xs font-medium! ${
                 dark ? 'text-white!/75' : 'text-primary'
             }`}
         >
@@ -297,7 +297,7 @@ const Team = () => {
                         <div className="relative z-10 lg:col-span-8">
                             <SectionIndex number="০১" label="আমাদের পরিচয়" />
 
-                            <h1 className="mt-8 max-w-[850px] text-[2.5rem] font-medium leading-[1.3] tracking-[-0.025em] sm:mt-9 sm:text-5xl sm:leading-[1.3] md:text-[3.8rem] lg:text-[4.65rem] lg:leading-[1.28] xl:text-[5rem]">
+                            <h1 className="mt-8 max-w-[850px] text-[2.5rem] font-medium! leading-[1.3] tracking-[-0.025em] sm:mt-9 sm:text-5xl sm:leading-[1.3] md:text-[3.8rem] lg:text-[4.65rem] lg:leading-[1.28] xl:text-[5rem]">
                                 মানুষের জন্য
                                 <span className="text-primary">
                                     {' '}
@@ -319,7 +319,7 @@ const Team = () => {
 
                                 <a
                                     href="#people"
-                                    className="group inline-flex w-fit shrink-0 items-center gap-3 border-b border-primary/40 pb-2 text-sm font-medium text-primary transition-colors hover:border-primary"
+                                    className="group inline-flex w-fit shrink-0 items-center gap-3 border-b border-primary/40 pb-2 text-sm font-medium! text-primary transition-colors hover:border-primary"
                                 >
                                     মানুষগুলোর সঙ্গে পরিচিত হোন
                                     <TbArrowDownRight
@@ -361,7 +361,7 @@ const Team = () => {
                     </div>
 
                     <div className="flex flex-wrap items-center justify-between gap-4 border-t border-[#d9d8cf] py-5">
-                        <span className="text-[10px] font-medium tracking-[0.2em] text-text-muted">
+                        <span className="text-[10px] font-medium! tracking-[0.2em] text-text-muted">
                             STAND FOR PEOPLE
                         </span>
 
@@ -392,7 +392,7 @@ const Team = () => {
                         </div>
 
                         <div className="lg:col-span-8 lg:col-start-5">
-                            <h2 className="max-w-[760px] text-[2.15rem] font-medium leading-[1.42] tracking-[-0.02em] sm:text-4xl sm:leading-[1.45] lg:text-[3.45rem] lg:leading-[1.42]">
+                            <h2 className="max-w-[760px] text-[2.15rem] font-medium! leading-[1.42] tracking-[-0.02em] sm:text-4xl sm:leading-[1.45] lg:text-[3.45rem] lg:leading-[1.42]">
                                 একটি ছোট দল।
                                 <span className="text-primary">
                                     {' '}
@@ -420,11 +420,11 @@ const Team = () => {
 
                             <div className="mt-5 grid gap-4 border-t border-text-primary pt-4 sm:grid-cols-[1fr_1fr] sm:gap-8">
                                 <div>
-                                    <p className="text-xs font-medium text-primary">
+                                    <p className="text-xs font-medium! text-primary">
                                         {corePeople[0].role}
                                     </p>
 
-                                    <h3 className="mt-2 text-2xl font-medium sm:text-[1.8rem]">
+                                    <h3 className="mt-2 text-2xl font-medium! sm:text-[1.8rem]">
                                         {corePeople[0].name}
                                     </h3>
                                 </div>
@@ -458,11 +458,11 @@ const Team = () => {
                             </div>
 
                             <div className="mt-5 border-t border-text-primary pt-4">
-                                <p className="text-xs font-medium text-primary">
+                                <p className="text-xs font-medium! text-primary">
                                     {corePeople[1].role}
                                 </p>
 
-                                <h3 className="mt-2 text-2xl font-medium">
+                                <h3 className="mt-2 text-2xl font-medium!">
                                     {corePeople[1].name}
                                 </h3>
 
@@ -480,11 +480,11 @@ const Team = () => {
                             </div>
 
                             <div className="mt-5 border-t border-text-primary pt-4">
-                                <p className="text-xs font-medium text-primary">
+                                <p className="text-xs font-medium! text-primary">
                                     {corePeople[2].role}
                                 </p>
 
-                                <h3 className="mt-2 text-2xl font-medium">
+                                <h3 className="mt-2 text-2xl font-medium!">
                                     {corePeople[2].name}
                                 </h3>
 
@@ -511,7 +511,7 @@ const Team = () => {
                                 dark
                             />
 
-                            <h2 className="mt-8 max-w-[900px] text-[2.05rem] font-medium leading-[1.48] tracking-[-0.015em] sm:text-4xl sm:leading-[1.5] lg:text-[3.45rem] lg:leading-[1.48]">
+                            <h2 className="mt-8 max-w-[900px] text-[2.05rem] font-medium! leading-[1.48] tracking-[-0.015em] sm:text-4xl sm:leading-[1.5] lg:text-[3.45rem] lg:leading-[1.48]">
                                 প্ল্যাটফর্মটি কয়েকজন মানুষ তৈরি করেছেন।
                                 <span className="text-[#a9d2c7]">
                                     {' '}
@@ -556,7 +556,7 @@ const Team = () => {
 
                         <div className="mt-8 grid gap-10 lg:mt-10 lg:grid-cols-12 lg:gap-10">
                             <div className="lg:col-span-8">
-                                <h2 className="max-w-[900px] text-[2.25rem] font-medium leading-[1.35] tracking-[-0.02em] sm:text-4xl sm:leading-[1.4] lg:text-[3.65rem] lg:leading-[1.38]">
+                                <h2 className="max-w-[900px] text-[2.25rem] font-medium! leading-[1.35] tracking-[-0.02em] sm:text-4xl sm:leading-[1.4] lg:text-[3.65rem] lg:leading-[1.38]">
                                     পাশে থাকার মানুষগুলো
                                     <span className="text-primary">
                                         {' '}
@@ -607,14 +607,14 @@ const Team = () => {
                                     <div className="relative overflow-hidden bg-[#e8eee7] px-5 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-14">
                                         {/* Decorative word */}
 
-                                        <div className="pointer-events-none absolute -right-10 -top-16 select-none font-serif text-[8rem] font-medium leading-none text-[#dce5dc] sm:-right-8 sm:-top-20 sm:text-[14rem] lg:-right-10 lg:text-[18rem]">
+                                        <div className="pointer-events-none absolute -right-10 -top-16 select-none font-serif text-[8rem] font-medium! leading-none text-[#dce5dc] sm:-right-8 sm:-top-20 sm:text-[14rem] lg:-right-10 lg:text-[18rem]">
                                             মানুষ
                                         </div>
 
                                         {/* Meta */}
 
                                         <div className="relative z-10 flex items-center justify-between">
-                                            <span className="text-xs font-medium tracking-[0.08em] text-primary">
+                                            <span className="text-xs font-medium! tracking-[0.08em] text-primary">
                                                 আমাদের সঙ্গে
                                             </span>
 
@@ -629,7 +629,7 @@ const Team = () => {
                                         {/* Heading */}
 
                                         <div className="relative z-10 mt-12 max-w-[720px] sm:mt-16 lg:mt-20">
-                                            <h3 className="text-[2.25rem] font-medium leading-[1.25] tracking-[-0.02em] sm:text-5xl lg:text-[4.25rem] lg:leading-[1.2]">
+                                            <h3 className="text-[2.25rem] font-medium! leading-[1.25] tracking-[-0.02em] sm:text-5xl lg:text-[4.25rem] lg:leading-[1.2]">
                                                 যাঁরা নিজেদের
                                                 <br />
                                                 <span className="text-primary">
@@ -715,7 +715,7 @@ const Team = () => {
                                                                 </span>
 
                                                                 <div className="absolute inset-x-5 bottom-5 text-white!">
-                                                                    <p className="text-lg font-medium leading-tight sm:text-xl">
+                                                                    <p className="text-lg font-medium! leading-tight sm:text-xl">
                                                                         {name}
                                                                     </p>
 
@@ -794,11 +794,11 @@ const Team = () => {
 
                                     <div className="grid gap-8 lg:grid-cols-12 lg:gap-10">
                                         <div className="lg:col-span-7">
-                                            <p className="text-xs font-medium tracking-[0.08em] text-[#a66b18]">
+                                            <p className="text-xs font-medium! tracking-[0.08em] text-[#a66b18]">
                                                 প্রাতিষ্ঠানিক অংশগ্রহণ
                                             </p>
 
-                                            <h3 className="mt-4 max-w-[720px] text-[2.2rem] font-medium leading-[1.35] tracking-[-0.02em] sm:text-4xl lg:text-[3.3rem]">
+                                            <h3 className="mt-4 max-w-[720px] text-[2.2rem] font-medium! leading-[1.35] tracking-[-0.02em] sm:text-4xl lg:text-[3.3rem]">
                                                 সক্ষমতা নিয়ে
                                                 <span className="text-primary">
                                                     {' '}
@@ -893,7 +893,7 @@ const Team = () => {
                                                                 </div>
 
                                                                 <div className="min-w-0">
-                                                                    <h4 className="truncate text-lg font-medium sm:text-xl">
+                                                                    <h4 className="truncate text-lg font-medium! sm:text-xl">
                                                                         {name}
                                                                     </h4>
 
@@ -948,7 +948,7 @@ const Team = () => {
                                 </div>
 
                                 <div className="lg:col-span-7 lg:col-start-6">
-                                    <h3 className="max-w-[650px] text-3xl font-medium leading-[1.4] sm:text-4xl sm:leading-[1.45]">
+                                    <h3 className="max-w-[650px] text-3xl font-medium! leading-[1.4] sm:text-4xl sm:leading-[1.45]">
                                         এই নেটওয়ার্কটি
                                         <span className="text-primary">
                                             {' '}
@@ -978,7 +978,7 @@ const Team = () => {
                         <div className="lg:col-span-5">
                             <SectionIndex number="০৫" label="অংশগ্রহণের পথ" />
 
-                            <h2 className="mt-6 max-w-[520px] text-[2.15rem] font-medium leading-[1.45] tracking-[-0.02em] sm:text-4xl lg:text-[3.25rem] lg:leading-[1.45]">
+                            <h2 className="mt-6 max-w-[520px] text-[2.15rem] font-medium! leading-[1.45] tracking-[-0.02em] sm:text-4xl lg:text-[3.25rem] lg:leading-[1.45]">
                                 সবাই একইভাবে
                                 <span className="text-primary">
                                     {' '}
@@ -1007,11 +1007,11 @@ const Team = () => {
                                 />
 
                                 <div className="flex-1">
-                                    <p className="text-xs font-medium text-primary">
+                                    <p className="text-xs font-medium! text-primary">
                                         স্বেচ্ছাসেবক
                                     </p>
 
-                                    <p className="mt-1 text-lg font-medium">
+                                    <p className="mt-1 text-lg font-medium!">
                                         সময় ও দক্ষতা দিয়ে যুক্ত হোন
                                     </p>
                                 </div>
@@ -1035,11 +1035,11 @@ const Team = () => {
                                 />
 
                                 <div className="flex-1">
-                                    <p className="text-xs font-medium text-primary">
+                                    <p className="text-xs font-medium! text-primary">
                                         সংগঠন
                                     </p>
 
-                                    <p className="mt-1 text-lg font-medium">
+                                    <p className="mt-1 text-lg font-medium!">
                                         একটি মানবিক উদ্যোগ নিয়ে যুক্ত হোন
                                     </p>
                                 </div>
@@ -1063,11 +1063,11 @@ const Team = () => {
                                 />
 
                                 <div className="flex-1">
-                                    <p className="text-xs font-medium text-primary">
+                                    <p className="text-xs font-medium! text-primary">
                                         সহায়তার প্রয়োজন
                                     </p>
 
-                                    <p className="mt-1 text-lg font-medium">
+                                    <p className="mt-1 text-lg font-medium!">
                                         একটি বাস্তব প্রয়োজন সামনে আনুন
                                     </p>
                                 </div>
@@ -1090,11 +1090,11 @@ const Team = () => {
                 <div className="container-width py-20 sm:py-24 lg:py-32">
                     <div className="grid gap-8 border-t border-text-primary pt-8 lg:grid-cols-12 lg:items-end lg:gap-6">
                         <div className="lg:col-span-8">
-                            <p className="text-xs font-medium tracking-[0.15em] text-primary">
+                            <p className="text-xs font-medium! tracking-[0.15em] text-primary">
                                 STAND FOR PEOPLE
                             </p>
 
-                            <h2 className="mt-5 max-w-[780px] text-[2.05rem] font-medium leading-[1.48] tracking-[-0.02em] sm:text-4xl sm:leading-[1.5] lg:text-[3.25rem] lg:leading-[1.48]">
+                            <h2 className="mt-5 max-w-[780px] text-[2.05rem] font-medium! leading-[1.48] tracking-[-0.02em] sm:text-4xl sm:leading-[1.5] lg:text-[3.25rem] lg:leading-[1.48]">
                                 এই নেটওয়ার্কে পরবর্তী মানুষটি
                                 <span className="text-primary">
                                     {' '}
@@ -1106,7 +1106,7 @@ const Team = () => {
                         <div className="lg:col-span-3 lg:col-start-10">
                             <Link
                                 to="/volunteer"
-                                className="group inline-flex items-center gap-3 border-b border-primary/50 pb-2 text-sm font-medium text-primary transition-colors hover:border-primary"
+                                className="group inline-flex items-center gap-3 border-b border-primary/50 pb-2 text-sm font-medium! text-primary transition-colors hover:border-primary"
                             >
                                 যুক্ত হওয়ার পথ দেখুন
                                 <TbArrowUpRight

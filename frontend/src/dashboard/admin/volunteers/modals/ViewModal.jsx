@@ -194,7 +194,7 @@ const InfoItem = ({ icon: Icon, label, value }) => {
                 <span>{label}</span>
             </div>
 
-            <p className="wrap-break-word text-sm font-medium text-slate-800">
+            <p className="wrap-break-word text-sm font-medium! text-slate-800">
                 {value || '—'}
             </p>
         </div>
@@ -291,7 +291,7 @@ const ViewModal = ({
                             <div className="text-center">
                                 <div className="mx-auto mb-4 h-9 w-9 animate-spin rounded-full border-2 border-slate-200 border-t-teal-700" />
 
-                                <p className="text-sm font-medium text-slate-700">
+                                <p className="text-sm font-medium! text-slate-700">
                                     Loading volunteer details...
                                 </p>
                             </div>
@@ -323,7 +323,7 @@ const ViewModal = ({
                                     className="mx-auto mb-3 text-slate-300"
                                 />
 
-                                <p className="text-sm font-medium text-slate-700">
+                                <p className="text-sm font-medium! text-slate-700">
                                     Volunteer information is unavailable.
                                 </p>
                             </div>
@@ -452,7 +452,7 @@ const ViewModal = ({
                                         {skills.map((skill, index) => (
                                             <span
                                                 key={`${skill}-${index}`}
-                                                className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700"
+                                                className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium! text-slate-700"
                                             >
                                                 <BriefcaseBusiness
                                                     size={14}
@@ -630,7 +630,7 @@ const ViewModal = ({
                                                                     Assigned
                                                                 </div>
 
-                                                                <p className="text-sm font-medium text-slate-700">
+                                                                <p className="text-sm font-medium! text-slate-700">
                                                                     {formatDate(
                                                                         assignedDate,
                                                                     )}

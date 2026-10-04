@@ -544,7 +544,7 @@ const DesktopProgress = ({ currentStep, accountType, identity }) => {
 
                                     font-['Noto_Sans_Bengali']
                                     text-[12px]
-                                    font-medium
+                                    font-medium!
                                     leading-5
 
                                     text-[#788a86]
@@ -574,7 +574,7 @@ const DesktopProgress = ({ currentStep, accountType, identity }) => {
 
                                         font-['Noto_Sans_Bengali']
                                         text-[13px]
-                                        font-medium
+                                        font-medium!
 
                                         text-[#8d9d99]
                                     "
@@ -778,7 +778,7 @@ const DesktopProgress = ({ currentStep, accountType, identity }) => {
                                                                         `
                                                                       : `
                                                                             text-[14px]
-                                                                            font-medium
+                                                                            font-medium!
                                                                             text-[#71837e]
                                                                         `
                                                             }
@@ -977,7 +977,7 @@ const ResponsiveProgress = ({ currentStep, accountType }) => {
                     {steps.map((item, index) => (
                         <span
                             key={item.number}
-                            className={`font-['Noto_Sans_Bengali'] text-[13px] font-medium ${
+                            className={`font-['Noto_Sans_Bengali'] text-[13px] font-medium! ${
                                 index + 1 <= currentStep
                                     ? 'text-[#315e58]'
                                     : 'text-[#819591]'
@@ -1622,7 +1622,7 @@ const Register = () => {
                             <span className="h-8 w-px bg-[#dfe7e5]" />
 
                             <div className="ml-7">
-                                <p className="font-['Noto_Sans_Bengali'] text-[12px] font-medium text-[#85928f]">
+                                <p className="font-['Noto_Sans_Bengali'] text-[12px] font-medium! text-[#85928f]">
                                     নতুন অ্যাকাউন্ট
                                 </p>
 
@@ -1642,7 +1642,7 @@ const Register = () => {
                                     strokeWidth={1.7}
                                 />
 
-                                <span className="font-['Noto_Sans_Bengali'] text-[12px] font-medium text-[#778783]">
+                                <span className="font-['Noto_Sans_Bengali'] text-[12px] font-medium! text-[#778783]">
                                     নিরাপদ নিবন্ধন
                                 </span>
                             </div>
@@ -1862,7 +1862,7 @@ const Register = () => {
                                         <button
                                             type="button"
                                             onClick={() => navigate('/terms')}
-                                            className="font-medium text-[#52646a] underline decoration-[#bdc8cc] underline-offset-4 transition hover:text-[#0f766e]"
+                                            className="font-medium! text-[#52646a] underline decoration-[#bdc8cc] underline-offset-4 transition hover:text-[#0f766e]"
                                         >
                                             ব্যবহারের শর্তাবলি
                                         </button>{' '}
@@ -1870,7 +1870,7 @@ const Register = () => {
                                         <button
                                             type="button"
                                             onClick={() => navigate('/privacy')}
-                                            className="font-medium text-[#52646a] underline decoration-[#bdc8cc] underline-offset-4 transition hover:text-[#0f766e]"
+                                            className="font-medium! text-[#52646a] underline decoration-[#bdc8cc] underline-offset-4 transition hover:text-[#0f766e]"
                                         >
                                             গোপনীয়তা নীতি
                                         </button>

@@ -741,7 +741,7 @@ const VerificationModal = ({
                             className="
                                 hidden
                                 text-[9.5px]
-                                font-medium
+                                font-medium!
                                 leading-4
                                 text-text-secondary
                                 xs:block

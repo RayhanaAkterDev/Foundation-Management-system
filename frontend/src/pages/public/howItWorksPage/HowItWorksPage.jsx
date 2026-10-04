@@ -207,7 +207,7 @@ const HowItWorksPage = () => {
                                 <p
                                     className="
                                         text-[1rem]
-                                        font-medium
+                                        font-medium!
                                         text-primary
                                     "
                                 >
@@ -219,7 +219,7 @@ const HowItWorksPage = () => {
                                         mt-5
                                         max-w-[920px]
                                         text-[2.65rem]
-                                        font-medium
+                                        font-medium!
                                         leading-[1.3]
 
                                         sm:text-[3.3rem]
@@ -338,7 +338,7 @@ const HowItWorksPage = () => {
                                     <span
                                         className="
                                             text-[0.9rem]
-                                            font-medium
+                                            font-medium!
                                         "
                                     >
                                         {step.short}
@@ -392,7 +392,7 @@ const HowItWorksPage = () => {
                                     className="
                                         max-w-[900px]
                                         text-[2rem]
-                                        font-medium
+                                        font-medium!
                                         leading-[1.5]
 
                                         sm:text-[2.65rem]
@@ -491,7 +491,7 @@ const HowItWorksPage = () => {
                                     className="
                                         mt-3
                                         text-[1rem]
-                                        font-medium
+                                        font-medium!
                                         leading-[1.7]
                                     "
                                 >
@@ -526,7 +526,7 @@ const HowItWorksPage = () => {
                                     className="
                                         mt-3
                                         text-[1rem]
-                                        font-medium
+                                        font-medium!
                                         leading-[1.7]
                                     "
                                 >
@@ -561,7 +561,7 @@ const HowItWorksPage = () => {
                                     className="
                                         mt-3
                                         text-[1rem]
-                                        font-medium
+                                        font-medium!
                                         leading-[1.7]
                                         text-primary
                                     "
@@ -608,7 +608,7 @@ const HowItWorksPage = () => {
                                         mt-5
                                         max-w-[650px]
                                         text-[2.15rem]
-                                        font-medium
+                                        font-medium!
                                         leading-[1.45]
                                         text-white
 
@@ -742,7 +742,7 @@ const HowItWorksPage = () => {
                                         <span
                                             className="
                                                 text-[0.8rem]
-                                                font-medium
+                                                font-medium!
                                                 text-text-muted
                                             "
                                         >
@@ -788,7 +788,7 @@ const HowItWorksPage = () => {
                                                     className="
                                                         max-w-[570px]
                                                         text-[2rem]
-                                                        font-medium
+                                                        font-medium!
                                                         leading-[1.5]
 
                                                         sm:text-[2.45rem]
@@ -939,7 +939,7 @@ const HowItWorksPage = () => {
                                                         className="
                                                             max-w-[570px]
                                                             text-[2rem]
-                                                            font-medium
+                                                            font-medium!
                                                             leading-[1.5]
 
                                                             sm:text-[2.45rem]
@@ -1054,7 +1054,7 @@ const HowItWorksPage = () => {
                                 className="
                                     max-w-[930px]
                                     text-[1.7rem]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.65]
 
                                     sm:text-[2.15rem]
@@ -1116,7 +1116,7 @@ const HowItWorksPage = () => {
                                 className="
                                     mt-5
                                     text-[2rem]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.5]
 
                                     sm:text-[2.65rem]
@@ -1287,7 +1287,7 @@ const HowItWorksPage = () => {
                                         mt-5
                                         max-w-[700px]
                                         text-[2.15rem]
-                                        font-medium
+                                        font-medium!
                                         leading-[1.45]
                                         text-white
 
@@ -1348,7 +1348,7 @@ const HowItWorksPage = () => {
                                                 mt-1
                                                 block
                                                 text-[1rem]
-                                                font-medium
+                                                font-medium!
                                             "
                                         >
                                             সহায়তার অনুরোধ করুন
@@ -1397,7 +1397,7 @@ const HowItWorksPage = () => {
                                                 mt-1
                                                 block
                                                 text-[1rem]
-                                                font-medium
+                                                font-medium!
                                             "
                                         >
                                             স্বেচ্ছাসেবী হিসেবে যুক্ত হোন
@@ -1444,7 +1444,7 @@ const HowItWorksPage = () => {
                                                 mt-1
                                                 block
                                                 text-[1rem]
-                                                font-medium
+                                                font-medium!
                                             "
                                         >
                                             যাচাইকৃত প্রয়োজনে সহায়তা করুন

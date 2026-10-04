@@ -113,7 +113,7 @@ const ViewModal = ({ organization, loading, error, onClose }) => {
                             <div className="flex flex-1 flex-col items-center justify-center">
                                 <div className="h-7 w-7 animate-spin rounded-full border-2 border-border border-t-primary" />
 
-                                <p className="mt-4 text-sm font-medium text-text-primary">
+                                <p className="mt-4 text-sm font-medium! text-text-primary">
                                     Loading organization
                                 </p>
 
@@ -126,7 +126,7 @@ const ViewModal = ({ organization, loading, error, onClose }) => {
                         {error && (
                             <div className="flex flex-1 items-center justify-center px-6">
                                 <div className="max-w-md border-l-2 border-red-500 bg-red-50 px-5 py-4">
-                                    <p className="text-sm font-medium text-red-700">
+                                    <p className="text-sm font-medium! text-red-700">
                                         Unable to load organization
                                     </p>
 
@@ -271,7 +271,7 @@ const ViewModal = ({ organization, loading, error, onClose }) => {
                                         />
                                     </div>
 
-                                    <span className="hidden text-[9px] font-medium uppercase tracking-[0.16em] text-white!/25 lg:block">
+                                    <span className="hidden text-[9px] font-medium! uppercase tracking-[0.16em] text-white!/25 lg:block">
                                         Organization
                                     </span>
                                 </div>
@@ -350,7 +350,7 @@ const ViewModal = ({ organization, loading, error, onClose }) => {
                                                     “
                                                 </span>
 
-                                                <p className="-mt-5 max-w-3xl text-[21px] font-medium leading-[1.65] tracking-[-0.02em] text-text-primary sm:text-[23px]">
+                                                <p className="-mt-5 max-w-3xl text-[21px] font-medium! leading-[1.65] tracking-[-0.02em] text-text-primary sm:text-[23px]">
                                                     {organization.mission ||
                                                         'No mission statement provided.'}
                                                 </p>
@@ -506,7 +506,7 @@ const ViewModal = ({ organization, loading, error, onClose }) => {
                         ================================================== */}
 
                         <footer className="flex shrink-0 items-center justify-between border-t border-border bg-white px-7 py-4 sm:px-10">
-                            <span className="hidden text-[10px] font-medium uppercase tracking-[0.12em] text-text-secondary sm:block">
+                            <span className="hidden text-[10px] font-medium! uppercase tracking-[0.12em] text-text-secondary sm:block">
                                 Organization details
                             </span>
 
@@ -552,7 +552,7 @@ const HeaderMeta = ({ icon: Icon, label, value }) => {
 
             <span className="text-[10px] text-white!/35">{label}</span>
 
-            <span className="text-[11px] font-medium text-white!/60">
+            <span className="text-[11px] font-medium! text-white!/60">
                 {value}
             </span>
         </div>

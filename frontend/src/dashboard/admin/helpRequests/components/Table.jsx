@@ -422,7 +422,7 @@ const Table = ({
                                                     <>
                                                         <span className="h-1 w-1 shrink-0 rounded-full bg-slate-300" />
 
-                                                        <span className="inline-flex min-w-0 items-center gap-1 text-[10px] font-medium text-slate-500">
+                                                        <span className="inline-flex min-w-0 items-center gap-1 text-[10px] font-medium! text-slate-500">
                                                             <MapPin className="h-3 w-3 shrink-0 text-slate-400" />
 
                                                             <span className="truncate">
@@ -686,7 +686,7 @@ const Table = ({
                                                         className="
                                                             block
                                                             text-[10.5px]
-                                                            font-medium
+                                                            font-medium!
                                                             leading-5
                                                             text-slate-400
                                                         "
@@ -774,7 +774,7 @@ const Table = ({
 
                                                     [&>div>button]:text-left!
                                                     [&>div>button]:text-[10.5px]!
-                                                    [&>div>button]:font-medium!
+                                                    [&>div>button]:font-medium!!
                                                     [&>div>button]:text-slate-600!
 
                                                     [&>div>button]:transition-all!
@@ -821,7 +821,7 @@ const Table = ({
                                             items-center
                                             gap-1.5
                                             text-[9.5px]
-                                            font-medium
+                                            font-medium!
                                             text-slate-400
                                         "
                                     >
@@ -835,7 +835,7 @@ const Table = ({
                                     </div>
 
                                     {row.id && (
-                                        <span className="font-mono text-[9.5px] font-medium text-slate-400">
+                                        <span className="font-mono text-[9.5px] font-medium! text-slate-400">
                                             #
                                             <span className="text-slate-600">
                                                 {row.id}

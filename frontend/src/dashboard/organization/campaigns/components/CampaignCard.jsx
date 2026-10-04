@@ -153,7 +153,7 @@ const CampaignCard = ({ campaign, onOpen }) => {
                         </div>
 
                         <div className="mt-2.5 flex items-center justify-between gap-3">
-                            <span className="text-[10px] font-medium text-text-secondary">
+                            <span className="text-[10px] font-medium! text-text-secondary">
                                 Raised
                             </span>
 

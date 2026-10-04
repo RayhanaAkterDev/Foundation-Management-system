@@ -67,7 +67,7 @@ const LeftPanel = () => {
                     <div className="pt-4 border-t border-primary/10">
                         <Link
                             to="/campaigns?nearby=true"
-                            className="group inline-flex items-center gap-2 font-medium text-primary text-sm sm:text-base"
+                            className="group inline-flex items-center gap-2 font-medium! text-primary text-sm sm:text-base"
                         >
                             Explore local cases
                             <span className="transition-transform duration-200 group-hover:translate-x-1">

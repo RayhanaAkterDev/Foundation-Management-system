@@ -118,7 +118,7 @@ export default function ResetPassword() {
                                     <TbCheck size={30} strokeWidth={2.2} />
                                 </div>
 
-                                <p className="mb-1 text-sm font-medium text-[#0f766e]">
+                                <p className="mb-1 text-sm font-medium! text-[#0f766e]">
                                     পাসওয়ার্ড পরিবর্তন সম্পন্ন
                                 </p>
 
@@ -156,7 +156,7 @@ export default function ResetPassword() {
                 {/* Back to Login */}
                 <Link
                     to="/login"
-                    className="mb-5 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 transition hover:text-[#0f766e]"
+                    className="mb-5 inline-flex items-center gap-1.5 text-sm font-medium! text-slate-500 transition hover:text-[#0f766e]"
                 >
                     <TbArrowLeft size={18} />
                     লগইনে ফিরে যান
@@ -174,7 +174,7 @@ export default function ResetPassword() {
                                 <TbKey size={23} strokeWidth={2} />
                             </div>
 
-                            <p className="mb-1 text-sm font-medium text-[#0f766e]">
+                            <p className="mb-1 text-sm font-medium! text-[#0f766e]">
                                 পাসওয়ার্ড রিসেট
                             </p>
 
@@ -235,7 +235,7 @@ export default function ResetPassword() {
                                 <div>
                                     <label
                                         htmlFor="password"
-                                        className="mb-2 block text-sm font-medium text-slate-700"
+                                        className="mb-2 block text-sm font-medium! text-slate-700"
                                     >
                                         নতুন পাসওয়ার্ড
                                     </label>
@@ -292,7 +292,7 @@ export default function ResetPassword() {
                                 <div>
                                     <label
                                         htmlFor="password_confirmation"
-                                        className="mb-2 block text-sm font-medium text-slate-700"
+                                        className="mb-2 block text-sm font-medium! text-slate-700"
                                     >
                                         পাসওয়ার্ড নিশ্চিত করুন
                                     </label>

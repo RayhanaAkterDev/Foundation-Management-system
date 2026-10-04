@@ -181,7 +181,7 @@ const Field = ({ label, htmlFor, error, optional = false, children }) => (
                 <span
                     className="
                         text-[13px]
-                        font-medium
+                        font-medium!
                         text-[#84938f]
                     "
                 >
@@ -246,7 +246,7 @@ const inputClass = (error) => `
 
     font-['Noto_Sans_Bengali']
     text-[15px]
-    font-medium
+    font-medium!
     text-[#172a27]
 
     outline-none
@@ -288,7 +288,7 @@ const textareaClass = (error) => `
 
     font-['Noto_Sans_Bengali']
     text-[15px]
-    font-medium
+    font-medium!
     leading-7
     text-[#172a27]
 
@@ -492,7 +492,7 @@ const OrganizationTypeCombobox = ({ value, onChange, error }) => {
 
                         ${
                             selectedLabel
-                                ? 'font-medium text-[#172a27]'
+                                ? 'font-medium! text-[#172a27]'
                                 : 'font-normal text-[#96a4a1]'
                         }
                     `}
@@ -568,7 +568,7 @@ const OrganizationTypeCombobox = ({ value, onChange, error }) => {
                             className="
                                 font-['Noto_Sans_Bengali']
                                 text-[13px]
-                                font-medium
+                                font-medium!
                                 text-[#6f807c]
                             "
                         >
@@ -980,7 +980,7 @@ const DistrictCombobox = ({ value, onChange, error }) => {
                                 shrink-0
                                 font-['Noto_Sans_Bengali']
                                 text-[12px]
-                                font-medium
+                                font-medium!
                                 text-[#93a09d]
                             "
                         >

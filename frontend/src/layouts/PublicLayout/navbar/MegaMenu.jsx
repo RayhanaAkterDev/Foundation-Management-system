@@ -70,7 +70,7 @@ const MegaMenu = ({ item, onClose }) => {
                             className="
                                 font-bengali
                                 text-[12px]
-                                font-medium!
+                                font-medium!!
                                 text-primary
                             "
                         >
@@ -83,7 +83,7 @@ const MegaMenu = ({ item, onClose }) => {
                                 max-w-[270px]
                                 font-bengali!
                                 text-[24px]
-                                font-medium!
+                                font-medium!!
                                 leading-[1.4]!
                                 tracking-normal!
                                 text-text-primary
@@ -119,7 +119,7 @@ const MegaMenu = ({ item, onClose }) => {
                                     gap-2
                                     font-bengali
                                     text-[13px]
-                                    font-medium!
+                                    font-medium!!
                                     text-primary
                                     transition-colors
                                     hover:text-primary-hover
@@ -175,7 +175,7 @@ const MegaMenu = ({ item, onClose }) => {
                                         className="
                                             font-bengali
                                             text-[12px]
-                                            font-medium!
+                                            font-medium!!
                                             text-text-secondary
                                         "
                                     >
@@ -225,7 +225,7 @@ const MegaMenu = ({ item, onClose }) => {
                                                         className={`
                                                             font-bengali!
                                                             text-[14px]
-                                                            font-medium!
+                                                            font-medium!!
                                                             leading-[1.5]!
                                                             tracking-normal!
                                                             transition-colors
@@ -343,7 +343,7 @@ const MegaMenu = ({ item, onClose }) => {
                                     className="
                                         font-bengali
                                         text-[13px]
-                                        font-medium!
+                                        font-medium!!
                                         leading-[1.7]
                                         text-text-on-dark
                                     "

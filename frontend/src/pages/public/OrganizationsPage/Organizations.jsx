@@ -94,7 +94,7 @@ const Organizations = () => {
                                 <p
                                     className="
                                         text-[12px]
-                                        font-medium
+                                        font-medium!
                                         text-primary
 
                                         sm:text-[13px]
@@ -108,7 +108,7 @@ const Organizations = () => {
                                 className="
                                     font-bengali
                                     text-[2.15rem]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.4]
                                     tracking-normal
                                     text-text-primary
@@ -179,7 +179,7 @@ const Organizations = () => {
                                         py-3
 
                                         text-[13px]
-                                        font-medium
+                                        font-medium!
                                         text-white!
 
                                         transition-colors
@@ -213,7 +213,7 @@ const Organizations = () => {
                                         py-3
 
                                         text-[13px]
-                                        font-medium
+                                        font-medium!
                                         text-text-primary
 
                                         transition-colors
@@ -278,7 +278,7 @@ const Organizations = () => {
                                     <p
                                         className="
                                             text-[14px]
-                                            font-medium
+                                            font-medium!
                                             text-text-primary
                                         "
                                     >
@@ -303,7 +303,7 @@ const Organizations = () => {
                                 <p
                                     className="
                                         text-[11px]
-                                        font-medium
+                                        font-medium!
                                         text-text-muted
                                     "
                                 >
@@ -315,7 +315,7 @@ const Organizations = () => {
                                         mt-2
 
                                         text-[17px]
-                                        font-medium
+                                        font-medium!
                                         leading-7
                                         text-text-primary
 
@@ -401,7 +401,7 @@ const Organizations = () => {
                             <p
                                 className="
                                     text-[12px]
-                                    font-medium
+                                    font-medium!
                                     text-primary
 
                                     sm:text-[13px]
@@ -418,7 +418,7 @@ const Organizations = () => {
 
                                     font-bengali
                                     text-[1.7rem]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.45]
                                     tracking-normal
                                     text-text-primary
@@ -511,7 +511,7 @@ const Organizations = () => {
                                         <span
                                             className="
                                                 text-[12px]
-                                                font-medium
+                                                font-medium!
                                                 text-primary/45
                                             "
                                         >
@@ -524,7 +524,7 @@ const Organizations = () => {
                                             mt-5
 
                                             text-[16px]
-                                            font-medium
+                                            font-medium!
                                             text-text-primary
 
                                             sm:text-[17px]
@@ -555,7 +555,7 @@ const Organizations = () => {
                 </div>
             </section>
 
-            
+
 
             {/* =========================================================
                 FAQ

@@ -182,7 +182,7 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
     const selectedUrgency = urgencyConfig[form.urgency];
 
     const inputBase =
-        'w-full rounded-xl border bg-white px-4 text-[13px] font-medium text-slate-800 outline-none transition-all placeholder:text-slate-400';
+        'w-full rounded-xl border bg-white px-4 text-[13px] font-medium! text-slate-800 outline-none transition-all placeholder:text-slate-400';
 
     const inputNormal =
         'border-slate-200 hover:border-slate-300 focus:border-primary focus:ring-4 focus:ring-primary/10';
@@ -275,7 +275,7 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                             <div className="flex items-center gap-2">
                                 <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
 
-                                <span className="text-[9px] font-medium text-white!/40">
+                                <span className="text-[9px] font-medium! text-white!/40">
                                     Community assistance request
                                 </span>
                             </div>
@@ -428,7 +428,7 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                                         />
 
                                         {errors.title && (
-                                            <p className="mt-1.5 text-[10px] font-medium text-red-500">
+                                            <p className="mt-1.5 text-[10px] font-medium! text-red-500">
                                                 {getErrorMessage(errors.title)}
                                             </p>
                                         )}
@@ -479,7 +479,7 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                                             </div>
 
                                             {errors.category && (
-                                                <p className="mt-1.5 text-[10px] font-medium text-red-500">
+                                                <p className="mt-1.5 text-[10px] font-medium! text-red-500">
                                                     {getErrorMessage(
                                                         errors.category,
                                                     )}
@@ -583,7 +583,7 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                                             />
 
                                             {errors.district && (
-                                                <p className="mt-1.5 text-[10px] font-medium text-red-500">
+                                                <p className="mt-1.5 text-[10px] font-medium! text-red-500">
                                                     {getErrorMessage(
                                                         errors.district,
                                                     )}
@@ -620,7 +620,7 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                                             />
 
                                             {errors.address && (
-                                                <p className="mt-1.5 text-[10px] font-medium text-red-500">
+                                                <p className="mt-1.5 text-[10px] font-medium! text-red-500">
                                                     {getErrorMessage(
                                                         errors.address,
                                                     )}
@@ -687,7 +687,7 @@ const HelpRequestModal = ({ isOpen, onClose, onSuccess }) => {
                                         />
 
                                         {errors.description ? (
-                                            <p className="mt-1.5 text-[10px] font-medium text-red-500">
+                                            <p className="mt-1.5 text-[10px] font-medium! text-red-500">
                                                 {getErrorMessage(
                                                     errors.description,
                                                 )}

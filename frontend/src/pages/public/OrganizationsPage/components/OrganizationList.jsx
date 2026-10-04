@@ -176,7 +176,7 @@ const OrganizationList = () => {
                                     font-bengali
 
                                     text-[12px]
-                                    font-medium
+                                    font-medium!
 
                                     text-primary
 
@@ -196,7 +196,7 @@ const OrganizationList = () => {
                                 font-bengali
 
                                 text-[1.85rem]
-                                font-medium
+                                font-medium!
                                 leading-[1.42]
                                 tracking-normal
 
@@ -268,7 +268,7 @@ const OrganizationList = () => {
                                 বর্তমানে
                                 <span
                                     className="
-                                        font-medium
+                                        font-medium!
 
                                         text-text-primary
                                     "
@@ -499,7 +499,7 @@ const OrganizationList = () => {
                                         font-bengali
 
                                         text-[17px]
-                                        font-medium
+                                        font-medium!
 
                                         text-text-primary
                                     "
@@ -572,7 +572,7 @@ const OrganizationList = () => {
                                             font-bengali
 
                                             text-[17px]
-                                            font-medium
+                                            font-medium!
 
                                             text-text-primary
                                         "
@@ -858,7 +858,7 @@ const OrganizationList = () => {
                                                                 font-poppins
 
                                                                 text-[10px]
-                                                                font-medium
+                                                                font-medium!
 
                                                                 tracking-[0.16em]
 
@@ -949,7 +949,7 @@ const OrganizationList = () => {
                                                                         font-bengali
 
                                                                         text-[10.5px]
-                                                                        font-medium
+                                                                        font-medium!
 
                                                                         text-white/70
 
@@ -972,7 +972,7 @@ const OrganizationList = () => {
                                                                 font-bengali
 
                                                                 text-[20px]
-                                                                font-medium
+                                                                font-medium!
                                                                 leading-[1.45]
 
                                                                 text-white!
@@ -1075,7 +1075,7 @@ const OrganizationList = () => {
                                                                 font-bengali
 
                                                                 text-[10.5px]
-                                                                font-medium
+                                                                font-medium!
 
                                                                 text-text-secondary
                                                             "
@@ -1122,7 +1122,7 @@ const OrganizationList = () => {
                                                                 font-poppins
 
                                                                 text-[9px]
-                                                                font-medium
+                                                                font-medium!
 
                                                                 tracking-[0.14em]
 

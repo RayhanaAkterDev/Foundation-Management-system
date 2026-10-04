@@ -123,7 +123,7 @@ const PriorityDiagram = () => {
                                 <span
                                     className={`
                                         text-[0.7rem]
-                                        font-medium
+                                        font-medium!
                                         ${item.text}
                                     `}
                                 >
@@ -152,7 +152,7 @@ const PriorityDiagram = () => {
                             <strong
                                 className={`
                                     text-[2rem]
-                                    font-medium
+                                    font-medium!
                                     leading-none
 
                                     sm:text-[2.3rem]

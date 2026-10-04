@@ -147,7 +147,7 @@ const StepIndividualPreferences = ({ formData, onChange }) => {
                         আপনার আগ্রহ
                     </span>
 
-                    <span className="font-['Noto_Sans_Bengali'] text-[13px] font-medium text-[#899793]">
+                    <span className="font-['Noto_Sans_Bengali'] text-[13px] font-medium! text-[#899793]">
                         ঐচ্ছিক
                     </span>
                 </div>

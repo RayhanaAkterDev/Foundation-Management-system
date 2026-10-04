@@ -358,7 +358,7 @@ const CampaignDetails = () => {
                         />
 
                         <div className="border-t border-white/15 pt-5">
-                            <p className="text-[11px] font-medium text-white!/65">
+                            <p className="text-[11px] font-medium! text-white!/65">
                                 Campaign record
                             </p>
 
@@ -420,7 +420,7 @@ const MoneyItem = ({ icon: Icon, label, value }) => {
             <div className="flex items-center gap-3">
                 <Icon size={17} strokeWidth={1.8} className="text-white!/75" />
 
-                <span className="text-xs font-medium text-white!/70">
+                <span className="text-xs font-medium! text-white!/70">
                     {label}
                 </span>
             </div>

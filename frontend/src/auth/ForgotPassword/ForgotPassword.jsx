@@ -90,7 +90,7 @@ const ForgotPassword = () => {
                             gap-2
                             font-bengali
                             text-[14px]
-                            font-medium!
+                            font-medium!!
                             text-slate-500
                             transition-colors
                             duration-200

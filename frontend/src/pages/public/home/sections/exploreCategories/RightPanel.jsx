@@ -27,7 +27,7 @@ const RightPanel = ({ categories = [], active, setActive, campaigns = [] }) => {
                     title="যেখানে মানুষের প্রয়োজন"
                     headingClass="
                         font-bengali!
-                        font-medium!
+                        font-medium!!
                         leading-[1.5]!
                         tracking-[-0.01em]
                         text-text-primary!
@@ -56,7 +56,7 @@ const RightPanel = ({ categories = [], active, setActive, campaigns = [] }) => {
                     className="
                         font-bengali
                         text-xs
-                        font-medium
+                        font-medium!
                         leading-[1.8]
                         text-text-secondary
                     "
@@ -119,7 +119,7 @@ const RightPanel = ({ categories = [], active, setActive, campaigns = [] }) => {
                                     justify-center
                                     rounded-full
                                     text-[10px]
-                                    font-medium
+                                    font-medium!
                                     tabular-nums
                                     transition-colors
                                     ${
@@ -142,7 +142,7 @@ const RightPanel = ({ categories = [], active, setActive, campaigns = [] }) => {
                                         ${
                                             isActive
                                                 ? 'font-semibold text-primary'
-                                                : 'font-medium text-text-primary group-hover:text-primary'
+                                                : 'font-medium! text-text-primary group-hover:text-primary'
                                         }
                                     `}
                                 >
@@ -253,7 +253,7 @@ const RightPanel = ({ categories = [], active, setActive, campaigns = [] }) => {
                                             shrink-0
                                             font-sans
                                             text-[10px]
-                                            font-medium
+                                            font-medium!
                                             tabular-nums
                                             tracking-[0.08em]
                                             transition-colors

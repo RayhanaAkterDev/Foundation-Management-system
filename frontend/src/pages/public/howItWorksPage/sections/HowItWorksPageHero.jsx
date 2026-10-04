@@ -116,7 +116,7 @@ const HowItWorksPageHero = () => {
                             <span
                                 className="
                                     text-sm
-                                    font-medium
+                                    font-medium!
                                     whitespace-nowrap
                                     text-text-primary
                                 "

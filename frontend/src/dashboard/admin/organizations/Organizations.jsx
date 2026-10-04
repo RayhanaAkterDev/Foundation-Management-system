@@ -867,7 +867,7 @@ const Organizations = () => {
             border border-border
             bg-surface
             px-4
-            text-sm font-medium
+            text-sm font-medium!
             text-text-primary
             transition-all
             hover:border-primary/30
@@ -1093,7 +1093,7 @@ const Organizations = () => {
                                 pl-10
                                 pr-16
                                 text-[13px]
-                                font-medium
+                                font-medium!
                                 text-text-primary
                                 outline-none
                                 transition-colors
@@ -1161,7 +1161,7 @@ const Organizations = () => {
                                                 Directory
                                             </p>
 
-                                            <p className="mt-0.5 text-xs font-medium text-text-primary">
+                                            <p className="mt-0.5 text-xs font-medium! text-text-primary">
                                                 {filteredOrganizations.length}{' '}
                                                 {filteredOrganizations.length ===
                                                 1
@@ -1202,7 +1202,7 @@ const Organizations = () => {
                                     </p>
                                 </div>
 
-                                <span className="text-[11px] font-medium text-text-secondary">
+                                <span className="text-[11px] font-medium! text-text-secondary">
                                     Sorted by organization
                                 </span>
                             </div>
@@ -1335,7 +1335,7 @@ const Organizations = () => {
                                     <span
                                         className="
                         text-[10px]
-                        font-medium
+                        font-medium!
                         tabular-nums
                         text-white!/30
                     "

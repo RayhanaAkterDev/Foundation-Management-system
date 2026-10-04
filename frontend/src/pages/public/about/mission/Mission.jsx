@@ -49,7 +49,7 @@ const Mission = () => {
                         <div className="mb-8 flex items-center gap-3 sm:mb-9 lg:mb-11">
                             <span className="h-[2px] w-9 bg-accent sm:w-10" />
 
-                            <p className="text-sm font-medium text-primary">
+                            <p className="text-sm font-medium! text-primary">
                                 আমাদের লক্ষ্য
                             </p>
                         </div>
@@ -61,7 +61,7 @@ const Mission = () => {
                                 className="
                                     font-bengali
                                     text-[2.35rem]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.32]
                                     tracking-[-0.012em]
                                     text-text-primary
@@ -224,7 +224,7 @@ const Mission = () => {
                     "
                 >
                     <div className="max-w-[920px]">
-                        <p className="text-sm font-medium text-primary">
+                        <p className="text-sm font-medium! text-primary">
                             সমস্যাটা কোথায়
                         </p>
 
@@ -233,7 +233,7 @@ const Mission = () => {
                                 mt-4
                                 font-bengali
                                 text-[2.05rem]
-                                font-medium
+                                font-medium!
                                 leading-[1.45]
                                 tracking-[-0.01em]
                                 text-text-primary
@@ -290,7 +290,7 @@ const Mission = () => {
                                     max-w-sm
                                     font-bengali
                                     text-[1.45rem]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.5]
                                     text-text-primary
                                     sm:text-[1.75rem]
@@ -352,7 +352,7 @@ const Mission = () => {
                                     max-w-sm
                                     font-bengali
                                     text-[1.45rem]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.5]
                                     text-text-primary
                                     md:ml-auto
@@ -384,7 +384,7 @@ const Mission = () => {
                                     max-w-sm
                                     font-bengali
                                     text-[1.45rem]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.5]
                                     text-text-primary
                                     sm:text-[1.75rem]
@@ -449,7 +449,7 @@ const Mission = () => {
                                     mt-7
                                     font-bengali
                                     text-[2.05rem]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.45]
                                     tracking-[-0.01em]
                                     text-text-primary
@@ -509,7 +509,7 @@ const Mission = () => {
                                     lg:py-9
                                 "
                             >
-                                <span className="text-xs font-medium text-primary">
+                                <span className="text-xs font-medium! text-primary">
                                     দেখুন
                                 </span>
 
@@ -530,7 +530,7 @@ const Mission = () => {
                                     lg:py-9
                                 "
                             >
-                                <span className="text-xs font-medium text-primary">
+                                <span className="text-xs font-medium! text-primary">
                                     খুঁজুন
                                 </span>
 
@@ -551,7 +551,7 @@ const Mission = () => {
                                     lg:py-9
                                 "
                             >
-                                <span className="text-xs font-medium text-primary">
+                                <span className="text-xs font-medium! text-primary">
                                     বুঝুন
                                 </span>
 
@@ -568,7 +568,7 @@ const Mission = () => {
                                     lg:py-9
                                 "
                             >
-                                <span className="text-xs font-medium text-primary">
+                                <span className="text-xs font-medium! text-primary">
                                     যুক্ত হোন
                                 </span>
 
@@ -655,7 +655,7 @@ const Mission = () => {
                                     mt-6
                                     font-bengali
                                     text-[2rem]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.48]
                                     tracking-normal
                                     text-white!
@@ -718,7 +718,7 @@ const Mission = () => {
                         "
                     >
                         <div>
-                            <p className="text-sm font-medium text-primary">
+                            <p className="text-sm font-medium! text-primary">
                                 যেভাবে আমরা কাজ করতে চাই
                             </p>
 
@@ -728,7 +728,7 @@ const Mission = () => {
                                     max-w-sm
                                     font-bengali
                                     text-[1.95rem]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.48]
                                     tracking-normal
                                     sm:text-[2.35rem]
@@ -761,7 +761,7 @@ const Mission = () => {
                                     className="
                                         font-bengali
                                         text-[1.4rem]
-                                        font-medium
+                                        font-medium!
                                         tracking-normal
                                         text-text-primary
                                     "
@@ -795,7 +795,7 @@ const Mission = () => {
                                     className="
                                         font-bengali
                                         text-[1.4rem]
-                                        font-medium
+                                        font-medium!
                                         tracking-normal
                                         text-text-primary
                                     "
@@ -828,7 +828,7 @@ const Mission = () => {
                                     className="
                                         font-bengali
                                         text-[1.4rem]
-                                        font-medium
+                                        font-medium!
                                         tracking-normal
                                         text-text-primary
                                     "
@@ -876,7 +876,7 @@ const Mission = () => {
                                     max-w-[850px]
                                     font-bengali
                                     text-[2.05rem]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.48]
                                     tracking-normal
                                     text-text-primary
@@ -900,7 +900,7 @@ const Mission = () => {
                                 <div className="mt-5 flex items-center gap-2">
                                     <span className="h-2 w-2 rounded-full bg-accent" />
 
-                                    <span className="font-sans text-xs font-medium text-primary">
+                                    <span className="font-sans text-xs font-medium! text-primary">
                                         Stand For People
                                     </span>
                                 </div>

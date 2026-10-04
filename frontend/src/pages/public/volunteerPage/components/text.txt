@@ -70,7 +70,7 @@
                                         <span
                                             className="
                                                 text-[11px]
-                                                font-medium
+                                                font-medium!
                                                 text-text-muted
 
                                                 transition-colors
@@ -118,7 +118,7 @@
                                                     <h3
                                                         className="
                                                             text-[16px]
-                                                            font-medium
+                                                            font-medium!
                                                             text-text-primary
 
                                                             sm:text-[17px]
@@ -200,7 +200,7 @@
                                             gap-2
 
                                             text-[13px]
-                                            font-medium
+                                            font-medium!
                                             text-primary
                                         "
                                     >

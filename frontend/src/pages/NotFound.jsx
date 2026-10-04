@@ -43,7 +43,7 @@ const NotFound = () => {
                             rotate-180
                             font-sans
                             text-[11px]
-                            font-medium
+                            font-medium!
                             tracking-[0.18em]
                             text-text-on-dark-muted
                         "
@@ -142,7 +142,7 @@ const NotFound = () => {
                                         <TbLifebuoy size={18} />
                                     </span>
 
-                                    <p className="text-sm font-medium text-primary">
+                                    <p className="text-sm font-medium! text-primary">
                                         সঠিক পথটি খুঁজে নিতে আমরা সাহায্য করছি
                                     </p>
                                 </div>
@@ -151,7 +151,7 @@ const NotFound = () => {
                                     className="
                                         max-w-[760px]
                                         text-[2.35rem]
-                                        font-medium
+                                        font-medium!
                                         leading-[1.28]
                                         tracking-normal
                                         text-text-primary
@@ -210,7 +210,7 @@ const NotFound = () => {
                                             bg-primary
                                             px-5.5
                                             text-[15px]
-                                            font-medium
+                                            font-medium!
                                             text-white!
                                             transition-colors
                                             duration-200
@@ -243,7 +243,7 @@ const NotFound = () => {
                                             gap-2.5
                                             px-4
                                             text-[15px]
-                                            font-medium
+                                            font-medium!
                                             text-text-body
                                             transition-colors
                                             duration-200
@@ -294,7 +294,7 @@ const NotFound = () => {
                                     "
                                 />
 
-                                <p className="text-sm font-medium text-primary">
+                                <p className="text-sm font-medium! text-primary">
                                     কোথায় যেতে চান?
                                 </p>
 
@@ -302,7 +302,7 @@ const NotFound = () => {
                                     className="
                                         mt-2
                                         text-2xl
-                                        font-medium
+                                        font-medium!
                                         leading-[1.45]
                                         tracking-normal
                                         text-text-primary
@@ -324,7 +324,7 @@ const NotFound = () => {
                                             border-b border-border
                                             py-3.5
                                             text-[15px]
-                                            font-medium
+                                            font-medium!
                                             text-text-body
                                             transition-colors
                                             duration-200
@@ -352,7 +352,7 @@ const NotFound = () => {
                                             border-b border-border
                                             py-3.5
                                             text-[15px]
-                                            font-medium
+                                            font-medium!
                                             text-text-body
                                             transition-colors
                                             duration-200
@@ -380,7 +380,7 @@ const NotFound = () => {
                                             border-b border-border
                                             py-3.5
                                             text-[15px]
-                                            font-medium
+                                            font-medium!
                                             text-text-body
                                             transition-colors
                                             duration-200
@@ -417,7 +417,7 @@ const NotFound = () => {
                                             items-center
                                             gap-1.5
                                             text-sm
-                                            font-medium
+                                            font-medium!
                                             text-primary
                                             transition-colors
                                             hover:text-primary-hover

@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from 'react';
-
 import { useNavigate } from 'react-router-dom';
 
 import {
@@ -39,11 +38,8 @@ const Users = () => {
     const [error, setError] = useState('');
 
     const [activeCategory, setActiveCategory] = useState('all');
-
     const [searchTerm, setSearchTerm] = useState('');
-
     const [statusFilter, setStatusFilter] = useState('all');
-
     const [verificationFilter, setVerificationFilter] = useState('all');
 
     const [sortConfig, setSortConfig] = useState({
@@ -52,13 +48,10 @@ const Users = () => {
     });
 
     const [currentPage, setCurrentPage] = useState(1);
-
     const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
     const [selectedDeleteUser, setSelectedDeleteUser] = useState(null);
-
     const [deleteLoading, setDeleteLoading] = useState(false);
-
     const [deleteError, setDeleteError] = useState('');
 
     const [toast, setToast] = useState({
@@ -285,12 +278,10 @@ const Users = () => {
 
         result.sort((a, b) => {
             let first = a[sortConfig.key];
-
             let second = b[sortConfig.key];
 
             if (sortConfig.key === 'created_at') {
                 first = new Date(first).getTime();
-
                 second = new Date(second).getTime();
             }
 
@@ -299,7 +290,6 @@ const Users = () => {
 
             if (typeof first === 'string') {
                 first = first.toLowerCase();
-
                 second = second.toLowerCase();
             }
 
@@ -352,19 +342,16 @@ const Users = () => {
 
     const handleStatusChange = (event) => {
         setStatusFilter(event.target.value);
-
         setCurrentPage(1);
     };
 
     const handleVerificationChange = (event) => {
         setVerificationFilter(event.target.value);
-
         setCurrentPage(1);
     };
 
     const handleSearchChange = (event) => {
         setSearchTerm(event.target.value);
-
         setCurrentPage(1);
     };
 
@@ -458,11 +445,9 @@ const Users = () => {
         });
 
         const url = URL.createObjectURL(blob);
-
         const link = document.createElement('a');
 
         link.href = url;
-
         link.download = 'stand-for-people-users.csv';
 
         document.body.appendChild(link);
@@ -553,7 +538,7 @@ const Users = () => {
 
     if (loading) {
         return (
-            <div className="space-y-8">
+            <div className="space-y-10 lg:space-y-12">
                 <PageHeader
                     title="Users"
                     subtitle="Manage all registered users on the Stand For People platform."
@@ -562,14 +547,14 @@ const Users = () => {
                 <div
                     className="
                         flex
-                        min-h-150
+                        min-h-130
                         items-center
                         justify-center
 
                         border
-                        border-[#343944]
+                        border-[#252D38]
 
-                        bg-[#22252D]
+                        bg-[#0E1219]
                     "
                 >
                     <div className="text-center">
@@ -584,16 +569,17 @@ const Users = () => {
                                 rounded-full
 
                                 border-2
-                                border-[#343944]
-                                border-t-[#9299A6]
+                                border-[#252D38]
+                                border-t-[#84909F]
                             "
                         />
 
                         <p
                             className="
+                                font-sans!
                                 text-[13px]
-                                font-semibold
-                                text-[#F1F2F4]
+                                font-semibold!
+                                text-[#EEF1F5]
                             "
                         >
                             Loading users...
@@ -601,9 +587,10 @@ const Users = () => {
 
                         <p
                             className="
-                                mt-1
+                                mt-1.5
+                                font-sans!
                                 text-[11px]
-                                text-[#9299A6]
+                                text-[#7F8A99]
                             "
                         >
                             Please wait while we retrieve the user list.
@@ -620,7 +607,7 @@ const Users = () => {
 
     if (error) {
         return (
-            <div className="space-y-8">
+            <div className="space-y-10 lg:space-y-12">
                 <PageHeader
                     title="Users"
                     subtitle="Manage all registered users on the Stand For People platform."
@@ -631,11 +618,12 @@ const Users = () => {
                         border
                         border-[#5A343B]
 
-                        bg-[#38272C]
+                        bg-[#28181D]
 
                         px-5
                         py-4
 
+                        font-sans!
                         text-[12px]
                         text-[#E9A1A8]
                     "
@@ -652,7 +640,7 @@ const Users = () => {
 
     return (
         <>
-            <div className="space-y-9">
+            <div className="space-y-12 lg:space-y-14">
                 {/* ====================================================
                     PAGE HEADER
                 ==================================================== */}
@@ -663,60 +651,88 @@ const Users = () => {
                     action={
                         <div
                             className="
-                                flex
-                                w-full
-                                flex-wrap
-                                items-center
-                                justify-end
-                                gap-2
+                flex
+                w-full
+                flex-wrap
+                items-center
+                justify-end
+                gap-2
 
-                                sm:gap-3
-                            "
+                sm:w-auto
+            "
                         >
+                            {/* =========================================================
+                EXPORT CSV
+            ========================================================= */}
+
                             <button
                                 type="button"
                                 onClick={handleExportCSV}
                                 disabled={filteredUsers.length === 0}
                                 className="
-                                    group
+                    group
 
-                                    inline-flex
-                                    h-10
-                                    items-center
-                                    gap-2
+                    inline-flex
+                    h-10
+                    items-center
+                    justify-center
+                    gap-2.5
 
-                                    border
-                                    border-[#343944]
+                    border
+                    border-[#29323E]
 
-                                    bg-[#22252D]
+                    bg-[#0E1219]
 
-                                    px-3.5
+                    px-3.5
 
-                                    text-[12px]
-                                    font-medium
-                                    text-[#C3C7CF]
+                    font-sans!
+                    text-[11px]
+                    font-medium!
+                    whitespace-nowrap
 
-                                    transition-colors
+                    text-[#AEB7C3]!
 
-                                    hover:border-[#404754]
-                                    hover:bg-[#272B34]
-                                    hover:text-[#F1F2F4]
+                    transition-[background-color,border-color,color]
+                    duration-150
+                    ease-out
 
-                                    disabled:cursor-not-allowed
-                                    disabled:opacity-40
-                                "
+                    hover:border-[#394555]
+                    hover:bg-[#1A222D]
+                    hover:text-[#EEF1F5]!
+
+                    focus:outline-none
+                    focus:ring-0
+
+                    disabled:cursor-not-allowed
+                    disabled:border-[#202832]
+                    disabled:bg-[#0E1219]
+                    disabled:text-[#566171]!
+                    disabled:opacity-60
+                "
                             >
                                 <Download
-                                    size={15}
+                                    size={14}
                                     strokeWidth={1.8}
                                     className="
-                                        text-[#9299A6]
-                                        transition-colors
-                                        group-hover:text-[#C3C7CF]
-                                    "
+                        shrink-0
+
+                        text-[#697586]
+
+                        transition-colors
+                        duration-150
+
+                        group-hover:text-[#AEB7C3]
+
+                        group-disabled:text-[#4E5967]
+                    "
                                 />
-                                Export CSV
+
+                                <span>Export CSV</span>
                             </button>
+
+                            {/* =========================================================
+                ADD USER
+            ========================================================= */}
 
                             <button
                                 type="button"
@@ -724,30 +740,62 @@ const Users = () => {
                                     navigate('/admin/dashboard/users/add')
                                 }
                                 className="
-                                    inline-flex
-                                    h-10
-                                    items-center
-                                    gap-2
+                    group
 
-                                    border
-                                    border-[#515866]
+                    inline-flex
+                    h-10
+                    items-center
+                    justify-center
+                    gap-2.5
 
-                                    bg-[#393F4C]
+                    border
+                    border-[#29323E]
+                    bg-[#1A222D]
 
-                                    px-3.5
+                    px-4
 
-                                    text-[12px]
-                                    font-semibold
-                                    text-[#F1F2F4]!
+                    font-sans!
+                    text-[11px]
+                    font-semibold!
+                    whitespace-nowrap
 
-                                    transition-colors
+                    text-[#EEF1F5]!
 
-                                    hover:border-[#626A78]
-                                    hover:bg-[#454C5A]
-                                "
+                    transition-[background-color,border-color]
+                    duration-150
+                    ease-out
+
+                    hover:border-[#394555]
+                    hover:bg-[#1D2632]
+
+                    focus:outline-none
+                    focus:ring-0
+                "
                             >
-                                <Plus size={16} strokeWidth={2} />
-                                Add User
+                                <span
+                                    className="
+                        flex
+                        h-5
+                        w-5
+                        shrink-0
+                        items-center
+                        justify-center
+
+                        bg-[#252F3B]
+
+                        text-[#C8D0D9]
+
+                        transition-colors
+                        duration-150
+
+                        group-hover:bg-[#303A47]
+                        group-hover:text-[#EEF1F5]
+                    "
+                                >
+                                    <Plus size={13} strokeWidth={2} />
+                                </span>
+
+                                <span>Add User</span>
                             </button>
                         </div>
                     }
@@ -768,33 +816,37 @@ const Users = () => {
                     USER MANAGEMENT
                 ==================================================== */}
 
-                <section className="pt-1">
+                <section className="pt-2 lg:pt-3">
                     {/* ===============================================
                         SECTION HEADING
                     =============================================== */}
 
                     <div
                         className="
-                            mb-5
+                            mb-7
 
                             flex
                             flex-col
-                            gap-4
+                            gap-5
 
                             border-b
-                            border-[#343944]
+                            border-[#252D38]
 
-                            pb-5
+                            pb-6
 
                             sm:flex-row
                             sm:items-end
                             sm:justify-between
+
+                            lg:mb-8
+                            lg:pb-7
                         "
                     >
                         <div className="min-w-0">
                             <div
                                 className="
-                                    mb-2
+                                    mb-2.5
+
                                     flex
                                     items-center
                                     gap-2
@@ -804,17 +856,20 @@ const Users = () => {
                                     className="
                                         h-1.5
                                         w-1.5
-                                        bg-[#7F8794]
+
+                                        bg-[#697586]
                                     "
                                 />
 
                                 <span
                                     className="
+                                        font-sans!
                                         text-[9px]
-                                        font-semibold
+                                        font-semibold!
                                         uppercase
                                         tracking-[0.15em]
-                                        text-[#7F8794]
+
+                                        text-[#697586]
                                     "
                                 >
                                     Administration
@@ -823,10 +878,16 @@ const Users = () => {
 
                             <h2
                                 className="
+                                    font-sans!
+
                                     text-[20px]
-                                    font-semibold
-                                    leading-tight
-                                    text-[#F1F2F4]!
+                                    font-semibold!
+                                    leading-[1.25]
+                                    tracking-[-0.02em]
+
+                                    text-[#EEF1F5]!
+
+                                    sm:text-[21px]
                                 "
                             >
                                 User management
@@ -834,12 +895,14 @@ const Users = () => {
 
                             <p
                                 className="
-                                    mt-1.5
+                                    mt-2
                                     max-w-xl
 
+                                    font-sans!
                                     text-[12px]
-                                    leading-5
-                                    text-[#9299A6]
+                                    leading-[1.65]
+
+                                    text-[#8792A1]
                                 "
                             >
                                 Review accounts, roles, and access across the
@@ -852,15 +915,16 @@ const Users = () => {
                                 flex
                                 shrink-0
                                 items-center
-                                gap-3
+                                gap-4
                             "
                         >
                             <span
                                 className="
                                     hidden
-                                    h-8
+                                    h-9
                                     w-px
-                                    bg-[#343944]
+
+                                    bg-[#252D38]
 
                                     sm:block
                                 "
@@ -869,11 +933,13 @@ const Users = () => {
                             <div>
                                 <p
                                     className="
+                                        font-sans!
                                         text-[9px]
-                                        font-semibold
+                                        font-semibold!
                                         uppercase
                                         tracking-[0.14em]
-                                        text-[#6F7785]
+
+                                        text-[#667282]
                                     "
                                 >
                                     Showing
@@ -881,17 +947,20 @@ const Users = () => {
 
                                 <p
                                     className="
-                                        mt-0.5
+                                        mt-1
+
+                                        font-sans!
                                         text-[12px]
-                                        font-semibold
-                                        text-[#C3C7CF]
+                                        font-semibold!
+
+                                        text-[#B8C0CA]
                                     "
                                 >
                                     {filteredUsers.length}{' '}
                                     <span
                                         className="
                                             font-normal
-                                            text-[#7F8794]
+                                            text-[#788493]
                                         "
                                     >
                                         {filteredUsers.length === 1
@@ -907,7 +976,7 @@ const Users = () => {
                         MOBILE / TABLET FILTER TRIGGER
                     =============================================== */}
 
-                    <div className="mb-3 xl:hidden">
+                    <div className="mb-5 xl:hidden">
                         <button
                             type="button"
                             onClick={() => setMobileFiltersOpen(true)}
@@ -919,19 +988,24 @@ const Users = () => {
                                 justify-between
 
                                 border
-                                border-[#343944]
+                                border-[#252D38]
 
-                                bg-[#22252D]
+                                bg-[#0E1219]
 
                                 px-3.5
 
+                                font-sans!
                                 text-[11px]
-                                font-medium
-                                text-[#C3C7CF]
+                                font-medium!
+
+                                text-[#AEB7C3]
 
                                 transition-colors
+                                duration-150
 
-                                hover:bg-[#272B34]
+                                hover:border-[#35404E]
+                                hover:bg-[#151B24]
+                                hover:text-[#EEF1F5]
                             "
                         >
                             <span
@@ -957,14 +1031,15 @@ const Users = () => {
                                         items-center
                                         justify-center
 
-                                        bg-[#393F4C]
+                                        bg-[#1D2632]
 
                                         px-1.5
 
                                         text-[9px]
-                                        font-semibold
+                                        font-semibold!
                                         tabular-nums
-                                        text-[#F1F2F4]
+
+                                        text-[#EEF1F5]
                                     "
                                 >
                                     {activeFilterCount}
@@ -981,10 +1056,11 @@ const Users = () => {
                         className="
                             grid
                             min-w-0
-                            gap-5
+                            gap-6
 
                             xl:grid-cols-[minmax(0,1fr)_340px]
                             xl:items-stretch
+                            xl:gap-7
                         "
                     >
                         {/* ===========================================
@@ -1006,65 +1082,69 @@ const Users = () => {
                                     min-h-0
                                     min-w-0
                                     flex-col
+
                                     overflow-hidden
 
                                     border
-                                    border-[#343944]
+                                    border-[#252D38]
 
-                                    bg-[#22252D]
+                                    bg-[#0E1219]
 
                                     xl:absolute
                                     xl:inset-0
                                 "
                             >
-                                {/* =======================================
-                                SEARCH TOOLBAR
-                            ======================================= */}
+                                {/* ===================================
+                                    SEARCH TOOLBAR
+                                =================================== */}
 
                                 <div
                                     className="
-                                    shrink-0
+                                        shrink-0
 
-                                    border-b
-                                    border-[#343944]
+                                        border-b
+                                        border-[#252D38]
 
-                                    bg-[#20232A]
+                                        bg-[#1A222D]
 
-                                    px-3
-                                    py-3
+                                        px-4
+                                        py-3.5
 
-                                    sm:px-4
-                                "
+                                        sm:px-5
+                                    "
                                 >
                                     <div
                                         className="
-                                        flex
-                                        flex-col
-                                        gap-3
+                                            flex
+                                            flex-col
+                                            gap-3.5
 
-                                        lg:flex-row
-                                        lg:items-center
-                                        lg:justify-between
-                                    "
+                                            lg:flex-row
+                                            lg:items-center
+                                            lg:justify-between
+                                        "
                                     >
                                         <div
                                             className="
-                                            min-w-0
-                                            flex-1
-                                        "
+                                                min-w-0
+                                                flex-1
+                                            "
                                         >
                                             <div className="relative">
                                                 <Search
                                                     size={15}
                                                     strokeWidth={1.8}
                                                     className="
-                                                    pointer-events-none
-                                                    absolute
-                                                    left-3
-                                                    top-1/2
-                                                    -translate-y-1/2
-                                                    text-[#6F7785]
-                                                "
+                                                        pointer-events-none
+
+                                                        absolute
+                                                        left-3
+                                                        top-1/2
+
+                                                        -translate-y-1/2
+
+                                                        text-[#697586]
+                                                    "
                                                 />
 
                                                 <input
@@ -1075,32 +1155,35 @@ const Users = () => {
                                                     }
                                                     placeholder="Search by name or email"
                                                     className="
-                                                    h-10
-                                                    w-full
+                                                        h-10
+                                                        w-full
 
-                                                    border
-                                                    border-[#343944]
+                                                        border
+                                                        border-[#29323E]
 
-                                                    bg-[#181A20]
+                                                        bg-[#0A0E14]
 
-                                                    pl-9
-                                                    pr-16
+                                                        pl-9
+                                                        pr-16
 
-                                                    text-[12px]
-                                                    font-medium
-                                                    text-[#F1F2F4]
+                                                        font-sans!
+                                                        text-[12px]
+                                                        font-medium!
 
-                                                    outline-none
+                                                        text-[#EEF1F5]
 
-                                                    transition-colors
+                                                        outline-none
 
-                                                    placeholder:text-[#626A78]
+                                                        transition-colors
+                                                        duration-150
 
-                                                    hover:border-[#404754]
+                                                        placeholder:text-[#5E6978]
 
-                                                    focus:border-[#515866]
-                                                    focus:ring-0
-                                                "
+                                                        hover:border-[#394553]
+
+                                                        focus:border-[#4B5869]
+                                                        focus:ring-0
+                                                    "
                                                 />
 
                                                 {searchTerm && (
@@ -1110,25 +1193,27 @@ const Users = () => {
                                                             handleClearSearch
                                                         }
                                                         className="
-                                                        absolute
-                                                        right-3
-                                                        top-1/2
-                                                        -translate-y-1/2
+                                                            absolute
+                                                            right-3
+                                                            top-1/2
 
-                                                        text-[9px]
-                                                        font-semibold
-                                                        uppercase
-                                                        tracking-[0.08em]
+                                                            -translate-y-1/2
 
-                                                        text-[#7F8794]
+                                                            font-sans!
+                                                            text-[9px]
+                                                            font-semibold!
+                                                            uppercase
+                                                            tracking-[0.08em]
 
-                                                        transition-colors
+                                                            text-[#788493]
 
-                                                        hover:text-[#F1F2F4]
+                                                            transition-colors
 
-                                                        focus:outline-none
-                                                        focus:ring-0
-                                                    "
+                                                            hover:text-[#EEF1F5]
+
+                                                            focus:outline-none
+                                                            focus:ring-0
+                                                        "
                                                     >
                                                         Clear
                                                     </button>
@@ -1138,43 +1223,49 @@ const Users = () => {
 
                                         <div
                                             className="
-                                            flex
-                                            shrink-0
-                                            items-center
-                                            gap-4
-                                        "
+                                                flex
+                                                shrink-0
+                                                items-center
+                                                gap-4
+                                            "
                                         >
                                             <span
                                                 className="
-                                                hidden
-                                                h-7
-                                                w-px
-                                                bg-[#343944]
+                                                    hidden
+                                                    h-7
+                                                    w-px
 
-                                                lg:block
-                                            "
+                                                    bg-[#303A47]
+
+                                                    lg:block
+                                                "
                                             />
 
                                             <div>
                                                 <p
                                                     className="
-                                                    text-[8px]
-                                                    font-semibold
-                                                    uppercase
-                                                    tracking-[0.14em]
-                                                    text-[#6F7785]
-                                                "
+                                                        font-sans!
+                                                        text-[8px]
+                                                        font-semibold!
+                                                        uppercase
+                                                        tracking-[0.14em]
+
+                                                        text-[#657181]
+                                                    "
                                                 >
                                                     Directory
                                                 </p>
 
                                                 <p
                                                     className="
-                                                    mt-0.5
-                                                    text-[11px]
-                                                    font-medium
-                                                    text-[#C3C7CF]
-                                                "
+                                                        mt-1
+
+                                                        font-sans!
+                                                        text-[11px]
+                                                        font-medium!
+
+                                                        text-[#AAB3BF]
+                                                    "
                                                 >
                                                     {filteredUsers.length}{' '}
                                                     {filteredUsers.length === 1
@@ -1186,46 +1277,52 @@ const Users = () => {
                                     </div>
                                 </div>
 
-                                {/* =======================================
-                                TABLE CONTEXT
-                            ======================================= */}
+                                {/* ===================================
+                                    TABLE CONTEXT
+                                =================================== */}
 
                                 <div
                                     className="
-                                    flex
-                                    shrink-0
-                                    items-center
-                                    justify-between
-                                    gap-3
+                                        flex
+                                        shrink-0
+                                        items-center
+                                        justify-between
+                                        gap-4
 
-                                    border-b
-                                    border-[#343944]
+                                        border-b
+                                        border-[#252D38]
 
-                                    bg-[#22252D]
+                                        bg-[#0E1219]
 
-                                    px-4
-                                    py-3
-                                "
+                                        px-4
+                                        py-3.5
+
+                                        sm:px-5
+                                    "
                                 >
                                     <div className="min-w-0">
                                         <p
                                             className="
-                                            text-[12px]
-                                            font-semibold
-                                            text-[#F1F2F4]
-                                        "
+                                                font-sans!
+                                                text-[12px]
+                                                font-semibold!
+
+                                                text-[#EEF1F5]
+                                            "
                                         >
                                             Registered users
                                         </p>
 
                                         <p
                                             className="
-                                            mt-0.5
-                                            truncate
+                                                mt-1
+                                                truncate
 
-                                            text-[10px]
-                                            text-[#6F7785]
-                                        "
+                                                font-sans!
+                                                text-[10px]
+
+                                                text-[#697586]
+                                            "
                                         >
                                             Browse and review platform accounts
                                         </p>
@@ -1233,46 +1330,44 @@ const Users = () => {
 
                                     <span
                                         className="
-                                        hidden
-                                        shrink-0
+                                            hidden
+                                            shrink-0
 
-                                        text-[9px]
-                                        font-medium
-                                        text-[#6F7785]
+                                            font-sans!
+                                            text-[9px]
+                                            font-medium!
 
-                                        sm:block
-                                    "
+                                            text-[#697586]
+
+                                            sm:block
+                                        "
                                     >
                                         Sorted by account
                                     </span>
                                 </div>
 
-                                {/* =======================================
-                                SCROLLABLE TABLE AREA
-
-                                This is the only flexible area.
-                                On desktop the filter sidebar defines the
-                                shared workspace height, so rows scroll here.
-                            ======================================= */}
+                                {/* ===================================
+                                    TABLE
+                                =================================== */}
 
                                 <div
                                     className="
-                                    min-h-0
-                                    min-w-0
-                                    flex-1
+                                        min-h-0
+                                        min-w-0
+                                        flex-1
 
-                                    overflow-auto
+                                        overflow-auto
 
-                                    bg-[#22252D]
+                                        bg-[#0E1219]
 
-                                    [&::-webkit-scrollbar]:h-1.5
-                                    [&::-webkit-scrollbar]:w-1.5
+                                        [&::-webkit-scrollbar]:h-1.5
+                                        [&::-webkit-scrollbar]:w-1.5
 
-                                    [&::-webkit-scrollbar-track]:bg-[#1F2229]
-                                    [&::-webkit-scrollbar-thumb]:bg-[#404754]
+                                        [&::-webkit-scrollbar-track]:bg-[#0A0E14]
+                                        [&::-webkit-scrollbar-thumb]:bg-[#303A47]
 
-                                    hover:[&::-webkit-scrollbar-thumb]:bg-[#515866]
-                                "
+                                        hover:[&::-webkit-scrollbar-thumb]:bg-[#465261]
+                                    "
                                 >
                                     <UserTable
                                         columns={columns}
@@ -1289,20 +1384,20 @@ const Users = () => {
                                     />
                                 </div>
 
-                                {/* =======================================
-                                PAGINATION
-                            ======================================= */}
+                                {/* ===================================
+                                    PAGINATION
+                                =================================== */}
 
                                 {filteredUsers.length > 0 && (
                                     <div
                                         className="
-                                        shrink-0
+                                            shrink-0
 
-                                        border-t
-                                        border-[#343944]
+                                            border-t
+                                            border-[#252D38]
 
-                                        bg-[#20232A]
-                                    "
+                                            bg-[#1A222D]
+                                        "
                                     >
                                         <UserPagination
                                             currentPage={safeCurrentPage}
@@ -1318,10 +1413,6 @@ const Users = () => {
 
                         {/* ===========================================
                             DESKTOP FILTER SIDEBAR
-
-                            Its natural content height defines the desktop
-                            grid row height. The table workspace fills that
-                            same row without contributing its own content height.
                         =========================================== */}
 
                         <aside
@@ -1330,9 +1421,9 @@ const Users = () => {
                                 min-w-0
 
                                 border
-                                border-[#343944]
+                                border-[#252D38]
 
-                                bg-[#20232A]
+                                bg-[#0E1219]
 
                                 xl:block
                             "
@@ -1365,7 +1456,7 @@ const Users = () => {
                             absolute
                             inset-0
 
-                            bg-black/55
+                            bg-[#05070A]/75
 
                             backdrop-blur-[2px]
                         "
@@ -1382,18 +1473,20 @@ const Users = () => {
                             overflow-y-auto
 
                             border-t
-                            border-[#343944]
+                            border-[#252D38]
 
-                            bg-[#20232A]
+                            bg-[#0E1219]
 
-                            shadow-[0_-20px_60px_rgba(0,0,0,0.35)]
+                            shadow-[0_-20px_60px_rgba(0,0,0,0.45)]
 
                             sm:bottom-0
                             sm:left-auto
                             sm:top-0
+
                             sm:h-full
                             sm:max-h-none
                             sm:w-[380px]
+
                             sm:border-l
                             sm:border-t-0
                         "
@@ -1409,12 +1502,12 @@ const Users = () => {
                                 justify-between
 
                                 border-b
-                                border-[#343944]
+                                border-[#252D38]
 
-                                bg-[#20232A]/95
+                                bg-[#0E1219]/95
 
                                 px-4
-                                py-3
+                                py-3.5
 
                                 backdrop-blur-md
                             "
@@ -1422,11 +1515,13 @@ const Users = () => {
                             <div>
                                 <p
                                     className="
+                                        font-sans!
                                         text-[9px]
-                                        font-semibold
+                                        font-semibold!
                                         uppercase
                                         tracking-[0.14em]
-                                        text-[#6F7785]
+
+                                        text-[#697586]
                                     "
                                 >
                                     User directory
@@ -1434,11 +1529,13 @@ const Users = () => {
 
                                 <p
                                     className="
-                                        mt-0.5
+                                        mt-1
 
+                                        font-sans!
                                         text-[13px]
-                                        font-semibold
-                                        text-[#F1F2F4]
+                                        font-semibold!
+
+                                        text-[#EEF1F5]
                                     "
                                 >
                                     Filters
@@ -1457,16 +1554,18 @@ const Users = () => {
                                     justify-center
 
                                     border
-                                    border-[#343944]
+                                    border-[#29323E]
 
-                                    bg-[#272B34]
+                                    bg-[#151B24]
 
-                                    text-[#9299A6]
+                                    text-[#8792A1]
 
                                     transition-colors
+                                    duration-150
 
-                                    hover:border-[#404754]
-                                    hover:text-[#F1F2F4]
+                                    hover:border-[#3B4655]
+                                    hover:bg-[#1A222D]
+                                    hover:text-[#EEF1F5]
                                 "
                             >
                                 <X size={16} strokeWidth={1.8} />
@@ -1482,9 +1581,9 @@ const Users = () => {
                                 z-30
 
                                 border-t
-                                border-[#343944]
+                                border-[#252D38]
 
-                                bg-[#20232A]/95
+                                bg-[#0E1219]/95
 
                                 p-4
 
@@ -1502,17 +1601,21 @@ const Users = () => {
                                     justify-center
 
                                     border
-                                    border-[#515866]
+                                    border-[#394555]
 
-                                    bg-[#393F4C]
+                                    bg-[#171E28]
 
+                                    font-sans!
                                     text-[11px]
-                                    font-semibold
-                                    text-[#F1F2F4]
+                                    font-semibold!
+
+                                    text-[#EEF1F5]
 
                                     transition-colors
+                                    duration-150
 
-                                    hover:bg-[#454C5A]
+                                    hover:border-[#4B5869]
+                                    hover:bg-[#1D2632]
                                 "
                             >
                                 Show {filteredUsers.length}{' '}
@@ -1523,15 +1626,7 @@ const Users = () => {
                 </div>
             )}
 
-            {/* ========================================================
-                SUCCESS TOAST
-            ======================================================== */}
-
             <UserSuccessToast show={toast.show} message={toast.message} />
-
-            {/* ========================================================
-                DELETE MODAL
-            ======================================================== */}
 
             <UserDeleteModal
                 user={selectedDeleteUser}

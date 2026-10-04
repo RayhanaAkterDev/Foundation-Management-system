@@ -41,7 +41,7 @@ const Table = ({
             return {
                 ...column,
                 render: (value) => (
-                    <span className="font-medium text-text-secondary">
+                    <span className="font-medium! text-text-secondary">
                         {value || '—'}
                     </span>
                 ),

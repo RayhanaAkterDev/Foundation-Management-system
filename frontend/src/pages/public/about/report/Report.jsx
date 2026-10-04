@@ -124,7 +124,7 @@ const Report = () => {
                                     mt-8
                                     max-w-[850px]
                                     text-[2.7rem]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.18]
 
                                     sm:text-[3.5rem]
@@ -405,7 +405,7 @@ const Report = () => {
                                 className="
                                     max-w-[620px]
                                     text-[2.1rem]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.38]
 
                                     sm:text-[2.7rem]
@@ -514,7 +514,7 @@ const Report = () => {
                                         mt-6
                                         max-w-[610px]
                                         text-[2rem]
-                                        font-medium
+                                        font-medium!
                                         leading-[1.4]
 
                                         sm:text-[2.5rem]
@@ -667,7 +667,7 @@ const Report = () => {
                                         mt-8
                                         max-w-[520px]
                                         text-[2.15rem]
-                                        font-medium
+                                        font-medium!
                                         leading-[1.4]
                                         text-white!
 
@@ -743,7 +743,7 @@ const Report = () => {
                                             <h3
                                                 className="
                                                     text-[17px]
-                                                    font-medium
+                                                    font-medium!
                                                     text-white!
 
                                                     sm:text-[18px]
@@ -836,7 +836,7 @@ const Report = () => {
                                         className="
                                             mt-4
                                             text-[2.2rem]
-                                            font-medium
+                                            font-medium!
 
                                             sm:text-[2.8rem]
 
@@ -898,7 +898,7 @@ const Report = () => {
                                         mt-6
                                         max-w-[560px]
                                         text-[1.85rem]
-                                        font-medium
+                                        font-medium!
                                         leading-[1.45]
 
                                         sm:text-[2.3rem]
@@ -1162,7 +1162,7 @@ const Report = () => {
                                 <h2
                                     className="
                                         text-[2.1rem]
-                                        font-medium
+                                        font-medium!
                                         leading-[1.4]
 
                                         sm:text-[2.7rem]
@@ -1292,7 +1292,7 @@ const Report = () => {
                                     mt-6
                                     max-w-[680px]
                                     text-[2rem]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.4]
 
                                     sm:text-[2.5rem]

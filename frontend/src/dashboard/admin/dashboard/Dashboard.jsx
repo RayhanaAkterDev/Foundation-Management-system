@@ -518,7 +518,7 @@ const Dashboard = () => {
                         </div>
 
                         <div>
-                            <p className="font-jost text-[11px] font-medium leading-4 text-text-primary">
+                            <p className="font-jost text-[11px] font-medium! leading-4 text-text-primary">
                                 Stand For People
                             </p>
 
@@ -543,7 +543,7 @@ const Dashboard = () => {
                                 className="
                         font-jost
                         text-[10px]
-                        font-medium
+                        font-medium!
                         text-text-secondary
                         transition-colors
                         hover:text-primary

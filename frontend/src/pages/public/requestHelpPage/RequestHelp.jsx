@@ -107,7 +107,7 @@ const RequestHelp = () => {
                                 <p
                                     className="
                                         text-[12px]
-                                        font-medium
+                                        font-medium!
                                         text-primary
 
                                         sm:text-[13px]
@@ -121,7 +121,7 @@ const RequestHelp = () => {
                                 className="
                                     font-bengali
                                     text-[2.1rem]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.4]
                                     tracking-normal
                                     text-text-primary
@@ -181,7 +181,7 @@ const RequestHelp = () => {
                                     py-3
 
                                     text-[13px]
-                                    font-medium
+                                    font-medium!
                                     text-white!
 
                                     transition-all
@@ -253,7 +253,7 @@ const RequestHelp = () => {
                                     <p
                                         className="
                                             text-[13px]
-                                            font-medium
+                                            font-medium!
                                             text-text-primary
 
                                             sm:text-[14px]
@@ -330,7 +330,7 @@ const RequestHelp = () => {
                             <p
                                 className="
                                     text-[12px]
-                                    font-medium
+                                    font-medium!
                                     text-primary
 
                                     sm:text-[13px]
@@ -345,7 +345,7 @@ const RequestHelp = () => {
 
                                     font-bengali
                                     text-[1.6rem]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.4]
                                     text-text-primary
 
@@ -442,7 +442,7 @@ const RequestHelp = () => {
                                         <span
                                             className="
                                                 text-[1.7rem]
-                                                font-medium
+                                                font-medium!
                                                 leading-none
                                                 text-primary/20
 
@@ -459,7 +459,7 @@ const RequestHelp = () => {
 
                                             font-bengali
                                             text-[15px]
-                                            font-medium
+                                            font-medium!
                                             leading-6
                                             text-text-primary
 
@@ -549,7 +549,7 @@ const RequestHelp = () => {
                                 <p
                                     className="
                                         text-[12px]
-                                        font-medium
+                                        font-medium!
                                         text-primary
 
                                         sm:text-[13px]
@@ -563,7 +563,7 @@ const RequestHelp = () => {
                                 className="
                                     font-bengali
                                     text-[1.7rem]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.42]
                                     text-text-primary
 

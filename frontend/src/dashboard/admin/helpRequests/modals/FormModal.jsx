@@ -418,7 +418,7 @@ const FormModal = ({
                             type="button"
                             onClick={onClose}
                             disabled={loading}
-                            className="inline-flex h-10 items-center rounded-lg border border-border bg-white px-4 text-sm font-medium text-text-primary transition-colors hover:bg-background-alt disabled:cursor-not-allowed disabled:opacity-50"
+                            className="inline-flex h-10 items-center rounded-lg border border-border bg-white px-4 text-sm font-medium! text-text-primary transition-colors hover:bg-background-alt disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             Cancel
                         </button>

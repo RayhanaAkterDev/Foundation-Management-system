@@ -64,7 +64,7 @@ const OrganizationFAQ = () => {
                         <p
                             className="
                                 text-[12px]
-                                font-medium
+                                font-medium!
                                 text-primary
 
                                 sm:text-[13px] mt-6
@@ -79,7 +79,7 @@ const OrganizationFAQ = () => {
 
                                 font-bengali
                                 text-[1.65rem]
-                                font-medium
+                                font-medium!
                                 leading-[1.45]
                                 text-text-primary
 
@@ -147,7 +147,7 @@ const OrganizationFAQ = () => {
                                             className="
                                                 font-bengali
                                                 text-[14px]
-                                                font-medium
+                                                font-medium!
                                                 leading-7
                                                 text-text-primary
 
@@ -235,7 +235,7 @@ const OrganizationFAQ = () => {
                             <p
                                 className="
                                     text-[12px]
-                                    font-medium
+                                    font-medium!
                                     text-primary
                                 "
                             >
@@ -248,7 +248,7 @@ const OrganizationFAQ = () => {
 
                                     font-bengali
                                     text-[1.6rem]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.45]
                                     text-text-primary
 
@@ -291,7 +291,7 @@ const OrganizationFAQ = () => {
                                 py-3
 
                                 text-[13px]
-                                font-medium
+                                font-medium!
                                 text-white!
 
                                 transition-colors

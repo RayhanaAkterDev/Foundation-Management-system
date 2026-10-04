@@ -22,7 +22,7 @@ function Button({
         overflow-hidden
         rounded-lg
         font-sans
-        font-medium
+        font-medium!
         tracking-normal
         whitespace-nowrap
         transition-all

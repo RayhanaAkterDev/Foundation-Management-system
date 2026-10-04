@@ -264,7 +264,7 @@ const StepAccountType = ({ accountType, onSelect, error }) => {
                                                     />
                                                 </span>
 
-                                                <span className="font-['Noto_Sans_Bengali'] text-[13px] font-medium leading-6 text-[#596b68]">
+                                                <span className="font-['Noto_Sans_Bengali'] text-[13px] font-medium! leading-6 text-[#596b68]">
                                                     {point}
                                                 </span>
                                             </div>

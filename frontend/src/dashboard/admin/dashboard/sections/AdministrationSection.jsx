@@ -304,7 +304,7 @@ const AdministrationSection = ({ onNavigate }) => {
                                                     truncate
                                                     font-jost
                                                     text-[11px]
-                                                    font-medium
+                                                    font-medium!
                                                     text-text-primary
                                                 "
                                             >
@@ -318,7 +318,7 @@ const AdministrationSection = ({ onNavigate }) => {
                                                 shrink-0
                                                 font-poppins
                                                 text-[8px]
-                                                font-medium
+                                                font-medium!
                                                 text-text-secondary
                                             "
                                         >
@@ -348,7 +348,7 @@ const AdministrationSection = ({ onNavigate }) => {
                                                     truncate
                                                     font-jost
                                                     text-[11px]
-                                                    font-medium
+                                                    font-medium!
                                                     text-text-secondary
                                                 "
                                             >
@@ -362,7 +362,7 @@ const AdministrationSection = ({ onNavigate }) => {
                                                 shrink-0
                                                 font-poppins
                                                 text-[8px]
-                                                font-medium
+                                                font-medium!
                                                 text-text-secondary
                                             "
                                         >
@@ -392,7 +392,7 @@ const AdministrationSection = ({ onNavigate }) => {
                                                     truncate
                                                     font-jost
                                                     text-[11px]
-                                                    font-medium
+                                                    font-medium!
                                                     text-text-secondary
                                                 "
                                             >
@@ -406,7 +406,7 @@ const AdministrationSection = ({ onNavigate }) => {
                                                 shrink-0
                                                 font-poppins
                                                 text-[8px]
-                                                font-medium
+                                                font-medium!
                                                 text-text-secondary
                                             "
                                         >
@@ -435,7 +435,7 @@ const AdministrationSection = ({ onNavigate }) => {
                                                 className="
                                                     font-jost
                                                     text-[11px]
-                                                    font-medium
+                                                    font-medium!
                                                     text-text-primary
                                                 "
                                             >

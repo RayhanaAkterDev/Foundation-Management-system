@@ -129,7 +129,7 @@ const TrustSafety = () => {
                                     mt-7
                                     max-w-[650px]
                                     text-[2.65rem]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.28]
 
                                     sm:text-[3.3rem]
@@ -330,7 +330,7 @@ const TrustSafety = () => {
                                         mt-1
                                         block
                                         text-[0.83rem]
-                                        font-medium
+                                        font-medium!
                                         text-primary
                                     "
                                 >
@@ -366,7 +366,7 @@ const TrustSafety = () => {
                                         mt-1
                                         block
                                         text-[0.83rem]
-                                        font-medium
+                                        font-medium!
                                         text-primary
                                     "
                                 >
@@ -428,7 +428,7 @@ const TrustSafety = () => {
                                         mt-7
                                         max-w-[650px]
                                         text-[2.1rem]
-                                        font-medium
+                                        font-medium!
                                         leading-[1.42]
 
                                         sm:text-[2.65rem]
@@ -526,7 +526,7 @@ const TrustSafety = () => {
                                 className="
                                     max-w-[700px]
                                     text-[2rem]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.4]
 
                                     sm:text-[2.5rem]
@@ -675,7 +675,7 @@ const TrustSafety = () => {
                                         mt-7
                                         max-w-[500px]
                                         text-[2.15rem]
-                                        font-medium
+                                        font-medium!
                                         leading-[1.4]
                                         text-white!
 
@@ -775,7 +775,7 @@ const TrustSafety = () => {
                                                 <h3
                                                     className="
                                                         text-[1.1rem]
-                                                        font-medium
+                                                        font-medium!
                                                         text-white!
 
                                                         sm:text-[1.25rem]
@@ -861,7 +861,7 @@ const TrustSafety = () => {
                                     className="
                                         mt-5
                                         text-[2.05rem]
-                                        font-medium
+                                        font-medium!
                                         leading-[1.4]
 
                                         sm:text-[2.6rem]
@@ -1045,7 +1045,7 @@ const TrustSafety = () => {
                                             mt-6
                                             max-w-[430px]
                                             text-[2rem]
-                                            font-medium
+                                            font-medium!
                                             leading-[1.42]
 
                                             sm:text-[2.5rem]
@@ -1153,7 +1153,7 @@ const TrustSafety = () => {
                                     mt-6
                                     max-w-[690px]
                                     text-[2rem]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.42]
                                     text-white!
 
@@ -1178,7 +1178,7 @@ const TrustSafety = () => {
                                 items-center
                                 gap-4
                                 text-[0.94rem]
-                                font-medium
+                                font-medium!
                                 text-white!
                             "
                         >

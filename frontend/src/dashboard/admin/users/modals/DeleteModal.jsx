@@ -264,7 +264,7 @@ const DeleteModal = ({ user, loading, error, onClose, onConfirm }) => {
                                         shrink-0
 
                                         text-[11px]
-                                        font-medium!
+                                        font-medium!!
 
                                         text-[#77818A]
                                     "
@@ -347,7 +347,7 @@ const DeleteModal = ({ user, loading, error, onClose, onConfirm }) => {
                             <p
                                 className="
                                     text-[12px]
-                                    font-medium!
+                                    font-medium!!
                                     leading-5
 
                                     text-[#D78C93]

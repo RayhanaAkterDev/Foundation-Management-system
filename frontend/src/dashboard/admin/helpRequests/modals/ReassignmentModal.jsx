@@ -226,7 +226,7 @@ const ReassignmentForm = ({
 
                                     <div className="mt-3 space-y-3">
                                         <div>
-                                            <p className="text-xs font-medium text-amber-800">
+                                            <p className="text-xs font-medium! text-amber-800">
                                                 Organization
                                             </p>
 
@@ -261,7 +261,7 @@ const ReassignmentForm = ({
 
                                         {currentVolunteers.length > 0 && (
                                             <div>
-                                                <p className="text-xs font-medium text-amber-800">
+                                                <p className="text-xs font-medium! text-amber-800">
                                                     Current Volunteers
                                                 </p>
 
@@ -272,7 +272,7 @@ const ReassignmentForm = ({
                                                                 key={
                                                                     volunteer.id
                                                                 }
-                                                                className="inline-flex items-center gap-1.5 rounded-full bg-white px-2.5 py-1 text-xs font-medium text-amber-900"
+                                                                className="inline-flex items-center gap-1.5 rounded-full bg-white px-2.5 py-1 text-xs font-medium! text-amber-900"
                                                             >
                                                                 <Users
                                                                     size={12}
@@ -362,7 +362,7 @@ const ReassignmentForm = ({
                                         className="mx-auto text-text-secondary"
                                     />
 
-                                    <p className="mt-2 text-sm font-medium text-text-primary">
+                                    <p className="mt-2 text-sm font-medium! text-text-primary">
                                         No available volunteers
                                     </p>
 

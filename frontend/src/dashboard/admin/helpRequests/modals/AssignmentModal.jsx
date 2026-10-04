@@ -398,7 +398,7 @@ const AssignmentForm = ({
                                         <div className="min-w-0 flex-1">
                                             <label
                                                 htmlFor="help-request-organization"
-                                                className="mb-1.5 block text-[11px] font-medium text-slate-400"
+                                                className="mb-1.5 block text-[11px] font-medium! text-slate-400"
                                             >
                                                 Organization
                                             </label>
@@ -456,7 +456,7 @@ const AssignmentForm = ({
                                     {hasAssignmentTarget && (
                                         <div className="flex items-center justify-between border-t border-primary/10 px-5 py-3.5">
                                             <div className="min-w-0">
-                                                <p className="truncate text-[12px] font-medium text-slate-500">
+                                                <p className="truncate text-[12px] font-medium! text-slate-500">
                                                     Selected
                                                 </p>
 
@@ -649,7 +649,7 @@ const AssignmentForm = ({
 const InfoRow = ({ label, value, indicator = false, icon = false }) => {
     return (
         <div className="flex items-center justify-between gap-4 border-b border-white/10 py-4">
-            <span className="text-[11px] font-medium text-white!/40">
+            <span className="text-[11px] font-medium! text-white!/40">
                 {label}
             </span>
 

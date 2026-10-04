@@ -383,7 +383,7 @@ const LoginForm = ({ loginRole }) => {
                             min-w-0
                             text-right
                             text-[9.5px]
-                            font-medium
+                            font-medium!
                             text-[#0f766e]
                             transition-colors
 

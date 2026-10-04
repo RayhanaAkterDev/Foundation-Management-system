@@ -95,6 +95,23 @@ const isNavItemActive = (item, currentPath) => {
     return hasActiveChild(item, currentPath);
 };
 
+/*
+ * When submenu paths overlap, only highlight the most specific route.
+ * This matches the desktop sidebar behavior.
+ */
+const getActiveChildKey = (item, currentPath) => {
+    if (!item?.children?.length) return null;
+
+    const matches = item.children
+        .filter((child) => isPathActive(child.path, currentPath))
+        .sort(
+            (a, b) =>
+                normalizePath(b.path).length - normalizePath(a.path).length,
+        );
+
+    return matches[0]?.key || null;
+};
+
 /* ==========================================================================
    USER HELPERS
 ============================================================================ */
@@ -175,7 +192,7 @@ const getInitials = (value = '') => {
 
 const AccountAvatar = ({ avatar, name, size = 'normal' }) => {
     const sizeClasses =
-        size === 'large' ? 'h-10 w-10 text-[11px]' : 'h-8 w-8 text-[9.5px]';
+        size === 'large' ? 'h-10 w-10 text-[11px]' : 'h-8 w-8 text-[10px]';
 
     return (
         <div
@@ -189,13 +206,13 @@ const AccountAvatar = ({ avatar, name, size = 'normal' }) => {
                 rounded-md
 
                 border
-                border-[#404754]
+                border-[#303A47]
 
-                bg-[#303641]
+                bg-[#1B222C]
 
                 font-semibold
 
-                !text-[#F1F2F4]
+                !text-[#F1F3F5]
 
                 ${sizeClasses}
             `}
@@ -228,18 +245,16 @@ const SectionLabel = ({ label }) => {
                 mb-1.5
                 mt-5
                 px-3
-
-                first:mt-0
             "
         >
             <p
                 className="
-                    text-[9px]
-                    font-semibold
+                    text-[9.5px]
+                    font-semibold!
                     uppercase
-                    tracking-[0.17em]
+                    tracking-[0.16em]
 
-                    !text-[#6F7785]
+                    !text-[#657184]
                 "
             >
                 {label}
@@ -249,111 +264,128 @@ const SectionLabel = ({ label }) => {
 };
 
 /* ==========================================================================
-   CHILD NAVIGATION
+   SUB MENU
 ============================================================================ */
 
 const MobileSubMenu = ({ item, currentPath, open, onNavigate }) => {
-    if (!item.children?.length || !open) {
+    if (!item.children?.length) {
         return null;
     }
 
+    const activeChildKey = getActiveChildKey(item, currentPath);
+
     return (
         <div
-            className="
-                relative
+            aria-hidden={!open}
+            className={`
+                grid
 
-                ml-7
-                mt-1
-                space-y-0.5
-                pb-1
-                pl-3
+                transition-[grid-template-rows,opacity]
+                duration-300
+                ease-[cubic-bezier(0.4,0,0.2,1)]
 
-                before:absolute
-                before:bottom-1
-                before:left-0
-                before:top-0
-                before:w-px
-                before:bg-[#343944]
-            "
+                ${
+                    open
+                        ? `
+                            grid-rows-[1fr]
+                            opacity-100
+                        `
+                        : `
+                            pointer-events-none
+                            grid-rows-[0fr]
+                            opacity-0
+                        `
+                }
+            `}
         >
-            {item.children.map((child) => {
-                const active = isNavItemActive(child, currentPath);
+            <div className="overflow-hidden">
+                <div
+                    className={`
+                        relative
 
-                return (
-                    <Link
-                        key={child.key}
-                        to={child.path}
-                        onClick={onNavigate}
-                        aria-current={active ? 'page' : undefined}
-                        className={`
-                            group
+                        ml-[22px]
+                        mt-1
+                        space-y-0.5
+                        pb-2
+                        pl-5
 
-                            relative
+                        before:absolute
+                        before:bottom-2
+                        before:left-[7px]
+                        before:top-1
+                        before:w-px
+                        before:bg-[#29323E]
 
-                            flex
-                            min-h-9
-                            items-center
-                            gap-2.5
+                        transition-transform
+                        duration-300
+                        ease-[cubic-bezier(0.4,0,0.2,1)]
 
-                            rounded-md
+                        ${open ? 'translate-y-0' : '-translate-y-1'}
+                    `}
+                >
+                    {item.children.map((child) => {
+                        const active =
+                            child.key === activeChildKey ||
+                            (!activeChildKey &&
+                                isNavItemActive(child, currentPath));
 
-                            px-2.5
+                        return (
+                            <Link
+                                key={child.key}
+                                to={child.path}
+                                onClick={onNavigate}
+                                tabIndex={open ? 0 : -1}
+                                aria-current={active ? 'page' : undefined}
+                                className={`
+                                    group/sub
+                                    relative
 
-                            text-[11.5px]
-                            font-medium
+                                    flex
+                                    min-h-9
+                                    items-center
+                                    gap-2.5
 
-                            transition-colors
-                            duration-150
+                                    rounded-md
 
-                            ${
-                                active
-                                    ? `
-                                        bg-[#303641]
-                                        !text-[#F1F2F4]
-                                    `
-                                    : `
-                                        !text-[#8B93A1]
+                                    px-2.5
 
-                                        hover:bg-[#2C303A]
-                                        hover:!text-[#D3D6DC]
-                                    `
-                            }
-                        `}
-                    >
-                        <span
-                            aria-hidden="true"
-                            className={`
-                                h-1
-                                w-1
-                                shrink-0
-                                rounded-full
+                                    text-[12px]
+                                    font-medium!!
 
-                                transition-colors
-                                duration-150
+                                    transition-colors
+                                    duration-150
 
-                                ${
-                                    active
-                                        ? 'bg-[#D7DAE0]'
-                                        : `
-                                            bg-[#626A78]
-                                            group-hover:bg-[#9299A6]
-                                        `
-                                }
-                            `}
-                        />
+                                    ${
+                                        active
+                                            ? `
+                                                bg-transparent
+                                                !text-[#F4F5F7]
+                                                font-semibold!
 
-                        <span
-                            className="
-                                min-w-0
-                                flex-1
-                                truncate
-                            "
-                        >
-                            {child.label}
-                        </span>
-                    </Link>
-                );
-            })}
+                                                before:absolute
+                                                before:-left-[14px]
+                                                before:h-4
+                                                before:w-[2px]
+                                                before:rounded-full
+                                                before:bg-[#D8DCE3]
+                                            `
+                                            : `
+                                                !text-[#8792A1]
+
+                                                hover:bg-[#181F28]
+                                                hover:!text-[#DDE2E8]
+                                            `
+                                    }
+                                `}
+                            >
+                                <span className="min-w-0 truncate">
+                                    {child.label}
+                                </span>
+                            </Link>
+                        );
+                    })}
+                </div>
+            </div>
         </div>
     );
 };
@@ -372,7 +404,7 @@ const MobileNavItem = ({ item, currentPath, open, onToggle, onNavigate }) => {
     const childActive = hasActiveChild(item, currentPath);
 
     /* ======================================================================
-       DIRECT LINK
+       DIRECT ITEM
     ====================================================================== */
 
     if (!hasChildren && item.path) {
@@ -386,7 +418,7 @@ const MobileNavItem = ({ item, currentPath, open, onToggle, onNavigate }) => {
                     relative
 
                     flex
-                    min-h-10
+                    min-h-11
                     w-full
                     items-center
                     gap-3
@@ -401,13 +433,13 @@ const MobileNavItem = ({ item, currentPath, open, onToggle, onNavigate }) => {
                     ${
                         active
                             ? `
-                                bg-[#303641]
-                                !text-[#F1F2F4]
+                                bg-[#242A33]
+                                !text-[#F3F4F6]
                             `
                             : `
                                 !text-[#C3C7CF]
 
-                                hover:bg-[#2C303A]
+                                hover:bg-[#292E37]
                                 hover:!text-[#F1F2F4]
                             `
                     }
@@ -426,7 +458,7 @@ const MobileNavItem = ({ item, currentPath, open, onToggle, onNavigate }) => {
 
                             rounded-r-full
 
-                            bg-[#D1D4DB]
+                            bg-transparent
                         "
                     />
                 )}
@@ -446,6 +478,7 @@ const MobileNavItem = ({ item, currentPath, open, onToggle, onNavigate }) => {
                                     ? '!text-[#E5E7EB]'
                                     : `
                                         !text-[#969EAC]
+
                                         group-hover:!text-[#D3D6DC]
                                     `
                             }
@@ -461,7 +494,7 @@ const MobileNavItem = ({ item, currentPath, open, onToggle, onNavigate }) => {
 
                         text-[13px]
 
-                        ${active ? 'font-semibold' : 'font-medium'}
+                        ${active ? 'font-semibold!' : 'font-medium!!'}
                     `}
                 >
                     {item.label}
@@ -471,7 +504,7 @@ const MobileNavItem = ({ item, currentPath, open, onToggle, onNavigate }) => {
     }
 
     /* ======================================================================
-       EXPANDABLE PARENT
+       EXPANDABLE ITEM
     ====================================================================== */
 
     if (hasChildren) {
@@ -485,12 +518,12 @@ const MobileNavItem = ({ item, currentPath, open, onToggle, onNavigate }) => {
                         group
 
                         flex
-                        min-h-10
+                        min-h-11
                         w-full
                         items-center
                         gap-3
 
-                        rounded-md
+                        rounded-lg
 
                         px-3
 
@@ -502,12 +535,13 @@ const MobileNavItem = ({ item, currentPath, open, onToggle, onNavigate }) => {
                         ${
                             childActive
                                 ? `
+                                    bg-[#20252D]
                                     !text-[#F1F2F4]
                                 `
                                 : `
                                     !text-[#C3C7CF]
 
-                                    hover:bg-[#2C303A]
+                                    hover:bg-[#292E37]
                                     hover:!text-[#F1F2F4]
                                 `
                         }
@@ -520,14 +554,12 @@ const MobileNavItem = ({ item, currentPath, open, onToggle, onNavigate }) => {
                             className={`
                                 shrink-0
 
-                                transition-colors
-                                duration-150
-
                                 ${
                                     childActive
                                         ? '!text-[#D3D6DC]'
                                         : `
                                             !text-[#969EAC]
+
                                             group-hover:!text-[#D3D6DC]
                                         `
                                 }
@@ -543,7 +575,7 @@ const MobileNavItem = ({ item, currentPath, open, onToggle, onNavigate }) => {
 
                             text-[13px]
 
-                            ${childActive ? 'font-semibold' : 'font-medium'}
+                            ${childActive ? 'font-semibold!' : 'font-medium!!'}
                         `}
                     >
                         {item.label}
@@ -557,19 +589,13 @@ const MobileNavItem = ({ item, currentPath, open, onToggle, onNavigate }) => {
 
                             !text-[#6F7785]
 
-                            transition-all
-                            duration-200
+                            transition-transform
+                            duration-300
+                            ease-[cubic-bezier(0.4,0,0.2,1)]
 
                             group-hover:!text-[#C3C7CF]
 
-                            ${
-                                open
-                                    ? `
-                                        rotate-180
-                                        !text-[#C3C7CF]
-                                    `
-                                    : ''
-                            }
+                            ${open ? 'rotate-180' : ''}
                         `}
                     />
                 </button>
@@ -609,17 +635,17 @@ const AccountMenuLink = ({
 
         rounded-md
 
-        px-2.5
+        px-3
 
-        text-[11.5px]
-        font-medium
+        text-[12px]
+        font-medium!!
 
         !text-[#C3C7CF]
 
         transition-colors
         duration-150
 
-        hover:bg-[#303641]
+        hover:bg-[#1B222C]
         hover:!text-[#F1F2F4]
     `;
 
@@ -627,7 +653,7 @@ const AccountMenuLink = ({
         <>
             <Icon
                 size={16}
-                strokeWidth={1.75}
+                strokeWidth={1.7}
                 className="
                     shrink-0
 
@@ -702,7 +728,18 @@ const DashboardMobileNav = ({
 
     const [accountOpen, setAccountOpen] = useState(false);
 
-    const [openMenus, setOpenMenus] = useState({});
+    /*
+     * Same accordion approach as desktop.
+     *
+     * The manually selected submenu state belongs to the route where it
+     * was selected. After navigation, route-based opening becomes
+     * authoritative again.
+     */
+    const [menuState, setMenuState] = useState({
+        path: null,
+        openKey: null,
+        manuallyControlled: false,
+    });
 
     const navItems = useMemo(() => NAV_CONFIG[role] || [], [role]);
 
@@ -724,12 +761,47 @@ const DashboardMobileNav = ({
 
     const rootPath = ROOT_PATHS[role] || ROOT_PATHS.individual;
 
+    const normalizedCurrentPath = normalizePath(currentPath);
+
+    /* ======================================================================
+       ROUTE OPEN MENU
+    ====================================================================== */
+
+    const routeOpenMenuKey = useMemo(() => {
+        const activeParent = navItems.find(
+            (item) =>
+                item.type !== 'section' &&
+                item.children?.length &&
+                hasActiveChild(item, normalizedCurrentPath),
+        );
+
+        return activeParent?.key || null;
+    }, [navItems, normalizedCurrentPath]);
+
+    const hasManualMenuState =
+        menuState.manuallyControlled &&
+        menuState.path === normalizedCurrentPath;
+
+    const effectiveOpenMenuKey = hasManualMenuState
+        ? menuState.openKey
+        : routeOpenMenuKey;
+
+    const isMenuOpen = (item) => {
+        return effectiveOpenMenuKey === item.key;
+    };
+
+    const toggleMenu = (item) => {
+        const currentlyOpen = isMenuOpen(item);
+
+        setMenuState({
+            path: normalizedCurrentPath,
+            openKey: currentlyOpen ? null : item.key,
+            manuallyControlled: true,
+        });
+    };
+
     /* ======================================================================
        ROUTE CHANGE
-
-       Only synchronize the external drawer state here.
-       Account state is reset by navigation event handlers instead of
-       synchronously calling setState inside this effect.
     ====================================================================== */
 
     useEffect(() => {
@@ -762,7 +834,7 @@ const DashboardMobileNav = ({
     }, [open]);
 
     /* ======================================================================
-       ESCAPE KEY
+       ESCAPE
     ====================================================================== */
 
     useEffect(() => {
@@ -799,37 +871,6 @@ const DashboardMobileNav = ({
         onClose();
     };
 
-    const isMenuOpen = (item) => {
-        const hasExplicitState = Object.prototype.hasOwnProperty.call(
-            openMenus,
-            item.key,
-        );
-
-        if (hasExplicitState) {
-            return openMenus[item.key];
-        }
-
-        return hasActiveChild(item, currentPath);
-    };
-
-    const toggleMenu = (item) => {
-        setOpenMenus((previous) => {
-            const hasExplicitState = Object.prototype.hasOwnProperty.call(
-                previous,
-                item.key,
-            );
-
-            const currentlyOpen = hasExplicitState
-                ? previous[item.key]
-                : hasActiveChild(item, currentPath);
-
-            return {
-                ...previous,
-                [item.key]: !currentlyOpen,
-            };
-        });
-    };
-
     /* ======================================================================
        ACCOUNT
     ====================================================================== */
@@ -847,7 +888,6 @@ const DashboardMobileNav = ({
 
         authKeys.forEach((key) => {
             window.localStorage.removeItem(key);
-
             window.sessionStorage.removeItem(key);
         });
 
@@ -894,7 +934,7 @@ const DashboardMobileNav = ({
 
                     cursor-default
 
-                    bg-[#0B0D11]/70
+                    bg-[#030507]/80
 
                     backdrop-blur-[2px]
                 "
@@ -919,11 +959,11 @@ const DashboardMobileNav = ({
                     overflow-hidden
 
                     border-r
-                    border-[#343944]
+                    border-[#2B3039]
 
-                    bg-[#22252D]
+                    bg-[#0E1219]
 
-                    shadow-[16px_0_45px_rgba(5,6,9,0.32)]
+                    shadow-[18px_0_55px_rgba(0,0,0,0.48)]
                 "
             >
                 {/* =========================================================
@@ -940,9 +980,9 @@ const DashboardMobileNav = ({
                         gap-3
 
                         border-b
-                        border-[#343944]
+                        border-[#202733]
 
-                        bg-[#20232A]
+                        bg-[#0B0F15]
 
                         px-4
                     "
@@ -960,8 +1000,8 @@ const DashboardMobileNav = ({
                         <div
                             className="
                                 flex
-                                h-8
-                                w-8
+                                h-7
+                                w-7
                                 shrink-0
                                 items-center
                                 justify-center
@@ -987,7 +1027,7 @@ const DashboardMobileNav = ({
                                     !font-sans
 
                                     text-[13px]
-                                    font-semibold
+                                    font-semibold!
                                     tracking-[-0.01em]
 
                                     !text-[#F1F2F4]
@@ -1002,7 +1042,7 @@ const DashboardMobileNav = ({
                                     truncate
 
                                     text-[8.5px]
-                                    font-semibold
+                                    font-semibold!
                                     uppercase
                                     tracking-[0.15em]
 
@@ -1033,7 +1073,7 @@ const DashboardMobileNav = ({
                             transition-colors
                             duration-150
 
-                            hover:bg-[#2C303A]
+                            hover:bg-[#292E37]
                             hover:!text-[#F1F2F4]
 
                             focus:outline-none
@@ -1104,7 +1144,7 @@ const DashboardMobileNav = ({
                         border-t
                         border-[#343944]
 
-                        bg-[#20232A]
+                        bg-[#0B0F15]
 
                         p-2
                     "
@@ -1131,14 +1171,14 @@ const DashboardMobileNav = ({
                                 border
                                 border-[#343944]
 
-                                bg-[#272B34]
+                                bg-[#141922]
 
-                                shadow-[0_18px_50px_rgba(5,6,9,0.34)]
+                                shadow-[0_18px_50px_rgba(0,0,0,0.48)]
                             "
                         >
-                            {/* =================================================
+                            {/* =============================================
                                 IDENTITY
-                            ================================================= */}
+                            ============================================= */}
 
                             <div
                                 className="
@@ -1149,7 +1189,7 @@ const DashboardMobileNav = ({
                                     border-b
                                     border-[#343944]
 
-                                    bg-[#24272F]
+                                    bg-[#11161E]
 
                                     px-3.5
                                     py-3.5
@@ -1167,7 +1207,7 @@ const DashboardMobileNav = ({
                                             truncate
 
                                             text-[12.5px]
-                                            font-semibold
+                                            font-semibold!
 
                                             !text-[#F1F2F4]
                                         "
@@ -1180,7 +1220,7 @@ const DashboardMobileNav = ({
                                             mt-0.5
                                             truncate
 
-                                            text-[9.5px]
+                                            text-[10px]
 
                                             !text-[#9299A6]
                                         "
@@ -1193,7 +1233,7 @@ const DashboardMobileNav = ({
                                             mt-1
 
                                             text-[8px]
-                                            font-semibold
+                                            font-semibold!
                                             uppercase
                                             tracking-[0.14em]
 
@@ -1205,9 +1245,9 @@ const DashboardMobileNav = ({
                                 </div>
                             </div>
 
-                            {/* =================================================
+                            {/* =============================================
                                 LINKS
-                            ================================================= */}
+                            ============================================= */}
 
                             <div className="p-2">
                                 {profilePath && (
@@ -1240,9 +1280,9 @@ const DashboardMobileNav = ({
                                 </AccountMenuLink>
                             </div>
 
-                            {/* =================================================
+                            {/* =============================================
                                 SIGN OUT
-                            ================================================= */}
+                            ============================================= */}
 
                             <div
                                 className="
@@ -1267,44 +1307,26 @@ const DashboardMobileNav = ({
 
                                         rounded-md
 
-                                        px-2.5
+                                        px-3
 
                                         text-left
+                                        text-[12px]
+                                        font-medium!!
+
+                                        !text-[#CBA2A7]
 
                                         transition-colors
                                         duration-150
 
                                         hover:bg-[#38272C]
+                                        hover:!text-[#E9A1A8]
 
                                         focus:outline-none
                                     "
                                 >
-                                    <LogOut
-                                        size={16}
-                                        strokeWidth={1.75}
-                                        className="
-                                            shrink-0
+                                    <LogOut size={16} strokeWidth={1.7} />
 
-                                            !text-[#B08B91]
-
-                                            transition-colors
-
-                                            group-hover:!text-[#E9A1A8]
-                                        "
-                                    />
-
-                                    <span
-                                        className="
-                                            text-[11.5px]
-                                            font-medium
-
-                                            !text-[#CBA2A7]
-
-                                            group-hover:!text-[#E9A1A8]
-                                        "
-                                    >
-                                        Sign out
-                                    </span>
+                                    <span>Sign out</span>
                                 </button>
                             </div>
                         </div>
@@ -1340,7 +1362,7 @@ const DashboardMobileNav = ({
                             ${
                                 accountOpen
                                     ? 'bg-[#303641]'
-                                    : 'hover:bg-[#2C303A]'
+                                    : 'hover:bg-[#292E37]'
                             }
                         `}
                     >
@@ -1350,6 +1372,7 @@ const DashboardMobileNav = ({
                             className="
                                 min-w-0
                                 flex-1
+                                text-left
                             "
                         >
                             <p
@@ -1357,7 +1380,7 @@ const DashboardMobileNav = ({
                                     truncate
 
                                     text-[12px]
-                                    font-semibold
+                                    font-semibold!
 
                                     !text-[#E5E7EB]
                                 "
@@ -1370,7 +1393,7 @@ const DashboardMobileNav = ({
                                     mt-0.5
                                     truncate
 
-                                    text-[9px]
+                                    text-[9.5px]
 
                                     !text-[#9299A6]
                                 "
@@ -1387,19 +1410,13 @@ const DashboardMobileNav = ({
 
                                 !text-[#6F7785]
 
-                                transition-all
-                                duration-200
+                                transition-transform
+                                duration-300
+                                ease-[cubic-bezier(0.4,0,0.2,1)]
 
                                 group-hover:!text-[#C3C7CF]
 
-                                ${
-                                    accountOpen
-                                        ? `
-                                            rotate-90
-                                            !text-[#C3C7CF]
-                                        `
-                                        : ''
-                                }
+                                ${accountOpen ? 'rotate-90' : ''}
                             `}
                         />
                     </button>

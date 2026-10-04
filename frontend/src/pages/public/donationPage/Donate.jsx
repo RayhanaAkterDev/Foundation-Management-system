@@ -455,14 +455,14 @@ const Donate = () => {
 
                             {campaign.supporters !== undefined && (
                                 <div className="mt-3 font-bengali text-sm text-text-secondary">
-                                    <p className="font-medium">
+                                    <p className="font-medium!">
                                         {campaign.supporters} জন এই ক্যাম্পেইন
                                         থেকে সহায়তা পেয়েছেন।
                                     </p>
 
                                     <p>
                                         বেশিরভাগ অনুদানের পরিমাণ{' '}
-                                        <span className="font-medium text-primary">
+                                        <span className="font-medium! text-primary">
                                             ৳১০০০–২০০০
                                         </span>
                                         ।
@@ -496,7 +496,7 @@ const Donate = () => {
                                             py-1
                                             font-bengali
                                             text-xs
-                                            font-medium
+                                            font-medium!
                                             text-primary
                                         "
                                     >
@@ -515,7 +515,7 @@ const Donate = () => {
                                             block
                                             font-bengali
                                             text-sm
-                                            font-medium
+                                            font-medium!
                                             text-text-primary
                                         "
                                     >
@@ -562,7 +562,7 @@ const Donate = () => {
                                             block
                                             font-bengali
                                             text-sm
-                                            font-medium
+                                            font-medium!
                                             text-text-primary
                                         "
                                     >
@@ -609,7 +609,7 @@ const Donate = () => {
                                             block
                                             font-bengali
                                             text-sm
-                                            font-medium
+                                            font-medium!
                                             text-text-primary
                                         "
                                     >
@@ -680,7 +680,7 @@ const Donate = () => {
                                                 border
                                                 py-3
                                                 text-sm
-                                                font-medium
+                                                font-medium!
                                                 transition-all
                                                 ${
                                                     amount === val
@@ -744,7 +744,7 @@ const Donate = () => {
                             />
 
                             <div className="mt-4 font-bengali text-sm text-text-secondary">
-                                <span className="font-medium text-primary">
+                                <span className="font-medium! text-primary">
                                     ৳{Number(amount || 0).toLocaleString()}
                                 </span>{' '}
                                 দিয়ে ক্ষতিগ্রস্ত পরিবারগুলোর জন্য প্রয়োজনীয়
@@ -881,7 +881,7 @@ const Donate = () => {
                                     <div className="flex justify-between text-text-secondary">
                                         <span>সংগৃহীত</span>
 
-                                        <span className="font-medium text-text-primary">
+                                        <span className="font-medium! text-text-primary">
                                             ৳
                                             {Number(
                                                 campaign.raised,
@@ -894,7 +894,7 @@ const Donate = () => {
                                     <div className="flex justify-between text-text-secondary">
                                         <span>লক্ষ্য</span>
 
-                                        <span className="font-medium text-text-primary">
+                                        <span className="font-medium! text-text-primary">
                                             ৳
                                             {Number(
                                                 campaign.targetAmount,
@@ -907,7 +907,7 @@ const Donate = () => {
                                     <div className="flex justify-between text-text-secondary">
                                         <span>সহায়তাকারী</span>
 
-                                        <span className="font-medium text-text-primary">
+                                        <span className="font-medium! text-text-primary">
                                             {campaign.supporters}
                                         </span>
                                     </div>
@@ -928,7 +928,7 @@ const Donate = () => {
                                 সাহায্য করতে পারে।
                             </p>
 
-                            <div className="mt-4 font-bengali text-sm font-medium text-primary">
+                            <div className="mt-4 font-bengali text-sm font-medium! text-primary">
                                 প্রতিটি অবদান গুরুত্বপূর্ণ ❤️
                             </div>
                         </div>

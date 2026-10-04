@@ -53,7 +53,7 @@ const Filters = ({
         border border-white/10
         bg-white
         px-3.5 pr-9
-        text-[12px] font-medium text-slate-800
+        text-[12px] font-medium! text-slate-800
         outline-none transition-colors
         hover:border-white/20
         focus:border-white/30

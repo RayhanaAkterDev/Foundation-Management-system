@@ -652,7 +652,7 @@ const ViewModal = ({ request, loading, error, onClose }) => {
 
                                                                             {organization.email && (
                                                                                 <p
-                                                                                    className="mt-0.5 truncate text-[11px] font-medium text-slate-500"
+                                                                                    className="mt-0.5 truncate text-[11px] font-medium! text-slate-500"
                                                                                     title={
                                                                                         organization.email
                                                                                     }
@@ -775,7 +775,7 @@ const ViewModal = ({ request, loading, error, onClose }) => {
 
                                                                                 {organization.email && (
                                                                                     <p
-                                                                                        className="mt-0.5 truncate text-[10.5px] font-medium text-slate-500"
+                                                                                        className="mt-0.5 truncate text-[10.5px] font-medium! text-slate-500"
                                                                                         title={
                                                                                             organization.email
                                                                                         }
@@ -999,7 +999,7 @@ const AssignmentRow = ({
 
                                         {organization.email && (
                                             <p
-                                                className="mt-0.5 truncate text-[10.5px] font-medium text-slate-500"
+                                                className="mt-0.5 truncate text-[10.5px] font-medium! text-slate-500"
                                                 title={organization.email}
                                             >
                                                 {organization.email}
@@ -1028,7 +1028,7 @@ const AssignmentRow = ({
                             ))}
                         </div>
                     ) : (
-                        <p className="mt-2.5 text-xs font-medium text-slate-400">
+                        <p className="mt-2.5 text-xs font-medium! text-slate-400">
                             {emptyText}
                         </p>
                     )}
@@ -1076,7 +1076,7 @@ const TimelineItem = ({ label, value, last = false, active = false }) => {
                     {label}
                 </p>
 
-                <p className="mt-1 text-xs font-medium leading-5 text-slate-600">
+                <p className="mt-1 text-xs font-medium! leading-5 text-slate-600">
                     {value}
                 </p>
             </div>

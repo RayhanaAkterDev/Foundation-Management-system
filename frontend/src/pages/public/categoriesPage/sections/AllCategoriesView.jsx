@@ -197,7 +197,7 @@ const CategoryTile = ({ category, index }) => {
                     px-2
                     font-bengali
                     text-[11px]
-                    font-medium
+                    font-medium!
                     leading-none
                     text-white!
                     backdrop-blur-[2px]
@@ -235,7 +235,7 @@ const CategoryTile = ({ category, index }) => {
                                 className="
                                 font-bengali
                                 text-[12px]
-                                font-medium
+                                font-medium!
                                 leading-[1.6]
                                 text-white/85
                             "
@@ -341,7 +341,7 @@ const MobileCategory = ({ category, index }) => {
                     px-1.5
                     font-bengali
                     text-[10px]
-                    font-medium
+                    font-medium!
                     leading-none
                     text-white!
                 "
@@ -363,7 +363,7 @@ const MobileCategory = ({ category, index }) => {
                         className="
                         font-bengali
                         text-[12px]
-                        font-medium
+                        font-medium!
                         leading-5
                         !text-[#65758a]
                     "
@@ -477,7 +477,7 @@ const AllCategoriesView = ({ categories = [] }) => {
         shrink-0
         font-bengali
         text-[13px]
-        font-medium
+        font-medium!
         leading-6
         !text-[#718096]
         sm:block

@@ -54,7 +54,7 @@ const Table = ({
 
           render: (value) => (
             <div className="min-w-0 max-w-65">
-              <p className="truncate text-[12px] font-medium leading-5 text-text-primary">
+              <p className="truncate text-[12px] font-medium! leading-5 text-text-primary">
                 {value || "—"}
               </p>
             </div>

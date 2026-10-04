@@ -34,11 +34,11 @@ const SuccessToast = ({ show, message }) => {
                     overflow-hidden
 
                     border
-                    border-[#3D514A]
+                    border-[#294438]
 
-                    bg-[#222A28]
+                    bg-[#0E1219]
 
-                    shadow-[0_16px_40px_rgba(0,0,0,0.28)]
+                    shadow-[0_16px_40px_rgba(0,0,0,0.38)]
                 "
             >
                 {/* =====================================================
@@ -55,7 +55,7 @@ const SuccessToast = ({ show, message }) => {
 
                         w-0.5
 
-                        bg-[#6FA28F]
+                        bg-[#6FAE87]
                     "
                 />
 
@@ -90,14 +90,17 @@ const SuccessToast = ({ show, message }) => {
                             justify-center
 
                             border
-                            border-[#40574F]
+                            border-[#294438]
 
-                            bg-[#293A35]
+                            bg-[#1A222D]
 
-                            text-[#8DBAA9]
+                            text-[#8EC5A3]
                         "
                     >
-                        <CheckCircle2 size={15} strokeWidth={2} />
+                        <CheckCircle2
+                            size={15}
+                            strokeWidth={2}
+                        />
                     </div>
 
                     <div
@@ -116,21 +119,23 @@ const SuccessToast = ({ show, message }) => {
                             <span
                                 className="
                                     text-[9px]
-                                    font-semibold
+                                    font-semibold!
                                     uppercase
                                     tracking-[0.14em]
 
-                                    text-[#7FA997]
+                                    text-[#8EC5A3]
                                 "
                             >
                                 Success
                             </span>
 
                             <span
+                                aria-hidden="true"
                                 className="
                                     h-px
                                     w-4
-                                    bg-[#40574F]
+
+                                    bg-[#294438]
                                 "
                             />
                         </div>
@@ -142,10 +147,10 @@ const SuccessToast = ({ show, message }) => {
                                 wrap-break-word
 
                                 text-[12px]
-                                font-medium
+                                font-medium!
                                 leading-5
 
-                                text-[#E3E6E9]
+                                text-[#DCE1E7]
 
                                 sm:text-[13px]
                             "
@@ -161,8 +166,10 @@ const SuccessToast = ({ show, message }) => {
                             h-1.5
                             w-1.5
                             shrink-0
+
                             rounded-full
-                            bg-[#6FA28F]
+
+                            bg-[#6FAE87]
                         "
                     />
                 </div>
@@ -175,7 +182,8 @@ const SuccessToast = ({ show, message }) => {
                     className="
                         h-px
                         w-full
-                        bg-[#33443E]
+
+                        bg-[#202832]
                     "
                 />
             </div>

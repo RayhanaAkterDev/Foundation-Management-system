@@ -67,7 +67,7 @@ const HeroTrustLine = () => {
                         <p
                             className="
                                 text-[14px]
-                                font-medium
+                                font-medium!
                                 text-text-secondary
 
                                 sm:text-[15px]

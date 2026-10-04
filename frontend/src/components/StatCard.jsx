@@ -158,7 +158,7 @@ const StatCard = ({
                         <StatValue
                             value={stat?.value}
                             className={`
-                                ${isLine ? 'font-medium tracking-normal' : 'font-bold tracking-tight'}
+                                ${isLine ? 'font-medium! tracking-normal' : 'font-bold tracking-tight'}
                                 leading-tight
                                 ${s.value}
                                 ${

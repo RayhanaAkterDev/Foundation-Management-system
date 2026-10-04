@@ -74,7 +74,7 @@ function ImageMeta({ campaign, dark = true }) {
                             py-1.5
                             font-bengali
                             text-[10px]
-                            font-medium
+                            font-medium!
                             leading-none
                             text-white!
                             backdrop-blur-[3px]
@@ -273,7 +273,7 @@ export default function CampaignCard({
                         <span
                             className="
                                 text-[8px]
-                                font-medium
+                                font-medium!
                                 uppercase
                                 tracking-[0.18em]
                                 text-text-muted
@@ -560,7 +560,7 @@ export default function CampaignCard({
                             <span
                                 className="
                                     text-[8px]
-                                    font-medium
+                                    font-medium!
                                     uppercase
                                     tracking-[0.2em]
                                     text-text-muted
@@ -842,7 +842,7 @@ export default function CampaignCard({
                             <span
                                 className="
                                     text-[8px]
-                                    font-medium
+                                    font-medium!
                                     uppercase
                                     tracking-[0.2em]
                                     text-white!/50

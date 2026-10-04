@@ -44,41 +44,53 @@ const ROLE_META = {
 
 const DetailRow = ({ icon: Icon, label, value, muted = false }) => {
     return (
-        <div className="group flex min-w-0 items-start gap-3.5">
+        <div
+            className="
+                group
+                flex
+                min-w-0
+                items-start
+                gap-4
+            "
+        >
             <div
                 className="
                     flex
-                    h-8
-                    w-8
+                    h-9
+                    w-9
                     shrink-0
                     items-center
                     justify-center
 
                     border
-                    border-[#31383F]
+                    border-[#29323E]
 
-                    bg-[#20252A]
+                    bg-[#151B24]
 
-                    text-[#68737E]
+                    text-[#697586]
 
-                    transition-colors
+                    transition-[background-color,border-color,color]
+                    duration-150
 
-                    group-hover:border-[#3A444B]
-                    group-hover:text-[#84908F]
+                    group-hover:border-[#394555]
+                    group-hover:bg-[#1A222D]
+                    group-hover:text-[#AEB7C3]
                 "
             >
                 <Icon size={14} strokeWidth={1.65} />
             </div>
 
-            <div className="min-w-0 pt-[1px]">
+            <div className="min-w-0 pt-0.5">
                 <p
                     className="
+                        font-sans!
+
                         text-[9px]
                         font-semibold!
                         uppercase
                         tracking-[0.14em]
 
-                        text-[#606A75]
+                        text-[#697586]
                     "
                 >
                     {label}
@@ -86,13 +98,14 @@ const DetailRow = ({ icon: Icon, label, value, muted = false }) => {
 
                 <p
                     className={`
-                        mt-1
+                        mt-1.5
                         truncate
 
-                        text-[12px]
+                        font-sans!
+                        text-[11px]
                         font-medium!
 
-                        ${muted ? 'text-[#5F6973]' : 'text-[#C9CED3]'}
+                        ${muted ? 'text-[#5E6978]!' : 'text-[#B8C0CA]!'}
                     `}
                 >
                     {value}
@@ -110,13 +123,9 @@ const AddUser = () => {
     const navigate = useNavigate();
 
     const [loading, setLoading] = useState(false);
-
     const [error, setError] = useState('');
-
     const [fieldErrors, setFieldErrors] = useState({});
-
     const [successMessage, setSuccessMessage] = useState('');
-
     const [formResetKey, setFormResetKey] = useState(0);
 
     const [formPreview, setFormPreview] = useState({
@@ -209,13 +218,10 @@ const AddUser = () => {
     ======================================================== */
 
     const selectedRole = ROLE_META[formPreview.role];
-
     const RoleIcon = selectedRole?.icon || UserRound;
 
     const name = formPreview.name?.trim();
-
     const displayName = name || 'New user';
-
     const initial = name ? name.charAt(0).toUpperCase() : null;
 
     const completedFields = [
@@ -232,7 +238,14 @@ const AddUser = () => {
     ======================================================== */
 
     return (
-        <div className="space-y-6">
+        <div
+            className="
+                space-y-10
+                font-sans!
+
+                lg:space-y-12
+            "
+        >
             {/* =================================================
                 PAGE HEADER
             ================================================== */}
@@ -251,44 +264,54 @@ const AddUser = () => {
                             inline-flex
                             h-10
                             items-center
-                            gap-2
+                            justify-center
+                            gap-2.5
 
                             border
-                            border-[#383F47]
+                            border-[#29323E]
 
-                            bg-[#22262B]
+                            bg-[#0E1219]
 
-                            px-4
+                            px-3.5
 
-                            text-[12px]
+                            font-sans!
+                            text-[11px]
                             font-medium!
-                            text-[#BFC5CB]
+                            whitespace-nowrap
 
-                            transition-all
-                            duration-200
+                            text-[#AEB7C3]!
 
-                            hover:border-[#4B555F]
-                            hover:bg-[#292E34]
-                            hover:text-[#F1F2F3]
+                            transition-[background-color,border-color,color]
+                            duration-150
+                            ease-out
+
+                            hover:border-[#394555]
+                            hover:bg-[#1A222D]
+                            hover:text-[#EEF1F5]!
 
                             disabled:cursor-not-allowed
-                            disabled:opacity-50
+                            disabled:opacity-40
 
-                            focus-visible:outline-none
-                            focus-visible:ring-2
-                            focus-visible:ring-[#0F766E]/40
+                            focus:outline-none
+                            focus:ring-0
                         "
                     >
                         <ArrowLeft
                             size={14}
                             strokeWidth={1.8}
                             className="
-                                transition-transform
-                                duration-200
+                                shrink-0
+                                text-[#697586]
+
+                                transition-[transform,color]
+                                duration-150
+
                                 group-hover:-translate-x-0.5
+                                group-hover:text-[#AEB7C3]
                             "
                         />
-                        Back to users
+
+                        <span>Back to users</span>
                     </button>
                 }
             />
@@ -311,51 +334,48 @@ const AddUser = () => {
                     overflow-hidden
 
                     border
-                    border-[#3A4149]
+                    border-[#252D38]
 
-                    bg-[#202429]
-
-                    shadow-[0_18px_55px_rgba(0,0,0,0.14)]
+                    bg-[#0E1219]
                 "
             >
                 {/* =================================================
-                    IMPROVED WORKSPACE HEADER
+                    WORKSPACE HEADER
                 ================================================== */}
 
                 <header
                     className="
                         relative
 
-                        overflow-hidden
-
                         border-b
-                        border-[#363D44]
+                        border-[#252D38]
 
-                        bg-[#1D2125]
+                        bg-[#1A222D]
 
                         px-6
-                        py-6
+                        py-7
 
                         sm:px-7
-                        sm:py-7
+                        sm:py-8
 
                         lg:px-8
+                        lg:py-8
 
                         xl:px-10
+                        xl:py-9
                     "
                 >
-                    {/* subtle identity accent */}
-
-                    <div
+                    <span
+                        aria-hidden="true"
                         className="
                             absolute
-                            top-0
+                            bottom-0
                             left-0
+                            top-0
 
-                            h-full
-                            w-[3px]
+                            w-[2px]
 
-                            bg-[#0F766E]
+                            bg-[#697586]
                         "
                     />
 
@@ -363,81 +383,93 @@ const AddUser = () => {
                         className="
                             flex
                             flex-col
-                            gap-5
+                            gap-7
 
                             sm:flex-row
                             sm:items-center
                             sm:justify-between
+                            sm:gap-10
+
+                            lg:gap-12
                         "
                     >
-                        {/* Left */}
+                        {/* LEFT */}
 
-                        <div className="min-w-0">
+                        <div className="min-w-0 flex-1">
                             <div
                                 className="
                                     flex
                                     items-center
-                                    gap-3
+                                    gap-3.5
                                 "
                             >
                                 <div
                                     className="
                                         flex
-                                        h-8
-                                        w-8
+                                        h-9
+                                        w-9
                                         shrink-0
                                         items-center
                                         justify-center
 
                                         border
-                                        border-[#36524C]
+                                        border-[#303A47]
 
-                                        bg-[#222D2A]
+                                        bg-[#151B24]
 
-                                        text-[#79A99D]
+                                        text-[#8792A1]
                                     "
                                 >
-                                    <UserRound size={14} strokeWidth={1.8} />
+                                    <UserRound size={15} strokeWidth={1.8} />
                                 </div>
 
                                 <div
                                     className="
                                         flex
+                                        min-w-0
+                                        flex-wrap
                                         items-center
-                                        gap-2
+                                        gap-x-2.5
+                                        gap-y-1
                                     "
                                 >
                                     <span
                                         className="
+                                            font-sans!
+
                                             text-[9px]
                                             font-semibold!
                                             uppercase
-                                            tracking-[0.17em]
+                                            tracking-[0.16em]
 
-                                            text-[#70817C]
+                                            text-[#8792A1]
                                         "
                                     >
                                         User directory
                                     </span>
 
                                     <span
+                                        aria-hidden="true"
                                         className="
                                             h-1
                                             w-1
+                                            shrink-0
                                             rounded-full
 
-                                            bg-[#4B575F]
+                                            bg-[#4B5869]
                                         "
                                     />
 
                                     <span
                                         className="
+                                            font-sans!
+
                                             text-[9px]
                                             font-medium!
                                             uppercase
                                             tracking-[0.12em]
 
-                                            text-[#5E6872]
+                                            text-[#697586]
                                         "
                                     >
                                         New account
@@ -447,16 +479,18 @@ const AddUser = () => {
 
                             <h2
                                 className="
-                                    mt-4
+                                    mt-5
 
-                                    text-[20px]
+                                    font-sans!
+
+                                    text-[18px]
                                     font-semibold!
-                                    leading-tight
-                                    tracking-[-0.025em]
+                                    leading-[1.3]
+                                    tracking-[-0.02em]
 
-                                    text-[#F0F2F3]!
+                                    text-[#EEF1F5]!
 
-                                    sm:text-[21px]
+                                    sm:text-[19px]
                                 "
                             >
                                 Create a new user
@@ -464,13 +498,18 @@ const AddUser = () => {
 
                             <p
                                 className="
-                                    mt-2
-                                    max-w-[620px]
+                                    mt-2.5
+                                    max-w-[650px]
+
+                                    font-sans!
 
                                     text-[11px]
-                                    leading-[1.7]
+                                    font-normal!
+                                    leading-[1.75]
 
-                                    text-[#7B858E]
+                                    text-[#8792A1]!
+
+                                    sm:text-[11.5px]
                                 "
                             >
                                 Enter the user's basic information, assign their
@@ -479,55 +518,59 @@ const AddUser = () => {
                             </p>
                         </div>
 
-                        {/* Right */}
+                        {/* RIGHT */}
 
                         <div
                             className="
                                 flex
                                 shrink-0
                                 items-center
-                                gap-3
+                                gap-3.5
 
                                 border-t
-                                border-[#30363D]
+                                border-[#303A47]
 
-                                pt-4
+                                pt-5
 
-                                sm:border-t-0
                                 sm:border-l
-                                sm:pl-5
+                                sm:border-t-0
+                                sm:pl-7
                                 sm:pt-0
+
+                                lg:pl-8
                             "
                         >
                             <div
                                 className="
                                     flex
-                                    h-8
-                                    w-8
+                                    h-9
+                                    w-9
                                     shrink-0
                                     items-center
                                     justify-center
 
                                     border
-                                    border-[#34433F]
+                                    border-[#303A47]
 
-                                    bg-[#222A28]
+                                    bg-[#151B24]
 
-                                    text-[#779A91]
+                                    text-[#8792A1]
                                 "
                             >
-                                <Check size={13} strokeWidth={2} />
+                                <Check size={14} strokeWidth={2} />
                             </div>
 
-                            <div>
+                            <div className="min-w-0">
                                 <p
                                     className="
+                                        font-sans!
+
                                         text-[9px]
                                         font-semibold!
                                         uppercase
                                         tracking-[0.13em]
 
-                                        text-[#69747E]
+                                        text-[#697586]
                                     "
                                 >
                                     Form guide
@@ -535,11 +578,14 @@ const AddUser = () => {
 
                                 <p
                                     className="
-                                        mt-0.5
+                                        mt-1.5
+
+                                        font-sans!
 
                                         text-[10px]
+                                        font-normal!
 
-                                        text-[#89929B]
+                                        text-[#8792A1]
                                     "
                                 >
                                     Required fields are marked *
@@ -558,10 +604,8 @@ const AddUser = () => {
                         grid
                         min-w-0
 
-                        lg:grid-cols-[300px_minmax(0,1fr)]
-
-                        xl:grid-cols-[320px_minmax(0,1fr)]
-
+                        lg:grid-cols-[310px_minmax(0,1fr)]
+                        xl:grid-cols-[330px_minmax(0,1fr)]
                     "
                 >
                     {/* =================================================
@@ -570,65 +614,73 @@ const AddUser = () => {
 
                     <aside
                         className="
-                            border-b
-                            border-[#363D44]
+                            hidden
 
-                            bg-[#1A1E22]
+                            border-[#252D38]
 
+                            bg-[#0E1219]
+
+                            lg:block
                             lg:border-r
-                            lg:border-b-0
-                            hidden lg:block
                         "
                     >
                         <div
                             className="
                                 flex
                                 h-full
+                                min-h-[720px]
                                 flex-col
 
-                                px-6
-                                py-7
+                                px-7
+                                py-9
 
-                                sm:px-7
-
-                                lg:min-h-[660px]
-                                lg:py-8
+                                xl:px-8
+                                xl:py-10
                             "
                         >
-                            {/* Preview label */}
+                            {/* =========================================
+                                PREVIEW LABEL
+                            ========================================= */}
 
                             <div
                                 className="
                                     flex
                                     items-center
                                     justify-between
-                                    gap-3
+                                    gap-4
                                 "
                             >
                                 <div
                                     className="
                                         flex
+                                        min-w-0
                                         items-center
-                                        gap-2.5
+                                        gap-3
                                     "
                                 >
                                     <span
+                                        aria-hidden="true"
                                         className="
                                             h-[2px]
                                             w-4
+                                            shrink-0
 
-                                            bg-[#0F766E]
+                                            bg-[#697586]
                                         "
                                     />
 
                                     <p
                                         className="
+                                            truncate
+
+                                            font-sans!
+
                                             text-[9px]
                                             font-semibold!
                                             uppercase
-                                            tracking-[0.17em]
+                                            tracking-[0.16em]
 
-                                            text-[#707B85]
+                                            text-[#8792A1]
                                         "
                                     >
                                         User preview
@@ -637,53 +689,56 @@ const AddUser = () => {
 
                                 <span
                                     className="
+                                        shrink-0
+
+                                        font-sans!
+
                                         text-[9px]
                                         font-medium!
                                         tabular-nums
 
-                                        text-[#56616B]
+                                        text-[#697586]
                                     "
                                 >
-                                    {completedFields}
-                                    /4
+                                    {completedFields}/4
                                 </span>
                             </div>
 
-                            {/* =================================================
+                            {/* =========================================
                                 IDENTITY
-                            ================================================== */}
+                            ========================================= */}
 
-                            <div className="mt-7">
+                            <div className="mt-10">
                                 <div
                                     className={`
                                         relative
 
                                         flex
-                                        h-[66px]
-                                        w-[66px]
+                                        h-[68px]
+                                        w-[68px]
                                         items-center
                                         justify-center
 
                                         border
 
+                                        font-sans!
                                         text-[20px]
                                         font-semibold!
 
-                                        transition-all
+                                        transition-[background-color,border-color,color]
                                         duration-200
 
                                         ${
                                             name
                                                 ? `
-                                                    border-[#3F5C55]
-                                                    bg-[#24312E]
-                                                    text-[#DFE8E5]
-                                                    shadow-[0_0_0_4px_rgba(15,118,110,0.04)]
+                                                    border-[#394555]
+                                                    bg-[#1A222D]
+                                                    text-[#EEF1F5]
                                                 `
                                                 : `
-                                                    border-[#353D45]
-                                                    bg-[#22272C]
-                                                    text-[#69747E]
+                                                    border-[#29323E]
+                                                    bg-[#151B24]
+                                                    text-[#697586]
                                                 `
                                         }
                                     `}
@@ -699,8 +754,8 @@ const AddUser = () => {
                                         <span
                                             className="
                                                 absolute
-                                                right-[-3px]
-                                                bottom-[-3px]
+                                                -bottom-1
+                                                -right-1
 
                                                 flex
                                                 h-5
@@ -709,11 +764,11 @@ const AddUser = () => {
                                                 justify-center
 
                                                 border-2
-                                                border-[#1A1E22]
+                                                border-[#0E1219]
 
-                                                bg-[#0F766E]
+                                                bg-[#303A47]
 
-                                                text-white
+                                                text-[#DCE1E7]
                                             "
                                         >
                                             <Check
@@ -726,17 +781,20 @@ const AddUser = () => {
 
                                 <h2
                                     className={`
-                                        mt-5
+                                        mt-6
                                         truncate
 
-                                        text-[19px]
+                                        font-sans!
+
+                                        text-[18px]
                                         font-semibold!
-                                        tracking-[-0.025em]
+                                        leading-[1.3]
+                                        tracking-[-0.02em]
 
                                         ${
                                             name
-                                                ? 'text-[#EEF0F2]!'
-                                                : 'text-[#707A84]!'
+                                                ? 'text-[#EEF1F5]!'
+                                                : 'text-[#697586]!'
                                         }
                                     `}
                                 >
@@ -745,7 +803,7 @@ const AddUser = () => {
 
                                 <div
                                     className="
-                                        mt-2.5
+                                        mt-3.5
 
                                         flex
                                         min-w-0
@@ -758,8 +816,8 @@ const AddUser = () => {
                                         strokeWidth={1.7}
                                         className={
                                             selectedRole
-                                                ? 'shrink-0 text-[#719B90]'
-                                                : 'shrink-0 text-[#59636D]'
+                                                ? 'shrink-0 text-[#A6AFBB]'
+                                                : 'shrink-0 text-[#5E6978]'
                                         }
                                     />
 
@@ -767,13 +825,15 @@ const AddUser = () => {
                                         className={`
                                             truncate
 
+                                            font-sans!
+
                                             text-[11px]
                                             font-medium!
 
                                             ${
                                                 selectedRole
-                                                    ? 'text-[#969FA8]'
-                                                    : 'text-[#59636D]'
+                                                    ? 'text-[#AEB7C3]'
+                                                    : 'text-[#5E6978]'
                                             }
                                         `}
                                     >
@@ -785,13 +845,16 @@ const AddUser = () => {
                                 {selectedRole && (
                                     <p
                                         className="
-                                            mt-1.5
-                                            pl-[23px]
+                                            mt-2
+                                            pl-[24px]
+
+                                            font-sans!
 
                                             text-[10px]
-                                            leading-4
+                                            font-normal!
+                                            leading-[1.65]
 
-                                            text-[#606A74]
+                                            text-[#697586]
                                         "
                                     >
                                         {selectedRole.description}
@@ -799,19 +862,20 @@ const AddUser = () => {
                                 )}
                             </div>
 
-                            {/* =================================================
+                            {/* =========================================
                                 CONTACT DETAILS
-                            ================================================== */}
+                            ========================================= */}
 
                             <div
                                 className="
-                                    mt-8
-                                    space-y-5
+                                    mt-10
+
+                                    space-y-6
 
                                     border-t
-                                    border-[#30363D]
+                                    border-[#252D38]
 
-                                    pt-6
+                                    pt-8
                                 "
                             >
                                 <DetailRow
@@ -843,28 +907,30 @@ const AddUser = () => {
                                 />
                             </div>
 
-                            {/* =================================================
+                            {/* =========================================
                                 INITIAL ACCESS
-                            ================================================== */}
+                            ========================================= */}
 
                             <div
                                 className="
-                                    mt-7
+                                    mt-10
 
                                     border-t
-                                    border-[#30363D]
+                                    border-[#252D38]
 
-                                    pt-6
+                                    pt-8
                                 "
                             >
                                 <p
                                     className="
+                                        font-sans!
+
                                         text-[9px]
                                         font-semibold!
                                         uppercase
                                         tracking-[0.14em]
 
-                                        text-[#626D77]
+                                        text-[#697586]
                                     "
                                 >
                                     Initial access
@@ -872,13 +938,13 @@ const AddUser = () => {
 
                                 <div
                                     className="
-                                        mt-3.5
+                                        mt-5
 
                                         flex
                                         flex-wrap
                                         items-center
-                                        gap-x-2.5
-                                        gap-y-2
+                                        gap-x-3
+                                        gap-y-2.5
                                     "
                                 >
                                     <span
@@ -887,31 +953,28 @@ const AddUser = () => {
                                             items-center
                                             gap-2
 
-                                            text-[11px]
+                                            font-sans!
+
+                                            text-[10.5px]
                                             font-medium!
 
-                                            text-[#89939C]
+                                            text-[#8792A1]
                                         "
                                     >
                                         <span
                                             className="
                                                 h-1.5
                                                 w-1.5
+                                                shrink-0
                                                 rounded-full
 
-                                                bg-[#737E88]
+                                                bg-[#697586]
                                             "
                                         />
                                         Inactive
                                     </span>
 
-                                    <span
-                                        className="
-                                            text-[#454E57]
-                                        "
-                                    >
-                                        /
-                                    </span>
+                                    <span className="text-[#394555]">/</span>
 
                                     <span
                                         className="
@@ -919,19 +982,22 @@ const AddUser = () => {
                                             items-center
                                             gap-2
 
-                                            text-[11px]
+                                            font-sans!
+
+                                            text-[10.5px]
                                             font-medium!
 
-                                            text-[#B3956F]
+                                            text-[#D8B278]
                                         "
                                     >
                                         <span
                                             className="
                                                 h-1.5
                                                 w-1.5
+                                                shrink-0
                                                 rounded-full
 
-                                                bg-[#A77D4D]
+                                                bg-[#D39A4A]
                                             "
                                         />
                                         Email unverified
@@ -939,11 +1005,11 @@ const AddUser = () => {
                                 </div>
                             </div>
 
-                            {/* =================================================
+                            {/* =========================================
                                 COMPLETION
-                            ================================================== */}
+                            ========================================= */}
 
-                            <div className="mt-7">
+                            <div className="mt-10">
                                 <div
                                     className="
                                         flex
@@ -954,9 +1020,12 @@ const AddUser = () => {
                                 >
                                     <span
                                         className="
-                                            text-[10px]
+                                            font-sans!
 
-                                            text-[#69737D]
+                                            text-[10px]
+                                            font-normal!
+
+                                            text-[#697586]
                                         "
                                     >
                                         Details completed
@@ -964,33 +1033,34 @@ const AddUser = () => {
 
                                     <span
                                         className="
+                                            font-sans!
+
                                             text-[10px]
                                             font-semibold!
                                             tabular-nums
 
-                                            text-[#929CA5]
+                                            text-[#AEB7C3]
                                         "
                                     >
-                                        {completedFields}
-                                        /4
+                                        {completedFields}/4
                                     </span>
                                 </div>
 
                                 <div
                                     className="
-                                        mt-2.5
+                                        mt-3.5
                                         h-[3px]
 
                                         overflow-hidden
 
-                                        bg-[#2D343A]
+                                        bg-[#202832]
                                     "
                                 >
                                     <div
                                         className="
                                             h-full
 
-                                            bg-[#0F766E]
+                                            bg-[#697586]
 
                                             transition-[width]
                                             duration-300
@@ -1003,21 +1073,29 @@ const AddUser = () => {
                                 </div>
                             </div>
 
-                            {/* =================================================
+                            {/* =========================================
                                 FOOTER NOTE
-                            ================================================== */}
+                            ========================================= */}
 
-                            <div className="mt-auto pt-10">
+                            <div
+                                className="
+                                    mt-auto
+                                    pt-12
+                                "
+                            >
                                 <div
                                     className="
-                                        pt-12
+                                        border-t
+                                        border-[#252D38]
+
+                                        pt-7
                                     "
                                 >
                                     <div
                                         className="
                                             flex
                                             items-start
-                                            gap-3
+                                            gap-3.5
                                         "
                                     >
                                         <ShieldCheck
@@ -1027,18 +1105,21 @@ const AddUser = () => {
                                                 mt-0.5
                                                 shrink-0
 
-                                                text-[#688A81]
+                                                text-[#697586]
                                             "
                                         />
 
                                         <p
                                             className="
-                                                max-w-[220px]
+                                                max-w-[225px]
+
+                                                font-sans!
 
                                                 text-[10px]
-                                                leading-[1.7]
+                                                font-normal!
+                                                leading-[1.75]
 
-                                                text-[#616C76]
+                                                text-[#697586]
                                             "
                                         >
                                             Review identity and access details
@@ -1057,8 +1138,7 @@ const AddUser = () => {
                     <main
                         className="
                             min-w-0
-
-                            bg-[#202429]
+                            bg-[#0E1219]
                         "
                     >
                         <div
@@ -1066,15 +1146,18 @@ const AddUser = () => {
                                 min-w-0
 
                                 px-6
-                                py-7
+                                py-9
 
                                 sm:px-7
+                                sm:py-10
 
-                                lg:px-8
-                                lg:py-8
+                                lg:px-9
+                                lg:py-11
 
-                                xl:px-10
-                                xl:py-9
+                                xl:px-11
+                                xl:py-12
+
+                                2xl:px-12
                             "
                         >
                             <div

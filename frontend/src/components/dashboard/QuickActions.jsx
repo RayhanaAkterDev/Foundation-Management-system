@@ -13,9 +13,9 @@ const QuickActions = ({ actions = [], title = 'Quick Actions' }) => {
                 overflow-hidden
 
                 border
-                border-[#343944]
+                border-[#252D38]
 
-                bg-[#22252D]
+                bg-[#0E1219]
             "
         >
             {/* =============================================================
@@ -30,9 +30,9 @@ const QuickActions = ({ actions = [], title = 'Quick Actions' }) => {
                         items-center
 
                         border-b
-                        border-[#343944]
+                        border-[#252D38]
 
-                        bg-[#20232A]
+                        bg-[#121821]
 
                         px-4
 
@@ -44,9 +44,9 @@ const QuickActions = ({ actions = [], title = 'Quick Actions' }) => {
                             font-sans!
 
                             text-[12px]
-                            font-semibold
+                            font-semibold!
 
-                            text-[#E5E7EB]!
+                            text-[#EEF1F5]!
                         "
                     >
                         {title}
@@ -61,12 +61,11 @@ const QuickActions = ({ actions = [], title = 'Quick Actions' }) => {
             <div
                 className="
                     divide-y
-                    divide-[#2F333D]
+                    divide-[#202832]
                 "
             >
                 {actions.map((action, index) => {
                     const Icon = action.icon;
-
                     const primary = action.variant === 'primary';
 
                     return (
@@ -75,128 +74,133 @@ const QuickActions = ({ actions = [], title = 'Quick Actions' }) => {
                             type="button"
                             onClick={action.onClick}
                             className={`
-                                    group
+                                group
 
-                                    flex
-                                    min-h-[58px]
-                                    w-full
-                                    items-center
-                                    gap-3
+                                flex
+                                min-h-[58px]
+                                w-full
+                                items-center
+                                gap-3
 
-                                    px-4
+                                px-4
 
-                                    text-left
+                                text-left
 
-                                    transition-colors
-                                    duration-150
+                                transition-colors
+                                duration-150
+                                ease-out
 
-                                    sm:px-5
+                                sm:px-5
 
-                                    ${
-                                        primary
-                                            ? 'bg-[#272B34]'
-                                            : 'bg-transparent'
-                                    }
+                                ${primary ? 'bg-[#171E28]' : 'bg-[#0E1219]'}
 
-                                    hover:bg-[#2C303A]
+                                hover:bg-[#151B24]
 
-                                    focus:outline-none
-                                `}
+                                focus:outline-none
+                                focus:ring-0
+                            `}
                         >
-                            {/* =========================================
-                                    ICON
-                                ========================================= */}
+                            {/* =============================================
+                                ICON
+                            ============================================= */}
 
                             {Icon && (
                                 <span
                                     className={`
-                                            flex
-                                            h-8
-                                            w-8
-                                            shrink-0
-                                            items-center
-                                            justify-center
+                                        flex
+                                        h-8
+                                        w-8
+                                        shrink-0
+                                        items-center
+                                        justify-center
 
-                                            rounded-md
+                                        rounded-md
 
-                                            border
+                                        border
 
-                                            transition-colors
-                                            duration-150
+                                        transition-colors
+                                        duration-150
 
-                                            ${
-                                                primary
-                                                    ? `
-                                                        border-[#4A515E]
-                                                        bg-[#303641]
-                                                        text-[#D3D6DC]!
-                                                    `
-                                                    : `
-                                                        border-[#3A404B]
-                                                        bg-[#272B34]
-                                                        text-[#9299A6]!
+                                        ${
+                                            primary
+                                                ? `
+                                                    border-[#394555]
+                                                    bg-[#1D2632]
+                                                    text-[#C7CED7]!
+                                                `
+                                                : `
+                                                    border-[#29323E]
+                                                    bg-[#151B24]
+                                                    text-[#7F8A99]!
 
-                                                        group-hover:border-[#4A515E]
-                                                        group-hover:bg-[#303641]
-                                                        group-hover:text-[#D3D6DC]!
-                                                    `
-                                            }
-                                        `}
+                                                    group-hover:border-[#394555]
+                                                    group-hover:bg-[#1A222D]
+                                                    group-hover:text-[#B8C0CA]!
+                                                `
+                                        }
+                                    `}
                                 >
                                     <Icon size={15} strokeWidth={1.7} />
                                 </span>
                             )}
 
-                            {/* =========================================
-                                    LABEL
-                                ========================================= */}
+                            {/* =============================================
+                                LABEL
+                            ============================================= */}
 
                             <span
                                 className="
-                                        min-w-0
-                                        flex-1
-                                        truncate
+                                    min-w-0
+                                    flex-1
+                                    truncate
 
-                                        text-[11.5px]
-                                        font-medium
+                                    text-[11.5px]
+                                    font-medium!
 
-                                        text-[#C3C7CF]!
+                                    text-[#B8C0CA]!
 
-                                        transition-colors
+                                    transition-colors
+                                    duration-150
 
-                                        group-hover:text-[#F1F2F4]!
-                                    "
+                                    group-hover:text-[#EEF1F5]!
+                                "
                             >
                                 {action.label}
                             </span>
 
-                            {/* =========================================
-                                    ARROW
-                                ========================================= */}
+                            {/* =============================================
+                                ARROW
+                            ============================================= */}
 
                             <ArrowUpRight
                                 size={14}
                                 strokeWidth={1.7}
                                 className="
-                                        shrink-0
+                                    shrink-0
 
-                                        text-[#626A78]!
+                                    text-[#5F6B7A]!
 
-                                        transition-all
-                                        duration-150
+                                    transition-[transform,color]
+                                    duration-150
 
-                                        group-hover:-translate-y-px
-                                        group-hover:translate-x-px
-                                        group-hover:text-[#A8AFBB]!
-                                    "
+                                    group-hover:-translate-y-px
+                                    group-hover:translate-x-px
+                                    group-hover:text-[#A6AFBB]!
+                                "
                             />
                         </button>
                     );
                 })}
 
+                {/* =========================================================
+                    EMPTY
+                ========================================================= */}
+
                 {actions.length === 0 && (
                     <div
                         className="
+                            bg-[#0E1219]
+
                             px-5
                             py-8
 
@@ -204,7 +208,7 @@ const QuickActions = ({ actions = [], title = 'Quick Actions' }) => {
 
                             text-[11px]
 
-                            text-[#6F7785]!
+                            text-[#697586]!
                         "
                     >
                         No actions available.

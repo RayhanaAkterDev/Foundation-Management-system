@@ -694,7 +694,7 @@ const IndividualDashboard = () => {
                                             </span>
 
                                             <div>
-                                                <div className="flex items-center gap-2 text-[11px] font-medium text-slate-400">
+                                                <div className="flex items-center gap-2 text-[11px] font-medium! text-slate-400">
                                                     <Clock3 className="h-3.5 w-3.5" />
                                                     {getDaysLeft(
                                                         featuredCampaign.deadline,

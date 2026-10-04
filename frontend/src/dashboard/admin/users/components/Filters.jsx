@@ -72,7 +72,7 @@ const Filters = ({
         <div
             className="
                 w-full
-                bg-[#20232A]
+                bg-[#0E1219]
             "
         >
             {/* =========================================================
@@ -87,7 +87,7 @@ const Filters = ({
 
                     sm:px-5
                     sm:pb-5
-                    sm:pt-5
+                    sm:pt-5 bg-[#1A222D]
                 "
             >
                 <div
@@ -102,10 +102,11 @@ const Filters = ({
                         <p
                             className="
                                 text-[9px]
-                                font-semibold
+                                font-semibold!
                                 uppercase
                                 tracking-[0.15em]
-                                text-[#6F7785]
+
+                                text-[#697586]
                             "
                         >
                             Directory controls
@@ -114,10 +115,12 @@ const Filters = ({
                         <h3
                             className="
                                 mt-1.5
+
                                 text-[15px]
-                                font-semibold
+                                font-semibold!
                                 leading-5
-                                text-[#F1F2F4]!
+
+                                text-[#EEF1F5]!
                             "
                         >
                             Filter users
@@ -129,24 +132,37 @@ const Filters = ({
                             type="button"
                             onClick={onClearFilters}
                             className="
+                                group
+
                                 inline-flex
                                 shrink-0
                                 items-center
                                 gap-1.5
 
                                 text-[10px]
-                                font-medium
-                                text-[#9299A6]
+                                font-medium!
+
+                                text-[#8792A1]
 
                                 transition-colors
+                                duration-150
 
-                                hover:text-[#F1F2F4]
+                                hover:text-[#EEF1F5]
 
                                 focus:outline-none
                                 focus:ring-0
                             "
                         >
-                            <RotateCcw size={11} strokeWidth={1.8} />
+                            <RotateCcw
+                                size={11}
+                                strokeWidth={1.8}
+                                className="
+                                    transition-transform
+                                    duration-200
+
+                                    group-hover:-rotate-45
+                                "
+                            />
                             Clear all
                         </button>
                     )}
@@ -156,9 +172,11 @@ const Filters = ({
                     className="
                         mt-2
                         max-w-[280px]
+
                         text-[11px]
                         leading-5
-                        text-[#7F8794]
+
+                        text-[#7F8A99]
                     "
                 >
                     Refine the directory by role, account status and
@@ -173,7 +191,7 @@ const Filters = ({
             <div
                 className="
                     border-t
-                    border-[#343944]
+                    border-[#252D38]
 
                     px-4
                     py-4
@@ -182,19 +200,22 @@ const Filters = ({
                 <div
                     className="
                         mb-2.5
+
                         flex
                         items-center
                         justify-between
+
                         px-1
                     "
                 >
                     <p
                         className="
                             text-[9px]
-                            font-semibold
+                            font-semibold!
                             uppercase
                             tracking-[0.14em]
-                            text-[#6F7785]
+
+                            text-[#697586]
                         "
                     >
                         User role
@@ -203,9 +224,10 @@ const Filters = ({
                     <span
                         className="
                             text-[9px]
-                            font-medium
+                            font-medium!
                             tabular-nums
-                            text-[#6F7785]
+
+                            text-[#5E6978]
                         "
                     >
                         {categoryTabs.length}
@@ -226,7 +248,7 @@ const Filters = ({
             <div
                 className="
                     border-t
-                    border-[#343944]
+                    border-[#252D38]
 
                     px-4
                     py-4
@@ -238,11 +260,11 @@ const Filters = ({
                         px-1
 
                         text-[9px]
-                        font-semibold
+                        font-semibold!
                         uppercase
                         tracking-[0.14em]
 
-                        text-[#6F7785]
+                        text-[#697586]
                     "
                 >
                     Account status
@@ -253,14 +275,13 @@ const Filters = ({
                         overflow-hidden
 
                         border
-                        border-[#343944]
+                        border-[#252D38]
 
-                        bg-[#22252D]
+                        bg-[#0E1219]
                     "
                 >
                     {statuses.map((status) => {
                         const active = statusFilter === status.value;
-
                         const Icon = status.icon;
 
                         return (
@@ -284,23 +305,27 @@ const Filters = ({
                                     gap-2.5
 
                                     border-b
-                                    border-[#2F333D]
+                                    border-[#202832]
 
                                     px-3
                                     py-2.5
 
                                     text-left
 
-                                    transition-colors
+                                    transition-[background-color,color]
                                     duration-150
+                                    ease-out
 
                                     last:border-b-0
 
                                     ${
                                         active
-                                            ? 'bg-[#303641]'
-                                            : 'hover:bg-[#272B34]'
+                                            ? 'bg-[#171E28]'
+                                            : 'bg-[#0E1219] hover:bg-[#151B24]'
                                     }
+
+                                    focus:outline-none
+                                    focus:ring-0
                                 `}
                             >
                                 <Icon
@@ -308,12 +333,18 @@ const Filters = ({
                                     strokeWidth={1.8}
                                     className={`
                                         shrink-0
+
                                         transition-colors
+                                        duration-150
 
                                         ${
                                             active
-                                                ? 'text-[#C3C7CF]'
-                                                : 'text-[#6F7785] group-hover:text-[#9299A6]'
+                                                ? 'text-[#B8C0CA]'
+                                                : `
+                                                    text-[#657181]
+
+                                                    group-hover:text-[#AEB7C3]
+                                                `
                                         }
                                     `}
                                 />
@@ -325,10 +356,21 @@ const Filters = ({
 
                                         text-[11px]
 
+                                        transition-colors
+                                        duration-150
+
                                         ${
                                             active
-                                                ? 'font-semibold text-[#F1F2F4]'
-                                                : 'font-medium text-[#9299A6] group-hover:text-[#C3C7CF]'
+                                                ? `
+                                                    font-semibold!
+                                                    text-[#EEF1F5]
+                                                `
+                                                : `
+                                                    font-medium!
+                                                    text-[#8792A1]
+
+                                                    group-hover:text-[#B8C0CA]
+                                                `
                                         }
                                     `}
                                 >
@@ -345,9 +387,12 @@ const Filters = ({
                                             items-center
                                             justify-center
 
-                                            bg-[#393F4C]
+                                            border
+                                            border-[#394555]
 
-                                            text-[#C3C7CF]
+                                            bg-[#1D2632]
+
+                                            text-[#B8C0CA]
                                         "
                                     >
                                         <Check size={11} strokeWidth={2.2} />
@@ -366,7 +411,7 @@ const Filters = ({
             <div
                 className="
                     border-t
-                    border-[#343944]
+                    border-[#252D38]
 
                     px-4
                     py-4
@@ -378,11 +423,11 @@ const Filters = ({
                         px-1
 
                         text-[9px]
-                        font-semibold
+                        font-semibold!
                         uppercase
                         tracking-[0.14em]
 
-                        text-[#6F7785]
+                        text-[#697586]
                     "
                 >
                     Email verification
@@ -393,9 +438,9 @@ const Filters = ({
                         overflow-hidden
 
                         border
-                        border-[#343944]
+                        border-[#252D38]
 
-                        bg-[#22252D]
+                        bg-[#0E1219]
                     "
                 >
                     {verificationStatuses.map((status) => {
@@ -415,62 +460,83 @@ const Filters = ({
                                     })
                                 }
                                 className={`
-                                        group
+                                    group
 
-                                        flex
-                                        min-h-10
-                                        w-full
-                                        items-center
-                                        gap-2.5
+                                    flex
+                                    min-h-10
+                                    w-full
+                                    items-center
+                                    gap-2.5
 
-                                        border-b
-                                        border-[#2F333D]
+                                    border-b
+                                    border-[#202832]
 
-                                        px-3
-                                        py-2.5
+                                    px-3
+                                    py-2.5
 
-                                        text-left
+                                    text-left
 
-                                        transition-colors
-                                        duration-150
+                                    transition-[background-color,color]
+                                    duration-150
+                                    ease-out
 
-                                        last:border-b-0
+                                    last:border-b-0
 
-                                        ${
-                                            active
-                                                ? 'bg-[#303641]'
-                                                : 'hover:bg-[#272B34]'
-                                        }
-                                    `}
+                                    ${
+                                        active
+                                            ? 'bg-[#171E28]'
+                                            : 'bg-[#0E1219] hover:bg-[#151B24]'
+                                    }
+
+                                    focus:outline-none
+                                    focus:ring-0
+                                `}
                             >
                                 <Icon
                                     size={14}
                                     strokeWidth={1.8}
                                     className={`
-                                            shrink-0
-                                            transition-colors
+                                        shrink-0
 
-                                            ${
-                                                active
-                                                    ? 'text-[#C3C7CF]'
-                                                    : 'text-[#6F7785] group-hover:text-[#9299A6]'
-                                            }
-                                        `}
+                                        transition-colors
+                                        duration-150
+
+                                        ${
+                                            active
+                                                ? 'text-[#B8C0CA]'
+                                                : `
+                                                    text-[#657181]
+
+                                                    group-hover:text-[#AEB7C3]
+                                                `
+                                        }
+                                    `}
                                 />
 
                                 <span
                                     className={`
-                                            min-w-0
-                                            flex-1
+                                        min-w-0
+                                        flex-1
 
-                                            text-[11px]
+                                        text-[11px]
 
-                                            ${
-                                                active
-                                                    ? 'font-semibold text-[#F1F2F4]'
-                                                    : 'font-medium text-[#9299A6] group-hover:text-[#C3C7CF]'
-                                            }
-                                        `}
+                                        transition-colors
+                                        duration-150
+
+                                        ${
+                                            active
+                                                ? `
+                                                    font-semibold!
+                                                    text-[#EEF1F5]
+                                                `
+                                                : `
+                                                    font-medium!
+                                                    text-[#8792A1]
+
+                                                    group-hover:text-[#B8C0CA]
+                                                `
+                                        }
+                                    `}
                                 >
                                     {status.label}
                                 </span>
@@ -478,17 +544,20 @@ const Filters = ({
                                 {active && (
                                     <span
                                         className="
-                                                flex
-                                                h-5
-                                                w-5
-                                                shrink-0
-                                                items-center
-                                                justify-center
+                                            flex
+                                            h-5
+                                            w-5
+                                            shrink-0
+                                            items-center
+                                            justify-center
 
-                                                bg-[#393F4C]
+                                            border
+                                            border-[#394555]
 
-                                                text-[#C3C7CF]
-                                            "
+                                            bg-[#1D2632]
+
+                                            text-[#B8C0CA]
+                                        "
                                     >
                                         <Check size={11} strokeWidth={2.2} />
                                     </span>

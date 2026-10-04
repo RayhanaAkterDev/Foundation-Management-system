@@ -221,7 +221,7 @@ const SectionHeader = ({
                         className="
                             font-['Noto_Sans_Bengali']
                             text-[12px]
-                            font-medium
+                            font-medium!
                             text-[#879591]
                         "
                     >
@@ -673,7 +673,7 @@ const StepOrganizationDetails = ({ formData, onChange, errors = {} }) => {
                                     shrink-0
                                     font-['Poppins']
                                     text-[10px]
-                                    font-medium
+                                    font-medium!
                                     tracking-[0.08em]
                                     transition-colors
 
@@ -1163,7 +1163,7 @@ const StepOrganizationDetails = ({ formData, onChange, errors = {} }) => {
                                             shrink-0
                                             font-['Poppins']
                                             text-[11px]
-                                            font-medium
+                                            font-medium!
                                             tracking-[0.08em]
 
                                             ${

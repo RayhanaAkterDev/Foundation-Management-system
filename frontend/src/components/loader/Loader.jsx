@@ -63,7 +63,7 @@ const Loader = () => {
                         className="
                             font-bengali
                             text-[18px]
-                            font-medium
+                            font-medium!
                             leading-[1.7]
                             tracking-[-0.01em]
                             text-text-primary
@@ -154,7 +154,7 @@ const Loader = () => {
                             className="
                                 font-bengali
                                 text-[12px]
-                                font-medium
+                                font-medium!
                                 leading-none
                                 text-text-secondary/75
 

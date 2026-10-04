@@ -370,7 +370,7 @@ const HelpRequestEditModal = ({ isOpen, request, onClose, onSuccess }) => {
                                             </div>
                                         </div>
 
-                                        <span className="hidden shrink-0 text-[10px] font-medium uppercase tracking-[0.1em] text-[#9aa5a1] sm:block">
+                                        <span className="hidden shrink-0 text-[10px] font-medium! uppercase tracking-[0.1em] text-[#9aa5a1] sm:block">
                                             Required information
                                         </span>
                                     </div>
@@ -408,7 +408,7 @@ const HelpRequestEditModal = ({ isOpen, request, onClose, onSuccess }) => {
                                             />
 
                                             {errors.title && (
-                                                <p className="text-[10px] font-medium text-red-500 sm:text-[11px]">
+                                                <p className="text-[10px] font-medium! text-red-500 sm:text-[11px]">
                                                     {getFieldError(
                                                         errors.title,
                                                     )}
@@ -465,7 +465,7 @@ const HelpRequestEditModal = ({ isOpen, request, onClose, onSuccess }) => {
                                                 </div>
 
                                                 {errors.category && (
-                                                    <p className="text-[10px] font-medium text-red-500 sm:text-[11px]">
+                                                    <p className="text-[10px] font-medium! text-red-500 sm:text-[11px]">
                                                         {getFieldError(
                                                             errors.category,
                                                         )}
@@ -518,7 +518,7 @@ const HelpRequestEditModal = ({ isOpen, request, onClose, onSuccess }) => {
                                                 </div>
 
                                                 {errors.urgency && (
-                                                    <p className="text-[10px] font-medium text-red-500 sm:text-[11px]">
+                                                    <p className="text-[10px] font-medium! text-red-500 sm:text-[11px]">
                                                         {getFieldError(
                                                             errors.urgency,
                                                         )}
@@ -590,7 +590,7 @@ const HelpRequestEditModal = ({ isOpen, request, onClose, onSuccess }) => {
                                                 />
 
                                                 {errors.district && (
-                                                    <p className="text-[10px] font-medium text-red-500 sm:text-[11px]">
+                                                    <p className="text-[10px] font-medium! text-red-500 sm:text-[11px]">
                                                         {getFieldError(
                                                             errors.district,
                                                         )}
@@ -605,7 +605,7 @@ const HelpRequestEditModal = ({ isOpen, request, onClose, onSuccess }) => {
                                                     className="flex items-center gap-2 text-[11px] font-bold text-text-primary sm:text-[12px]"
                                                 >
                                                     Address
-                                                    <span className="text-[9px] font-medium text-[#9ba5a1] sm:text-[10px]">
+                                                    <span className="text-[9px] font-medium! text-[#9ba5a1] sm:text-[10px]">
                                                         Optional
                                                     </span>
                                                 </label>
@@ -624,7 +624,7 @@ const HelpRequestEditModal = ({ isOpen, request, onClose, onSuccess }) => {
                                                 />
 
                                                 {errors.address && (
-                                                    <p className="text-[10px] font-medium text-red-500 sm:text-[11px]">
+                                                    <p className="text-[10px] font-medium! text-red-500 sm:text-[11px]">
                                                         {getFieldError(
                                                             errors.address,
                                                         )}
@@ -690,7 +690,7 @@ const HelpRequestEditModal = ({ isOpen, request, onClose, onSuccess }) => {
                                         />
 
                                         {errors.description && (
-                                            <p className="mt-2 text-[10px] font-medium text-red-500 sm:text-[11px]">
+                                            <p className="mt-2 text-[10px] font-medium! text-red-500 sm:text-[11px]">
                                                 {getFieldError(
                                                     errors.description,
                                                 )}
@@ -710,7 +710,7 @@ const HelpRequestEditModal = ({ isOpen, request, onClose, onSuccess }) => {
                             <div className="hidden min-w-0 items-center gap-2 sm:flex">
                                 <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
 
-                                <p className="truncate text-[10px] font-medium text-[#87938e]">
+                                <p className="truncate text-[10px] font-medium! text-[#87938e]">
                                     Only the fields you changed will be updated.
                                 </p>
                             </div>

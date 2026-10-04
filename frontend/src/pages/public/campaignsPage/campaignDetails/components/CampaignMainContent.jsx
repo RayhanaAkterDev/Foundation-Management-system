@@ -98,7 +98,7 @@ const CampaignMainContent = ({ campaign }) => {
                             max-w-[850px]
                             font-bengali
                             text-[2.25rem]
-                            font-medium
+                            font-medium!
                             leading-[1.3]
                             tracking-[-0.04em]
                             text-text-primary

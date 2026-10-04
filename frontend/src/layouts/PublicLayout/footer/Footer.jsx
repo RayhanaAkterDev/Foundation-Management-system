@@ -186,7 +186,7 @@ const Footer = () => {
                                     mb-4
                                     font-bengali
                                     text-[13px]
-                                    font-medium
+                                    font-medium!
                                     leading-none
                                     text-white/45
                                     sm:mb-5
@@ -260,7 +260,7 @@ const Footer = () => {
                             className="
                                 font-bengali
                                 text-[14px]
-                                font-medium
+                                font-medium!
                                 leading-[1.9]
                                 text-white!
                                 sm:text-[15px]
@@ -280,7 +280,7 @@ const Footer = () => {
                                 items-center
                                 gap-2
                                 text-[12px]
-                                font-medium
+                                font-medium!
                                 text-white/55
                                 transition-colors
                                 duration-200
@@ -448,7 +448,7 @@ const Footer = () => {
                             className="
                                 shrink-0
                                 text-[11px]
-                                font-medium
+                                font-medium!
                                 text-white/35
                                 sm:text-[12px]
                             "

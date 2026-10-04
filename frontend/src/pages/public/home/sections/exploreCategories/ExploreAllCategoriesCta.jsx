@@ -43,7 +43,7 @@ const ExploreAllCategoriesCta = () => {
                             mt-1
                             font-bengali
                             text-[15px]
-                            font-medium
+                            font-medium!
                             leading-[1.7]
                         "
                     >

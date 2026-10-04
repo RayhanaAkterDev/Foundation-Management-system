@@ -101,7 +101,7 @@ const selectClassName = `
 const labelClassName = `
     font-bengali
     text-[14px]
-    font-medium
+    font-medium!
     text-text-primary
 
     sm:text-[15px]
@@ -378,11 +378,11 @@ const RequestForm = ({ setSuccess }) => {
             <div className="flex min-h-[520px] items-center px-5 py-10 sm:px-8 sm:py-12 lg:px-10">
                 <div className="mx-auto w-full max-w-[620px]">
                     <div className="border-y border-border py-8 sm:py-10">
-                        <p className="font-bengali text-[13px] font-medium text-primary">
+                        <p className="font-bengali text-[13px] font-medium! text-primary">
                             অ্যাকাউন্ট প্রয়োজন
                         </p>
 
-                        <h2 className="mt-2.5 font-bengali text-[1.8rem] font-medium leading-[1.4] tracking-[-0.02em] text-text-primary sm:text-[2.15rem]">
+                        <h2 className="mt-2.5 font-bengali text-[1.8rem] font-medium! leading-[1.4] tracking-[-0.02em] text-text-primary sm:text-[2.15rem]">
                             আপনার সাহায্যের আবেদন তৈরি করুন
                         </h2>
 
@@ -405,7 +405,7 @@ const RequestForm = ({ setSuccess }) => {
                                     px-5
                                     font-bengali
                                     text-sm
-                                    font-medium
+                                    font-medium!
                                     text-white!
                                     transition
                                     hover:bg-primary-dark
@@ -432,7 +432,7 @@ const RequestForm = ({ setSuccess }) => {
                                     px-5
                                     font-bengali
                                     text-sm
-                                    font-medium
+                                    font-medium!
                                     text-text-primary
                                     transition
                                     hover:bg-background
@@ -503,7 +503,7 @@ const RequestForm = ({ setSuccess }) => {
                 "
             >
                 <div className="max-w-[700px]">
-                    <p className="font-bengali text-[12px] font-medium text-primary sm:text-[13px]">
+                    <p className="font-bengali text-[12px] font-medium! text-primary sm:text-[13px]">
                         ধাপ ১ · আপনার পরিস্থিতি
                     </p>
 
@@ -513,7 +513,7 @@ const RequestForm = ({ setSuccess }) => {
 
                             font-bengali
                             text-[1.7rem]
-                            font-medium
+                            font-medium!
                             leading-[1.4]
                             tracking-[-0.015em]
                             text-text-primary
@@ -554,7 +554,7 @@ const RequestForm = ({ setSuccess }) => {
                         lg:block
                     "
                 >
-                    <p className="font-bengali text-[11px] font-medium uppercase tracking-[0.08em] text-text-muted">
+                    <p className="font-bengali text-[11px] font-medium! uppercase tracking-[0.08em] text-text-muted">
                         ০১ / ০২
                     </p>
 
@@ -650,7 +650,7 @@ const RequestForm = ({ setSuccess }) => {
                     />
 
                     <div>
-                        <p className="font-bengali text-sm font-medium text-text-primary">
+                        <p className="font-bengali text-sm font-medium! text-text-primary">
                             আপনার অনুরোধ বিশ্লেষণ করা হচ্ছে...
                         </p>
 
@@ -682,7 +682,7 @@ const RequestForm = ({ setSuccess }) => {
                         "
                     >
                         <div>
-                            <p className="font-bengali text-[12px] font-medium text-primary sm:text-[13px]">
+                            <p className="font-bengali text-[12px] font-medium! text-primary sm:text-[13px]">
                                 ধাপ ২ · পর্যালোচনা
                             </p>
 
@@ -692,7 +692,7 @@ const RequestForm = ({ setSuccess }) => {
 
                                     font-bengali
                                     text-[1.5rem]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.4]
                                     text-text-primary
 
@@ -737,7 +737,7 @@ const RequestForm = ({ setSuccess }) => {
                                     ${inputClassName}
                                     h-12
                                     font-bengali
-                                    font-medium
+                                    font-medium!
                                 `}
                             />
 
@@ -925,7 +925,7 @@ const RequestForm = ({ setSuccess }) => {
                                     sm:px-5
                                 "
                             >
-                                <p className="font-bengali text-xs font-medium text-text-primary">
+                                <p className="font-bengali text-xs font-medium! text-text-primary">
                                     প্রয়োজনের সময়সীমা
                                 </p>
 
@@ -1082,7 +1082,7 @@ const RequestForm = ({ setSuccess }) => {
 
                             font-bengali
                             text-sm
-                            font-medium
+                            font-medium!
                             text-text-primary
 
                             transition

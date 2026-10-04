@@ -48,7 +48,7 @@ const Story = () => {
                         <div className="flex items-center gap-3">
                             <span className="h-[2px] w-9 bg-accent" />
 
-                            <p className="text-sm font-medium text-primary">
+                            <p className="text-sm font-medium! text-primary">
                                 আমাদের গল্প
                             </p>
                         </div>
@@ -69,7 +69,7 @@ const Story = () => {
                                     max-w-[920px]
                                     font-bengali
                                     text-[2.45rem]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.34]
                                     tracking-normal
                                     sm:text-[3.1rem]
@@ -234,7 +234,7 @@ const Story = () => {
                             "
                         >
                             <div className="lg:pr-20 xl:pr-24">
-                                <p className="text-sm font-medium text-primary">
+                                <p className="text-sm font-medium! text-primary">
                                     শুরু
                                 </p>
 
@@ -244,7 +244,7 @@ const Story = () => {
                                         max-w-[600px]
                                         font-bengali
                                         text-[2rem]
-                                        font-medium
+                                        font-medium!
                                         leading-[1.5]
                                         sm:text-[2.5rem]
                                         lg:text-[2.8rem]
@@ -389,7 +389,7 @@ const Story = () => {
                                 "
                             >
                                 <div className="text-center">
-                                    <p className="text-sm font-medium text-primary">
+                                    <p className="text-sm font-medium! text-primary">
                                         প্রথম উপলব্ধি
                                     </p>
 
@@ -400,7 +400,7 @@ const Story = () => {
                                             max-w-[760px]
                                             font-bengali
                                             text-[2.15rem]
-                                            font-medium
+                                            font-medium!
                                             leading-[1.5]
                                             sm:text-[2.7rem]
                                             lg:text-[3.15rem]
@@ -447,7 +447,7 @@ const Story = () => {
                                         className="
                                             font-bengali
                                             text-[1.35rem]
-                                            font-medium
+                                            font-medium!
                                             leading-[1.7]
                                             text-text-primary
                                             sm:text-[1.6rem]
@@ -479,7 +479,7 @@ const Story = () => {
                             <div className="hidden lg:block" />
 
                             <div className="lg:pl-20 xl:pl-24">
-                                <p className="text-sm font-medium text-primary">
+                                <p className="text-sm font-medium! text-primary">
                                     ভাবনা
                                 </p>
 
@@ -488,7 +488,7 @@ const Story = () => {
                                         mt-4
                                         font-bengali
                                         text-[1.8rem]
-                                        font-medium
+                                        font-medium!
                                         leading-[1.55]
                                         sm:text-[2.15rem]
                                     "
@@ -546,7 +546,7 @@ const Story = () => {
                             "
                         >
                             <div className="lg:pr-20 lg:text-right xl:pr-24">
-                                <p className="text-sm font-medium text-primary">
+                                <p className="text-sm font-medium! text-primary">
                                     নির্মাণ
                                 </p>
 
@@ -555,7 +555,7 @@ const Story = () => {
                                         mt-4
                                         font-bengali
                                         text-[1.8rem]
-                                        font-medium
+                                        font-medium!
                                         leading-[1.55]
                                         sm:text-[2.15rem]
                                     "
@@ -619,7 +619,7 @@ const Story = () => {
                             <div className="hidden lg:block" />
 
                             <div className="lg:pl-20 xl:pl-24">
-                                <p className="text-sm font-medium text-primary">
+                                <p className="text-sm font-medium! text-primary">
                                     শেখা
                                 </p>
 
@@ -628,7 +628,7 @@ const Story = () => {
                                         mt-4
                                         font-bengali
                                         text-[1.8rem]
-                                        font-medium
+                                        font-medium!
                                         leading-[1.55]
                                         sm:text-[2.15rem]
                                     "
@@ -689,7 +689,7 @@ const Story = () => {
                             "
                         >
                             <div className="lg:pr-20 lg:text-right xl:pr-24">
-                                <p className="text-sm font-medium text-primary">
+                                <p className="text-sm font-medium! text-primary">
                                     আজ
                                 </p>
 
@@ -698,7 +698,7 @@ const Story = () => {
                                         mt-4
                                         font-bengali
                                         text-[1.8rem]
-                                        font-medium
+                                        font-medium!
                                         leading-[1.55]
                                         sm:text-[2.15rem]
                                     "
@@ -771,7 +771,7 @@ const Story = () => {
                         "
                     >
                         <div>
-                            <p className="text-sm font-medium text-primary">
+                            <p className="text-sm font-medium! text-primary">
                                 যা পথটি শিখিয়েছে
                             </p>
 
@@ -809,7 +809,7 @@ const Story = () => {
                                     className="
                                         font-bengali
                                         text-[1.55rem]
-                                        font-medium
+                                        font-medium!
                                         leading-[1.5]
                                         sm:text-[1.9rem]
                                         lg:text-[2.2rem]
@@ -843,7 +843,7 @@ const Story = () => {
                                     className="
                                         font-bengali
                                         text-[1.55rem]
-                                        font-medium
+                                        font-medium!
                                         leading-[1.5]
                                         sm:text-[1.9rem]
                                         lg:text-[2.2rem]
@@ -877,7 +877,7 @@ const Story = () => {
                                     className="
                                         font-bengali
                                         text-[1.55rem]
-                                        font-medium
+                                        font-medium!
                                         leading-[1.5]
                                         sm:text-[1.9rem]
                                         lg:text-[2.2rem]
@@ -911,7 +911,7 @@ const Story = () => {
                                     className="
                                         font-bengali
                                         text-[1.55rem]
-                                        font-medium
+                                        font-medium!
                                         leading-[1.5]
                                         sm:text-[1.9rem]
                                         lg:text-[2.2rem]
@@ -1001,7 +1001,7 @@ const Story = () => {
                         "
                     >
                         <div>
-                            <p className="text-sm font-medium text-primary">
+                            <p className="text-sm font-medium! text-primary">
                                 আজও
                             </p>
 
@@ -1011,7 +1011,7 @@ const Story = () => {
                                     max-w-[820px]
                                     font-bengali
                                     text-[2.1rem]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.5]
                                     sm:text-[2.7rem]
                                     lg:text-[3.25rem]
@@ -1044,7 +1044,7 @@ const Story = () => {
                                     border-primary
                                     pb-1
                                     text-sm
-                                    font-medium
+                                    font-medium!
                                     text-primary
                                 "
                             >

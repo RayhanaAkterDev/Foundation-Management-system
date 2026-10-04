@@ -241,7 +241,7 @@ const Community = () => {
                                     className="
                                         block
                                         text-[0.9rem]
-                                        font-medium
+                                        font-medium!
                                         text-primary
                                         sm:text-[1rem]
                                     "
@@ -254,7 +254,7 @@ const Community = () => {
                                         mt-5
                                         max-w-[930px]
                                         text-[2.8rem]
-                                        font-medium
+                                        font-medium!
                                         leading-[1.27]
                                         sm:text-[3.5rem]
                                         lg:text-[4.15rem]
@@ -363,7 +363,7 @@ const Community = () => {
                                     items-center
                                     gap-2
                                     text-[0.75rem]
-                                    font-medium
+                                    font-medium!
                                     text-primary
                                 "
                             >
@@ -412,7 +412,7 @@ const Community = () => {
                                 className="
                                     max-w-[1050px]
                                     text-[1.75rem]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.65]
                                     sm:text-[2.15rem]
                                     lg:text-[2.6rem]
@@ -448,7 +448,7 @@ const Community = () => {
                                 <span
                                     className="
                                         text-[0.78rem]
-                                        font-medium
+                                        font-medium!
                                         text-text-secondary
                                     "
                                 >
@@ -494,7 +494,7 @@ const Community = () => {
                                         mt-5
                                         max-w-[620px]
                                         text-[2rem]
-                                        font-medium
+                                        font-medium!
                                         leading-[1.45]
                                         sm:text-[2.6rem]
                                         lg:text-[3rem]
@@ -575,7 +575,7 @@ const Community = () => {
                                             className="
                         font-bengali
                         text-base
-                        font-medium
+                        font-medium!
                         text-text-secondary
                     "
                                         >
@@ -796,7 +796,7 @@ const Community = () => {
                                                                         className="
                                                 font-bengali
                                                 text-[0.82rem]
-                                                font-medium
+                                                font-medium!
                                                 text-text-muted
                                             "
                                                                     >
@@ -872,7 +872,7 @@ const Community = () => {
                                                                         className="
                                                 font-bengali
                                                 text-[1.45rem]
-                                                font-medium
+                                                font-medium!
                                                 leading-[1.85]
                                                 text-text-primary
                                                 sm:text-[1.7rem]
@@ -940,7 +940,7 @@ const Community = () => {
                                                                             className="
                                                     font-bengali
                                                     text-[0.84rem]
-                                                    font-medium
+                                                    font-medium!
                                                     text-text-muted
                                                 "
                                                                         >
@@ -1041,7 +1041,7 @@ const Community = () => {
                                                                                 className="
                                                         font-bengali
                                                         text-[0.76rem]
-                                                        font-medium
+                                                        font-medium!
                                                         leading-[1.7]
                                                         text-primary
                                                     "
@@ -1236,7 +1236,7 @@ const Community = () => {
                                         mt-5
                                         max-w-[470px]
                                         text-[2.05rem]
-                                        font-medium
+                                        font-medium!
                                         leading-[1.45]
                                         sm:text-[2.65rem]
                                         lg:text-[2.9rem]
@@ -1329,7 +1329,7 @@ const Community = () => {
                                             className="
                                                 mt-7
                                                 text-[1.8rem]
-                                                font-medium
+                                                font-medium!
                                             "
                                         >
                                             ধন্যবাদ।
@@ -1667,7 +1667,7 @@ const Community = () => {
                                 className="
                                     max-w-[730px]
                                     text-[1.9rem]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.5]
                                     text-white
                                     sm:text-[2.4rem]
@@ -1740,7 +1740,7 @@ const Community = () => {
                                 className="
                                     max-w-[690px]
                                     text-[1.25rem]
-                                    font-medium
+                                    font-medium!
                                     leading-[1.7]
                                     sm:text-[1.55rem]
                                 "

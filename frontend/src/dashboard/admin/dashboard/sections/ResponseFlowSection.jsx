@@ -57,7 +57,7 @@ const CampaignRow = ({ campaign, onClick }) => {
                         truncate
                         font-jost
                         text-[13px]
-                        font-medium
+                        font-medium!
                         leading-5
                         text-text-primary
                         transition-colors
@@ -74,7 +74,7 @@ const CampaignRow = ({ campaign, onClick }) => {
                         truncate
                         font-poppins
                         text-[9px]
-                        font-medium
+                        font-medium!
                         capitalize
                         leading-4
                         text-text-secondary
@@ -308,7 +308,7 @@ const ResponseFlowSection = ({
                                             shrink-0
                                             font-poppins
                                             text-[9px]
-                                            font-medium
+                                            font-medium!
                                             capitalize
                                             text-white!/70
                                         "
@@ -729,7 +729,7 @@ const ResponseFlowSection = ({
                                             className="
                                                 font-jost
                                                 text-[13px]
-                                                font-medium
+                                                font-medium!
                                                 leading-5
                                                 text-text-primary
                                             "

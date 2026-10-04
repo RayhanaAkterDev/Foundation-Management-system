@@ -14,7 +14,7 @@ const SuccessToast = ({ show, message }) => {
                 </div>
 
                 <div className="min-w-0">
-                    <p className="text-sm font-medium leading-5 text-text-primary">
+                    <p className="text-sm font-medium! leading-5 text-text-primary">
                         {message}
                     </p>
                 </div>

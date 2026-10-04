@@ -151,7 +151,7 @@ const Detail = ({
                             ${
                                 emphasized
                                     ? 'font-semibold text-text-primary'
-                                    : 'font-medium text-slate-600'
+                                    : 'font-medium! text-slate-600'
                             }
                         `}
                     >
@@ -357,7 +357,7 @@ const ViewModal = ({ user, loading, error, onClose }) => {
                                     Account record
                                 </p>
 
-                                <p className="mt-0.5 font-[Poppins] text-[8px] font-medium uppercase tracking-[0.17em] text-white!/45">
+                                <p className="mt-0.5 font-[Poppins] text-[8px] font-medium! uppercase tracking-[0.17em] text-white!/45">
                                     Stand For People
                                 </p>
                             </div>
@@ -418,7 +418,7 @@ const ViewModal = ({ user, loading, error, onClose }) => {
                                         Registered
                                     </p>
 
-                                    <p className="mt-1.5 text-[12px] font-medium text-white!/85">
+                                    <p className="mt-1.5 text-[12px] font-medium! text-white!/85">
                                         {formatDate(user?.created_at)}
                                     </p>
                                 </div>

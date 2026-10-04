@@ -29,7 +29,7 @@ const HelpRequestCategoryTabs = ({ tabs, activeCategory, onChange }) => {
                                     ${
                                         active
                                             ? 'font-bold text-primary'
-                                            : 'font-medium'
+                                            : 'font-medium!'
                                     }
                                 `}
                             >

@@ -1117,7 +1117,7 @@ const Campaigns = () => {
                                     •
                                 </span>
 
-                                <span className="truncate text-[10px] font-medium text-text-secondary">
+                                <span className="truncate text-[10px] font-medium! text-text-secondary">
                                     {row.locationName}
                                 </span>
                             </>
@@ -1186,7 +1186,7 @@ const Campaigns = () => {
             sortKey: 'start_date',
 
             render: (value) => (
-                <span className="whitespace-nowrap text-sm font-medium text-text-primary">
+                <span className="whitespace-nowrap text-sm font-medium! text-text-primary">
                     {value}
                 </span>
             ),
@@ -1199,7 +1199,7 @@ const Campaigns = () => {
             sortKey: 'end_date',
 
             render: (value) => (
-                <span className="whitespace-nowrap text-sm font-medium text-text-primary">
+                <span className="whitespace-nowrap text-sm font-medium! text-text-primary">
                     {value}
                 </span>
             ),
@@ -1322,7 +1322,7 @@ const Campaigns = () => {
                 bg-surface
                 px-4
                 text-sm
-                font-medium
+                font-medium!
                 text-text-primary
                 transition-all
                 hover:border-primary/30
@@ -1405,7 +1405,7 @@ const Campaigns = () => {
                                 </h2>
                             </div>
 
-                            <p className="text-xs font-medium text-text-secondary">
+                            <p className="text-xs font-medium! text-text-secondary">
                                 {filteredCampaigns.length}{' '}
                                 {filteredCampaigns.length === 1
                                     ? 'campaign'
@@ -1432,7 +1432,7 @@ const Campaigns = () => {
                                         value={searchTerm}
                                         onChange={handleSearchChange}
                                         placeholder="Search campaigns by title, organization, category or location..."
-                                        className="h-10 w-full border border-border bg-background pl-10 pr-4 text-[13px] font-medium text-text-primary outline-none transition-colors placeholder:text-text-secondary/70 hover:border-text-secondary/30 focus:border-primary/50 focus:bg-surface"
+                                        className="h-10 w-full border border-border bg-background pl-10 pr-4 text-[13px] font-medium! text-text-primary outline-none transition-colors placeholder:text-text-secondary/70 hover:border-text-secondary/30 focus:border-primary/50 focus:bg-surface"
                                     />
                                 </div>
                             </div>

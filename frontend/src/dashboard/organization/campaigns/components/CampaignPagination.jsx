@@ -18,7 +18,7 @@ const CampaignPagination = ({
 
     return (
         <div className="flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-[10px] font-medium text-text-secondary">
+            <p className="text-[10px] font-medium! text-text-secondary">
                 Showing{' '}
                 <span className="font-semibold text-text-primary">
                     {startItem}

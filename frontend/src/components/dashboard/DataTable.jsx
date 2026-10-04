@@ -4,9 +4,9 @@ import { ChevronsUpDown } from 'lucide-react';
 
 import EmptyState from './EmptyState';
 
-// ============================================================
-// HELPERS
-// ============================================================
+/* ==========================================================================
+   HELPERS
+============================================================================ */
 
 const getAlignmentClass = (align) => {
     if (align === 'right') {
@@ -32,9 +32,9 @@ const getContentAlignmentClass = (align) => {
     return 'justify-start';
 };
 
-// ============================================================
-// DATA TABLE
-// ============================================================
+/* ==========================================================================
+   DATA TABLE
+============================================================================ */
 
 const DataTable = ({
     columns = [],
@@ -48,9 +48,9 @@ const DataTable = ({
         .map((column) => column.width || 'minmax(0, 1fr)')
         .join(' ');
 
-    // ========================================================
-    // EMPTY STATE
-    // ========================================================
+    /* ======================================================================
+       EMPTY STATE
+    ====================================================================== */
 
     if (rows.length === 0) {
         return (
@@ -62,7 +62,7 @@ const DataTable = ({
                     items-center
                     justify-center
 
-                    bg-[#22252D]
+                    bg-[#0E1219]
 
                     px-5
                     py-10
@@ -91,21 +91,16 @@ const DataTable = ({
         <div
             role="table"
             className="
+                isolate
                 min-w-190
                 w-full
 
-                bg-[#22252D]
-                isolate
+                bg-[#0E1219]
             "
         >
-            {/* =====================================================
-                ACTUAL TABLE COLUMN HEADER
-
-                THIS is the sticky row:
-                # / User / Role / Verification / Status / Actions
-
-                The outer Users.jsx table area is the scroll container.
-            ===================================================== */}
+            {/* =============================================================
+                COLUMN HEADER
+            ============================================================= */}
 
             <div
                 role="row"
@@ -119,13 +114,13 @@ const DataTable = ({
                     items-center
 
                     border-b
-                    border-[#343944]
+                    border-[#252D38]
 
-                    bg-[#1F2229]
+                    bg-[#121821]
 
                     px-3
 
-                    shadow-[0_1px_0_rgba(52,57,68,1)]
+                    shadow-[0_1px_0_rgba(37,45,56,0.9)]
 
                     sm:px-4
                 "
@@ -135,7 +130,6 @@ const DataTable = ({
             >
                 {columns.map((column) => {
                     const sortable = Boolean(column.sortable && onSort);
-
                     const sortKey = column.sortKey || column.key;
 
                     return (
@@ -147,11 +141,11 @@ const DataTable = ({
                                 px-2
 
                                 text-[9px]
-                                font-semibold
+                                font-semibold!
                                 uppercase
                                 tracking-[0.13em]
 
-                                text-[#7F8794]
+                                text-[#697586]
 
                                 ${getAlignmentClass(column.align)}
                             `}
@@ -170,12 +164,12 @@ const DataTable = ({
 
                                         whitespace-nowrap
 
-                                        text-[#7F8794]
+                                        text-[#697586]
 
                                         transition-colors
                                         duration-150
 
-                                        hover:text-[#C3C7CF]
+                                        hover:text-[#AEB7C3]
 
                                         focus:outline-none
                                         focus:ring-0
@@ -204,12 +198,12 @@ const DataTable = ({
                                             items-center
                                             justify-center
 
-                                            text-[#626A78]
+                                            text-[#566171]
 
                                             transition-colors
                                             duration-150
 
-                                            group-hover:text-[#A8AFBB]
+                                            group-hover:text-[#929CAA]
                                         "
                                     >
                                         {getSortIcon ? (
@@ -242,9 +236,9 @@ const DataTable = ({
                 })}
             </div>
 
-            {/* =====================================================
+            {/* =============================================================
                 TABLE DATA ROWS
-            ===================================================== */}
+            ============================================================= */}
 
             <div role="rowgroup">
                 {rows.map((row, rowIndex) => (
@@ -252,26 +246,29 @@ const DataTable = ({
                         key={row[keyField] ?? rowIndex}
                         role="row"
                         className="
-                                grid
-                                min-h-15
-                                items-center
+                            group/row
 
-                                border-b
-                                border-[#2F333D]
+                            grid
+                            min-h-15
+                            items-center
 
-                                bg-[#22252D]
+                            border-b
+                            border-[#202832]
 
-                                px-3
+                            bg-[#0E1219]
 
-                                transition-colors
-                                duration-150
+                            px-3
 
-                                last:border-b-0
+                            transition-colors
+                            duration-150
+                            ease-out
 
-                                hover:bg-[#272B34]
+                            last:border-b-0
 
-                                sm:px-4
-                            "
+                            hover:bg-[#151B24]
+
+                            sm:px-4
+                        "
                         style={{
                             gridTemplateColumns: gridTemplate,
                         }}
@@ -284,24 +281,27 @@ const DataTable = ({
                                     key={column.key}
                                     role="cell"
                                     className={`
-                                                min-w-0
-                                                px-2
+                                        min-w-0
+                                        px-2
 
-                                                text-[11px]
-                                                leading-5
+                                        text-[11px]
+                                        leading-5
 
-                                                text-[#C3C7CF]
+                                        text-[#B8C0CA]
 
-                                                ${getAlignmentClass(
-                                                    column.align,
-                                                )}
+                                        transition-colors
+                                        duration-150
 
-                                                ${
-                                                    column.nowrap
-                                                        ? 'whitespace-nowrap'
-                                                        : ''
-                                                }
-                                            `}
+                                        group-hover/row:text-[#C8CED6]
+
+                                        ${getAlignmentClass(column.align)}
+
+                                        ${
+                                            column.nowrap
+                                                ? 'whitespace-nowrap'
+                                                : ''
+                                        }
+                                    `}
                                 >
                                     {column.render
                                         ? column.render(value, row, rowIndex)

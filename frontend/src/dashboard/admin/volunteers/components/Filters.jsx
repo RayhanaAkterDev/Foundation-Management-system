@@ -52,7 +52,7 @@ const Filter = ({ statusFilter, onStatusChange }) => {
                                         ${
                                             active
                                                 ? 'font-semibold'
-                                                : 'font-medium'
+                                                : 'font-medium!'
                                         }
                                     `}
                                 >

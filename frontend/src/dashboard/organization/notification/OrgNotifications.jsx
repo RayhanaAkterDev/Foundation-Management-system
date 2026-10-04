@@ -228,7 +228,7 @@ const OrgNotifications = () => {
 
                 <div className="min-w-0 flex-1">
                   <p
-                    className={`text-sm font-medium ${
+                    className={`text-sm font-medium! ${
                       !notification.read
                         ? "text-text-primary"
                         : "text-[#6b7280]"

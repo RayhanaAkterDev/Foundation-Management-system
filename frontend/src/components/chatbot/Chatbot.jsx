@@ -267,7 +267,7 @@ const Chatbot = () => {
                             className="
                                 font-bengali
                                 text-[11px]
-                                font-medium
+                                font-medium!
                                 text-[#294641]
                             "
                         >
@@ -551,7 +551,7 @@ const Chatbot = () => {
                                                 py-0.5
 
                                                 text-[7px]
-                                                font-medium
+                                                font-medium!
                                                 uppercase
                                                 tracking-[0.06em]
 
@@ -800,7 +800,7 @@ const Chatbot = () => {
 
                                             font-bengali
                                             text-[10px]
-                                            font-medium
+                                            font-medium!
 
                                             text-[#7c8b87]
 

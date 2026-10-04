@@ -19,19 +19,19 @@ const Trend = ({ value, label }) => {
     const tone = positive
         ? {
               text: 'text-[#8EC5A3]!',
-              bg: 'bg-[#22362D]',
-              border: 'border-[#315140]',
+              bg: 'bg-[#16251F]',
+              border: 'border-[#294437]',
           }
         : negative
           ? {
                 text: 'text-[#D99A9F]!',
-                bg: 'bg-[#38272C]',
-                border: 'border-[#54353C]',
+                bg: 'bg-[#281A1F]',
+                border: 'border-[#493038]',
             }
           : {
-                text: 'text-[#9299A6]!',
-                bg: 'bg-[#2C303A]',
-                border: 'border-[#404754]',
+                text: 'text-[#8792A1]!',
+                bg: 'bg-[#151B24]',
+                border: 'border-[#29323E]',
             };
 
     return (
@@ -58,7 +58,7 @@ const Trend = ({ value, label }) => {
                     px-1.5
 
                     text-[10px]
-                    font-semibold
+                    font-semibold!
 
                     ${tone.text}
                     ${tone.bg}
@@ -80,7 +80,7 @@ const Trend = ({ value, label }) => {
 
                         text-[10.5px]
 
-                        text-[#6F7785]!
+                        text-[#697586]!
                     "
                 >
                     {label}
@@ -114,15 +114,16 @@ const StatCard = ({
                 overflow-hidden
 
                 border
-                border-[#343944]
+                border-[#252D38]
 
-                bg-[#22252D]
+                bg-[#0E1219]
 
-                transition-colors
+                transition-[background-color,border-color]
                 duration-150
+                ease-out
 
-                hover:border-[#404754]
-                hover:bg-[#242830]
+                hover:border-[#303A47]
+                hover:bg-[#121821]
             "
         >
             <div
@@ -155,11 +156,11 @@ const StatCard = ({
                             truncate
 
                             text-[10px]
-                            font-semibold
+                            font-semibold!
                             uppercase
                             tracking-[0.11em]
 
-                            text-[#9299A6]!
+                            text-[#8792A1]!
                         "
                     >
                         {label}
@@ -178,11 +179,17 @@ const StatCard = ({
                                 rounded-md
 
                                 border
-                                border-[#3A404B]
+                                border-[#29323E]
 
-                                bg-[#2C303A]
+                                bg-[#151B24]
 
-                                ${iconColor ? iconColor : 'text-[#A8AFBB]!'}
+                                transition-[background-color,border-color,color]
+                                duration-150
+
+                                group-hover:border-[#35404E]
+                                group-hover:bg-[#171E28]
+
+                                ${iconColor ? iconColor : 'text-[#A6AFBB]!'}
                             `}
                         >
                             <Icon size={16} strokeWidth={1.7} />
@@ -201,11 +208,11 @@ const StatCard = ({
                         font-sans!
 
                         text-[27px]
-                        font-semibold
+                        font-semibold!
                         leading-none
                         tracking-[-0.035em]
 
-                        text-[#F1F2F4]!
+                        text-[#EEF1F5]!
 
                         tabular-nums
 
@@ -244,7 +251,7 @@ const StatCard = ({
 
                                     text-[10.5px]
 
-                                    text-[#6F7785]!
+                                    text-[#697586]!
                                 "
                             >
                                 {subtext}

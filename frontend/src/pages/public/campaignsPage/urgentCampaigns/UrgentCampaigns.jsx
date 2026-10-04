@@ -142,7 +142,7 @@ const UrgentCampaigns = () => {
                     ) : campaigns.length > 0 ? (
                         <>
                             <div className="mb-8">
-                                <p className="font-sans text-sm font-medium text-text-secondary">
+                                <p className="font-sans text-sm font-medium! text-text-secondary">
                                     Active campaigns requiring attention
                                 </p>
 

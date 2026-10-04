@@ -112,7 +112,7 @@ const DonationAmountForm = ({
 
                 {error && (
                     <div className="mt-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
-                        <p className="text-xs font-medium leading-5 text-red-700">
+                        <p className="text-xs font-medium! leading-5 text-red-700">
                             {error}
                         </p>
                     </div>

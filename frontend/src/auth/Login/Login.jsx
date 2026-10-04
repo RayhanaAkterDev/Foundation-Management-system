@@ -96,7 +96,7 @@ const Login = () => {
                                 hidden
                                 font-bengali
                                 text-[9px]
-                                font-medium
+                                font-medium!
                                 text-[#73857f]
 
                                 sm:block
@@ -121,7 +121,7 @@ const Login = () => {
                             gap-1.5
                             font-bengali
                             text-[9.5px]
-                            font-medium
+                            font-medium!
                             text-[#60736d]
                             transition-colors
                             duration-200
@@ -343,7 +343,7 @@ const Login = () => {
                                         rotate-180
                                         font-bengali
                                         text-[9px]
-                                        font-medium
+                                        font-medium!
                                         tracking-[0.1em]
                                         text-white/70
                                         [writing-mode:vertical-rl]
@@ -521,7 +521,7 @@ const Login = () => {
                                         className="
                                             font-bengali
                                             text-[10px]
-                                            font-medium
+                                            font-medium!
                                             text-[#f6c27d]
 
                                             sm:text-[11px]
@@ -590,7 +590,7 @@ const Login = () => {
                                             mb-2
                                             font-bengali
                                             text-[9px]
-                                            font-medium
+                                            font-medium!
                                             text-white/50
 
                                             sm:mb-2.5

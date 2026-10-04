@@ -85,6 +85,19 @@ const isNavItemActive = (item, currentPath) => {
     return hasActiveChild(item, currentPath);
 };
 
+const getActiveChildKey = (item, currentPath) => {
+    if (!item?.children?.length) return null;
+
+    const matches = item.children
+        .filter((child) => isPathActive(child.path, currentPath))
+        .sort(
+            (a, b) =>
+                normalizePath(b.path).length - normalizePath(a.path).length,
+        );
+
+    return matches[0]?.key || null;
+};
+
 const getInitials = (value = '') => {
     const cleaned = value.trim();
 
@@ -158,7 +171,7 @@ const SectionLabel = ({ label, collapsed }) => {
             <div
                 className="
                     flex
-                    h-7
+                    h-8
                     items-center
                     justify-center
                 "
@@ -168,7 +181,7 @@ const SectionLabel = ({ label, collapsed }) => {
                     className="
                         h-px
                         w-4
-                        bg-[#343944]
+                        bg-[#29323E]
                     "
                 />
             </div>
@@ -178,19 +191,19 @@ const SectionLabel = ({ label, collapsed }) => {
     return (
         <div
             className="
-                mb-1.5
-                mt-5
+                mb-2.5
+                mt-7
                 px-3
-                first:mt-0
             "
         >
             <p
                 className="
                     text-[9px]
-                    font-semibold
+                    font-semibold!
                     uppercase
-                    tracking-[0.17em]
-                    !text-[#6F7785]
+                    tracking-[0.18em]
+
+                    !text-[#657184]
                 "
             >
                 {label}
@@ -204,75 +217,123 @@ const SectionLabel = ({ label, collapsed }) => {
 ============================================================================ */
 
 const SubMenu = ({ item, currentPath, open, collapsed, onNavigate }) => {
-    if (!item.children?.length || collapsed || !open) {
+    if (!item.children?.length || collapsed) {
         return null;
     }
 
+    const activeChildKey = getActiveChildKey(item, currentPath);
+
     return (
         <div
-            className="
-                relative
-                ml-7
-                mt-1
-                space-y-0.5
-                pb-1
-                pl-3
+            aria-hidden={!open}
+            className={`
+                grid
 
-                before:absolute
-                before:bottom-1
-                before:left-0
-                before:top-0
-                before:w-px
-                before:bg-[#343944]
-            "
+                transition-[grid-template-rows,opacity]
+                duration-300
+                ease-[cubic-bezier(0.4,0,0.2,1)]
+
+                ${
+                    open
+                        ? `
+                            grid-rows-[1fr]
+                            opacity-100
+                        `
+                        : `
+                            pointer-events-none
+                            grid-rows-[0fr]
+                            opacity-0
+                        `
+                }
+            `}
         >
-            {item.children.map((child) => {
-                const active = isNavItemActive(child, currentPath);
+            <div className="overflow-hidden">
+                <div
+                    className={`
+                        relative
 
-                return (
-                    <Link
-                        key={child.key}
-                        to={child.path}
-                        onClick={onNavigate}
-                        className={`
-                                group/sub
-                                relative
+                        ml-[21px]
+                        mt-1.5
+                        space-y-0.5
+                        pb-2.5
+                        pl-5
 
-                                flex
-                                min-h-8
-                                items-center
-                                gap-2.5
+                        before:absolute
+                        before:bottom-2.5
+                        before:left-[7px]
+                        before:top-1
+                        before:w-px
+                        before:bg-[#29323E]
 
-                                rounded-md
+                        transition-transform
+                        duration-300
+                        ease-[cubic-bezier(0.4,0,0.2,1)]
 
-                                px-2.5
+                        ${open ? 'translate-y-0' : '-translate-y-1'}
+                    `}
+                >
+                    {item.children.map((child) => {
+                        const active =
+                            child.key === activeChildKey ||
+                            (!activeChildKey &&
+                                isNavItemActive(child, currentPath));
 
-                                text-[11.5px]
-                                font-medium
+                        return (
+                            <Link
+                                key={child.key}
+                                to={child.path}
+                                onClick={onNavigate}
+                                tabIndex={open ? 0 : -1}
+                                className={`
+                                    group/sub
+                                    relative
 
-                                transition-colors
-                                duration-150
+                                    flex
+                                    min-h-8
+                                    items-center
+                                    gap-2.5
 
-                                ${
-                                    active
-                                        ? `
-                                            bg-[#303641]
-                                            !text-[#F1F2F4]
-                                        `
-                                        : `
-                                            !text-[#8B93A1]
+                                    rounded-md
 
-                                            hover:bg-[#2C303A]
-                                            hover:!text-[#D3D6DC]
-                                        `
-                                }
-                            `}
-                    >
+                                    px-2.5
 
-                        <span className="min-w-0 truncate">{child.label} </span>
-                    </Link>
-                );
-            })}
+                                    text-[11.5px]
+                                    font-medium!!
+
+                                    transition-colors
+                                    duration-150
+
+                                    ${
+                                        active
+                                            ? `
+                                                bg-transparent
+                                                !text-[#EEF1F5]
+                                                font-semibold!
+
+                                                before:absolute
+                                                before:-left-[14px]
+                                                before:h-4
+                                                before:w-[2px]
+                                                before:rounded-full
+                                                before:bg-[#D8DDE5]
+                                            `
+                                            : `
+                                                !text-[#8792A1]
+
+                                                hover:bg-[#181F28]
+                                                hover:!text-[#DDE2E8]
+                                            `
+                                    }
+                                `}
+                            >
+                                <span className="min-w-0 truncate">
+                                    {child.label}
+                                </span>
+                            </Link>
+                        );
+                    })}
+                </div>
+            </div>
         </div>
     );
 };
@@ -312,7 +373,7 @@ const NavItem = ({
                     relative
 
                     flex
-                    min-h-10
+                    min-h-[40px]
                     items-center
 
                     rounded-md
@@ -337,14 +398,14 @@ const NavItem = ({
                     ${
                         active
                             ? `
-                                bg-[#303641]
-                                !text-[#F1F2F4]
+                                bg-[#1B222C]
+                                !text-[#F3F5F7]
                             `
                             : `
-                                !text-[#C3C7CF]
+                                !text-[#B8C0CC]
 
-                                hover:bg-[#2C303A]
-                                hover:!text-[#F1F2F4]
+                                hover:bg-[#181F28]
+                                hover:!text-[#F1F3F5]
                             `
                     }
                 `}
@@ -361,14 +422,14 @@ const NavItem = ({
 
                             rounded-r-full
 
-                            bg-[#D1D4DB]
+                            bg-transparent
                         "
                     />
                 )}
 
                 {Icon && (
                     <Icon
-                        size={17}
+                        size={16}
                         strokeWidth={1.7}
                         className={`
                             shrink-0
@@ -378,10 +439,11 @@ const NavItem = ({
 
                             ${
                                 active
-                                    ? '!text-[#E5E7EB]'
+                                    ? '!text-[#E5E9EE]'
                                     : `
-                                        !text-[#969EAC]
-                                        group-hover:!text-[#D3D6DC]
+                                        !text-[#7F8998]
+
+                                        group-hover:!text-[#CDD3DB]
                                     `
                             }
                         `}
@@ -395,9 +457,9 @@ const NavItem = ({
                             flex-1
                             truncate
 
-                            text-[13px]
+                            text-[12.5px]
 
-                            ${active ? 'font-semibold' : 'font-medium'}
+                            ${active ? 'font-semibold!' : 'font-medium!!'}
                         `}
                     >
                         {item.label}
@@ -422,10 +484,10 @@ const NavItem = ({
                     group
 
                     flex
-                    min-h-10
+                    min-h-[40px]
                     items-center
 
-                    rounded-md
+                    rounded-lg
 
                     text-left
 
@@ -449,30 +511,35 @@ const NavItem = ({
                     ${
                         childActive
                             ? `
-                                !text-[#F1F2F4]
+                                bg-[#1B222C]
+                                !text-[#F1F3F5]
                             `
                             : `
-                                !text-[#C3C7CF]
+                                !text-[#B8C0CC]
 
-                                hover:bg-[#2C303A]
-                                hover:!text-[#F1F2F4]
+                                hover:bg-[#181F28]
+                                hover:!text-[#F1F3F5]
                             `
                     }
                 `}
             >
                 {Icon && (
                     <Icon
-                        size={17}
+                        size={16}
                         strokeWidth={1.7}
                         className={`
                             shrink-0
 
+                            transition-colors
+                            duration-150
+
                             ${
                                 childActive
-                                    ? '!text-[#D3D6DC]'
+                                    ? '!text-[#D5DAE1]'
                                     : `
-                                        !text-[#969EAC]
-                                        group-hover:!text-[#D3D6DC]
+                                        !text-[#7F8998]
+
+                                        group-hover:!text-[#CDD3DB]
                                     `
                             }
                         `}
@@ -487,26 +554,31 @@ const NavItem = ({
                                 flex-1
                                 truncate
 
-                                text-[13px]
+                                text-[12.5px]
 
-                                ${childActive ? 'font-semibold' : 'font-medium'}
+                                ${
+                                    childActive
+                                        ? 'font-semibold!'
+                                        : 'font-medium!!'
+                                }
                             `}
                         >
                             {item.label}
                         </span>
 
                         <ChevronDown
-                            size={13}
+                            size={12.5}
                             strokeWidth={1.8}
                             className={`
                                 shrink-0
 
-                                !text-[#6F7785]
+                                !text-[#657184]
 
                                 transition-transform
-                                duration-200
+                                duration-300
+                                ease-[cubic-bezier(0.4,0,0.2,1)]
 
-                                group-hover:!text-[#C3C7CF]
+                                group-hover:!text-[#B8C0CC]
 
                                 ${open ? 'rotate-180' : ''}
                             `}
@@ -555,15 +627,15 @@ const AccountMenu = ({
         px-3
 
         text-[12px]
-        font-medium
+        font-medium!!
 
-        !text-[#C3C7CF]
+        !text-[#B8C0CC]
 
         transition-colors
         duration-150
 
-        hover:bg-[#303641]
-        hover:!text-[#F1F2F4]
+        hover:bg-[#1B222C]
+        hover:!text-[#F1F3F5]
     `;
 
     return (
@@ -579,19 +651,19 @@ const AccountMenu = ({
                 rounded-lg
 
                 border
-                border-[#343944]
+                border-[#29323E]
 
-                bg-[#272B34]
+                bg-[#141922]
 
-                shadow-[0_18px_50px_rgba(7,8,11,0.3)]
+                shadow-[0_18px_50px_rgba(0,0,0,0.38)]
             "
         >
             <div
                 className="
                     border-b
-                    border-[#343944]
+                    border-[#252D38]
 
-                    bg-[#24272F]
+                    bg-[#121720]
 
                     px-3.5
                     py-3.5
@@ -611,14 +683,14 @@ const AccountMenu = ({
                             rounded-md
 
                             border
-                            border-[#404754]
+                            border-[#303A47]
 
-                            bg-[#303641]
+                            bg-[#1B222C]
 
                             text-[10.5px]
-                            font-semibold
+                            font-semibold!
 
-                            !text-[#F1F2F4]
+                            !text-[#F1F3F5]
                         "
                     >
                         {avatar ? (
@@ -642,9 +714,9 @@ const AccountMenu = ({
                                 truncate
 
                                 text-[12.5px]
-                                font-semibold
+                                font-semibold!
 
-                                !text-[#F1F2F4]
+                                !text-[#F1F3F5]
                             "
                         >
                             {userName}
@@ -657,7 +729,7 @@ const AccountMenu = ({
 
                                 text-[10px]
 
-                                !text-[#9299A6]
+                                !text-[#7F8998]
                             "
                         >
                             {userEmail || ROLE_LABELS[role]}
@@ -677,8 +749,9 @@ const AccountMenu = ({
                             size={16}
                             strokeWidth={1.7}
                             className="
-                                !text-[#969EAC]
-                                group-hover:!text-[#D3D6DC]
+                                !text-[#7F8998]
+
+                                group-hover:!text-[#CDD3DB]
                             "
                         />
 
@@ -696,8 +769,9 @@ const AccountMenu = ({
                             size={16}
                             strokeWidth={1.7}
                             className="
-                                !text-[#969EAC]
-                                group-hover:!text-[#D3D6DC]
+                                !text-[#7F8998]
+
+                                group-hover:!text-[#CDD3DB]
                             "
                         />
 
@@ -710,8 +784,9 @@ const AccountMenu = ({
                         size={16}
                         strokeWidth={1.7}
                         className="
-                            !text-[#969EAC]
-                            group-hover:!text-[#D3D6DC]
+                            !text-[#7F8998]
+
+                            group-hover:!text-[#CDD3DB]
                         "
                     />
 
@@ -721,7 +796,7 @@ const AccountMenu = ({
                         size={12}
                         strokeWidth={1.7}
                         className="
-                            !text-[#6F7785]
+                            !text-[#657184]
                         "
                     />
                 </a>
@@ -730,7 +805,7 @@ const AccountMenu = ({
             <div
                 className="
                     border-t
-                    border-[#343944]
+                    border-[#252D38]
 
                     p-2
                 "
@@ -751,7 +826,7 @@ const AccountMenu = ({
 
                         text-left
                         text-[12px]
-                        font-medium
+                        font-medium!!
 
                         !text-[#CBA2A7]
 
@@ -788,7 +863,11 @@ const DashboardSidebar = ({
 
     const [accountOpen, setAccountOpen] = useState(false);
 
-    const [openMenus, setOpenMenus] = useState({});
+    const [menuState, setMenuState] = useState({
+        path: null,
+        openKey: null,
+        manuallyControlled: false,
+    });
 
     const navItems = useMemo(() => NAV_CONFIG[role] || [], [role]);
 
@@ -801,6 +880,8 @@ const DashboardSidebar = ({
     const userEmail = getUserEmail(user);
 
     const avatar = getUserAvatar(user);
+
+    const normalizedCurrentPath = normalizePath(currentPath);
 
     /* ======================================================================
        OUTSIDE CLICK
@@ -831,45 +912,48 @@ const DashboardSidebar = ({
        MENUS
     ====================================================================== */
 
-    const isMenuOpen = (item) => {
-        const explicit = Object.prototype.hasOwnProperty.call(
-            openMenus,
-            item.key,
+    const routeOpenMenuKey = useMemo(() => {
+        const activeParent = navItems.find(
+            (item) =>
+                item.type !== 'section' &&
+                item.children?.length &&
+                hasActiveChild(item, normalizedCurrentPath),
         );
 
-        if (explicit) {
-            return openMenus[item.key];
-        }
+        return activeParent?.key || null;
+    }, [navItems, normalizedCurrentPath]);
 
-        return hasActiveChild(item, currentPath);
+    const hasManualMenuState =
+        menuState.manuallyControlled &&
+        menuState.path === normalizedCurrentPath;
+
+    const effectiveOpenMenuKey = hasManualMenuState
+        ? menuState.openKey
+        : routeOpenMenuKey;
+
+    const isMenuOpen = (item) => {
+        return effectiveOpenMenuKey === item.key;
     };
 
     const toggleMenu = (item) => {
+        const currentlyOpen = isMenuOpen(item);
+
         if (collapsed) {
             onCollapsedChange?.(false);
 
-            setOpenMenus((previous) => ({
-                ...previous,
-                [item.key]: true,
-            }));
+            setMenuState({
+                path: normalizedCurrentPath,
+                openKey: item.key,
+                manuallyControlled: true,
+            });
 
             return;
         }
 
-        setOpenMenus((previous) => {
-            const explicit = Object.prototype.hasOwnProperty.call(
-                previous,
-                item.key,
-            );
-
-            const currentlyOpen = explicit
-                ? previous[item.key]
-                : hasActiveChild(item, currentPath);
-
-            return {
-                ...previous,
-                [item.key]: !currentlyOpen,
-            };
+        setMenuState({
+            path: normalizedCurrentPath,
+            openKey: currentlyOpen ? null : item.key,
+            manuallyControlled: true,
         });
     };
 
@@ -915,13 +999,13 @@ const DashboardSidebar = ({
                 flex-col
 
                 border-r
-                border-[#343944]
+                border-[#252D38]
 
-                bg-[#22252D]
+                bg-[#0E1219]
 
                 lg:flex
 
-                ${collapsed ? 'w-[60px]' : 'w-[264px]'}
+                ${collapsed ? 'w-[64px]' : 'w-[272px]'}
 
                 transition-[width]
                 duration-300
@@ -938,11 +1022,7 @@ const DashboardSidebar = ({
                     h-16
                     shrink-0
                     items-center
-
-                    border-b
-                    border-[#343944]
-
-                    bg-[#20232A]
+                    bg-[#0E1219]
 
                     ${
                         collapsed
@@ -968,8 +1048,7 @@ const DashboardSidebar = ({
                     <div
                         className="
                             flex
-                            h-8
-                            w-8
+                            h-6
                             shrink-0
                             items-center
                             justify-center
@@ -994,10 +1073,10 @@ const DashboardSidebar = ({
                                     truncate
 
                                     text-[13px]
-                                    font-semibold
+                                    font-semibold!
                                     tracking-[-0.01em]
 
-                                    !text-[#F1F2F4]
+                                    !text-[#EEF1F5]
                                 "
                             >
                                 Stand For People
@@ -1008,12 +1087,12 @@ const DashboardSidebar = ({
                                     mt-0.5
                                     truncate
 
-                                    text-[8.5px]
-                                    font-semibold
+                                    text-[8px]
+                                    font-semibold!
                                     uppercase
-                                    tracking-[0.15em]
+                                    tracking-[0.17em]
 
-                                    !text-[#6F7785]
+                                    !text-[#657184]
                                 "
                             >
                                 {ROLE_LABELS[role]} workspace
@@ -1035,19 +1114,19 @@ const DashboardSidebar = ({
                     overflow-x-hidden
                     overflow-y-auto
 
-                    py-4
+                    py-3.5
 
                     ${collapsed ? 'px-2' : 'px-3'}
 
                     [&::-webkit-scrollbar]:w-1
                     [&::-webkit-scrollbar-track]:bg-transparent
                     [&::-webkit-scrollbar-thumb]:rounded-full
-                    [&::-webkit-scrollbar-thumb]:bg-[#343944]
+                    [&::-webkit-scrollbar-thumb]:bg-[#29323E]
 
-                    hover:[&::-webkit-scrollbar-thumb]:bg-[#404754]
+                    hover:[&::-webkit-scrollbar-thumb]:bg-[#36414F]
                 `}
             >
-                <div className="space-y-1">
+                <div className="space-y-0.5">
                     {navItems.map((item) => {
                         if (item.type === 'section') {
                             return (
@@ -1085,9 +1164,9 @@ const DashboardSidebar = ({
                     shrink-0
 
                     border-t
-                    border-[#343944]
+                    border-[#252D38]
 
-                    bg-[#20232A]
+                    bg-[#11161E]
 
                     p-2
                 "
@@ -1140,7 +1219,7 @@ const DashboardSidebar = ({
                                 `
                         }
 
-                        ${accountOpen ? 'bg-[#303641]' : 'hover:bg-[#2C303A]'}
+                        ${accountOpen ? 'bg-[#1B222C]' : 'hover:bg-[#181F28]'}
                     `}
                 >
                     <div
@@ -1156,14 +1235,14 @@ const DashboardSidebar = ({
                             rounded-md
 
                             border
-                            border-[#404754]
+                            border-[#303A47]
 
-                            bg-[#303641]
+                            bg-[#1B222C]
 
                             text-[10px]
-                            font-semibold
+                            font-semibold!
 
-                            !text-[#F1F2F4]
+                            !text-[#F1F3F5]
                         "
                     >
                         {avatar ? (
@@ -1195,9 +1274,9 @@ const DashboardSidebar = ({
                                         truncate
 
                                         text-[12px]
-                                        font-semibold
+                                        font-semibold!
 
-                                        !text-[#E5E7EB]
+                                        !text-[#E8EBEF]
                                     "
                                 >
                                     {userName}
@@ -1210,7 +1289,7 @@ const DashboardSidebar = ({
 
                                         text-[9.5px]
 
-                                        !text-[#9299A6]
+                                        !text-[#7F8998]
                                     "
                                 >
                                     {ROLE_LABELS[role]}
@@ -1223,12 +1302,12 @@ const DashboardSidebar = ({
                                 className={`
                                     shrink-0
 
-                                    !text-[#6F7785]
+                                    !text-[#657184]
 
                                     transition-transform
                                     duration-200
 
-                                    group-hover:!text-[#C3C7CF]
+                                    group-hover:!text-[#B8C0CC]
 
                                     ${accountOpen ? 'rotate-180' : ''}
                                 `}
@@ -1265,20 +1344,20 @@ const DashboardSidebar = ({
                     rounded-md
 
                     border
-                    border-[#404754]
+                    border-[#303A47]
 
-                    bg-[#272B34]
+                    bg-[#161C25]
 
-                    !text-[#9299A6]
+                    !text-[#8792A1]
 
-                    shadow-[0_3px_10px_rgba(7,8,11,0.25)]
+                    shadow-[0_3px_10px_rgba(0,0,0,0.32)]
 
                     transition-colors
                     duration-150
 
-                    hover:border-[#505866]
-                    hover:bg-[#303641]
-                    hover:!text-[#F1F2F4]
+                    hover:border-[#414D5C]
+                    hover:bg-[#1B222C]
+                    hover:!text-[#F1F3F5]
                 "
             >
                 {collapsed ? (

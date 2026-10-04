@@ -226,7 +226,7 @@ const VolunteerRequestModal = ({
                                     pl-10
                                     pr-4
                                     text-[13px]
-                                    font-medium
+                                    font-medium!
                                     text-text-primary
                                     outline-none
                                     transition-colors
@@ -486,7 +486,7 @@ const VolunteerRequestModal = ({
                                                         max-w-28
                                                         truncate
                                                         text-[11px]
-                                                        font-medium
+                                                        font-medium!
                                                         text-text-primary
                                                     "
                                                 >

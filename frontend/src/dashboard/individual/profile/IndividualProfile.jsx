@@ -15,7 +15,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
 
 const Field = ({ label, children, className = '' }) => (
     <div className={`min-w-0 ${className}`}>
-        <label className="mb-2 block text-[13px] font-medium text-text-primary">
+        <label className="mb-2 block text-[13px] font-medium! text-text-primary">
             {label}
         </label>
         {children}
@@ -477,7 +477,7 @@ const IndividualProfile = () => {
 
                         {/* Account info */}
                         <div>
-                            <label className="mb-2 block text-[13px] font-medium text-text-primary">
+                            <label className="mb-2 block text-[13px] font-medium! text-text-primary">
                                 Account Details
                             </label>
 
@@ -486,7 +486,7 @@ const IndividualProfile = () => {
                                     Member since
                                 </span>
 
-                                <span className="ml-1.5 text-sm font-medium text-text-primary">
+                                <span className="ml-1.5 text-sm font-medium! text-text-primary">
                                     {formatMemberSince(memberSince)}
                                 </span>
                             </div>

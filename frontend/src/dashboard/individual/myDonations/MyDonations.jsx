@@ -50,7 +50,7 @@ const columns = [
         header: 'Campaign',
         render: (val) => (
             <div className="min-w-0">
-                <p className="truncate font-medium text-text-primary">{val}</p>
+                <p className="truncate font-medium! text-text-primary">{val}</p>
             </div>
         ),
     },
@@ -202,7 +202,7 @@ const MyDonations = () => {
                     </div>
 
                     <div className="border-l border-white/15 pl-6 lg:min-w-[190px]">
-                        <p className="text-xs font-medium uppercase tracking-[0.14em] text-white!/60">
+                        <p className="text-xs font-medium! uppercase tracking-[0.14em] text-white!/60">
                             Contributions
                         </p>
 

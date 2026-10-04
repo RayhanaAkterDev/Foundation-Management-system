@@ -27,7 +27,7 @@ const HowItWorks = () => {
                             gap-3
                             font-bengali
                             text-[13px]
-                            font-medium
+                            font-medium!
                             leading-[1.5]
                             tracking-normal
                             text-primary
@@ -47,7 +47,7 @@ const HowItWorks = () => {
                     lang="bn"
                     titleClassName="
                         font-bengali
-                        font-medium
+                        font-medium!
                         !leading-[1.3]
                         !tracking-normal
                     "

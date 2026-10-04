@@ -117,7 +117,7 @@ const FieldError = ({ name, fieldErrors }) => {
     }
 
     return (
-        <p className="mt-1.5 break-words font-jost text-[11px] font-medium leading-4 text-red-600">
+        <p className="mt-1.5 break-words font-jost text-[11px] font-medium! leading-4 text-red-600">
             {error[0]}
         </p>
     );
@@ -138,7 +138,7 @@ const FieldLabel = ({ htmlFor, children, hint, required = false }) => (
         </label>
 
         {hint && (
-            <span className="shrink-0 font-jost text-[10px] font-medium text-text-secondary">
+            <span className="shrink-0 font-jost text-[10px] font-medium! text-text-secondary">
                 {hint}
             </span>
         )}
@@ -231,7 +231,7 @@ const TextField = ({
             px-3.5
             font-jost
             text-[13px]
-            font-medium
+            font-medium!
             text-text-primary
             outline-none
             placeholder:text-slate-400
@@ -365,13 +365,13 @@ const AccountOptionList = ({
                                     </span>
 
                                     {option.value === 'email' && (
-                                        <span className="mt-0.5 block font-jost text-[9px] font-medium text-text-secondary">
+                                        <span className="mt-0.5 block font-jost text-[9px] font-medium! text-text-secondary">
                                             Currently unavailable
                                         </span>
                                     )}
 
                                     {option.value === 'demo' && (
-                                        <span className="mt-0.5 block font-jost text-[9px] font-medium text-text-secondary">
+                                        <span className="mt-0.5 block font-jost text-[9px] font-medium! text-text-secondary">
                                             No email delivery required
                                         </span>
                                     )}
@@ -586,7 +586,7 @@ const FormModalContent = ({
                                 </div>
 
                                 <div className="flex flex-wrap items-center gap-2.5">
-                                    <h2 className="font-fraunces text-[24px] font-medium leading-tight tracking-[-0.03em] text-white! sm:text-[27px]">
+                                    <h2 className="font-fraunces text-[24px] font-medium! leading-tight tracking-[-0.03em] text-white! sm:text-[27px]">
                                         {title}
                                     </h2>
                                 </div>
@@ -620,7 +620,7 @@ const FormModalContent = ({
                                                 {roleLabel}
                                             </span>
 
-                                            <span className="font-jost text-[9px] font-medium text-white!/40">
+                                            <span className="font-jost text-[9px] font-medium! text-white!/40">
                                                 · Read only
                                             </span>
                                         </div>
@@ -642,7 +642,7 @@ const FormModalContent = ({
                                                 Inactive
                                             </span>
 
-                                            <span className="font-jost text-[9px] font-medium text-white!/40">
+                                            <span className="font-jost text-[9px] font-medium! text-white!/40">
                                                 · Set automatically
                                             </span>
                                         </div>
@@ -705,7 +705,7 @@ const FormModalContent = ({
                                 <div className="flex items-start gap-2.5">
                                     <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-red-500" />
 
-                                    <p className="break-words font-jost text-[11px] font-medium leading-4 text-red-600">
+                                    <p className="break-words font-jost text-[11px] font-medium! leading-4 text-red-600">
                                         {error}
                                     </p>
                                 </div>
@@ -837,7 +837,7 @@ const FormModalContent = ({
                                                     Account status
                                                 </label>
 
-                                                <span className="font-jost text-[10px] font-medium text-primary">
+                                                <span className="font-jost text-[10px] font-medium! text-primary">
                                                     Editable
                                                 </span>
                                             </div>
@@ -1041,7 +1041,7 @@ const FormModalContent = ({
             "
                     >
                         <div className="hidden sm:block">
-                            <p className="font-jost text-[10px] font-medium text-text-secondary">
+                            <p className="font-jost text-[10px] font-medium! text-text-secondary">
                                 {isEdit
                                     ? 'Changes will update this account.'
                                     : 'Review the information before creating the account.'}

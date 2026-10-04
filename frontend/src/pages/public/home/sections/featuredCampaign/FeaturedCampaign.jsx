@@ -322,7 +322,7 @@ const FeaturedCampaign = () => {
                             <div className="flex items-center gap-2">
                                 <span className="h-1.5 w-1.5 rounded-full bg-primary" />
 
-                                <span className="font-bengali text-xs font-medium text-text-secondary">
+                                <span className="font-bengali text-xs font-medium! text-text-secondary">
                                     সক্রিয় উদ্যোগ
                                 </span>
                             </div>
@@ -391,7 +391,7 @@ const FeaturedCampaign = () => {
 
                             <div className="absolute bottom-0 left-0 right-0 flex items-end justify-between gap-4 p-5 sm:p-8 lg:p-10">
                                 <div className="max-w-2xl">
-                                    <p className="mb-2 font-bengali text-xs font-medium text-white/75">
+                                    <p className="mb-2 font-bengali text-xs font-medium! text-white/75">
                                         এই উদ্যোগের গল্প
                                     </p>
 
@@ -484,7 +484,7 @@ const FeaturedCampaign = () => {
                                             সংগ্রহের অগ্রগতি
                                         </span>
 
-                                        <span className="font-bengali text-xs font-medium text-text-primary">
+                                        <span className="font-bengali text-xs font-medium! text-text-primary">
                                             লক্ষ্য ৳
                                             {formatBanglaAmount(
                                                 campaign.targetAmount,
@@ -604,7 +604,7 @@ const FeaturedCampaign = () => {
 
                                 <Link
                                     to={`/campaign/${campaign.id}`}
-                                    className="inline-flex items-center justify-center gap-2 font-bengali text-xs font-medium text-text-secondary transition-colors hover:text-primary"
+                                    className="inline-flex items-center justify-center gap-2 font-bengali text-xs font-medium! text-text-secondary transition-colors hover:text-primary"
                                 >
                                     আরও জানুন
                                     <TbArrowUpRight size={15} />

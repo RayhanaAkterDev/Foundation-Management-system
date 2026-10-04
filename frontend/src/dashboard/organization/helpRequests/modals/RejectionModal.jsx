@@ -83,7 +83,7 @@ const RejectionModal = ({
 
                     <div className="mt-2 flex items-center justify-between">
                         {error ? (
-                            <p className="text-[11px] font-medium text-red-600">
+                            <p className="text-[11px] font-medium! text-red-600">
                                 {error}
                             </p>
                         ) : (

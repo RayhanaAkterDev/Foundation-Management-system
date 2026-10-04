@@ -358,7 +358,7 @@ const CaseRow = ({ request, statusConfig, onOpenCase }) => {
                             )}
 
                             {request?.district && (
-                                <span className="inline-flex min-w-0 items-center gap-1 text-[10px] font-medium text-slate-500">
+                                <span className="inline-flex min-w-0 items-center gap-1 text-[10px] font-medium! text-slate-500">
                                     <MapPin
                                         className="h-3 w-3 shrink-0 text-slate-400"
                                         strokeWidth={1.7}
@@ -414,7 +414,7 @@ const CaseRow = ({ request, statusConfig, onOpenCase }) => {
                         {request?.peopleAffected != null && (
                             <>
                                 <span className="h-3 w-px bg-slate-200" />
-                                <span className="inline-flex items-center gap-1.5 text-[10px] font-medium text-slate-500">
+                                <span className="inline-flex items-center gap-1.5 text-[10px] font-medium! text-slate-500">
                                     <Users
                                         className="h-3 w-3 text-slate-400"
                                         strokeWidth={1.7}
@@ -631,7 +631,7 @@ const CaseRow = ({ request, statusConfig, onOpenCase }) => {
             items-center
             gap-1.5
             text-[9.5px]
-            font-medium
+            font-medium!
             text-slate-400
           "
                 >
@@ -648,7 +648,7 @@ const CaseRow = ({ request, statusConfig, onOpenCase }) => {
                 </div>
 
                 {request?.assignmentId || request?.id ? (
-                    <span className="shrink-0 font-mono text-[9.5px] font-medium text-slate-400">
+                    <span className="shrink-0 font-mono text-[9.5px] font-medium! text-slate-400">
                         #
                         <span className="text-slate-600">
                             {request.assignmentId || request.id}
@@ -714,7 +714,7 @@ const HelpRequestTable = ({
             <div className="h-auto shrink-0">
                 {loading ? (
                     <div className="flex min-h-[280px] items-center justify-center bg-background">
-                        <div className="flex items-center gap-3 text-xs font-medium text-text-secondary">
+                        <div className="flex items-center gap-3 text-xs font-medium! text-text-secondary">
                             <span className="h-4 w-4 animate-spin border-2 border-border border-t-primary" />
                             Loading cases...
                         </div>

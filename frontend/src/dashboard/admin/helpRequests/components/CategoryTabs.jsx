@@ -42,7 +42,7 @@ const CategoryTabs = ({ tabs, activeCategory, onChange }) => {
                             <span
                                 className={`
                                     block truncate text-[13px] leading-5
-                                    ${active ? 'font-semibold' : 'font-medium'}
+                                    ${active ? 'font-semibold' : 'font-medium!'}
                                 `}
                             >
                                 {tab.label}
@@ -56,7 +56,7 @@ const CategoryTabs = ({ tabs, activeCategory, onChange }) => {
                                 ${
                                     active
                                         ? 'font-bold text-primary'
-                                        : 'font-medium text-white!/35 group-hover:text-white!/65'
+                                        : 'font-medium! text-white!/35 group-hover:text-white!/65'
                                 }
                             `}
                         >

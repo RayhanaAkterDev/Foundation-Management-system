@@ -96,7 +96,7 @@ const Field = ({ label, optional = false, error, children }) => (
             </span>
 
             {optional && (
-                <span className="font-['Noto_Sans_Bengali'] text-[13px] font-medium text-[#84938f]">
+                <span className="font-['Noto_Sans_Bengali'] text-[13px] font-medium! text-[#84938f]">
                     ঐচ্ছিক
                 </span>
             )}
@@ -127,7 +127,7 @@ const inputClass = (error) => `
 
     font-['Noto_Sans_Bengali']
     text-[15px]
-    font-medium
+    font-medium!
     text-[#172a27]
 
     outline-none
@@ -170,7 +170,7 @@ const textareaClass = (error) => `
 
     font-['Noto_Sans_Bengali']
     text-[15px]
-    font-medium
+    font-medium!
     leading-7
     text-[#172a27]
 
@@ -559,7 +559,7 @@ const DistrictCombobox = ({ value, onChange, error }) => {
                             strokeWidth={1.8}
                         />
 
-                        <span className="font-['Noto_Sans_Bengali'] text-[12px] font-medium text-[#74837f]">
+                        <span className="font-['Noto_Sans_Bengali'] text-[12px] font-medium! text-[#74837f]">
                             {displayValue.trim()
                                 ? `${filteredDistricts.length}টি জেলা পাওয়া গেছে`
                                 : 'বাংলাদেশের ৬৪ জেলা'}
@@ -641,7 +641,7 @@ const DistrictCombobox = ({ value, onChange, error }) => {
                                                 {district.label}
                                             </span>
 
-                                            <span className="mt-0.5 block font-['Poppins'] text-[11px] font-medium text-[#8a9895]">
+                                            <span className="mt-0.5 block font-['Poppins'] text-[11px] font-medium! text-[#8a9895]">
                                                 {district.value}
                                             </span>
                                         </div>

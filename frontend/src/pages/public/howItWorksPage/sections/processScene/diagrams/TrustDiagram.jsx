@@ -74,7 +74,7 @@ const TrustDiagram = () => {
                     <strong
                         className="
                             text-[2.8rem]
-                            font-medium
+                            font-medium!
                             leading-none
                             text-primary
                         "

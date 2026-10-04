@@ -496,7 +496,7 @@ const Table = ({ columns = [], rows = [], onSort, getSortIcon }) => {
                           <>
                             <span className="h-1 w-1 shrink-0 rounded-full bg-slate-300" />
 
-                            <span className="inline-flex min-w-0 items-center gap-1 text-[10px] font-medium text-slate-500">
+                            <span className="inline-flex min-w-0 items-center gap-1 text-[10px] font-medium! text-slate-500">
                               <MapPin className="h-3 w-3 shrink-0 text-slate-400" />
 
                               <span className="truncate">{location}</span>
@@ -630,7 +630,7 @@ const Table = ({ columns = [], rows = [], onSort, getSortIcon }) => {
                               mt-1.5
                               truncate
                               text-[11px]
-                              font-medium
+                              font-medium!
                               leading-5
                               text-primary
                             "
@@ -646,7 +646,7 @@ const Table = ({ columns = [], rows = [], onSort, getSortIcon }) => {
                             Organization
                           </span>
 
-                          <p className="mt-1.5 text-[11px] font-medium leading-5 text-slate-400">
+                          <p className="mt-1.5 text-[11px] font-medium! leading-5 text-slate-400">
                             Not assigned
                           </p>
                         </div>
@@ -679,7 +679,7 @@ const Table = ({ columns = [], rows = [], onSort, getSortIcon }) => {
                           </span>
                         </div>
 
-                        <div className="mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[10.5px] font-medium leading-5 text-text-primary">
+                        <div className="mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[10.5px] font-medium! leading-5 text-text-primary">
                           <span>{startDate || "Start unavailable"}</span>
 
                           {endDate && (
@@ -773,7 +773,7 @@ const Table = ({ columns = [], rows = [], onSort, getSortIcon }) => {
 
                             [&>div>button]:text-left!
                             [&>div>button]:text-[10.5px]!
-                            [&>div>button]:font-medium!
+                            [&>div>button]:font-medium!!
                             [&>div>button]:text-slate-600!
 
                             [&>div>button]:transition-all!
@@ -790,7 +790,7 @@ const Table = ({ columns = [], rows = [], onSort, getSortIcon }) => {
                           {renderAction(row)}
                         </div>
                       ) : (
-                        <div className="w-full py-2 text-[10.5px] font-medium text-slate-400">
+                        <div className="w-full py-2 text-[10.5px] font-medium! text-slate-400">
                           No actions available
                         </div>
                       )}
@@ -823,7 +823,7 @@ const Table = ({ columns = [], rows = [], onSort, getSortIcon }) => {
                       items-center
                       gap-1.5
                       text-[9.5px]
-                      font-medium
+                      font-medium!
                       text-slate-400
                     ">
                     <CalendarDays className="h-3 w-3" />
@@ -836,7 +836,7 @@ const Table = ({ columns = [], rows = [], onSort, getSortIcon }) => {
                   </div>
 
                   {row?.id && (
-                    <span className="font-mono text-[9.5px] font-medium text-slate-400">
+                    <span className="font-mono text-[9.5px] font-medium! text-slate-400">
                       #<span className="text-slate-600">{row.id}</span>
                     </span>
                   )}

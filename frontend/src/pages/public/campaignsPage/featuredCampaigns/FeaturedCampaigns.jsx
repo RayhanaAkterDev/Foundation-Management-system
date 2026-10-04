@@ -108,7 +108,7 @@ const FeaturedCampaigns = () => {
                         <>
                             <div className="mb-8 flex items-end justify-between gap-6">
                                 <div>
-                                    <p className="font-sans text-sm font-medium text-text-secondary">
+                                    <p className="font-sans text-sm font-medium! text-text-secondary">
                                         Latest active campaigns
                                     </p>
 

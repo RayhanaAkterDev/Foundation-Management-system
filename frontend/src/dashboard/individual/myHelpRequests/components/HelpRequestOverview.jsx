@@ -23,7 +23,7 @@ const HelpRequestOverview = ({ statistics }) => (
                     <div className="flex min-w-0 items-center gap-2 pb-0.5">
                         <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary/60" />
 
-                        <p className="text-[11px] font-medium leading-5 text-text-secondary">
+                        <p className="text-[11px] font-medium! leading-5 text-text-secondary">
                             Updated from your submitted requests
                         </p>
                     </div>

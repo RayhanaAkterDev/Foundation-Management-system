@@ -66,7 +66,7 @@ const DetailField = ({
                     <p
                         className="
                             font-sans!
-                            text-[10px]
+                            text-[11px]
                             font-semibold!
                             uppercase
                             tracking-[0.12em]
@@ -107,28 +107,28 @@ const SectionHeading = ({ eyebrow, title, description }) => {
         <div className="min-w-0">
             <p
                 className="
-                        font-sans!
-                        text-[9px]
-                        font-semibold!
-                        uppercase
-                        tracking-[0.16em]
-                        text-[#697586]!
-                    "
+                    font-sans!
+                    text-[10px]
+                    font-semibold!
+                    uppercase
+                    tracking-[0.16em]
+                    text-[#697586]!
+                "
             >
                 {eyebrow}
             </p>
 
             <h2
                 className="
-                        mt-1.5
-                        font-sans!
-                        text-[17px]
-                        font-semibold!
-                        leading-[1.35]
-                        tracking-[-0.015em]
-                        text-[#EEF1F5]!
-                        sm:text-[18px]
-                    "
+                    mt-1.5
+                    font-sans!
+                    text-[17px]
+                    font-semibold!
+                    leading-[1.35]
+                    tracking-[-0.015em]
+                    text-[#EEF1F5]!
+                    sm:text-[18px]
+                "
             >
                 {title}
             </h2>
@@ -136,14 +136,14 @@ const SectionHeading = ({ eyebrow, title, description }) => {
             {description && (
                 <p
                     className="
-                            mt-2
-                            max-w-[680px]
-                            font-sans!
-                            text-[11.5px]
-                            font-normal!
-                            leading-[1.7]
-                            text-[#8792A1]!
-                        "
+                        mt-2
+                        max-w-[680px]
+                        font-sans!
+                        text-[12.5px]
+                        font-normal!
+                        leading-[1.7]
+                        text-[#8792A1]!
+                    "
                 >
                     {description}
                 </p>
@@ -164,7 +164,7 @@ const TagList = ({ values }) => {
             <span
                 className="
                     font-sans!
-                    text-[11.5px]
+                    text-[12.5px]
                     font-normal!
                     text-[#5E6978]!
                 "
@@ -186,7 +186,7 @@ const TagList = ({ values }) => {
                         px-3
                         py-1.5
                         font-sans!
-                        text-[10.5px]
+                        text-[11.5px]
                         font-medium!
                         text-[#AEB7C3]!
                     "
@@ -224,12 +224,13 @@ const StatusLine = ({ label, value, tone = 'neutral' }) => {
         <div
             className="
                 flex
+                flex-wrap
                 items-center
                 justify-between
-                gap-5
+                gap-x-5
+                gap-y-2
                 border-b
-
-                            border-[#29323E]
+                border-[#29323E]
                 py-4
                 last:border-b-0
             "
@@ -237,7 +238,7 @@ const StatusLine = ({ label, value, tone = 'neutral' }) => {
             <span
                 className="
                     font-sans!
-                    text-[11px]
+                    text-[12px]
                     font-normal!
                     text-[#8792A1]!
                 "
@@ -248,11 +249,11 @@ const StatusLine = ({ label, value, tone = 'neutral' }) => {
             <span
                 className={`
                     flex
-                    shrink-0
+                    max-w-full
                     items-center
                     gap-2
                     font-sans!
-                    text-[11px]
+                    text-[12px]
                     font-medium!
                     ${current.text}
                 `}
@@ -283,28 +284,21 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
     return (
         <section
             className="
-                mt-8
+                                mt-8
                 overflow-hidden
                 border
                 border-[#252D38]
                 bg-[#0E1219]
             "
         >
-            {/* =================================================
-                SECTION HEADER
-            ================================================== */}
-
             <div
                 className="
                     px-5
                     pt-6
-
                     sm:px-6
                     sm:pt-7
-
                     lg:px-9
                     lg:pt-9
-
                     xl:px-10
                 "
             >
@@ -312,26 +306,18 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
                     eyebrow="Volunteer"
                     title="Volunteer information"
                     description="Volunteer participation and campaign involvement for this member."
-                    icon={HeartHandshake}
                 />
             </div>
-
-            {/* =================================================
-                VOLUNTEER
-            ================================================== */}
 
             {isVolunteer ? (
                 <div
                     className="
                         px-5
                         py-6
-
                         sm:px-6
                         sm:py-7
-
                         lg:px-9
                         lg:py-9
-
                         xl:px-10
                     "
                 >
@@ -342,27 +328,18 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
                             border
                             border-[#29323E]
                             bg-[#121821]
-
-                            md:grid-cols-[minmax(0,1fr)_220px]
-
-                            lg:grid-cols-[minmax(0,1fr)_240px]
+                            sm:grid-cols-[minmax(0,1fr)_220px]
+                            md:grid-cols-[minmax(0,1fr)_200px] lg:grid-cols-[minmax(0,1fr)_240px]
                         "
                     >
-                        {/* =========================================
-                            VOLUNTEER STATUS
-                        ========================================= */}
-
                         <div
                             className="
                                 relative
                                 min-w-0
-
                                 px-4
                                 py-5
-
                                 sm:px-5
                                 sm:py-6
-
                                 lg:px-6
                                 lg:py-7
                             "
@@ -374,23 +351,12 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
                                     bottom-0
                                     left-0
                                     top-0
-
                                     w-[2px]
-
                                     bg-[#6FA58A]
                                 "
                             />
 
-                            <div
-                                className="
-                                    flex
-                                    items-start
-
-                                    gap-3.5
-
-                                    sm:gap-4
-                                "
-                            >
+                            <div className="flex items-start gap-3.5 sm:gap-4">
                                 <div
                                     className="
                                         flex
@@ -399,14 +365,10 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
                                         shrink-0
                                         items-center
                                         justify-center
-
                                         border
                                         border-[#30453E]
-
                                         bg-[#16231F]
-
                                         text-[#8DB6A2]
-
                                         sm:h-11
                                         sm:w-11
                                     "
@@ -423,7 +385,6 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
                                             flex
                                             flex-wrap
                                             items-center
-
                                             gap-x-3
                                             gap-y-1.5
                                         "
@@ -431,13 +392,10 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
                                         <h3
                                             className="
                                                 font-sans!
-
                                                 text-[12.5px]
                                                 font-semibold!
                                                 leading-5
-
                                                 text-[#EEF1F5]!
-
                                                 sm:text-[13px]
                                             "
                                         >
@@ -449,15 +407,11 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
                                                 inline-flex
                                                 items-center
                                                 gap-1.5
-
                                                 font-sans!
-
-                                                text-[9.5px]
+                                                text-[10.5px]
                                                 font-medium!
-
                                                 text-[#9FC4AF]!
-
-                                                sm:text-[10px]
+                                                sm:text-[11px]
                                             "
                                         >
                                             <span
@@ -466,7 +420,6 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
                                                     w-1.5
                                                     shrink-0
                                                     rounded-full
-
                                                     bg-[#6FA58A]
                                                 "
                                             />
@@ -477,20 +430,14 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
                                     <p
                                         className="
                                             mt-2
-
                                             max-w-[560px]
-
                                             font-sans!
-
-                                            text-[10.5px]
+                                            text-[11.5px]
                                             font-normal!
                                             leading-[1.7]
-
                                             text-[#8792A1]!
-
-                                            sm:text-[11px]
-
-                                            lg:text-[11.5px]
+                                            sm:text-[12px]
+                                            lg:text-[12.5px]
                                         "
                                     >
                                         This member is part of the volunteer
@@ -501,30 +448,19 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
                                     <div
                                         className="
                                             mt-4
-
                                             flex
                                             flex-wrap
                                             items-center
-
                                             gap-x-5
                                             gap-y-2.5
-
                                             border-t
                                             border-[#202832]
-
                                             pt-4
-
                                             sm:mt-5
                                             sm:pt-5
                                         "
                                     >
-                                        <div
-                                            className="
-                                                flex
-                                                items-center
-                                                gap-2
-                                            "
-                                        >
+                                        <div className="flex items-center gap-2">
                                             <CheckCircle2
                                                 size={13}
                                                 strokeWidth={1.8}
@@ -537,13 +473,10 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
                                             <span
                                                 className="
                                                     font-sans!
-
-                                                    text-[10px]
+                                                    text-[11px]
                                                     font-medium!
-
                                                     text-[#AEB7C3]!
-
-                                                    sm:text-[10.5px]
+                                                    sm:text-[11.5px]
                                                 "
                                             >
                                                 Volunteer profile enabled
@@ -556,20 +489,12 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
                                                 hidden
                                                 h-3
                                                 w-px
-
                                                 bg-[#303A47]
-
                                                 sm:block
                                             "
                                         />
 
-                                        <div
-                                            className="
-                                                flex
-                                                items-center
-                                                gap-2
-                                            "
-                                        >
+                                        <div className="flex items-center gap-2">
                                             <Shield
                                                 size={13}
                                                 strokeWidth={1.7}
@@ -582,13 +507,10 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
                                             <span
                                                 className="
                                                     font-sans!
-
-                                                    text-[10px]
+                                                    text-[11px]
                                                     font-normal!
-
                                                     text-[#697586]!
-
-                                                    sm:text-[10.5px]
+                                                    sm:text-[11.5px]
                                                 "
                                             >
                                                 Eligible for campaign
@@ -600,26 +522,17 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
                             </div>
                         </div>
 
-                        {/* =========================================
-                            CAMPAIGN INVOLVEMENT
-                        ========================================= */}
-
                         <div
                             className="
                                 border-t
                                 border-[#29323E]
-
                                 bg-[#1A222D]
-
                                 px-4
                                 py-5
-
                                 sm:px-5
                                 sm:py-6
-
-                                md:border-l
-                                md:border-t-0
-
+                                sm:border-l
+                                sm:border-t-0
                                 lg:px-6
                                 lg:py-7
                             "
@@ -631,21 +544,14 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
                                     items-center
                                     justify-between
                                     gap-5
-
-                                    md:flex-col
-                                    md:items-start
-                                    md:justify-center
-                                    md:gap-0
+                                    sm:flex-col
+                                    sm:items-start
+                                    sm:justify-center
+                                    sm:gap-0
                                 "
                             >
                                 <div>
-                                    <div
-                                        className="
-                                            flex
-                                            items-center
-                                            gap-2.5
-                                        "
-                                    >
+                                    <div className="flex items-center gap-2.5">
                                         <Users
                                             size={14}
                                             strokeWidth={1.7}
@@ -658,15 +564,12 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
                                         <p
                                             className="
                                                 font-sans!
-
-                                                text-[8.5px]
+                                                text-[10px]
                                                 font-semibold!
                                                 uppercase
                                                 tracking-[0.14em]
-
                                                 text-[#697586]!
-
-                                                sm:text-[9px]
+                                                sm:text-[10px]
                                             "
                                         >
                                             Campaign involvement
@@ -676,15 +579,11 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
                                     <p
                                         className="
                                             mt-2
-
                                             font-sans!
-
-                                            text-[10px]
+                                            text-[11px]
                                             font-normal!
                                             leading-[1.55]
-
                                             text-[#5E6978]!
-
                                             md:mt-2.5
                                         "
                                     >
@@ -698,23 +597,18 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
                                         shrink-0
                                         items-end
                                         gap-2
-
-                                        md:mt-5
+                                        sm:mt-5
                                     "
                                 >
                                     <span
                                         className="
                                             font-sans!
-
                                             text-[25px]
                                             font-semibold!
                                             leading-none
                                             tracking-[-0.04em]
-
                                             text-[#EEF1F5]!
-
                                             sm:text-[27px]
-
                                             lg:text-[30px]
                                         "
                                     >
@@ -724,15 +618,11 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
                                     <span
                                         className="
                                             mb-0.5
-
                                             font-sans!
-
-                                            text-[9.5px]
+                                            text-[10.5px]
                                             font-medium!
-
                                             text-[#697586]!
-
-                                            sm:text-[10px]
+                                            sm:text-[11px]
                                         "
                                     >
                                         {campaignCount === 1
@@ -745,21 +635,14 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
                     </div>
                 </div>
             ) : (
-                /* =================================================
-                   NOT A VOLUNTEER
-                ================================================== */
-
                 <div
                     className="
                         px-5
                         py-6
-
                         sm:px-6
                         sm:py-7
-
                         lg:px-9
                         lg:py-9
-
                         xl:px-10
                     "
                 >
@@ -767,21 +650,15 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
                         className="
                             flex
                             items-start
-
                             gap-3.5
-
                             border
                             border-[#29323E]
-
                             bg-[#121821]
-
                             px-4
                             py-4
-
                             sm:gap-4
                             sm:px-5
                             sm:py-5
-
                             lg:px-6
                             lg:py-6
                         "
@@ -794,14 +671,10 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
                                 shrink-0
                                 items-center
                                 justify-center
-
                                 border
                                 border-[#29323E]
-
                                 bg-[#151B24]
-
                                 text-[#697586]
-
                                 sm:h-10
                                 sm:w-10
                             "
@@ -815,7 +688,6 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
                                     flex
                                     flex-wrap
                                     items-center
-
                                     gap-x-3
                                     gap-y-1
                                 "
@@ -823,12 +695,9 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
                                 <p
                                     className="
                                         font-sans!
-
-                                        text-[11.5px]
+                                        text-[12.5px]
                                         font-semibold!
-
                                         text-[#B8C0CA]!
-
                                         sm:text-[12.5px]
                                     "
                                 >
@@ -840,12 +709,9 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
                                         inline-flex
                                         items-center
                                         gap-1.5
-
                                         font-sans!
-
-                                        text-[9.5px]
+                                        text-[10.5px]
                                         font-medium!
-
                                         text-[#697586]!
                                     "
                                 >
@@ -854,7 +720,6 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
                                             h-1.5
                                             w-1.5
                                             rounded-full
-
                                             bg-[#465261]
                                         "
                                     />
@@ -865,21 +730,15 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
                             <p
                                 className="
                                     mt-1.5
-
                                     max-w-[620px]
-
                                     font-sans!
-
-                                    text-[10.5px]
+                                    text-[11.5px]
                                     font-normal!
                                     leading-[1.7]
-
                                     text-[#697586]!
-
                                     sm:mt-2
-                                    sm:text-[11px]
-
-                                    lg:text-[11.5px]
+                                    sm:text-[12px]
+                                    lg:text-[12.5px]
                                 "
                             >
                                 This member has not joined the Stand For People
@@ -910,17 +769,13 @@ const PersonalInformation = ({ individualProfile }) => {
     return (
         <section
             className="
-                mt-8
+                                mt-8
                 overflow-hidden
                 border
                 border-[#252D38]
                 bg-[#0E1219]
             "
         >
-            {/* =================================================
-                SECTION HEADING — UNCHANGED
-            ================================================== */}
-
             <div
                 className="
                     px-6
@@ -936,45 +791,40 @@ const PersonalInformation = ({ individualProfile }) => {
                     eyebrow="Profile"
                     title="Personal information"
                     description="Personal details, location and preferences provided by this member."
-                    icon={UserRound}
                 />
             </div>
 
-            {/* =================================================
-                PERSONAL DETAILS
-            ================================================== */}
             <div
                 className="
-        px-5
-        py-6
-        sm:px-7
-        sm:py-7
-        md:px-8
-        md:py-8
-        lg:px-9
-        lg:py-10
-        xl:px-10
-    "
+                    px-5
+                    py-6
+                    sm:px-8
+                    sm:py-7
+                    md:py-8
+                    lg:px-9
+                    lg:py-10
+                    xl:px-10
+                "
             >
                 <div
                     className="
-            grid
-            grid-cols-1
-            gap-y-6
-            md:grid-cols-[minmax(0,0.8fr)_minmax(0,0.8fr)_minmax(0,1.4fr)]
-            md:gap-x-0
-        "
+                        grid
+                        grid-cols-1
+                        gap-y-6
+                        sm:grid-cols-[minmax(0,0.8fr)_minmax(0,0.8fr)_minmax(0,1.4fr)]
+                        sm:gap-x-0
+                    "
                 >
                     {/* DATE OF BIRTH */}
 
                     <div
                         className="
-                min-w-0
-                md:border-r
-                md:border-[#252D38]
-                md:pr-8
-                lg:pr-10
-            "
+                            min-w-0
+                            sm:border-r
+                            md:border-[#252D38]
+                            sm:pr-8
+                            lg:pr-10
+                        "
                     >
                         <div className="flex items-center gap-2.5">
                             <Calendar
@@ -985,13 +835,13 @@ const PersonalInformation = ({ individualProfile }) => {
 
                             <p
                                 className="
-                        font-sans!
-                        text-[9px]
-                        font-semibold!
-                        uppercase
-                        tracking-[0.14em]
-                        text-[#697586]!
-                    "
+                                    font-sans!
+                                    text-[10px]
+                                    font-semibold!
+                                    uppercase
+                                    tracking-[0.14em]
+                                    text-[#697586]!
+                                "
                             >
                                 Date of birth
                             </p>
@@ -999,20 +849,20 @@ const PersonalInformation = ({ individualProfile }) => {
 
                         <p
                             className={`
-                    mt-2.5
-                    wrap-break-word
-                    font-sans!
-                    text-[12px]
-                    font-medium!
-                    leading-5
-                    md:mt-3
-                    md:text-[12.5px]
-                    ${
-                        individualProfile?.date_of_birth
-                            ? 'text-[#D6DBE1]!'
-                            : 'text-[#5E6978]!'
-                    }
-                `}
+                                mt-2.5
+                                wrap-break-word
+                                font-sans!
+                                text-[12px]
+                                font-medium!
+                                leading-5
+                                sm:mt-3
+                                sm:text-[12.5px]
+                                ${
+                                    individualProfile?.date_of_birth
+                                        ? 'text-[#D6DBE1]!'
+                                        : 'text-[#5E6978]!'
+                                }
+                            `}
                         >
                             {individualProfile?.date_of_birth
                                 ? formatDate(individualProfile.date_of_birth)
@@ -1024,17 +874,17 @@ const PersonalInformation = ({ individualProfile }) => {
 
                     <div
                         className="
-                min-w-0
-                border-t
-                border-[#202832]
-                pt-5
-                md:border-t-0
-                md:border-r
-                md:border-[#252D38]
-                md:px-8
-                md:pt-0
-                lg:px-10
-            "
+                            min-w-0
+                            border-t
+                            border-[#202832]
+                            pt-5
+                            sm:border-t-0
+                            sm:border-r
+                            md:border-[#252D38]
+                            sm:px-8
+                            sm:pt-0
+                            lg:px-10
+                        "
                     >
                         <div className="flex items-center gap-2.5">
                             <MapPin
@@ -1045,13 +895,13 @@ const PersonalInformation = ({ individualProfile }) => {
 
                             <p
                                 className="
-                        font-sans!
-                        text-[9px]
-                        font-semibold!
-                        uppercase
-                        tracking-[0.14em]
-                        text-[#697586]!
-                    "
+                                    font-sans!
+                                    text-[10px]
+                                    font-semibold!
+                                    uppercase
+                                    tracking-[0.14em]
+                                    text-[#697586]!
+                                "
                             >
                                 District
                             </p>
@@ -1059,20 +909,20 @@ const PersonalInformation = ({ individualProfile }) => {
 
                         <p
                             className={`
-                    mt-2.5
-                    wrap-break-word
-                    font-sans!
-                    text-[12px]
-                    font-medium!
-                    leading-5
-                    md:mt-3
-                    md:text-[12.5px]
-                    ${
-                        individualProfile?.district
-                            ? 'text-[#D6DBE1]!'
-                            : 'text-[#5E6978]!'
-                    }
-                `}
+                                mt-2.5
+                                wrap-break-word
+                                font-sans!
+                                text-[12px]
+                                font-medium!
+                                leading-5
+                                sm:mt-3
+                                sm:text-[12.5px]
+                                ${
+                                    individualProfile?.district
+                                        ? 'text-[#D6DBE1]!'
+                                        : 'text-[#5E6978]!'
+                                }
+                            `}
                         >
                             {individualProfile?.district || 'Not provided'}
                         </p>
@@ -1082,15 +932,15 @@ const PersonalInformation = ({ individualProfile }) => {
 
                     <div
                         className="
-                min-w-0
-                border-t
-                border-[#202832]
-                pt-5
-                md:border-t-0
-                md:pl-8
-                md:pt-0
-                lg:pl-10
-            "
+                            min-w-0
+                            border-t
+                            border-[#202832]
+                            pt-5
+                            sm:border-t-0
+                            sm:pl-8
+                            sm:pt-0
+                            lg:pl-10
+                        "
                     >
                         <div className="flex items-center gap-2.5">
                             <Home
@@ -1101,13 +951,13 @@ const PersonalInformation = ({ individualProfile }) => {
 
                             <p
                                 className="
-                        font-sans!
-                        text-[9px]
-                        font-semibold!
-                        uppercase
-                        tracking-[0.14em]
-                        text-[#697586]!
-                    "
+                                    font-sans!
+                                    text-[10px]
+                                    font-semibold!
+                                    uppercase
+                                    tracking-[0.14em]
+                                    text-[#697586]!
+                                "
                             >
                                 Address
                             </p>
@@ -1115,21 +965,21 @@ const PersonalInformation = ({ individualProfile }) => {
 
                         <p
                             className={`
-                    mt-2.5
-                    max-w-[520px]
-                    wrap-break-word
-                    font-sans!
-                    text-[12px]
-                    font-medium!
-                    leading-[1.65]
-                    md:mt-3
-                    md:text-[12.5px]
-                    ${
-                        individualProfile?.address
-                            ? 'text-[#D6DBE1]!'
-                            : 'text-[#5E6978]!'
-                    }
-                `}
+                                mt-2.5
+                                max-w-[520px]
+                                wrap-break-word
+                                font-sans!
+                                text-[12px]
+                                font-medium!
+                                leading-[1.65]
+                                sm:mt-3
+                                sm:text-[12.5px]
+                                ${
+                                    individualProfile?.address
+                                        ? 'text-[#D6DBE1]!'
+                                        : 'text-[#5E6978]!'
+                                }
+                            `}
                         >
                             {individualProfile?.address || 'Not provided'}
                         </p>
@@ -1137,9 +987,7 @@ const PersonalInformation = ({ individualProfile }) => {
                 </div>
             </div>
 
-            {/* =================================================
-                PREFERENCES
-            ================================================== */}
+            {/* PREFERENCES */}
 
             <div
                 className="
@@ -1148,9 +996,8 @@ const PersonalInformation = ({ individualProfile }) => {
                     bg-[#121821]
                     px-5
                     py-6
-                    sm:px-7
+                    sm:px-8
                     sm:py-7
-                    md:px-8
                     md:py-8
                     lg:px-9
                     lg:py-9
@@ -1161,14 +1008,12 @@ const PersonalInformation = ({ individualProfile }) => {
                     className="
                         grid
                         gap-6
-                        md:grid-cols-[180px_minmax(0,1fr)]
-                        md:gap-8
-                        lg:grid-cols-[200px_minmax(0,1fr)]
+                        sm:grid-cols-[180px_minmax(0,1fr)]
+                        sm:gap-8
+                        md:grid-cols-[180px_minmax(0,1fr)] lg:grid-cols-[200px_minmax(0,1fr)]
                         lg:gap-10
                     "
                 >
-                    {/* LEFT LABEL */}
-
                     <div className="min-w-0">
                         <div className="flex items-center gap-2.5">
                             <HeartHandshake
@@ -1180,7 +1025,7 @@ const PersonalInformation = ({ individualProfile }) => {
                             <p
                                 className="
                                     font-sans!
-                                    text-[9px]
+                                    text-[10px]
                                     font-semibold!
                                     uppercase
                                     tracking-[0.15em]
@@ -1194,9 +1039,9 @@ const PersonalInformation = ({ individualProfile }) => {
                         <p
                             className="
                                 mt-2.5
-                                max-w-[190px]
+                                max-w-[240px] md:max-w-[180px] lg:max-w-[190px]
                                 font-sans!
-                                text-[10.5px]
+                                text-[11.5px]
                                 font-normal!
                                 leading-[1.65]
                                 text-[#697586]!
@@ -1207,18 +1052,14 @@ const PersonalInformation = ({ individualProfile }) => {
                         </p>
                     </div>
 
-                    {/* RIGHT CONTENT */}
-
                     <div
                         className="
                             min-w-0
                             border-t
                             border-[#29323E]
-                            md:border-t-0
+                            sm:border-t-0
                         "
                     >
-                        {/* PARTICIPATION */}
-
                         <div
                             className="
                                 grid
@@ -1227,11 +1068,11 @@ const PersonalInformation = ({ individualProfile }) => {
                                 border-[#29323E]
                                 py-5
                                 first:pt-0
-                                md:grid-cols-[150px_minmax(0,1fr)]
-                                md:items-start
-                                md:gap-6
-                                md:first:pt-0
-                                lg:grid-cols-[170px_minmax(0,1fr)]
+                                sm:grid-cols-[150px_minmax(0,1fr)]
+                                sm:items-start
+                                sm:gap-6
+                                sm:first:pt-0
+                                md:grid-cols-[145px_minmax(0,1fr)] lg:grid-cols-[170px_minmax(0,1fr)]
                                 lg:gap-8
                             "
                         >
@@ -1246,7 +1087,7 @@ const PersonalInformation = ({ individualProfile }) => {
                                     <p
                                         className="
                                             font-sans!
-                                            text-[9px]
+                                            text-[10px]
                                             font-semibold!
                                             uppercase
                                             tracking-[0.12em]
@@ -1260,7 +1101,7 @@ const PersonalInformation = ({ individualProfile }) => {
                                         className="
                                             mt-1
                                             font-sans!
-                                            text-[9.5px]
+                                            text-[10.5px]
                                             font-normal!
                                             text-[#5E6978]!
                                         "
@@ -1270,12 +1111,10 @@ const PersonalInformation = ({ individualProfile }) => {
                                 </div>
                             </div>
 
-                            <div className="min-w-0 md:pt-0.5">
+                            <div className="min-w-0 sm:pt-0.5">
                                 <TagList values={participationPreferences} />
                             </div>
                         </div>
-
-                        {/* CATEGORIES */}
 
                         <div
                             className="
@@ -1283,10 +1122,10 @@ const PersonalInformation = ({ individualProfile }) => {
                                 gap-3
                                 py-5
                                 pb-0
-                                md:grid-cols-[150px_minmax(0,1fr)]
-                                md:items-start
-                                md:gap-6
-                                lg:grid-cols-[170px_minmax(0,1fr)]
+                                sm:grid-cols-[150px_minmax(0,1fr)]
+                                sm:items-start
+                                sm:gap-6
+                                md:grid-cols-[145px_minmax(0,1fr)] lg:grid-cols-[170px_minmax(0,1fr)]
                                 lg:gap-8
                             "
                         >
@@ -1301,7 +1140,7 @@ const PersonalInformation = ({ individualProfile }) => {
                                     <p
                                         className="
                                             font-sans!
-                                            text-[9px]
+                                            text-[10px]
                                             font-semibold!
                                             uppercase
                                             tracking-[0.12em]
@@ -1315,7 +1154,7 @@ const PersonalInformation = ({ individualProfile }) => {
                                         className="
                                             mt-1
                                             font-sans!
-                                            text-[9.5px]
+                                            text-[10.5px]
                                             font-normal!
                                             text-[#5E6978]!
                                         "
@@ -1325,7 +1164,7 @@ const PersonalInformation = ({ individualProfile }) => {
                                 </div>
                             </div>
 
-                            <div className="min-w-0 md:pt-0.5">
+                            <div className="min-w-0 sm:pt-0.5">
                                 <TagList values={categoryPreferences} />
                             </div>
                         </div>
@@ -1344,13 +1183,15 @@ const OrganizationInformation = ({ organization, organizationVerified }) => {
     return (
         <section
             className="
-                mt-8
+                                mt-8
                 overflow-hidden
                 border
                 border-[#252D38]
                 bg-[#0E1219]
             "
         >
+            {/* SAME HEADING STRUCTURE AS PERSONAL INFORMATION */}
+
             <div
                 className="
                     px-6
@@ -1365,67 +1206,526 @@ const OrganizationInformation = ({ organization, organizationVerified }) => {
                 <SectionHeading
                     eyebrow="Organization"
                     title="Organization information"
-                    description="Contact and organizational identity information."
-                    icon={Building2}
+                    description="Organization identity, registration and contact information."
                 />
             </div>
 
+            {/* =================================================
+                ORGANIZATION DETAILS
+                Same visual language as personal details
+            ================================================== */}
+
             <div
                 className="
-                    grid
-                    grid-cols-1
-                    gap-x-12
-                    gap-y-8
-                    px-6
-                    py-8
-                    sm:grid-cols-2
+                    px-5
+                    py-6
                     sm:px-8
-                    sm:py-9
+                    sm:py-7
+                    md:py-8
                     lg:px-9
                     lg:py-10
-                    xl:gap-x-16
                     xl:px-10
                 "
             >
-                <DetailField
-                    icon={Building2}
-                    label="Organization type"
-                    value={formatType(organization?.type)}
-                />
+                <div
+                    className="
+                        grid
+                        grid-cols-1
+                        gap-y-6
+                        sm:grid-cols-[minmax(0,0.9fr)_minmax(0,0.9fr)_minmax(0,1.2fr)]
+                        sm:gap-x-0
+                    "
+                >
+                    {/* ORGANIZATION TYPE */}
 
-                <DetailField
-                    icon={Shield}
-                    label="Verification"
-                    value={
-                        organizationVerified
-                            ? 'Verified organization'
-                            : 'Verification pending'
-                    }
-                />
+                    <div
+                        className="
+                            min-w-0
+                            sm:border-r
+                            md:border-[#252D38]
+                            sm:pr-8
+                            lg:pr-10
+                        "
+                    >
+                        <div className="flex items-center gap-2.5">
+                            <Building2
+                                size={14}
+                                strokeWidth={1.65}
+                                className="shrink-0 text-[#697586]"
+                            />
 
-                <DetailField
-                    icon={FileText}
-                    label="Registration number"
-                    value={organization?.registration_number}
-                />
+                            <p
+                                className="
+                                    font-sans!
+                                    text-[10px]
+                                    font-semibold!
+                                    uppercase
+                                    tracking-[0.14em]
+                                    text-[#697586]!
+                                "
+                            >
+                                Organization type
+                            </p>
+                        </div>
 
-                <DetailField
-                    icon={Phone}
-                    label="Phone number"
-                    value={organization?.phone}
-                />
+                        <p
+                            className={`
+                                mt-2.5
+                                wrap-break-word
+                                font-sans!
+                                text-[12px]
+                                font-medium!
+                                leading-5
+                                sm:mt-3
+                                sm:text-[12.5px]
+                                ${
+                                    organization?.type
+                                        ? 'text-[#D6DBE1]!'
+                                        : 'text-[#5E6978]!'
+                                }
+                            `}
+                        >
+                            {organization?.type
+                                ? formatType(organization.type)
+                                : 'Not provided'}
+                        </p>
+                    </div>
 
-                <DetailField
-                    icon={Globe}
-                    label="Website"
-                    value={organization?.website}
-                />
+                    {/* REGISTRATION */}
 
-                <DetailField
-                    icon={Home}
-                    label="Address"
-                    value={organization?.address}
-                />
+                    <div
+                        className="
+                            min-w-0
+                            border-t
+                            border-[#202832]
+                            pt-5
+                            sm:border-t-0
+                            sm:border-r
+                            md:border-[#252D38]
+                            sm:px-8
+                            sm:pt-0
+                            lg:px-10
+                        "
+                    >
+                        <div className="flex items-center gap-2.5">
+                            <FileText
+                                size={14}
+                                strokeWidth={1.65}
+                                className="shrink-0 text-[#697586]"
+                            />
+
+                            <p
+                                className="
+                                    font-sans!
+                                    text-[10px]
+                                    font-semibold!
+                                    uppercase
+                                    tracking-[0.14em]
+                                    text-[#697586]!
+                                "
+                            >
+                                Registration number
+                            </p>
+                        </div>
+
+                        <p
+                            className={`
+                                mt-2.5
+                                wrap-break-word
+                                font-sans!
+                                text-[12px]
+                                font-medium!
+                                leading-5
+                                sm:mt-3
+                                sm:text-[12.5px]
+                                ${
+                                    organization?.registration_number
+                                        ? 'text-[#D6DBE1]!'
+                                        : 'text-[#5E6978]!'
+                                }
+                            `}
+                        >
+                            {organization?.registration_number ||
+                                'Not provided'}
+                        </p>
+                    </div>
+
+                    {/* VERIFICATION */}
+
+                    <div
+                        className="
+                            min-w-0
+                            border-t
+                            border-[#202832]
+                            pt-5
+                            sm:border-t-0
+                            sm:pl-8
+                            sm:pt-0
+                            lg:pl-10
+                        "
+                    >
+                        <div className="flex items-center gap-2.5">
+                            <Shield
+                                size={14}
+                                strokeWidth={1.65}
+                                className="shrink-0 text-[#697586]"
+                            />
+
+                            <p
+                                className="
+                                    font-sans!
+                                    text-[10px]
+                                    font-semibold!
+                                    uppercase
+                                    tracking-[0.14em]
+                                    text-[#697586]!
+                                "
+                            >
+                                Verification
+                            </p>
+                        </div>
+
+                        <div
+                            className="
+                                mt-2.5
+                                flex
+                                items-center
+                                gap-2
+                                sm:mt-3
+                            "
+                        >
+                            <span
+                                className={`
+                                    h-1.5
+                                    w-1.5
+                                    shrink-0
+                                    rounded-full
+                                    ${
+                                        organizationVerified
+                                            ? 'bg-[#6FA58A]'
+                                            : 'bg-[#C09558]'
+                                    }
+                                `}
+                            />
+
+                            <span
+                                className={`
+                                    font-sans!
+                                    text-[12px]
+                                    font-medium!
+                                    leading-5
+                                    sm:text-[12.5px]
+                                    ${
+                                        organizationVerified
+                                            ? 'text-[#9FC4AF]!'
+                                            : 'text-[#D5B37F]!'
+                                    }
+                                `}
+                            >
+                                {organizationVerified
+                                    ? 'Verified organization'
+                                    : 'Verification pending'}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* =================================================
+                CONTACT INFORMATION
+                Same secondary band as individual preferences
+            ================================================== */}
+
+            <div
+                className="
+                    border-t
+                    border-[#252D38]
+                    bg-[#121821]
+                    px-5
+                    py-6
+                    sm:px-8
+                    sm:py-7
+                    md:py-8
+                    lg:px-9
+                    lg:py-9
+                    xl:px-10
+                "
+            >
+                <div
+                    className="
+                        grid
+                        gap-6
+                        sm:grid-cols-[180px_minmax(0,1fr)]
+                        sm:gap-8
+                        md:grid-cols-[180px_minmax(0,1fr)] lg:grid-cols-[200px_minmax(0,1fr)]
+                        lg:gap-10
+                    "
+                >
+                    {/* LEFT LABEL */}
+
+                    <div className="min-w-0">
+                        <div className="flex items-center gap-2.5">
+                            <Phone
+                                size={14}
+                                strokeWidth={1.7}
+                                className="shrink-0 text-[#8792A1]"
+                            />
+
+                            <p
+                                className="
+                                    font-sans!
+                                    text-[10px]
+                                    font-semibold!
+                                    uppercase
+                                    tracking-[0.15em]
+                                    text-[#8792A1]!
+                                "
+                            >
+                                Contact
+                            </p>
+                        </div>
+
+                        <p
+                            className="
+                                mt-2.5
+                                max-w-[240px] md:max-w-[180px] lg:max-w-[190px]
+                                font-sans!
+                                text-[11.5px]
+                                font-normal!
+                                leading-[1.65]
+                                text-[#697586]!
+                            "
+                        >
+                            Contact channels and registered organization
+                            location.
+                        </p>
+                    </div>
+
+                    {/* RIGHT CONTENT */}
+
+                    <div
+                        className="
+                            min-w-0
+                            border-t
+                            border-[#29323E]
+                            sm:border-t-0
+                        "
+                    >
+                        {/* PHONE */}
+
+                        <div
+                            className="
+                                grid
+                                gap-3
+                                border-b
+                                border-[#29323E]
+                                py-5
+                                first:pt-0
+                                sm:grid-cols-[150px_minmax(0,1fr)]
+                                sm:items-start
+                                sm:gap-6
+                                sm:first:pt-0
+                                md:grid-cols-[145px_minmax(0,1fr)] lg:grid-cols-[170px_minmax(0,1fr)]
+                                lg:gap-8
+                            "
+                        >
+                            <div className="flex items-center gap-2.5">
+                                <Phone
+                                    size={13}
+                                    strokeWidth={1.7}
+                                    className="shrink-0 text-[#697586]"
+                                />
+
+                                <div>
+                                    <p
+                                        className="
+                                            font-sans!
+                                            text-[10px]
+                                            font-semibold!
+                                            uppercase
+                                            tracking-[0.12em]
+                                            text-[#8792A1]!
+                                        "
+                                    >
+                                        Phone
+                                    </p>
+
+                                    <p
+                                        className="
+                                            mt-1
+                                            font-sans!
+                                            text-[10.5px]
+                                            font-normal!
+                                            text-[#5E6978]!
+                                        "
+                                    >
+                                        Contact number
+                                    </p>
+                                </div>
+                            </div>
+
+                            <p
+                                className={`
+                                    min-w-0
+                                    wrap-break-word
+                                    font-sans!
+                                    text-[12.5px]
+                                    font-medium!
+                                    leading-[1.65]
+                                    sm:pt-0.5
+                                    ${
+                                        organization?.phone
+                                            ? 'text-[#B8C0CA]!'
+                                            : 'text-[#5E6978]!'
+                                    }
+                                `}
+                            >
+                                {organization?.phone || 'Not provided'}
+                            </p>
+                        </div>
+
+                        {/* WEBSITE */}
+
+                        <div
+                            className="
+                                grid
+                                gap-3
+                                border-b
+                                border-[#29323E]
+                                py-5
+                                sm:grid-cols-[150px_minmax(0,1fr)]
+                                sm:items-start
+                                sm:gap-6
+                                md:grid-cols-[145px_minmax(0,1fr)] lg:grid-cols-[170px_minmax(0,1fr)]
+                                lg:gap-8
+                            "
+                        >
+                            <div className="flex items-center gap-2.5">
+                                <Globe
+                                    size={13}
+                                    strokeWidth={1.7}
+                                    className="shrink-0 text-[#697586]"
+                                />
+
+                                <div>
+                                    <p
+                                        className="
+                                            font-sans!
+                                            text-[10px]
+                                            font-semibold!
+                                            uppercase
+                                            tracking-[0.12em]
+                                            text-[#8792A1]!
+                                        "
+                                    >
+                                        Website
+                                    </p>
+
+                                    <p
+                                        className="
+                                            mt-1
+                                            font-sans!
+                                            text-[10.5px]
+                                            font-normal!
+                                            text-[#5E6978]!
+                                        "
+                                    >
+                                        Online presence
+                                    </p>
+                                </div>
+                            </div>
+
+                            <p
+                                className={`
+                                    min-w-0
+                                    wrap-break-word
+                                    font-sans!
+                                    text-[12.5px]
+                                    font-medium!
+                                    leading-[1.65]
+                                    sm:pt-0.5
+                                    ${
+                                        organization?.website
+                                            ? 'text-[#B8C0CA]!'
+                                            : 'text-[#5E6978]!'
+                                    }
+                                `}
+                            >
+                                {organization?.website || 'Not provided'}
+                            </p>
+                        </div>
+
+                        {/* ADDRESS */}
+
+                        <div
+                            className="
+                                grid
+                                gap-3
+                                py-5
+                                pb-0
+                                sm:grid-cols-[150px_minmax(0,1fr)]
+                                sm:items-start
+                                sm:gap-6
+                                md:grid-cols-[145px_minmax(0,1fr)] lg:grid-cols-[170px_minmax(0,1fr)]
+                                lg:gap-8
+                            "
+                        >
+                            <div className="flex items-center gap-2.5">
+                                <Home
+                                    size={13}
+                                    strokeWidth={1.7}
+                                    className="shrink-0 text-[#697586]"
+                                />
+
+                                <div>
+                                    <p
+                                        className="
+                                            font-sans!
+                                            text-[10px]
+                                            font-semibold!
+                                            uppercase
+                                            tracking-[0.12em]
+                                            text-[#8792A1]!
+                                        "
+                                    >
+                                        Address
+                                    </p>
+
+                                    <p
+                                        className="
+                                            mt-1
+                                            font-sans!
+                                            text-[10.5px]
+                                            font-normal!
+                                            text-[#5E6978]!
+                                        "
+                                    >
+                                        Registered location
+                                    </p>
+                                </div>
+                            </div>
+
+                            <p
+                                className={`
+                                    min-w-0
+                                    wrap-break-word
+                                    font-sans!
+                                    text-[12.5px]
+                                    font-medium!
+                                    leading-[1.65]
+                                    sm:pt-0.5
+                                    ${
+                                        organization?.address
+                                            ? 'text-[#B8C0CA]!'
+                                            : 'text-[#5E6978]!'
+                                    }
+                                `}
+                            >
+                                {organization?.address || 'Not provided'}
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
     );
@@ -1439,133 +1739,321 @@ const OrganizationPurpose = ({ organization }) => {
     return (
         <section
             className="
-                mt-8
+                                mt-8
+                overflow-hidden
                 border
                 border-[#252D38]
                 bg-[#0E1219]
-                px-6
-                py-7
-                sm:px-8
-                sm:py-8
-                lg:px-9
-                lg:py-9
-                xl:px-10
             "
         >
-            <SectionHeading
-                eyebrow="Purpose"
-                title="Mission & focus"
-                description="The organization's mission, focus areas and communities served."
-                icon={Target}
-            />
+            {/* SAME HEADING STRUCTURE */}
 
             <div
                 className="
-                    mt-8
-                    grid
-                    gap-8
-                    xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]
-                    xl:gap-10
+                    px-6
+                    pt-7
+                    sm:px-8
+                    sm:pt-8
+                    lg:px-9
+                    lg:pt-9
+                    xl:px-10
+                "
+            >
+                <SectionHeading
+                    eyebrow="Purpose"
+                    title="Mission & focus"
+                    description="The organization's mission, focus areas and communities served."
+                />
+            </div>
+
+            {/* =================================================
+                MISSION
+            ================================================== */}
+
+            <div
+                className="
+                    px-5
+                    py-6
+                    sm:px-8
+                    sm:py-7
+                    md:py-8
+                    lg:px-9
+                    lg:py-10
+                    xl:px-10
                 "
             >
                 <div
                     className="
-                        border-l-2
-                        border-[#465261]
-                        bg-[#121821]
-                        px-5
-                        py-5
-                        sm:px-6
-                        sm:py-6
+                        grid
+                        gap-5
+                        sm:grid-cols-[180px_minmax(0,1fr)]
+                        sm:gap-8
+                        md:grid-cols-[180px_minmax(0,1fr)] lg:grid-cols-[200px_minmax(0,1fr)]
+                        lg:gap-10
                     "
                 >
-                    <p
+                    <div className="min-w-0">
+                        <div className="flex items-center gap-2.5">
+                            <Target
+                                size={14}
+                                strokeWidth={1.65}
+                                className="shrink-0 text-[#697586]"
+                            />
+
+                            <p
+                                className="
+                                    font-sans!
+                                    text-[10px]
+                                    font-semibold!
+                                    uppercase
+                                    tracking-[0.14em]
+                                    text-[#697586]!
+                                "
+                            >
+                                Mission
+                            </p>
+                        </div>
+
+                        <p
+                            className="
+                                mt-2.5
+                                max-w-[240px] md:max-w-[180px] lg:max-w-[190px]
+                                font-sans!
+                                text-[11.5px]
+                                font-normal!
+                                leading-[1.65]
+                                text-[#5E6978]!
+                            "
+                        >
+                            The purpose and direction of this organization.
+                        </p>
+                    </div>
+
+                    <div
                         className="
-                            font-sans!
-                            text-[9px]
-                            font-semibold!
-                            uppercase
-                            tracking-[0.14em]
-                            text-[#697586]!
+                            min-w-0
+                            border-l-2
+                            border-[#465261]
+                            pl-4
+                            sm:pl-5
                         "
                     >
-                        Mission
-                    </p>
-
-                    <p
-                        className={`
-                            mt-3
-                            font-sans!
-                            text-[12.5px]
-                            font-normal!
-                            leading-[1.8]
-                            ${
-                                organization?.mission
-                                    ? 'text-[#B8C0CA]!'
-                                    : 'text-[#5E6978]!'
-                            }
-                        `}
-                    >
-                        {organization?.mission || 'Not provided'}
-                    </p>
+                        <p
+                            className={`
+                                max-w-[820px]
+                                wrap-break-word
+                                font-sans!
+                                text-[12px]
+                                font-normal!
+                                leading-[1.8]
+                                sm:text-[12.5px]
+                                ${
+                                    organization?.mission
+                                        ? 'text-[#B8C0CA]!'
+                                        : 'text-[#5E6978]!'
+                                }
+                            `}
+                        >
+                            {organization?.mission || 'Not provided'}
+                        </p>
+                    </div>
                 </div>
+            </div>
 
+            {/* =================================================
+                FOCUS / COMMUNITIES
+                Mirrors PersonalInformation preferences
+            ================================================== */}
+
+            <div
+                className="
+                    border-t
+                    border-[#252D38]
+                    bg-[#121821]
+                    px-5
+                    py-6
+                    sm:px-8
+                    sm:py-7
+                    md:py-8
+                    lg:px-9
+                    lg:py-9
+                    xl:px-10
+                "
+            >
                 <div
                     className="
                         grid
-                        gap-8
-                        sm:grid-cols-2
-                        xl:grid-cols-1
+                        gap-6
+                        sm:grid-cols-[180px_minmax(0,1fr)]
+                        sm:gap-8
+                        md:grid-cols-[180px_minmax(0,1fr)] lg:grid-cols-[200px_minmax(0,1fr)]
+                        lg:gap-10
                     "
                 >
-                    <div>
-                        <div className="mb-4 flex items-center gap-2.5">
+                    {/* LEFT LABEL */}
+
+                    <div className="min-w-0">
+                        <div className="flex items-center gap-2.5">
                             <Tags
                                 size={14}
                                 strokeWidth={1.7}
-                                className="text-[#697586]"
+                                className="shrink-0 text-[#8792A1]"
                             />
 
                             <p
                                 className="
                                     font-sans!
-                                    text-[9px]
+                                    text-[10px]
                                     font-semibold!
                                     uppercase
-                                    tracking-[0.13em]
+                                    tracking-[0.15em]
                                     text-[#8792A1]!
                                 "
                             >
-                                Focus areas
+                                Focus
                             </p>
                         </div>
 
-                        <TagList values={organization?.focus_areas} />
+                        <p
+                            className="
+                                mt-2.5
+                                max-w-[240px] md:max-w-[180px] lg:max-w-[190px]
+                                font-sans!
+                                text-[11.5px]
+                                font-normal!
+                                leading-[1.65]
+                                text-[#697586]!
+                            "
+                        >
+                            Priority causes and communities this organization
+                            serves.
+                        </p>
                     </div>
 
-                    <div>
-                        <div className="mb-4 flex items-center gap-2.5">
-                            <Users
-                                size={14}
-                                strokeWidth={1.7}
-                                className="text-[#697586]"
-                            />
+                    {/* RIGHT CONTENT */}
 
-                            <p
-                                className="
-                                    font-sans!
-                                    text-[9px]
-                                    font-semibold!
-                                    uppercase
-                                    tracking-[0.13em]
-                                    text-[#8792A1]!
-                                "
-                            >
-                                Communities served
-                            </p>
+                    <div
+                        className="
+                            min-w-0
+                            border-t
+                            border-[#29323E]
+                            sm:border-t-0
+                        "
+                    >
+                        {/* FOCUS AREAS */}
+
+                        <div
+                            className="
+                                grid
+                                gap-3
+                                border-b
+                                border-[#29323E]
+                                py-5
+                                first:pt-0
+                                sm:grid-cols-[150px_minmax(0,1fr)]
+                                sm:items-start
+                                sm:gap-6
+                                sm:first:pt-0
+                                md:grid-cols-[145px_minmax(0,1fr)] lg:grid-cols-[170px_minmax(0,1fr)]
+                                lg:gap-8
+                            "
+                        >
+                            <div className="flex items-center gap-2.5">
+                                <Tags
+                                    size={13}
+                                    strokeWidth={1.7}
+                                    className="shrink-0 text-[#697586]"
+                                />
+
+                                <div>
+                                    <p
+                                        className="
+                                            font-sans!
+                                            text-[10px]
+                                            font-semibold!
+                                            uppercase
+                                            tracking-[0.12em]
+                                            text-[#8792A1]!
+                                        "
+                                    >
+                                        Focus areas
+                                    </p>
+
+                                    <p
+                                        className="
+                                            mt-1
+                                            font-sans!
+                                            text-[10.5px]
+                                            font-normal!
+                                            text-[#5E6978]!
+                                        "
+                                    >
+                                        Priority causes
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="min-w-0 sm:pt-0.5">
+                                <TagList values={organization?.focus_areas} />
+                            </div>
                         </div>
 
-                        <TagList values={organization?.communities_served} />
+                        {/* COMMUNITIES */}
+
+                        <div
+                            className="
+                                grid
+                                gap-3
+                                py-5
+                                pb-0
+                                sm:grid-cols-[150px_minmax(0,1fr)]
+                                sm:items-start
+                                sm:gap-6
+                                md:grid-cols-[145px_minmax(0,1fr)] lg:grid-cols-[170px_minmax(0,1fr)]
+                                lg:gap-8
+                            "
+                        >
+                            <div className="flex items-center gap-2.5">
+                                <Users
+                                    size={13}
+                                    strokeWidth={1.7}
+                                    className="shrink-0 text-[#697586]"
+                                />
+
+                                <div>
+                                    <p
+                                        className="
+                                            font-sans!
+                                            text-[10px]
+                                            font-semibold!
+                                            uppercase
+                                            tracking-[0.12em]
+                                            text-[#8792A1]!
+                                        "
+                                    >
+                                        Communities
+                                    </p>
+
+                                    <p
+                                        className="
+                                            mt-1
+                                            font-sans!
+                                            text-[10.5px]
+                                            font-normal!
+                                            text-[#5E6978]!
+                                        "
+                                    >
+                                        People served
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="min-w-0 sm:pt-0.5">
+                                <TagList
+                                    values={organization?.communities_served}
+                                />
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1578,122 +2066,292 @@ const OrganizationPurpose = ({ organization }) => {
 ============================================================ */
 
 const OrganizationOperations = ({ organization }) => {
+    const hasTeamSize =
+        organization?.team_size !== undefined &&
+        organization?.team_size !== null &&
+        organization?.team_size !== '';
+
     return (
         <section
             className="
-                mt-8
+                                mt-8
+                overflow-hidden
                 border
                 border-[#252D38]
                 bg-[#0E1219]
-                px-6
-                py-7
-                sm:px-8
-                sm:py-8
-                lg:px-9
-                lg:py-9
-                xl:px-10
             "
         >
-            <SectionHeading
-                eyebrow="Operations"
-                title="Team & activities"
-                description="Team capacity and regular organizational activities."
-                icon={Users}
-            />
+            {/* SAME HEADING STRUCTURE AS VOLUNTEER */}
 
             <div
                 className="
-                    mt-8
-                    grid
-                    gap-8
-                    lg:grid-cols-[230px_minmax(0,1fr)]
-                    lg:gap-9
+                    px-5
+                    pt-6
+                    sm:px-6
+                    sm:pt-7
+                    lg:px-9
+                    lg:pt-9
+                    xl:px-10
+                "
+            >
+                <SectionHeading
+                    eyebrow="Operations"
+                    title="Team & activities"
+                    description="Team capacity and regular organizational activities."
+                />
+            </div>
+
+            {/* =================================================
+                OPERATIONS
+                Mirrors VolunteerSection composition
+            ================================================== */}
+
+            <div
+                className="
+                    px-5
+                    py-6
+                    sm:px-6
+                    sm:py-7
+                    lg:px-9
+                    lg:py-9
+                    xl:px-10
                 "
             >
                 <div
                     className="
-                        border-b
-                        border-[#252D38]
-                        pb-8
-                        lg:border-r
-                        lg:border-b-0
-                        lg:pr-9
-                        lg:pb-0
+                        grid
+                        overflow-hidden
+                        border
+                        border-[#29323E]
+                        bg-[#121821]
+                        md:grid-cols-[minmax(0,1fr)_240px]
+                        lg:grid-cols-[minmax(0,1fr)_270px]
                     "
                 >
+                    {/* =========================================
+                        PRIMARY ACTIVITIES
+                    ========================================= */}
+
                     <div
                         className="
-                            flex
-                            h-10
-                            w-10
-                            items-center
-                            justify-center
-                            border
-                            border-[#303A47]
-                            bg-[#151B24]
-                            text-[#8792A1]
+                            relative
+                            min-w-0
+                            px-4
+                            py-5
+                            sm:px-5
+                            sm:py-6
+                            lg:px-6
+                            lg:py-7
                         "
                     >
-                        <Users size={16} strokeWidth={1.7} />
-                    </div>
-
-                    <p
-                        className="
-                            mt-5
-                            font-sans!
-                            text-[9px]
-                            font-semibold!
-                            uppercase
-                            tracking-[0.14em]
-                            text-[#697586]!
-                        "
-                    >
-                        Team size
-                    </p>
-
-                    <p
-                        className={`
-                            mt-2
-                            font-sans!
-                            text-[18px]
-                            font-semibold!
-                            leading-[1.3]
-                            tracking-[-0.02em]
-                            ${
-                                organization?.team_size
-                                    ? 'text-[#EEF1F5]!'
-                                    : 'text-[#5E6978]!'
-                            }
-                        `}
-                    >
-                        {organization?.team_size || 'Not provided'}
-                    </p>
-                </div>
-
-                <div>
-                    <div className="flex items-center gap-2.5">
-                        <HeartHandshake
-                            size={14}
-                            strokeWidth={1.7}
-                            className="text-[#697586]"
+                        <span
+                            aria-hidden="true"
+                            className="
+                                absolute
+                                bottom-0
+                                left-0
+                                top-0
+                                w-[2px]
+                                bg-[#465261]
+                            "
                         />
 
-                        <p
-                            className="
-                                font-sans!
-                                text-[9px]
-                                font-semibold!
-                                uppercase
-                                tracking-[0.13em]
-                                text-[#8792A1]!
-                            "
-                        >
-                            Primary activities
-                        </p>
+                        <div className="flex items-start gap-3.5 sm:gap-4">
+                            <div
+                                className="
+                                    flex
+                                    h-10
+                                    w-10
+                                    shrink-0
+                                    items-center
+                                    justify-center
+                                    border
+                                    border-[#303A47]
+                                    bg-[#151B24]
+                                    text-[#8792A1]
+                                    sm:h-11
+                                    sm:w-11
+                                "
+                            >
+                                <HeartHandshake size={18} strokeWidth={1.7} />
+                            </div>
+
+                            <div className="min-w-0 flex-1">
+                                <h3
+                                    className="
+                                        font-sans!
+                                        text-[12.5px]
+                                        font-semibold!
+                                        leading-5
+                                        text-[#EEF1F5]!
+                                        sm:text-[13px]
+                                    "
+                                >
+                                    Primary activities
+                                </h3>
+
+                                <p
+                                    className="
+                                        mt-2
+                                        max-w-[560px]
+                                        font-sans!
+                                        text-[11.5px]
+                                        font-normal!
+                                        leading-[1.7]
+                                        text-[#8792A1]!
+                                        sm:text-[12px]
+                                        lg:text-[12.5px]
+                                    "
+                                >
+                                    Regular programs and humanitarian work
+                                    carried out by this organization.
+                                </p>
+
+                                <div
+                                    className="
+                                        mt-4
+                                        border-t
+                                        border-[#202832]
+                                        pt-4
+                                        sm:mt-5
+                                        sm:pt-5
+                                    "
+                                >
+                                    <TagList
+                                        values={
+                                            organization?.primary_activities
+                                        }
+                                    />
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <div className="mt-4">
-                        <TagList values={organization?.primary_activities} />
+                    {/* =========================================
+                        TEAM SIZE
+                    ========================================= */}
+
+                    <div
+                        className="
+                            border-t
+                            border-[#29323E]
+                            bg-[#1A222D]
+                            px-4
+                            py-5
+                            sm:px-5
+                            sm:py-6
+                            sm:border-l
+                            sm:border-t-0
+                            lg:px-6
+                            lg:py-7
+                        "
+                    >
+                        <div
+                            className="
+                                flex
+                                h-full
+                                items-center
+                                justify-between
+                                gap-5
+                                sm:flex-col
+                                sm:items-start
+                                sm:justify-center
+                                sm:gap-0
+                            "
+                        >
+                            <div>
+                                <div className="flex items-center gap-2.5">
+                                    <Users
+                                        size={14}
+                                        strokeWidth={1.7}
+                                        className="
+                                            shrink-0
+                                            text-[#697586]
+                                        "
+                                    />
+
+                                    <p
+                                        className="
+                                            font-sans!
+                                            text-[10px]
+                                            font-semibold!
+                                            uppercase
+                                            tracking-[0.14em]
+                                            text-[#697586]!
+                                            sm:text-[10px]
+                                        "
+                                    >
+                                        Team size
+                                    </p>
+                                </div>
+
+                                <p
+                                    className="
+                                        mt-2
+                                        font-sans!
+                                        text-[11px]
+                                        font-normal!
+                                        leading-[1.55]
+                                        text-[#5E6978]!
+                                        md:mt-2.5
+                                    "
+                                >
+                                    Current team capacity
+                                </p>
+                            </div>
+
+                            <div
+                                className="
+                                    flex
+                                    shrink-0
+                                    items-end
+                                    gap-2
+                                    sm:mt-5
+                                "
+                            >
+                                <span
+                                    className={`
+                                        font-sans!
+                                        font-semibold!
+                                        leading-none
+                                        tracking-[-0.04em]
+                                        ${
+                                            hasTeamSize
+                                                ? `
+                                                    text-[25px]
+                                                    text-[#EEF1F5]!
+                                                    sm:text-[27px]
+                                                    lg:text-[30px]
+                                                `
+                                                : `
+                                                    text-[12px]
+                                                    tracking-normal
+                                                    text-[#5E6978]!
+                                                `
+                                        }
+                                    `}
+                                >
+                                    {hasTeamSize
+                                        ? organization.team_size
+                                        : 'Not provided'}
+                                </span>
+
+                                {hasTeamSize && (
+                                    <span
+                                        className="
+                                            mb-0.5
+                                            font-sans!
+                                            text-[10.5px]
+                                            font-medium!
+                                            text-[#697586]!
+                                            sm:text-[11px]
+                                        "
+                                    >
+                                        members
+                                    </span>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1756,7 +2414,7 @@ const UserDetailsView = ({ user, successMessage, onDismissSuccess }) => {
                             <p
                                 className="
                                     font-sans!
-                                    text-[9px]
+                                    text-[10px]
                                     font-semibold!
                                     uppercase
                                     tracking-[0.14em]
@@ -1770,7 +2428,7 @@ const UserDetailsView = ({ user, successMessage, onDismissSuccess }) => {
                                 className="
                                     mt-1.5
                                     font-sans!
-                                    text-[11.5px]
+                                    text-[12.5px]
                                     font-medium!
                                     leading-[1.6]
                                     text-[#D8E5DD]!
@@ -1812,7 +2470,7 @@ const UserDetailsView = ({ user, successMessage, onDismissSuccess }) => {
 
             <section
                 className="
-                    overflow-hidden
+                                        overflow-hidden
                     border
                     border-[#252D38]
                     bg-[#0E1219]
@@ -1822,14 +2480,12 @@ const UserDetailsView = ({ user, successMessage, onDismissSuccess }) => {
                     className="
                         grid
                         min-w-0
-                        md:grid-cols-[minmax(0,1fr)_280px]
+                        lg:grid-cols-[minmax(0,1fr)_300px]
                         lg:grid-cols-[minmax(0,1fr)_300px]
                         xl:grid-cols-[minmax(0,1fr)_330px]
                     "
                 >
-                    {/* =========================================
-                        IDENTITY
-                    ========================================== */}
+                    {/* IDENTITY */}
 
                     <div
                         className="
@@ -1883,7 +2539,7 @@ const UserDetailsView = ({ user, successMessage, onDismissSuccess }) => {
                                 <p
                                     className="
                                         font-sans!
-                                        text-[9px]
+                                        text-[10px]
                                         font-semibold!
                                         uppercase
                                         tracking-[0.16em]
@@ -1926,7 +2582,7 @@ const UserDetailsView = ({ user, successMessage, onDismissSuccess }) => {
                                     <span
                                         className="
                                             font-sans!
-                                            text-[10.5px]
+                                            text-[11.5px]
                                             font-normal!
                                             text-[#697586]!
                                         "
@@ -1937,7 +2593,7 @@ const UserDetailsView = ({ user, successMessage, onDismissSuccess }) => {
                                     <span
                                         className="
                                             font-sans!
-                                            text-[10.5px]
+                                            text-[11.5px]
                                             font-medium!
                                             text-[#AEB7C3]!
                                         "
@@ -1962,7 +2618,7 @@ const UserDetailsView = ({ user, successMessage, onDismissSuccess }) => {
                                             items-center
                                             gap-2.5
                                             font-sans!
-                                            text-[11.5px]
+                                            text-[12.5px]
                                             font-normal!
                                             text-[#8792A1]!
                                         "
@@ -1988,7 +2644,7 @@ const UserDetailsView = ({ user, successMessage, onDismissSuccess }) => {
                                                 items-center
                                                 gap-2.5
                                                 font-sans!
-                                                text-[11.5px]
+                                                text-[12.5px]
                                                 font-normal!
                                                 text-[#8792A1]!
                                             "
@@ -2007,80 +2663,64 @@ const UserDetailsView = ({ user, successMessage, onDismissSuccess }) => {
                         </div>
                     </div>
 
-                    {/* =========================================
-                        ACCESS & VERIFICATION
-                    ========================================== */}
+                    {/* ACCESS & VERIFICATION */}
 
                     <aside
                         className="
-        border-t
-
-
+                            border-t
                             border-[#29323E]
-        bg-[#121821]
-
-        px-4
-        py-5
-
-        sm:px-6
-        sm:py-6
-
-        lg:border-t-0
-        lg:border-l
-        lg:px-7
-        lg:py-9
-
-        xl:px-8
-        xl:py-10
-    "
+                            bg-[#121821]
+                            px-4
+                            py-5
+                            sm:px-6
+                            sm:py-6
+                            lg:border-t-0
+                            lg:border-l
+                            lg:px-7
+                            lg:py-9
+                            xl:px-8
+                            xl:py-10
+                        "
                     >
                         <div
                             className="
-            flex
-            items-center
-            justify-between
-
-            gap-3
-
-            sm:gap-4
-        "
+                                flex
+                                items-center
+                                justify-between
+                                gap-3
+                                sm:gap-4
+                            "
                         >
                             <div
                                 className="
-                flex
-                min-w-0
-                items-center
-
-                gap-2
-
-                sm:gap-2.5
-            "
+                                    flex
+                                    min-w-0
+                                    items-center
+                                    gap-2
+                                    sm:gap-2.5
+                                "
                             >
                                 <Shield
                                     size={14}
                                     strokeWidth={1.7}
                                     className="
-                    shrink-0
-                    text-[#8792A1]
-                "
+                                        shrink-0
+                                        text-[#8792A1]
+                                    "
                                 />
 
                                 <p
                                     className="
-                    truncate
-
-                    font-sans!
-
-                    text-[8.5px]
-                    font-semibold!
-                    uppercase
-                    tracking-[0.13em]
-
-                    text-[#8792A1]!
-
-                    sm:text-[9px]
-                    sm:tracking-[0.14em]
-                "
+                                        truncate
+                                        font-sans!
+                                        text-[10px]
+                                        font-semibold!
+                                        uppercase
+                                        tracking-[0.13em]
+                                        text-[#8792A1]!
+                                        sm:text-[10px]
+                                        sm:tracking-[0.14em]
+                                    "
                                 >
                                     Access & verification
                                 </p>
@@ -2088,18 +2728,14 @@ const UserDetailsView = ({ user, successMessage, onDismissSuccess }) => {
 
                             <span
                                 className="
-                shrink-0
-
-                font-sans!
-
-                text-[9px]
-                font-medium!
-                tabular-nums
-
-                text-[#697586]!
-
-                sm:text-[9.5px]
-            "
+                                    shrink-0
+                                    font-sans!
+                                    text-[10px]
+                                    font-medium!
+                                    tabular-nums
+                                    text-[#697586]!
+                                    sm:text-[10.5px]
+                                "
                             >
                                 ID #{user.id}
                             </span>
@@ -2107,12 +2743,10 @@ const UserDetailsView = ({ user, successMessage, onDismissSuccess }) => {
 
                         <div
                             className="
-            mt-4
-
-            sm:mt-5
-
-            lg:mt-6
-        "
+                                mt-4
+                                sm:mt-5
+                                lg:mt-6
+                            "
                         >
                             <StatusLine
                                 label="Platform access"
@@ -2150,9 +2784,8 @@ const UserDetailsView = ({ user, successMessage, onDismissSuccess }) => {
                                 />
                             )}
 
-                            {/* <StatusLine label="Role" value={roleLabel} /> */}
+                            <StatusLine label="Role" value={roleLabel} />
                         </div>
-
                     </aside>
                 </div>
             </section>

@@ -137,8 +137,9 @@ const UserDetails = () => {
         return (
             <div
                 className="
-                    space-y-8
+                    space-y-6
                     font-sans!
+                    sm:space-y-8
                 "
             >
                 <PageHeader
@@ -149,7 +150,7 @@ const UserDetails = () => {
                 <div
                     className="
                         flex
-                        min-h-130
+                        min-h-[520px]
                         items-center
                         justify-center
 
@@ -201,8 +202,8 @@ const UserDetails = () => {
 
                                 font-sans!
 
-                                text-[11px]
-                                font-normal!
+                                text-[12px]
+                                font-medium!
                                 leading-5
 
                                 text-[#697586]!
@@ -224,8 +225,9 @@ const UserDetails = () => {
         return (
             <div
                 className="
-                    space-y-8
+                    space-y-6
                     font-sans!
+                    sm:space-y-8
                 "
             >
                 <PageHeader
@@ -240,6 +242,8 @@ const UserDetails = () => {
 
                                 inline-flex
                                 h-10
+                                w-full
+                                sm:w-auto
                                 items-center
                                 justify-center
                                 gap-2.5
@@ -252,7 +256,7 @@ const UserDetails = () => {
                                 px-3.5
 
                                 font-sans!
-                                text-[11px]
+                                text-[12px]
                                 font-medium!
                                 whitespace-nowrap
 
@@ -373,8 +377,9 @@ const UserDetails = () => {
         return (
             <div
                 className="
-                    space-y-8
+                    space-y-6
                     font-sans!
+                    sm:space-y-8
                 "
             >
                 <PageHeader
@@ -390,6 +395,8 @@ const UserDetails = () => {
 
                                 inline-flex
                                 h-10
+                                w-full
+                                sm:w-auto
                                 items-center
                                 justify-center
                                 gap-2.5
@@ -402,7 +409,7 @@ const UserDetails = () => {
                                 px-3.5
 
                                 font-sans!
-                                text-[11px]
+                                text-[12px]
                                 font-medium!
                                 whitespace-nowrap
 
@@ -462,8 +469,9 @@ const UserDetails = () => {
     return (
         <div
             className="
-                space-y-8
+                space-y-6
                 font-sans!
+                sm:space-y-8
             "
         >
             <PageHeader
@@ -472,14 +480,15 @@ const UserDetails = () => {
                 action={
                     <div
                         className="
-                            flex
+                            grid
                             w-full
-                            flex-wrap
-                            items-center
-                            justify-end
+                            grid-cols-2
                             gap-2.5
 
+                            sm:flex
                             sm:w-auto
+                            sm:items-center
+                            sm:justify-end
                             sm:gap-3
                         "
                     >
@@ -493,6 +502,8 @@ const UserDetails = () => {
 
                                 inline-flex
                                 h-10
+                                w-full
+                                sm:w-auto
                                 items-center
                                 justify-center
                                 gap-2.5
@@ -505,7 +516,7 @@ const UserDetails = () => {
                                 px-3.5
 
                                 font-sans!
-                                text-[11px]
+                                text-[12px]
                                 font-medium!
                                 whitespace-nowrap
 
@@ -552,6 +563,8 @@ const UserDetails = () => {
 
                                 inline-flex
                                 h-10
+                                w-full
+                                sm:w-auto
                                 items-center
                                 justify-center
                                 gap-2.5
@@ -564,7 +577,7 @@ const UserDetails = () => {
                                 px-4
 
                                 font-sans!
-                                text-[11px]
+                                text-[12px]
                                 font-semibold!
                                 whitespace-nowrap
 

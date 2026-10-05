@@ -54,7 +54,11 @@ import AdminUsers from '@/dashboard/admin/users/Users';
 import AdminAddUser from '@/dashboard/admin/users/AddUser';
 import AdminUserDetails from '@/dashboard/admin/users/UserDetails';
 
+// admin organizations routes
 import AdminOrganizations from '@/dashboard/admin/organizations/Organizations';
+import AdminAddOrganization from '@/dashboard/admin/organizations/AddOrganization';
+import AdminOrganizationsDetails from '@/dashboard/admin/organizations/OrganizationDetails';
+
 import AdminHelpRequests from '@/dashboard/admin/helpRequests/HelpRequests';
 import AdminDonations from '@/dashboard/admin/donations/Donations';
 import AdminVolunteers from '@/dashboard/admin/volunteers/Volunteers';
@@ -301,10 +305,22 @@ const router = createBrowserRouter([
                     },
                     // ========================
 
+                    // admin organizations routes
                     {
                         path: 'organizations',
                         element: <AdminOrganizations />,
                     },
+
+                    {
+                        path: 'organizations/add',
+                        element: <AdminAddOrganization />,
+                    },
+                    {
+                        path: 'organizations/:orgId/details',
+                        element: <AdminOrganizationsDetails />,
+                    },
+                    // ========================
+
                     {
                         path: 'help-requests',
                         element: <AdminHelpRequests />,

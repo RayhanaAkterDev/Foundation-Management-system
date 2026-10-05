@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 
 import DataTable from '@/components/dashboard/DataTable';
+
 import StatusBadge from '@/components/dashboard/StatusBadge';
 
 import {
@@ -22,7 +23,6 @@ import {
 
 const getVerificationState = (row) => {
     const verifiedAt = row?.email_verified_at ?? row?.emailVerifiedAt ?? null;
-
     const verifiedValue = row?.email_verified ?? row?.emailVerified ?? null;
 
     const isVerified =
@@ -110,6 +110,7 @@ const UserAvatar = ({ row, size = 'default' }) => {
      * regardless of whether the account belongs to an individual,
      * organization, or administrator.
      */
+
     const photo =
         typeof row?.photo === 'string' && row.photo.trim()
             ? row.photo.trim()
@@ -119,6 +120,7 @@ const UserAvatar = ({ row, size = 'default' }) => {
      * Only hide the image when this exact URL failed.
      * This avoids requiring an effect to reset the failed state.
      */
+
     const showImage = Boolean(photo) && failedPhoto !== photo;
 
     const dimensionClass = size === 'mobile' ? 'h-10 w-10' : 'h-8 w-8';
@@ -134,10 +136,8 @@ const UserAvatar = ({ row, size = 'default' }) => {
                 ${dimensionClass}
                 shrink-0
                 overflow-hidden
-
                 border
                 border-[#29323E]
-
                 bg-[#151B24]
             `}
         >
@@ -168,10 +168,8 @@ const UserAvatar = ({ row, size = 'default' }) => {
                     <span
                         className={`
                             ${textClass}
-
                             font-semibold!
                             uppercase
-
                             text-[#B8C0CA]
                         `}
                     >
@@ -196,7 +194,6 @@ const VerificationState = ({ row, compact = false }) => {
                 flex
                 min-w-0
                 items-center
-
                 ${compact ? 'gap-1.5' : 'gap-2'}
             `}
         >
@@ -206,9 +203,7 @@ const VerificationState = ({ row, compact = false }) => {
                     shrink-0
                     items-center
                     justify-center
-
                     ${compact ? 'h-5 w-5' : 'h-6 w-6'}
-
                     ${
                         isVerified
                             ? 'border border-[#294438] bg-[#14231D]'
@@ -235,12 +230,9 @@ const VerificationState = ({ row, compact = false }) => {
                 <p
                     className={`
                         truncate
-
                         font-medium!
                         leading-4
-
                         ${compact ? 'text-[10px]' : 'text-[11px]'}
-
                         ${isVerified ? 'text-[#8EC5A3]' : 'text-[#D0AA70]'}
                     `}
                 >
@@ -253,10 +245,8 @@ const VerificationState = ({ row, compact = false }) => {
                             mt-0.5
                             max-w-32.5
                             truncate
-
                             text-[10px]
                             leading-4
-
                             text-[#697586]
                         "
                     >
@@ -289,22 +279,16 @@ const RowActions = ({ row, onView, onDelete, mobile = false }) => {
                         w-9
                         items-center
                         justify-center
-
                         border
                         border-[#29323E]
-
                         bg-[#151B24]
-
                         text-[#AEB7C3]
-
                         transition-[background-color,border-color,color]
                         duration-150
                         ease-out
-
                         hover:border-[#394555]
                         hover:bg-[#1A222D]
                         hover:text-[#EEF1F5]
-
                         focus:outline-none
                         focus:ring-0
                     "
@@ -323,21 +307,15 @@ const RowActions = ({ row, onView, onDelete, mobile = false }) => {
                         w-9
                         items-center
                         justify-center
-
                         border
                         border-transparent
-
                         bg-transparent
-
                         text-[#B4777E]
-
                         transition-[background-color,border-color,color]
                         duration-150
-
                         hover:border-[#493038]
                         hover:bg-[#281A1F]
                         hover:text-[#E1A0A6]
-
                         focus:outline-none
                         focus:ring-0
                     "
@@ -369,21 +347,15 @@ const RowActions = ({ row, onView, onDelete, mobile = false }) => {
                     shrink-0
                     items-center
                     justify-center
-
                     border
                     border-transparent
-
                     bg-transparent
-
                     text-[#8792A1]
-
                     transition-[background-color,border-color,color]
                     duration-150
-
                     hover:border-[#303A47]
                     hover:bg-[#1A222D]
                     hover:text-[#EEF1F5]
-
                     focus:outline-none
                     focus:ring-0
                 "
@@ -403,21 +375,15 @@ const RowActions = ({ row, onView, onDelete, mobile = false }) => {
                     shrink-0
                     items-center
                     justify-center
-
                     border
                     border-transparent
-
                     bg-transparent
-
                     text-[#B4777E]
-
                     transition-[background-color,border-color,color]
                     duration-150
-
                     hover:border-[#493038]
                     hover:bg-[#281A1F]
                     hover:text-[#E1A0A6]
-
                     focus:outline-none
                     focus:ring-0
                 "
@@ -433,239 +399,242 @@ const RowActions = ({ row, onView, onDelete, mobile = false }) => {
 ============================================================================ */
 
 const MobileUserRow = ({ row, onView, onDelete }) => {
+    const { isVerified, methodLabel } = getVerificationState(row);
+
     return (
         <article
             className="
+                group
                 border-b
                 border-[#202832]
-
                 bg-[#0E1219]
-
                 px-4
                 py-4
-
                 transition-colors
                 duration-150
-
                 last:border-b-0
-
-                hover:bg-[#151B24]
+                hover:bg-[#111720]
             "
         >
             {/* =============================================================
-                USER IDENTITY
-            ============================================================= */}
+                PRIMARY USER INFO
+            ============================================================== */}
 
-            <div
-                className="
-                    flex
-                    items-start
-                    justify-between
-                    gap-3
-                "
-            >
+            <div className="flex min-w-0 items-start gap-3">
                 <button
                     type="button"
                     onClick={() => onView(row.id)}
+                    aria-label={`View ${row.name || 'user'}`}
                     className="
+                        flex
                         min-w-0
                         flex-1
-
+                        items-center
+                        gap-3
                         text-left
-
                         focus:outline-none
                         focus:ring-0
                     "
                 >
-                    <div
-                        className="
-                            flex
-                            min-w-0
-                            items-center
-                            gap-3
-                        "
-                    >
-                        <UserAvatar row={row} size="mobile" />
+                    <UserAvatar
+                        row={row}
+                        size="mobile"
+                    />
 
-                        <div className="min-w-0">
-                            <p
-                                className="
-                                    truncate
+                    <div className="min-w-0 flex-1">
+                        <p
+                            title={row.name || 'Unnamed user'}
+                            className="
+                                truncate
+                                text-[14px]
+                                font-semibold!
+                                leading-5
+                                text-[#F1F3F6]
+                            "
+                        >
+                            {row.name || 'Unnamed user'}
+                        </p>
 
-                                    text-[13px]
-                                    font-semibold!
-                                    leading-5
-
-                                    text-[#EEF1F5]
-                                "
-                            >
-                                {row.name || 'Unnamed user'}
-                            </p>
-
-                            <div
-                                className="
-                                    mt-0.5
-
-                                    flex
-                                    min-w-0
-                                    items-center
-                                    gap-1.5
-                                "
-                            >
-                                <Mail
-                                    size={11}
-                                    strokeWidth={1.8}
-                                    className="
-                                        shrink-0
-                                        text-[#697586]
-                                    "
-                                />
-
-                                <p
-                                    className="
-                                        truncate
-
-                                        text-[10px]
-
-                                        text-[#8792A1]
-                                    "
-                                >
-                                    {row.email || '—'}
-                                </p>
-                            </div>
-                        </div>
+                        <p
+                            title={row.email || ''}
+                            className="
+                                mt-0.5
+                                truncate
+                                text-[12px]
+                                leading-[18px]
+                                text-[#7F8A99]
+                            "
+                        >
+                            {row.email || 'No email address'}
+                        </p>
                     </div>
                 </button>
 
-                <RowActions
-                    row={row}
-                    onView={onView}
-                    onDelete={onDelete}
-                    mobile
-                />
+                <div className="-mr-1 shrink-0">
+                    <RowActions
+                        row={row}
+                        onView={onView}
+                        onDelete={onDelete}
+                        mobile
+                    />
+                </div>
             </div>
 
             {/* =============================================================
-                USER META
-            ============================================================= */}
+                META
+            ============================================================== */}
 
             <div
                 className="
-                    mt-4
-
-                    grid
-                    grid-cols-2
-                    gap-x-4
-                    gap-y-3
-
-                    border-t
-                    border-[#202832]
-
-                    pt-3
+                    mt-3
+                    ml-[52px]
+                    flex
+                    min-w-0
+                    flex-wrap
+                    items-center
+                    gap-x-2
+                    gap-y-2
                 "
             >
-                {/* =========================================================
-                    ROLE
-                ========================================================= */}
-
-                <div className="min-w-0">
-                    <p
-                        className="
-                            mb-1.5
-
-                            text-[9px]
-                            font-semibold!
-                            uppercase
-                            tracking-[0.12em]
-
-                            text-[#697586]
-                        "
-                    >
-                        Role
-                    </p>
-
-                    <div
-                        className="
-                            flex
-                            min-w-0
-                            items-center
-                            gap-1.5
-                        "
-                    >
-                        <RoleIcon
-                            role={row.role}
-                            size={13}
-                            strokeWidth={1.8}
-                            className="
-                                shrink-0
-                                text-[#8792A1]
-                            "
-                        />
-
-                        <span
-                            className="
-                                truncate
-
-                                text-[11px]
-                                font-medium!
-
-                                text-[#B8C0CA]
-                            "
-                        >
-                            {getRoleLabel(row.role)}
-                        </span>
-                    </div>
-                </div>
-
-                {/* =========================================================
-                    STATUS
-                ========================================================= */}
-
-                <div className="min-w-0">
-                    <p
-                        className="
-                            mb-1.5
-
-                            text-[9px]
-                            font-semibold!
-                            uppercase
-                            tracking-[0.12em]
-
-                            text-[#697586]
-                        "
-                    >
-                        Status
-                    </p>
-
-                    <StatusBadge status={row.status} />
-                </div>
-
-                {/* =========================================================
-                    VERIFICATION
-                ========================================================= */}
+                {/* ROLE */}
 
                 <div
                     className="
-                        col-span-2
+                        inline-flex
                         min-w-0
+                        max-w-[150px]
+                        items-center
+                        gap-1.5
+                        text-[#AEB7C3]
                     "
                 >
-                    <p
+                    <RoleIcon
+                        role={row.role}
+                        size={13}
+                        strokeWidth={1.8}
+                        className="shrink-0 text-[#737F8F]"
+                    />
+
+                    <span
                         className="
-                            mb-1.5
+                            truncate
+                            text-[11px]
+                            font-medium!
+                            leading-4
+                        "
+                    >
+                        {getRoleLabel(row.role)}
+                    </span>
+                </div>
 
-                            text-[9px]
-                            font-semibold!
-                            uppercase
-                            tracking-[0.12em]
+                {/* SEPARATOR */}
 
+                <span
+                    aria-hidden="true"
+                    className="
+                        h-1
+                        w-1
+                        shrink-0
+                        rounded-full
+                        bg-[#36404C]
+                    "
+                />
+
+                {/* STATUS */}
+
+                <div className="min-w-0 shrink-0">
+                    <StatusBadge status={row.status} />
+                </div>
+            </div>
+
+            {/* =============================================================
+                VERIFICATION
+            ============================================================== */}
+
+            <div
+                className="
+                    mt-3
+                    ml-[52px]
+                    flex
+                    min-w-0
+                    items-center
+                    gap-2
+                    border-t
+                    border-[#1B232D]
+                    pt-2.5
+                "
+            >
+                <span
+                    className={`
+                        flex
+                        h-[18px]
+                        w-[18px]
+                        shrink-0
+                        items-center
+                        justify-center
+                        rounded-full
+                        ${
+                            isVerified
+                                ? 'bg-[#16251E] text-[#8EC5A3]'
+                                : 'bg-[#271F15] text-[#D0AA70]'
+                        }
+                    `}
+                >
+                    {isVerified ? (
+                        <CheckCircle2
+                            size={11}
+                            strokeWidth={2.1}
+                        />
+                    ) : (
+                        <CircleAlert
+                            size={11}
+                            strokeWidth={2.1}
+                        />
+                    )}
+                </span>
+
+                <div className="flex min-w-0 flex-1 items-center gap-1.5">
+                    <span
+                        className={`
+                            shrink-0
+                            text-[11px]
+                            font-medium!
+                            leading-4
+                            ${
+                                isVerified
+                                    ? 'text-[#8EC5A3]'
+                                    : 'text-[#D0AA70]'
+                            }
+                        `}
+                    >
+                        {isVerified ? 'Verified' : 'Not verified'}
+                    </span>
+
+                    <span
+                        aria-hidden="true"
+                        className="text-[10px] text-[#3D4856]"
+                    >
+                        •
+                    </span>
+
+                    <span
+                        title={
+                            isVerified
+                                ? methodLabel || 'Email verification'
+                                : 'Email verification required'
+                        }
+                        className="
+                            min-w-0
+                            truncate
+                            text-[10px]
+                            leading-4
                             text-[#697586]
                         "
                     >
-                        Email verification
-                    </p>
-
-                    <VerificationState row={row} compact />
+                        {isVerified
+                            ? methodLabel || 'Email verification'
+                            : 'Email verification required'}
+                    </span>
                 </div>
             </div>
         </article>
@@ -701,7 +670,6 @@ const Table = ({
                                 text-[11px]
                                 font-medium!
                                 tabular-nums
-
                                 text-[#697586]
                             "
                         >
@@ -740,19 +708,14 @@ const Table = ({
                                         block
                                         max-w-full
                                         truncate
-
                                         text-left
                                         text-[12px]
                                         font-semibold!
                                         leading-5
-
                                         text-[#EEF1F5]
-
                                         transition-colors
                                         duration-150
-
                                         hover:text-[#FFFFFF]
-
                                         focus:outline-none
                                         focus:ring-0
                                     "
@@ -766,10 +729,8 @@ const Table = ({
                                         className="
                                             mt-0.5
                                             truncate
-
                                             text-[10px]
                                             leading-4
-
                                             text-[#697586]
                                         "
                                     >
@@ -795,7 +756,6 @@ const Table = ({
                                 flex
                                 items-center
                                 gap-2
-
                                 whitespace-nowrap
                             "
                         >
@@ -813,7 +773,6 @@ const Table = ({
                                 className="
                                     text-[11px]
                                     font-medium!
-
                                     text-[#B8C0CA]
                                 "
                             >
@@ -885,9 +844,7 @@ const Table = ({
                 min-h-65
                 items-center
                 justify-center
-
                 bg-[#0E1219]
-
                 px-6
                 py-10
             "
@@ -896,16 +853,13 @@ const Table = ({
                 <div
                     className="
                         mx-auto
-
                         flex
                         h-10
                         w-10
                         items-center
                         justify-center
-
                         border
                         border-[#29323E]
-
                         bg-[#151B24]
                     "
                 >
@@ -919,10 +873,8 @@ const Table = ({
                 <p
                     className="
                         mt-3
-
                         text-[13px]
                         font-semibold!
-
                         text-[#EEF1F5]
                     "
                 >
@@ -934,10 +886,8 @@ const Table = ({
                         mx-auto
                         mt-1
                         max-w-57.5
-
                         text-[11px]
                         leading-5
-
                         text-[#697586]
                     "
                 >
@@ -956,7 +906,7 @@ const Table = ({
             <div
                 className="
                     bg-[#0E1219]
-                    sm:hidden
+                    lg:hidden
                 "
             >
                 {rows.length === 0
@@ -980,8 +930,7 @@ const Table = ({
                     hidden
                     min-w-0
                     bg-[#0E1219]
-
-                    sm:block
+                    lg:block
                 "
             >
                 <DataTable

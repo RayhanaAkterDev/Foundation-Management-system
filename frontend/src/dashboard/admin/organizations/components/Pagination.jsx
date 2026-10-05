@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+
 const Pagination = ({
     currentPage,
     totalPages,
@@ -12,7 +14,6 @@ const Pagination = ({
     }
 
     const startItem = (currentPage - 1) * itemsPerPage + 1;
-
     const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
     const pages = Array.from(
@@ -42,14 +43,20 @@ const Pagination = ({
         <nav
             aria-label="Pagination"
             className="
-                bg-background
-                px-4 py-3.5
-                sm:px-5
+                bg-[#121821]
+
+                px-3
+                py-3
+
+                sm:px-4
             "
         >
             <div
                 className="
-                    flex flex-col gap-3
+                    flex
+                    flex-col
+                    gap-3
+
                     sm:flex-row
                     sm:items-center
                     sm:justify-between
@@ -58,39 +65,110 @@ const Pagination = ({
                 {/* Result summary */}
                 <div
                     className="
-                        flex items-center justify-between gap-4
+                        flex
+                        min-w-0
+                        items-center
+                        justify-between
+                        gap-3
+
                         sm:justify-start
                     "
                 >
-                    <p className="text-[12px] leading-5 text-text-secondary">
+                    <p
+                        className="
+                            whitespace-nowrap
+
+                            text-[10px]
+                            leading-5
+
+                            text-[#697586]
+
+                            sm:text-[11px]
+                        "
+                    >
                         Showing{' '}
-                        <span className="font-semibold text-text-primary">
+                        <span
+                            className="
+                                font-semibold!
+                                tabular-nums
+
+                                text-[#B8C0CA]
+                            "
+                        >
                             {startItem}–{endItem}
                         </span>{' '}
                         of{' '}
-                        <span className="font-semibold text-text-primary">
+                        <span
+                            className="
+                                font-semibold!
+                                tabular-nums
+
+                                text-[#B8C0CA]
+                            "
+                        >
                             {totalItems}
                         </span>
                     </p>
 
-                    <span className="hidden h-4 w-px bg-border sm:block" />
+                    <span
+                        aria-hidden="true"
+                        className="
+                            hidden
+                            h-3.5
+                            w-px
 
-                    <p className="hidden text-[11px] text-text-secondary sm:block">
+                            bg-[#303A47]
+
+                            sm:block
+                        "
+                    />
+
+                    <p
+                        className="
+                            hidden
+                            whitespace-nowrap
+
+                            text-[10px]
+
+                            text-[#697586]
+
+                            sm:block
+                        "
+                    >
                         Page{' '}
-                        <span className="font-medium! text-text-primary">
+                        <span
+                            className="
+                                font-medium!
+                                tabular-nums
+
+                                text-[#8792A1]
+                            "
+                        >
                             {currentPage}
                         </span>{' '}
                         of{' '}
-                        <span className="font-medium! text-text-primary">
+                        <span
+                            className="
+                                font-medium!
+                                tabular-nums
+
+                                text-[#8792A1]
+                            "
+                        >
                             {totalPages}
                         </span>
                     </p>
                 </div>
 
-                {/* Pagination controls */}
+                {/* Controls */}
                 <div
                     className="
-                        flex items-center justify-between gap-2
+                        flex
+                        min-w-0
+                        items-center
+                        justify-between
+                        gap-2
+
                         sm:justify-end
                     "
                 >
@@ -99,28 +177,72 @@ const Pagination = ({
                         type="button"
                         onClick={goToPrevious}
                         disabled={currentPage === 1}
+                        aria-label="Previous page"
                         className="
-                            inline-flex h-8 items-center
-                            px-3
-                            text-[11px] font-semibold
-                            text-text-secondary
-                            transition-colors
-                            hover:bg-background-alt
-                            hover:text-text-primary
+                            inline-flex
+                            h-8
+                            shrink-0
+                            items-center
+                            justify-center
+                            gap-1
+
+                            border
+                            border-[#29323E]
+
+                            bg-[#0E1219]
+
+                            px-2.5
+
+                            text-[10px]
+                            font-medium!
+
+                            text-[#8792A1]
+
+                            transition-[background-color,border-color,color]
+                            duration-150
+                            ease-out
+
+                            hover:border-[#394555]
+                            hover:bg-[#151B24]
+                            hover:text-[#EEF1F5]
+
+                            focus:outline-none
+                            focus:ring-0
+
                             disabled:cursor-not-allowed
-                            disabled:opacity-35
+                            disabled:opacity-30
+
+                            disabled:hover:border-[#29323E]
+                            disabled:hover:bg-[#0E1219]
+                            disabled:hover:text-[#8792A1]
+
+                            sm:px-3
                         "
                     >
-                        Previous
+                        <ChevronLeft size={13} strokeWidth={1.8} />
+
+                        <span className="hidden xs:inline sm:inline">
+                            Previous
+                        </span>
                     </button>
 
                     {/* Pages */}
-                    <div className="flex items-center gap-1">
+                    <div
+                        className="
+                            flex
+                            min-w-0
+                            items-center
+                            justify-center
+                            gap-1
+                        "
+                    >
                         {pages.map((page, index) => {
                             const previousPage = pages[index - 1];
 
                             const showEllipsis =
                                 previousPage && page - previousPage > 1;
+
+                            const active = currentPage === page;
 
                             return (
                                 <React.Fragment key={page}>
@@ -128,11 +250,15 @@ const Pagination = ({
                                         <span
                                             aria-hidden="true"
                                             className="
-                                                flex h-8 w-5
+                                                flex
+                                                h-8
+                                                w-4
                                                 items-center
                                                 justify-center
-                                                text-[11px]
-                                                text-text-secondary
+
+                                                text-[10px]
+
+                                                text-[#5E6978]
                                             "
                                         >
                                             …
@@ -142,25 +268,48 @@ const Pagination = ({
                                     <button
                                         type="button"
                                         aria-current={
-                                            currentPage === page
-                                                ? 'page'
-                                                : undefined
+                                            active ? 'page' : undefined
                                         }
                                         aria-label={`Go to page ${page}`}
                                         onClick={() => onPageChange(page)}
                                         className={`
-                                            flex h-8 min-w-8
+                                            flex
+                                            h-8
+                                            min-w-8
                                             items-center
                                             justify-center
-                                            rounded-md
+
+                                            border
+
                                             px-2
-                                            text-[11px]
-                                            font-semibold
-                                            transition-colors
+
+                                            text-[10px]
+                                            font-semibold!
+                                            tabular-nums
+
+                                            transition-[background-color,border-color,color]
+                                            duration-150
+                                            ease-out
+
+                                            focus:outline-none
+                                            focus:ring-0
+
                                             ${
-                                                currentPage === page
-                                                    ? 'bg-primary text-white!'
-                                                    : 'text-text-secondary hover:bg-background-alt hover:text-text-primary'
+                                                active
+                                                    ? `
+                                                        border-[#394555]
+                                                        bg-[#1D2632]
+                                                        text-[#EEF1F5]
+                                                    `
+                                                    : `
+                                                        border-transparent
+                                                        bg-transparent
+                                                        text-[#697586]
+
+                                                        hover:border-[#29323E]
+                                                        hover:bg-[#151B24]
+                                                        hover:text-[#B8C0CA]
+                                                    `
                                             }
                                         `}
                                     >
@@ -176,19 +325,51 @@ const Pagination = ({
                         type="button"
                         onClick={goToNext}
                         disabled={currentPage === totalPages}
+                        aria-label="Next page"
                         className="
-                            inline-flex h-8 items-center
-                            px-3
-                            text-[11px] font-semibold
-                            text-text-secondary
-                            transition-colors
-                            hover:bg-background-alt
-                            hover:text-text-primary
+                            inline-flex
+                            h-8
+                            shrink-0
+                            items-center
+                            justify-center
+                            gap-1
+
+                            border
+                            border-[#29323E]
+
+                            bg-[#0E1219]
+
+                            px-2.5
+
+                            text-[10px]
+                            font-medium!
+
+                            text-[#8792A1]
+
+                            transition-[background-color,border-color,color]
+                            duration-150
+                            ease-out
+
+                            hover:border-[#394555]
+                            hover:bg-[#151B24]
+                            hover:text-[#EEF1F5]
+
+                            focus:outline-none
+                            focus:ring-0
+
                             disabled:cursor-not-allowed
-                            disabled:opacity-35
+                            disabled:opacity-30
+
+                            disabled:hover:border-[#29323E]
+                            disabled:hover:bg-[#0E1219]
+                            disabled:hover:text-[#8792A1]
+
+                            sm:px-3
                         "
                     >
-                        Next
+                        <span className="hidden xs:inline sm:inline">Next</span>
+
+                        <ChevronRight size={13} strokeWidth={1.8} />
                     </button>
                 </div>
             </div>

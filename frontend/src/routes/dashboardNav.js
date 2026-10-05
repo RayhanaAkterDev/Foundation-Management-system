@@ -355,12 +355,7 @@ export const NAV_CONFIG = {
             key: 'users-add',
             label: 'Add User',
             path: '/admin/dashboard/users/add',
-        },
-        {
-            key: 'users-trash',
-            label: 'Trash',
-            path: '/admin/dashboard/users/trash',
-        },
+        }
     ],
 },
 
@@ -375,6 +370,11 @@ export const NAV_CONFIG = {
                     label: 'View All Organizations',
                     path: '/admin/dashboard/organizations',
                 },
+                {
+                    key: 'organizations-add',
+                    label: 'Add Organization',
+                    path: '/admin/dashboard/organizations/add',
+                }
 
                 // Future:
                 // Pending Verification

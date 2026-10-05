@@ -1,12 +1,14 @@
+// src/dashboard/admin/organizations/modals/VerificationModal.jsx
+
 import React from 'react';
 
 import {
-    X,
     Check,
     CircleCheck,
     CircleX,
     Clock3,
-    Building2,
+    ShieldCheck,
+    X,
 } from 'lucide-react';
 
 const VerificationModal = ({
@@ -20,27 +22,21 @@ const VerificationModal = ({
         return null;
     }
 
-    const options = [
-        {
-            status: 'verified',
-            label: 'Verified',
-            icon: CircleCheck,
-        },
-        {
-            status: 'pending',
-            label: 'Pending',
-            icon: Clock3,
-        },
-        {
-            status: 'rejected',
-            label: 'Rejected',
-            icon: CircleX,
-        },
-    ];
+    const initials =
+        organization.name
+            ?.split(/\s+/)
+            .filter(Boolean)
+            .map((part) => part[0])
+            .join('')
+            .slice(0, 2)
+            .toUpperCase() || 'OR';
+
+    const email =
+        organization.user?.email || organization.email || 'No email available';
 
     const formatType = (type) => {
         if (!type) {
-            return 'Type not specified';
+            return 'Organization';
         }
 
         return type
@@ -48,735 +44,755 @@ const VerificationModal = ({
             .replace(/\b\w/g, (letter) => letter.toUpperCase());
     };
 
-    const currentStatus =
-        organization.verification_status?.charAt(0).toUpperCase() +
-            organization.verification_status?.slice(1) || 'Unknown';
+    const currentStatus = organization.verification_status || 'pending';
 
-    const statusStyle = {
-        verified: {
-            dot: 'bg-emerald-400',
-            text: 'text-emerald-700',
-            bg: 'bg-emerald-50',
-            border: 'border-emerald-200',
-            iconBg: 'bg-emerald-100',
-            iconText: 'text-emerald-700',
-            check: 'bg-emerald-600',
+    const isVerified = currentStatus === 'verified';
+
+    const hasRegistrationNumber = Boolean(organization.registration_number);
+
+    const options = [
+        {
+            status: 'verified',
+            label: 'Verified',
+            helper: hasRegistrationNumber
+                ? 'Already verified'
+                : 'Approve & issue number',
+            icon: CircleCheck,
+            active: 'border-[#41614D] bg-[#19251E] text-[#8BB79A]',
+            iconActive: 'bg-[#25372C] text-[#8BB79A]',
+            dot: 'bg-[#75A184]',
         },
-
-        pending: {
-            dot: 'bg-accent',
-            text: 'text-amber-700',
-            bg: 'bg-amber-50',
-            border: 'border-amber-200',
-            iconBg: 'bg-amber-100',
-            iconText: 'text-amber-700',
-            check: 'bg-accent',
+        {
+            status: 'pending',
+            label: 'Pending',
+            helper: 'Keep for review',
+            icon: Clock3,
+            active: 'border-[#594B32] bg-[#241F17] text-[#C7A467]',
+            iconActive: 'bg-[#342C20] text-[#C7A467]',
+            dot: 'bg-[#C09A5B]',
         },
-
-        rejected: {
-            dot: 'bg-rose-400',
-            text: 'text-rose-700',
-            bg: 'bg-rose-50',
-            border: 'border-rose-200',
-            iconBg: 'bg-rose-100',
-            iconText: 'text-rose-700',
-            check: 'bg-rose-600',
+        {
+            status: 'rejected',
+            label: 'Rejected',
+            helper: 'Decline',
+            icon: CircleX,
+            active: 'border-[#5C3940] bg-[#261B1E] text-[#D17B83]',
+            iconActive: 'bg-[#38262A] text-[#D17B83]',
+            dot: 'bg-[#C2636C]',
         },
-    };
+    ];
 
-    const currentStyle = statusStyle[organization.verification_status] || {
-        dot: 'bg-slate-400',
-        text: 'text-text-secondary',
-        bg: 'bg-background-alt',
-        border: 'border-slate-200',
-        iconBg: 'bg-background-alt',
-        iconText: 'text-text-secondary',
-        check: 'bg-slate-500',
+    const currentOption =
+        options.find((option) => option.status === currentStatus) || options[1];
+
+    const handleConfirm = (status) => {
+        /*
+         * A verified organization cannot be moved to another
+         * verification state through this modal.
+         *
+         * Type changes are handled through the organization edit
+         * flow and automatically require re-verification.
+         */
+        if (isVerified && status !== 'verified') {
+            return;
+        }
+
+        /*
+         * Clicking the current verified state is also unnecessary.
+         * The button is disabled below, but keep this guard here
+         * as an additional UI-level protection.
+         */
+        if (status === currentStatus) {
+            return;
+        }
+
+        onConfirm(status);
     };
 
     return (
         <div
             className="
-                fixed inset-0 z-60
-                flex items-center justify-center
+                fixed
+                inset-0
+                z-60
+                flex
+                items-center
+                justify-center
                 overflow-y-auto
-                bg-slate-950/60
-                px-3
-                py-3
-                backdrop-blur-[2px]
-                sm:px-5
-                sm:py-6
+                bg-[#05070A]/80
+                p-4
+                backdrop-blur-[3px]
+                sm:p-6
             "
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="verification-title"
         >
             <div
                 className="
                     relative
                     my-auto
-                    grid
                     w-full
-                    max-w-190
-                    overflow-hidden
-                    rounded-xl
+                    max-w-125
                     border
-                    border-slate-200/90
-                    bg-background
-                    shadow-[0_28px_70px_-24px_rgba(15,23,42,0.48)]
-                    sm:rounded-2xl
-                    sm:grid-cols-[0.88fr_1.12fr]
+                    border-[#303A47]
+                    bg-[#0E1219]
+                    shadow-[0_30px_80px_rgba(0,0,0,0.5)]
                 "
             >
-                {/* =========================================================
-                    CLOSE
-                ========================================================== */}
-                <button
-                    type="button"
-                    onClick={onClose}
-                    disabled={loading}
-                    aria-label="Close verification modal"
-                    className="
-                        absolute
-                        right-3
-                        top-3
-                        z-30
-                        flex
-                        h-8
-                        w-8
-                        items-center
-                        justify-center
-                        rounded-lg
-                        border
-                        border-slate-200/80
-                        bg-white/95
-                        text-slate-500
-                        shadow-sm
-                        transition-all
-                        duration-200
-                        hover:border-slate-300
-                        hover:bg-white
-                        hover:text-slate-800
-                        disabled:pointer-events-none
-                        disabled:opacity-40
-                        sm:right-5
-                        sm:top-5
-                    "
-                >
-                    <X size={15} strokeWidth={1.8} />
-                </button>
+                {/* =====================================================
+                    TOP
+                ====================================================== */}
 
-                {/* =========================================================
-                    LEFT — ORGANIZATION
-                ========================================================== */}
-                <section
+                <div
                     className="
-                        relative
-                        flex
-                        min-h-0
-                        flex-col
-                        overflow-hidden
-                        bg-primary-hover
                         px-5
-                        py-6
-                        sm:min-h-135
-                        sm:px-8
-                        sm:py-9
-                        md:px-9
-                        md:py-10
+                        pt-5
+                        pb-4
+                        sm:px-6
+                        sm:pt-6
                     "
                 >
-                    {/* Background detail */}
                     <div
                         className="
-                            pointer-events-none
-                            absolute
-                            -right-24
-                            -top-24
-                            h-56
-                            w-56
-                            rounded-full
-                            border
-                            border-white/5.5
-                        "
-                    />
-
-                    <div
-                        className="
-                            pointer-events-none
-                            absolute
-                            -bottom-28
-                            -left-20
-                            h-56
-                            w-56
-                            rounded-full
-                            border
-                            border-white/4
-                        "
-                    />
-
-                    {/* Section label */}
-                    <div className="relative flex items-center gap-3">
-                        <span className="h-px w-5 shrink-0 bg-white/30" />
-
-                        <p
-                            className="
-                                font-jost
-                                text-[8px]
-                                font-bold
-                                uppercase
-                                tracking-[0.22em]
-                                text-white!/50
-                            "
-                        >
-                            Organization
-                        </p>
-                    </div>
-
-                    {/* Organization identity */}
-                    <div
-                        className="
-                            relative
-                            mt-9
-                            sm:mt-14
+                            flex
+                            items-start
+                            justify-between
+                            gap-4
                         "
                     >
                         <div
                             className="
                                 flex
-                                h-12
-                                w-12
-                                items-center
-                                justify-center
-                                rounded-[10px]
-                                bg-white
-                                text-primary-hover
-                                shadow-[0_10px_25px_-16px_rgba(0,0,0,0.65)]
-                                sm:h-14
-                                sm:w-14
+                                min-w-0
+                                items-start
+                                gap-3
                             "
                         >
-                            <Building2
-                                size={21}
-                                strokeWidth={1.6}
-                                className="sm:h-5.75 sm:w-5.75"
-                            />
-                        </div>
-
-                        <h2
-                            className="
-                                mt-5
-                                max-w-full
-                                wrap-break-word
-                                font-fraunces
-                                text-[25px]
-                                font-semibold
-                                leading-[1.05]
-                                tracking-[-0.035em]
-                                text-white!
-                                sm:mt-7
-                                sm:max-w-72
-                                sm:text-[32px]
-                            "
-                        >
-                            {organization.name}
-                        </h2>
-
-                        <p
-                            className="
-                                mt-2.5
-                                font-jost
-                                text-[8.5px]
-                                font-semibold
-                                uppercase
-                                tracking-widest
-                                text-white!/45
-                                sm:mt-3
-                                sm:text-[9px]
-                            "
-                        >
-                            {formatType(organization.organization_type)}
-                        </p>
-                    </div>
-
-                    {/* Current status */}
-                    <div
-                        className="
-                            relative
-                            mt-9
-                            sm:mt-auto
-                            sm:pt-16
-                        "
-                    >
-                        <div className="flex items-center gap-3">
-                            <p
+                            <div
                                 className="
-                                    whitespace-nowrap
-                                    font-jost
-                                    text-[7.5px]
-                                    font-bold
-                                    uppercase
-                                    tracking-[0.18em]
-                                    text-white!/40
-                                    sm:text-[8px]
+                                    flex
+                                    h-9
+                                    w-9
+                                    shrink-0
+                                    items-center
+                                    justify-center
+                                    border
+                                    border-[#303A47]
+                                    bg-[#151B24]
+                                    text-[#98A3AF]
                                 "
                             >
-                                Current status
-                            </p>
+                                <ShieldCheck size={16} strokeWidth={1.8} />
+                            </div>
 
-                            <div className="h-px flex-1 bg-white/10" />
-                        </div>
-
-                        <div
-                            className="
-                                mt-2.5
-                                flex
-                                items-center
-                                justify-between
-                                rounded-lg
-                                border
-                                border-white/10
-                                bg-black/8
-                                px-3
-                                py-2.5
-                                sm:mt-3
-                                sm:px-3.5
-                                sm:py-3
-                            "
-                        >
-                            <div className="flex min-w-0 items-center gap-2.5">
-                                <span
-                                    className={`
-                                        h-1.75
-                                        w-1.75
-                                        shrink-0
-                                        rounded-full
-                                        ${currentStyle.dot}
-                                    `}
-                                />
-
-                                <span
+                            <div className="min-w-0">
+                                <p
                                     className="
-                                        truncate
-                                        font-jost
-                                        text-[9.5px]
-                                        font-semibold
-                                        text-white!
-                                        sm:text-[10px]
+                                        text-[10px]
+                                        font-semibold!
+                                        uppercase
+                                        tracking-[0.14em]
+                                        text-[#65717E]
                                     "
                                 >
-                                    {currentStatus}
-                                </span>
-                            </div>
+                                    Verification
+                                </p>
 
-                            <span
-                                className="
-                                    ml-3
-                                    shrink-0
-                                    font-jost
-                                    text-[7px]
-                                    font-semibold
-                                    uppercase
-                                    tracking-[0.14em]
-                                    text-white!/25
-                                "
-                            >
-                                Review
-                            </span>
-                        </div>
-                    </div>
-                </section>
+                                <h2
+                                    id="verification-title"
+                                    className="
+                                        mt-1
+                                        text-[16px]
+                                        font-semibold!
+                                        leading-6
+                                        text-[#EEF1F5]!
+                                    "
+                                >
+                                    Review organization
+                                </h2>
 
-                {/* =========================================================
-                    RIGHT — DECISION
-                ========================================================== */}
-                <section
-                    className="
-                        flex
-                        min-h-0
-                        flex-col
-                        bg-surface-soft
-                        px-5
-                        py-7
-                        sm:min-h-135
-                        sm:px-8
-                        sm:py-9
-                        md:px-9
-                        md:py-10
-                    "
-                >
-                    <div className="flex-1">
-                        {/* Section label */}
-                        <div className="flex items-center gap-3">
-                            <span className="h-px w-5 shrink-0 bg-primary/40" />
-
-                            <p
-                                className="
-                                    font-jost
-                                    text-[8px]
-                                    font-bold
-                                    uppercase
-                                    tracking-[0.22em]
-                                    text-primary
-                                "
-                            >
-                                Decision
-                            </p>
-                        </div>
-
-                        {/* Heading */}
-                        <h3
-                            className="
-                                mt-4
-                                max-w-full
-                                font-fraunces
-                                text-[27px]
-                                font-semibold
-                                leading-[1.06]
-                                tracking-[-0.04em]
-                                text-text-primary
-                                sm:mt-5
-                                sm:max-w-115
-                                sm:text-[33px]
-                            "
-                        >
-                            Choose
-                            <br />
-                            verification
-                            <br />
-                            outcome
-                        </h3>
-
-                        {/* Description */}
-                        <p
-                            className="
-                                mt-4
-                                max-w-full
-                                text-[10.5px]
-                                leading-[1.65]
-                                text-text-secondary
-                                sm:mt-4
-                                sm:max-w-105
-                                sm:text-[11.5px]
-                            "
-                        >
-                            Select the status that best represents the outcome
-                            of your organization review.
-                        </p>
-
-                        {/* =================================================
-                            OPTIONS
-                        ================================================== */}
-                        <div
-                            className="
-                                mt-7
-                                sm:mt-9
-                            "
-                        >
-                            <div
-                                className="
-                                    grid
-                                    grid-cols-3
-                                    overflow-hidden
-                                    rounded-lg
-                                    border
-                                    border-slate-200
-                                    bg-surface
-                                    sm:rounded-xl
-                                "
-                            >
-                                {options.map((option, index) => {
-                                    const Icon = option.icon;
-
-                                    const active =
-                                        organization.verification_status ===
-                                        option.status;
-
-                                    const isVerified =
-                                        option.status === 'verified';
-
-                                    const isPending =
-                                        option.status === 'pending';
-
-                                    const isRejected =
-                                        option.status === 'rejected';
-
-                                    return (
-                                        <button
-                                            key={option.status}
-                                            type="button"
-                                            disabled={loading || active}
-                                            onClick={() =>
-                                                onConfirm(option.status)
-                                            }
-                                            className={`
-                                                group
-                                                relative
-                                                flex
-                                                min-w-0
-                                                flex-col
-                                                items-center
-                                                justify-center
-                                                gap-2
-                                                px-1.5
-                                                py-4
-                                                transition-all
-                                                duration-200
-                                                sm:gap-2.5
-                                                sm:px-2
-                                                sm:py-5.5
-                                                cursor-pointer
-                                                ${
-                                                    index > 0
-                                                        ? 'border-l border-slate-200'
-                                                        : ''
-                                                }
-                                                ${
-                                                    active && isVerified
-                                                        ? 'bg-emerald-50/75 text-emerald-700'
-                                                        : active && isPending
-                                                          ? 'bg-amber-50/75 text-amber-700'
-                                                          : active && isRejected
-                                                            ? 'bg-rose-50/75 text-rose-700'
-                                                            : 'bg-surface text-text-secondary hover:bg-background-alt hover:text-text-primary'
-                                                }
-                                                disabled:cursor-default
-                                            `}
-                                        >
-                                            {/* Active indicator */}
-                                            {active && (
-                                                <span
-                                                    className={`
-                                                        absolute
-                                                        right-1.5
-                                                        top-1.5
-                                                        flex
-                                                        h-3.5
-                                                        w-3.5
-                                                        items-center
-                                                        justify-center
-                                                        rounded-full
-                                                        text-white!
-                                                        sm:right-2
-                                                        sm:top-2
-                                                        sm:h-4
-                                                        sm:w-4
-                                                        ${
-                                                            isVerified
-                                                                ? 'bg-emerald-600'
-                                                                : isPending
-                                                                  ? 'bg-accent'
-                                                                  : 'bg-rose-600'
-                                                        }
-                                                    `}
-                                                >
-                                                    <Check
-                                                        size={7}
-                                                        strokeWidth={3}
-                                                        className="sm:h-2 sm:w-2"
-                                                    />
-                                                </span>
-                                            )}
-
-                                            {/* Icon */}
-                                            <div
-                                                className={`
-                                                    flex
-                                                    h-9
-                                                    w-9
-                                                    items-center
-                                                    justify-center
-                                                    rounded-lg
-                                                    transition-all
-                                                    duration-200
-                                                    sm:h-10
-                                                    sm:w-10
-                                                    ${
-                                                        active && isVerified
-                                                            ? 'bg-emerald-100 text-emerald-700'
-                                                            : active &&
-                                                                isPending
-                                                              ? 'bg-amber-100 text-amber-700'
-                                                              : active &&
-                                                                  isRejected
-                                                                ? 'bg-rose-100 text-rose-700'
-                                                                : 'bg-background-alt text-text-secondary group-hover:bg-background group-hover:text-primary'
-                                                    }
-                                                `}
-                                            >
-                                                <Icon
-                                                    size={16}
-                                                    strokeWidth={
-                                                        active ? 2 : 1.65
-                                                    }
-                                                    className="sm:h-4.25 sm:w-4.25"
-                                                />
-                                            </div>
-
-                                            {/* Label */}
-                                            <span
-                                                className={`
-                                                    truncate
-                                                    text-[9px]
-                                                    font-semibold
-                                                    sm:text-[10.5px]
-                                                    ${
-                                                        active
-                                                            ? 'text-current'
-                                                            : 'text-text-secondary group-hover:text-text-primary'
-                                                    }
-                                                `}
-                                            >
-                                                {option.label}
-                                            </span>
-                                        </button>
-                                    );
-                                })}
+                                <p
+                                    className="
+                                        mt-1
+                                        text-[11.5px]
+                                        leading-5
+                                        text-[#75808D]
+                                    "
+                                >
+                                    Choose the appropriate verification outcome.
+                                </p>
                             </div>
                         </div>
-
-                        {/* Helper text */}
-                        <p
-                            className="
-                                mt-3
-                                max-w-full
-                                text-[9px]
-                                leading-4
-                                text-text-secondary
-                                sm:mt-5
-                                sm:text-[10px]
-                            "
-                        >
-                            The selected verification status will be applied
-                            immediately.
-                        </p>
-
-                        {/* =================================================
-                            ERROR
-                        ================================================== */}
-                        {error && (
-                            <div
-                                className="
-                                    mt-4
-                                    rounded-lg
-                                    border
-                                    border-rose-200
-                                    bg-rose-50/80
-                                    px-3
-                                    py-2.5
-                                    sm:mt-5
-                                    sm:px-4
-                                    sm:py-3
-                                "
-                            >
-                                <div className="flex items-start gap-2.5 sm:gap-3">
-                                    <div
-                                        className="
-                                            flex
-                                            h-6.5
-                                            w-6.5
-                                            shrink-0
-                                            items-center
-                                            justify-center
-                                            rounded-md
-                                            bg-rose-100
-                                            text-rose-600
-                                            sm:h-7
-                                            sm:w-7
-                                        "
-                                    >
-                                        <CircleX
-                                            size={13}
-                                            strokeWidth={2}
-                                            className="sm:h-3.5 sm:w-3.5"
-                                        />
-                                    </div>
-
-                                    <div className="min-w-0">
-                                        <p
-                                            className="
-                                                text-[9.5px]
-                                                font-bold
-                                                text-rose-800
-                                                sm:text-[10.5px]
-                                            "
-                                        >
-                                            Unable to update verification
-                                        </p>
-
-                                        <p
-                                            className="
-                                                mt-1
-                                                wrap-break-word
-                                                text-[9px]
-                                                leading-4
-                                                text-rose-700
-                                                sm:text-[10px]
-                                            "
-                                        >
-                                            {error}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* =====================================================
-                        FOOTER
-                    ====================================================== */}
-                    <div
-                        className="
-                            mt-7
-                            flex
-                            items-center
-                            justify-between
-                            gap-3
-                            border-t
-                            border-slate-200
-                            pt-3.5
-                            sm:mt-9
-                            sm:gap-4
-                            sm:pt-5
-                        "
-                    >
-                        <p
-                            className="
-                                hidden
-                                text-[9.5px]
-                                font-medium!
-                                leading-4
-                                text-text-secondary
-                                xs:block
-                            "
-                        >
-                            Review carefully before changing the status.
-                        </p>
 
                         <button
                             type="button"
                             onClick={onClose}
                             disabled={loading}
+                            aria-label="Close"
                             className="
-                                ml-auto
-                                rounded-lg
-                                px-3
-                                py-2
-                                text-[10px]
-                                font-semibold
-                                text-text-secondary
-                                transition-all
-                                duration-200
-                                hover:bg-background
-                                hover:text-text-primary
+                                flex
+                                h-8
+                                w-8
+                                shrink-0
+                                items-center
+                                justify-center
+                                text-[#65717E]
+                                transition-colors
+                                hover:bg-[#151B24]
+                                hover:text-[#DCE1E7]
                                 disabled:pointer-events-none
-                                disabled:opacity-50
-                                sm:px-4
-                                sm:text-[10.5px]
-                                cursor-pointer
+                                disabled:opacity-40
+                                focus:outline-none
+                                focus:ring-0
                             "
                         >
-                            Cancel
+                            <X size={16} strokeWidth={1.8} />
                         </button>
                     </div>
-                </section>
+                </div>
+
+                {/* =====================================================
+                    ORGANIZATION
+                ====================================================== */}
+
+                <div
+                    className="
+                        mx-5
+                        border-y
+                        border-[#252D38]
+                        py-4
+                        sm:mx-6
+                    "
+                >
+                    <div
+                        className="
+                            flex
+                            min-w-0
+                            items-center
+                            gap-3
+                        "
+                    >
+                        <div
+                            className="
+                                flex
+                                h-10
+                                w-10
+                                shrink-0
+                                items-center
+                                justify-center
+                                bg-[#151B24]
+                                text-[11.5px]
+                                font-semibold!
+                                text-[#C1C8D0]
+                            "
+                        >
+                            {initials}
+                        </div>
+
+                        <div className="min-w-0 flex-1">
+                            <p
+                                className="
+                                    truncate
+                                    text-[12.5px]
+                                    font-semibold!
+                                    text-[#DCE1E7]
+                                "
+                            >
+                                {organization.name}
+                            </p>
+
+                            <div
+                                className="
+                                    mt-1
+                                    flex
+                                    min-w-0
+                                    items-center
+                                    gap-2
+                                "
+                            >
+                                <p
+                                    className="
+                                        min-w-0
+                                        truncate
+                                        text-[10.5px]
+                                        text-[#65717E]
+                                    "
+                                >
+                                    {email}
+                                </p>
+
+                                <span
+                                    className="
+                                        text-[#394451]
+                                    "
+                                >
+                                    •
+                                </span>
+
+                                <span
+                                    className="
+                                        hidden
+                                        shrink-0
+                                        text-[10.5px]
+                                        text-[#65717E]
+                                        sm:block
+                                    "
+                                >
+                                    {formatType(organization.organization_type)}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div
+                            className="
+                                flex
+                                shrink-0
+                                items-center
+                                gap-2
+                            "
+                        >
+                            <span
+                                className={`
+                                    h-1.5
+                                    w-1.5
+                                    rounded-full
+                                    ${currentOption.dot}
+                                `}
+                            />
+
+                            <span
+                                className="
+                                    text-[10.5px]
+                                    font-medium!
+                                    text-[#8A95A2]
+                                "
+                            >
+                                {currentOption.label}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* =====================================================
+                    DECISION
+                ====================================================== */}
+
+                <div
+                    className="
+                        px-5
+                        py-5
+                        sm:px-6
+                    "
+                >
+                    <div
+                        className="
+                            flex
+                            items-center
+                            justify-between
+                            gap-3
+                        "
+                    >
+                        <div>
+                            <p
+                                className="
+                                    text-[11.5px]
+                                    font-semibold!
+                                    text-[#C8CFD7]
+                                "
+                            >
+                                Verification status
+                            </p>
+
+                            <p
+                                className="
+                                    mt-0.5
+                                    text-[10.5px]
+                                    text-[#65717E]
+                                "
+                            >
+                                {isVerified
+                                    ? 'This organization is already verified.'
+                                    : 'Select one outcome'}
+                            </p>
+                        </div>
+
+                        {loading && (
+                            <div
+                                className="
+                                    flex
+                                    items-center
+                                    gap-2
+                                    text-[10px]
+                                    text-[#65717E]
+                                "
+                            >
+                                <span
+                                    className="
+                                        h-3
+                                        w-3
+                                        animate-spin
+                                        rounded-full
+                                        border
+                                        border-[#465261]
+                                        border-t-[#B7C0CA]
+                                    "
+                                />
+                                Updating
+                            </div>
+                        )}
+                    </div>
+
+                    {/* =================================================
+                        VERIFIED INFORMATION
+                    ================================================== */}
+
+                    {isVerified && (
+                        <div
+                            className="
+                                mt-3.5
+                                border-l-2
+                                border-[#41614D]
+                                bg-[#19251E]
+                                px-3
+                                py-2.5
+                            "
+                        >
+                            <p
+                                className="
+                                    text-[10.5px]
+                                    font-semibold!
+                                    leading-5
+                                    text-[#8BB79A]
+                                "
+                            >
+                                Organization already verified
+                            </p>
+
+                            <p
+                                className="
+                                    mt-0.5
+                                    text-[9.5px]
+                                    leading-5
+                                    text-[#758C7E]
+                                "
+                            >
+                                {hasRegistrationNumber
+                                    ? `Registration number ${organization.registration_number} is already active.`
+                                    : 'This organization is verified, but no registration number is currently recorded.'}
+                            </p>
+
+                            <p
+                                className="
+                                    mt-1
+                                    text-[9.5px]
+                                    leading-5
+                                    text-[#758C7E]
+                                "
+                            >
+                                To change the organization type, use the
+                                organization edit process. That will require
+                                re-verification and issuance of a new
+                                registration number.
+                            </p>
+                        </div>
+                    )}
+
+                    {/* =================================================
+                        REGISTRATION INFORMATION
+                    ================================================== */}
+
+                    {!isVerified && currentStatus !== 'verified' && (
+                        <div
+                            className="
+                                    mt-3.5
+                                    border-l-2
+                                    border-[#41614D]
+                                    bg-[#151E19]
+                                    px-3
+                                    py-2.5
+                                "
+                        >
+                            <p
+                                className="
+                                        text-[10.5px]
+                                        font-semibold!
+                                        leading-5
+                                        text-[#8BB79A]
+                                    "
+                            >
+                                Verification will issue an SP registration
+                                number
+                            </p>
+
+                            <p
+                                className="
+                                        mt-0.5
+                                        text-[9.5px]
+                                        leading-5
+                                        text-[#758C7E]
+                                    "
+                            >
+                                When approved, the next available global
+                                registration sequence will be assigned using the
+                                current organization type.
+                            </p>
+                        </div>
+                    )}
+
+                    {/* =================================================
+                        SEGMENTED DECISION
+                    ================================================== */}
+
+                    <div
+                        className="
+                            mt-3.5
+                            grid
+                            grid-cols-1
+                            border
+                            border-[#303A47]
+                            bg-[#0A0E14]
+                            sm:grid-cols-3
+                        "
+                    >
+                        {options.map((option, index) => {
+                            const Icon = option.icon;
+
+                            const active = currentStatus === option.status;
+
+                            /*
+                             * Verified organizations cannot be moved
+                             * to pending/rejected from this modal.
+                             */
+                            const blocked =
+                                isVerified && option.status !== 'verified';
+
+                            const disabled = loading || active || blocked;
+
+                            return (
+                                <button
+                                    key={option.status}
+                                    type="button"
+                                    disabled={disabled}
+                                    onClick={() => handleConfirm(option.status)}
+                                    className={`
+                                        group
+                                        relative
+                                        flex
+                                        min-w-0
+                                        items-center
+                                        gap-2.5
+                                        px-3
+                                        py-3
+                                        text-left
+                                        transition-colors
+                                        duration-150
+                                        focus:outline-none
+                                        focus:ring-0
+                                        sm:flex-col
+                                        sm:items-start
+                                        sm:gap-2
+                                        sm:px-3.5
+                                        sm:py-3.5
+
+                                        ${
+                                            index > 0
+                                                ? `
+                                                    border-t
+                                                    border-[#303A47]
+                                                    sm:border-t-0
+                                                    sm:border-l
+                                                `
+                                                : ''
+                                        }
+
+                                        ${
+                                            active
+                                                ? option.active
+                                                : blocked
+                                                  ? `
+                                                        cursor-not-allowed
+                                                        opacity-35
+                                                        text-[#4B5562]
+                                                    `
+                                                  : `
+                                                        text-[#788491]
+                                                        hover:bg-[#151B24]
+                                                        hover:text-[#D3D9DF]
+                                                    `
+                                        }
+
+                                        ${
+                                            loading
+                                                ? 'cursor-not-allowed opacity-50'
+                                                : active
+                                                  ? 'cursor-default'
+                                                  : blocked
+                                                    ? 'cursor-not-allowed'
+                                                    : 'cursor-pointer'
+                                        }
+                                    `}
+                                >
+                                    <div
+                                        className="
+                                            flex
+                                            w-full
+                                            items-center
+                                            justify-between
+                                            gap-2
+                                        "
+                                    >
+                                        <div
+                                            className={`
+                                                flex
+                                                h-7
+                                                w-7
+                                                items-center
+                                                justify-center
+
+                                                ${
+                                                    active
+                                                        ? option.iconActive
+                                                        : `
+                                                            bg-[#151B24]
+                                                            text-[#687482]
+                                                            group-hover:text-[#AEB7C3]
+                                                        `
+                                                }
+                                            `}
+                                        >
+                                            <Icon size={14} strokeWidth={1.8} />
+                                        </div>
+
+                                        {active && (
+                                            <Check
+                                                size={13}
+                                                strokeWidth={2.2}
+                                                className="
+                                                    text-current
+                                                "
+                                            />
+                                        )}
+                                    </div>
+
+                                    <div className="min-w-0">
+                                        <p
+                                            className="
+                                                text-[11.5px]
+                                                font-semibold!
+                                            "
+                                        >
+                                            {option.label}
+                                        </p>
+
+                                        <p
+                                            className={`
+                                                mt-0.5
+                                                text-[9.5px]
+
+                                                ${
+                                                    active
+                                                        ? 'text-current opacity-65'
+                                                        : blocked
+                                                          ? 'text-[#4B5562]'
+                                                          : 'text-[#56616E]'
+                                                }
+                                            `}
+                                        >
+                                            {active
+                                                ? 'Current status'
+                                                : blocked
+                                                  ? 'Not available'
+                                                  : option.helper}
+                                        </p>
+                                    </div>
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    {/* =================================================
+                        ERROR
+                    ================================================== */}
+
+                    {error && (
+                        <div
+                            role="alert"
+                            className="
+                                mt-3.5
+                                border-l-2
+                                border-[#A8444D]
+                                bg-[#21171A]
+                                px-3
+                                py-2.5
+                            "
+                        >
+                            <p
+                                className="
+                                    text-[10.5px]
+                                    font-medium!
+                                    leading-5
+                                    text-[#D07880]
+                                "
+                            >
+                                {error}
+                            </p>
+                        </div>
+                    )}
+                </div>
+
+                {/* =====================================================
+                    FOOTER
+                ====================================================== */}
+
+                <div
+                    className="
+                        flex
+                        items-center
+                        justify-between
+                        gap-4
+                        border-t
+                        border-[#252D38]
+                        bg-[#0C1016]
+                        px-5
+                        py-3
+                        sm:px-6
+                    "
+                >
+                    <p
+                        className="
+                            hidden
+                            text-[9.5px]
+                            text-[#56616E]
+                            sm:block
+                        "
+                    >
+                        Status changes are applied immediately.
+                    </p>
+
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        disabled={loading}
+                        className="
+                            ml-auto
+                            h-8.5
+                            px-3.5
+                            text-[10.5px]
+                            font-semibold!
+                            text-[#8F9AA6]
+                            transition-colors
+                            hover:bg-[#151B24]
+                            hover:text-[#EEF1F5]
+                            disabled:pointer-events-none
+                            disabled:opacity-50
+                            focus:outline-none
+                            focus:ring-0
+                        "
+                    >
+                        Cancel
+                    </button>
+                </div>
             </div>
         </div>
     );

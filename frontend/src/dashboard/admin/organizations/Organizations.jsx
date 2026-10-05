@@ -1,4 +1,7 @@
+// src/dashboard/admin/organizations/Organizations.jsx
+
 import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import {
     Plus,
@@ -21,15 +24,10 @@ import Pagination from './components/Pagination';
 import SuccessToast from './components/SuccessToast';
 
 import VerificationModal from './modals/VerificationModal';
-import FormModal from './modals/FormModal';
-import ViewModal from './modals/ViewModal';
 import DeleteModal from './modals/DeleteModal';
 
 import {
     fetchOrganizations,
-    fetchOrganization,
-    createOrganization,
-    updateOrganization,
     updateOrganizationVerification,
     deleteOrganization,
 } from './api/organizationApi';
@@ -37,6 +35,8 @@ import {
 const ORGANIZATIONS_PER_PAGE = 25;
 
 const Organizations = () => {
+    const navigate = useNavigate();
+
     const [organizations, setOrganizations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -59,14 +59,6 @@ const Organizations = () => {
     const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
     // ============================================================
-    // VIEW ORGANIZATION
-    // ============================================================
-
-    const [selectedOrganization, setSelectedOrganization] = useState(null);
-    const [viewLoading, setViewLoading] = useState(false);
-    const [viewError, setViewError] = useState('');
-
-    // ============================================================
     // REVIEW / VERIFICATION ORGANIZATION
     // ============================================================
 
@@ -75,26 +67,6 @@ const Organizations = () => {
 
     const [reviewLoading, setReviewLoading] = useState(false);
     const [reviewError, setReviewError] = useState('');
-
-    // ============================================================
-    // ADD ORGANIZATION
-    // ============================================================
-
-    const [showAddModal, setShowAddModal] = useState(false);
-    const [addLoading, setAddLoading] = useState(false);
-    const [addError, setAddError] = useState('');
-    const [addFieldErrors, setAddFieldErrors] = useState({});
-
-    // ============================================================
-    // EDIT ORGANIZATION
-    // ============================================================
-
-    const [selectedEditOrganization, setSelectedEditOrganization] =
-        useState(null);
-
-    const [editLoading, setEditLoading] = useState(false);
-    const [editError, setEditError] = useState('');
-    const [editFieldErrors, setEditFieldErrors] = useState({});
 
     // ============================================================
     // DELETE ORGANIZATION
@@ -156,13 +128,11 @@ const Organizations = () => {
 
         const loadInitialOrganizations = async () => {
             try {
-                setLoading(true);
-                setError('');
-
                 const data = await fetchOrganizations();
 
                 if (!cancelled) {
                     setOrganizations(data.organizations || []);
+                    setError('');
                 }
             } catch (err) {
                 if (!cancelled) {
@@ -186,32 +156,23 @@ const Organizations = () => {
     }, []);
 
     // ============================================================
-    // VIEW ORGANIZATION
+    // PAGE NAVIGATION
     // ============================================================
 
-    const handleViewOrganization = async (organizationId) => {
-        setViewLoading(true);
-        setViewError('');
-        setSelectedOrganization(null);
-
-        try {
-            const data = await fetchOrganization(organizationId);
-
-            setSelectedOrganization(data.organization);
-        } catch (err) {
-            setViewError(err.message || 'Unable to load organization.');
-        } finally {
-            setViewLoading(false);
-        }
+    const handleAddOrganization = () => {
+        navigate('/admin/dashboard/organizations/add');
     };
 
-    const closeViewModal = () => {
-        if (viewLoading) {
-            return;
-        }
+    const handleViewOrganization = (organizationId) => {
+        navigate(`/admin/dashboard/organizations/${organizationId}`);
+    };
 
-        setSelectedOrganization(null);
-        setViewError('');
+    const handleEditOrganization = (organizationId) => {
+        navigate(`/admin/dashboard/organizations/${organizationId}`, {
+            state: {
+                edit: true,
+            },
+        });
     };
 
     // ============================================================
@@ -263,122 +224,6 @@ const Organizations = () => {
             );
         } finally {
             setReviewLoading(false);
-        }
-    };
-
-    // ============================================================
-    // ADD ORGANIZATION
-    // ============================================================
-
-    const openAddModal = () => {
-        setAddError('');
-        setAddFieldErrors({});
-        setShowAddModal(true);
-    };
-
-    const closeAddModal = () => {
-        if (addLoading) {
-            return;
-        }
-
-        setShowAddModal(false);
-        setAddError('');
-        setAddFieldErrors({});
-    };
-
-    const handleAddOrganization = async (formData) => {
-        setAddLoading(true);
-        setAddError('');
-        setAddFieldErrors({});
-
-        try {
-            await createOrganization(formData);
-
-            setShowAddModal(false);
-
-            await loadOrganizations();
-
-            setCurrentPage(1);
-
-            showSuccessToast('Organization added successfully.');
-        } catch (err) {
-            if (err.status === 422 && err.errors) {
-                setAddFieldErrors(err.errors);
-            }
-
-            setAddError(err.message || 'Unable to create organization.');
-        } finally {
-            setAddLoading(false);
-        }
-    };
-
-    // ============================================================
-    // EDIT ORGANIZATION
-    // ============================================================
-
-    const openEditModal = async (organizationId) => {
-        setEditLoading(true);
-        setEditError('');
-        setEditFieldErrors({});
-        setSelectedEditOrganization(null);
-
-        try {
-            const data = await fetchOrganization(organizationId);
-            const organization = data.organization;
-
-            if (organization?.verification_status === 'rejected') {
-                setEditError('Rejected organizations cannot be edited.');
-                return;
-            }
-
-            setSelectedEditOrganization(organization);
-        } catch (err) {
-            setEditError(err.message || 'Unable to load organization.');
-        } finally {
-            setEditLoading(false);
-        }
-    };
-
-    const closeEditModal = () => {
-        if (editLoading) {
-            return;
-        }
-
-        setSelectedEditOrganization(null);
-        setEditError('');
-        setEditFieldErrors({});
-    };
-
-    const handleEditOrganization = async (formData) => {
-        if (!selectedEditOrganization) {
-            return;
-        }
-
-        if (selectedEditOrganization.verification_status === 'rejected') {
-            setEditError('Rejected organizations cannot be edited.');
-            return;
-        }
-
-        setEditLoading(true);
-        setEditError('');
-        setEditFieldErrors({});
-
-        try {
-            await updateOrganization(selectedEditOrganization.id, formData);
-
-            setSelectedEditOrganization(null);
-
-            await loadOrganizations();
-
-            showSuccessToast('Organization updated successfully.');
-        } catch (err) {
-            if (err.status === 422 && err.errors) {
-                setEditFieldErrors(err.errors);
-            }
-
-            setEditError(err.message || 'Unable to update organization.');
-        } finally {
-            setEditLoading(false);
         }
     };
 
@@ -530,9 +375,12 @@ const Organizations = () => {
         if (search) {
             result = result.filter((organization) => {
                 const name = organization.name?.toLowerCase() || '';
+
                 const email = organization.user?.email?.toLowerCase() || '';
+
                 const registrationNumber =
                     organization.registration_number?.toLowerCase() || '';
+
                 const type =
                     organization.organization_type?.toLowerCase() || '';
 
@@ -551,6 +399,7 @@ const Organizations = () => {
 
         result.sort((firstOrganization, secondOrganization) => {
             let first = firstOrganization[sortConfig.key];
+
             let second = secondOrganization[sortConfig.key];
 
             if (sortConfig.key === 'created_at') {
@@ -916,12 +765,13 @@ const Organizations = () => {
                                         group-hover:text-[#EEF1F5]
                                     "
                                 />
+
                                 <span>Export CSV</span>
                             </button>
 
                             <button
                                 type="button"
-                                onClick={openAddModal}
+                                onClick={handleAddOrganization}
                                 className="
                                     inline-flex
                                     h-10
@@ -939,6 +789,7 @@ const Organizations = () => {
                                 "
                             >
                                 <Plus size={17} strokeWidth={2} />
+
                                 <span>Add Organization</span>
                             </button>
                         </div>
@@ -1112,8 +963,8 @@ const Organizations = () => {
                             grid
                             items-stretch
                             gap-6
-        xl:grid-cols-[minmax(0,1fr)_300px]
-        2xl:grid-cols-[minmax(0,1fr)_320px]
+                            xl:grid-cols-[minmax(0,1fr)_300px]
+                            2xl:grid-cols-[minmax(0,1fr)_320px]
                         "
                     >
                         {/* ==================================================
@@ -1295,24 +1146,24 @@ const Organizations = () => {
 
                             {/* TABLE */}
 
-<div
-    className="
-        min-h-0
-        min-w-0
-        flex-1
+                            <div
+                                className="
+                                    min-h-0
+                                    min-w-0
+                                    flex-1
 
-        overflow-auto
+                                    overflow-auto
 
-        bg-[#0E1219]
+                                    bg-[#0E1219]
 
-        [&::-webkit-scrollbar]:h-1.5
-        [&::-webkit-scrollbar]:w-1.5
-        [&::-webkit-scrollbar-track]:bg-[#0A0E14]
-        [&::-webkit-scrollbar-thumb]:bg-[#303A47]
-        hover:[&::-webkit-scrollbar-thumb]:bg-[#465261]
-    "
->
-    <Table
+                                    [&::-webkit-scrollbar]:h-1.5
+                                    [&::-webkit-scrollbar]:w-1.5
+                                    [&::-webkit-scrollbar-track]:bg-[#0A0E14]
+                                    [&::-webkit-scrollbar-thumb]:bg-[#303A47]
+                                    hover:[&::-webkit-scrollbar-thumb]:bg-[#465261]
+                                "
+                            >
+                                <Table
                                     columns={columns}
                                     rows={rows}
                                     onSort={handleSort}
@@ -1320,7 +1171,7 @@ const Organizations = () => {
                                     resultCount={filteredOrganizations.length}
                                     onView={handleViewOrganization}
                                     onReview={handleReviewOrganization}
-                                    onEdit={openEditModal}
+                                    onEdit={handleEditOrganization}
                                     onDelete={openDeleteModal}
                                 />
                             </div>
@@ -1397,11 +1248,11 @@ const Organizations = () => {
 
                             <div
                                 className="
-        border-t
-        border-[#252D38]
-        px-3
-        py-4
-    "
+                                    border-t
+                                    border-[#252D38]
+                                    px-3
+                                    py-4
+                                "
                             >
                                 <div className="mb-3 flex items-center justify-between px-1">
                                     <p
@@ -1464,37 +1315,37 @@ const Organizations = () => {
 
                     <div
                         className="
-        absolute
-        bottom-0
-        left-0
-        right-0
+                            absolute
+                            bottom-0
+                            left-0
+                            right-0
 
-        max-h-[85vh]
-        overflow-y-auto
+                            max-h-[85vh]
+                            overflow-y-auto
 
-        border-t
-        border-[#252D38]
+                            border-t
+                            border-[#252D38]
 
-        bg-[#0E1219]
+                            bg-[#0E1219]
 
-        shadow-[0_-20px_60px_rgba(0,0,0,0.45)]
+                            shadow-[0_-20px_60px_rgba(0,0,0,0.45)]
 
-        sm:bottom-0
-        sm:left-auto
-        sm:right-0
-        sm:top-0
+                            sm:bottom-0
+                            sm:left-auto
+                            sm:right-0
+                            sm:top-0
 
-        sm:h-full
-        sm:max-h-none
-        sm:w-[340px]
+                            sm:h-full
+                            sm:max-h-none
+                            sm:w-[340px]
 
-        md:w-[360px]
+                            md:w-[360px]
 
-        lg:w-[380px]
+                            lg:w-[380px]
 
-        sm:border-l
-        sm:border-t-0
-    "
+                            sm:border-l
+                            sm:border-t-0
+                        "
                     >
                         <div
                             className="
@@ -1689,14 +1540,11 @@ const Organizations = () => {
                 </div>
             )}
 
-            <SuccessToast show={toast.show} message={toast.message} />
+            {/* ========================================================
+                FEEDBACK / MODALS
+            ======================================================== */}
 
-            <ViewModal
-                organization={selectedOrganization}
-                loading={viewLoading}
-                error={viewError}
-                onClose={closeViewModal}
-            />
+            <SuccessToast show={toast.show} message={toast.message} />
 
             <VerificationModal
                 organization={selectedReviewOrganization}
@@ -1705,125 +1553,6 @@ const Organizations = () => {
                 onClose={closeReviewModal}
                 onConfirm={handleVerificationChange}
             />
-
-            <FormModal
-                key={showAddModal ? 'add-open' : 'add-closed'}
-                mode="add"
-                open={showAddModal}
-                loading={addLoading}
-                error={addError}
-                fieldErrors={addFieldErrors}
-                onClose={closeAddModal}
-                onSubmit={handleAddOrganization}
-            />
-
-            <FormModal
-                key={selectedEditOrganization?.id || 'edit-organization'}
-                mode="edit"
-                open={Boolean(selectedEditOrganization)}
-                loading={editLoading}
-                error={editError}
-                fieldErrors={editFieldErrors}
-                organization={selectedEditOrganization}
-                onClose={closeEditModal}
-                onSubmit={handleEditOrganization}
-            />
-
-            {editLoading && !selectedEditOrganization && (
-                <div
-                    className="
-                        fixed
-                        inset-0
-                        z-50
-                        flex
-                        items-center
-                        justify-center
-                        bg-black/30
-                        p-4
-                    "
-                >
-                    <div
-                        className="
-                            w-full
-                            max-w-sm
-                            border
-                            border-[#252D38]
-                            bg-[#0E1219]
-                            px-6
-                            py-5
-                        "
-                    >
-                        <div className="flex items-center gap-3">
-                            <div
-                                className="
-                                    h-5
-                                    w-5
-                                    animate-spin
-                                    rounded-full
-                                    border-2
-                                    border-[#252D38]
-                                    border-t-[#84909F]
-                                "
-                            />
-
-                            <p className="text-[13px] font-semibold! text-[#EEF1F5]">
-                                Loading organization details...
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {editError && !selectedEditOrganization && !editLoading && (
-                <div
-                    className="
-                            fixed
-                            inset-0
-                            z-50
-                            flex
-                            items-center
-                            justify-center
-                            bg-black/30
-                            p-4
-                        "
-                >
-                    <div
-                        className="
-                                w-full
-                                max-w-sm
-                                border
-                                border-[#252D38]
-                                bg-[#0E1219]
-                                p-6
-                            "
-                    >
-                        <p className="text-[13px] font-semibold! text-[#EEF1F5]">
-                            Unable to edit organization
-                        </p>
-
-                        <p className="mt-2 text-xs leading-5 text-[#8792A1]">
-                            {editError}
-                        </p>
-
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setEditError('');
-                            }}
-                            className="
-                                    mt-5
-                                    text-xs
-                                    font-semibold!
-                                    text-[#AEB7C3]
-                                    transition-colors
-                                    hover:text-[#EEF1F5]
-                                "
-                        >
-                            Close
-                        </button>
-                    </div>
-                </div>
-            )}
 
             <DeleteModal
                 organization={selectedDeleteOrganization}

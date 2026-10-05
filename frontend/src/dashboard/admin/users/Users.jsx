@@ -1377,7 +1377,7 @@ const Users = () => {
                                         resultCount={filteredUsers.length}
                                         onView={(userId) =>
                                             navigate(
-                                                `/admin/dashboard/users/${userId}/details`,
+                                                `/admin/dashboard/users/${userId}`,
                                             )
                                         }
                                         onDelete={openDeleteModal}

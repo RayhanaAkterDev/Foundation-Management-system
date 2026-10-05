@@ -39,4 +39,11 @@ class Organization extends Model
     {
         return $this->hasMany(Campaign::class);
     }
+
+    public function registrationNumbers(): HasMany
+    {
+        return $this->hasMany(
+            OrganizationRegistrationNumber::class
+        );
+    }
 }

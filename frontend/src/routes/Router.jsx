@@ -300,7 +300,7 @@ const router = createBrowserRouter([
                         element: <AdminAddUser />,
                     },
                     {
-                        path: 'users/:userId/details',
+                        path: 'users/:userId',
                         element: <AdminUserDetails />,
                     },
                     // ========================
@@ -316,7 +316,7 @@ const router = createBrowserRouter([
                         element: <AdminAddOrganization />,
                     },
                     {
-                        path: 'organizations/:orgId/details',
+                        path: 'organizations/:organizationId',
                         element: <AdminOrganizationsDetails />,
                     },
                     // ========================

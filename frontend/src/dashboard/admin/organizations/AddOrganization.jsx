@@ -86,7 +86,7 @@ const DetailRow = ({
                 <Icon size={14} strokeWidth={1.65} />
             </div>
 
-            <div className="min-w-0 pt-0.5">
+            <div className="min-w-0 flex-1 pt-0.5">
                 <p
                     className="
                         font-sans!
@@ -96,7 +96,7 @@ const DetailRow = ({
                         uppercase
                         tracking-[0.14em]
 
-                        text-[#697586]!
+                        text-[#697586]
                     "
                 >
                     {label}
@@ -131,13 +131,9 @@ const AddOrganization = () => {
     const navigate = useNavigate();
 
     const [loading, setLoading] = useState(false);
-
     const [error, setError] = useState('');
-
     const [fieldErrors, setFieldErrors] = useState({});
-
     const [successMessage, setSuccessMessage] = useState('');
-
     const [formResetKey, setFormResetKey] = useState(0);
 
     const [formPreview, setFormPreview] = useState({
@@ -157,9 +153,7 @@ const AddOrganization = () => {
             setSuccessMessage('');
         }, 4000);
 
-        return () => {
-            window.clearTimeout(timer);
-        };
+        return () => window.clearTimeout(timer);
     }, [successMessage]);
 
     /* ======================================================================
@@ -203,11 +197,6 @@ const AddOrganization = () => {
                 ...EMPTY_PREVIEW,
             });
 
-            /*
-             * Remount OrganizationForm after successful creation.
-             * This resets its internal form state without calling
-             * setState synchronously inside an effect.
-             */
             setFormResetKey((previous) => previous + 1);
         } catch (err) {
             if (err.status === 422 && err.errors) {
@@ -221,29 +210,43 @@ const AddOrganization = () => {
     };
 
     /* ======================================================================
-       PREVIEW VALUES
+       PREVIEW DATA
     ====================================================================== */
 
     const name = formPreview.name?.trim();
 
     const displayName = name || 'New organization';
 
-    const initial = name ? name.charAt(0).toUpperCase() : 'O';
+    const initial = name ? name.charAt(0).toUpperCase() : null;
 
     const organizationType = formPreview.organization_type
         ? formatType(formPreview.organization_type)
-        : 'Not selected';
+        : 'No organization type selected';
 
-    const email = formPreview.email?.trim() || 'Not provided';
+    const email = formPreview.email?.trim() || 'Not entered yet';
 
     const registrationNumber =
-        formPreview.registration_number?.trim() || 'Not provided';
+        formPreview.registration_number?.trim() || 'Not entered yet';
 
-    const phone = formPreview.phone?.trim() || 'Not provided';
+    const phone = formPreview.phone?.trim() || 'Not entered yet';
 
-    const website = formPreview.website?.trim() || 'Not provided';
+    const website = formPreview.website?.trim() || 'Not entered yet';
 
-    const address = formPreview.address?.trim() || 'Not provided';
+    const address = formPreview.address?.trim() || 'Not entered yet';
+
+    const completedFields = [
+        formPreview.name,
+        formPreview.email,
+        formPreview.organization_type,
+        formPreview.registration_number,
+        formPreview.phone,
+        formPreview.website,
+        formPreview.address,
+    ].filter((value) => value?.trim?.() || value).length;
+
+    const totalPreviewFields = 7;
+
+    const completionPercentage = (completedFields / totalPreviewFields) * 100;
 
     /* ======================================================================
        UI
@@ -252,59 +255,50 @@ const AddOrganization = () => {
     return (
         <div
             className="
-                min-h-full
-                min-w-0
-
-                bg-[#0A0E14]
-
+                space-y-10
                 font-sans!
-                text-[#EEF1F5]
+
+                lg:space-y-12
             "
         >
-            {/* =============================================================
-                SUCCESS TOAST
-            ============================================================== */}
-
-            <SuccessToast
-                show={Boolean(successMessage)}
-                message={successMessage}
-            />
-
             {/* =============================================================
                 PAGE HEADER
             ============================================================== */}
 
             <PageHeader
-                eyebrow="Organization management"
-                title="Add organization"
-                description="Create a new organization profile and add its essential account, registration and contact information."
-                actions={
+                title="Add Organization"
+                subtitle="Create and configure a new organization profile for the Stand For People platform."
+                action={
                     <button
                         type="button"
                         onClick={handleBack}
                         disabled={loading}
                         className="
+                            group
+
                             inline-flex
-                            h-9
+                            h-10
                             items-center
                             justify-center
-                            gap-2
+                            gap-2.5
 
                             border
-                            border-[#303A47]
+                            border-[#29323E]
 
-                            bg-[#151B24]
+                            bg-[#0E1219]
 
                             px-3.5
 
                             font-sans!
-                            text-[10.5px]
+                            text-[11px]
                             font-medium!
+                            whitespace-nowrap
 
                             text-[#AEB7C3]!
 
                             transition-[background-color,border-color,color]
                             duration-150
+                            ease-out
 
                             hover:border-[#394555]
                             hover:bg-[#1A222D]
@@ -317,7 +311,20 @@ const AddOrganization = () => {
                             focus:ring-0
                         "
                     >
-                        <ArrowLeft size={14} strokeWidth={1.8} />
+                        <ArrowLeft
+                            size={14}
+                            strokeWidth={1.8}
+                            className="
+                                shrink-0
+                                text-[#697586]
+
+                                transition-[transform,color]
+                                duration-150
+
+                                group-hover:-translate-x-0.5
+                                group-hover:text-[#AEB7C3]
+                            "
+                        />
 
                         <span>Back to organizations</span>
                     </button>
@@ -325,124 +332,438 @@ const AddOrganization = () => {
             />
 
             {/* =============================================================
-                CONTENT
+                SUCCESS
+            ============================================================== */}
+
+            <SuccessToast
+                show={Boolean(successMessage)}
+                message={successMessage}
+            />
+
+            {/* =============================================================
+                WORKSPACE
             ============================================================== */}
 
             <section
                 className="
-                    min-w-0
+                    overflow-hidden
 
-                    px-4
-                    pb-8
-                    pt-5
+                    border
+                    border-[#252D38]
 
-                    sm:px-5
-                    sm:pb-10
-                    sm:pt-6
-
-                    md:px-6
-
-                    lg:px-7
-                    lg:pb-12
-
-                    xl:px-8
-
-                    2xl:px-10
+                    bg-[#0E1219]
                 "
             >
-                <div
+                {/* =========================================================
+                    WORKSPACE HEADER
+                ========================================================== */}
+
+                <header
                     className="
-                        mx-auto
-                        grid
-                        w-full
-                        max-w-[1500px]
-                        min-w-0
-                        gap-5
+                        relative
 
-                        lg:grid-cols-[270px_minmax(0,1fr)]
-                        lg:items-start
-                        lg:gap-6
+                        border-b
+                        border-[#252D38]
 
-                        xl:grid-cols-[290px_minmax(0,1fr)]
-                        xl:gap-7
+                        bg-[#1A222D]
+
+                        px-6
+                        py-7
+
+                        sm:px-7
+                        sm:py-8
+
+                        lg:px-8
+                        lg:py-8
+
+                        xl:px-10
+                        xl:py-9
                     "
                 >
-                    {/* =====================================================
-                        LEFT — PREVIEW / CONTEXT
-                    ====================================================== */}
-
-                    <aside
+                    <span
+                        aria-hidden="true"
                         className="
-                            min-w-0
+                            absolute
+                            bottom-0
+                            left-0
+                            top-0
 
-                            border
-                            border-[#252D38]
+                            w-[2px]
 
-                            bg-[#0E1219]
+                            bg-[#697586]
+                        "
+                    />
 
-                            lg:sticky
-                            lg:top-6
+                    <div
+                        className="
+                            flex
+                            flex-col
+                            gap-7
+
+                            sm:flex-row
+                            sm:items-center
+                            sm:justify-between
+                            sm:gap-10
+
+                            lg:gap-12
                         "
                     >
-                        {/* PROFILE */}
+                        {/* LEFT */}
+
+                        <div className="min-w-0 flex-1">
+                            <div
+                                className="
+                                    flex
+                                    items-center
+                                    gap-3.5
+                                "
+                            >
+                                <div
+                                    className="
+                                        flex
+                                        h-9
+                                        w-9
+                                        shrink-0
+                                        items-center
+                                        justify-center
+
+                                        border
+                                        border-[#303A47]
+
+                                        bg-[#151B24]
+
+                                        text-[#8792A1]
+                                    "
+                                >
+                                    <Building2 size={15} strokeWidth={1.8} />
+                                </div>
+
+                                <div
+                                    className="
+                                        flex
+                                        min-w-0
+                                        flex-wrap
+                                        items-center
+                                        gap-x-2.5
+                                        gap-y-1
+                                    "
+                                >
+                                    <span
+                                        className="
+                                            font-sans!
+
+                                            text-[9px]
+                                            font-semibold!
+                                            uppercase
+                                            tracking-[0.16em]
+
+                                            text-[#8792A1]
+                                        "
+                                    >
+                                        Organization directory
+                                    </span>
+
+                                    <span
+                                        aria-hidden="true"
+                                        className="
+                                            h-1
+                                            w-1
+                                            shrink-0
+                                            rounded-full
+
+                                            bg-[#4B5869]
+                                        "
+                                    />
+
+                                    <span
+                                        className="
+                                            font-sans!
+
+                                            text-[9px]
+                                            font-medium!
+                                            uppercase
+                                            tracking-[0.12em]
+
+                                            text-[#697586]
+                                        "
+                                    >
+                                        New profile
+                                    </span>
+                                </div>
+                            </div>
+
+                            <h2
+                                className="
+                                    mt-5
+
+                                    font-sans!
+
+                                    text-[18px]
+                                    font-semibold!
+                                    leading-[1.3]
+                                    tracking-[-0.02em]
+
+                                    text-[#EEF1F5]!
+
+                                    sm:text-[19px]
+                                "
+                            >
+                                Create a new organization
+                            </h2>
+
+                            <p
+                                className="
+                                    mt-2.5
+                                    max-w-[650px]
+
+                                    font-sans!
+
+                                    text-[11px]
+                                    font-normal!
+                                    leading-[1.75]
+
+                                    text-[#8792A1]!
+
+                                    sm:text-[11.5px]
+                                "
+                            >
+                                Enter the organization&apos;s identity,
+                                registration and contact information before
+                                adding it to the organization directory.
+                            </p>
+                        </div>
+
+                        {/* RIGHT */}
 
                         <div
                             className="
-                                border-b
-                                border-[#252D38]
+                                flex
+                                shrink-0
+                                items-center
+                                gap-3.5
 
-                                px-5
-                                py-6
+                                border-t
+                                border-[#303A47]
 
-                                sm:px-6
+                                pt-5
 
-                                lg:px-5
-                                lg:py-7
+                                sm:border-l
+                                sm:border-t-0
+                                sm:pl-7
+                                sm:pt-0
 
-                                xl:px-6
+                                lg:pl-8
                             "
                         >
                             <div
                                 className="
                                     flex
-                                    items-start
-                                    gap-4
+                                    h-9
+                                    w-9
+                                    shrink-0
+                                    items-center
+                                    justify-center
 
-                                    lg:block
+                                    border
+                                    border-[#303A47]
+
+                                    bg-[#151B24]
+
+                                    text-[#8792A1]
+                                "
+                            >
+                                <Check size={14} strokeWidth={2} />
+                            </div>
+
+                            <div className="min-w-0">
+                                <p
+                                    className="
+                                        font-sans!
+
+                                        text-[9px]
+                                        font-semibold!
+                                        uppercase
+                                        tracking-[0.13em]
+
+                                        text-[#697586]
+                                    "
+                                >
+                                    Form guide
+                                </p>
+
+                                <p
+                                    className="
+                                        mt-1.5
+
+                                        font-sans!
+
+                                        text-[10px]
+                                        font-normal!
+
+                                        text-[#8792A1]
+                                    "
+                                >
+                                    Required fields are marked *
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                {/* =========================================================
+                    BODY
+                ========================================================== */}
+
+                <div
+                    className="
+                        grid
+                        min-w-0
+
+                        lg:grid-cols-[310px_minmax(0,1fr)]
+                        xl:grid-cols-[330px_minmax(0,1fr)]
+                    "
+                >
+                    {/* =====================================================
+                        LIVE PREVIEW
+                    ====================================================== */}
+
+                    <aside
+                        className="
+                            hidden
+
+                            border-[#252D38]
+
+                            bg-[#0E1219]
+
+                            lg:block
+                            lg:border-r
+                        "
+                    >
+                        <div
+                            className="
+                                flex
+                                h-full
+                                min-h-[760px]
+                                flex-col
+
+                                px-7
+                                py-9
+
+                                xl:px-8
+                                xl:py-10
+                            "
+                        >
+                            {/* =============================================
+                                PREVIEW LABEL
+                            ============================================== */}
+
+                            <div
+                                className="
+                                    flex
+                                    items-center
+                                    justify-between
+                                    gap-4
                                 "
                             >
                                 <div
                                     className="
-                                        relative
-                                        shrink-0
+                                        flex
+                                        min-w-0
+                                        items-center
+                                        gap-3
                                     "
                                 >
-                                    <div
+                                    <span
+                                        aria-hidden="true"
                                         className="
-                                            flex
-                                            h-14
-                                            w-14
-                                            items-center
-                                            justify-center
+                                            h-[2px]
+                                            w-4
+                                            shrink-0
 
-                                            border
-                                            border-[#303A47]
+                                            bg-[#697586]
+                                        "
+                                    />
 
-                                            bg-[#151B24]
+                                    <p
+                                        className="
+                                            truncate
 
                                             font-sans!
-                                            text-[18px]
+
+                                            text-[9px]
                                             font-semibold!
+                                            uppercase
+                                            tracking-[0.16em]
 
-                                            text-[#DCE1E7]!
-
-                                            lg:h-16
-                                            lg:w-16
-                                            lg:text-[20px]
+                                            text-[#8792A1]
                                         "
                                     >
-                                        {initial}
-                                    </div>
+                                        Organization preview
+                                    </p>
+                                </div>
+
+                                <span
+                                    className="
+                                        shrink-0
+
+                                        font-sans!
+
+                                        text-[9px]
+                                        font-medium!
+                                        tabular-nums
+
+                                        text-[#697586]
+                                    "
+                                >
+                                    {completedFields}/{totalPreviewFields}
+                                </span>
+                            </div>
+
+                            {/* =============================================
+                                IDENTITY
+                            ============================================== */}
+
+                            <div className="mt-10">
+                                <div
+                                    className={`
+                                        relative
+
+                                        flex
+                                        h-[68px]
+                                        w-[68px]
+                                        items-center
+                                        justify-center
+
+                                        border
+
+                                        font-sans!
+                                        text-[20px]
+                                        font-semibold!
+
+                                        transition-[background-color,border-color,color]
+                                        duration-200
+
+                                        ${
+                                            name
+                                                ? `
+                                                    border-[#394555]
+                                                    bg-[#1A222D]
+                                                    text-[#EEF1F5]
+                                                `
+                                                : `
+                                                    border-[#29323E]
+                                                    bg-[#151B24]
+                                                    text-[#697586]
+                                                `
+                                        }
+                                    `}
+                                >
+                                    {initial || (
+                                        <Building2
+                                            size={22}
+                                            strokeWidth={1.5}
+                                        />
+                                    )}
 
                                     {name && (
                                         <span
@@ -465,353 +786,294 @@ const AddOrganization = () => {
                                                 text-[#DCE1E7]
                                             "
                                         >
-                                            <Check size={10} strokeWidth={2} />
+                                            <Check
+                                                size={10}
+                                                strokeWidth={2.4}
+                                            />
                                         </span>
                                     )}
                                 </div>
 
+                                <h2
+                                    className={`
+                                        mt-6
+                                        truncate
+
+                                        font-sans!
+
+                                        text-[18px]
+                                        font-semibold!
+                                        leading-[1.3]
+                                        tracking-[-0.02em]
+
+                                        ${
+                                            name
+                                                ? 'text-[#EEF1F5]!'
+                                                : 'text-[#697586]!'
+                                        }
+                                    `}
+                                    title={displayName}
+                                >
+                                    {displayName}
+                                </h2>
+
                                 <div
                                     className="
-                                        min-w-0
-                                        flex-1
+                                        mt-3.5
 
-                                        lg:mt-5
+                                        flex
+                                        min-w-0
+                                        items-center
+                                        gap-2.5
                                     "
                                 >
-                                    <p
-                                        className="
-                                            font-sans!
-                                            text-[9px]
-                                            font-semibold!
-                                            uppercase
-                                            tracking-[0.16em]
+                                    <Building2
+                                        size={14}
+                                        strokeWidth={1.7}
+                                        className={
+                                            formPreview.organization_type
+                                                ? 'shrink-0 text-[#A6AFBB]'
+                                                : 'shrink-0 text-[#5E6978]'
+                                        }
+                                    />
 
-                                            text-[#697586]!
-                                        "
-                                    >
-                                        Organization preview
-                                    </p>
-
-                                    <h2
-                                        className="
-                                            mt-2
+                                    <span
+                                        className={`
                                             truncate
 
                                             font-sans!
-                                            text-[16px]
-                                            font-semibold!
-                                            leading-6
-                                            tracking-[-0.015em]
 
-                                            text-[#EEF1F5]!
+                                            text-[11px]
+                                            font-medium!
 
-                                            sm:text-[17px]
-                                        "
-                                        title={displayName}
+                                            ${
+                                                formPreview.organization_type
+                                                    ? 'text-[#AEB7C3]'
+                                                    : 'text-[#5E6978]'
+                                            }
+                                        `}
                                     >
-                                        {displayName}
-                                    </h2>
+                                        {organizationType}
+                                    </span>
+                                </div>
+                            </div>
 
+                            {/* =============================================
+                                ORGANIZATION DETAILS
+                            ============================================== */}
+
+                            <div
+                                className="
+                                    mt-10
+                                    space-y-6
+
+                                    border-t
+                                    border-[#252D38]
+
+                                    pt-8
+                                "
+                            >
+                                <DetailRow
+                                    icon={Mail}
+                                    label="Email"
+                                    value={email}
+                                    muted={!formPreview.email?.trim()}
+                                />
+
+                                <DetailRow
+                                    icon={FileText}
+                                    label="Registration"
+                                    value={registrationNumber}
+                                    muted={
+                                        !formPreview.registration_number?.trim()
+                                    }
+                                />
+
+                                <DetailRow
+                                    icon={Phone}
+                                    label="Phone"
+                                    value={phone}
+                                    muted={!formPreview.phone?.trim()}
+                                />
+
+                                <DetailRow
+                                    icon={Globe}
+                                    label="Website"
+                                    value={website}
+                                    muted={!formPreview.website?.trim()}
+                                />
+
+                                <DetailRow
+                                    icon={MapPin}
+                                    label="Address"
+                                    value={address}
+                                    muted={!formPreview.address?.trim()}
+                                    breakWords
+                                />
+                            </div>
+
+                            {/* =============================================
+                                COMPLETION
+                            ============================================== */}
+
+                            <div
+                                className="
+                                    mt-10
+
+                                    border-t
+                                    border-[#252D38]
+
+                                    pt-8
+                                "
+                            >
+                                <div
+                                    className="
+                                        flex
+                                        items-center
+                                        justify-between
+                                        gap-4
+                                    "
+                                >
+                                    <span
+                                        className="
+                                            font-sans!
+
+                                            text-[10px]
+                                            font-normal!
+
+                                            text-[#697586]
+                                        "
+                                    >
+                                        Details completed
+                                    </span>
+
+                                    <span
+                                        className="
+                                            font-sans!
+
+                                            text-[10px]
+                                            font-semibold!
+                                            tabular-nums
+
+                                            text-[#AEB7C3]
+                                        "
+                                    >
+                                        {completedFields}/{totalPreviewFields}
+                                    </span>
+                                </div>
+
+                                <div
+                                    className="
+                                        mt-3.5
+                                        h-[3px]
+
+                                        overflow-hidden
+
+                                        bg-[#202832]
+                                    "
+                                >
                                     <div
                                         className="
-                                            mt-2.5
+                                            h-full
+
+                                            bg-[#697586]
+
+                                            transition-[width]
+                                            duration-300
+                                            ease-out
+                                        "
+                                        style={{
+                                            width: `${completionPercentage}%`,
+                                        }}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* =============================================
+                                FOOTER NOTE
+                            ============================================== */}
+
+                            <div
+                                className="
+                                    mt-auto
+                                    pt-12
+                                "
+                            >
+                                <div
+                                    className="
+                                        border-t
+                                        border-[#252D38]
+
+                                        pt-7
+                                    "
+                                >
+                                    <div
+                                        className="
                                             flex
-                                            min-w-0
-                                            items-center
-                                            gap-2
+                                            items-start
+                                            gap-3.5
                                         "
                                     >
-                                        <Building2
-                                            size={12}
-                                            strokeWidth={1.7}
+                                        <ShieldCheck
+                                            size={15}
+                                            strokeWidth={1.6}
                                             className="
+                                                mt-0.5
                                                 shrink-0
+
                                                 text-[#697586]
                                             "
                                         />
 
-                                        <span
-                                            className={`
-                                                truncate
+                                        <p
+                                            className="
+                                                max-w-[225px]
 
                                                 font-sans!
-                                                text-[10.5px]
-                                                font-medium!
 
-                                                ${
-                                                    formPreview.organization_type
-                                                        ? 'text-[#AEB7C3]!'
-                                                        : 'text-[#5E6978]!'
-                                                }
-                                            `}
+                                                text-[10px]
+                                                font-normal!
+                                                leading-[1.75]
+
+                                                text-[#697586]
+                                            "
                                         >
-                                            {organizationType}
-                                        </span>
+                                            Verification can be reviewed after
+                                            this organization has been created.
+                                        </p>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* DETAILS */}
-
-                        <div
-                            className="
-                                grid
-                                grid-cols-1
-                                gap-5
-
-                                px-5
-                                py-6
-
-                                sm:grid-cols-2
-                                sm:px-6
-
-                                md:grid-cols-3
-
-                                lg:grid-cols-1
-                                lg:px-5
-                                lg:py-7
-
-                                xl:px-6
-                            "
-                        >
-                            <DetailRow
-                                icon={Mail}
-                                label="Email"
-                                value={email}
-                                muted={!formPreview.email?.trim()}
-                            />
-
-                            <DetailRow
-                                icon={FileText}
-                                label="Registration"
-                                value={registrationNumber}
-                                muted={!formPreview.registration_number?.trim()}
-                            />
-
-                            <DetailRow
-                                icon={Phone}
-                                label="Phone"
-                                value={phone}
-                                muted={!formPreview.phone?.trim()}
-                            />
-
-                            <DetailRow
-                                icon={Globe}
-                                label="Website"
-                                value={website}
-                                muted={!formPreview.website?.trim()}
-                            />
-
-                            <DetailRow
-                                icon={MapPin}
-                                label="Address"
-                                value={address}
-                                muted={!formPreview.address?.trim()}
-                                breakWords
-                            />
-                        </div>
-
-                        {/* STATUS */}
-
-                        <div
-                            className="
-                                border-t
-                                border-[#252D38]
-
-                                bg-[#121821]
-
-                                px-5
-                                py-5
-
-                                sm:px-6
-
-                                lg:px-5
-
-                                xl:px-6
-                            "
-                        >
-                            <div
-                                className="
-                                    flex
-                                    items-start
-                                    gap-3
-                                "
-                            >
-                                <ShieldCheck
-                                    size={15}
-                                    strokeWidth={1.7}
-                                    className="
-                                        mt-0.5
-                                        shrink-0
-                                        text-[#697586]
-                                    "
-                                />
-
-                                <div className="min-w-0">
-                                    <p
-                                        className="
-                                            font-sans!
-                                            text-[10.5px]
-                                            font-semibold!
-
-                                            text-[#B8C0CA]!
-                                        "
-                                    >
-                                        New organization
-                                    </p>
-
-                                    <p
-                                        className="
-                                            mt-1
-
-                                            font-sans!
-                                            text-[10.5px]
-                                            font-normal!
-                                            leading-[1.65]
-
-                                            text-[#697586]!
-                                        "
-                                    >
-                                        Verification can be reviewed from the
-                                        organization management area after
-                                        creation.
-                                    </p>
                                 </div>
                             </div>
                         </div>
                     </aside>
 
                     {/* =====================================================
-                        RIGHT — FORM
+                        FORM
                     ====================================================== */}
 
                     <main
                         className="
                             min-w-0
-
-                            border
-                            border-[#252D38]
-
                             bg-[#0E1219]
                         "
                     >
-                        {/* FORM HEADER */}
-
-                        <div
-                            className="
-                                border-b
-                                border-[#252D38]
-
-                                px-5
-                                py-6
-
-                                sm:px-7
-                                sm:py-7
-
-                                lg:px-9
-                                lg:py-8
-
-                                xl:px-11
-                            "
-                        >
-                            <div
-                                className="
-                                    flex
-                                    items-start
-                                    gap-3.5
-                                "
-                            >
-                                <div
-                                    className="
-                                        flex
-                                        h-9
-                                        w-9
-                                        shrink-0
-                                        items-center
-                                        justify-center
-
-                                        border
-                                        border-[#303A47]
-
-                                        bg-[#151B24]
-
-                                        text-[#8792A1]
-                                    "
-                                >
-                                    <Building2 size={16} strokeWidth={1.7} />
-                                </div>
-
-                                <div className="min-w-0">
-                                    <p
-                                        className="
-                                            font-sans!
-                                            text-[9px]
-                                            font-semibold!
-                                            uppercase
-                                            tracking-[0.16em]
-
-                                            text-[#697586]!
-                                        "
-                                    >
-                                        Profile setup
-                                    </p>
-
-                                    <h2
-                                        className="
-                                            mt-1.5
-
-                                            font-sans!
-                                            text-[16px]
-                                            font-semibold!
-                                            leading-6
-                                            tracking-[-0.015em]
-
-                                            text-[#EEF1F5]!
-
-                                            sm:text-[17px]
-                                        "
-                                    >
-                                        Organization information
-                                    </h2>
-
-                                    <p
-                                        className="
-                                            mt-1.5
-                                            max-w-2xl
-
-                                            font-sans!
-                                            text-[11px]
-                                            font-normal!
-                                            leading-[1.7]
-
-                                            text-[#697586]!
-                                        "
-                                    >
-                                        Enter the organization&apos;s identity,
-                                        registration and contact information.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* FORM */}
-
                         <div
                             className="
                                 min-w-0
 
-                                px-5
-                                py-7
+                                px-6
+                                py-9
 
                                 sm:px-7
-                                sm:py-8
+                                sm:py-10
 
                                 lg:px-9
-                                lg:py-9
+                                lg:py-11
 
                                 xl:px-11
-                                xl:py-10
+                                xl:py-12
+
+                                2xl:px-12
                             "
                         >
                             <div

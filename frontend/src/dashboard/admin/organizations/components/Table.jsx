@@ -962,6 +962,7 @@ const Table = ({
                     onSort={onSort}
                     getSortIcon={getSortIcon}
                     resultCount={resultCount}
+                    resizableColumns
                     empty={{
                         icon: Building2,
                         title: 'No organizations found',

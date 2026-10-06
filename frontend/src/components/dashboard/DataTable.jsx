@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 
 import { ChevronsUpDown } from 'lucide-react';
 
@@ -32,6 +32,18 @@ const getContentAlignmentClass = (align) => {
     return 'justify-start';
 };
 
+const getPixelWidth = (width) => {
+    if (typeof width === 'number') {
+        return width;
+    }
+
+    if (typeof width === 'string' && /^\d+(\.\d+)?px$/.test(width.trim())) {
+        return Number.parseFloat(width);
+    }
+
+    return null;
+};
+
 /* ==========================================================================
    DATA TABLE
 ============================================================================ */
@@ -43,10 +55,144 @@ const DataTable = ({
     empty,
     onSort,
     getSortIcon,
+
+    /* Resizing stays optional for shared DataTable usage */
+    resizableColumns = false,
+
+    minColumnWidth = 80,
+    maxColumnWidth = 520,
 }) => {
-    const gridTemplate = columns
-        .map((column) => column.width || 'minmax(0, 1fr)')
-        .join(' ');
+    const [columnWidths, setColumnWidths] = useState({});
+    const resizeCleanupRef = useRef(null);
+
+    /* ======================================================================
+       GRID TEMPLATE
+    ====================================================================== */
+
+    const gridTemplate = useMemo(() => {
+        return columns
+            .map((column) => {
+                const resizedWidth = columnWidths[column.key];
+
+                if (resizableColumns && typeof resizedWidth === 'number') {
+                    return `${resizedWidth}px`;
+                }
+
+                return column.width || 'minmax(0, 1fr)';
+            })
+            .join(' ');
+    }, [columns, columnWidths, resizableColumns]);
+
+    /* ======================================================================
+       START COLUMN RESIZE
+    ====================================================================== */
+
+    const startResize = (event, column) => {
+        if (!resizableColumns || column.resizable === false) {
+            return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        /*
+         * Remove any previous resize listeners first.
+         */
+        resizeCleanupRef.current?.();
+
+        const headerElement = event.currentTarget.parentElement;
+
+        if (!headerElement) {
+            return;
+        }
+
+        const startX = event.clientX;
+        const startWidth = headerElement.getBoundingClientRect().width;
+
+        const minimum =
+            typeof column.minWidth === 'number'
+                ? column.minWidth
+                : minColumnWidth;
+
+        const maximum =
+            typeof column.maxWidth === 'number'
+                ? column.maxWidth
+                : maxColumnWidth;
+
+        const columnKey = column.key;
+
+        const handlePointerMove = (moveEvent) => {
+            const difference = moveEvent.clientX - startX;
+
+            const nextWidth = Math.min(
+                Math.max(startWidth + difference, minimum),
+                maximum,
+            );
+
+            setColumnWidths((currentWidths) => ({
+                ...currentWidths,
+                [columnKey]: Math.round(nextWidth),
+            }));
+        };
+
+        const cleanup = () => {
+            window.removeEventListener('pointermove', handlePointerMove);
+
+            window.removeEventListener('pointerup', handlePointerUp);
+
+            window.removeEventListener('pointercancel', handlePointerUp);
+
+            resizeCleanupRef.current = null;
+        };
+
+        function handlePointerUp() {
+            cleanup();
+        }
+
+        resizeCleanupRef.current = cleanup;
+
+        window.addEventListener('pointermove', handlePointerMove);
+
+        window.addEventListener('pointerup', handlePointerUp);
+
+        window.addEventListener('pointercancel', handlePointerUp);
+    };
+
+    /* ======================================================================
+       RESET COLUMN WIDTH
+    ====================================================================== */
+
+    const resetColumnWidth = (event, column) => {
+        if (!resizableColumns || column.resizable === false) {
+            return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        const originalWidth = getPixelWidth(column.width);
+
+        setColumnWidths((currentWidths) => {
+            const nextWidths = {
+                ...currentWidths,
+            };
+
+            /*
+             * If the original column used a fixed pixel width,
+             * restore it.
+             *
+             * Otherwise remove the manual resize and let the
+             * original CSS grid width take control again.
+             */
+            if (originalWidth !== null) {
+                nextWidths[column.key] = originalWidth;
+            } else {
+                delete nextWidths[column.key];
+            }
+
+            return nextWidths;
+        });
+    };
 
     /* ======================================================================
        EMPTY STATE
@@ -100,7 +246,7 @@ const DataTable = ({
         >
             {/* =============================================================
                 COLUMN HEADER
-            ============================================================= */}
+            ============================================================== */}
 
             <div
                 role="row"
@@ -130,25 +276,32 @@ const DataTable = ({
             >
                 {columns.map((column) => {
                     const sortable = Boolean(column.sortable && onSort);
+
                     const sortKey = column.sortKey || column.key;
+
+                    const canResize =
+                        resizableColumns && column.resizable !== false;
 
                     return (
                         <div
                             key={column.key}
                             role="columnheader"
                             className={`
-                                min-w-0
-                                px-2
+        relative
+        min-w-0
+        border-x first:border-0 last:border-0
+        border-[#252D38]
+        px-2
 
-                                text-[9px]
-                                font-semibold!
-                                uppercase
-                                tracking-[0.13em]
+        text-[9px]
+        font-semibold!
+        uppercase
+        tracking-[0.13em]
 
-                                text-[#697586]
+        text-[#697586]
 
-                                ${getAlignmentClass(column.align)}
-                            `}
+        ${getAlignmentClass(column.align)}
+    `}
                         >
                             {sortable ? (
                                 <button
@@ -231,6 +384,64 @@ const DataTable = ({
                                     {column.header}
                                 </span>
                             )}
+
+                            {/* =============================================
+                                RESIZE HANDLE
+                            ============================================== */}
+
+                            {canResize && (
+                                <div
+                                    role="separator"
+                                    aria-orientation="vertical"
+                                    aria-label={`Resize ${column.header} column`}
+                                    title="Drag to resize · Double-click to reset"
+                                    onPointerDown={(event) =>
+                                        startResize(event, column)
+                                    }
+                                    onDoubleClick={(event) =>
+                                        resetColumnWidth(event, column)
+                                    }
+                                    className="
+                                        group/resize
+
+                                        absolute
+                                        top-0
+                                        -right-1
+                                        z-20
+
+                                        h-full
+                                        w-2
+
+                                        cursor-col-resize
+                                        touch-none
+                                        select-none
+                                    "
+                                >
+                                    <span
+                                        className="
+                                            absolute
+                                            top-1/2
+                                            right-0.75
+
+                                            h-5
+                                            w-px
+
+                                            -translate-y-1/2
+
+                                            bg-[#303A47]
+
+                                            opacity-0
+
+                                            transition-[height,background-color,opacity]
+                                            duration-150
+
+                                            group-hover/resize:h-7
+                                            group-hover/resize:bg-[#697586]
+                                            group-hover/resize:opacity-100
+                                        "
+                                    />
+                                </div>
+                            )}
                         </div>
                     );
                 })}
@@ -238,7 +449,7 @@ const DataTable = ({
 
             {/* =============================================================
                 TABLE DATA ROWS
-            ============================================================= */}
+            ============================================================== */}
 
             <div role="rowgroup">
                 {rows.map((row, rowIndex) => (

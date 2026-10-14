@@ -65,8 +65,8 @@ const EditUserView = ({
                 <div
                     className="
                         grid
-                        lg:grid-cols-[270px_minmax(0,1fr)]
-                        xl:grid-cols-[290px_minmax(0,1fr)]
+                        lg:grid-cols-[290px_minmax(0,1fr)]
+                        xl:grid-cols-[315px_minmax(0,1fr)]
                     "
                 >
                     {/* =================================================
@@ -79,7 +79,7 @@ const EditUserView = ({
                             overflow-hidden
                             border-b
                             border-[#252D38]
-                            bg-[#0E1219]
+                            bg-[#1A222D]
                             lg:border-r
                             lg:border-b-0
                         "
@@ -105,15 +105,15 @@ const EditUserView = ({
                                 flex
                                 h-full
                                 flex-col
-                                px-5
-                                py-5
-                                sm:px-6
-                                sm:py-6
+                                px-6
+                                py-7
+                                sm:px-7
+                                sm:py-8
                                 lg:min-h-[640px]
-                                lg:px-7
-                                lg:py-8
-                                xl:px-8
-                                xl:py-9
+                                lg:px-8
+                                lg:py-10
+                                xl:px-9
+                                xl:py-11
                             "
                         >
                             {/* =========================================
@@ -159,12 +159,12 @@ const EditUserView = ({
                                     <span
                                         className="
                                             font-sans!
-                                            text-[8.5px]
+                                            text-[10px]
                                             font-semibold!
                                             uppercase
                                             tracking-[0.16em]
                                             text-[#8792A1]!
-                                            sm:text-[9px]
+                                            sm:text-[10.5px]
                                         "
                                     >
                                         Editing
@@ -175,12 +175,12 @@ const EditUserView = ({
                                     className="
                                         shrink-0
                                         font-sans!
-                                        text-[8.5px]
+                                        text-[10px]
                                         font-medium!
                                         uppercase
                                         tracking-[0.1em]
                                         text-[#5E6978]!
-                                        sm:text-[9px]
+                                        sm:text-[10.5px]
                                     "
                                 >
                                     {roleLabel}
@@ -193,13 +193,13 @@ const EditUserView = ({
 
                             <div
                                 className="
-                                    mt-6
+                                    mt-8
                                     flex
                                     min-w-0
                                     items-center
                                     gap-4
-                                    sm:mt-7
-                                    lg:mt-8
+                                    sm:mt-9
+                                    lg:mt-10
                                     lg:block
                                 "
                             >
@@ -265,7 +265,7 @@ const EditUserView = ({
                                     className="
                                         min-w-0
                                         flex-1
-                                        lg:mt-5
+                                        lg:mt-6
                                     "
                                 >
                                     <h2
@@ -290,11 +290,11 @@ const EditUserView = ({
                                             mt-1.5
                                             truncate
                                             font-sans!
-                                            text-[10.5px]
+                                            text-[12px]
                                             font-normal!
                                             leading-5
                                             text-[#8792A1]!
-                                            sm:text-[11px]
+                                            sm:text-[12.5px]
                                             lg:mt-2
                                         "
                                     >
@@ -309,25 +309,25 @@ const EditUserView = ({
 
                             <div
                                 className="
-                                    mt-6
+                                    mt-8
                                     border-t
                                     border-[#252D38]
-                                    pt-5
-                                    sm:mt-7
-                                    sm:pt-6
-                                    lg:mt-8
-                                    lg:pt-7
+                                    pt-7
+                                    sm:mt-9
+                                    sm:pt-7
+                                    lg:mt-10
+                                    lg:pt-8
                                 "
                             >
                                 <p
                                     className="
                                         font-sans!
-                                        text-[8.5px]
+                                        text-[10px]
                                         font-semibold!
                                         uppercase
                                         tracking-[0.14em]
                                         text-[#697586]!
-                                        sm:text-[9px]
+                                        sm:text-[10.5px]
                                     "
                                 >
                                     Platform access
@@ -335,7 +335,7 @@ const EditUserView = ({
 
                                 <div
                                     className="
-                                        mt-3.5
+                                        mt-4.5
                                         flex
                                         items-center
                                         justify-between
@@ -372,10 +372,10 @@ const EditUserView = ({
                                             className="
                                                 truncate
                                                 font-sans!
-                                                text-[11px]
+                                                text-[12.5px]
                                                 font-medium!
                                                 text-[#B8C0CA]!
-                                                sm:text-[11.5px]
+                                                sm:text-[13px]
                                             "
                                         >
                                             {statusLabel}
@@ -386,12 +386,12 @@ const EditUserView = ({
                                         className="
                                             shrink-0
                                             font-sans!
-                                            text-[8px]
+                                            text-[10px]
                                             font-medium!
                                             uppercase
                                             tracking-[0.11em]
                                             text-[#5E6978]!
-                                            sm:text-[8.5px]
+                                            sm:text-[10px]
                                         "
                                     >
                                         Current
@@ -405,12 +405,12 @@ const EditUserView = ({
 
                             <div
                                 className="
-                                    mt-6
+                                    mt-8
                                     border-t
-                                    border-[#252D38]
+                                    border-[#0E1219]
                                     pt-4
                                     sm:mt-7
-                                    sm:pt-5
+                                    sm:pt-12
                                     lg:mt-auto
                                 "
                             >
@@ -434,11 +434,11 @@ const EditUserView = ({
                                     <span
                                         className="
                                             font-sans!
-                                            text-[9px]
+                                            text-[10.5px]
                                             font-normal!
                                             leading-[1.6]
                                             text-[#5E6978]!
-                                            sm:text-[9.5px]
+                                            sm:text-[11px]
                                         "
                                     >
                                         Administrative account management
@@ -455,16 +455,16 @@ const EditUserView = ({
                     <main
                         className="
                             min-w-0
-                            bg-[#151A21]
-                            px-5
-                            py-6
-                            sm:px-6
-                            sm:py-7
-                            lg:px-9
-                            lg:py-9
-                            xl:px-10
-                            xl:py-10
-                            2xl:px-11
+                            bg-[#0E1219]
+                            px-6
+                            py-8
+                            sm:px-8
+                            sm:py-9
+                            lg:px-10
+                            lg:py-11
+                            xl:px-12
+                            xl:py-12
+                            2xl:px-14
                         "
                     >
                         <div className="mx-auto w-full">
@@ -474,33 +474,33 @@ const EditUserView = ({
 
                             <div
                                 className="
-                                    mb-7
+                                    mb-9
                                     flex
                                     flex-col
-                                    gap-3
+                                    gap-4
                                     border-b
                                     border-[#252D38]
-                                    pb-5
-                                    sm:mb-8
-                                    sm:pb-6
+                                    pb-7
+                                    sm:mb-10
+                                    sm:pb-8
                                     md:flex-row
                                     md:items-end
                                     md:justify-between
                                     md:gap-8
-                                    lg:mb-9
-                                    lg:pb-7
+                                    lg:mb-11
+                                    lg:pb-9
                                 "
                             >
                                 <div className="min-w-0">
                                     <p
                                         className="
                                             font-sans!
-                                            text-[8.5px]
+                                            text-[10px]
                                             font-semibold!
                                             uppercase
                                             tracking-[0.16em]
                                             text-[#697586]!
-                                            sm:text-[9px]
+                                            sm:text-[10.5px]
                                         "
                                     >
                                         Account settings
@@ -528,13 +528,13 @@ const EditUserView = ({
                                     className="
                                         max-w-[380px]
                                         font-sans!
-                                        text-[10px]
+                                        text-[12px]
                                         font-normal!
                                         leading-[1.65]
                                         text-[#697586]!
-                                        sm:text-[10.5px]
+                                        sm:text-[12px]
                                         md:text-right
-                                        lg:text-[11px]
+                                        lg:text-[12.5px]
                                     "
                                 >
                                     Update identity, contact details and

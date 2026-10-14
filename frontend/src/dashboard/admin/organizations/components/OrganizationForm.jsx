@@ -843,7 +843,7 @@ const OrganizationForm = ({
                 VERIFICATION INFO — EDIT MODE ONLY
             ============================================================== */}
 
-            {isEditMode && (
+            {/* {isEditMode && (
                 <div
                     className="
                         mt-8
@@ -982,7 +982,7 @@ const OrganizationForm = ({
                         </span>
                     </div>
                 </div>
-            )}
+            )} */}
 
             {/* =============================================================
                 ACTION BAR

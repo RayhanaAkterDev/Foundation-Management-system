@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { CheckCircle2 } from 'lucide-react';
+import { Check } from 'lucide-react';
 
 const SuccessToast = ({ show, message }) => {
     if (!show) {
@@ -12,167 +12,140 @@ const SuccessToast = ({ show, message }) => {
             role="status"
             aria-live="polite"
             className="
-                pointer-events-none
-
                 fixed
-                left-3
-                right-3
-                top-17
-                z-100
+                inset-0
+                z-[110]
 
-                sm:left-auto
-                sm:right-5
-                sm:top-20
-                sm:w-[360px]
+                flex
+                items-center
+                justify-center
 
-                lg:right-7
+                bg-[#05070A]/75
+
+                px-4
+                py-6
+
+                backdrop-blur-[2px]
             "
         >
             <div
                 className="
                     relative
-                    overflow-hidden
+                    w-full
+                    max-w-[430px]
+
+                    rounded-xl
 
                     border
-                    border-[#294438]
+                    border-[#2A313B]
 
                     bg-[#0E1219]
 
-                    shadow-[0_16px_40px_rgba(0,0,0,0.38)]
+                    px-6
+                    pb-7
+                    pt-8
+
+                    shadow-[0_24px_70px_rgba(0,0,0,0.5)]
+
+                    sm:px-8
+                    sm:pb-8
+                    sm:pt-9
                 "
             >
-                {/* Left status edge */}
-                <span
-                    aria-hidden="true"
-                    className="
-                        absolute
-                        bottom-0
-                        left-0
-                        top-0
-
-                        w-0.5
-
-                        bg-[#6FAE87]
-                    "
-                />
-
-                {/* Content */}
-                <div
-                    className="
-                        flex
-                        items-start
-                        gap-3
-
-                        px-4
-                        py-3.5
-                        pl-4.5
-
-                        sm:px-4.5
-                        sm:py-4
-                        sm:pl-5
-                    "
-                >
+                {/* Success icon */}
+                <div className="flex justify-center">
                     <div
                         className="
-                            mt-0.5
-
                             flex
-                            h-8
-                            w-8
-                            shrink-0
+                            h-[58px]
+                            w-[58px]
                             items-center
                             justify-center
 
-                            border
-                            border-[#294438]
+                            rounded-full
 
-                            bg-[#1A222D]
+                            border-2
+                            border-[#6FAE87]
+
+                            bg-[#17231D]
 
                             text-[#8EC5A3]
                         "
                     >
-                        <CheckCircle2 size={15} strokeWidth={2} />
+                        <Check size={30} strokeWidth={2} />
                     </div>
-
-                    <div
-                        className="
-                            min-w-0
-                            flex-1
-                        "
-                    >
-                        <div
-                            className="
-                                flex
-                                items-center
-                                gap-2
-                            "
-                        >
-                            <span
-                                className="
-                                    text-[9px]
-                                    font-semibold!
-                                    uppercase
-                                    tracking-[0.14em]
-
-                                    text-[#8EC5A3]
-                                "
-                            >
-                                Success
-                            </span>
-
-                            <span
-                                aria-hidden="true"
-                                className="
-                                    h-px
-                                    w-4
-
-                                    bg-[#294438]
-                                "
-                            />
-                        </div>
-
-                        <p
-                            className="
-                                mt-1
-
-                                wrap-break-word
-
-                                text-[12px]
-                                font-medium!
-                                leading-5
-
-                                text-[#DCE1E7]
-
-                                sm:text-[13px]
-                            "
-                        >
-                            {message}
-                        </p>
-                    </div>
-
-                    <span
-                        aria-hidden="true"
-                        className="
-                            mt-1.5
-                            h-1.5
-                            w-1.5
-                            shrink-0
-
-                            rounded-full
-
-                            bg-[#6FAE87]
-                        "
-                    />
                 </div>
 
-                <div
-                    className="
-                        h-px
-                        w-full
+                {/* Content */}
+                <div className="mt-5 text-center">
+                    <h2
+                        className="
+                            font-sans!
+                            text-[19px]
+                            font-semibold!
+                            leading-[1.4]
+                            tracking-[-0.01em]
 
-                        bg-[#202832]
-                    "
-                />
+                            text-[#EEF1F5]!
+
+                            sm:text-[20px]
+                        "
+                    >
+                        Update successful
+                    </h2>
+
+                    <p
+                        className="
+                            mx-auto
+                            mt-2.5
+                            max-w-[350px]
+
+                            wrap-break-word
+
+                            font-sans!
+                            text-[13px]
+                            font-normal!
+                            leading-[1.7]
+
+                            text-[#98A2B0]!
+
+                            sm:text-[14px]
+                        "
+                    >
+                        {message}
+                    </p>
+                </div>
+
+                {/* Status */}
+                <div className="mt-6 flex justify-center">
+                    <div
+                        className="
+                            inline-flex
+                            h-10
+                            items-center
+                            justify-center
+                            gap-2
+
+                            rounded-lg
+
+                            border
+                            border-[#365344]
+
+                            bg-[#18231D]
+
+                            px-5
+
+                            font-sans!
+                            text-[13px]
+                            font-semibold!
+
+                            text-[#8EC5A3]!
+                        "
+                    >
+                        <Check size={15} strokeWidth={2.2} />
+                        Done
+                    </div>
+                </div>
             </div>
         </div>
     );

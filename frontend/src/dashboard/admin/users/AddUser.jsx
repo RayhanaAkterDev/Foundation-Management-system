@@ -85,7 +85,7 @@ const DetailRow = ({ icon: Icon, label, value, muted = false }) => {
                     className="
                         font-sans!
 
-                        text-[9px]
+                        text-[10px]
                         font-semibold!
                         uppercase
                         tracking-[0.14em]
@@ -102,7 +102,7 @@ const DetailRow = ({ icon: Icon, label, value, muted = false }) => {
                         truncate
 
                         font-sans!
-                        text-[11px]
+                        text-[12px]
                         font-medium!
 
                         ${muted ? 'text-[#5E6978]!' : 'text-[#B8C0CA]!'}
@@ -231,7 +231,7 @@ const AddUser = () => {
         formPreview.role,
     ].filter(Boolean).length;
 
-    const completionPercentage = (completedFields / 4) * 100;
+    const completionPercentage = (completedFields / 5) * 100;
 
     /* ========================================================
        UI
@@ -275,7 +275,7 @@ const AddUser = () => {
                             px-3.5
 
                             font-sans!
-                            text-[11px]
+                            text-[12px]
                             font-medium!
                             whitespace-nowrap
 
@@ -437,7 +437,7 @@ const AddUser = () => {
                                         className="
                                             font-sans!
 
-                                            text-[9px]
+                                            text-[10px]
                                             font-semibold!
                                             uppercase
                                             tracking-[0.16em]
@@ -464,7 +464,7 @@ const AddUser = () => {
                                         className="
                                             font-sans!
 
-                                            text-[9px]
+                                            text-[10px]
                                             font-medium!
                                             uppercase
                                             tracking-[0.12em]
@@ -503,13 +503,13 @@ const AddUser = () => {
 
                                     font-sans!
 
-                                    text-[11px]
+                                    text-[12px]
                                     font-normal!
                                     leading-[1.75]
 
                                     text-[#8792A1]!
 
-                                    sm:text-[11.5px]
+                                    sm:text-[13px]
                                 "
                             >
                                 Enter the user's basic information, assign their
@@ -522,7 +522,7 @@ const AddUser = () => {
 
                         <div
                             className="
-                                flex
+                             hidden lg:flex
                                 shrink-0
                                 items-center
                                 gap-3.5
@@ -565,7 +565,7 @@ const AddUser = () => {
                                     className="
                                         font-sans!
 
-                                        text-[9px]
+                                        text-[10px]
                                         font-semibold!
                                         uppercase
                                         tracking-[0.13em]
@@ -582,7 +582,7 @@ const AddUser = () => {
 
                                         font-sans!
 
-                                        text-[10px]
+                                        text-[11px]
                                         font-normal!
 
                                         text-[#8792A1]
@@ -675,7 +675,7 @@ const AddUser = () => {
 
                                             font-sans!
 
-                                            text-[9px]
+                                            text-[10px]
                                             font-semibold!
                                             uppercase
                                             tracking-[0.16em]
@@ -693,14 +693,14 @@ const AddUser = () => {
 
                                         font-sans!
 
-                                        text-[9px]
+                                        text-[10px]
                                         font-medium!
                                         tabular-nums
 
                                         text-[#697586]
                                     "
                                 >
-                                    {completedFields}/4
+                                    {completedFields}/5
                                 </span>
                             </div>
 
@@ -827,7 +827,7 @@ const AddUser = () => {
 
                                             font-sans!
 
-                                            text-[11px]
+                                            text-[12px]
                                             font-medium!
 
                                             ${
@@ -850,7 +850,7 @@ const AddUser = () => {
 
                                             font-sans!
 
-                                            text-[10px]
+                                            text-[11px]
                                             font-normal!
                                             leading-[1.65]
 
@@ -872,10 +872,10 @@ const AddUser = () => {
 
                                     space-y-6
 
-                                    border-t
+                                    border-y
                                     border-[#252D38]
 
-                                    pt-8
+                                    py-8
                                 "
                             >
                                 <DetailRow
@@ -908,172 +908,6 @@ const AddUser = () => {
                             </div>
 
                             {/* =========================================
-                                INITIAL ACCESS
-                            ========================================= */}
-
-                            <div
-                                className="
-                                    mt-10
-
-                                    border-t
-                                    border-[#252D38]
-
-                                    pt-8
-                                "
-                            >
-                                <p
-                                    className="
-                                        font-sans!
-
-                                        text-[9px]
-                                        font-semibold!
-                                        uppercase
-                                        tracking-[0.14em]
-
-                                        text-[#697586]
-                                    "
-                                >
-                                    Initial access
-                                </p>
-
-                                <div
-                                    className="
-                                        mt-5
-
-                                        flex
-                                        flex-wrap
-                                        items-center
-                                        gap-x-3
-                                        gap-y-2.5
-                                    "
-                                >
-                                    <span
-                                        className="
-                                            flex
-                                            items-center
-                                            gap-2
-
-                                            font-sans!
-
-                                            text-[10.5px]
-                                            font-medium!
-
-                                            text-[#8792A1]
-                                        "
-                                    >
-                                        <span
-                                            className="
-                                                h-1.5
-                                                w-1.5
-                                                shrink-0
-                                                rounded-full
-
-                                                bg-[#697586]
-                                            "
-                                        />
-                                        Inactive
-                                    </span>
-
-                                    <span className="text-[#394555]">/</span>
-
-                                    <span
-                                        className="
-                                            flex
-                                            items-center
-                                            gap-2
-
-                                            font-sans!
-
-                                            text-[10.5px]
-                                            font-medium!
-
-                                            text-[#D8B278]
-                                        "
-                                    >
-                                        <span
-                                            className="
-                                                h-1.5
-                                                w-1.5
-                                                shrink-0
-                                                rounded-full
-
-                                                bg-[#D39A4A]
-                                            "
-                                        />
-                                        Email unverified
-                                    </span>
-                                </div>
-                            </div>
-
-                            {/* =========================================
-                                COMPLETION
-                            ========================================= */}
-
-                            <div className="mt-10">
-                                <div
-                                    className="
-                                        flex
-                                        items-center
-                                        justify-between
-                                        gap-4
-                                    "
-                                >
-                                    <span
-                                        className="
-                                            font-sans!
-
-                                            text-[10px]
-                                            font-normal!
-
-                                            text-[#697586]
-                                        "
-                                    >
-                                        Details completed
-                                    </span>
-
-                                    <span
-                                        className="
-                                            font-sans!
-
-                                            text-[10px]
-                                            font-semibold!
-                                            tabular-nums
-
-                                            text-[#AEB7C3]
-                                        "
-                                    >
-                                        {completedFields}/4
-                                    </span>
-                                </div>
-
-                                <div
-                                    className="
-                                        mt-3.5
-                                        h-[3px]
-
-                                        overflow-hidden
-
-                                        bg-[#202832]
-                                    "
-                                >
-                                    <div
-                                        className="
-                                            h-full
-
-                                            bg-[#697586]
-
-                                            transition-[width]
-                                            duration-300
-                                            ease-out
-                                        "
-                                        style={{
-                                            width: `${completionPercentage}%`,
-                                        }}
-                                    />
-                                </div>
-                            </div>
-
-                            {/* =========================================
                                 FOOTER NOTE
                             ========================================= */}
 
@@ -1085,9 +919,6 @@ const AddUser = () => {
                             >
                                 <div
                                     className="
-                                        border-t
-                                        border-[#252D38]
-
                                         pt-7
                                     "
                                 >
@@ -1115,7 +946,7 @@ const AddUser = () => {
 
                                                 font-sans!
 
-                                                text-[10px]
+                                                text-[11px]
                                                 font-normal!
                                                 leading-[1.75]
 
@@ -1175,6 +1006,8 @@ const AddUser = () => {
                                     onSubmit={handleAddUser}
                                     onCancel={handleBack}
                                     onFormChange={handleFormChange}
+                                    completedFields={completedFields}
+                                    completionPercentage={completionPercentage}
                                 />
                             </div>
                         </div>

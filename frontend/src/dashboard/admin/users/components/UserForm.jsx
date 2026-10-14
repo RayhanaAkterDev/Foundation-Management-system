@@ -119,7 +119,7 @@ const FieldError = ({ name, fieldErrors }) => {
                 gap-2
 
                 font-sans!
-                text-[10.5px]
+                text-[12px]
                 leading-5
                 text-[#D99A9F]!
             "
@@ -165,7 +165,7 @@ const EditorField = ({
                     block
 
                     font-sans!
-                    text-[9.5px]
+                    text-[11px]
                     font-semibold!
                     uppercase
                     tracking-[0.11em]
@@ -230,7 +230,7 @@ const EditorField = ({
                         pr-12
 
                         font-sans!
-                        text-[12px]
+                        text-[13px]
                         font-medium!
 
                         text-[#EEF1F5]!
@@ -305,7 +305,7 @@ const FormSectionHeading = ({ number, title, description }) => {
                     bg-[#171E28]
 
                     font-sans!
-                    text-[9px]
+                    text-[10px]
                     font-semibold!
                     tabular-nums
 
@@ -320,7 +320,7 @@ const FormSectionHeading = ({ number, title, description }) => {
                     className="
                         font-sans!
 
-                        text-[13px]
+                        text-[14px]
                         font-semibold!
                         leading-5
                         tracking-[-0.01em]
@@ -338,7 +338,7 @@ const FormSectionHeading = ({ number, title, description }) => {
                             max-w-[570px]
 
                             font-sans!
-                            text-[10px]
+                            text-[11.5px]
                             font-normal!
                             leading-[1.65]
 
@@ -366,6 +366,8 @@ const UserForm = ({
     onSubmit,
     onCancel,
     onFormChange,
+    completedFields = 0,
+    completionPercentage = 0,
 }) => {
     const isEdit = mode === 'edit';
 
@@ -501,7 +503,7 @@ const UserForm = ({
                         <p
                             className="
                                 font-sans!
-                                text-[11px]
+                                text-[12.5px]
                                 font-semibold!
                                 text-[#E4B0B4]!
                             "
@@ -514,13 +516,191 @@ const UserForm = ({
                                 mt-1
 
                                 font-sans!
-                                text-[10px]
+                                text-[11.5px]
                                 leading-5
                                 text-[#B98289]!
                             "
                         >
                             {error}
                         </p>
+                    </div>
+                </div>
+            )}
+
+            {/* =============================================================
+                INITIAL ACCESS + COMPLETION
+            ============================================================= */}
+
+            {!isEdit && (
+                <div
+                    className="
+                        mb-9
+                        pb-7
+                    "
+                >
+                    <div
+                        className="
+                            flex
+                            flex-col
+                            gap-4
+
+                            sm:flex-row
+                            sm:items-center
+                            sm:justify-between
+                        "
+                    >
+                        <div className="min-w-0">
+                            <p
+                                className="
+                                    font-sans!
+                                    text-[10px]
+                                    font-semibold!
+                                    uppercase
+                                    tracking-[0.14em]
+
+                                    text-[#8792A1]!
+                                "
+                            >
+                                Initial access
+                            </p>
+
+                            <p
+                                className="
+                                    mt-1.5
+                                    max-w-[560px]
+
+                                    font-sans!
+                                    text-[12px]
+                                    font-normal!
+                                    leading-[1.65]
+
+                                    text-[#8792A1]!
+                                "
+                            >
+                                New accounts remain inactive until email
+                                verification is complete.
+                            </p>
+                        </div>
+
+                        <div
+                            className="
+                                flex
+                                shrink-0
+                                flex-wrap
+                                items-center
+                                gap-x-3
+                                gap-y-2
+                            "
+                        >
+                            <span
+                                className="
+                                    flex
+                                    items-center
+                                    gap-2
+
+                                    font-sans!
+                                    text-[12px]
+                                    font-medium!
+
+                                    text-[#AEB7C3]!
+                                "
+                            >
+                                <span
+                                    className="
+                                        h-1.5
+                                        w-1.5
+                                        shrink-0
+                                        rounded-full
+
+                                        bg-[#697586]
+                                    "
+                                />
+                                Inactive
+                            </span>
+
+                            <span className="text-[#465261]">/</span>
+
+                            <span
+                                className="
+                                    flex
+                                    items-center
+                                    gap-2
+
+                                    font-sans!
+                                    text-[12px]
+                                    font-medium!
+
+                                    text-[#D8B278]!
+                                "
+                            >
+                                <Mail size={14} strokeWidth={1.6} />
+                                Email unverified
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="mt-8">
+                        <div
+                            className="
+                                flex
+                                items-center
+                                justify-between
+                                gap-4
+                            "
+                        >
+                            <span
+                                className="
+                                    font-sans!
+                                    text-[11px]
+                                    font-medium!
+
+                                    text-[#8792A1]!
+                                "
+                            >
+                                Details completed
+                            </span>
+
+                            <span
+                                className="
+                                    shrink-0
+
+                                    font-sans!
+                                    text-[11px]
+                                    font-semibold!
+                                    tabular-nums
+
+                                    text-[#B8C0CA]!
+                                "
+                            >
+                                {completedFields}/5
+                            </span>
+                        </div>
+
+                        <div
+                            className="
+                                mt-3
+                                h-[3px]
+                                w-full
+                                overflow-hidden
+
+                                bg-[#202832]
+                            "
+                        >
+                            <div
+                                className="
+                                    h-full
+
+                                    bg-[#697586]
+
+                                    transition-[width]
+                                    duration-300
+                                    ease-out
+                                "
+                                style={{
+                                    width: `${completionPercentage}%`,
+                                }}
+                            />
+                        </div>
                     </div>
                 </div>
             )}
@@ -665,13 +845,12 @@ const UserForm = ({
             {!isEdit && (
                 <section
                     className="
-                        mt-10
+                        mt-4
 
                         grid
                         gap-7
 
-                        border-t
-                        border-[#252D38]
+
 
                         pt-8
 
@@ -815,7 +994,7 @@ const UserForm = ({
                                                 <p
                                                     className={`
                                                         font-sans!
-                                                        text-[11px]
+                                                        text-[12.5px]
                                                         font-semibold!
 
                                                         ${
@@ -870,7 +1049,7 @@ const UserForm = ({
                                                     mt-1.5
 
                                                     font-sans!
-                                                    text-[9.5px]
+                                                    text-[11px]
                                                     leading-[1.55]
 
                                                     text-[#697586]!
@@ -890,37 +1069,33 @@ const UserForm = ({
             )}
 
             {/* =============================================================
-                ACCOUNT ACCESS
+                ACCOUNT ACCESS — EDIT ONLY
             ============================================================= */}
 
-            <section
-                className="
-                    mt-10
+            {isEdit && (
+                <section
+                    className="
+                        mt-10
 
-                    grid
-                    gap-7
+                        grid
+                        gap-7
 
-                    border-t
-                    border-[#252D38]
+                        border-t
+                        border-[#252D38]
 
-                    pt-8
+                        pt-8
 
-                    xl:grid-cols-[180px_minmax(0,1fr)]
-                    xl:gap-10
-                "
-            >
-                <FormSectionHeading
-                    number={isEdit ? '02' : '03'}
-                    title="Account access"
-                    description={
-                        isEdit
-                            ? 'Set whether this user can currently sign in and use the platform.'
-                            : 'New accounts remain inactive until email verification is complete.'
-                    }
-                />
+                        xl:grid-cols-[180px_minmax(0,1fr)]
+                        xl:gap-10
+                    "
+                >
+                    <FormSectionHeading
+                        number="02"
+                        title="Account access"
+                        description="Set whether this user can currently sign in and use the platform."
+                    />
 
-                <div className="min-w-0">
-                    {isEdit ? (
+                    <div className="min-w-0">
                         <>
                             {!emailVerified && (
                                 <div
@@ -964,7 +1139,7 @@ const UserForm = ({
                                         <p
                                             className="
                                                 font-sans!
-                                                text-[10.5px]
+                                                text-[12px]
                                                 font-semibold!
 
                                                 text-[#D4BB94]!
@@ -978,7 +1153,7 @@ const UserForm = ({
                                                 mt-1
 
                                                 font-sans!
-                                                text-[9.5px]
+                                                text-[11px]
                                                 leading-[1.6]
 
                                                 text-[#8E816F]!
@@ -1118,7 +1293,7 @@ const UserForm = ({
                                                     <span
                                                         className={`
                                                             font-sans!
-                                                            text-[10.5px]
+                                                            text-[12px]
                                                             font-semibold!
 
                                                             ${
@@ -1155,7 +1330,7 @@ const UserForm = ({
                                                     className={`
                                                         mt-1
                                                         font-sans!
-                                                        text-[9px]
+                                                        text-[10px]
                                                         leading-[1.5]
 
                                                         ${
@@ -1175,116 +1350,11 @@ const UserForm = ({
                                 })}
                             </div>
                         </>
-                    ) : (
-                        <div
-                            className="
-                                flex
-                                flex-col
-                                gap-4
 
-                                border
-                                border-[#303A47]
-
-                                bg-[#121821]
-
-                                px-4
-                                py-3.5
-
-                                sm:flex-row
-                                sm:items-center
-                                sm:justify-between
-                                sm:px-5
-                            "
-                        >
-                            <div
-                                className="
-                                    flex
-                                    min-w-0
-                                    items-center
-                                    gap-3.5
-                                "
-                            >
-                                <div
-                                    className="
-                                        flex
-                                        h-9
-                                        w-9
-                                        shrink-0
-                                        items-center
-                                        justify-center
-
-                                        border
-                                        border-[#29323E]
-
-                                        bg-[#171E28]
-
-                                        text-[#8792A1]
-                                    "
-                                >
-                                    <LockKeyhole size={15} strokeWidth={1.65} />
-                                </div>
-
-                                <div className="min-w-0">
-                                    <p
-                                        className="
-                                            font-sans!
-                                            text-[10.5px]
-                                            font-semibold!
-
-                                            text-[#C2C9D2]!
-                                        "
-                                    >
-                                        Email verification required
-                                    </p>
-
-                                    <p
-                                        className="
-                                            mt-1
-                                            max-w-lg
-
-                                            font-sans!
-                                            text-[9.5px]
-                                            leading-[1.6]
-
-                                            text-[#697586]!
-                                        "
-                                    >
-                                        The user must verify their email address
-                                        before normal account access is enabled.
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div
-                                className="
-                                    flex
-                                    shrink-0
-                                    items-center
-                                    gap-2
-
-                                    border-l-0
-                                    border-[#29323E]
-
-                                    font-sans!
-                                    text-[9.5px]
-                                    font-medium!
-
-                                    text-[#C5A06B]!
-
-                                    sm:border-l
-                                    sm:pl-5
-                                "
-                            >
-                                <Mail size={13} strokeWidth={1.6} />
-
-                                <span>Email unverified</span>
-                            </div>
-                        </div>
-                    )}
-
-                    <FieldError name="status" fieldErrors={fieldErrors} />
-                </div>
-            </section>
+                        <FieldError name="status" fieldErrors={fieldErrors} />
+                    </div>
+                </section>
+            )}
 
             {/* =============================================================
                 ACTION BAR
@@ -1297,7 +1367,7 @@ const UserForm = ({
                     border-t
                     border-[#252D38]
 
-                    pt-6
+                    pt-10
                 "
             >
                 <div
@@ -1332,7 +1402,7 @@ const UserForm = ({
                         <p
                             className="
                                 font-sans!
-                                text-[9.5px]
+                                text-[11px]
                                 leading-[1.65]
                                 text-[#697586]!
                             "
@@ -1369,7 +1439,7 @@ const UserForm = ({
                                 px-5
 
                                 font-sans!
-                                text-[10.5px]
+                                text-[12px]
                                 font-medium!
 
                                 text-[#AEB7C3]!
@@ -1415,7 +1485,7 @@ const UserForm = ({
                                 px-5
 
                                 font-sans!
-                                text-[10.5px]
+                                text-[12px]
                                 font-semibold!
 
                                 text-[#EEF1F5]!

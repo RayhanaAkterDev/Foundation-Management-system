@@ -25,6 +25,7 @@ import Pagination from './components/Pagination';
 import SuccessToast from './components/SuccessToast';
 
 import VerificationModal from './modals/VerificationModal';
+import VerificationEmailErrorModal from './modals/VerificationEmailErrorModal';
 import DeleteModal from './modals/DeleteModal';
 
 import {
@@ -101,6 +102,9 @@ const Organizations = () => {
             });
         }, 3000);
     };
+
+    const [showEmailVerificationError, setShowEmailVerificationError] =
+        useState(false);
 
     // ============================================================
     // LOAD ORGANIZATIONS
@@ -183,35 +187,18 @@ const Organizations = () => {
     const handleReviewOrganization = (organization) => {
         setReviewError('');
 
-        /*
-         * Organization email verification is a prerequisite
-         * for organization profile verification.
-         *
-         * Keep these two processes separate:
-         *
-         * - Email verification proves control of the email account.
-         * - Organization verification is SP's administrative approval.
-         *
-         * If the email is not verified, do not open the
-         * organization verification modal.
-         */
-        const emailVerified = Boolean(
-            organization.user?.email_verified_at,
-        );
+        const emailVerified = Boolean(organization.user?.email_verified_at);
 
         if (!emailVerified) {
-            setReviewError(
-                'The organization email has not been verified yet. Please verify the email address before verifying the organization profile.',
-            );
-
+            setShowEmailVerificationError(true);
             return;
         }
 
-        /*
-         * Email is verified, so the existing verification modal
-         * can open normally.
-         */
         setSelectedReviewOrganization(organization);
+    };
+
+    const closeEmailVerificationError = () => {
+        setShowEmailVerificationError(false);
     };
 
     const closeReviewModal = () => {
@@ -294,9 +281,7 @@ const Organizations = () => {
 
             showSuccessToast('Organization deleted successfully.');
         } catch (err) {
-            setDeleteError(
-                err.message || 'Unable to delete organization.',
-            );
+            setDeleteError(err.message || 'Unable to delete organization.');
         } finally {
             setDeleteLoading(false);
         }
@@ -398,8 +383,7 @@ const Organizations = () => {
 
         if (typeFilter !== 'all') {
             result = result.filter(
-                (organization) =>
-                    organization.organization_type === typeFilter,
+                (organization) => organization.organization_type === typeFilter,
             );
         }
 
@@ -409,8 +393,7 @@ const Organizations = () => {
             result = result.filter((organization) => {
                 const name = organization.name?.toLowerCase() || '';
 
-                const email =
-                    organization.user?.email?.toLowerCase() || '';
+                const email = organization.user?.email?.toLowerCase() || '';
 
                 const registrationNumber =
                     organization.registration_number?.toLowerCase() || '';
@@ -486,16 +469,13 @@ const Organizations = () => {
 
     const totalPages = Math.max(
         1,
-        Math.ceil(
-            filteredOrganizations.length / ORGANIZATIONS_PER_PAGE,
-        ),
+        Math.ceil(filteredOrganizations.length / ORGANIZATIONS_PER_PAGE),
     );
 
     const safeCurrentPage = Math.min(currentPage, totalPages);
 
     const paginatedOrganizations = useMemo(() => {
-        const startIndex =
-            (safeCurrentPage - 1) * ORGANIZATIONS_PER_PAGE;
+        const startIndex = (safeCurrentPage - 1) * ORGANIZATIONS_PER_PAGE;
 
         return filteredOrganizations.slice(
             startIndex,
@@ -528,8 +508,7 @@ const Organizations = () => {
     };
 
     const handleSort = (key) => {
-        const actualKey =
-            key === 'registeredDate' ? 'created_at' : key;
+        const actualKey = key === 'registeredDate' ? 'created_at' : key;
 
         setSortConfig((current) => {
             if (current.key !== actualKey) {
@@ -554,42 +533,21 @@ const Organizations = () => {
     };
 
     const getSortIcon = (key) => {
-        const actualKey =
-            key === 'registeredDate' ? 'created_at' : key;
+        const actualKey = key === 'registeredDate' ? 'created_at' : key;
 
         if (sortConfig.key !== actualKey) {
-            return (
-                <ChevronsUpDown
-                    size={14}
-                    strokeWidth={1.8}
-                />
-            );
+            return <ChevronsUpDown size={14} strokeWidth={1.8} />;
         }
 
         if (sortConfig.direction === 'asc') {
-            return (
-                <ArrowUp
-                    size={14}
-                    strokeWidth={2}
-                />
-            );
+            return <ArrowUp size={14} strokeWidth={2} />;
         }
 
         if (sortConfig.direction === 'desc') {
-            return (
-                <ArrowDown
-                    size={14}
-                    strokeWidth={2}
-                />
-            );
+            return <ArrowDown size={14} strokeWidth={2} />;
         }
 
-        return (
-            <ChevronsUpDown
-                size={14}
-                strokeWidth={1.8}
-            />
-        );
+        return <ChevronsUpDown size={14} strokeWidth={1.8} />;
     };
 
     // ============================================================
@@ -617,9 +575,7 @@ const Organizations = () => {
             organization.registration_number,
             organization.verification_status,
             organization.created_at
-                ? new Date(
-                      organization.created_at,
-                  ).toLocaleDateString()
+                ? new Date(organization.created_at).toLocaleDateString()
                 : '',
         ]);
 
@@ -628,10 +584,7 @@ const Organizations = () => {
                 row
                     .map(
                         (value) =>
-                            `"${String(value ?? '').replace(
-                                /"/g,
-                                '""',
-                            )}"`,
+                            `"${String(value ?? '').replace(/"/g, '""')}"`,
                     )
                     .join(','),
             )
@@ -646,8 +599,7 @@ const Organizations = () => {
         const link = document.createElement('a');
 
         link.href = url;
-        link.download =
-            'stand-for-people-organizations.csv';
+        link.download = 'stand-for-people-organizations.csv';
 
         document.body.appendChild(link);
 
@@ -657,35 +609,25 @@ const Organizations = () => {
 
         URL.revokeObjectURL(url);
 
-        showSuccessToast(
-            'Organizations exported successfully.',
-        );
+        showSuccessToast('Organizations exported successfully.');
     };
 
     // ============================================================
     // TABLE ROWS
     // ============================================================
 
-    const rows = paginatedOrganizations.map(
-        (organization, index) => ({
-            ...organization,
+    const rows = paginatedOrganizations.map((organization, index) => ({
+        ...organization,
 
-            contactEmail:
-                organization.user?.email || '—',
+        contactEmail: organization.user?.email || '—',
 
-            registeredDate: organization.created_at
-                ? new Date(
-                      organization.created_at,
-                  ).toLocaleDateString()
-                : '—',
+        registeredDate: organization.created_at
+            ? new Date(organization.created_at).toLocaleDateString()
+            : '—',
 
-            serialNumber:
-                (safeCurrentPage - 1) *
-                    ORGANIZATIONS_PER_PAGE +
-                index +
-                1,
-        }),
-    );
+        serialNumber:
+            (safeCurrentPage - 1) * ORGANIZATIONS_PER_PAGE + index + 1,
+    }));
 
     // ============================================================
     // TABLE COLUMNS
@@ -776,8 +718,7 @@ const Organizations = () => {
                         </p>
 
                         <p className="mt-1 text-xs text-[#8792A1]">
-                            Please wait while we retrieve the
-                            organization list.
+                            Please wait while we retrieve the organization list.
                         </p>
                     </div>
                 </div>
@@ -819,10 +760,7 @@ const Organizations = () => {
                             <button
                                 type="button"
                                 onClick={handleExportCSV}
-                                disabled={
-                                    filteredOrganizations.length ===
-                                    0
-                                }
+                                disabled={filteredOrganizations.length === 0}
                                 className="
                                     group
                                     inline-flex
@@ -858,9 +796,7 @@ const Organizations = () => {
 
                             <button
                                 type="button"
-                                onClick={
-                                    handleAddOrganization
-                                }
+                                onClick={handleAddOrganization}
                                 className="
                                     inline-flex
                                     h-10
@@ -877,14 +813,9 @@ const Organizations = () => {
                                     hover:bg-[#1D2632]
                                 "
                             >
-                                <Plus
-                                    size={17}
-                                    strokeWidth={2}
-                                />
+                                <Plus size={17} strokeWidth={2} />
 
-                                <span>
-                                    Add Organization
-                                </span>
+                                <span>Add Organization</span>
                             </button>
                         </div>
                     }
@@ -894,7 +825,7 @@ const Organizations = () => {
                     EMAIL VERIFICATION PREREQUISITE MESSAGE
                 ================================================== */}
 
-                {reviewError &&
+                {/* {reviewError &&
                     !selectedReviewOrganization && (
                         <div
                             role="alert"
@@ -919,7 +850,7 @@ const Organizations = () => {
                                 {reviewError}
                             </p>
                         </div>
-                    )}
+                    )} */}
 
                 <Stats
                     total={statistics.total}
@@ -1008,8 +939,7 @@ const Organizations = () => {
                                     <p className="mt-0.5 text-[13px] font-semibold! text-[#EEF1F5]">
                                         {filteredOrganizations.length}{' '}
                                         <span className="font-normal text-[#8792A1]">
-                                            {filteredOrganizations.length ===
-                                            1
+                                            {filteredOrganizations.length === 1
                                                 ? 'organization'
                                                 : 'organizations'}
                                         </span>
@@ -1026,9 +956,7 @@ const Organizations = () => {
                     <div className="mb-5 xl:hidden">
                         <button
                             type="button"
-                            onClick={() =>
-                                setMobileFiltersOpen(true)
-                            }
+                            onClick={() => setMobileFiltersOpen(true)}
                             className="
                                 flex
                                 h-10
@@ -1057,7 +985,6 @@ const Organizations = () => {
                                     size={14}
                                     strokeWidth={1.8}
                                 />
-
                                 Filters
                             </span>
 
@@ -1150,9 +1077,7 @@ const Organizations = () => {
                                             <input
                                                 type="text"
                                                 value={searchTerm}
-                                                onChange={
-                                                    handleSearchChange
-                                                }
+                                                onChange={handleSearchChange}
                                                 placeholder="Search by organization name, email, registration number"
                                                 className="
                                                     h-10
@@ -1177,9 +1102,7 @@ const Organizations = () => {
                                             {searchTerm && (
                                                 <button
                                                     type="button"
-                                                    onClick={
-                                                        handleClearSearch
-                                                    }
+                                                    onClick={handleClearSearch}
                                                     className="
                                                         absolute
                                                         right-3
@@ -1232,9 +1155,7 @@ const Organizations = () => {
                                             </p>
 
                                             <p className="mt-0.5 text-xs font-medium! text-[#EEF1F5]">
-                                                {
-                                                    filteredOrganizations.length
-                                                }{' '}
+                                                {filteredOrganizations.length}{' '}
                                                 {filteredOrganizations.length ===
                                                 1
                                                     ? 'result'
@@ -1269,8 +1190,8 @@ const Organizations = () => {
                                     </p>
 
                                     <p className="mt-0.5 text-xs text-[#8792A1]">
-                                        Browse and review organizations
-                                        in the platform directory
+                                        Browse and review organizations in the
+                                        platform directory
                                     </p>
                                 </div>
 
@@ -1300,40 +1221,24 @@ const Organizations = () => {
                                     rows={rows}
                                     onSort={handleSort}
                                     getSortIcon={getSortIcon}
-                                    resultCount={
-                                        filteredOrganizations.length
-                                    }
-                                    onView={
-                                        handleViewOrganization
-                                    }
-                                    onReview={
-                                        handleReviewOrganization
-                                    }
-                                    onEdit={
-                                        handleEditOrganization
-                                    }
-                                    onDelete={
-                                        openDeleteModal
-                                    }
+                                    resultCount={filteredOrganizations.length}
+                                    onView={handleViewOrganization}
+                                    onReview={handleReviewOrganization}
+                                    onEdit={handleEditOrganization}
+                                    onDelete={openDeleteModal}
                                 />
                             </div>
 
                             {filteredOrganizations.length > 0 && (
                                 <div className="shrink-0 border-t border-[#252D38]">
                                     <Pagination
-                                        currentPage={
-                                            safeCurrentPage
-                                        }
+                                        currentPage={safeCurrentPage}
                                         totalPages={totalPages}
                                         totalItems={
                                             filteredOrganizations.length
                                         }
-                                        itemsPerPage={
-                                            ORGANIZATIONS_PER_PAGE
-                                        }
-                                        onPageChange={
-                                            setCurrentPage
-                                        }
+                                        itemsPerPage={ORGANIZATIONS_PER_PAGE}
+                                        onPageChange={setCurrentPage}
                                     />
                                 </div>
                             )}
@@ -1429,20 +1334,14 @@ const Organizations = () => {
 
                                 <CategoryTabs
                                     tabs={categoryTabs}
-                                    activeCategory={
-                                        activeCategory
-                                    }
-                                    onChange={
-                                        handleCategoryChange
-                                    }
+                                    activeCategory={activeCategory}
+                                    onChange={handleCategoryChange}
                                 />
                             </div>
 
                             <Filters
                                 typeFilter={typeFilter}
-                                onTypeChange={
-                                    handleTypeChange
-                                }
+                                onTypeChange={handleTypeChange}
                             />
                         </aside>
                     </div>
@@ -1458,9 +1357,7 @@ const Organizations = () => {
                     <button
                         type="button"
                         aria-label="Close filters"
-                        onClick={() =>
-                            setMobileFiltersOpen(false)
-                        }
+                        onClick={() => setMobileFiltersOpen(false)}
                         className="
                             absolute
                             inset-0
@@ -1539,9 +1436,7 @@ const Organizations = () => {
 
                             <button
                                 type="button"
-                                onClick={() =>
-                                    setMobileFiltersOpen(false)
-                                }
+                                onClick={() => setMobileFiltersOpen(false)}
                                 aria-label="Close filters"
                                 className="
                                     flex
@@ -1562,10 +1457,7 @@ const Organizations = () => {
                                     focus:ring-0
                                 "
                             >
-                                <X
-                                    size={16}
-                                    strokeWidth={1.8}
-                                />
+                                <X size={16} strokeWidth={1.8} />
                             </button>
                         </div>
 
@@ -1636,12 +1528,8 @@ const Organizations = () => {
 
                             <CategoryTabs
                                 tabs={categoryTabs}
-                                activeCategory={
-                                    activeCategory
-                                }
-                                onChange={
-                                    handleCategoryChange
-                                }
+                                activeCategory={activeCategory}
+                                onChange={handleCategoryChange}
                             />
                         </div>
 
@@ -1664,9 +1552,7 @@ const Organizations = () => {
                         >
                             <button
                                 type="button"
-                                onClick={() =>
-                                    setMobileFiltersOpen(false)
-                                }
+                                onClick={() => setMobileFiltersOpen(false)}
                                 className="
                                     flex
                                     h-10
@@ -1689,8 +1575,7 @@ const Organizations = () => {
                                 "
                             >
                                 Show {filteredOrganizations.length}{' '}
-                                {filteredOrganizations.length ===
-                                1
+                                {filteredOrganizations.length === 1
                                     ? 'organization'
                                     : 'organizations'}
                             </button>
@@ -1703,33 +1588,28 @@ const Organizations = () => {
                 FEEDBACK / MODALS
             ======================================================== */}
 
-            <SuccessToast
-                show={toast.show}
-                message={toast.message}
+            <SuccessToast show={toast.show} message={toast.message} />
+
+            <VerificationEmailErrorModal
+                show={showEmailVerificationError}
+                message="The organization email has not been verified yet. Please verify the email address before verifying the organization profile."
+                onClose={closeEmailVerificationError}
             />
 
             <VerificationModal
-                organization={
-                    selectedReviewOrganization
-                }
+                organization={selectedReviewOrganization}
                 loading={reviewLoading}
                 error={reviewError}
                 onClose={closeReviewModal}
-                onConfirm={
-                    handleVerificationChange
-                }
+                onConfirm={handleVerificationChange}
             />
 
             <DeleteModal
-                organization={
-                    selectedDeleteOrganization
-                }
+                organization={selectedDeleteOrganization}
                 loading={deleteLoading}
                 error={deleteError}
                 onClose={closeDeleteModal}
-                onConfirm={
-                    handleDeleteOrganization
-                }
+                onConfirm={handleDeleteOrganization}
             />
         </>
     );

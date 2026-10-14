@@ -225,9 +225,6 @@ const AddOrganization = () => {
 
     const email = formPreview.email?.trim() || 'Not entered yet';
 
-    const registrationNumber =
-        formPreview.registration_number?.trim() || 'Not entered yet';
-
     const phone = formPreview.phone?.trim() || 'Not entered yet';
 
     const website = formPreview.website?.trim() || 'Not entered yet';
@@ -244,7 +241,7 @@ const AddOrganization = () => {
         formPreview.address,
     ].filter((value) => value?.trim?.() || value).length;
 
-    const totalPreviewFields = 7;
+    const totalPreviewFields = 6;
 
     const completionPercentage = (completedFields / totalPreviewFields) * 100;
 
@@ -881,15 +878,6 @@ const AddOrganization = () => {
                                 />
 
                                 <DetailRow
-                                    icon={FileText}
-                                    label="Registration"
-                                    value={registrationNumber}
-                                    muted={
-                                        !formPreview.registration_number?.trim()
-                                    }
-                                />
-
-                                <DetailRow
                                     icon={Phone}
                                     label="Phone"
                                     value={phone}
@@ -1001,9 +989,6 @@ const AddOrganization = () => {
                             >
                                 <div
                                     className="
-                                        border-t
-                                        border-[#252D38]
-
                                         pt-7
                                     "
                                 >

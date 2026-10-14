@@ -63,7 +63,6 @@ const OrganizationDetails = () => {
                 }
 
                 setOrganization(data?.organization || data || null);
-
                 setError('');
             } catch (err) {
                 if (cancelled) {
@@ -71,7 +70,6 @@ const OrganizationDetails = () => {
                 }
 
                 setOrganization(null);
-
                 setError(err.message || 'Unable to load organization.');
             } finally {
                 if (!cancelled) {
@@ -217,106 +215,142 @@ const OrganizationDetails = () => {
         return (
             <div
                 className="
-                    flex
-                    min-h-105
-                    items-center
-                    justify-center
-
-                    bg-[#0A0E14]
-
-                    px-5
-
+                    space-y-6
                     font-sans!
+                    sm:space-y-8
                 "
             >
-                <div className="text-center">
+                <PageHeader
+                    title="Organization Details"
+                    subtitle="The requested organization could not be loaded."
+                    action={
+                        <button
+                            type="button"
+                            onClick={handleBack}
+                            className="
+                                group
+
+                                inline-flex
+                                h-10
+                                w-full
+                                items-center
+                                justify-center
+                                gap-2.5
+
+                                border
+                                border-[#29323E]
+
+                                bg-[#0E1219]
+
+                                px-3.5
+
+                                font-sans!
+                                text-[12px]
+                                font-medium!
+                                whitespace-nowrap
+
+                                text-[#AEB7C3]!
+
+                                transition-[background-color,border-color,color]
+                                duration-150
+                                ease-out
+
+                                hover:border-[#394555]
+                                hover:bg-[#1A222D]
+                                hover:text-[#EEF1F5]!
+
+                                focus:outline-none
+                                focus:ring-0
+
+                                sm:w-auto
+                            "
+                        >
+                            <ArrowLeft
+                                size={14}
+                                strokeWidth={1.8}
+                                className="
+                                    shrink-0
+
+                                    text-[#697586]
+
+                                    transition-[transform,color]
+                                    duration-150
+
+                                    group-hover:-translate-x-0.5
+                                    group-hover:text-[#AEB7C3]
+                                "
+                            />
+
+                            <span>Back to organizations</span>
+                        </button>
+                    }
+                />
+
+                <div
+                    className="
+                        flex
+                        items-start
+                        gap-3.5
+
+                        border
+                        border-[#493038]
+
+                        bg-[#281A1F]
+
+                        px-5
+                        py-4
+
+                        sm:px-6
+                        sm:py-5
+                    "
+                >
                     <div
                         className="
-                            mx-auto
                             flex
-                            h-11
-                            w-11
+                            h-8
+                            w-8
+                            shrink-0
                             items-center
                             justify-center
 
                             border
                             border-[#493038]
 
-                            bg-[#281A1F]
+                            bg-[#301F25]
 
                             text-[#D99A9F]
                         "
                     >
-                        <CircleAlert size={18} strokeWidth={1.8} />
+                        <CircleAlert size={15} strokeWidth={1.8} />
                     </div>
 
-                    <h2
-                        className="
-                            mt-4
+                    <div className="min-w-0 pt-0.5">
+                        <p
+                            className="
+                                font-sans!
+                                text-[11.5px]
+                                font-semibold!
+                                text-[#E4B0B4]!
+                            "
+                        >
+                            Organization unavailable
+                        </p>
 
-                            font-sans!
-                            text-[14px]
-                            font-semibold!
+                        <p
+                            className="
+                                mt-1
 
-                            text-[#EEF1F5]!
-                        "
-                    >
-                        Organization unavailable
-                    </h2>
+                                font-sans!
+                                text-[11px]
+                                font-normal!
+                                leading-5
 
-                    <p
-                        className="
-                            mt-2
-
-                            font-sans!
-                            text-[11px]
-                            font-normal!
-
-                            text-[#8792A1]!
-                        "
-                    >
-                        Organization ID is missing.
-                    </p>
-
-                    <button
-                        type="button"
-                        onClick={handleBack}
-                        className="
-                            mt-5
-
-                            inline-flex
-                            h-9
-                            items-center
-                            justify-center
-                            gap-2
-
-                            border
-                            border-[#303A47]
-
-                            bg-[#151B24]
-
-                            px-3.5
-
-                            font-sans!
-                            text-[10.5px]
-                            font-medium!
-
-                            text-[#AEB7C3]!
-
-                            transition-[background-color,border-color,color]
-                            duration-150
-
-                            hover:border-[#394555]
-                            hover:bg-[#1A222D]
-                            hover:text-[#EEF1F5]!
-
-                            focus:outline-none
-                            focus:ring-0
-                        "
-                    >
-                        <ArrowLeft size={14} strokeWidth={1.8} />
-                        Back to organizations
-                    </button>
+                                text-[#B98289]!
+                            "
+                        >
+                            Organization ID is missing.
+                        </p>
+                    </div>
                 </div>
             </div>
         );
@@ -330,56 +364,79 @@ const OrganizationDetails = () => {
         return (
             <div
                 className="
-                    flex
-                    min-h-105
-                    items-center
-                    justify-center
-
-                    bg-[#0A0E14]
-
-                    px-5
-
+                    space-y-6
                     font-sans!
+                    sm:space-y-8
                 "
             >
-                <div className="text-center">
-                    <div
-                        className="
-                            mx-auto
-                            flex
-                            h-11
-                            w-11
-                            items-center
-                            justify-center
+                <PageHeader
+                    title="Organization Details"
+                    subtitle="Loading organization information..."
+                />
 
-                            border
-                            border-[#303A47]
+                <div
+                    className="
+                        flex
+                        min-h-[520px]
+                        items-center
+                        justify-center
 
-                            bg-[#0E1219]
+                        border
+                        border-[#252D38]
 
-                            text-[#8792A1]
-                        "
-                    >
-                        <RefreshCw
-                            size={17}
-                            strokeWidth={1.7}
-                            className="animate-spin"
+                        bg-[#0E1219]
+
+                        px-6
+                        py-12
+                    "
+                >
+                    <div className="text-center">
+                        <div
+                            className="
+                                mx-auto
+
+                                h-8
+                                w-8
+
+                                animate-spin
+
+                                rounded-full
+
+                                border-2
+                                border-[#29323E]
+                                border-t-[#8792A1]
+                            "
                         />
+
+                        <p
+                            className="
+                                mt-5
+
+                                font-sans!
+                                text-[12px]
+                                font-semibold!
+
+                                text-[#EEF1F5]!
+                            "
+                        >
+                            Loading organization details
+                        </p>
+
+                        <p
+                            className="
+                                mt-1.5
+
+                                font-sans!
+                                text-[12px]
+                                font-medium!
+                                leading-5
+
+                                text-[#697586]!
+                            "
+                        >
+                            Retrieving organization information.
+                        </p>
                     </div>
-
-                    <p
-                        className="
-                            mt-4
-
-                            font-sans!
-                            text-[11px]
-                            font-medium!
-
-                            text-[#8792A1]!
-                        "
-                    >
-                        Loading organization...
-                    </p>
                 </div>
             </div>
         );
@@ -393,44 +450,45 @@ const OrganizationDetails = () => {
         return (
             <div
                 className="
-                    min-h-full
-                    min-w-0
-
-                    bg-[#0A0E14]
-
+                    space-y-6
                     font-sans!
+                    sm:space-y-8
                 "
             >
                 <PageHeader
-                    eyebrow="Organization management"
-                    title="Organization details"
-                    description="Review organization profile information."
-                    actions={
+                    title="Organization Details"
+                    subtitle="The requested organization could not be loaded."
+                    action={
                         <button
                             type="button"
                             onClick={handleBack}
                             className="
+                                group
+
                                 inline-flex
-                                h-9
+                                h-10
+                                w-full
                                 items-center
                                 justify-center
-                                gap-2
+                                gap-2.5
 
                                 border
-                                border-[#303A47]
+                                border-[#29323E]
 
-                                bg-[#151B24]
+                                bg-[#0E1219]
 
                                 px-3.5
 
                                 font-sans!
-                                text-[10.5px]
+                                text-[12px]
                                 font-medium!
+                                whitespace-nowrap
 
                                 text-[#AEB7C3]!
 
                                 transition-[background-color,border-color,color]
                                 duration-150
+                                ease-out
 
                                 hover:border-[#394555]
                                 hover:bg-[#1A222D]
@@ -438,178 +496,275 @@ const OrganizationDetails = () => {
 
                                 focus:outline-none
                                 focus:ring-0
+
+                                sm:w-auto
                             "
                         >
-                            <ArrowLeft size={14} strokeWidth={1.8} />
+                            <ArrowLeft
+                                size={14}
+                                strokeWidth={1.8}
+                                className="
+                                    shrink-0
+
+                                    text-[#697586]
+
+                                    transition-[transform,color]
+                                    duration-150
+
+                                    group-hover:-translate-x-0.5
+                                    group-hover:text-[#AEB7C3]
+                                "
+                            />
 
                             <span>Back to organizations</span>
                         </button>
                     }
                 />
 
-                <section
+                <div
                     className="
-                        px-4
-                        pb-10
-                        pt-6
+                        flex
+                        flex-col
+                        gap-4
 
-                        sm:px-5
+                        border
+                        border-[#493038]
 
-                        md:px-6
+                        bg-[#281A1F]
 
-                        lg:px-7
+                        px-5
+                        py-4
 
-                        xl:px-8
-
-                        2xl:px-10
+                        sm:flex-row
+                        sm:items-start
+                        sm:justify-between
+                        sm:gap-5
+                        sm:px-6
+                        sm:py-5
                     "
                 >
                     <div
                         className="
-                            mx-auto
-                            max-w-375
-
-                            border
-                            border-[#493038]
-
-                            bg-[#181216]
-
-                            px-5
-                            py-7
-
-                            sm:px-7
-                            sm:py-8
+                            flex
+                            min-w-0
+                            items-start
+                            gap-3.5
                         "
                     >
                         <div
                             className="
                                 flex
-                                flex-col
-                                gap-5
+                                h-8
+                                w-8
+                                shrink-0
+                                items-center
+                                justify-center
 
-                                sm:flex-row
-                                sm:items-start
-                                sm:justify-between
+                                border
+                                border-[#493038]
+
+                                bg-[#301F25]
+
+                                text-[#D99A9F]
                             "
                         >
-                            <div
+                            <CircleAlert size={15} strokeWidth={1.8} />
+                        </div>
+
+                        <div className="min-w-0 pt-0.5">
+                            <p
                                 className="
-                                    flex
-                                    min-w-0
-                                    items-start
-                                    gap-4
+                                    font-sans!
+                                    text-[11.5px]
+                                    font-semibold!
+
+                                    text-[#E4B0B4]!
                                 "
                             >
-                                <div
-                                    className="
-                                        flex
-                                        h-10
-                                        w-10
-                                        shrink-0
-                                        items-center
-                                        justify-center
+                                Unable to load organization
+                            </p>
 
-                                        border
-                                        border-[#5B3840]
-
-                                        bg-[#281A1F]
-
-                                        text-[#D99A9F]
-                                    "
-                                >
-                                    <CircleAlert size={17} strokeWidth={1.8} />
-                                </div>
-
-                                <div className="min-w-0">
-                                    <h2
-                                        className="
-                                            font-sans!
-                                            text-[14px]
-                                            font-semibold!
-
-                                            text-[#EEF1F5]!
-                                        "
-                                    >
-                                        Unable to load organization
-                                    </h2>
-
-                                    <p
-                                        className="
-                                            mt-1.5
-                                            max-w-xl
-
-                                            font-sans!
-                                            text-[11px]
-                                            font-normal!
-                                            leading-[1.7]
-
-                                            text-[#B77F85]!
-                                        "
-                                    >
-                                        {error ||
-                                            'The requested organization could not be found.'}
-                                    </p>
-                                </div>
-                            </div>
-
-                            <button
-                                type="button"
-                                onClick={handleRetry}
+                            <p
                                 className="
-                                    inline-flex
-                                    h-9
-                                    shrink-0
-                                    items-center
-                                    justify-center
-                                    gap-2
-
-                                    border
-                                    border-[#493038]
-
-                                    bg-[#281A1F]
-
-                                    px-3.5
+                                    mt-1
+                                    max-w-xl
 
                                     font-sans!
-                                    text-[10.5px]
-                                    font-medium!
+                                    text-[11px]
+                                    font-normal!
+                                    leading-5
 
-                                    text-[#D99A9F]!
-
-                                    transition-[background-color,border-color]
-                                    duration-150
-
-                                    hover:border-[#6B434C]
-                                    hover:bg-[#302026]
-
-                                    focus:outline-none
-                                    focus:ring-0
+                                    text-[#B98289]!
                                 "
                             >
-                                <RefreshCw size={13} strokeWidth={1.8} />
-                                Retry
-                            </button>
+                                {error ||
+                                    'The requested organization could not be found.'}
+                            </p>
                         </div>
                     </div>
-                </section>
+
+                    <button
+                        type="button"
+                        onClick={handleRetry}
+                        className="
+                            group
+
+                            inline-flex
+                            h-9
+                            w-full
+                            shrink-0
+                            items-center
+                            justify-center
+                            gap-2
+
+                            border
+                            border-[#493038]
+
+                            bg-[#301F25]
+
+                            px-3.5
+
+                            font-sans!
+                            text-[11px]
+                            font-medium!
+                            whitespace-nowrap
+
+                            text-[#D99A9F]!
+
+                            transition-[background-color,border-color]
+                            duration-150
+
+                            hover:border-[#6B434C]
+                            hover:bg-[#38242B]
+
+                            focus:outline-none
+                            focus:ring-0
+
+                            sm:w-auto
+                        "
+                    >
+                        <RefreshCw
+                            size={13}
+                            strokeWidth={1.8}
+                            className="
+                                transition-transform
+                                duration-300
+                                group-hover:rotate-45
+                            "
+                        />
+                        Retry
+                    </button>
+                </div>
             </div>
         );
     }
 
     /* ======================================================================
-       PAGE
+       EDIT VIEW
+    ====================================================================== */
+
+    if (isEditing) {
+        return (
+            <div
+                className="
+                    space-y-6
+                    font-sans!
+                    sm:space-y-8
+                "
+            >
+                <PageHeader
+                    title="Edit Organization"
+                    subtitle={`Update profile information and organization details for ${
+                        organization.name || 'this organization'
+                    }.`}
+                    action={
+                        <button
+                            type="button"
+                            onClick={handleCancelEdit}
+                            disabled={saving}
+                            className="
+                                group
+
+                                inline-flex
+                                h-10
+                                w-full
+                                items-center
+                                justify-center
+                                gap-2.5
+
+                                border
+                                border-[#29323E]
+
+                                bg-[#0E1219]
+
+                                px-3.5
+
+                                font-sans!
+                                text-[12px]
+                                font-medium!
+                                whitespace-nowrap
+
+                                text-[#AEB7C3]!
+
+                                transition-[background-color,border-color,color]
+                                duration-150
+                                ease-out
+
+                                hover:border-[#394555]
+                                hover:bg-[#1A222D]
+                                hover:text-[#EEF1F5]!
+
+                                disabled:cursor-not-allowed
+                                disabled:opacity-40
+
+                                focus:outline-none
+                                focus:ring-0
+
+                                sm:w-auto
+                            "
+                        >
+                            <X
+                                size={14}
+                                strokeWidth={1.8}
+                                className="
+                                    shrink-0
+
+                                    text-[#697586]
+
+                                    transition-colors
+                                    duration-150
+
+                                    group-hover:text-[#AEB7C3]
+                                "
+                            />
+
+                            <span>Cancel editing</span>
+                        </button>
+                    }
+                />
+
+                <EditOrganizationView
+                    organization={organization}
+                    saving={saving}
+                    saveError={saveError}
+                    fieldErrors={fieldErrors}
+                    onSubmit={handleUpdateOrganization}
+                    onCancel={handleCancelEdit}
+                />
+            </div>
+        );
+    }
+
+    /* ======================================================================
+       DETAILS VIEW
     ====================================================================== */
 
     return (
         <div
             className="
-                min-h-full
-                min-w-0
-
-                bg-[#0A0E14]
-
+                space-y-6
                 font-sans!
-                text-[#EEF1F5]
+                sm:space-y-8
             "
         >
             {/* =============================================================
@@ -626,22 +781,21 @@ const OrganizationDetails = () => {
             ============================================================== */}
 
             <PageHeader
-                eyebrow="Organization management"
-                title={isEditing ? 'Edit organization' : 'Organization details'}
-                description={
-                    isEditing
-                        ? `Update profile information for ${
-                              organization.name || 'this organization'
-                          }.`
-                        : 'Review organization identity, contact information, purpose and operational details.'
-                }
-                actions={
+                title="Organization Details"
+                subtitle="Review organization identity, profile information and platform access."
+                action={
                     <div
                         className="
-                            flex
-                            flex-wrap
-                            items-center
-                            gap-2
+                            grid
+                            w-full
+                            grid-cols-2
+                            gap-2.5
+
+                            sm:flex
+                            sm:w-auto
+                            sm:items-center
+                            sm:justify-end
+                            sm:gap-3
                         "
                     >
                         {/* BACK */}
@@ -649,184 +803,131 @@ const OrganizationDetails = () => {
                         <button
                             type="button"
                             onClick={handleBack}
-                            disabled={saving}
                             className="
+                                group
+
                                 inline-flex
-                                h-9
+                                h-10
+                                w-full
                                 items-center
                                 justify-center
-                                gap-2
+                                gap-2.5
 
                                 border
-                                border-[#303A47]
+                                border-[#29323E]
 
-                                bg-[#151B24]
+                                bg-[#0E1219]
 
                                 px-3.5
 
                                 font-sans!
-                                text-[10.5px]
+                                text-[12px]
                                 font-medium!
+                                whitespace-nowrap
 
                                 text-[#AEB7C3]!
 
                                 transition-[background-color,border-color,color]
                                 duration-150
+                                ease-out
 
                                 hover:border-[#394555]
-                                hover:bg-[#1A222D]
+                                hover:bg-[#151B24]
                                 hover:text-[#EEF1F5]!
-
-                                disabled:cursor-not-allowed
-                                disabled:opacity-40
 
                                 focus:outline-none
                                 focus:ring-0
+
+                                sm:w-auto
                             "
                         >
-                            <ArrowLeft size={14} strokeWidth={1.8} />
+                            <ArrowLeft
+                                size={14}
+                                strokeWidth={1.8}
+                                className="
+                                    shrink-0
 
-                            <span className="hidden sm:inline">
-                                Back to organizations
-                            </span>
+                                    text-[#697586]
 
-                            <span className="sm:hidden">Back</span>
+                                    transition-[transform,color]
+                                    duration-150
+
+                                    group-hover:-translate-x-0.5
+                                    group-hover:text-[#AEB7C3]
+                                "
+                            />
+
+                            <span>Back</span>
                         </button>
 
-                        {/* EDIT / CANCEL */}
+                        {/* EDIT */}
 
-                        {isEditing ? (
-                            <button
-                                type="button"
-                                onClick={handleCancelEdit}
-                                disabled={saving}
+                        <button
+                            type="button"
+                            onClick={handleStartEdit}
+                            className="
+                                group
+
+                                inline-flex
+                                h-10
+                                w-full
+                                items-center
+                                justify-center
+                                gap-2.5
+
+                                border
+                                border-[#394555]
+
+                                bg-[#1A222D]
+
+                                px-4
+
+                                font-sans!
+                                text-[12px]
+                                font-semibold!
+                                whitespace-nowrap
+
+                                text-[#EEF1F5]!
+
+                                transition-[background-color,border-color,color]
+                                duration-150
+                                ease-out
+
+                                hover:border-[#4B5869]
+                                hover:bg-[#1D2632]
+
+                                focus:outline-none
+                                focus:ring-0
+
+                                sm:w-auto
+                            "
+                        >
+                            <Pencil
+                                size={14}
+                                strokeWidth={1.8}
                                 className="
-                                    inline-flex
-                                    h-9
-                                    items-center
-                                    justify-center
-                                    gap-2
+                                    shrink-0
 
-                                    border
-                                    border-[#303A47]
+                                    text-[#AEB7C3]
 
-                                    bg-transparent
-
-                                    px-3.5
-
-                                    font-sans!
-                                    text-[10.5px]
-                                    font-medium!
-
-                                    text-[#AEB7C3]!
-
-                                    transition-[background-color,border-color,color]
+                                    transition-colors
                                     duration-150
 
-                                    hover:border-[#394555]
-                                    hover:bg-[#151B24]
-                                    hover:text-[#EEF1F5]!
-
-                                    disabled:cursor-not-allowed
-                                    disabled:opacity-40
-
-                                    focus:outline-none
-                                    focus:ring-0
+                                    group-hover:text-[#EEF1F5]
                                 "
-                            >
-                                <X size={14} strokeWidth={1.8} />
-                                Cancel editing
-                            </button>
-                        ) : (
-                            <button
-                                type="button"
-                                onClick={handleStartEdit}
-                                className="
-                                    inline-flex
-                                    h-9
-                                    items-center
-                                    justify-center
-                                    gap-2
+                            />
 
-                                    border
-                                    border-[#465261]
-
-                                    bg-[#DCE1E7]
-
-                                    px-3.5
-
-                                    font-sans!
-                                    text-[10.5px]
-                                    font-semibold!
-
-                                    text-[#0A0E14]!
-
-                                    transition-[background-color,border-color]
-                                    duration-150
-
-                                    hover:border-[#EEF1F5]
-                                    hover:bg-[#EEF1F5]
-
-                                    focus:outline-none
-                                    focus:ring-0
-                                "
-                            >
-                                <Pencil size={13} strokeWidth={1.8} />
-                                Edit organization
-                            </button>
-                        )}
+                            <span>Edit Organization</span>
+                        </button>
                     </div>
                 }
             />
 
             {/* =============================================================
-                CONTENT
+                DETAILS
             ============================================================== */}
 
-            <section
-                className="
-                    min-w-0
-
-                    px-4
-                    pb-10
-                    pt-5
-
-                    sm:px-5
-                    sm:pb-12
-                    sm:pt-6
-
-                    md:px-6
-
-                    lg:px-7
-                    lg:pb-14
-
-                    xl:px-8
-
-                    2xl:px-10
-                "
-            >
-                <div
-                    className="
-                        mx-auto
-                        w-full
-                        max-w-375
-                        min-w-0
-                    "
-                >
-                    {isEditing ? (
-                        <EditOrganizationView
-                            organization={organization}
-                            saving={saving}
-                            saveError={saveError}
-                            fieldErrors={fieldErrors}
-                            onSubmit={handleUpdateOrganization}
-                            onCancel={handleCancelEdit}
-                        />
-                    ) : (
-                        <OrganizationDetailsView organization={organization} />
-                    )}
-                </div>
-            </section>
+            <OrganizationDetailsView organization={organization} />
         </div>
     );
 };

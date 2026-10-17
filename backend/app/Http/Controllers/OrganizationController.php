@@ -1047,8 +1047,9 @@ class OrganizationController extends Controller
     }
 
     /**
-     * Upload the authenticated organization's logo.
+     * Upload the authenticated organization's profile photo.
      * The image URL is stored in users.photo.
+     * ImageKit folder: /users
      */
     public function uploadProfilePhoto(Request $request)
     {
@@ -1071,12 +1072,12 @@ class OrganizationController extends Controller
 
         $photoUrl = $this->uploadToImageKit(
             $validated['photo'],
-            '/organizations'
+            '/users'
         );
 
         if (!$photoUrl) {
             return response()->json([
-                'message' => 'The organization logo could not be uploaded.',
+                'message' => 'The organization profile photo could not be uploaded.',
             ], 500);
         }
 
@@ -1084,7 +1085,7 @@ class OrganizationController extends Controller
         $user->save();
 
         return response()->json([
-            'message' => 'Organization logo updated successfully.',
+            'message' => 'Organization profile photo updated successfully.',
             'photo' => $user->photo,
         ]);
     }
@@ -1092,6 +1093,7 @@ class OrganizationController extends Controller
     /**
      * Upload the authenticated organization's banner.
      * The image URL is stored in organizations.banner.
+     * ImageKit folder: /organizations
      */
     public function uploadProfileBanner(Request $request)
     {
@@ -1125,7 +1127,7 @@ class OrganizationController extends Controller
 
         $bannerUrl = $this->uploadToImageKit(
             $validated['banner'],
-            '/organizations/banners'
+            '/organizations'
         );
 
         if (!$bannerUrl) {

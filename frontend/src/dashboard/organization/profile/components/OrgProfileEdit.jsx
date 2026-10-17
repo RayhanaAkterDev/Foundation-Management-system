@@ -137,13 +137,10 @@ function ImageUploader({
     const handleFileChange = (event) => {
         const file = event.target.files?.[0];
 
-        // TEMPORARY DEBUG LOGS — added for testing
-        console.log('[ImageUploader] Field:', field);
-        console.log('[ImageUploader] Selected file:', file);
-
         if (!file) return;
 
         const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+
         if (!allowedTypes.includes(file.type)) {
             event.target.value = '';
             return;
@@ -154,8 +151,7 @@ function ImageUploader({
             return;
         }
 
-        // Never infer the destination from the filename or image preview.
-        // Pass the exact field associated with this uploader.
+        // Pass the uploader's exact field to the parent handler.
         onUploadImage?.(field, file);
 
         event.target.value = '';

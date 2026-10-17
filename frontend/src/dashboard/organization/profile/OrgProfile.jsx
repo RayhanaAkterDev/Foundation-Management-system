@@ -156,9 +156,6 @@ export default function OrgProfile() {
     };
 
     const handleImageUpload = async (field, file) => {
-        console.log('[handleImageUpload] Field:', field);
-        console.log('[handleImageUpload] File:', file);
-
         if (!file || uploadingImage) return;
 
         const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
@@ -182,15 +179,7 @@ export default function OrgProfile() {
         const body = new FormData();
         body.append(field, file);
 
-        console.log('[ImageUpload] FormData field:', field);
-        console.log('[ImageUpload] FormData file:', body.get(field));
-
         try {
-            console.log(
-                '[ImageUpload] Sending request to:',
-                `/organization/profile/${field}`,
-            );
-
             const response = await apiRequest(
                 `/organization/profile/${field}`,
                 {

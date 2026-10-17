@@ -10,9 +10,7 @@ const getToken = () => {
 };
 
 export const apiRequest = async (url, options = {}) => {
-    console.log('[apiRequest] Entered:', url);
     const token = getToken();
-
     const isFormData = options.body instanceof FormData;
 
     const headers = {
@@ -21,7 +19,6 @@ export const apiRequest = async (url, options = {}) => {
     };
 
     // Attach authentication only when a token exists.
-    // This allows public/guest API requests to work without login.
     if (token) {
         headers.Authorization = `Bearer ${token}`;
     }
@@ -40,7 +37,6 @@ export const apiRequest = async (url, options = {}) => {
         }
     }
 
-    console.log('[apiRequest] Calling fetch:', `${API_BASE_URL}${url}`);
     const response = await fetch(`${API_BASE_URL}${url}`, {
         ...options,
         headers,

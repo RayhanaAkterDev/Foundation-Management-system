@@ -227,7 +227,7 @@ export default function OrgProfile() {
         <div className="space-y-6">
             <PageHeader
                 title="Organization Profile"
-                description="Manage your organization's information and public identity."
+                subtitle="Manage your organization's information and public identity."
             />
 
             {error && (
@@ -243,7 +243,7 @@ export default function OrgProfile() {
             {success && !editing && (
                 <div
                     role="status"
-                    className="flex items-start gap-3 border border-[#315b4e] bg-[#19312c] px-4 py-3 text-sm text-[#b9e5d7]"
+                    className="flex items-start gap-3 border border-[#303A47] bg-[#1A222D] px-4 py-3 text-sm text-[#B8C0CA]"
                 >
                     <CheckCircle2 size={18} className="mt-0.5 shrink-0" />
                     <span>{success}</span>
@@ -251,19 +251,19 @@ export default function OrgProfile() {
             )}
 
             {loading ? (
-                <div className="border border-[#2b3836] bg-[#15201e] px-5 py-12 text-center text-sm text-[#91a09b]">
+                <div className="border border-[#252D38] bg-[#0E1219] px-5 py-12 text-center text-sm text-[#8792A1]">
                     Loading organization profile...
                 </div>
             ) : !profile ? (
-                <div className="border border-[#2b3836] bg-[#15201e] px-5 py-10 text-center">
-                    <p className="text-sm text-[#cbd5d1]">
+                <div className="border border-[#252D38] bg-[#0E1219] px-5 py-10 text-center">
+                    <p className="text-sm text-[#B8C0CA]">
                         Your organization profile could not be loaded.
                     </p>
 
                     <button
                         type="button"
                         onClick={() => window.location.reload()}
-                        className="mt-4 border border-[#426b60] px-4 py-2 text-sm font-medium text-[#c9e9df] transition hover:bg-[#19312c]"
+                        className="mt-4 border border-[#394555] px-4 py-2 text-sm font-medium text-[#D6DBE1] transition hover:bg-[#1A222D]"
                     >
                         Try again
                     </button>

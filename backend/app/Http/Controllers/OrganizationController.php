@@ -11,6 +11,7 @@ use ImageKit\ImageKit;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 
 
@@ -902,6 +903,19 @@ class OrganizationController extends Controller
             ], 403);
         }
 
+        $startedAt = microtime(true);
+
+        $organization = Organization::where('user_id', $user->id)
+            ->first();
+
+        Log::info('[ORG PROFILE TIMING]', [
+            'organization_query_ms' => round(
+                (microtime(true) - $startedAt) * 1000,
+                2
+            ),
+            'organization_found' => (bool) $organization,
+        ]);
+
         $organization = Organization::where('user_id', $user->id)
             ->first();
 
@@ -1072,7 +1086,7 @@ class OrganizationController extends Controller
 
         $photoUrl = $this->uploadToImageKit(
             $validated['photo'],
-            '/users'
+            '/users/photos'
         );
 
         if (!$photoUrl) {
@@ -1127,7 +1141,7 @@ class OrganizationController extends Controller
 
         $bannerUrl = $this->uploadToImageKit(
             $validated['banner'],
-            '/organizations'
+            '/organizations/banners'
         );
 
         if (!$bannerUrl) {

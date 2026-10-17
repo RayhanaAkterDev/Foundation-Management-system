@@ -25,19 +25,19 @@ import {
 ========================================================= */
 
 const inputClass = `
-    w-full min-w-0 border border-[#343944] bg-[#191D23]
-    px-4 py-3 text-[14px] leading-6 text-[#F1F2F4]!
+    w-full min-w-0 border border-[#303A47] bg-[#151B24]
+    px-4 py-3 text-[14px] leading-6 text-[#EEF1F5]!
     outline-none transition-colors duration-150
-    placeholder:text-[#69717D]
-    hover:border-[#505864]
-    focus:border-[#75828F]
+    placeholder:text-[#697586]
+    hover:border-[#465261]
+    focus:border-[#8493A6]
     focus:ring-0
     disabled:cursor-not-allowed disabled:opacity-50
 `;
 
-const labelClass = 'mb-2 block text-[14px] font-medium text-[#CDD2DA]';
+const labelClass = 'mb-2 block text-[14px] font-medium text-[#B8C0CA]';
 
-const panelClass = 'border border-[#303640] bg-[#20252D]';
+const panelClass = 'border border-[#252D38] bg-[#0E1219]';
 
 /* =========================================================
    FORM FIELD
@@ -58,7 +58,7 @@ function Field({
         <div className="min-w-0">
             <label className={labelClass} htmlFor={name}>
                 {label}
-                {required && <span className="ml-1 text-[#DFA57F]">*</span>}
+                {required && <span className="ml-1 text-[#D5B37F]">*</span>}
             </label>
 
             <input
@@ -87,7 +87,7 @@ function SectionHeading({ number, title, description }) {
             <span
                 className="
                     flex h-9 w-9 shrink-0 items-center justify-center
-                    border border-[#3B424D] bg-[#292F38]
+                    border border-[#303A47] bg-[#1A222D]
                     text-[13px] font-semibold text-[#AEB7C3]
                 "
             >
@@ -95,12 +95,12 @@ function SectionHeading({ number, title, description }) {
             </span>
 
             <div className="min-w-0">
-                <h2 className="text-[17px] font-semibold text-[#F1F2F4]!">
+                <h2 className="text-[17px] font-semibold text-[#EEF1F5]!">
                     {title}
                 </h2>
 
                 {description && (
-                    <p className="mt-1 text-[14px] leading-6 text-[#939CAA]">
+                    <p className="mt-1 text-[14px] leading-6 text-[#8792A1]">
                         {description}
                     </p>
                 )}
@@ -160,19 +160,19 @@ function ImageUploader({
     return (
         <div className="min-w-0">
             <div className="mb-3">
-                <h3 className="text-[15px] font-semibold text-[#E8EBF0]!">
+                <h3 className="text-[15px] font-semibold text-[#EEF1F5]!">
                     {title}
                 </h3>
 
-                <p className="mt-1 text-[13px] leading-5 text-[#939CAA]">
+                <p className="mt-1 text-[13px] leading-5 text-[#8792A1]">
                     {description}
                 </p>
             </div>
 
             <div
                 className={`
-                    relative overflow-hidden border border-[#39414B]
-                    bg-[#171C23]
+                    relative overflow-hidden border border-[#303A47]
+                    bg-[#121821]
                     ${isBanner ? 'h-44 sm:h-52' : 'h-44 sm:h-52'}
                 `}
             >
@@ -184,7 +184,7 @@ function ImageUploader({
                             className="h-full w-full object-cover"
                         />
                     ) : (
-                        <div className="flex h-full flex-col items-center justify-center gap-3 text-[#7F8997]">
+                        <div className="flex h-full flex-col items-center justify-center gap-3 text-[#8792A1]">
                             <ImagePlus size={30} strokeWidth={1.4} />
                             <span className="text-[13px]">
                                 No banner uploaded
@@ -196,8 +196,8 @@ function ImageUploader({
                         <div
                             className="
                                 flex h-28 w-28 items-center justify-center
-                                overflow-hidden border border-[#414B57]
-                                bg-[#292F38]
+                                overflow-hidden border border-[#303A47]
+                                bg-[#1A222D]
                             "
                         >
                             {imageUrl ? (
@@ -210,7 +210,7 @@ function ImageUploader({
                                 <Building2
                                     size={36}
                                     strokeWidth={1.4}
-                                    className="text-[#8E9AA8]"
+                                    className="text-[#8792A1]"
                                 />
                             )}
                         </div>
@@ -218,7 +218,7 @@ function ImageUploader({
                 )}
 
                 {uploading && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-[#10141B]/80">
+                    <div className="absolute inset-0 flex items-center justify-center bg-[#0E1219]/80">
                         <div className="flex items-center gap-3 text-[14px] text-white">
                             <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                             Uploading...
@@ -228,7 +228,7 @@ function ImageUploader({
             </div>
 
             <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-                <p className="text-[12px] text-[#858F9D]">
+                <p className="text-[12px] text-[#8792A1]">
                     JPG, PNG or WebP · Max 5 MB
                 </p>
 
@@ -236,13 +236,13 @@ function ImageUploader({
                     htmlFor={inputId}
                     className={`
                         inline-flex min-h-10 items-center justify-center
-                        gap-2 border border-[#49525F] bg-[#292F38]
-                        px-4 py-2 text-[13px] font-medium text-[#E1E5EB]
+                        gap-2 border border-[#394555] bg-[#1A222D]
+                        px-4 py-2 text-[13px] font-medium text-[#EEF1F5]
                         transition-colors
                         ${
                             disabled
                                 ? 'cursor-not-allowed opacity-50'
-                                : 'cursor-pointer hover:border-[#697584] hover:bg-[#343B46]'
+                                : 'cursor-pointer hover:border-[#586678] hover:bg-[#1D2632]'
                         }
                     `}
                 >
@@ -308,8 +308,8 @@ function MultiSelect({ options, value, onChange }) {
                             px-3.5 py-3 text-left transition-colors
                             ${
                                 active
-                                    ? 'border-[#627C77] bg-[#293D39]'
-                                    : 'border-[#39414B] bg-[#191D23] hover:border-[#626C79] hover:bg-[#292F38]'
+                                    ? 'border-[#586678] bg-[#1D2632]'
+                                    : 'border-[#303A47] bg-[#151B24] hover:border-[#586678] hover:bg-[#1A222D]'
                             }
                         `}
                     >
@@ -319,8 +319,8 @@ function MultiSelect({ options, value, onChange }) {
                                 justify-center border
                                 ${
                                     active
-                                        ? 'border-[#84A99E] bg-[#587F73] text-white'
-                                        : 'border-[#596370] bg-[#252B34] text-transparent'
+                                        ? 'border-[#8493A6] bg-[#8493A6] text-white'
+                                        : 'border-[#465261] bg-[#151B24] text-transparent'
                                 }
                             `}
                         >
@@ -330,7 +330,7 @@ function MultiSelect({ options, value, onChange }) {
                         <span
                             className={`
                                 min-w-0 text-[14px] leading-6
-                                ${active ? 'text-[#E0EEE9]' : 'text-[#C7CED8]'}
+                                ${active ? 'text-[#EEF1F5]' : 'text-[#B8C0CA]'}
                             `}
                         >
                             {option.label}
@@ -348,10 +348,10 @@ function MultiSelect({ options, value, onChange }) {
 
 function ReadOnlyDetail({ label, value }) {
     return (
-        <div className="min-w-0 border-b border-[#343B45] py-3 last:border-0">
-            <p className="text-[13px] text-[#929BA8]">{label}</p>
+        <div className="min-w-0 border-b border-[#29323E] py-3 last:border-0">
+            <p className="text-[13px] text-[#8792A1]">{label}</p>
 
-            <p className="mt-1 break-words text-[14px] font-medium text-[#E1E5EB]">
+            <p className="mt-1 break-words text-[14px] font-medium text-[#EEF1F5]">
                 {value || 'Not provided'}
             </p>
         </div>
@@ -381,16 +381,16 @@ export default function OrgProfileEdit({
     const bannerUrl = profile?.banner ?? null;
 
     return (
-        <div className="space-y-6 pb-8">
+        <div className="space-y-6 pb-8 font-sans!">
             {/* TOP HEADER */}
 
             <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
-                    <h2 className="text-xl font-semibold text-[#F1F2F4]!">
+                    <h2 className="text-xl font-semibold text-[#EEF1F5]!">
                         Edit organization information
                     </h2>
 
-                    <p className="mt-1 text-[14px] text-[#939CAA]">
+                    <p className="mt-1 text-[14px] text-[#8792A1]">
                         Update your profile information and visual identity.
                     </p>
                 </div>
@@ -401,9 +401,9 @@ export default function OrgProfileEdit({
                     disabled={saving || Boolean(uploadingImage)}
                     className="
                         inline-flex min-h-10 items-center gap-2
-                        border border-[#414955] px-4 py-2
-                        text-[13px] font-medium text-[#CDD4DD]
-                        transition-colors hover:bg-[#2A3039]
+                        border border-[#394555] px-4 py-2
+                        text-[13px] font-medium text-[#B8C0CA]
+                        transition-colors hover:bg-[#1A222D]
                         disabled:opacity-50
                     "
                 >
@@ -434,7 +434,7 @@ export default function OrgProfileEdit({
                 {imageUploadSuccess && (
                     <div
                         role="status"
-                        className="mb-5 flex items-start gap-3 border border-[#426456] bg-[#24382F] p-4 text-[14px] text-[#BCE1D1]"
+                        className="mb-5 flex items-start gap-3 border border-[#303A47] bg-[#1A222D] p-4 text-[14px] text-[#B8C0CA]"
                     >
                         <CheckCircle2 size={18} className="shrink-0" />
                         {imageUploadSuccess}
@@ -640,8 +640,8 @@ export default function OrgProfileEdit({
                                             text-[14px] font-medium transition-colors
                                             ${
                                                 active
-                                                    ? 'border-[#627C77] bg-[#293D39] text-[#E0EEE9]'
-                                                    : 'border-[#39414B] bg-[#191D23] text-[#C7CED8] hover:border-[#626C79] hover:bg-[#292F38]'
+                                                    ? 'border-[#586678] bg-[#1D2632] text-[#EEF1F5]'
+                                                    : 'border-[#303A47] bg-[#151B24] text-[#B8C0CA] hover:border-[#586678] hover:bg-[#1A222D]'
                                             }
                                         `}
                                     >
@@ -652,7 +652,7 @@ export default function OrgProfileEdit({
                         </div>
                     </div>
 
-                    <div className="border-t border-[#343B45] pt-6">
+                    <div className="border-t border-[#29323E] pt-6">
                         <p className={labelClass}>Primary activities</p>
 
                         <MultiSelect
@@ -694,16 +694,16 @@ export default function OrgProfileEdit({
 
                 {/* ACTIONS */}
 
-                <div className="flex flex-col-reverse items-stretch justify-end gap-3 border-t border-[#343B45] pt-6 sm:flex-row sm:items-center">
+                <div className="flex flex-col-reverse items-stretch justify-end gap-3 border-t border-[#29323E] pt-6 sm:flex-row sm:items-center">
                     <button
                         type="button"
                         onClick={onCancel}
                         disabled={saving || Boolean(uploadingImage)}
                         className="
                             inline-flex min-h-11 items-center justify-center
-                            gap-2 border border-[#414955] px-5 py-3
-                            text-[14px] font-medium text-[#CDD4DD]
-                            transition-colors hover:bg-[#2A3039]
+                            gap-2 border border-[#394555] px-5 py-3
+                            text-[14px] font-medium text-[#B8C0CA]
+                            transition-colors hover:bg-[#1A222D]
                             disabled:cursor-not-allowed disabled:opacity-50
                         "
                     >
@@ -716,9 +716,9 @@ export default function OrgProfileEdit({
                         disabled={saving || Boolean(uploadingImage)}
                         className="
                             inline-flex min-h-11 items-center justify-center
-                            gap-2 bg-[#0F6258] px-6 py-3
+                            gap-2 bg-[#465261] px-6 py-3
                             text-[14px] font-semibold text-white
-                            transition-colors hover:bg-[#0B5149]
+                            transition-colors hover:bg-[#586678]
                             disabled:cursor-not-allowed disabled:opacity-50
                         "
                     >

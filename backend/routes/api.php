@@ -434,6 +434,16 @@ Route::middleware('auth:sanctum')->group(function () {
         [OrganizationController::class, 'profile']
     );
 
+    Route::post(
+        '/organization/profile/photo',
+        [OrganizationController::class, 'uploadProfilePhoto']
+    );
+
+    Route::post(
+        '/organization/profile/banner',
+        [OrganizationController::class, 'uploadProfileBanner']
+    );
+
     Route::put(
         '/organization/profile',
         [OrganizationController::class, 'updateProfile']

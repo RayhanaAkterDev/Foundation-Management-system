@@ -25,6 +25,12 @@ class Organization extends Model
         'verification_status',
     ];
 
+    protected $casts = [
+        'focus_areas' => 'array',
+        'communities_served' => 'array',
+        'primary_activities' => 'array',
+    ];
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

@@ -6,7 +6,13 @@ use App\Models\Campaign;
 use App\Models\CampaignVolunteerAssignment;
 use App\Models\HelpRequestAssignment;
 use App\Models\Organization;
+
+use ImageKit\ImageKit;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+
 
 class OrganizationController extends Controller
 {
@@ -940,8 +946,7 @@ class OrganizationController extends Controller
             ], 403);
         }
 
-        $organization = Organization::where('user_id', $user->id)
-            ->first();
+        $organization = Organization::where('user_id', $user->id)->first();
 
         if (!$organization) {
             return response()->json([
@@ -951,32 +956,73 @@ class OrganizationController extends Controller
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+
             'email' => [
                 'required',
                 'email',
                 'max:255',
-                'unique:users,email,' . $user->id,
+                Rule::unique('users', 'email')->ignore($user->id),
             ],
+
             'phone' => ['nullable', 'string', 'max:30'],
             'website' => ['nullable', 'url', 'max:255'],
             'address' => ['nullable', 'string', 'max:1000'],
             'mission' => ['nullable', 'string', 'max:5000'],
+
+            'focus_areas' => ['nullable', 'array'],
+            'focus_areas.*' => ['string', 'max:100'],
+
+            'communities_served' => ['nullable', 'array'],
+            'communities_served.*' => ['string', 'max:100'],
+
+            // Existing database values include "11-50" and "51-200".
+            'team_size' => ['nullable', 'string', 'max:50'],
+
+            'primary_activities' => ['nullable', 'array'],
+            'primary_activities.*' => ['string', 'max:255'],
         ]);
 
-        $organization->update([
-            'name' => $validated['name'],
-            'phone' => $validated['phone'] ?? null,
-            'website' => $validated['website'] ?? null,
-            'address' => $validated['address'] ?? null,
-            'mission' => $validated['mission'] ?? null,
-        ]);
+        $emailChanged = $user->email !== $validated['email'];
 
-        // Email is stored on the linked user account.
-        $user->email = $validated['email'];
-        $user->save();
+        DB::transaction(function () use (
+            $user,
+            $organization,
+            $validated,
+            $emailChanged
+        ) {
+            $organization->update([
+                'name' => $validated['name'],
+                'phone' => $validated['phone'] ?? null,
+                'website' => $validated['website'] ?? null,
+                'address' => $validated['address'] ?? null,
+                'mission' => $validated['mission'] ?? null,
+
+                'focus_areas' => $validated['focus_areas'] ?? [],
+                'communities_served' => $validated['communities_served'] ?? [],
+                'team_size' => $validated['team_size'] ?? null,
+                'primary_activities' => $validated['primary_activities'] ?? [],
+            ]);
+
+            $user->name = $validated['name'];
+
+            if ($emailChanged) {
+                $user->email = $validated['email'];
+                $user->email_verified_at = null;
+                $user->status = 'inactive';
+                $user->verification_email_sent_at = null;
+            }
+
+            $user->save();
+        });
+
+        $organization->refresh();
+        $user->refresh();
 
         return response()->json([
-            'message' => 'Organization profile updated successfully.',
+            'message' => $emailChanged
+                ? 'Profile updated. Please verify your new email address.'
+                : 'Organization profile updated successfully.',
+
             'organization' => [
                 'id' => $organization->id,
                 'name' => $organization->name,
@@ -987,14 +1033,149 @@ class OrganizationController extends Controller
                 'mission' => $organization->mission,
                 'organization_type' => $organization->organization_type,
                 'registration_number' => $organization->registration_number,
-                'focus_areas' => $organization->focus_areas,
-                'communities_served' => $organization->communities_served,
+                'focus_areas' => $organization->focus_areas ?? [],
+                'communities_served' => $organization->communities_served ?? [],
                 'team_size' => $organization->team_size,
-                'primary_activities' => $organization->primary_activities,
+                'primary_activities' => $organization->primary_activities ?? [],
                 'banner' => $organization->banner,
                 'photo' => $user->photo,
                 'verification_status' => $organization->verification_status,
+                'created_at' => $organization->created_at,
+                'updated_at' => $organization->updated_at,
             ],
         ]);
+    }
+
+    /**
+     * Upload the authenticated organization's logo.
+     * The image URL is stored in users.photo.
+     */
+    public function uploadProfilePhoto(Request $request)
+    {
+        $user = $request->user();
+
+        if (!$user || $user->role !== 'organization') {
+            return response()->json([
+                'message' => 'Unauthorized.',
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'photo' => [
+                'required',
+                'image',
+                'mimes:jpeg,jpg,png,webp',
+                'max:5120',
+            ],
+        ]);
+
+        $photoUrl = $this->uploadToImageKit(
+            $validated['photo'],
+            '/organizations'
+        );
+
+        if (!$photoUrl) {
+            return response()->json([
+                'message' => 'The organization logo could not be uploaded.',
+            ], 500);
+        }
+
+        $user->photo = $photoUrl;
+        $user->save();
+
+        return response()->json([
+            'message' => 'Organization logo updated successfully.',
+            'photo' => $user->photo,
+        ]);
+    }
+
+    /**
+     * Upload the authenticated organization's banner.
+     * The image URL is stored in organizations.banner.
+     */
+    public function uploadProfileBanner(Request $request)
+    {
+        $user = $request->user();
+
+        if (!$user || $user->role !== 'organization') {
+            return response()->json([
+                'message' => 'Unauthorized.',
+            ], 403);
+        }
+
+        $organization = Organization::where(
+            'user_id',
+            $user->id
+        )->first();
+
+        if (!$organization) {
+            return response()->json([
+                'message' => 'Organization profile not found.',
+            ], 404);
+        }
+
+        $validated = $request->validate([
+            'banner' => [
+                'required',
+                'image',
+                'mimes:jpeg,jpg,png,webp',
+                'max:5120',
+            ],
+        ]);
+
+        $bannerUrl = $this->uploadToImageKit(
+            $validated['banner'],
+            '/organizations/banners'
+        );
+
+        if (!$bannerUrl) {
+            return response()->json([
+                'message' => 'The organization banner could not be uploaded.',
+            ], 500);
+        }
+
+        $organization->banner = $bannerUrl;
+        $organization->save();
+
+        return response()->json([
+            'message' => 'Organization banner updated successfully.',
+            'banner' => $organization->banner,
+        ]);
+    }
+
+    /**
+     * Upload a validated image using the project's existing ImageKit setup.
+     */
+    private function uploadToImageKit(
+        UploadedFile $file,
+        string $folder
+    ): ?string {
+        $imageKit = new ImageKit(
+            config('services.imagekit.public_key'),
+            config('services.imagekit.private_key'),
+            config('services.imagekit.url_endpoint')
+        );
+
+        $fileContents = file_get_contents($file->getRealPath());
+
+        if ($fileContents === false) {
+            return null;
+        }
+
+        $uploadResponse = $imageKit->uploadFile([
+            'file' => base64_encode($fileContents),
+            'fileName' => $file->getClientOriginalName(),
+            'folder' => $folder,
+            'useUniqueFileName' => true,
+        ]);
+
+        if (
+            !isset($uploadResponse->result) ||
+            !isset($uploadResponse->result->url)
+        ) {
+            return null;
+        }
+
+        return $uploadResponse->result->url;
     }
 }

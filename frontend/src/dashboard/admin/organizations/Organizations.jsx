@@ -1,3 +1,4 @@
+import SuccessDialog from '@/components/dashboard/SuccessDialog';
 // src/dashboard/admin/organizations/Organizations.jsx
 
 import React, { useEffect, useMemo, useState } from 'react';
@@ -22,7 +23,7 @@ import Stats from './components/Stats';
 import Table from './components/Table';
 import Filters from './components/Filters';
 import Pagination from './components/Pagination';
-import SuccessToast from './components/SuccessToast';
+import SuccessToast from '@/components/dashboard/SuccessDialog';
 
 import VerificationModal from './modals/VerificationModal';
 import VerificationEmailErrorModal from './modals/VerificationEmailErrorModal';
@@ -94,6 +95,8 @@ const Organizations = () => {
             show: true,
             message,
         });
+
+        if (message.includes('deleted successfully')) return;
 
         window.setTimeout(() => {
             setToast({
@@ -669,6 +672,12 @@ const Organizations = () => {
         },
 
         {
+            key: 'status',
+            label: 'Status',
+            sortable: true,
+        },
+
+        {
             key: 'registeredDate',
             header: 'Registered',
             width: 'minmax(105px, 0.82fr)',
@@ -821,132 +830,51 @@ const Organizations = () => {
                     }
                 />
 
-                {/* ==================================================
-                    EMAIL VERIFICATION PREREQUISITE MESSAGE
-                ================================================== */}
-
-                {/* {reviewError &&
-                    !selectedReviewOrganization && (
-                        <div
-                            role="alert"
-                            className="
-                                -mt-6
-                                border-l-2
-                                border-[#A8444D]
-                                bg-[#21171A]
-                                px-4
-                                py-3
-                                lg:-mt-7
-                            "
-                        >
-                            <p
-                                className="
-                                    text-[12px]
-                                    font-medium!
-                                    leading-5
-                                    text-[#D07880]
-                                "
-                            >
-                                {reviewError}
-                            </p>
-                        </div>
-                    )} */}
-
                 <Stats
                     total={statistics.total}
                     verified={statistics.verified}
                     pending={statistics.pending}
                     rejected={statistics.rejected}
+                    onOpenReviewQueue={() => handleCategoryChange('pending')}
                 />
 
-                <section className="pt-2 lg:pt-3">
-                    <div className="mb-6">
-                        <div
+                <section
+                    id="organizations-table"
+                    className="scroll-mt-6 pt-2 lg:pt-3"
+                >
+                    <div
+                        className="min-w-0 mb-5
+                    sm:mb-6"
+                    >
+                        <p
                             className="
-                                flex
-                                flex-col
-                                gap-4
-                                border-b
-                                border-[#252D38]
-                                pb-5
-                                sm:flex-row
-                                sm:items-end
-                                sm:justify-between
-                            "
+                            font-sans!
+                            text-[10px]
+                            font-semibold!
+                            uppercase
+                            tracking-[0.13em]
+                            text-[#758192]
+                        "
                         >
-                            <div className="min-w-0">
-                                <div className="mb-2 flex items-center gap-2.5 px-2">
-                                    <span className="h-1.5 w-1.5 bg-[#AEB7C3]!" />
+                            Organization management
+                        </p>
 
-                                    <span
-                                        className="
-                                            text-[10px]
-                                            font-bold
-                                            uppercase
-                                            tracking-[0.18em]
-                                            text-[#AEB7C3]!
-                                        "
-                                    >
-                                        Administration
-                                    </span>
-                                </div>
+                        <h2
+                            id="organization-overview-heading"
+                            className="
+                            mt-1.5
+                            font-sans!
+                            text-[17px]
+                            font-semibold!
+                            leading-[1.35]
+                            tracking-[-0.015em]
+                            text-[#F0F2F5]!
 
-                                <h2
-                                    className="
-                                        font-sans!
-                                        text-[20px]
-                                        font-semibold!
-                                        leading-tight!
-                                        tracking-tight!
-                                        text-[#EEF1F5]!
-                                        sm:text-[21px]
-                                    "
-                                >
-                                    Organization management
-                                </h2>
-
-                                <p
-                                    className="
-                                        mt-1.5
-                                        max-w-xl
-                                        text-[12px]
-                                        leading-5
-                                        text-[#8792A1]
-                                    "
-                                >
-                                    Review registered organizations,
-                                    verification status, and organization
-                                    details across the platform.
-                                </p>
-                            </div>
-
-                            <div className="flex shrink-0 items-center gap-2.5">
-                                <span className="h-8 border-l border-[#252D38]" />
-
-                                <div>
-                                    <p
-                                        className="
-                                            text-[9px]
-                                            font-semibold!
-                                            uppercase
-                                            tracking-[0.16em]
-                                            text-[#8792A1]
-                                        "
-                                    >
-                                        Showing
-                                    </p>
-
-                                    <p className="mt-0.5 text-[13px] font-semibold! text-[#EEF1F5]">
-                                        {filteredOrganizations.length}{' '}
-                                        <span className="font-normal text-[#8792A1]">
-                                            {filteredOrganizations.length === 1
-                                                ? 'organization'
-                                                : 'organizations'}
-                                        </span>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
+                            sm:text-[18px]
+                        "
+                        >
+                            Registered organizations
+                        </h2>
                     </div>
 
                     {/* ==================================================
@@ -1039,7 +967,6 @@ const Organizations = () => {
                             "
                         >
                             {/* Workspace toolbar */}
-
                             <div
                                 className="
                                     shrink-0
@@ -1145,13 +1072,13 @@ const Organizations = () => {
                                             <p
                                                 className="
                                                     text-[9px]
-                                                    font-bold
+                                                    font-bold!
                                                     uppercase
                                                     tracking-[0.16em]
                                                     text-[#8792A1]
                                                 "
                                             >
-                                                Directory
+                                                Showing
                                             </p>
 
                                             <p className="mt-0.5 text-xs font-medium! text-[#EEF1F5]">
@@ -1166,42 +1093,7 @@ const Organizations = () => {
                                 </div>
                             </div>
 
-                            {/* Table heading */}
-
-                            <div
-                                className="
-                                    flex
-                                    shrink-0
-                                    flex-col
-                                    gap-2
-                                    border-b
-                                    border-[#252D38]
-                                    bg-[#0E1219]
-                                    px-5
-                                    py-3.5
-                                    sm:flex-row
-                                    sm:items-center
-                                    sm:justify-between
-                                "
-                            >
-                                <div>
-                                    <p className="text-[13px] font-semibold! text-[#EEF1F5]">
-                                        Registered organizations
-                                    </p>
-
-                                    <p className="mt-0.5 text-xs text-[#8792A1]">
-                                        Browse and review organizations in the
-                                        platform directory
-                                    </p>
-                                </div>
-
-                                <span className="text-[11px] font-medium! text-[#8792A1]">
-                                    Sorted by organization
-                                </span>
-                            </div>
-
                             {/* TABLE */}
-
                             <div
                                 className="
                                     min-h-0
@@ -1264,7 +1156,7 @@ const Organizations = () => {
                                 <p
                                     className="
                                         text-[10px]
-                                        font-bold
+                                        font-bold!
                                         uppercase
                                         tracking-[0.18em]
                                         text-[#697586]!
@@ -1288,7 +1180,6 @@ const Organizations = () => {
                                 <p
                                     className="
                                         mt-2
-                                        max-w-55
                                         text-[12px]
                                         leading-5
                                         text-[#8792A1]!
@@ -1311,7 +1202,7 @@ const Organizations = () => {
                                     <p
                                         className="
                                             text-[10px]
-                                            font-bold
+                                            font-bold!
                                             uppercase
                                             tracking-[0.16em]
                                             text-[#697586]!
@@ -1465,7 +1356,7 @@ const Organizations = () => {
                             <p
                                 className="
                                     text-[10px]
-                                    font-bold
+                                    font-bold!
                                     uppercase
                                     tracking-[0.18em]
                                     text-[#697586]!
@@ -1505,7 +1396,7 @@ const Organizations = () => {
                                 <p
                                     className="
                                         text-[10px]
-                                        font-bold
+                                        font-bold!
                                         uppercase
                                         tracking-[0.16em]
                                         text-[#697586]!
@@ -1588,7 +1479,21 @@ const Organizations = () => {
                 FEEDBACK / MODALS
             ======================================================== */}
 
-            <SuccessToast show={toast.show} message={toast.message} />
+            <SuccessToast
+                show={
+                    toast.show &&
+                    !toast.message.includes('deleted successfully')
+                }
+                message={toast.message}
+            />
+            <SuccessDialog
+                open={
+                    toast.show && toast.message.includes('deleted successfully')
+                }
+                entity="organization"
+                action="deleted"
+                onClose={() => setToast({ show: false, message: '' })}
+            />
 
             <VerificationEmailErrorModal
                 show={showEmailVerificationError}

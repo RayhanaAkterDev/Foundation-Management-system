@@ -1,6 +1,6 @@
 // src/dashboard/admin/organizations/AddOrganization.jsx
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import {
@@ -18,7 +18,7 @@ import {
 import PageHeader from '@/components/dashboard/PageHeader';
 
 import OrganizationForm from './components/OrganizationForm';
-import SuccessToast from './components/SuccessToast';
+import SuccessDialog from '@/components/dashboard/SuccessDialog';
 
 import { createOrganization } from './api/organizationApi';
 
@@ -133,28 +133,12 @@ const AddOrganization = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [fieldErrors, setFieldErrors] = useState({});
-    const [successMessage, setSuccessMessage] = useState('');
+    const [success, setSuccess] = useState({ open: false, name: '' });
     const [formResetKey, setFormResetKey] = useState(0);
 
     const [formPreview, setFormPreview] = useState({
         ...EMPTY_PREVIEW,
     });
-
-    /* ======================================================================
-       SUCCESS MESSAGE
-    ====================================================================== */
-
-    useEffect(() => {
-        if (!successMessage) {
-            return undefined;
-        }
-
-        const timer = window.setTimeout(() => {
-            setSuccessMessage('');
-        }, 4000);
-
-        return () => window.clearTimeout(timer);
-    }, [successMessage]);
 
     /* ======================================================================
        BACK
@@ -184,14 +168,15 @@ const AddOrganization = () => {
         setLoading(true);
         setError('');
         setFieldErrors({});
-        setSuccessMessage('');
+        setSuccess({ open: false, name: '' });
 
         try {
             await createOrganization(formData);
 
-            setSuccessMessage(
-                `${formData.name || 'Organization'} was created successfully.`,
-            );
+            setSuccess({
+                open: true,
+                name: formData.name?.trim() || 'Organization',
+            });
 
             setFormPreview({
                 ...EMPTY_PREVIEW,
@@ -332,9 +317,12 @@ const AddOrganization = () => {
                 SUCCESS
             ============================================================== */}
 
-            <SuccessToast
-                show={Boolean(successMessage)}
-                message={successMessage}
+            <SuccessDialog
+                open={success.open}
+                action="created"
+                entity="organization"
+                name={success.name}
+                onClose={() => setSuccess({ open: false, name: '' })}
             />
 
             {/* =============================================================
@@ -533,8 +521,8 @@ const AddOrganization = () => {
                         {/* RIGHT */}
 
                         <div
-                            className="
-                                flex
+                            className="hidden
+                                lg:flex
                                 shrink-0
                                 items-center
                                 gap-3.5

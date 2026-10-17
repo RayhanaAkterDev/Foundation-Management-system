@@ -13,7 +13,6 @@ import {
     LockKeyhole,
     Mail,
     ShieldAlert,
-    ShieldCheck,
     UserCog,
     UserRound,
 } from 'lucide-react';
@@ -102,6 +101,50 @@ const getInitialForm = (mode, user) => {
 };
 
 /* ==========================================================================
+   SHARED STYLES
+============================================================================ */
+
+const fieldLabelClass = `
+    mb-2
+    block
+    font-sans!
+    text-[13px]
+    font-medium!
+    tracking-normal
+    text-[#8792A1]!
+`;
+
+const fieldInputClass = `
+    h-full
+    w-full
+    appearance-none
+    border-0!
+    bg-transparent!
+    px-4
+    pr-12
+    font-sans!
+    text-[15px]
+    font-normal!
+    text-[#EEF1F5]!
+    shadow-none!
+    outline-none!
+    ring-0!
+    placeholder:font-normal!
+    placeholder:text-[#657181]!
+    focus:border-0!
+    focus:bg-transparent!
+    focus:outline-none!
+    focus:ring-0!
+    disabled:cursor-not-allowed
+    disabled:opacity-45
+    [&:-webkit-autofill]:[-webkit-text-fill-color:#EEF1F5]
+    [&:-webkit-autofill]:[transition:background-color_999999s_ease-in-out_0s]
+    [&:-webkit-autofill]:[box-shadow:0_0_0_1000px_#151B24_inset]
+    [&:-webkit-autofill:hover]:[box-shadow:0_0_0_1000px_#151B24_inset]
+    [&:-webkit-autofill:focus]:[box-shadow:0_0_0_1000px_#171E28_inset]
+`;
+
+/* ==========================================================================
    FIELD ERROR
 ============================================================================ */
 
@@ -117,17 +160,17 @@ const FieldError = ({ name, fieldErrors }) => {
                 flex
                 items-start
                 gap-2
-
                 font-sans!
-                text-[12px]
+                text-[13px]
                 leading-5
                 text-[#D99A9F]!
             "
         >
             <AlertCircle
-                size={13}
+                size={15}
                 strokeWidth={1.8}
                 className="mt-0.5 shrink-0"
+                aria-hidden="true"
             />
 
             <span>{error[0]}</span>
@@ -158,21 +201,7 @@ const EditorField = ({
 
     return (
         <div className="min-w-0">
-            <label
-                htmlFor={id}
-                className="
-                    mb-2.5
-                    block
-
-                    font-sans!
-                    text-[11px]
-                    font-semibold!
-                    uppercase
-                    tracking-[0.11em]
-
-                    text-[#8792A1]!
-                "
-            >
+            <label htmlFor={id} className={fieldLabelClass}>
                 {label}
 
                 {required && <span className="ml-1 text-[#697586]!">*</span>}
@@ -181,14 +210,11 @@ const EditorField = ({
             <div
                 className={`
                     relative
-                    h-[48px]
-
+                    h-[52px]
                     border
-
                     transition-[border-color,background-color]
                     duration-150
                     ease-out
-
                     ${
                         hasError
                             ? `
@@ -198,10 +224,8 @@ const EditorField = ({
                             : `
                                 border-[#303A47]
                                 bg-[#151B24]
-
-                                hover:border-[#394555]
-
-                                focus-within:border-[#4B5869]
+                                hover:border-[#465261]
+                                focus-within:border-[#68788B]
                                 focus-within:bg-[#171E28]
                             `
                     }
@@ -218,44 +242,9 @@ const EditorField = ({
                     autoComplete={autoComplete}
                     maxLength={name === 'phone' ? 11 : undefined}
                     inputMode={name === 'phone' ? 'numeric' : undefined}
-                    className="
-                        h-full
-                        w-full
-                        appearance-none
-
-                        border-0!
-                        bg-transparent!
-
-                        px-4
-                        pr-12
-
-                        font-sans!
-                        text-[13px]
-                        font-medium!
-
-                        text-[#EEF1F5]!
-
-                        shadow-none!
-                        outline-none!
-                        ring-0!
-
-                        placeholder:font-normal!
-                        placeholder:text-[#657181]!
-
-                        focus:border-0!
-                        focus:bg-transparent!
-                        focus:outline-none!
-                        focus:ring-0!
-
-                        disabled:cursor-not-allowed
-                        disabled:opacity-45
-
-                        [&:-webkit-autofill]:[-webkit-text-fill-color:#EEF1F5]
-                        [&:-webkit-autofill]:[transition:background-color_999999s_ease-in-out_0s]
-                        [&:-webkit-autofill]:[box-shadow:0_0_0_1000px_#151B24_inset]
-                        [&:-webkit-autofill:hover]:[box-shadow:0_0_0_1000px_#151B24_inset]
-                        [&:-webkit-autofill:focus]:[box-shadow:0_0_0_1000px_#171E28_inset]
-                    "
+                    aria-invalid={hasError}
+                    aria-describedby={hasError ? `${id}-error` : undefined}
+                    className={fieldInputClass}
                 />
 
                 {trailing && (
@@ -272,7 +261,11 @@ const EditorField = ({
                 )}
             </div>
 
-            <FieldError name={name} fieldErrors={fieldErrors} />
+            {hasError && (
+                <div id={`${id}-error`}>
+                    <FieldError name={name} fieldErrors={fieldErrors} />
+                </div>
+            )}
         </div>
     );
 };
@@ -281,77 +274,62 @@ const EditorField = ({
    SECTION HEADING
 ============================================================================ */
 
-const FormSectionHeading = ({ number, title, description }) => {
-    return (
+const FormSectionHeading = ({ number, title, description }) => (
+    <div className="flex items-start gap-3.5">
         <div
             className="
                 flex
-                items-start
-                gap-3.5
+                h-[30px]
+                w-[30px]
+                shrink-0
+                items-center
+                justify-center
+                border
+                border-[#35404E]
+                bg-[#171E28]
+                font-sans!
+                text-[12px]
+                font-semibold!
+                tabular-nums
+                text-[#AEB7C3]!
             "
+            aria-hidden="true"
         >
-            <div
+            {number}
+        </div>
+
+        <div className="min-w-0 pt-0.5">
+            <h3
                 className="
-                    flex
-                    h-[27px]
-                    w-[27px]
-                    shrink-0
-                    items-center
-                    justify-center
-
-                    border
-                    border-[#303A47]
-
-                    bg-[#171E28]
-
                     font-sans!
-                    text-[10px]
+                    text-[17px]
                     font-semibold!
-                    tabular-nums
-
-                    text-[#8792A1]!
+                    leading-6
+                    tracking-[-0.015em]
+                    text-[#EEF1F5]!
                 "
             >
-                {number}
-            </div>
+                {title}
+            </h3>
 
-            <div className="min-w-0 pt-px">
-                <h3
+            {description && (
+                <p
                     className="
+                        mt-1
+                        max-w-[570px]
                         font-sans!
-
-                        text-[14px]
-                        font-semibold!
-                        leading-5
-                        tracking-[-0.01em]
-
-                        text-[#EEF1F5]!
+                        text-[13px]
+                        font-normal!
+                        leading-[1.65]
+                        text-[#8792A1]!
                     "
                 >
-                    {title}
-                </h3>
-
-                {description && (
-                    <p
-                        className="
-                            mt-1.5
-                            max-w-[570px]
-
-                            font-sans!
-                            text-[11.5px]
-                            font-normal!
-                            leading-[1.65]
-
-                            text-[#697586]!
-                        "
-                    >
-                        {description}
-                    </p>
-                )}
-            </div>
+                    {description}
+                </p>
+            )}
         </div>
-    );
-};
+    </div>
+);
 
 /* ==========================================================================
    USER FORM
@@ -372,7 +350,6 @@ const UserForm = ({
     const isEdit = mode === 'edit';
 
     const [form, setForm] = useState(() => getInitialForm(mode, user));
-
     const [showPassword, setShowPassword] = useState(false);
 
     const emailVerified = isEdit && Boolean(user?.email_verified_at);
@@ -456,54 +433,49 @@ const UserForm = ({
     };
 
     return (
-        <form onSubmit={handleSubmit} className="w-full font-sans!">
-            {/* =============================================================
-                GENERAL ERROR
-            ============================================================= */}
+        <form
+            onSubmit={handleSubmit}
+            className="@container w-full min-w-0 font-sans!"
+        >
+            {/* GENERAL ERROR */}
 
             {error && (
                 <div
+                    role="alert"
                     className="
-                        mb-8
-
+                        mb-7
                         flex
                         items-start
                         gap-3.5
-
                         border
                         border-[#493038]
-
                         bg-[#281A1F]
-
                         px-4
-                        py-3.5
+                        py-4
                     "
                 >
                     <div
                         className="
                             flex
-                            h-8
-                            w-8
+                            h-9
+                            w-9
                             shrink-0
                             items-center
                             justify-center
-
                             border
                             border-[#493038]
-
                             bg-[#301F25]
-
                             text-[#D99A9F]
                         "
                     >
-                        <AlertCircle size={14} strokeWidth={1.8} />
+                        <AlertCircle size={16} strokeWidth={1.8} />
                     </div>
 
-                    <div className="min-w-0 pt-px">
+                    <div className="min-w-0 pt-0.5">
                         <p
                             className="
                                 font-sans!
-                                text-[12.5px]
+                                text-[14px]
                                 font-semibold!
                                 text-[#E4B0B4]!
                             "
@@ -513,11 +485,10 @@ const UserForm = ({
 
                         <p
                             className="
-                                mt-1
-
+                                mt-1.5
                                 font-sans!
-                                text-[11.5px]
-                                leading-5
+                                text-[13px]
+                                leading-[1.65]
                                 text-[#B98289]!
                             "
                         >
@@ -527,94 +498,46 @@ const UserForm = ({
                 </div>
             )}
 
-            {/* =============================================================
-                INITIAL ACCESS + COMPLETION
-            ============================================================= */}
+            {/* INITIAL ACCESS + COMPLETION */}
 
             {!isEdit && (
-                <div
-                    className="
-                        mb-9
-                        pb-7
-                    "
-                >
+                <div className="mb-8 border-b border-[#252D38] pb-7">
                     <div
                         className="
                             flex
                             flex-col
                             gap-4
-
-                            sm:flex-row
-                            sm:items-center
-                            sm:justify-between
+                            @[620px]:flex-row
+                            @[620px]:items-center
+                            @[620px]:justify-between
                         "
                     >
-                        <div className="min-w-0">
-                            <p
-                                className="
-                                    font-sans!
-                                    text-[10px]
-                                    font-semibold!
-                                    uppercase
-                                    tracking-[0.14em]
-
-                                    text-[#8792A1]!
-                                "
-                            >
-                                Initial access
-                            </p>
-
-                            <p
-                                className="
-                                    mt-1.5
-                                    max-w-[560px]
-
-                                    font-sans!
-                                    text-[12px]
-                                    font-normal!
-                                    leading-[1.65]
-
-                                    text-[#8792A1]!
-                                "
-                            >
-                                New accounts remain inactive until email
-                                verification is complete.
-                            </p>
-                        </div>
-
-                        <div
+                        <p
                             className="
-                                flex
-                                shrink-0
-                                flex-wrap
-                                items-center
-                                gap-x-3
-                                gap-y-2
+                                font-sans!
+                                text-[12px]
+                                font-semibold!
+                                uppercase
+                                tracking-[0.1em]
+                                text-[#8792A1]!
                             "
                         >
+                            Initial access
+                        </p>
+
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                             <span
                                 className="
                                     flex
                                     items-center
                                     gap-2
-
                                     font-sans!
-                                    text-[12px]
+                                    text-[13px]
                                     font-medium!
-
                                     text-[#AEB7C3]!
                                 "
                             >
-                                <span
-                                    className="
-                                        h-1.5
-                                        w-1.5
-                                        shrink-0
-                                        rounded-full
-
-                                        bg-[#697586]
-                                    "
-                                />
+                                <span className="h-2 w-2 shrink-0 rounded-full bg-[#697586]" />
                                 Inactive
                             </span>
 
@@ -625,35 +548,25 @@ const UserForm = ({
                                     flex
                                     items-center
                                     gap-2
-
                                     font-sans!
-                                    text-[12px]
+                                    text-[13px]
                                     font-medium!
-
                                     text-[#D8B278]!
                                 "
                             >
-                                <Mail size={14} strokeWidth={1.6} />
+                                <Mail size={15} strokeWidth={1.7} />
                                 Email unverified
                             </span>
                         </div>
                     </div>
 
-                    <div className="mt-8">
-                        <div
-                            className="
-                                flex
-                                items-center
-                                justify-between
-                                gap-4
-                            "
-                        >
+                    <div className="mt-7">
+                        <div className="flex items-center justify-between gap-4">
                             <span
                                 className="
                                     font-sans!
-                                    text-[11px]
+                                    text-[13px]
                                     font-medium!
-
                                     text-[#8792A1]!
                                 "
                             >
@@ -663,12 +576,10 @@ const UserForm = ({
                             <span
                                 className="
                                     shrink-0
-
                                     font-sans!
-                                    text-[11px]
+                                    text-[13px]
                                     font-semibold!
                                     tabular-nums
-
                                     text-[#B8C0CA]!
                                 "
                             >
@@ -677,21 +588,17 @@ const UserForm = ({
                         </div>
 
                         <div
-                            className="
-                                mt-3
-                                h-[3px]
-                                w-full
-                                overflow-hidden
-
-                                bg-[#202832]
-                            "
+                            className="mt-3 h-1 w-full overflow-hidden bg-[#202832]"
+                            role="progressbar"
+                            aria-valuemin={0}
+                            aria-valuemax={100}
+                            aria-valuenow={completionPercentage}
+                            aria-label="Form completion"
                         >
                             <div
                                 className="
                                     h-full
-
-                                    bg-[#697586]
-
+                                    bg-[#8792A1]
                                     transition-[width]
                                     duration-300
                                     ease-out
@@ -705,40 +612,19 @@ const UserForm = ({
                 </div>
             )}
 
-            {/* =============================================================
-                PERSONAL DETAILS
-            ============================================================= */}
+            {/* PERSONAL DETAILS */}
 
-            <section
-                className="
-                    grid
-                    gap-7
-
-                    xl:grid-cols-[180px_minmax(0,1fr)]
-                    xl:gap-10
-                "
-            >
-                <FormSectionHeading
-                    number="01"
-                    title="Personal details"
-                    description={
-                        isEdit
-                            ? 'Identity and contact information attached to this account.'
-                            : 'Basic information used to identify and contact this user.'
-                    }
-                />
+            <section className="grid gap-6">
+                <FormSectionHeading number="01" title="Personal details" />
 
                 <div
                     className="
                         grid
                         min-w-0
-
                         gap-x-5
                         gap-y-6
-
-                        md:grid-cols-2
-
-                        xl:gap-x-6
+                        @[620px]:grid-cols-2
+                        @[950px]:gap-x-6
                     "
                 >
                     <EditorField
@@ -768,7 +654,7 @@ const UserForm = ({
                         onChange={handleChange}
                     />
 
-                    <div className={isEdit ? 'md:col-span-2' : ''}>
+                    <div className={isEdit ? '@[620px]:col-span-2' : ''}>
                         <EditorField
                             id="user-form-phone"
                             name="phone"
@@ -808,28 +694,27 @@ const UserForm = ({
                                             ? 'Hide password'
                                             : 'Show password'
                                     }
+                                    aria-pressed={showPassword}
                                     className="
                                         flex
-                                        h-8
-                                        w-8
+                                        h-9
+                                        w-9
                                         items-center
                                         justify-center
-
-                                        text-[#697586]!
-
+                                        text-[#8792A1]!
                                         transition-colors
                                         duration-150
-
-                                        hover:text-[#B8C0CA]!
-
-                                        focus:outline-none
-                                        focus:ring-0
+                                        hover:text-[#EEF1F5]!
+                                        focus-visible:outline
+                                        focus-visible:outline-2
+                                        focus-visible:outline-offset-[-3px]
+                                        focus-visible:outline-[#8792A1]
                                     "
                                 >
                                     {showPassword ? (
-                                        <EyeOff size={15} strokeWidth={1.65} />
+                                        <EyeOff size={16} strokeWidth={1.7} />
                                     ) : (
-                                        <Eye size={15} strokeWidth={1.65} />
+                                        <Eye size={16} strokeWidth={1.7} />
                                     )}
                                 </button>
                             }
@@ -838,39 +723,19 @@ const UserForm = ({
                 </div>
             </section>
 
-            {/* =============================================================
-                ACCOUNT TYPE
-            ============================================================= */}
+            {/* ACCOUNT TYPE */}
 
             {!isEdit && (
-                <section
-                    className="
-                        mt-4
-
-                        grid
-                        gap-7
-
-
-
-                        pt-8
-
-                        xl:grid-cols-[180px_minmax(0,1fr)]
-                        xl:gap-10
-                    "
-                >
-                    <FormSectionHeading
-                        number="02"
-                        title="Account type"
-                        description="Choose the type of account being created."
-                    />
+                <section className="mt-11 grid gap-6 border-t border-[#252D38] pt-8">
+                    <FormSectionHeading number="02" title="Account type" />
 
                     <div className="min-w-0">
                         <div
                             className="
                                 grid
                                 gap-3
-
-                                md:grid-cols-3
+                                @[550px]:grid-cols-2
+                                @[820px]:grid-cols-3
                             "
                         >
                             {ROLE_OPTIONS.map((option) => {
@@ -882,6 +747,7 @@ const UserForm = ({
                                         key={option.value}
                                         type="button"
                                         disabled={loading}
+                                        aria-pressed={selected}
                                         onClick={() =>
                                             setForm((previous) => ({
                                                 ...previous,
@@ -891,38 +757,35 @@ const UserForm = ({
                                         className={`
                                             group
                                             relative
-
                                             flex
-                                            min-h-[92px]
+                                            min-h-[100px]
+                                            min-w-0
                                             items-start
                                             gap-3.5
-
                                             border
-
                                             px-4
-                                            py-3.5
-
+                                            py-4
                                             text-left
-
                                             transition-[border-color,background-color]
                                             duration-150
                                             ease-out
-
+                                            focus-visible:outline
+                                            focus-visible:outline-2
+                                            focus-visible:outline-offset-2
+                                            focus-visible:outline-[#8792A1]
                                             ${
                                                 selected
                                                     ? `
-                                                        border-[#465261]
+                                                        border-[#586678]
                                                         bg-[#1D2632]
                                                     `
                                                     : `
                                                         border-[#303A47]
                                                         bg-[#121821]
-
-                                                        hover:border-[#394555]
+                                                        hover:border-[#465261]
                                                         hover:bg-[#171E28]
                                                     `
                                             }
-
                                             disabled:cursor-not-allowed
                                             disabled:opacity-50
                                         `}
@@ -935,10 +798,8 @@ const UserForm = ({
                                                     bottom-0
                                                     left-0
                                                     top-0
-
-                                                    w-[2px]
-
-                                                    bg-[#8792A1]
+                                                    w-[3px]
+                                                    bg-[#AEB7C3]
                                                 "
                                             />
                                         )}
@@ -946,17 +807,14 @@ const UserForm = ({
                                         <div
                                             className={`
                                                 flex
-                                                h-9
-                                                w-9
+                                                h-10
+                                                w-10
                                                 shrink-0
                                                 items-center
                                                 justify-center
-
                                                 border
-
-                                                transition-[border-color,background-color,color]
+                                                transition-colors
                                                 duration-150
-
                                                 ${
                                                     selected
                                                         ? `
@@ -967,36 +825,23 @@ const UserForm = ({
                                                         : `
                                                             border-[#29323E]
                                                             bg-[#171E28]
-                                                            text-[#697586]
-
-                                                            group-hover:border-[#394555]
-                                                            group-hover:bg-[#1A222D]
-                                                            group-hover:text-[#AEB7C3]
+                                                            text-[#8792A1]
+                                                            group-hover:text-[#B8C0CA]
                                                         `
                                                 }
                                             `}
                                         >
-                                            <Icon
-                                                size={15}
-                                                strokeWidth={1.65}
-                                            />
+                                            <Icon size={17} strokeWidth={1.7} />
                                         </div>
 
                                         <div className="min-w-0 flex-1">
-                                            <div
-                                                className="
-                                                    flex
-                                                    items-center
-                                                    justify-between
-                                                    gap-3
-                                                "
-                                            >
+                                            <div className="flex items-center justify-between gap-2">
                                                 <p
                                                     className={`
                                                         font-sans!
-                                                        text-[12.5px]
+                                                        text-[14px]
                                                         font-semibold!
-
+                                                        leading-5
                                                         ${
                                                             selected
                                                                 ? 'text-[#EEF1F5]!'
@@ -1010,18 +855,15 @@ const UserForm = ({
                                                 <span
                                                     className={`
                                                         flex
-                                                        h-[17px]
-                                                        w-[17px]
+                                                        h-[18px]
+                                                        w-[18px]
                                                         shrink-0
                                                         items-center
                                                         justify-center
-
                                                         rounded-full
                                                         border
-
-                                                        transition-[border-color,background-color]
+                                                        transition-colors
                                                         duration-150
-
                                                         ${
                                                             selected
                                                                 ? `
@@ -1038,7 +880,7 @@ const UserForm = ({
                                                     `}
                                                 >
                                                     <Check
-                                                        size={9}
+                                                        size={10}
                                                         strokeWidth={2.6}
                                                     />
                                                 </span>
@@ -1046,13 +888,11 @@ const UserForm = ({
 
                                             <p
                                                 className="
-                                                    mt-1.5
-
+                                                    mt-2
                                                     font-sans!
-                                                    text-[11px]
-                                                    leading-[1.55]
-
-                                                    text-[#697586]!
+                                                    text-[12px]
+                                                    leading-[1.6]
+                                                    text-[#8792A1]!
                                                 "
                                             >
                                                 {option.description}
@@ -1068,27 +908,10 @@ const UserForm = ({
                 </section>
             )}
 
-            {/* =============================================================
-                ACCOUNT ACCESS — EDIT ONLY
-            ============================================================= */}
+            {/* ACCOUNT ACCESS — EDIT ONLY */}
 
             {isEdit && (
-                <section
-                    className="
-                        mt-10
-
-                        grid
-                        gap-7
-
-                        border-t
-                        border-[#252D38]
-
-                        pt-8
-
-                        xl:grid-cols-[180px_minmax(0,1fr)]
-                        xl:gap-10
-                    "
-                >
+                <section className="mt-10 grid gap-6 border-t border-[#252D38] pt-8">
                     <FormSectionHeading
                         number="02"
                         title="Account access"
@@ -1096,457 +919,345 @@ const UserForm = ({
                     />
 
                     <div className="min-w-0">
-                        <>
-                            {!emailVerified && (
-                                <div
-                                    className="
-                                        mb-4
-
-                                        flex
-                                        items-start
-                                        gap-3.5
-
-                                        border
-                                        border-[#493D2C]
-
-                                        bg-[#201D18]
-
-                                        px-4
-                                        py-3.5
-                                    "
-                                >
-                                    <div
-                                        className="
-                                            flex
-                                            h-8
-                                            w-8
-                                            shrink-0
-                                            items-center
-                                            justify-center
-
-                                            border
-                                            border-[#493D2C]
-
-                                            bg-[#282219]
-
-                                            text-[#C5A06B]
-                                        "
-                                    >
-                                        <Mail size={14} strokeWidth={1.6} />
-                                    </div>
-
-                                    <div className="min-w-0 pt-px">
-                                        <p
-                                            className="
-                                                font-sans!
-                                                text-[12px]
-                                                font-semibold!
-
-                                                text-[#D4BB94]!
-                                            "
-                                        >
-                                            Email verification required
-                                        </p>
-
-                                        <p
-                                            className="
-                                                mt-1
-
-                                                font-sans!
-                                                text-[11px]
-                                                leading-[1.6]
-
-                                                text-[#8E816F]!
-                                            "
-                                        >
-                                            Active access is unavailable until
-                                            this user's email address has been
-                                            verified.
-                                        </p>
-                                    </div>
-                                </div>
-                            )}
-
+                        {!emailVerified && (
                             <div
+                                role="status"
                                 className="
-                                    grid
-                                    gap-3
-
-                                    sm:grid-cols-3
+                                    mb-4
+                                    flex
+                                    items-start
+                                    gap-3.5
+                                    border
+                                    border-[#493D2C]
+                                    bg-[#201D18]
+                                    px-4
+                                    py-4
                                 "
                             >
-                                {STATUS_OPTIONS.map((option) => {
-                                    const Icon = option.icon;
+                                <div
+                                    className="
+                                        flex
+                                        h-9
+                                        w-9
+                                        shrink-0
+                                        items-center
+                                        justify-center
+                                        border
+                                        border-[#493D2C]
+                                        bg-[#282219]
+                                        text-[#C5A06B]
+                                    "
+                                >
+                                    <Mail size={16} strokeWidth={1.7} />
+                                </div>
 
-                                    const selected =
-                                        form.status === option.value;
+                                <div className="min-w-0 pt-0.5">
+                                    <p
+                                        className="
+                                            font-sans!
+                                            text-[14px]
+                                            font-semibold!
+                                            text-[#D4BB94]!
+                                        "
+                                    >
+                                        Email verification required
+                                    </p>
 
-                                    const isActiveOption =
-                                        option.value === 'active';
+                                    <p
+                                        className="
+                                            mt-1.5
+                                            font-sans!
+                                            text-[13px]
+                                            leading-[1.65]
+                                            text-[#A39480]!
+                                        "
+                                    >
+                                        Active access is unavailable until this
+                                        user's email address has been verified.
+                                    </p>
+                                </div>
+                            </div>
+                        )}
 
-                                    const activeBlocked =
-                                        isActiveOption && !emailVerified;
+                        <div
+                            className="
+                                grid
+                                gap-3
+                                @[550px]:grid-cols-2
+                                @[820px]:grid-cols-3
+                            "
+                        >
+                            {STATUS_OPTIONS.map((option) => {
+                                const Icon = option.icon;
+                                const selected = form.status === option.value;
+                                const isActiveOption =
+                                    option.value === 'active';
+                                const activeBlocked =
+                                    isActiveOption && !emailVerified;
+                                const buttonDisabled = loading || activeBlocked;
 
-                                    const buttonDisabled =
-                                        loading || activeBlocked;
-
-                                    return (
-                                        <button
-                                            key={option.value}
-                                            type="button"
-                                            disabled={buttonDisabled}
-                                            onClick={() =>
-                                                handleStatusChange(option.value)
+                                return (
+                                    <button
+                                        key={option.value}
+                                        type="button"
+                                        disabled={buttonDisabled}
+                                        aria-pressed={selected}
+                                        onClick={() =>
+                                            handleStatusChange(option.value)
+                                        }
+                                        className={`
+                                            group
+                                            flex
+                                            min-h-[88px]
+                                            items-center
+                                            gap-3
+                                            border
+                                            px-3.5
+                                            py-3.5
+                                            text-left
+                                            transition-[border-color,background-color]
+                                            duration-150
+                                            ease-out
+                                            focus-visible:outline
+                                            focus-visible:outline-2
+                                            focus-visible:outline-offset-2
+                                            focus-visible:outline-[#8792A1]
+                                            ${
+                                                activeBlocked
+                                                    ? `
+                                                        border-[#252D38]
+                                                        bg-[#10151C]
+                                                        opacity-55
+                                                    `
+                                                    : selected
+                                                      ? `
+                                                            border-[#586678]
+                                                            bg-[#1D2632]
+                                                        `
+                                                      : `
+                                                            border-[#303A47]
+                                                            bg-[#121821]
+                                                            hover:border-[#465261]
+                                                            hover:bg-[#171E28]
+                                                        `
                                             }
+                                            disabled:cursor-not-allowed
+                                        `}
+                                    >
+                                        <div
                                             className={`
-                                                group
-
                                                 flex
-                                                min-h-[80px]
+                                                h-9
+                                                w-9
+                                                shrink-0
                                                 items-center
-                                                gap-3
-
+                                                justify-center
                                                 border
-
-                                                px-3.5
-                                                py-3
-
-                                                text-left
-
-                                                transition-[border-color,background-color]
-                                                duration-150
-                                                ease-out
-
                                                 ${
                                                     activeBlocked
                                                         ? `
                                                             border-[#252D38]
-                                                            bg-[#10151C]
-                                                            opacity-55
+                                                            bg-[#151B24]
+                                                            text-[#4B5664]
                                                         `
                                                         : selected
                                                           ? `
-                                                                border-[#465261]
-                                                                bg-[#1D2632]
+                                                                border-[#4B5869]
+                                                                bg-[#222D3A]
+                                                                text-[#C9D0D9]
                                                             `
                                                           : `
-                                                                border-[#303A47]
-                                                                bg-[#121821]
-
-                                                                hover:border-[#394555]
-                                                                hover:bg-[#171E28]
+                                                                border-[#29323E]
+                                                                bg-[#171E28]
+                                                                text-[#8792A1]
+                                                                group-hover:text-[#B8C0CA]
                                                             `
                                                 }
-
-                                                disabled:cursor-not-allowed
                                             `}
                                         >
-                                            <div
-                                                className={`
-                                                    flex
-                                                    h-8
-                                                    w-8
-                                                    shrink-0
-                                                    items-center
-                                                    justify-center
+                                            <Icon size={16} strokeWidth={1.7} />
+                                        </div>
 
-                                                    border
-
-                                                    ${
-                                                        activeBlocked
-                                                            ? `
-                                                                border-[#252D38]
-                                                                bg-[#151B24]
-                                                                text-[#4B5664]
-                                                            `
-                                                            : selected
-                                                              ? `
-                                                                    border-[#4B5869]
-                                                                    bg-[#222D3A]
-                                                                    text-[#C9D0D9]
-                                                                `
-                                                              : `
-                                                                    border-[#29323E]
-                                                                    bg-[#171E28]
-                                                                    text-[#697586]
-
-                                                                    group-hover:text-[#AEB7C3]
-                                                                `
-                                                    }
-                                                `}
-                                            >
-                                                <Icon
-                                                    size={14}
-                                                    strokeWidth={1.7}
-                                                />
-                                            </div>
-
-                                            <div className="min-w-0 flex-1">
-                                                <div
-                                                    className="
-                                                        flex
-                                                        items-center
-                                                        justify-between
-                                                        gap-2
-                                                    "
-                                                >
-                                                    <span
-                                                        className={`
-                                                            font-sans!
-                                                            text-[12px]
-                                                            font-semibold!
-
-                                                            ${
-                                                                activeBlocked
-                                                                    ? 'text-[#5E6978]!'
-                                                                    : selected
-                                                                      ? 'text-[#EEF1F5]!'
-                                                                      : 'text-[#AEB7C3]!'
-                                                            }
-                                                        `}
-                                                    >
-                                                        {option.label}
-                                                    </span>
-
-                                                    <span
-                                                        className={`
-                                                            h-1.5
-                                                            w-1.5
-                                                            shrink-0
-                                                            rounded-full
-
-                                                            ${
-                                                                activeBlocked
-                                                                    ? 'bg-[#394555]'
-                                                                    : selected
-                                                                      ? 'bg-[#AEB7C3]'
-                                                                      : 'bg-[#465261]'
-                                                            }
-                                                        `}
-                                                    />
-                                                </div>
-
-                                                <p
+                                        <div className="min-w-0 flex-1">
+                                            <div className="flex items-center justify-between gap-2">
+                                                <span
                                                     className={`
-                                                        mt-1
                                                         font-sans!
-                                                        text-[10px]
-                                                        leading-[1.5]
-
+                                                        text-[13px]
+                                                        font-semibold!
                                                         ${
                                                             activeBlocked
-                                                                ? 'text-[#4B5664]!'
-                                                                : 'text-[#697586]!'
+                                                                ? 'text-[#5E6978]!'
+                                                                : selected
+                                                                  ? 'text-[#EEF1F5]!'
+                                                                  : 'text-[#B8C0CA]!'
                                                         }
                                                     `}
                                                 >
-                                                    {activeBlocked
-                                                        ? 'Unavailable until the email address is verified.'
-                                                        : option.description}
-                                                </p>
+                                                    {option.label}
+                                                </span>
+
+                                                <span
+                                                    className={`
+                                                        h-2
+                                                        w-2
+                                                        shrink-0
+                                                        rounded-full
+                                                        ${
+                                                            activeBlocked
+                                                                ? 'bg-[#394555]'
+                                                                : selected
+                                                                  ? 'bg-[#AEB7C3]'
+                                                                  : 'bg-[#465261]'
+                                                        }
+                                                    `}
+                                                />
                                             </div>
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        </>
+
+                                            <p
+                                                className={`
+                                                    mt-1.5
+                                                    font-sans!
+                                                    text-[12px]
+                                                    leading-[1.55]
+                                                    ${
+                                                        activeBlocked
+                                                            ? 'text-[#4B5664]!'
+                                                            : 'text-[#8792A1]!'
+                                                    }
+                                                `}
+                                            >
+                                                {activeBlocked
+                                                    ? 'Unavailable until the email address is verified.'
+                                                    : option.description}
+                                            </p>
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                        </div>
 
                         <FieldError name="status" fieldErrors={fieldErrors} />
                     </div>
                 </section>
             )}
 
-            {/* =============================================================
-                ACTION BAR
-            ============================================================= */}
+            {/* ACTION BAR */}
 
-            <footer
-                className="
-                    mt-10
-
-                    border-t
-                    border-[#252D38]
-
-                    pt-10
-                "
-            >
+            <footer className="mt-10 border-t border-[#252D38] pt-7">
                 <div
                     className="
                         flex
-                        flex-col
-                        gap-5
-
-                        sm:flex-row
-                        sm:items-center
-                        sm:justify-between
+                        flex-col-reverse
+                        gap-3
+                        @[620px]:flex-row
+                        @[620px]:items-center
+                        @[620px]:justify-end
                     "
                 >
-                    <div
+                    <button
+                        type="button"
+                        onClick={onCancel}
+                        disabled={loading}
                         className="
-                            flex
-                            max-w-[430px]
-                            items-start
-                            gap-2.5
-                        "
-                    >
-                        <ShieldCheck
-                            size={14}
-                            strokeWidth={1.6}
-                            className="
-                                mt-0.5
-                                shrink-0
-                                text-[#697586]
-                            "
-                        />
-
-                        <p
-                            className="
-                                font-sans!
-                                text-[11px]
-                                leading-[1.65]
-                                text-[#697586]!
-                            "
-                        >
-                            {isEdit
-                                ? 'Review the information before saving. Changes will be applied directly to this account.'
-                                : 'Review the details above before creating the account.'}
-                        </p>
-                    </div>
-
-                    <div
-                        className="
-                            flex
+                            h-[44px]
                             w-full
-                            items-center
-                            gap-2.5
-
-                            sm:w-auto
+                            border
+                            border-[#303A47]
+                            bg-[#0E1219]
+                            px-5
+                            font-sans!
+                            text-[13px]
+                            font-medium!
+                            text-[#AEB7C3]!
+                            transition-[border-color,background-color,color]
+                            duration-150
+                            hover:border-[#465261]
+                            hover:bg-[#151B24]
+                            hover:text-[#EEF1F5]!
+                            disabled:cursor-not-allowed
+                            disabled:opacity-40
+                            focus-visible:outline
+                            focus-visible:outline-2
+                            focus-visible:outline-offset-2
+                            focus-visible:outline-[#8792A1]
+                            @[620px]:w-auto
                         "
                     >
-                        <button
-                            type="button"
-                            onClick={onCancel}
-                            disabled={loading}
-                            className="
-                                h-[42px]
-                                flex-1
+                        Cancel
+                    </button>
 
-                                border
-                                border-[#303A47]
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="
+                            group
+                            flex
+                            h-[44px]
+                            w-full
+                            min-w-[170px]
+                            items-center
+                            justify-center
+                            gap-2.5
+                            border
+                            border-[#586678]
+                            bg-[#273342]
+                            px-5
+                            font-sans!
+                            text-[13px]
+                            font-semibold!
+                            text-[#EEF1F5]!
+                            transition-[border-color,background-color]
+                            duration-150
+                            hover:border-[#5A6878]
+                            hover:bg-[#303D4E]
+                            disabled:cursor-not-allowed
+                            disabled:opacity-50
+                            focus-visible:outline
+                            focus-visible:outline-2
+                            focus-visible:outline-offset-2
+                            focus-visible:outline-[#AEB7C3]
+                            @[620px]:w-auto
+                        "
+                    >
+                        <span>
+                            {loading
+                                ? isEdit
+                                    ? 'Saving...'
+                                    : 'Creating...'
+                                : isEdit
+                                  ? 'Save changes'
+                                  : 'Create account'}
+                        </span>
 
-                                bg-[#0E1219]
+                        {!loading && (
+                            <ArrowRight
+                                size={15}
+                                strokeWidth={1.9}
+                                className="
+                                    text-[#B8C0CA]
+                                    transition-transform
+                                    duration-150
+                                    group-hover:translate-x-0.5
+                                "
+                            />
+                        )}
 
-                                px-5
-
-                                font-sans!
-                                text-[12px]
-                                font-medium!
-
-                                text-[#AEB7C3]!
-
-                                transition-[border-color,background-color,color]
-                                duration-150
-
-                                hover:border-[#3B4655]
-                                hover:bg-[#151B24]
-                                hover:text-[#EEF1F5]!
-
-                                disabled:cursor-not-allowed
-                                disabled:opacity-40
-
-                                focus:outline-none
-                                focus:ring-0
-
-                                sm:flex-none
-                            "
-                        >
-                            Cancel
-                        </button>
-
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="
-                                group
-
-                                flex
-                                h-[42px]
-                                min-w-[160px]
-                                flex-1
-                                items-center
-                                justify-center
-                                gap-2.5
-
-                                border
-                                border-[#465261]
-
-                                bg-[#1D2632]
-
-                                px-5
-
-                                font-sans!
-                                text-[12px]
-                                font-semibold!
-
-                                text-[#EEF1F5]!
-
-                                transition-[border-color,background-color]
-                                duration-150
-
-                                hover:border-[#5A6878]
-                                hover:bg-[#222D3A]
-
-                                disabled:cursor-not-allowed
-                                disabled:opacity-50
-
-                                focus:outline-none
-                                focus:ring-0
-
-                                sm:flex-none
-                            "
-                        >
-                            <span>
-                                {loading
-                                    ? isEdit
-                                        ? 'Saving...'
-                                        : 'Creating...'
-                                    : isEdit
-                                      ? 'Save changes'
-                                      : 'Create account'}
-                            </span>
-
-                            {!loading && (
-                                <ArrowRight
-                                    size={14}
-                                    strokeWidth={1.8}
-                                    className="
-                                        text-[#AEB7C3]
-
-                                        transition-transform
-                                        duration-150
-
-                                        group-hover:translate-x-0.5
-                                    "
-                                />
-                            )}
-
-                            {loading && (
-                                <span
-                                    className="
-                                        h-3.5
-                                        w-3.5
-
-                                        animate-spin
-                                        rounded-full
-
-                                        border
-                                        border-[#697586]
-                                        border-t-[#EEF1F5]
-                                    "
-                                />
-                            )}
-                        </button>
-                    </div>
+                        {loading && (
+                            <span
+                                className="
+                                    h-4
+                                    w-4
+                                    animate-spin
+                                    rounded-full
+                                    border
+                                    border-[#697586]
+                                    border-t-[#EEF1F5]
+                                "
+                                aria-hidden="true"
+                            />
+                        )}
+                    </button>
                 </div>
             </footer>
 

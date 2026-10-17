@@ -18,7 +18,6 @@ import {
     Target,
     UserRound,
     Users,
-    X,
 } from 'lucide-react';
 
 import {
@@ -66,7 +65,7 @@ const DetailField = ({
                     <p
                         className="
                             font-sans!
-                            text-[11px]
+                            text-[12px]
                             font-semibold!
                             uppercase
                             tracking-[0.12em]
@@ -81,7 +80,7 @@ const DetailField = ({
                             mt-2
                             wrap-break-word
                             font-sans!
-                            text-[12.5px]
+                            text-[14px]
                             leading-[1.65]
                             ${
                                 hasValue || children
@@ -102,55 +101,14 @@ const DetailField = ({
    SECTION HEADING
 ============================================================ */
 
-const SectionHeading = ({ eyebrow, title, description }) => {
-    return (
-        <div className="min-w-0">
-            <p
-                className="
-                    font-sans!
-                    text-[10px]
-                    font-semibold!
-                    uppercase
-                    tracking-[0.16em]
-                    text-[#697586]!
-                "
-            >
-                {eyebrow}
-            </p>
-
-            <h2
-                className="
-                    mt-1.5
-                    font-sans!
-                    text-[17px]
-                    font-semibold!
-                    leading-[1.35]
-                    tracking-[-0.015em]
-                    text-[#EEF1F5]!
-                    sm:text-[18px]
-                "
-            >
-                {title}
-            </h2>
-
-            {description && (
-                <p
-                    className="
-                        mt-2
-                        max-w-[680px]
-                        font-sans!
-                        text-[12.5px]
-                        font-normal!
-                        leading-[1.7]
-                        text-[#8792A1]!
-                    "
-                >
-                    {description}
-                </p>
-            )}
-        </div>
-    );
-};
+const SectionHeading = ({ title }) => (
+    <div className="flex min-w-0 items-center gap-5">
+        <h2 className="shrink-0 font-sans! text-[19px] font-semibold! leading-[1.35] tracking-[-0.02em] text-[#EEF1F5]! sm:text-[21px]">
+            {title}
+        </h2>
+        <div aria-hidden="true" className="h-px min-w-0 flex-1 bg-[#29323E]" />
+    </div>
+);
 
 /* ============================================================
    TAG LIST
@@ -164,7 +122,7 @@ const TagList = ({ values }) => {
             <span
                 className="
                     font-sans!
-                    text-[12.5px]
+                    text-[14px]
                     font-normal!
                     text-[#5E6978]!
                 "
@@ -186,7 +144,7 @@ const TagList = ({ values }) => {
                         px-3
                         py-1.5
                         font-sans!
-                        text-[11.5px]
+                        text-[13px]
                         font-medium!
                         text-[#AEB7C3]!
                     "
@@ -284,7 +242,7 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
     return (
         <section
             className="
-                                mt-8
+\1mt-5\2
                 overflow-hidden
                 border
                 border-[#252D38]
@@ -329,7 +287,7 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
                             border-[#29323E]
                             bg-[#121821]
                             sm:grid-cols-[minmax(0,1fr)_220px]
-                            md:grid-cols-[minmax(0,1fr)_200px] lg:grid-cols-[minmax(0,1fr)_240px]
+                            @[720px]:grid-cols-[minmax(0,1fr)_220px]
                         "
                     >
                         <div
@@ -392,7 +350,7 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
                                         <h3
                                             className="
                                                 font-sans!
-                                                text-[12.5px]
+                                                text-[14px]
                                                 font-semibold!
                                                 leading-5
                                                 text-[#EEF1F5]!
@@ -408,10 +366,10 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
                                                 items-center
                                                 gap-1.5
                                                 font-sans!
-                                                text-[10.5px]
+                                                text-[12px]
                                                 font-medium!
                                                 text-[#9FC4AF]!
-                                                sm:text-[11px]
+                                                sm:text-[12px]
                                             "
                                         >
                                             <span
@@ -432,12 +390,12 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
                                             mt-2
                                             max-w-[560px]
                                             font-sans!
-                                            text-[11.5px]
+                                            text-[13px]
                                             font-normal!
                                             leading-[1.7]
                                             text-[#8792A1]!
                                             sm:text-[12px]
-                                            lg:text-[12.5px]
+                                            lg:text-[14px]
                                         "
                                     >
                                         This member is part of the volunteer
@@ -473,10 +431,10 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
                                             <span
                                                 className="
                                                     font-sans!
-                                                    text-[11px]
+                                                    text-[12px]
                                                     font-medium!
                                                     text-[#AEB7C3]!
-                                                    sm:text-[11.5px]
+                                                    sm:text-[13px]
                                                 "
                                             >
                                                 Volunteer profile enabled
@@ -507,10 +465,10 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
                                             <span
                                                 className="
                                                     font-sans!
-                                                    text-[11px]
+                                                    text-[12px]
                                                     font-normal!
                                                     text-[#697586]!
-                                                    sm:text-[11.5px]
+                                                    sm:text-[13px]
                                                 "
                                             >
                                                 Eligible for campaign
@@ -564,12 +522,12 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
                                         <p
                                             className="
                                                 font-sans!
-                                                text-[10px]
+                                                text-[12px]
                                                 font-semibold!
                                                 uppercase
                                                 tracking-[0.14em]
                                                 text-[#697586]!
-                                                sm:text-[10px]
+                                                sm:text-[12px]
                                             "
                                         >
                                             Campaign involvement
@@ -580,7 +538,7 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
                                         className="
                                             mt-2
                                             font-sans!
-                                            text-[11px]
+                                            text-[12px]
                                             font-normal!
                                             leading-[1.55]
                                             text-[#5E6978]!
@@ -619,10 +577,10 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
                                         className="
                                             mb-0.5
                                             font-sans!
-                                            text-[10.5px]
+                                            text-[12px]
                                             font-medium!
                                             text-[#697586]!
-                                            sm:text-[11px]
+                                            sm:text-[12px]
                                         "
                                     >
                                         {campaignCount === 1
@@ -695,10 +653,10 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
                                 <p
                                     className="
                                         font-sans!
-                                        text-[12.5px]
+                                        text-[14px]
                                         font-semibold!
                                         text-[#B8C0CA]!
-                                        sm:text-[12.5px]
+                                        sm:text-[14px]
                                     "
                                 >
                                     No volunteer profile
@@ -710,7 +668,7 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
                                         items-center
                                         gap-1.5
                                         font-sans!
-                                        text-[10.5px]
+                                        text-[12px]
                                         font-medium!
                                         text-[#697586]!
                                     "
@@ -732,13 +690,13 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
                                     mt-1.5
                                     max-w-[620px]
                                     font-sans!
-                                    text-[11.5px]
+                                    text-[13px]
                                     font-normal!
                                     leading-[1.7]
                                     text-[#697586]!
                                     sm:mt-2
                                     sm:text-[12px]
-                                    lg:text-[12.5px]
+                                    lg:text-[14px]
                                 "
                             >
                                 This member has not joined the Stand For People
@@ -769,7 +727,7 @@ const PersonalInformation = ({ individualProfile }) => {
     return (
         <section
             className="
-                                mt-8
+\1mt-5\2
                 overflow-hidden
                 border
                 border-[#252D38]
@@ -811,7 +769,7 @@ const PersonalInformation = ({ individualProfile }) => {
                         grid
                         grid-cols-1
                         gap-y-6
-                        sm:grid-cols-[minmax(0,0.8fr)_minmax(0,0.8fr)_minmax(0,1.4fr)]
+                        @[780px]:grid-cols-[minmax(0,0.8fr)_minmax(0,0.8fr)_minmax(0,1.4fr)]
                         sm:gap-x-0
                     "
                 >
@@ -836,7 +794,7 @@ const PersonalInformation = ({ individualProfile }) => {
                             <p
                                 className="
                                     font-sans!
-                                    text-[10px]
+                                    text-[12px]
                                     font-semibold!
                                     uppercase
                                     tracking-[0.14em]
@@ -856,7 +814,7 @@ const PersonalInformation = ({ individualProfile }) => {
                                 font-medium!
                                 leading-5
                                 sm:mt-3
-                                sm:text-[12.5px]
+                                sm:text-[14px]
                                 ${
                                     individualProfile?.date_of_birth
                                         ? 'text-[#D6DBE1]!'
@@ -896,7 +854,7 @@ const PersonalInformation = ({ individualProfile }) => {
                             <p
                                 className="
                                     font-sans!
-                                    text-[10px]
+                                    text-[12px]
                                     font-semibold!
                                     uppercase
                                     tracking-[0.14em]
@@ -916,7 +874,7 @@ const PersonalInformation = ({ individualProfile }) => {
                                 font-medium!
                                 leading-5
                                 sm:mt-3
-                                sm:text-[12.5px]
+                                sm:text-[14px]
                                 ${
                                     individualProfile?.district
                                         ? 'text-[#D6DBE1]!'
@@ -952,7 +910,7 @@ const PersonalInformation = ({ individualProfile }) => {
                             <p
                                 className="
                                     font-sans!
-                                    text-[10px]
+                                    text-[12px]
                                     font-semibold!
                                     uppercase
                                     tracking-[0.14em]
@@ -973,7 +931,7 @@ const PersonalInformation = ({ individualProfile }) => {
                                 font-medium!
                                 leading-[1.65]
                                 sm:mt-3
-                                sm:text-[12.5px]
+                                sm:text-[14px]
                                 ${
                                     individualProfile?.address
                                         ? 'text-[#D6DBE1]!'
@@ -1025,7 +983,7 @@ const PersonalInformation = ({ individualProfile }) => {
                             <p
                                 className="
                                     font-sans!
-                                    text-[10px]
+                                    text-[12px]
                                     font-semibold!
                                     uppercase
                                     tracking-[0.15em]
@@ -1041,7 +999,7 @@ const PersonalInformation = ({ individualProfile }) => {
                                 mt-2.5
                                 max-w-[240px] md:max-w-[180px] lg:max-w-[190px]
                                 font-sans!
-                                text-[11.5px]
+                                text-[13px]
                                 font-normal!
                                 leading-[1.65]
                                 text-[#697586]!
@@ -1087,7 +1045,7 @@ const PersonalInformation = ({ individualProfile }) => {
                                     <p
                                         className="
                                             font-sans!
-                                            text-[10px]
+                                            text-[12px]
                                             font-semibold!
                                             uppercase
                                             tracking-[0.12em]
@@ -1101,7 +1059,7 @@ const PersonalInformation = ({ individualProfile }) => {
                                         className="
                                             mt-1
                                             font-sans!
-                                            text-[10.5px]
+                                            text-[12px]
                                             font-normal!
                                             text-[#5E6978]!
                                         "
@@ -1140,7 +1098,7 @@ const PersonalInformation = ({ individualProfile }) => {
                                     <p
                                         className="
                                             font-sans!
-                                            text-[10px]
+                                            text-[12px]
                                             font-semibold!
                                             uppercase
                                             tracking-[0.12em]
@@ -1154,7 +1112,7 @@ const PersonalInformation = ({ individualProfile }) => {
                                         className="
                                             mt-1
                                             font-sans!
-                                            text-[10.5px]
+                                            text-[12px]
                                             font-normal!
                                             text-[#5E6978]!
                                         "
@@ -1179,15 +1137,14 @@ const PersonalInformation = ({ individualProfile }) => {
    ORGANIZATION INFORMATION
 ============================================================ */
 
-const OrganizationInformation = ({ organization, organizationVerified }) => {
+const OrganizationInformation = ({ organization }) => {
     return (
         <section
             className="
-                                mt-8
                 overflow-hidden
                 border
                 border-[#252D38]
-                bg-[#0E1219]
+                my-12
             "
         >
             {/* SAME HEADING STRUCTURE AS PERSONAL INFORMATION */}
@@ -1257,7 +1214,7 @@ const OrganizationInformation = ({ organization, organizationVerified }) => {
                             <p
                                 className="
                                     font-sans!
-                                    text-[10px]
+                                    text-[12px]
                                     font-semibold!
                                     uppercase
                                     tracking-[0.14em]
@@ -1277,7 +1234,7 @@ const OrganizationInformation = ({ organization, organizationVerified }) => {
                                 font-medium!
                                 leading-5
                                 sm:mt-3
-                                sm:text-[12.5px]
+                                sm:text-[14px]
                                 ${
                                     organization?.type
                                         ? 'text-[#D6DBE1]!'
@@ -1300,7 +1257,6 @@ const OrganizationInformation = ({ organization, organizationVerified }) => {
                             border-[#202832]
                             pt-5
                             sm:border-t-0
-                            sm:border-r
                             md:border-[#252D38]
                             sm:px-8
                             sm:pt-0
@@ -1317,7 +1273,7 @@ const OrganizationInformation = ({ organization, organizationVerified }) => {
                             <p
                                 className="
                                     font-sans!
-                                    text-[10px]
+                                    text-[12px]
                                     font-semibold!
                                     uppercase
                                     tracking-[0.14em]
@@ -1337,7 +1293,7 @@ const OrganizationInformation = ({ organization, organizationVerified }) => {
                                 font-medium!
                                 leading-5
                                 sm:mt-3
-                                sm:text-[12.5px]
+                                sm:text-[14px]
                                 ${
                                     organization?.registration_number
                                         ? 'text-[#D6DBE1]!'
@@ -1348,85 +1304,6 @@ const OrganizationInformation = ({ organization, organizationVerified }) => {
                             {organization?.registration_number ||
                                 'Not provided'}
                         </p>
-                    </div>
-
-                    {/* VERIFICATION */}
-
-                    <div
-                        className="
-                            min-w-0
-                            border-t
-                            border-[#202832]
-                            pt-5
-                            sm:border-t-0
-                            sm:pl-8
-                            sm:pt-0
-                            lg:pl-10
-                        "
-                    >
-                        <div className="flex items-center gap-2.5">
-                            <Shield
-                                size={14}
-                                strokeWidth={1.65}
-                                className="shrink-0 text-[#697586]"
-                            />
-
-                            <p
-                                className="
-                                    font-sans!
-                                    text-[10px]
-                                    font-semibold!
-                                    uppercase
-                                    tracking-[0.14em]
-                                    text-[#697586]!
-                                "
-                            >
-                                Verification
-                            </p>
-                        </div>
-
-                        <div
-                            className="
-                                mt-2.5
-                                flex
-                                items-center
-                                gap-2
-                                sm:mt-3
-                            "
-                        >
-                            <span
-                                className={`
-                                    h-1.5
-                                    w-1.5
-                                    shrink-0
-                                    rounded-full
-                                    ${
-                                        organizationVerified
-                                            ? 'bg-[#6FA58A]'
-                                            : 'bg-[#C09558]'
-                                    }
-                                `}
-                            />
-
-                            <span
-                                className={`
-                                    font-sans!
-                                    text-[12px]
-                                    font-medium!
-                                    leading-5
-                                    sm:text-[12.5px]
-                                    ${
-                                        organizationVerified
-                                            ? 'text-[#9FC4AF]!'
-                                            : 'text-[#D5B37F]!'
-                                    }
-                                `}
-                            >
-                                {organizationVerified
-                                    ? 'Verified organization'
-                                    : 'Verification pending'}
-                            </span>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -1474,7 +1351,7 @@ const OrganizationInformation = ({ organization, organizationVerified }) => {
                             <p
                                 className="
                                     font-sans!
-                                    text-[10px]
+                                    text-[12px]
                                     font-semibold!
                                     uppercase
                                     tracking-[0.15em]
@@ -1490,7 +1367,7 @@ const OrganizationInformation = ({ organization, organizationVerified }) => {
                                 mt-2.5
                                 max-w-[240px] md:max-w-[180px] lg:max-w-[190px]
                                 font-sans!
-                                text-[11.5px]
+                                text-[13px]
                                 font-normal!
                                 leading-[1.65]
                                 text-[#697586]!
@@ -1540,7 +1417,7 @@ const OrganizationInformation = ({ organization, organizationVerified }) => {
                                     <p
                                         className="
                                             font-sans!
-                                            text-[10px]
+                                            text-[12px]
                                             font-semibold!
                                             uppercase
                                             tracking-[0.12em]
@@ -1548,18 +1425,6 @@ const OrganizationInformation = ({ organization, organizationVerified }) => {
                                         "
                                     >
                                         Phone
-                                    </p>
-
-                                    <p
-                                        className="
-                                            mt-1
-                                            font-sans!
-                                            text-[10.5px]
-                                            font-normal!
-                                            text-[#5E6978]!
-                                        "
-                                    >
-                                        Contact number
                                     </p>
                                 </div>
                             </div>
@@ -1569,7 +1434,7 @@ const OrganizationInformation = ({ organization, organizationVerified }) => {
                                     min-w-0
                                     wrap-break-word
                                     font-sans!
-                                    text-[12.5px]
+                                    text-[14px]
                                     font-medium!
                                     leading-[1.65]
                                     sm:pt-0.5
@@ -1611,7 +1476,7 @@ const OrganizationInformation = ({ organization, organizationVerified }) => {
                                     <p
                                         className="
                                             font-sans!
-                                            text-[10px]
+                                            text-[12px]
                                             font-semibold!
                                             uppercase
                                             tracking-[0.12em]
@@ -1619,18 +1484,6 @@ const OrganizationInformation = ({ organization, organizationVerified }) => {
                                         "
                                     >
                                         Website
-                                    </p>
-
-                                    <p
-                                        className="
-                                            mt-1
-                                            font-sans!
-                                            text-[10.5px]
-                                            font-normal!
-                                            text-[#5E6978]!
-                                        "
-                                    >
-                                        Online presence
                                     </p>
                                 </div>
                             </div>
@@ -1640,7 +1493,7 @@ const OrganizationInformation = ({ organization, organizationVerified }) => {
                                     min-w-0
                                     wrap-break-word
                                     font-sans!
-                                    text-[12.5px]
+                                    text-[14px]
                                     font-medium!
                                     leading-[1.65]
                                     sm:pt-0.5
@@ -1681,7 +1534,7 @@ const OrganizationInformation = ({ organization, organizationVerified }) => {
                                     <p
                                         className="
                                             font-sans!
-                                            text-[10px]
+                                            text-[12px]
                                             font-semibold!
                                             uppercase
                                             tracking-[0.12em]
@@ -1689,18 +1542,6 @@ const OrganizationInformation = ({ organization, organizationVerified }) => {
                                         "
                                     >
                                         Address
-                                    </p>
-
-                                    <p
-                                        className="
-                                            mt-1
-                                            font-sans!
-                                            text-[10.5px]
-                                            font-normal!
-                                            text-[#5E6978]!
-                                        "
-                                    >
-                                        Registered location
                                     </p>
                                 </div>
                             </div>
@@ -1710,7 +1551,7 @@ const OrganizationInformation = ({ organization, organizationVerified }) => {
                                     min-w-0
                                     wrap-break-word
                                     font-sans!
-                                    text-[12.5px]
+                                    text-[14px]
                                     font-medium!
                                     leading-[1.65]
                                     sm:pt-0.5
@@ -1739,7 +1580,7 @@ const OrganizationPurpose = ({ organization }) => {
     return (
         <section
             className="
-                                mt-8
+\1mt-5\2
                 overflow-hidden
                 border
                 border-[#252D38]
@@ -1803,7 +1644,7 @@ const OrganizationPurpose = ({ organization }) => {
                             <p
                                 className="
                                     font-sans!
-                                    text-[10px]
+                                    text-[12px]
                                     font-semibold!
                                     uppercase
                                     tracking-[0.14em]
@@ -1819,7 +1660,7 @@ const OrganizationPurpose = ({ organization }) => {
                                 mt-2.5
                                 max-w-[240px] md:max-w-[180px] lg:max-w-[190px]
                                 font-sans!
-                                text-[11.5px]
+                                text-[13px]
                                 font-normal!
                                 leading-[1.65]
                                 text-[#5E6978]!
@@ -1846,7 +1687,7 @@ const OrganizationPurpose = ({ organization }) => {
                                 text-[12px]
                                 font-normal!
                                 leading-[1.8]
-                                sm:text-[12.5px]
+                                sm:text-[14px]
                                 ${
                                     organization?.mission
                                         ? 'text-[#B8C0CA]!'
@@ -1903,7 +1744,7 @@ const OrganizationPurpose = ({ organization }) => {
                             <p
                                 className="
                                     font-sans!
-                                    text-[10px]
+                                    text-[12px]
                                     font-semibold!
                                     uppercase
                                     tracking-[0.15em]
@@ -1919,7 +1760,7 @@ const OrganizationPurpose = ({ organization }) => {
                                 mt-2.5
                                 max-w-[240px] md:max-w-[180px] lg:max-w-[190px]
                                 font-sans!
-                                text-[11.5px]
+                                text-[13px]
                                 font-normal!
                                 leading-[1.65]
                                 text-[#697586]!
@@ -1969,7 +1810,7 @@ const OrganizationPurpose = ({ organization }) => {
                                     <p
                                         className="
                                             font-sans!
-                                            text-[10px]
+                                            text-[12px]
                                             font-semibold!
                                             uppercase
                                             tracking-[0.12em]
@@ -1977,18 +1818,6 @@ const OrganizationPurpose = ({ organization }) => {
                                         "
                                     >
                                         Focus areas
-                                    </p>
-
-                                    <p
-                                        className="
-                                            mt-1
-                                            font-sans!
-                                            text-[10.5px]
-                                            font-normal!
-                                            text-[#5E6978]!
-                                        "
-                                    >
-                                        Priority causes
                                     </p>
                                 </div>
                             </div>
@@ -2024,7 +1853,7 @@ const OrganizationPurpose = ({ organization }) => {
                                     <p
                                         className="
                                             font-sans!
-                                            text-[10px]
+                                            text-[12px]
                                             font-semibold!
                                             uppercase
                                             tracking-[0.12em]
@@ -2032,18 +1861,6 @@ const OrganizationPurpose = ({ organization }) => {
                                         "
                                     >
                                         Communities
-                                    </p>
-
-                                    <p
-                                        className="
-                                            mt-1
-                                            font-sans!
-                                            text-[10.5px]
-                                            font-normal!
-                                            text-[#5E6978]!
-                                        "
-                                    >
-                                        People served
                                     </p>
                                 </div>
                             </div>
@@ -2074,7 +1891,7 @@ const OrganizationOperations = ({ organization }) => {
     return (
         <section
             className="
-                                mt-8
+\1mt-5\2
                 overflow-hidden
                 border
                 border-[#252D38]
@@ -2180,7 +1997,7 @@ const OrganizationOperations = ({ organization }) => {
                                 <h3
                                     className="
                                         font-sans!
-                                        text-[12.5px]
+                                        text-[14px]
                                         font-semibold!
                                         leading-5
                                         text-[#EEF1F5]!
@@ -2195,12 +2012,12 @@ const OrganizationOperations = ({ organization }) => {
                                         mt-2
                                         max-w-[560px]
                                         font-sans!
-                                        text-[11.5px]
+                                        text-[13px]
                                         font-normal!
                                         leading-[1.7]
                                         text-[#8792A1]!
                                         sm:text-[12px]
-                                        lg:text-[12.5px]
+                                        lg:text-[14px]
                                     "
                                 >
                                     Regular programs and humanitarian work
@@ -2273,31 +2090,17 @@ const OrganizationOperations = ({ organization }) => {
                                     <p
                                         className="
                                             font-sans!
-                                            text-[10px]
+                                            text-[12px]
                                             font-semibold!
                                             uppercase
                                             tracking-[0.14em]
                                             text-[#697586]!
-                                            sm:text-[10px]
+                                            sm:text-[12px]
                                         "
                                     >
                                         Team size
                                     </p>
                                 </div>
-
-                                <p
-                                    className="
-                                        mt-2
-                                        font-sans!
-                                        text-[11px]
-                                        font-normal!
-                                        leading-[1.55]
-                                        text-[#5E6978]!
-                                        md:mt-2.5
-                                    "
-                                >
-                                    Current team capacity
-                                </p>
                             </div>
 
                             <div
@@ -2341,10 +2144,10 @@ const OrganizationOperations = ({ organization }) => {
                                         className="
                                             mb-0.5
                                             font-sans!
-                                            text-[10.5px]
+                                            text-[12px]
                                             font-medium!
                                             text-[#697586]!
-                                            sm:text-[11px]
+                                            sm:text-[12px]
                                         "
                                     >
                                         members
@@ -2363,7 +2166,7 @@ const OrganizationOperations = ({ organization }) => {
    USER DETAILS VIEW
 ============================================================ */
 
-const UserDetailsView = ({ user, successMessage, onDismissSuccess }) => {
+const UserDetailsView = ({ user }) => {
     const {
         individualProfile,
         organization,
@@ -2377,93 +2180,7 @@ const UserDetailsView = ({ user, successMessage, onDismissSuccess }) => {
     } = getUserDetailsData(user);
 
     return (
-        <div className="font-sans!">
-            {/* =================================================
-                SUCCESS MESSAGE
-            ================================================== */}
-
-            {successMessage && (
-                <div
-                    role="status"
-                    aria-live="polite"
-                    className="
-                        mb-8
-                        flex
-                        items-start
-                        justify-between
-                        gap-4
-                        border
-                        border-[#294437]
-                        bg-[#16251F]
-                        px-5
-                        py-4
-                    "
-                >
-                    <div className="flex items-start gap-3.5">
-                        <CheckCircle2
-                            size={16}
-                            strokeWidth={1.8}
-                            className="
-                                mt-0.5
-                                shrink-0
-                                text-[#8EC5A3]
-                            "
-                        />
-
-                        <div className="min-w-0">
-                            <p
-                                className="
-                                    font-sans!
-                                    text-[10px]
-                                    font-semibold!
-                                    uppercase
-                                    tracking-[0.14em]
-                                    text-[#8EC5A3]!
-                                "
-                            >
-                                Changes saved
-                            </p>
-
-                            <p
-                                className="
-                                    mt-1.5
-                                    font-sans!
-                                    text-[12.5px]
-                                    font-medium!
-                                    leading-[1.6]
-                                    text-[#D8E5DD]!
-                                "
-                            >
-                                {successMessage}
-                            </p>
-                        </div>
-                    </div>
-
-                    <button
-                        type="button"
-                        onClick={onDismissSuccess}
-                        aria-label="Dismiss message"
-                        className="
-                            flex
-                            h-8
-                            w-8
-                            shrink-0
-                            items-center
-                            justify-center
-                            text-[#739181]
-                            transition-colors
-                            duration-150
-                            hover:bg-[#1D3128]
-                            hover:text-[#D8E5DD]
-                            focus:outline-none
-                            focus:ring-0
-                        "
-                    >
-                        <X size={14} />
-                    </button>
-                </div>
-            )}
-
+        <div className="@container min-w-0 font-sans!">
             {/* =================================================
                 PROFILE HEADER
             ================================================== */}
@@ -2539,7 +2256,7 @@ const UserDetailsView = ({ user, successMessage, onDismissSuccess }) => {
                                 <p
                                     className="
                                         font-sans!
-                                        text-[10px]
+                                        text-[12px]
                                         font-semibold!
                                         uppercase
                                         tracking-[0.16em]
@@ -2559,7 +2276,7 @@ const UserDetailsView = ({ user, successMessage, onDismissSuccess }) => {
                                         leading-[1.2]
                                         tracking-[-0.03em]
                                         text-[#EEF1F5]!
-                                        sm:text-[28px]
+                                        sm:text-[34px]
                                     "
                                 >
                                     {user.name || 'User'}
@@ -2582,7 +2299,7 @@ const UserDetailsView = ({ user, successMessage, onDismissSuccess }) => {
                                     <span
                                         className="
                                             font-sans!
-                                            text-[11.5px]
+                                            text-[13px]
                                             font-normal!
                                             text-[#697586]!
                                         "
@@ -2593,7 +2310,7 @@ const UserDetailsView = ({ user, successMessage, onDismissSuccess }) => {
                                     <span
                                         className="
                                             font-sans!
-                                            text-[11.5px]
+                                            text-[13px]
                                             font-medium!
                                             text-[#AEB7C3]!
                                         "
@@ -2618,7 +2335,7 @@ const UserDetailsView = ({ user, successMessage, onDismissSuccess }) => {
                                             items-center
                                             gap-2.5
                                             font-sans!
-                                            text-[12.5px]
+                                            text-[14px]
                                             font-normal!
                                             text-[#8792A1]!
                                         "
@@ -2644,7 +2361,7 @@ const UserDetailsView = ({ user, successMessage, onDismissSuccess }) => {
                                                 items-center
                                                 gap-2.5
                                                 font-sans!
-                                                text-[12.5px]
+                                                text-[14px]
                                                 font-normal!
                                                 text-[#8792A1]!
                                             "
@@ -2713,12 +2430,12 @@ const UserDetailsView = ({ user, successMessage, onDismissSuccess }) => {
                                     className="
                                         truncate
                                         font-sans!
-                                        text-[10px]
+                                        text-[12px]
                                         font-semibold!
                                         uppercase
                                         tracking-[0.13em]
                                         text-[#8792A1]!
-                                        sm:text-[10px]
+                                        sm:text-[12px]
                                         sm:tracking-[0.14em]
                                     "
                                 >
@@ -2730,11 +2447,11 @@ const UserDetailsView = ({ user, successMessage, onDismissSuccess }) => {
                                 className="
                                     shrink-0
                                     font-sans!
-                                    text-[10px]
+                                    text-[12px]
                                     font-medium!
                                     tabular-nums
                                     text-[#697586]!
-                                    sm:text-[10.5px]
+                                    sm:text-[12px]
                                 "
                             >
                                 ID #{user.id}
@@ -2783,8 +2500,6 @@ const UserDetailsView = ({ user, successMessage, onDismissSuccess }) => {
                                     }
                                 />
                             )}
-
-                            <StatusLine label="Role" value={roleLabel} />
                         </div>
                     </aside>
                 </div>

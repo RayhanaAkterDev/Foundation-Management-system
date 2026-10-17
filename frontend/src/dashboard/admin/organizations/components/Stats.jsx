@@ -13,7 +13,7 @@ import {
 // STATS
 // ============================================================
 
-const Stats = ({ total, verified, pending, rejected }) => {
+const Stats = ({ total, verified, pending, rejected, onOpenReviewQueue }) => {
     const totalCount = Number(total) || 0;
     const verifiedCount = Number(verified) || 0;
     const pendingCount = Number(pending) || 0;
@@ -539,6 +539,7 @@ const Stats = ({ total, verified, pending, rejected }) => {
                                     font-sans!
                                     text-[11px]
                                     text-[#728092]
+                                    font-medium!
                                 "
                             >
                                 Current organization distribution
@@ -751,6 +752,7 @@ const Stats = ({ total, verified, pending, rejected }) => {
                                     font-sans!
                                     text-[10px]
                                     leading-[1.65]
+                                    font-medium!
 
                                     text-[#7C8999]
                                 "
@@ -763,6 +765,7 @@ const Stats = ({ total, verified, pending, rejected }) => {
 
                     <button
                         type="button"
+                        onClick={onOpenReviewQueue}
                         className="
                             group
                             mt-auto

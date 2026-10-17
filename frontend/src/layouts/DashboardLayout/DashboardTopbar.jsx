@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 
 import {
     Bell,
@@ -12,12 +11,15 @@ import {
     UserRound,
 } from 'lucide-react';
 
+import { NAV_CONFIG } from '@/routes/dashboardNav';
+
 /* ==========================================================================
    DASHBOARD TOPBAR
 ============================================================================ */
 
 const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
     const navigate = useNavigate();
+    const { pathname } = useLocation();
 
     const [userMenuOpen, setUserMenuOpen] = useState(false);
 
@@ -30,16 +32,13 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
             const storedUser =
                 localStorage.getItem('user') || sessionStorage.getItem('user');
 
-            if (!storedUser) {
-                return null;
-            }
+            if (!storedUser) return null;
 
             const parsedUser = JSON.parse(storedUser);
 
             return parsedUser?.user || parsedUser;
         } catch (error) {
             console.error('Failed to parse stored user:', error);
-
             return null;
         }
     };
@@ -84,6 +83,41 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
             .toUpperCase() || 'U';
 
     /* ======================================================================
+       PAGE TITLE — MAIN NAVIGATION LABEL
+    ====================================================================== */
+
+    const normalizePath = (path) => path?.replace(/\/+$/, '') || '/';
+
+    const currentPath = normalizePath(pathname);
+
+    const navigationItems = NAV_CONFIG[role || userRole] || [];
+
+    const matchingItems = navigationItems
+        .filter((item) => item.type !== 'section')
+        .flatMap((item) => {
+            const paths = [
+                item.path,
+                ...(item.children || []).map((child) => child.path),
+            ].filter(Boolean);
+
+            return paths
+                .map((path) => normalizePath(path))
+                .filter(
+                    (path) =>
+                        currentPath === path ||
+                        (path !== '/' && currentPath.startsWith(`${path}/`)),
+                )
+                .map((path) => ({
+                    label: item.label,
+                    length: path.length,
+                }));
+        });
+
+    const activeMainItem = matchingItems.sort((a, b) => b.length - a.length)[0];
+
+    const resolvedPageTitle = activeMainItem?.label || pageTitle || 'Dashboard';
+
+    /* ======================================================================
        CLOSE MENU
     ====================================================================== */
 
@@ -96,13 +130,11 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
     ====================================================================== */
 
     useEffect(() => {
-        if (!userMenuOpen) {
-            return undefined;
-        }
+        if (!userMenuOpen) return undefined;
 
         const handleKeyDown = (event) => {
             if (event.key === 'Escape') {
-                closeUserMenu();
+                setUserMenuOpen(false);
             }
         };
 
@@ -164,71 +196,36 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
     return (
         <header
             className="
-                sticky
-                top-0
-                z-30
-
-                border-b
-                border-[#252D38]
-
+                sticky top-0 z-30
+                border-b border-[#252D38]
                 bg-[#0E1219]
             "
         >
             <div
                 className="
-                    flex
-                    min-h-20
-                    items-center
-                    justify-between
-                    gap-4
-
-                    px-4
-                    sm:px-6
-                    lg:px-7
+                    flex min-h-20 items-center justify-between
+                    gap-4 px-4 sm:px-6 lg:px-7
                 "
             >
                 {/* =========================================================
                     LEFT
                 ========================================================= */}
 
-                <div
-                    className="
-                        flex
-                        min-w-0
-                        items-center
-                        gap-3
-                    "
-                >
+                <div className="flex min-w-0 items-center gap-3">
                     <button
                         type="button"
                         onClick={onMenuOpen}
                         aria-label="Open navigation menu"
                         className="
-                            flex
-                            h-9
-                            w-9
-                            shrink-0
-                            items-center
-                            justify-center
-
-                            rounded-md
-
-                            border
-                            border-[#29323E]
-
-                            bg-[#141922]
-
-                            !text-[#7F8998]
-
-                            transition-colors
-                            duration-150
-
+                            flex h-9 w-9 shrink-0 items-center
+                            justify-center rounded-md
+                            border border-[#29323E]
+                            bg-[#141922] !text-[#7F8998]
+                            transition-colors duration-150
                             hover:border-[#36414F]
                             hover:bg-[#181F28]
                             hover:!text-[#F1F3F5]
-
                             focus:outline-none
-
                             lg:hidden
                         "
                     >
@@ -236,70 +233,25 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                     </button>
 
                     <div className="min-w-0">
-                        <div
+                        <span
                             className="
-                                mb-0.5
-                                flex
-                                items-center
-                                gap-2
-                            "
-                        >
-                            <span
-                                className="
-                                    truncate
-
-                                    text-[9px]
-                                    font-semibold
-                                    uppercase
-                                    tracking-[0.18em]
-
+                                    truncate text-[9px] font-semibold
+                                    uppercase tracking-[0.18em]
                                     !text-[#8792A1]
                                 "
-                            >
-                                {roleLabel}
-                            </span>
-
-                            <span
-                                className="
-                                    h-px
-                                    w-5
-                                    bg-[#303A47]
-                                "
-                            />
-
-                            <span
-                                className="
-                                    text-[9px]
-                                    font-semibold
-                                    uppercase
-                                    tracking-[0.18em]
-
-                                    !text-[#657184]
-                                "
-                            >
-                                SP
-                            </span>
-                        </div>
-
+                        >
+                            {roleLabel}
+                        </span>
                         <h1
                             className="
-                                max-w-[calc(100vw-170px)]
-                                truncate
-
-                                !font-sans
-
-                                text-[18px]
-                                font-semibold
-                                leading-5
-                                tracking-[-0.015em]
-
+                                max-w-[calc(100vw-170px)] truncate
+                                !font-sans text-[18px] font-semibold
+                                leading-5 tracking-[-0.015em]
                                 !text-[#EEF1F5]
-
-                                sm:max-w-125
-                                sm:text-[19px]
+                                sm:max-w-125 sm:text-[19px]
                             "
                         >
-                            {pageTitle}
+                            {resolvedPageTitle}
                         </h1>
                     </div>
                 </div>
@@ -308,36 +260,17 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                     RIGHT
                 ========================================================= */}
 
-                <div
-                    className="
-                        flex
-                        shrink-0
-                        items-center
-                        gap-2
-                    "
-                >
+                <div className="flex shrink-0 items-center gap-2">
                     <button
                         type="button"
                         aria-label="Notifications"
                         className="
-                            relative
-
-                            flex
-                            h-9
-                            w-9
-                            items-center
-                            justify-center
-
-                            rounded-md
-
+                            relative flex h-9 w-9 items-center
+                            justify-center rounded-md
                             !text-[#7F8998]
-
-                            transition-colors
-                            duration-150
-
+                            transition-colors duration-150
                             hover:bg-[#181F28]
                             hover:!text-[#F1F3F5]
-
                             focus:outline-none
                         "
                     >
@@ -345,31 +278,18 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
 
                         <span
                             className="
-                                absolute
-                                right-1.5
-                                top-1.5
-
-                                h-1.5
-                                w-1.5
-
-                                rounded-full
-
+                                absolute right-1.5 top-1.5
+                                h-1.5 w-1.5 rounded-full
                                 bg-[#E6A15C]
-
-                                ring-2
-                                ring-[#0E1219]
+                                ring-2 ring-[#0E1219]
                             "
                         />
                     </button>
 
                     <div
                         className="
-                            hidden
-                            h-6
-                            w-px
-                            bg-[#252D38]
-
-                            sm:block
+                            hidden h-6 w-px
+                            bg-[#252D38] sm:block
                         "
                     />
 
@@ -385,50 +305,23 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                             aria-haspopup="menu"
                             aria-controls="account-menu"
                             className="
-                                group
-
-                                flex
-                                items-center
-                                gap-2.5
-
-                                rounded-md
-
-                                px-1.5
-                                py-1
-
-                                transition-colors
-                                duration-150
-
+                                group flex items-center gap-2.5
+                                rounded-md px-1.5 py-1
+                                transition-colors duration-150
                                 hover:bg-[#181F28]
-
                                 focus:outline-none
                             "
                         >
                             <div
                                 className="
-                                    flex
-                                    h-8
-                                    w-8
-                                    shrink-0
-                                    items-center
-                                    justify-center
-                                    overflow-hidden
-
-                                    rounded-md
-
-                                    border
-                                    border-[#303A47]
-
+                                    flex h-8 w-8 shrink-0
+                                    items-center justify-center
+                                    overflow-hidden rounded-md
+                                    border border-[#303A47]
                                     bg-[#1B222C]
-
-                                    text-[10px]
-                                    font-semibold
-
+                                    text-[10px] font-semibold
                                     !text-[#F1F3F5]
-
-                                    transition-colors
-                                    duration-150
-
+                                    transition-colors duration-150
                                     group-hover:border-[#414D5C]
                                 "
                             >
@@ -436,11 +329,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                     <img
                                         src={userAvatar}
                                         alt={userName}
-                                        className="
-                                            h-full
-                                            w-full
-                                            object-cover
-                                        "
+                                        className="h-full w-full object-cover"
                                         onError={(event) => {
                                             event.currentTarget.style.display =
                                                 'none';
@@ -451,25 +340,12 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                 )}
                             </div>
 
-                            <div
-                                className="
-                                    hidden
-                                    min-w-0
-                                    text-left
-
-                                    sm:block
-                                "
-                            >
+                            <div className="hidden min-w-0 text-left sm:block">
                                 <p
                                     className="
-                                        max-w-37.5
-                                        truncate
-
-                                        text-[12px]
-                                        font-semibold
-                                        leading-4
-
-                                        !text-[#E8EBEF]
+                                        max-w-37.5 truncate
+                                        text-[12px] font-semibold
+                                        leading-4 !text-[#E8EBEF]
                                     "
                                 >
                                     {userName}
@@ -477,15 +353,9 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
 
                                 <p
                                     className="
-                                        mt-0.5
-                                        max-w-37.5
-                                        truncate
-
-                                        text-[9.5px]
-                                        font-medium!
-                                        leading-3
-
-                                        !text-[#7F8998]
+                                        mt-0.5 max-w-37.5 truncate
+                                        text-[9.5px] font-medium!
+                                        leading-3 !text-[#7F8998]
                                     "
                                 >
                                     {roleLabel}
@@ -496,31 +366,22 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                 size={13}
                                 strokeWidth={1.8}
                                 className={`
-                                    hidden
-                                    !text-[#657184]
-
-                                    transition-transform
-                                    duration-200
-
+                                    hidden !text-[#657184]
+                                    transition-transform duration-200
                                     sm:block
-
                                     group-hover:!text-[#B8C0CC]
-
                                     ${
                                         userMenuOpen
-                                            ? `
-                                                rotate-180
-                                                !text-[#B8C0CC]
-                                            `
+                                            ? 'rotate-180 !text-[#B8C0CC]'
                                             : ''
                                     }
                                 `}
                             />
                         </button>
 
-                        {/* =================================================
+                        {/* ================================================
                             DROPDOWN
-                        ================================================= */}
+                        ================================================ */}
 
                         {userMenuOpen && (
                             <>
@@ -529,12 +390,8 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                     aria-label="Close account menu"
                                     onClick={closeUserMenu}
                                     className="
-                                        fixed
-                                        inset-0
-                                        z-40
-                                        h-full
-                                        w-full
-                                        cursor-default
+                                        fixed inset-0 z-40
+                                        h-full w-full cursor-default
                                     "
                                 />
 
@@ -543,22 +400,12 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                     role="menu"
                                     aria-label="Account menu"
                                     className="
-                                        absolute
-                                        right-0
-                                        top-[calc(100%+20px)]
-                                        z-50
-
+                                        absolute right-0
+                                        top-[calc(100%+20px)] z-50
                                         w-[min(320px,calc(100vw-24px))]
-
-                                        overflow-hidden
-
-                                        rounded-xl
-
-                                        border
-                                        border-[#29323E]
-
+                                        overflow-hidden rounded-xl
+                                        border border-[#29323E]
                                         bg-[#141922]
-
                                         shadow-[0_18px_55px_rgba(0,0,0,0.38)]
                                     "
                                 >
@@ -568,39 +415,20 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
 
                                     <div
                                         className="
-                                            flex
-                                            items-center
-                                            gap-3
-
-                                            border-b
-                                            border-[#252D38]
-
+                                            flex items-center gap-3
+                                            border-b border-[#252D38]
                                             bg-[#11161E]
-
-                                            px-4
-                                            py-4
+                                            px-4 py-4
                                         "
                                     >
                                         <div
                                             className="
-                                                flex
-                                                h-10
-                                                w-10
-                                                shrink-0
-                                                items-center
-                                                justify-center
-                                                overflow-hidden
-
-                                                rounded-lg
-
-                                                border
-                                                border-[#303A47]
-
+                                                flex h-10 w-10 shrink-0
+                                                items-center justify-center
+                                                overflow-hidden rounded-lg
+                                                border border-[#303A47]
                                                 bg-[#1B222C]
-
-                                                text-[11px]
-                                                font-semibold
-
+                                                text-[11px] font-semibold
                                                 !text-[#F1F3F5]
                                             "
                                         >
@@ -609,8 +437,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                                     src={userAvatar}
                                                     alt={userName}
                                                     className="
-                                                        h-full
-                                                        w-full
+                                                        h-full w-full
                                                         object-cover
                                                     "
                                                 />
@@ -622,11 +449,8 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                         <div className="min-w-0">
                                             <p
                                                 className="
-                                                    truncate
-
-                                                    text-[13px]
+                                                    truncate text-[13px]
                                                     font-semibold
-
                                                     !text-[#F1F3F5]
                                                 "
                                             >
@@ -635,11 +459,8 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
 
                                             <p
                                                 className="
-                                                    mt-0.5
-                                                    truncate
-
+                                                    mt-0.5 truncate
                                                     text-[10px]
-
                                                     !text-[#7F8998]
                                                 "
                                             >
@@ -648,13 +469,9 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
 
                                             <p
                                                 className="
-                                                    mt-1
-
-                                                    text-[8.5px]
-                                                    font-semibold
-                                                    uppercase
+                                                    mt-1 text-[8.5px]
+                                                    font-semibold uppercase
                                                     tracking-[0.14em]
-
                                                     !text-[#657184]
                                                 "
                                             >
@@ -670,14 +487,9 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                     <div className="p-3">
                                         <p
                                             className="
-                                                mb-2
-                                                px-1
-
-                                                text-[9px]
-                                                font-semibold
-                                                uppercase
-                                                tracking-[0.14em]
-
+                                                mb-2 px-1
+                                                text-[9px] font-semibold
+                                                uppercase tracking-[0.14em]
                                                 !text-[#657184]
                                             "
                                         >
@@ -693,20 +505,12 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                                         onClick={closeUserMenu}
                                                         role="menuitem"
                                                         className="
-                                                            group
-
-                                                            flex
+                                                            group flex
                                                             min-h-10
-                                                            items-center
-                                                            gap-3
-
-                                                            rounded-md
-
-                                                            px-2.5
-
+                                                            items-center gap-3
+                                                            rounded-md px-2.5
                                                             transition-colors
                                                             duration-150
-
                                                             hover:bg-[#1B222C]
                                                         "
                                                     >
@@ -715,9 +519,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                                             strokeWidth={1.75}
                                                             className="
                                                                 !text-[#7F8998]
-
                                                                 transition-colors
-
                                                                 group-hover:!text-[#CDD3DB]
                                                             "
                                                         />
@@ -726,9 +528,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                                             className="
                                                                 text-[11px]
                                                                 font-medium!
-
                                                                 !text-[#B8C0CC]
-
                                                                 group-hover:!text-[#F1F3F5]
                                                             "
                                                         >
@@ -746,9 +546,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
 
                                     <div
                                         className="
-                                            border-t
-                                            border-[#252D38]
-
+                                            border-t border-[#252D38]
                                             p-3
                                         "
                                     >
@@ -757,25 +555,12 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                             onClick={handleSignOut}
                                             role="menuitem"
                                             className="
-                                                group
-
-                                                flex
-                                                min-h-10
-                                                w-full
-                                                items-center
-                                                gap-3
-
-                                                rounded-md
-
-                                                px-2.5
-
+                                                group flex min-h-10
+                                                w-full items-center gap-3
+                                                rounded-md px-2.5
                                                 text-left
-
-                                                transition-colors
-                                                duration-150
-
+                                                transition-colors duration-150
                                                 hover:bg-[#38272C]
-
                                                 focus:outline-none
                                             "
                                         >
@@ -784,18 +569,14 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                                 strokeWidth={1.75}
                                                 className="
                                                     !text-[#B08B91]
-
                                                     group-hover:!text-[#E9A1A8]
                                                 "
                                             />
 
                                             <span
                                                 className="
-                                                    text-[11px]
-                                                    font-medium!
-
+                                                    text-[11px] font-medium!
                                                     !text-[#CBA2A7]
-
                                                     group-hover:!text-[#E9A1A8]
                                                 "
                                             >

@@ -1,5 +1,4 @@
 import React from 'react';
-
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const Pagination = ({
@@ -44,48 +43,32 @@ const Pagination = ({
             aria-label="Pagination"
             className="
                 bg-[#121821]
-
-                px-3
-                py-3
-
+                px-3 py-3
                 sm:px-4
             "
         >
             <div
                 className="
-                    flex
-                    flex-col
-                    gap-3
-
+                    flex flex-col gap-3
                     sm:flex-row
                     sm:items-center
                     sm:justify-between
                 "
             >
-                {/* =====================================================
-                    RESULT SUMMARY
-                ===================================================== */}
+                {/* RESULT SUMMARY */}
 
                 <div
                     className="
-                        flex
-                        min-w-0
-                        items-center
-                        justify-between
-                        gap-3
-
+                        flex min-w-0 items-center
+                        justify-between gap-3
                         sm:justify-start
                     "
                 >
                     <p
                         className="
                             whitespace-nowrap
-
-                            text-[10px]
-                            leading-5
-
+                            text-[10px] leading-5
                             text-[#697586]
-
                             sm:text-[11px]
                         "
                     >
@@ -94,7 +77,6 @@ const Pagination = ({
                             className="
                                 font-semibold!
                                 tabular-nums
-
                                 text-[#B8C0CA]
                             "
                         >
@@ -105,82 +87,24 @@ const Pagination = ({
                             className="
                                 font-semibold!
                                 tabular-nums
-
                                 text-[#B8C0CA]
                             "
                         >
                             {totalItems}
                         </span>
                     </p>
-
-                    <span
-                        aria-hidden="true"
-                        className="
-                            hidden
-                            h-3.5
-                            w-px
-
-                            bg-[#303A47]
-
-                            sm:block
-                        "
-                    />
-
-                    <p
-                        className="
-                            hidden
-                            whitespace-nowrap
-
-                            text-[10px]
-
-                            text-[#697586]
-
-                            sm:block
-                        "
-                    >
-                        Page{' '}
-                        <span
-                            className="
-                                font-medium!
-                                tabular-nums
-
-                                text-[#8792A1]
-                            "
-                        >
-                            {currentPage}
-                        </span>{' '}
-                        of{' '}
-                        <span
-                            className="
-                                font-medium!
-                                tabular-nums
-
-                                text-[#8792A1]
-                            "
-                        >
-                            {totalPages}
-                        </span>
-                    </p>
                 </div>
 
-                {/* =====================================================
-                    CONTROLS
-                ===================================================== */}
+                {/* PAGINATION CONTROLS */}
 
                 <div
                     className="
-                        flex
-                        min-w-0
-                        items-center
-                        justify-between
-                        gap-2
-
+                        flex min-w-0 items-center
+                        justify-between gap-2
                         sm:justify-end
                     "
                 >
-                    {/* =================================================
-                        PREVIOUS
-                    ================================================= */}
+                    {/* PREVIOUS */}
 
                     <button
                         type="button"
@@ -188,43 +112,24 @@ const Pagination = ({
                         disabled={currentPage === 1}
                         aria-label="Previous page"
                         className="
-                            inline-flex
-                            h-8
-                            shrink-0
-                            items-center
-                            justify-center
-                            gap-1
-
-                            border
-                            border-[#29323E]
-
-                            bg-[#0E1219]
-
-                            px-2.5
-
-                            text-[10px]
-                            font-medium!
-
+                            inline-flex h-8 shrink-0
+                            items-center justify-center gap-1
+                            border border-[#29323E]
+                            bg-[#0E1219] px-2.5
+                            text-[10px] font-medium!
                             text-[#8792A1]
-
                             transition-[background-color,border-color,color]
-                            duration-150
-                            ease-out
-
+                            duration-150 ease-out
                             hover:border-[#394555]
                             hover:bg-[#151B24]
                             hover:text-[#EEF1F5]
-
                             focus:outline-none
                             focus:ring-0
-
                             disabled:cursor-not-allowed
                             disabled:opacity-30
-
                             disabled:hover:border-[#29323E]
                             disabled:hover:bg-[#0E1219]
                             disabled:hover:text-[#8792A1]
-
                             sm:px-3
                         "
                     >
@@ -235,17 +140,12 @@ const Pagination = ({
                         </span>
                     </button>
 
-                    {/* =================================================
-                        PAGES
-                    ================================================= */}
+                    {/* PAGE NUMBERS */}
 
                     <div
                         className="
-                            flex
-                            min-w-0
-                            items-center
-                            justify-center
-                            gap-1
+                            flex min-w-0 items-center
+                            justify-center gap-1
                         "
                     >
                         {pages.map((page, index) => {
@@ -262,14 +162,9 @@ const Pagination = ({
                                         <span
                                             aria-hidden="true"
                                             className="
-                                                flex
-                                                h-8
-                                                w-4
-                                                items-center
-                                                justify-center
-
+                                                flex h-8 w-4
+                                                items-center justify-center
                                                 text-[10px]
-
                                                 text-[#5E6978]
                                             "
                                         >
@@ -285,27 +180,15 @@ const Pagination = ({
                                         aria-label={`Go to page ${page}`}
                                         onClick={() => onPageChange(page)}
                                         className={`
-                                            flex
-                                            h-8
-                                            min-w-8
-                                            items-center
-                                            justify-center
-
-                                            border
-
-                                            px-2
-
-                                            text-[10px]
-                                            font-semibold!
+                                            flex h-8 min-w-8
+                                            items-center justify-center
+                                            border px-2
+                                            text-[10px] font-semibold!
                                             tabular-nums
-
                                             transition-[background-color,border-color,color]
-                                            duration-150
-                                            ease-out
-
+                                            duration-150 ease-out
                                             focus:outline-none
                                             focus:ring-0
-
                                             ${
                                                 active
                                                     ? `
@@ -317,7 +200,6 @@ const Pagination = ({
                                                         border-transparent
                                                         bg-transparent
                                                         text-[#697586]
-
                                                         hover:border-[#29323E]
                                                         hover:bg-[#151B24]
                                                         hover:text-[#B8C0CA]
@@ -332,9 +214,7 @@ const Pagination = ({
                         })}
                     </div>
 
-                    {/* =================================================
-                        NEXT
-                    ================================================= */}
+                    {/* NEXT */}
 
                     <button
                         type="button"
@@ -342,43 +222,24 @@ const Pagination = ({
                         disabled={currentPage === totalPages}
                         aria-label="Next page"
                         className="
-                            inline-flex
-                            h-8
-                            shrink-0
-                            items-center
-                            justify-center
-                            gap-1
-
-                            border
-                            border-[#29323E]
-
-                            bg-[#0E1219]
-
-                            px-2.5
-
-                            text-[10px]
-                            font-medium!
-
+                            inline-flex h-8 shrink-0
+                            items-center justify-center gap-1
+                            border border-[#29323E]
+                            bg-[#0E1219] px-2.5
+                            text-[10px] font-medium!
                             text-[#8792A1]
-
                             transition-[background-color,border-color,color]
-                            duration-150
-                            ease-out
-
+                            duration-150 ease-out
                             hover:border-[#394555]
                             hover:bg-[#151B24]
                             hover:text-[#EEF1F5]
-
                             focus:outline-none
                             focus:ring-0
-
                             disabled:cursor-not-allowed
                             disabled:opacity-30
-
                             disabled:hover:border-[#29323E]
                             disabled:hover:bg-[#0E1219]
                             disabled:hover:text-[#8792A1]
-
                             sm:px-3
                         "
                     >

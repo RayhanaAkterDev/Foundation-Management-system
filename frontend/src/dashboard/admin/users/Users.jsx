@@ -20,7 +20,7 @@ import UserStats from './components/Stats';
 import UserFilters from './components/Filters';
 import UserTable from './components/Table';
 import UserPagination from './components/Pagination';
-import UserSuccessToast from './components/SuccessToast';
+import SuccessDialog from '@/components/dashboard/SuccessDialog';
 
 import { fetchUsers, deleteUser } from './api/userApi';
 
@@ -53,6 +53,7 @@ const Users = () => {
     const [selectedDeleteUser, setSelectedDeleteUser] = useState(null);
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [deleteError, setDeleteError] = useState('');
+    const [deletedUserName, setDeletedUserName] = useState(null);
 
     const [toast, setToast] = useState({
         show: false,
@@ -152,13 +153,12 @@ const Users = () => {
         setDeleteError('');
 
         try {
+            const removedName = selectedDeleteUser.name || 'User';
             await deleteUser(selectedDeleteUser.id);
 
             setSelectedDeleteUser(null);
-
+            setDeletedUserName(removedName);
             await loadUsers();
-
-            showSuccessToast('User deleted successfully.');
         } catch (err) {
             setDeleteError(err.message);
         } finally {
@@ -646,93 +646,61 @@ const Users = () => {
                 ==================================================== */}
 
                 <PageHeader
-                    title="Users"
-                    subtitle="Review and manage everyone connected to Stand For People, including their roles, account status, and platform access."
+                    title="All Users"
+                    subtitle="Manage user accounts, roles, and access."
                     action={
                         <div
                             className="
-                flex
-                w-full
-                flex-wrap
-                items-center
-                justify-end
-                gap-2
-
-                sm:w-auto
-            "
+            flex w-full flex-wrap items-center gap-2.5
+            sm:w-auto sm:justify-end
+        "
                         >
-                            {/* =========================================================
-                EXPORT CSV
-            ========================================================= */}
+                            {/* EXPORT CSV — SECONDARY ACTION */}
 
                             <button
                                 type="button"
                                 onClick={handleExportCSV}
                                 disabled={filteredUsers.length === 0}
                                 className="
-                    group
+                group inline-flex h-10
+                items-center justify-center gap-2
+                border border-[#343e4b]
+                bg-transparent px-3.5
 
-                    inline-flex
-                    h-10
-                    items-center
-                    justify-center
-                    gap-2.5
+                font-sans text-[12px] font-medium
+                whitespace-nowrap text-[#b8c2cf]
 
-                    border
-                    border-[#29323E]
+                transition-colors duration-150
 
-                    bg-[#0E1219]
+                hover:border-[#4b596a]
+                hover:bg-[#1c232d]
+                hover:text-[#f1f5f9]
 
-                    px-3.5
+                focus-visible:outline-none
+                focus-visible:ring-2
+                focus-visible:ring-[#0f766e]
+                focus-visible:ring-offset-2
+                focus-visible:ring-offset-[#171c24]
 
-                    font-sans!
-                    text-[11px]
-                    font-medium!
-                    whitespace-nowrap
-
-                    text-[#AEB7C3]!
-
-                    transition-[background-color,border-color,color]
-                    duration-150
-                    ease-out
-
-                    hover:border-[#394555]
-                    hover:bg-[#1A222D]
-                    hover:text-[#EEF1F5]!
-
-                    focus:outline-none
-                    focus:ring-0
-
-                    disabled:cursor-not-allowed
-                    disabled:border-[#202832]
-                    disabled:bg-[#0E1219]
-                    disabled:text-[#566171]!
-                    disabled:opacity-60
-                "
+                disabled:cursor-not-allowed
+                disabled:opacity-40
+            "
                             >
                                 <Download
-                                    size={14}
+                                    size={15}
                                     strokeWidth={1.8}
                                     className="
-                        shrink-0
-
-                        text-[#697586]
-
-                        transition-colors
-                        duration-150
-
-                        group-hover:text-[#AEB7C3]
-
-                        group-disabled:text-[#4E5967]
-                    "
+                    shrink-0 text-[#8492a3]
+                    transition-colors
+                    group-hover:text-[#d5dde6]
+                    group-disabled:text-[#8492a3]
+                "
                                 />
 
                                 <span>Export CSV</span>
                             </button>
 
-                            {/* =========================================================
-                ADD USER
-            ========================================================= */}
+                            {/* ADD USER — PRIMARY ACTION */}
 
                             <button
                                 type="button"
@@ -740,60 +708,33 @@ const Users = () => {
                                     navigate('/admin/dashboard/users/add')
                                 }
                                 className="
-                    group
+                group inline-flex h-10
+                items-center justify-center gap-2.5
+                border border-[#0f766e]
+                bg-[#0f766e] px-4
 
-                    inline-flex
-                    h-10
-                    items-center
-                    justify-center
-                    gap-2.5
+                font-sans text-[12px] font-semibold
+                whitespace-nowrap text-white
 
-                    border
-                    border-[#29323E]
-                    bg-[#1A222D]
+                transition-colors duration-150
 
-                    px-4
+                hover:border-[#115e59]
+                hover:bg-[#115e59]
 
-                    font-sans!
-                    text-[11px]
-                    font-semibold!
-                    whitespace-nowrap
+                focus-visible:outline-none
+                focus-visible:ring-2
+                focus-visible:ring-[#5eead4]
+                focus-visible:ring-offset-2
+                focus-visible:ring-offset-[#171c24]
 
-                    text-[#EEF1F5]!
-
-                    transition-[background-color,border-color]
-                    duration-150
-                    ease-out
-
-                    hover:border-[#394555]
-                    hover:bg-[#1D2632]
-
-                    focus:outline-none
-                    focus:ring-0
-                "
+                active:bg-[#134e4a]
+            "
                             >
-                                <span
-                                    className="
-                        flex
-                        h-5
-                        w-5
-                        shrink-0
-                        items-center
-                        justify-center
-
-                        bg-[#252F3B]
-
-                        text-[#C8D0D9]
-
-                        transition-colors
-                        duration-150
-
-                        group-hover:bg-[#303A47]
-                        group-hover:text-[#EEF1F5]
-                    "
-                                >
-                                    <Plus size={13} strokeWidth={2} />
-                                </span>
+                                <Plus
+                                    size={16}
+                                    strokeWidth={2}
+                                    className="shrink-0"
+                                />
 
                                 <span>Add User</span>
                             </button>
@@ -823,74 +764,29 @@ const Users = () => {
 
                     <div
                         className="
-                            mb-7
-
                             flex
                             flex-col
                             gap-5
-
-                            border-b
-                            border-[#252D38]
-
-                            pb-6
-
+                            pb-5
+                            sm:pb-6
                             sm:flex-row
                             sm:items-end
                             sm:justify-between
-
-                            lg:mb-8
-                            lg:pb-7
                         "
                     >
                         <div className="min-w-0">
-                            <div
-                                className="
-                                    mb-2.5
-
-                                    flex
-                                    items-center
-                                    gap-2
-                                "
-                            >
-                                <span
-                                    className="
-                                        h-1.5
-                                        w-1.5
-
-                                        bg-[#697586]
-                                    "
-                                />
-
-                                <span
-                                    className="
-                                        font-sans!
-                                        text-[9px]
-                                        font-semibold!
-                                        uppercase
-                                        tracking-[0.15em]
-
-                                        text-[#697586]
-                                    "
-                                >
-                                    Administration
-                                </span>
-                            </div>
-
                             <h2
                                 className="
                                     font-sans!
 
                                     text-[20px]
                                     font-semibold!
-                                    leading-[1.25]
+                                    leading-tight
                                     tracking-[-0.02em]
-
                                     text-[#EEF1F5]!
-
-                                    sm:text-[21px]
                                 "
                             >
-                                User management
+                                User Directory
                             </h2>
 
                             <p
@@ -905,70 +801,8 @@ const Users = () => {
                                     text-[#8792A1]
                                 "
                             >
-                                Review accounts, roles, and access across the
-                                platform.
+                                Browse and manage registered accounts.
                             </p>
-                        </div>
-
-                        <div
-                            className="
-                                flex
-                                shrink-0
-                                items-center
-                                gap-4
-                            "
-                        >
-                            <span
-                                className="
-                                    hidden
-                                    h-9
-                                    w-px
-
-                                    bg-[#252D38]
-
-                                    sm:block
-                                "
-                            />
-
-                            <div>
-                                <p
-                                    className="
-                                        font-sans!
-                                        text-[9px]
-                                        font-semibold!
-                                        uppercase
-                                        tracking-[0.14em]
-
-                                        text-[#667282]
-                                    "
-                                >
-                                    Showing
-                                </p>
-
-                                <p
-                                    className="
-                                        mt-1
-
-                                        font-sans!
-                                        text-[12px]
-                                        font-semibold!
-
-                                        text-[#B8C0CA]
-                                    "
-                                >
-                                    {filteredUsers.length}{' '}
-                                    <span
-                                        className="
-                                            font-normal
-                                            text-[#788493]
-                                        "
-                                    >
-                                        {filteredUsers.length === 1
-                                            ? 'user'
-                                            : 'users'}
-                                    </span>
-                                </p>
-                            </div>
                         </div>
                     </div>
 
@@ -1244,20 +1078,6 @@ const Users = () => {
                                             <div>
                                                 <p
                                                     className="
-                                                        font-sans!
-                                                        text-[8px]
-                                                        font-semibold!
-                                                        uppercase
-                                                        tracking-[0.14em]
-
-                                                        text-[#657181]
-                                                    "
-                                                >
-                                                    Directory
-                                                </p>
-
-                                                <p
-                                                    className="
                                                         mt-1
 
                                                         font-sans!
@@ -1275,75 +1095,6 @@ const Users = () => {
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-
-                                {/* ===================================
-                                    TABLE CONTEXT
-                                =================================== */}
-
-                                <div
-                                    className="
-                                        flex
-                                        shrink-0
-                                        items-center
-                                        justify-between
-                                        gap-4
-
-                                        border-b
-                                        border-[#252D38]
-
-                                        bg-[#0E1219]
-
-                                        px-4
-                                        py-3.5
-
-                                        sm:px-5
-                                    "
-                                >
-                                    <div className="min-w-0">
-                                        <p
-                                            className="
-                                                font-sans!
-                                                text-[12px]
-                                                font-semibold!
-
-                                                text-[#EEF1F5]
-                                            "
-                                        >
-                                            Registered users
-                                        </p>
-
-                                        <p
-                                            className="
-                                                mt-1
-                                                truncate
-
-                                                font-sans!
-                                                text-[10px]
-
-                                                text-[#697586]
-                                            "
-                                        >
-                                            Browse and review platform accounts
-                                        </p>
-                                    </div>
-
-                                    <span
-                                        className="
-                                            hidden
-                                            shrink-0
-
-                                            font-sans!
-                                            text-[9px]
-                                            font-medium!
-
-                                            text-[#697586]
-
-                                            sm:block
-                                        "
-                                    >
-                                        Sorted by account
-                                    </span>
                                 </div>
 
                                 {/* ===================================
@@ -1631,7 +1382,24 @@ const Users = () => {
                 </div>
             )}
 
-            <UserSuccessToast show={toast.show} message={toast.message} />
+            <SuccessDialog
+                open={toast.show}
+                title="Export completed"
+                message={toast.message}
+                onClose={() => setToast({ show: false, message: '' })}
+            />
+            <SuccessDialog
+                open={deletedUserName !== null}
+                action="deleted"
+                entity="user"
+                name={deletedUserName || ''}
+                message={
+                    deletedUserName
+                        ? `${deletedUserName} has been removed from the platform.`
+                        : 'The user has been removed from the platform.'
+                }
+                onClose={() => setDeletedUserName(null)}
+            />
 
             <UserDeleteModal
                 user={selectedDeleteUser}

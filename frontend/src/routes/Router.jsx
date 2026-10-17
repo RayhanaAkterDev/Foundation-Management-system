@@ -290,7 +290,10 @@ const router = createBrowserRouter([
                         element: <AdminDashboard />,
                     },
 
-                    // admin users routes
+                    // ========================
+                    // ADMIN USERS ROUTES
+                    // ========================
+
                     {
                         path: 'users',
                         element: <AdminUsers />,
@@ -300,25 +303,39 @@ const router = createBrowserRouter([
                         element: <AdminAddUser />,
                     },
                     {
+                        // View user
                         path: 'users/:userId',
                         element: <AdminUserDetails />,
                     },
+                    {
+                        // Edit user
+                        path: 'users/:userId/edit',
+                        element: <AdminUserDetails />,
+                    },
+
+                    // ========================
+                    // ADMIN ORGANIZATIONS ROUTES
                     // ========================
 
-                    // admin organizations routes
                     {
                         path: 'organizations',
                         element: <AdminOrganizations />,
                     },
-
                     {
                         path: 'organizations/add',
                         element: <AdminAddOrganization />,
                     },
                     {
+                        // View organization
                         path: 'organizations/:organizationId',
                         element: <AdminOrganizationsDetails />,
                     },
+                    {
+                        // Edit organization
+                        path: 'organizations/:organizationId/edit',
+                        element: <AdminOrganizationsDetails />,
+                    },
+
                     // ========================
 
                     {

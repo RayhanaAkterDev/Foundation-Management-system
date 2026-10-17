@@ -5,6 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, CircleAlert, Pencil, X } from 'lucide-react';
 
 import PageHeader from '@/components/dashboard/PageHeader';
+import SuccessDialog from '@/components/dashboard/SuccessDialog';
 
 import EditUserView from './components/EditUserView';
 import UserDetailsView from './components/UserDetailsView';
@@ -480,133 +481,82 @@ const UserDetails = () => {
                 action={
                     <div
                         className="
-                            grid
-                            w-full
-                            grid-cols-2
-                            gap-2.5
-
-                            sm:flex
-                            sm:w-auto
-                            sm:items-center
-                            sm:justify-end
-                            sm:gap-3
-                        "
+            flex w-full flex-wrap items-center gap-2.5
+            sm:w-auto sm:justify-end
+        "
                     >
-                        {/* BACK */}
+                        {/* BACK — SECONDARY ACTION */}
 
                         <button
                             type="button"
                             onClick={handleBack}
                             className="
-                                group
+                group inline-flex h-10
+                items-center justify-center gap-2
+                border border-[#343e4b]
+                bg-transparent px-3.5
 
-                                inline-flex
-                                h-10
-                                w-full
-                                sm:w-auto
-                                items-center
-                                justify-center
-                                gap-2.5
+                font-sans text-[12px] font-medium
+                whitespace-nowrap text-[#b8c2cf]
 
-                                border
-                                border-[#29323E]
+                transition-colors duration-150
 
-                                bg-[#0E1219]
+                hover:border-[#4b596a]
+                hover:bg-[#1c232d]
+                hover:text-[#f1f5f9]
 
-                                px-3.5
-
-                                font-sans!
-                                text-[12px]
-                                font-medium!
-                                whitespace-nowrap
-
-                                text-[#AEB7C3]!
-
-                                transition-[background-color,border-color,color]
-                                duration-150
-                                ease-out
-
-                                hover:border-[#394555]
-                                hover:bg-[#151B24]
-                                hover:text-[#EEF1F5]!
-
-                                focus:outline-none
-                                focus:ring-0
-                            "
+                focus-visible:outline-none
+                focus-visible:ring-2
+                focus-visible:ring-[#0f766e]
+                focus-visible:ring-offset-2
+                focus-visible:ring-offset-[#171c24]
+            "
                         >
                             <ArrowLeft
-                                size={14}
+                                size={15}
                                 strokeWidth={1.8}
                                 className="
-                                    shrink-0
-
-                                    text-[#697586]
-
-                                    transition-[transform,color]
-                                    duration-150
-
-                                    group-hover:-translate-x-0.5
-                                    group-hover:text-[#AEB7C3]
-                                "
+                    shrink-0 text-[#8492a3]
+                    transition-colors
+                    group-hover:text-[#d5dde6]
+                "
                             />
 
                             <span>Back</span>
                         </button>
 
-                        {/* EDIT */}
+                        {/* EDIT USER — PRIMARY ACTION */}
 
                         <button
                             type="button"
                             onClick={handleStartEdit}
                             className="
-                                group
+                group inline-flex h-10
+                items-center justify-center gap-2.5
+                border border-[#0f766e]
+                bg-[#0f766e] px-4
 
-                                inline-flex
-                                h-10
-                                w-full
-                                sm:w-auto
-                                items-center
-                                justify-center
-                                gap-2.5
+                font-sans text-[12px] font-semibold
+                whitespace-nowrap text-white
 
-                                border
-                                border-[#394555]
+                transition-colors duration-150
 
-                                bg-[#1A222D]
+                hover:border-[#115e59]
+                hover:bg-[#115e59]
 
-                                px-4
+                focus-visible:outline-none
+                focus-visible:ring-2
+                focus-visible:ring-[#5eead4]
+                focus-visible:ring-offset-2
+                focus-visible:ring-offset-[#171c24]
 
-                                font-sans!
-                                text-[12px]
-                                font-semibold!
-                                whitespace-nowrap
-
-                                text-[#EEF1F5]!
-
-                                transition-[background-color,border-color,color]
-                                duration-150
-                                ease-out
-
-                                hover:border-[#4B5869]
-                                hover:bg-[#1D2632]
-
-                                focus:outline-none
-                                focus:ring-0
-                            "
+                active:bg-[#134e4a]
+            "
                         >
                             <Pencil
-                                size={14}
-                                strokeWidth={1.8}
-                                className="
-                                    shrink-0
-
-                                    text-[#AEB7C3]
-
-                                    transition-colors
-                                    duration-150
-
-                                    group-hover:text-[#EEF1F5]
-                                "
+                                size={16}
+                                strokeWidth={2}
+                                className="shrink-0"
                             />
 
                             <span>Edit User</span>
@@ -615,10 +565,14 @@ const UserDetails = () => {
                 }
             />
 
-            <UserDetailsView
-                user={user}
-                successMessage={successMessage}
-                onDismissSuccess={() => setSuccessMessage('')}
+            <UserDetailsView user={user} />
+
+            <SuccessDialog
+                open={Boolean(successMessage)}
+                action="updated"
+                entity="user"
+                name={user?.name || ''}
+                onClose={() => setSuccessMessage('')}
             />
         </div>
     );

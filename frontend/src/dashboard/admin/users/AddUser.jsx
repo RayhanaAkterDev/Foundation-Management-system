@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     ArrowLeft,
@@ -13,7 +13,7 @@ import {
 
 import PageHeader from '@/components/dashboard/PageHeader';
 import UserForm from './components/UserForm';
-import SuccessToast from './components/SuccessToast';
+import SuccessDialog from '@/components/dashboard/SuccessDialog';
 import { createUser } from './api/userApi';
 
 /* ============================================================
@@ -23,17 +23,14 @@ import { createUser } from './api/userApi';
 const ROLE_META = {
     individual: {
         label: 'Individual',
-        description: 'Personal platform account',
         icon: UserRound,
     },
     organization: {
         label: 'Organization',
-        description: 'Organization or NGO account',
         icon: Building2,
     },
     admin: {
         label: 'Administrator',
-        description: 'Platform management access',
         icon: UserCog,
     },
 };
@@ -42,7 +39,7 @@ const ROLE_META = {
    PREVIEW DETAIL
 ============================================================ */
 
-const DetailRow = ({ icon: Icon, label, value, muted = false }) => {
+const DetailRow = ({ label, value, muted = false }) => {
     return (
         <div
             className="
@@ -53,33 +50,6 @@ const DetailRow = ({ icon: Icon, label, value, muted = false }) => {
                 gap-4
             "
         >
-            <div
-                className="
-                    flex
-                    h-9
-                    w-9
-                    shrink-0
-                    items-center
-                    justify-center
-
-                    border
-                    border-[#29323E]
-
-                    bg-[#151B24]
-
-                    text-[#697586]
-
-                    transition-[background-color,border-color,color]
-                    duration-150
-
-                    group-hover:border-[#394555]
-                    group-hover:bg-[#1A222D]
-                    group-hover:text-[#AEB7C3]
-                "
-            >
-                <Icon size={14} strokeWidth={1.65} />
-            </div>
-
             <div className="min-w-0 pt-0.5">
                 <p
                     className="
@@ -125,7 +95,7 @@ const AddUser = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [fieldErrors, setFieldErrors] = useState({});
-    const [successMessage, setSuccessMessage] = useState('');
+    const [success, setSuccess] = useState({ open: false, name: '' });
     const [formResetKey, setFormResetKey] = useState(0);
 
     const [formPreview, setFormPreview] = useState({
@@ -137,22 +107,6 @@ const AddUser = () => {
         verification_method: 'demo',
         status: 'inactive',
     });
-
-    /* ========================================================
-       SUCCESS MESSAGE
-    ======================================================== */
-
-    useEffect(() => {
-        if (!successMessage) {
-            return undefined;
-        }
-
-        const timer = window.setTimeout(() => {
-            setSuccessMessage('');
-        }, 4000);
-
-        return () => window.clearTimeout(timer);
-    }, [successMessage]);
 
     /* ========================================================
        BACK
@@ -181,15 +135,13 @@ const AddUser = () => {
     const handleAddUser = async (formData) => {
         setLoading(true);
         setError('');
-        setSuccessMessage('');
+        setSuccess({ open: false, name: '' });
         setFieldErrors({});
 
         try {
             await createUser(formData);
 
-            setSuccessMessage(
-                `${formData.name || 'User'} was created successfully. Their email is currently unverified.`,
-            );
+            setSuccess({ open: true, name: formData.name?.trim() || 'User' });
 
             setFormPreview({
                 name: '',
@@ -228,8 +180,9 @@ const AddUser = () => {
         formPreview.name,
         formPreview.email,
         formPreview.phone,
+        formPreview.password,
         formPreview.role,
-    ].filter(Boolean).length;
+    ].filter((value) => String(value ?? '').trim().length > 0).length;
 
     const completionPercentage = (completedFields / 5) * 100;
 
@@ -259,56 +212,40 @@ const AddUser = () => {
                         onClick={handleBack}
                         disabled={loading}
                         className="
-                            group
+            group
+            inline-flex h-10
+            items-center justify-center gap-2
+            border border-[#343e4b]
+            bg-transparent
+            px-3.5
 
-                            inline-flex
-                            h-10
-                            items-center
-                            justify-center
-                            gap-2.5
+            font-sans text-[12px] font-medium
+            whitespace-nowrap text-[#b8c2cf]
 
-                            border
-                            border-[#29323E]
+            transition-colors duration-150
 
-                            bg-[#0E1219]
+            hover:border-[#4b596a]
+            hover:bg-[#1c232d]
+            hover:text-[#f1f5f9]
 
-                            px-3.5
+            focus-visible:outline-none
+            focus-visible:ring-2
+            focus-visible:ring-[#0f766e]
+            focus-visible:ring-offset-2
+            focus-visible:ring-offset-[#171c24]
 
-                            font-sans!
-                            text-[12px]
-                            font-medium!
-                            whitespace-nowrap
-
-                            text-[#AEB7C3]!
-
-                            transition-[background-color,border-color,color]
-                            duration-150
-                            ease-out
-
-                            hover:border-[#394555]
-                            hover:bg-[#1A222D]
-                            hover:text-[#EEF1F5]!
-
-                            disabled:cursor-not-allowed
-                            disabled:opacity-40
-
-                            focus:outline-none
-                            focus:ring-0
-                        "
+            disabled:cursor-not-allowed
+            disabled:opacity-40
+        "
                     >
                         <ArrowLeft
-                            size={14}
+                            size={15}
                             strokeWidth={1.8}
                             className="
-                                shrink-0
-                                text-[#697586]
-
-                                transition-[transform,color]
-                                duration-150
-
-                                group-hover:-translate-x-0.5
-                                group-hover:text-[#AEB7C3]
-                            "
+                shrink-0 text-[#8492a3]
+                transition-colors duration-150
+                group-hover:text-[#e2e8f0]
+            "
                         />
 
                         <span>Back to users</span>
@@ -320,9 +257,12 @@ const AddUser = () => {
                 SUCCESS
             ================================================== */}
 
-            <SuccessToast
-                show={Boolean(successMessage)}
-                message={successMessage}
+            <SuccessDialog
+                open={success.open}
+                action="created"
+                entity="user"
+                name={success.name}
+                onClose={() => setSuccess({ open: false, name: '' })}
             />
 
             {/* =================================================
@@ -331,6 +271,7 @@ const AddUser = () => {
 
             <section
                 className="
+                    @container
                     overflow-hidden
 
                     border
@@ -352,247 +293,25 @@ const AddUser = () => {
 
                         bg-[#1A222D]
 
-                        px-6
-                        py-7
-
-                        sm:px-7
-                        sm:py-8
-
-                        lg:px-8
-                        lg:py-8
-
-                        xl:px-10
-                        xl:py-9
+                        p-6
                     "
                 >
-                    <span
-                        aria-hidden="true"
+                    <h2
                         className="
-                            absolute
-                            bottom-0
-                            left-0
-                            top-0
-
-                            w-[2px]
-
-                            bg-[#697586]
-                        "
-                    />
-
-                    <div
-                        className="
-                            flex
-                            flex-col
-                            gap-7
-
-                            sm:flex-row
-                            sm:items-center
-                            sm:justify-between
-                            sm:gap-10
-
-                            lg:gap-12
-                        "
-                    >
-                        {/* LEFT */}
-
-                        <div className="min-w-0 flex-1">
-                            <div
-                                className="
-                                    flex
-                                    items-center
-                                    gap-3.5
-                                "
-                            >
-                                <div
-                                    className="
-                                        flex
-                                        h-9
-                                        w-9
-                                        shrink-0
-                                        items-center
-                                        justify-center
-
-                                        border
-                                        border-[#303A47]
-
-                                        bg-[#151B24]
-
-                                        text-[#8792A1]
-                                    "
-                                >
-                                    <UserRound size={15} strokeWidth={1.8} />
-                                </div>
-
-                                <div
-                                    className="
-                                        flex
-                                        min-w-0
-                                        flex-wrap
-                                        items-center
-                                        gap-x-2.5
-                                        gap-y-1
-                                    "
-                                >
-                                    <span
-                                        className="
-                                            font-sans!
-
-                                            text-[10px]
-                                            font-semibold!
-                                            uppercase
-                                            tracking-[0.16em]
-
-                                            text-[#8792A1]
-                                        "
-                                    >
-                                        User directory
-                                    </span>
-
-                                    <span
-                                        aria-hidden="true"
-                                        className="
-                                            h-1
-                                            w-1
-                                            shrink-0
-                                            rounded-full
-
-                                            bg-[#4B5869]
-                                        "
-                                    />
-
-                                    <span
-                                        className="
-                                            font-sans!
-
-                                            text-[10px]
-                                            font-medium!
-                                            uppercase
-                                            tracking-[0.12em]
-
-                                            text-[#697586]
-                                        "
-                                    >
-                                        New account
-                                    </span>
-                                </div>
-                            </div>
-
-                            <h2
-                                className="
-                                    mt-5
 
                                     font-sans!
 
-                                    text-[18px]
-                                    font-semibold!
+                                    text-[24px]
+                                    font-medium!
+                                    capitalize
                                     leading-[1.3]
                                     tracking-[-0.02em]
 
                                     text-[#EEF1F5]!
-
-                                    sm:text-[19px]
                                 "
-                            >
-                                Create a new user
-                            </h2>
-
-                            <p
-                                className="
-                                    mt-2.5
-                                    max-w-[650px]
-
-                                    font-sans!
-
-                                    text-[12px]
-                                    font-normal!
-                                    leading-[1.75]
-
-                                    text-[#8792A1]!
-
-                                    sm:text-[13px]
-                                "
-                            >
-                                Enter the user's basic information, assign their
-                                account type, and review the initial access
-                                settings before creating the account.
-                            </p>
-                        </div>
-
-                        {/* RIGHT */}
-
-                        <div
-                            className="
-                             hidden lg:flex
-                                shrink-0
-                                items-center
-                                gap-3.5
-
-                                border-t
-                                border-[#303A47]
-
-                                pt-5
-
-                                sm:border-l
-                                sm:border-t-0
-                                sm:pl-7
-                                sm:pt-0
-
-                                lg:pl-8
-                            "
-                        >
-                            <div
-                                className="
-                                    flex
-                                    h-9
-                                    w-9
-                                    shrink-0
-                                    items-center
-                                    justify-center
-
-                                    border
-                                    border-[#303A47]
-
-                                    bg-[#151B24]
-
-                                    text-[#8792A1]
-                                "
-                            >
-                                <Check size={14} strokeWidth={2} />
-                            </div>
-
-                            <div className="min-w-0">
-                                <p
-                                    className="
-                                        font-sans!
-
-                                        text-[10px]
-                                        font-semibold!
-                                        uppercase
-                                        tracking-[0.13em]
-
-                                        text-[#697586]
-                                    "
-                                >
-                                    Form guide
-                                </p>
-
-                                <p
-                                    className="
-                                        mt-1.5
-
-                                        font-sans!
-
-                                        text-[11px]
-                                        font-normal!
-
-                                        text-[#8792A1]
-                                    "
-                                >
-                                    Required fields are marked *
-                                </p>
-                            </div>
-                        </div>
-                    </div>
+                    >
+                        Create new user
+                    </h2>
                 </header>
 
                 {/* =================================================
@@ -604,8 +323,9 @@ const AddUser = () => {
                         grid
                         min-w-0
 
-                        lg:grid-cols-[310px_minmax(0,1fr)]
-                        xl:grid-cols-[330px_minmax(0,1fr)]
+                        @container
+                        @[1100px]:grid-cols-[310px_minmax(0,1fr)]
+                        @[1350px]:grid-cols-[330px_minmax(0,1fr)]
                     "
                 >
                     {/* =================================================
@@ -620,8 +340,8 @@ const AddUser = () => {
 
                             bg-[#0E1219]
 
-                            lg:block
-                            lg:border-r
+                            @[1100px]:block
+                            @[1100px]:border-r
                         "
                     >
                         <div
@@ -686,22 +406,6 @@ const AddUser = () => {
                                         User preview
                                     </p>
                                 </div>
-
-                                <span
-                                    className="
-                                        shrink-0
-
-                                        font-sans!
-
-                                        text-[10px]
-                                        font-medium!
-                                        tabular-nums
-
-                                        text-[#697586]
-                                    "
-                                >
-                                    {completedFields}/5
-                                </span>
                             </div>
 
                             {/* =========================================
@@ -868,12 +572,10 @@ const AddUser = () => {
 
                             <div
                                 className="
-                                    mt-10
+                                    mt-6
 
                                     space-y-6
 
-                                    border-y
-                                    border-[#252D38]
 
                                     py-8
                                 "
@@ -895,16 +597,6 @@ const AddUser = () => {
                                     }
                                     muted={!formPreview.phone}
                                 />
-
-                                <DetailRow
-                                    icon={RoleIcon}
-                                    label="Account type"
-                                    value={
-                                        selectedRole?.label ||
-                                        'Not selected yet'
-                                    }
-                                    muted={!selectedRole}
-                                />
                             </div>
 
                             {/* =========================================
@@ -914,7 +606,8 @@ const AddUser = () => {
                             <div
                                 className="
                                     mt-auto
-                                    pt-12
+                                    border-t
+                                    border-[#252D38]
                                 "
                             >
                                 <div
@@ -947,14 +640,14 @@ const AddUser = () => {
                                                 font-sans!
 
                                                 text-[11px]
-                                                font-normal!
                                                 leading-[1.75]
+                                                font-medium!
 
                                                 text-[#697586]
                                             "
                                         >
-                                            Review identity and access details
-                                            before creating this account.
+                                            Review the details above before
+                                            creating the account.
                                         </p>
                                     </div>
                                 </div>

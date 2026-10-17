@@ -130,22 +130,6 @@ const StatItem = ({
                         >
                             {value}
                         </span>
-
-                        <span
-                            className="
-                                pb-0.5
-
-                                font-sans!
-                                text-[10px]
-                                font-medium!
-
-                                text-[#697586]
-
-                                sm:text-[11px]
-                            "
-                        >
-                            {value === 1 ? 'account' : 'accounts'}
-                        </span>
                     </div>
 
                     {/* =================================================
@@ -169,25 +153,6 @@ const StatItem = ({
                         {description}
                     </p>
                 </div>
-
-                {/* =====================================================
-                    INDEX
-                ===================================================== */}
-
-                <span
-                    className="
-                        shrink-0
-
-                        font-sans!
-                        text-[9px]
-                        font-semibold!
-                        tracking-[0.12em]
-
-                        text-[#5F6B7A]
-                    "
-                >
-                    {featured ? '01' : null}
-                </span>
             </div>
         </div>
     );
@@ -208,7 +173,6 @@ const Stats = ({
             key: 'total',
             label: 'Total Users',
             value: total,
-            description: 'All registered platform accounts.',
             icon: Users,
             featured: true,
         },
@@ -216,27 +180,24 @@ const Stats = ({
             key: 'individuals',
             label: 'Individuals',
             value: individuals,
-            description: 'Personal member accounts.',
             icon: UserRound,
         },
         {
             key: 'organizations',
             label: 'Organizations',
             value: organizations,
-            description: 'Registered organization accounts.',
             icon: Building2,
         },
         {
             key: 'administrators',
             label: 'Administrators',
             value: administrators,
-            description: 'Accounts with administrative access.',
             icon: ShieldCheck,
         },
     ];
 
     return (
-        <section aria-labelledby="user-overview-heading" className="pt-1">
+        <section aria-labelledby="user-overview-heading" className="pt-6">
             {/* =========================================================
                 SECTION HEADER
             ========================================================= */}
@@ -253,74 +214,20 @@ const Stats = ({
                     sm:mb-6
                 "
             >
-                <div className="min-w-0">
-                    <p
-                        className="
-                            font-sans!
-
-                            text-[10px]
-                            font-semibold!
-                            uppercase
-                            tracking-[0.16em]
-
-                            text-[#697586]
-                        "
-                    >
-                        Account overview
-                    </p>
-
-                    <h2
-                        id="user-overview-heading"
-                        className="
-                            mt-1.5
-
-                            font-sans!
-
-                            text-[16px]
-                            font-semibold!
-                            leading-[1.35]
-                            tracking-[-0.015em]
-
-                            text-[#EEF1F5]!
-
-                            sm:text-[17px]
-                        "
-                    >
-                        Platform users
-                    </h2>
-                </div>
-
-                <div
+                <h2
+                    id="user-overview-heading"
                     className="
-                        hidden
-                        items-center
-                        gap-2.5
+                                    font-sans!
 
-                        sm:flex
-                    "
+                                    text-[18px]
+                                    font-semibold!
+                                    leading-tight
+                                    tracking-[-0.02em]
+                                    text-[#EEF1F5]!
+                                "
                 >
-                    <span
-                        className="
-                            h-1.5
-                            w-1.5
-                            rounded-full
-                            bg-[#7C8795]
-                        "
-                    />
-
-                    <span
-                        className="
-                            font-sans!
-
-                            text-[10px]
-                            font-medium!
-
-                            text-[#8792A1]
-                        "
-                    >
-                        {total} registered
-                    </span>
-                </div>
+                    Account overview
+                </h2>
             </div>
 
             {/* =========================================================

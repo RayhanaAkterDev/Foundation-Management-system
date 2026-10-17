@@ -882,4 +882,119 @@ class OrganizationController extends Controller
             ],
         ]);
     }
+
+    /**
+     * Get the authenticated organization's profile.
+     */
+    public function profile(Request $request)
+    {
+        $user = $request->user();
+
+        if (!$user || $user->role !== 'organization') {
+            return response()->json([
+                'message' => 'Unauthorized.',
+            ], 403);
+        }
+
+        $organization = Organization::where('user_id', $user->id)
+            ->first();
+
+        if (!$organization) {
+            return response()->json([
+                'message' => 'Organization profile not found.',
+            ], 404);
+        }
+
+        return response()->json([
+            'organization' => [
+                'id' => $organization->id,
+                'name' => $organization->name,
+                'email' => $user->email,
+                'phone' => $organization->phone,
+                'website' => $organization->website,
+                'address' => $organization->address,
+                'mission' => $organization->mission,
+                'organization_type' => $organization->organization_type,
+                'registration_number' => $organization->registration_number,
+                'focus_areas' => $organization->focus_areas,
+                'communities_served' => $organization->communities_served,
+                'team_size' => $organization->team_size,
+                'primary_activities' => $organization->primary_activities,
+                'banner' => $organization->banner,
+                'photo' => $user->photo,
+                'verification_status' => $organization->verification_status,
+            ],
+        ]);
+    }
+
+    /**
+     * Update editable fields of the authenticated organization's profile.
+     */
+    public function updateProfile(Request $request)
+    {
+        $user = $request->user();
+
+        if (!$user || $user->role !== 'organization') {
+            return response()->json([
+                'message' => 'Unauthorized.',
+            ], 403);
+        }
+
+        $organization = Organization::where('user_id', $user->id)
+            ->first();
+
+        if (!$organization) {
+            return response()->json([
+                'message' => 'Organization profile not found.',
+            ], 404);
+        }
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => [
+                'required',
+                'email',
+                'max:255',
+                'unique:users,email,' . $user->id,
+            ],
+            'phone' => ['nullable', 'string', 'max:30'],
+            'website' => ['nullable', 'url', 'max:255'],
+            'address' => ['nullable', 'string', 'max:1000'],
+            'mission' => ['nullable', 'string', 'max:5000'],
+        ]);
+
+        $organization->update([
+            'name' => $validated['name'],
+            'phone' => $validated['phone'] ?? null,
+            'website' => $validated['website'] ?? null,
+            'address' => $validated['address'] ?? null,
+            'mission' => $validated['mission'] ?? null,
+        ]);
+
+        // Email is stored on the linked user account.
+        $user->email = $validated['email'];
+        $user->save();
+
+        return response()->json([
+            'message' => 'Organization profile updated successfully.',
+            'organization' => [
+                'id' => $organization->id,
+                'name' => $organization->name,
+                'email' => $user->email,
+                'phone' => $organization->phone,
+                'website' => $organization->website,
+                'address' => $organization->address,
+                'mission' => $organization->mission,
+                'organization_type' => $organization->organization_type,
+                'registration_number' => $organization->registration_number,
+                'focus_areas' => $organization->focus_areas,
+                'communities_served' => $organization->communities_served,
+                'team_size' => $organization->team_size,
+                'primary_activities' => $organization->primary_activities,
+                'banner' => $organization->banner,
+                'photo' => $user->photo,
+                'verification_status' => $organization->verification_status,
+            ],
+        ]);
+    }
 }

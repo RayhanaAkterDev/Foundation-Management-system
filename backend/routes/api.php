@@ -430,6 +430,16 @@ Route::middleware('auth:sanctum')->group(function () {
     // =========================================================
 
     Route::get(
+        '/organization/profile',
+        [OrganizationController::class, 'profile']
+    );
+
+    Route::put(
+        '/organization/profile',
+        [OrganizationController::class, 'updateProfile']
+    );
+
+    Route::get(
         '/organization/dashboard',
         [OrganizationController::class, 'dashboard']
     );

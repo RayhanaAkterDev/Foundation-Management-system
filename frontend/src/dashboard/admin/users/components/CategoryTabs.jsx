@@ -1,180 +1,138 @@
 import React from 'react';
 
-const CategoryTabs = ({ tabs, activeCategory, onChange }) => {
+import { Users, UserRound, Building2, ShieldCheck } from 'lucide-react';
+
+/* ==========================================================================
+   CATEGORY TABS
+============================================================================ */
+
+const CATEGORY_ICONS = {
+    all: Users,
+    individual: UserRound,
+    individuals: UserRound,
+    organization: Building2,
+    organizations: Building2,
+    admin: ShieldCheck,
+    administrator: ShieldCheck,
+    administrators: ShieldCheck,
+};
+
+const getCategoryIcon = (value) => {
+    const normalized = String(value || '').toLowerCase();
+
+    return CATEGORY_ICONS[normalized] || Users;
+};
+
+const UserCategoryTabs = ({ tabs = [], activeCategory, onChange }) => {
     return (
-        <nav className="space-y-1">
-            {tabs.map((tab, index) => {
-                const active = activeCategory === tab.key;
+        <div className="w-full space-y-1">
+            {tabs.map((tab) => {
+                const value = tab.value ?? tab.key ?? tab.id;
+
+                const label = tab.label ?? tab.name ?? value;
+
+                const count = tab.count;
+
+                const active = activeCategory === value;
+
+                const Icon = getCategoryIcon(value);
 
                 return (
                     <button
-                        key={tab.key}
+                        key={value}
                         type="button"
-                        onClick={() => onChange(tab.key)}
+                        onClick={() => onChange(value)}
+                        aria-pressed={active}
                         className={`
-                            group
-                            relative
-
-                            flex
-                            w-full
-                            items-center
-                            gap-3
-
-                            px-3.5
-                            py-3
-
+                            group relative flex min-h-11 w-full
+                            items-center gap-3
+                            px-3 py-2.5
                             text-left
-
                             transition-[background-color,color]
-                            duration-200
-                            ease-out
-
-                            ${
-                                active
-                                    ? `
-                                        bg-[#171E28]
-                                        text-[#EEF1F5]!
-                                    `
-                                    : `
-                                        bg-transparent
-                                        text-[#AEB7C3]!
-
-                                        hover:bg-[#151B24]
-                                        hover:text-[#EEF1F5]!
-                                    `
-                            }
-
+                            duration-150 ease-out
                             focus:outline-none
                             focus:ring-0
+                            ${
+                                active
+                                    ? 'bg-[#171E28]'
+                                    : 'bg-transparent hover:bg-[#151B24]'
+                            }
                         `}
                     >
-                        {/* =================================================
-                            NUMBER
-                        ================================================= */}
-
-                        <span
-                            className={`
-                                flex
-                                h-7
-                                w-7
-                                shrink-0
-                                items-center
-                                justify-center
-
-                                border
-
-                                text-[9px]
-                                font-semibold!
-                                tracking-[0.06em]
-
-                                transition-[background-color,border-color,color]
-                                duration-200
-
-                                ${
-                                    active
-                                        ? `
-                                            border-[#394555]
-                                            bg-[#1D2632]
-                                            text-[#D5DAE0]!
-                                        `
-                                        : `
-                                            border-[#252D38]
-                                            bg-[#121821]
-                                            text-[#657181]!
-
-                                            group-hover:border-[#303A47]
-                                            group-hover:bg-[#121821]
-                                            group-hover:text-[#AEB7C3]!
-                                        `
-                                }
-                            `}
-                        >
-                            {String(index + 1).padStart(2, '0')}
-                        </span>
-
-                        {/* =================================================
-                            LABEL
-                        ================================================= */}
-
-                        <span className="min-w-0 flex-1">
-                            <span
-                                className={`
-                                    block
-                                    truncate
-
-                                    text-[13px]
-                                    leading-5
-
-                                    transition-colors
-                                    duration-200
-
-                                    ${
-                                        active
-                                            ? 'font-semibold! text-[#EEF1F5]!'
-                                            : 'font-medium! text-[#AEB7C3]! group-hover:text-[#EEF1F5]!'
-                                    }
-                                `}
-                            >
-                                {tab.label}
-                            </span>
-                        </span>
-
-                        {/* =================================================
-                            COUNT
-                        ================================================= */}
-
-                        <span
-                            className={`
-                                shrink-0
-
-                                text-[11px]
-                                tabular-nums
-
-                                transition-colors
-                                duration-200
-
-                                ${
-                                    active
-                                        ? `
-                                            font-semibold!
-                                            text-[#B8C0CA]!
-                                        `
-                                        : `
-                                            font-medium!
-                                            text-[#5E6978]!
-
-                                            group-hover:text-[#8792A1]!
-                                        `
-                                }
-                            `}
-                        >
-                            {tab.count}
-                        </span>
-
-                        {/* =================================================
-                            ACTIVE MARKER
-                        ================================================= */}
+                        {/* ACTIVE INDICATOR */}
 
                         {active && (
                             <span
                                 aria-hidden="true"
                                 className="
-                                    absolute
-                                    bottom-0
-                                    left-0
-                                    top-0
-
-                                    w-0.5
-
-                                    bg-[#697586]
+                                    absolute inset-y-0 left-0
+                                    w-0.5 bg-[#718096]
                                 "
                             />
+                        )}
+
+                        {/* CATEGORY ICON */}
+
+                        <Icon
+                            size={15}
+                            strokeWidth={1.8}
+                            className={`
+                                shrink-0
+                                transition-colors duration-150
+                                ${
+                                    active
+                                        ? 'text-[#C2CBD6]'
+                                        : `
+                                            text-[#657181]
+                                            group-hover:text-[#AEB7C3]
+                                        `
+                                }
+                            `}
+                        />
+
+                        {/* CATEGORY NAME */}
+
+                        <span
+                            className={`
+                                min-w-0 flex-1
+                                truncate text-[11px]
+                                transition-colors duration-150
+                                ${
+                                    active
+                                        ? 'font-semibold! text-[#EEF1F5]'
+                                        : `
+                                            font-medium! text-[#8792A1]
+                                            group-hover:text-[#B8C0CA]
+                                        `
+                                }
+                            `}
+                        >
+                            {label}
+                        </span>
+
+                        {/* CATEGORY COUNT */}
+
+                        {count !== undefined && count !== null && (
+                            <span
+                                className={`
+                                    shrink-0
+                                    text-[10px]
+                                    tabular-nums
+                                    ${
+                                        active
+                                            ? 'font-semibold! text-[#B8C0CA]'
+                                            : 'font-medium! text-[#697586]'
+                                    }
+                                `}
+                            >
+                                {count}
+                            </span>
                         )}
                     </button>
                 );
             })}
-        </nav>
+        </div>
     );
 };
 
-export default CategoryTabs;
+export default UserCategoryTabs;

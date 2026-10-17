@@ -9,7 +9,7 @@ import PageHeader from '@/components/dashboard/PageHeader';
 
 import EditOrganizationView from './components/EditOrganizationView';
 import OrganizationDetailsView from './components/OrganizationDetailsView';
-import SuccessToast from './components/SuccessToast';
+import SuccessDialog from '@/components/dashboard/SuccessDialog';
 
 import { fetchOrganization, updateOrganization } from './api/organizationApi';
 
@@ -84,24 +84,6 @@ const OrganizationDetails = () => {
             cancelled = true;
         };
     }, [organizationId]);
-
-    /* ======================================================================
-       SUCCESS TOAST TIMER
-    ====================================================================== */
-
-    useEffect(() => {
-        if (!successMessage) {
-            return undefined;
-        }
-
-        const timer = window.setTimeout(() => {
-            setSuccessMessage('');
-        }, 4000);
-
-        return () => {
-            window.clearTimeout(timer);
-        };
-    }, [successMessage]);
 
     /* ======================================================================
        BACK
@@ -771,9 +753,12 @@ const OrganizationDetails = () => {
                 SUCCESS TOAST
             ============================================================== */}
 
-            <SuccessToast
-                show={Boolean(successMessage)}
-                message={successMessage}
+            <SuccessDialog
+                open={Boolean(successMessage)}
+                entity="organization"
+                action="updated"
+                name={organization?.name}
+                onClose={() => setSuccessMessage('')}
             />
 
             {/* =============================================================

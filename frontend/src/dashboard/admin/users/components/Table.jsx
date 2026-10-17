@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import DataTable from '@/components/dashboard/DataTable';
 
@@ -7,6 +8,7 @@ import StatusBadge from '@/components/dashboard/StatusBadge';
 import {
     Users,
     Eye,
+    Pencil,
     Trash2,
     CheckCircle2,
     CircleAlert,
@@ -186,7 +188,7 @@ const UserAvatar = ({ row, size = 'default' }) => {
 ============================================================================ */
 
 const VerificationState = ({ row, compact = false }) => {
-    const { isVerified, methodLabel } = getVerificationState(row);
+    const { isVerified } = getVerificationState(row);
 
     return (
         <div
@@ -239,7 +241,7 @@ const VerificationState = ({ row, compact = false }) => {
                     {isVerified ? 'Verified' : 'Unverified'}
                 </p>
 
-                {!compact && (
+                {/* {!compact && (
                     <p
                         className="
                             mt-0.5
@@ -254,7 +256,7 @@ const VerificationState = ({ row, compact = false }) => {
                             ? methodLabel || 'Email'
                             : methodLabel || 'Verification pending'}
                     </p>
-                )}
+                )} */}
             </div>
         </div>
     );
@@ -264,141 +266,47 @@ const VerificationState = ({ row, compact = false }) => {
    ROW ACTIONS
 ============================================================================ */
 
-const RowActions = ({ row, onView, onDelete, mobile = false }) => {
-    if (mobile) {
-        return (
-            <div className="flex shrink-0 items-center gap-1">
-                <button
-                    type="button"
-                    onClick={() => onView(row.id)}
-                    aria-label={`View ${row.name || 'user'}`}
-                    title="View details"
-                    className="
-                        flex
-                        h-9
-                        w-9
-                        items-center
-                        justify-center
-                        border
-                        border-[#29323E]
-                        bg-[#151B24]
-                        text-[#AEB7C3]
-                        transition-[background-color,border-color,color]
-                        duration-150
-                        ease-out
-                        hover:border-[#394555]
-                        hover:bg-[#1A222D]
-                        hover:text-[#EEF1F5]
-                        focus:outline-none
-                        focus:ring-0
-                    "
-                >
-                    <ChevronRight size={16} strokeWidth={1.8} />
-                </button>
-
-                <button
-                    type="button"
-                    onClick={() => onDelete(row)}
-                    aria-label={`Delete ${row.name || 'user'}`}
-                    title="Delete user"
-                    className="
-                        flex
-                        h-9
-                        w-9
-                        items-center
-                        justify-center
-                        border
-                        border-transparent
-                        bg-transparent
-                        text-[#B4777E]
-                        transition-[background-color,border-color,color]
-                        duration-150
-                        hover:border-[#493038]
-                        hover:bg-[#281A1F]
-                        hover:text-[#E1A0A6]
-                        focus:outline-none
-                        focus:ring-0
-                    "
-                >
-                    <Trash2 size={15} strokeWidth={1.8} />
-                </button>
-            </div>
-        );
-    }
-
-    return (
-        <div
-            className="
-                flex
-                items-center
-                justify-end
-                gap-1
-            "
-        >
+const RowActions = ({ row, onView, onEdit, onDelete }) => (
+    <div className="flex items-center justify-end gap-0.5 whitespace-nowrap">
+        {[
+            {
+                label: 'View',
+                Icon: Eye,
+                action: () => onView(row.id),
+                danger: false,
+            },
+            {
+                label: 'Edit',
+                Icon: Pencil,
+                action: () => onEdit(row.id),
+                danger: false,
+            },
+            {
+                label: 'Delete',
+                Icon: Trash2,
+                action: () => onDelete(row),
+                danger: true,
+            },
+        ].map(({ label, Icon, action, danger }) => (
             <button
+                key={label}
                 type="button"
-                onClick={() => onView(row.id)}
-                title="View details"
-                aria-label="View details"
-                className="
-                    flex
-                    h-8
-                    w-8
-                    shrink-0
-                    items-center
-                    justify-center
-                    border
-                    border-transparent
-                    bg-transparent
-                    text-[#8792A1]
-                    transition-[background-color,border-color,color]
-                    duration-150
-                    hover:border-[#303A47]
-                    hover:bg-[#1A222D]
-                    hover:text-[#EEF1F5]
-                    focus:outline-none
-                    focus:ring-0
-                "
+                onClick={action}
+                title={`${label} user`}
+                aria-label={`${label} ${row.name || 'user'}`}
+                className={`inline-flex h-7 w-7 shrink-0 items-center justify-center border border-transparent bg-transparent transition-[background-color,border-color,color] duration-150 focus:outline-none focus:ring-0 ${
+                    danger
+                        ? 'text-[#B4777E] hover:border-[#493038] hover:bg-[#281A1F] hover:text-[#E1A0A6]'
+                        : 'text-[#8792A1] hover:border-[#303A47] hover:bg-[#1A222D] hover:text-[#EEF1F5]'
+                }`}
             >
-                <Eye size={15} strokeWidth={1.8} />
+                <Icon size={14} strokeWidth={1.8} />
             </button>
+        ))}
+    </div>
+);
 
-            <button
-                type="button"
-                onClick={() => onDelete(row)}
-                title="Delete"
-                aria-label="Delete"
-                className="
-                    flex
-                    h-8
-                    w-8
-                    shrink-0
-                    items-center
-                    justify-center
-                    border
-                    border-transparent
-                    bg-transparent
-                    text-[#B4777E]
-                    transition-[background-color,border-color,color]
-                    duration-150
-                    hover:border-[#493038]
-                    hover:bg-[#281A1F]
-                    hover:text-[#E1A0A6]
-                    focus:outline-none
-                    focus:ring-0
-                "
-            >
-                <Trash2 size={14} strokeWidth={1.8} />
-            </button>
-        </div>
-    );
-};
-
-/* ==========================================================================
-   MOBILE USER ROW
-============================================================================ */
-
-const MobileUserRow = ({ row, onView, onDelete }) => {
+const MobileUserRow = ({ row, onView, onEdit, onDelete }) => {
     const { isVerified, methodLabel } = getVerificationState(row);
 
     return (
@@ -436,10 +344,7 @@ const MobileUserRow = ({ row, onView, onDelete }) => {
                         focus:ring-0
                     "
                 >
-                    <UserAvatar
-                        row={row}
-                        size="mobile"
-                    />
+                    <UserAvatar row={row} size="mobile" />
 
                     <div className="min-w-0 flex-1">
                         <p
@@ -469,15 +374,6 @@ const MobileUserRow = ({ row, onView, onDelete }) => {
                         </p>
                     </div>
                 </button>
-
-                <div className="-mr-1 shrink-0">
-                    <RowActions
-                        row={row}
-                        onView={onView}
-                        onDelete={onDelete}
-                        mobile
-                    />
-                </div>
             </div>
 
             {/* =============================================================
@@ -581,15 +477,9 @@ const MobileUserRow = ({ row, onView, onDelete }) => {
                     `}
                 >
                     {isVerified ? (
-                        <CheckCircle2
-                            size={11}
-                            strokeWidth={2.1}
-                        />
+                        <CheckCircle2 size={11} strokeWidth={2.1} />
                     ) : (
-                        <CircleAlert
-                            size={11}
-                            strokeWidth={2.1}
-                        />
+                        <CircleAlert size={11} strokeWidth={2.1} />
                     )}
                 </span>
 
@@ -600,11 +490,7 @@ const MobileUserRow = ({ row, onView, onDelete }) => {
                             text-[11px]
                             font-medium!
                             leading-4
-                            ${
-                                isVerified
-                                    ? 'text-[#8EC5A3]'
-                                    : 'text-[#D0AA70]'
-                            }
+                            ${isVerified ? 'text-[#8EC5A3]' : 'text-[#D0AA70]'}
                         `}
                     >
                         {isVerified ? 'Verified' : 'Not verified'}
@@ -637,6 +523,52 @@ const MobileUserRow = ({ row, onView, onDelete }) => {
                     </span>
                 </div>
             </div>
+            {/* ACTIONS — aligned with the Organizations mobile table */}
+            <div
+                className="mt-3 ml-[52px] flex min-w-0 items-center gap-2
+                    border-t
+                    border-[#1B232D] pt-4"
+            >
+                {[
+                    { label: 'View', Icon: Eye, action: () => onView(row.id) },
+                    {
+                        label: 'Edit',
+                        Icon: Pencil,
+                        action: () => onEdit(row.id),
+                    },
+                ].map(({ label, Icon, action }) => (
+                    <button
+                        key={label}
+                        type="button"
+                        onClick={action}
+                        aria-label={`${label} ${row.name || 'user'}`}
+                        className="inline-flex h-8 items-center justify-center gap-1.5 border border-[#29323E] bg-[#151B24] px-2.5 text-[11px] font-medium! text-[#AEB7C3] transition-colors duration-150 hover:border-[#394555] hover:bg-[#1A222D] hover:text-[#EEF1F5] focus:outline-none focus:ring-0"
+                    >
+                        <Icon size={13} strokeWidth={1.8} />
+                        {label}
+                    </button>
+                ))}
+                <button
+                    type="button"
+                    onClick={() => onDelete(row)}
+                    title="Delete user"
+                    aria-label={`Delete ${row.name || 'user'}`}
+                    className="
+        inline-flex ml-auto h-8 items-center justify-center
+        gap-1.5 border border-[#493038]
+        bg-[#241A1E] px-2.5
+        text-[11px] font-medium! text-[#D1959B]
+        transition-colors duration-150
+        hover:border-[#69404A]
+        hover:bg-[#302025]
+        hover:text-[#F0B0B6]
+        focus:outline-none focus:ring-0
+    "
+                >
+                    <Trash2 size={13} strokeWidth={1.8} />
+                    Delete
+                </button>
+            </div>
         </article>
     );
 };
@@ -652,8 +584,13 @@ const Table = ({
     getSortIcon,
     resultCount,
     onView,
+    onEdit,
     onDelete,
 }) => {
+    const navigate = useNavigate();
+    const handleEdit = (id) =>
+        onEdit ? onEdit(id) : navigate(`/admin/dashboard/users/${id}/edit`);
+
     const enhancedColumns = columns
         .filter((column) => column.key !== 'email')
         .map((column) => {
@@ -824,6 +761,7 @@ const Table = ({
                         <RowActions
                             row={row}
                             onView={onView}
+                            onEdit={handleEdit}
                             onDelete={onDelete}
                         />
                     ),
@@ -916,6 +854,7 @@ const Table = ({
                               key={row.id}
                               row={row}
                               onView={onView}
+                              onEdit={handleEdit}
                               onDelete={onDelete}
                           />
                       ))}
@@ -939,6 +878,7 @@ const Table = ({
                     onSort={onSort}
                     getSortIcon={getSortIcon}
                     resultCount={resultCount}
+                    resizableColumns
                     empty={{
                         icon: Users,
                         title: 'No users found',

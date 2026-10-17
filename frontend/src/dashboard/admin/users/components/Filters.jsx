@@ -5,13 +5,193 @@ import {
     CircleCheck,
     CircleMinus,
     ShieldAlert,
+    Mail,
     MailCheck,
     MailWarning,
-    Mail,
     RotateCcw,
 } from 'lucide-react';
 
 import UserCategoryTabs from './CategoryTabs';
+
+/* ==========================================================================
+   SECONDARY FILTER OPTION
+============================================================================ */
+
+const FilterOption = ({ label, icon: Icon, active, onClick }) => {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            aria-pressed={active}
+            className={`
+                group
+                flex
+                min-h-9.5
+                w-full
+                items-center
+                gap-2.5
+                px-3
+                py-2
+                text-left
+                transition-colors
+                duration-150
+                focus-visible:outline
+                focus-visible:outline-1
+                focus-visible:outline-[#697586]
+                ${active ? 'bg-[#1A222D]' : 'bg-transparent hover:bg-[#151B24]'}
+            `}
+        >
+            {/* OPTION ICON */}
+
+            <Icon
+                size={14}
+                strokeWidth={1.75}
+                className={`
+                    shrink-0
+                    transition-colors
+                    duration-150
+                    ${
+                        active
+                            ? 'text-[#C2CBD6]'
+                            : 'text-[#697586] group-hover:text-[#AEB7C3]'
+                    }
+                `}
+            />
+
+            {/* OPTION LABEL */}
+
+            <span
+                className={`
+                    min-w-0
+                    flex-1
+                    truncate
+                    text-[11px]
+                    leading-5
+                    ${
+                        active
+                            ? 'font-semibold! text-[#EEF1F5]'
+                            : 'font-medium! text-[#8792A1] group-hover:text-[#B8C0CA]'
+                    }
+                `}
+            >
+                {label}
+            </span>
+
+            {/* SELECTION INDICATOR */}
+
+            <span
+                aria-hidden="true"
+                className={`
+                    flex
+                    h-3.5
+                    w-3.5
+                    shrink-0
+                    items-center
+                    justify-center
+                    rounded-full
+                    border
+                    transition-colors
+                    duration-150
+                    ${
+                        active
+                            ? 'border-[#8493A6] bg-[#8493A6]'
+                            : 'border-[#455160] bg-transparent group-hover:border-[#697586]'
+                    }
+                `}
+            >
+                {active && (
+                    <Check
+                        size={9}
+                        strokeWidth={2.5}
+                        className="text-[#0E1219]"
+                    />
+                )}
+            </span>
+        </button>
+    );
+};
+
+/* ==========================================================================
+   FILTER SECTION
+============================================================================ */
+
+const FilterSection = ({ title, children, compact = false }) => {
+    return (
+        <section
+            className={`
+                border-t
+                border-[#252D38]
+                px-4
+                ${compact ? 'py-3.5' : 'py-4'}
+            `}
+        >
+            <h4
+                className={`
+                    px-1
+                    text-[10px]
+                    font-semibold!
+                    uppercase
+                    tracking-normal
+                    text-[#697586]!
+                    ${compact ? 'mb-2' : 'mb-3'}
+                `}
+            >
+                {title}
+            </h4>
+
+            <div className={compact ? 'space-y-0.5' : ''}>{children}</div>
+        </section>
+    );
+};
+
+/* ==========================================================================
+   FILTER OPTIONS
+============================================================================ */
+
+const STATUS_OPTIONS = [
+    {
+        value: 'all',
+        label: 'All accounts',
+        icon: CircleCheck,
+    },
+    {
+        value: 'active',
+        label: 'Active',
+        icon: CircleCheck,
+    },
+    {
+        value: 'inactive',
+        label: 'Inactive',
+        icon: CircleMinus,
+    },
+    {
+        value: 'suspended',
+        label: 'Suspended',
+        icon: ShieldAlert,
+    },
+];
+
+const VERIFICATION_OPTIONS = [
+    {
+        value: 'all',
+        label: 'All emails',
+        icon: Mail,
+    },
+    {
+        value: 'verified',
+        label: 'Verified',
+        icon: MailCheck,
+    },
+    {
+        value: 'unverified',
+        label: 'Unverified',
+        icon: MailWarning,
+    },
+];
+
+/* ==========================================================================
+   FILTERS
+============================================================================ */
 
 const Filters = ({
     categoryTabs = [],
@@ -27,105 +207,24 @@ const Filters = ({
     activeFilterCount = 0,
     onClearFilters,
 }) => {
-    const statuses = [
-        {
-            value: 'all',
-            label: 'All accounts',
-            icon: CircleCheck,
-        },
-        {
-            value: 'active',
-            label: 'Active',
-            icon: CircleCheck,
-        },
-        {
-            value: 'inactive',
-            label: 'Inactive',
-            icon: CircleMinus,
-        },
-        {
-            value: 'suspended',
-            label: 'Suspended',
-            icon: ShieldAlert,
-        },
-    ];
-
-    const verificationStatuses = [
-        {
-            value: 'all',
-            label: 'All emails',
-            icon: Mail,
-        },
-        {
-            value: 'verified',
-            label: 'Verified',
-            icon: MailCheck,
-        },
-        {
-            value: 'unverified',
-            label: 'Unverified',
-            icon: MailWarning,
-        },
-    ];
-
     return (
-        <div
-            className="
-                w-full
-                bg-[#0E1219]
-            "
-        >
+        <div className="w-full bg-[#0E1219]">
             {/* =========================================================
-                FILTER HEADER
+                HEADER
             ========================================================= */}
 
-            <div
-                className="
-                    px-4
-                    pb-4
-                    pt-4
-
-                    sm:px-5
-                    sm:pb-5
-                    sm:pt-5 bg-[#1A222D]
-                "
-            >
-                <div
-                    className="
-                        flex
-                        items-start
-                        justify-between
-                        gap-4
-                    "
-                >
-                    <div className="min-w-0">
-                        <p
-                            className="
-                                text-[9px]
-                                font-semibold!
-                                uppercase
-                                tracking-[0.15em]
-
-                                text-[#697586]
-                            "
-                        >
-                            Directory controls
-                        </p>
-
-                        <h3
-                            className="
-                                mt-1.5
-
-                                text-[15px]
-                                font-semibold!
-                                leading-5
-
-                                text-[#EEF1F5]!
-                            "
-                        >
-                            Filter users
-                        </h3>
-                    </div>
+            <div className="bg-[#1A222D] p-4 sm:p-5.5">
+                <div className="flex items-center justify-between gap-4">
+                    <h3
+                        className="
+                            text-[15px]
+                            font-semibold!
+                            leading-8
+                            text-[#EEF1F5]!
+                        "
+                    >
+                        Filter
+                    </h3>
 
                     {activeFilterCount > 0 && (
                         <button
@@ -133,24 +232,19 @@ const Filters = ({
                             onClick={onClearFilters}
                             className="
                                 group
-
                                 inline-flex
                                 shrink-0
                                 items-center
                                 gap-1.5
-
                                 text-[10px]
                                 font-medium!
-
                                 text-[#8792A1]
-
                                 transition-colors
                                 duration-150
-
                                 hover:text-[#EEF1F5]
-
-                                focus:outline-none
-                                focus:ring-0
+                                focus-visible:outline
+                                focus-visible:outline-1
+                                focus-visible:outline-[#697586]
                             "
                         >
                             <RotateCcw
@@ -159,7 +253,6 @@ const Filters = ({
                                 className="
                                     transition-transform
                                     duration-200
-
                                     group-hover:-rotate-45
                                 "
                             />
@@ -167,406 +260,63 @@ const Filters = ({
                         </button>
                     )}
                 </div>
-
-                <p
-                    className="
-                        mt-2
-                        max-w-[280px]
-
-                        text-[11px]
-                        leading-5
-
-                        text-[#7F8A99]
-                    "
-                >
-                    Refine the directory by role, account status and
-                    verification.
-                </p>
             </div>
 
             {/* =========================================================
-                USER ROLE
+                USER ROLE — UNCHANGED
             ========================================================= */}
 
-            <div
-                className="
-                    border-t
-                    border-[#252D38]
-
-                    px-4
-                    py-4
-                "
-            >
-                <div
-                    className="
-                        mb-2.5
-
-                        flex
-                        items-center
-                        justify-between
-
-                        px-1
-                    "
-                >
-                    <p
-                        className="
-                            text-[9px]
-                            font-semibold!
-                            uppercase
-                            tracking-[0.14em]
-
-                            text-[#697586]
-                        "
-                    >
-                        User role
-                    </p>
-
-                    <span
-                        className="
-                            text-[9px]
-                            font-medium!
-                            tabular-nums
-
-                            text-[#5E6978]
-                        "
-                    >
-                        {categoryTabs.length}
-                    </span>
-                </div>
-
+            <FilterSection title="User role">
                 <UserCategoryTabs
                     tabs={categoryTabs}
                     activeCategory={activeCategory}
                     onChange={onCategoryChange}
                 />
-            </div>
+            </FilterSection>
 
             {/* =========================================================
                 ACCOUNT STATUS
             ========================================================= */}
 
-            <div
-                className="
-                    border-t
-                    border-[#252D38]
-
-                    px-4
-                    py-4
-                "
-            >
-                <p
-                    className="
-                        mb-2.5
-                        px-1
-
-                        text-[9px]
-                        font-semibold!
-                        uppercase
-                        tracking-[0.14em]
-
-                        text-[#697586]
-                    "
-                >
-                    Account status
-                </p>
-
-                <div
-                    className="
-                        overflow-hidden
-
-                        border
-                        border-[#252D38]
-
-                        bg-[#0E1219]
-                    "
-                >
-                    {statuses.map((status) => {
-                        const active = statusFilter === status.value;
-                        const Icon = status.icon;
-
-                        return (
-                            <button
-                                key={status.value}
-                                type="button"
-                                onClick={() =>
-                                    onStatusChange({
-                                        target: {
-                                            value: status.value,
-                                        },
-                                    })
-                                }
-                                className={`
-                                    group
-
-                                    flex
-                                    min-h-10
-                                    w-full
-                                    items-center
-                                    gap-2.5
-
-                                    border-b
-                                    border-[#202832]
-
-                                    px-3
-                                    py-2.5
-
-                                    text-left
-
-                                    transition-[background-color,color]
-                                    duration-150
-                                    ease-out
-
-                                    last:border-b-0
-
-                                    ${
-                                        active
-                                            ? 'bg-[#171E28]'
-                                            : 'bg-[#0E1219] hover:bg-[#151B24]'
-                                    }
-
-                                    focus:outline-none
-                                    focus:ring-0
-                                `}
-                            >
-                                <Icon
-                                    size={14}
-                                    strokeWidth={1.8}
-                                    className={`
-                                        shrink-0
-
-                                        transition-colors
-                                        duration-150
-
-                                        ${
-                                            active
-                                                ? 'text-[#B8C0CA]'
-                                                : `
-                                                    text-[#657181]
-
-                                                    group-hover:text-[#AEB7C3]
-                                                `
-                                        }
-                                    `}
-                                />
-
-                                <span
-                                    className={`
-                                        min-w-0
-                                        flex-1
-
-                                        text-[11px]
-
-                                        transition-colors
-                                        duration-150
-
-                                        ${
-                                            active
-                                                ? `
-                                                    font-semibold!
-                                                    text-[#EEF1F5]
-                                                `
-                                                : `
-                                                    font-medium!
-                                                    text-[#8792A1]
-
-                                                    group-hover:text-[#B8C0CA]
-                                                `
-                                        }
-                                    `}
-                                >
-                                    {status.label}
-                                </span>
-
-                                {active && (
-                                    <span
-                                        className="
-                                            flex
-                                            h-5
-                                            w-5
-                                            shrink-0
-                                            items-center
-                                            justify-center
-
-                                            border
-                                            border-[#394555]
-
-                                            bg-[#1D2632]
-
-                                            text-[#B8C0CA]
-                                        "
-                                    >
-                                        <Check size={11} strokeWidth={2.2} />
-                                    </span>
-                                )}
-                            </button>
-                        );
-                    })}
-                </div>
-            </div>
+            <FilterSection title="Account status" compact>
+                {STATUS_OPTIONS.map((option) => (
+                    <FilterOption
+                        key={option.value}
+                        label={option.label}
+                        icon={option.icon}
+                        active={statusFilter === option.value}
+                        onClick={() =>
+                            onStatusChange({
+                                target: {
+                                    value: option.value,
+                                },
+                            })
+                        }
+                    />
+                ))}
+            </FilterSection>
 
             {/* =========================================================
                 EMAIL VERIFICATION
             ========================================================= */}
 
-            <div
-                className="
-                    border-t
-                    border-[#252D38]
-
-                    px-4
-                    py-4
-                "
-            >
-                <p
-                    className="
-                        mb-2.5
-                        px-1
-
-                        text-[9px]
-                        font-semibold!
-                        uppercase
-                        tracking-[0.14em]
-
-                        text-[#697586]
-                    "
-                >
-                    Email verification
-                </p>
-
-                <div
-                    className="
-                        overflow-hidden
-
-                        border
-                        border-[#252D38]
-
-                        bg-[#0E1219]
-                    "
-                >
-                    {verificationStatuses.map((status) => {
-                        const active = verificationFilter === status.value;
-
-                        const Icon = status.icon;
-
-                        return (
-                            <button
-                                key={status.value}
-                                type="button"
-                                onClick={() =>
-                                    onVerificationChange({
-                                        target: {
-                                            value: status.value,
-                                        },
-                                    })
-                                }
-                                className={`
-                                    group
-
-                                    flex
-                                    min-h-10
-                                    w-full
-                                    items-center
-                                    gap-2.5
-
-                                    border-b
-                                    border-[#202832]
-
-                                    px-3
-                                    py-2.5
-
-                                    text-left
-
-                                    transition-[background-color,color]
-                                    duration-150
-                                    ease-out
-
-                                    last:border-b-0
-
-                                    ${
-                                        active
-                                            ? 'bg-[#171E28]'
-                                            : 'bg-[#0E1219] hover:bg-[#151B24]'
-                                    }
-
-                                    focus:outline-none
-                                    focus:ring-0
-                                `}
-                            >
-                                <Icon
-                                    size={14}
-                                    strokeWidth={1.8}
-                                    className={`
-                                        shrink-0
-
-                                        transition-colors
-                                        duration-150
-
-                                        ${
-                                            active
-                                                ? 'text-[#B8C0CA]'
-                                                : `
-                                                    text-[#657181]
-
-                                                    group-hover:text-[#AEB7C3]
-                                                `
-                                        }
-                                    `}
-                                />
-
-                                <span
-                                    className={`
-                                        min-w-0
-                                        flex-1
-
-                                        text-[11px]
-
-                                        transition-colors
-                                        duration-150
-
-                                        ${
-                                            active
-                                                ? `
-                                                    font-semibold!
-                                                    text-[#EEF1F5]
-                                                `
-                                                : `
-                                                    font-medium!
-                                                    text-[#8792A1]
-
-                                                    group-hover:text-[#B8C0CA]
-                                                `
-                                        }
-                                    `}
-                                >
-                                    {status.label}
-                                </span>
-
-                                {active && (
-                                    <span
-                                        className="
-                                            flex
-                                            h-5
-                                            w-5
-                                            shrink-0
-                                            items-center
-                                            justify-center
-
-                                            border
-                                            border-[#394555]
-
-                                            bg-[#1D2632]
-
-                                            text-[#B8C0CA]
-                                        "
-                                    >
-                                        <Check size={11} strokeWidth={2.2} />
-                                    </span>
-                                )}
-                            </button>
-                        );
-                    })}
-                </div>
-            </div>
+            <FilterSection title="Email verification" compact>
+                {VERIFICATION_OPTIONS.map((option) => (
+                    <FilterOption
+                        key={option.value}
+                        label={option.label}
+                        icon={option.icon}
+                        active={verificationFilter === option.value}
+                        onClick={() =>
+                            onVerificationChange({
+                                target: {
+                                    value: option.value,
+                                },
+                            })
+                        }
+                    />
+                ))}
+            </FilterSection>
         </div>
     );
 };

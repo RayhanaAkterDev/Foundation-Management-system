@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-
+import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 
 import {
@@ -25,30 +24,32 @@ const EmailVerification = () => {
     const emailFromUrl = searchParams.get('email');
     const roleFromUrl = searchParams.get('role');
     const method = searchParams.get('method');
+
     const [email, setEmail] = useState(emailFromUrl || '');
     const [role, setRole] = useState(roleFromUrl || '');
     const [isResending, setIsResending] = useState(false);
     const [isVerifyingDemo, setIsVerifyingDemo] = useState(false);
     const [resendMessage, setResendMessage] = useState('');
     const [resendError, setResendError] = useState('');
+
     const isSuccess = status === 'success';
     const isAlreadyVerified = status === 'already-verified';
     const isExpired = status === 'expired';
     const isDemo = method === 'demo' || status === 'demo';
 
+    const isEmailVerificationRequired = status === 'email';
+
     /*
     |--------------------------------------------------------------------------
-    | Real email verification required
+    | Redirect after successful demo verification
     |--------------------------------------------------------------------------
-    |
-    | This status is used after the first login attempt of an
-    | unverified real-email account.
-    |
-    | It is NOT limited to email changes.
-    |
     */
 
-    const isEmailVerificationRequired = status === 'email';
+    useEffect(() => {
+        if (isSuccess && method === 'demo') {
+            window.location.replace('/login?role=individual');
+        }
+    }, [isSuccess, method]);
 
     /*
     |--------------------------------------------------------------------------
@@ -93,12 +94,10 @@ const EmailVerification = () => {
 
             const response = await fetch(API_URL, {
                 method: 'POST',
-
                 headers: {
                     'Content-Type': 'application/json',
                     Accept: 'application/json',
                 },
-
                 body: JSON.stringify({
                     email: email.trim(),
                     role,
@@ -130,9 +129,6 @@ const EmailVerification = () => {
     |--------------------------------------------------------------------------
     | Real email verification required
     |--------------------------------------------------------------------------
-    |
-    | Shown after first login when the account is still unverified.
-    |
     */
 
     if (isEmailVerificationRequired) {
@@ -166,7 +162,6 @@ const EmailVerification = () => {
                                 strokeWidth={1.8}
                                 className="shrink-0 text-slate-400"
                             />
-
                             <span className="break-all">{email}</span>
                         </div>
                     )}
@@ -203,7 +198,6 @@ const EmailVerification = () => {
                                 strokeWidth={1.8}
                                 className="mt-0.5 shrink-0"
                             />
-
                             <p>{resendError}</p>
                         </div>
                     )}
@@ -218,7 +212,6 @@ const EmailVerification = () => {
                                 strokeWidth={1.8}
                                 className="mt-0.5 shrink-0"
                             />
-
                             <p>{resendMessage}</p>
                         </div>
                     )}
@@ -281,15 +274,12 @@ const EmailVerification = () => {
                                     <option value="">
                                         Select account type
                                     </option>
-
                                     <option value="individual">
                                         Individual
                                     </option>
-
                                     <option value="organization">
                                         Organization
                                     </option>
-
                                     <option value="admin">Admin</option>
                                 </select>
 
@@ -372,7 +362,6 @@ const EmailVerification = () => {
                                 strokeWidth={1.8}
                                 className="shrink-0 text-slate-400"
                             />
-
                             <span className="break-all">{email}</span>
                         </div>
                     )}
@@ -387,7 +376,6 @@ const EmailVerification = () => {
                                 strokeWidth={1.8}
                                 className="mt-0.5 shrink-0"
                             />
-
                             <p>{resendError}</p>
                         </div>
                     )}
@@ -396,30 +384,7 @@ const EmailVerification = () => {
                         type="button"
                         onClick={handleDemoVerification}
                         disabled={isVerifyingDemo || !userId}
-                        className="
-                            mt-7
-                            inline-flex
-                            min-h-11
-                            items-center
-                            justify-center
-                            gap-2
-                            rounded-lg
-                            bg-primary
-                            px-5
-                            py-2.5
-                            text-sm
-                            font-medium!
-                            text-white!
-                            transition
-                            hover:bg-primary-hover
-                            focus:outline-none
-                            focus:ring-2
-                            focus:ring-primary/20
-                            focus:ring-offset-2
-                            disabled:cursor-not-allowed
-                            disabled:opacity-60
-                            sm:mt-8
-                        "
+                        className="mt-7 inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium! text-white! transition hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 sm:mt-8"
                     >
                         {isVerifyingDemo ? (
                             <>
@@ -616,15 +581,12 @@ const EmailVerification = () => {
                                     <option value="">
                                         Select account type
                                     </option>
-
                                     <option value="individual">
                                         Individual
                                     </option>
-
                                     <option value="organization">
                                         Organization
                                     </option>
-
                                     <option value="admin">Admin</option>
                                 </select>
 
@@ -646,7 +608,6 @@ const EmailVerification = () => {
                                     strokeWidth={1.8}
                                     className="mt-0.5 shrink-0"
                                 />
-
                                 <p>{resendError}</p>
                             </div>
                         )}
@@ -661,7 +622,6 @@ const EmailVerification = () => {
                                     strokeWidth={1.8}
                                     className="mt-0.5 shrink-0"
                                 />
-
                                 <p>{resendMessage}</p>
                             </div>
                         )}
@@ -718,7 +678,7 @@ const EmailVerification = () => {
                     <CircleAlert
                         size={29}
                         strokeWidth={1.8}
-                        className="text-red-600 sm:h-8 sm:w-8"
+                        className="text-red-600"
                     />
                 </div>
 

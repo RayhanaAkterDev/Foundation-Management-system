@@ -915,7 +915,7 @@ class AuthController extends Controller
                 . urlencode($user->email);
 
             return response()->json([
-                'message' => 'ডেমো অ্যাকাউন্টের জন্য পাসওয়ার্ড রিসেট লিংক তৈরি হয়েছে।',
+                'message' => 'আপনার অ্যাকাউন্টের জন্য পাসওয়ার্ড রিসেট লিংক তৈরি হয়েছে।',
                 'reset_url' => $resetUrl,
             ], 200);
         }

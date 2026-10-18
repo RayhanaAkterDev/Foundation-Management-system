@@ -142,9 +142,11 @@ const LoginForm = ({ loginRole }) => {
                     data?.verification_method === 'demo' &&
                     data?.user_id
                 ) {
-                    navigate(
-                        `/email-verification?method=demo&user_id=${encodeURIComponent(data.user_id)}&email=${encodeURIComponent(data.email || formData.email)}`,
-                    );
+                    const verificationUrl = `/email-verification?method=demo&user_id=${encodeURIComponent(data.user_id)}&email=${encodeURIComponent(data.email || formData.email)}`;
+
+                    console.log('[VERIFICATION REDIRECT]', verificationUrl);
+
+                    navigate(verificationUrl);
 
                     return;
                 }

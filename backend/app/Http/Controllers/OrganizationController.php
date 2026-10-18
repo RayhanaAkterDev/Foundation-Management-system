@@ -1021,6 +1021,7 @@ class OrganizationController extends Controller
 
             if ($emailChanged) {
                 $user->email = $validated['email'];
+                $user->verification_method = 'demo';
                 $user->email_verified_at = null;
                 $user->status = 'inactive';
                 $user->verification_email_sent_at = null;

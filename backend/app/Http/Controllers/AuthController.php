@@ -597,125 +597,38 @@ class AuthController extends Controller
         }
 
         /*
-        |--------------------------------------------------------------------------
-        | Email verification / account activation
-        |--------------------------------------------------------------------------
-        */
+    |--------------------------------------------------------------------------
+    | Demo verification / account activation
+    |--------------------------------------------------------------------------
+    */
 
         if (
             !$user->hasVerifiedEmail() ||
             $user->status !== 'active'
         ) {
-            /*
-            |--------------------------------------------------------------------------
-            | Demo verification
-            |--------------------------------------------------------------------------
-            */
-
-            if ($user->verification_method === 'demo') {
-                return response()->json([
-                    'message' =>
-                    'লগইন করার আগে এই ডেমো অ্যাকাউন্টটি যাচাই করুন।',
-
-                    'verification_method' => 'demo',
-
-                    'user_id' => $user->id,
-
-                    'email' => $user->email,
-
-                    'email_verified' =>
-                    $user->hasVerifiedEmail(),
-
-                    'status' => $user->status,
-
-                    'verification_email_sent' => false,
-                ], 403);
-            }
-
-            /*
-            |--------------------------------------------------------------------------
-            | Real email verification
-            |--------------------------------------------------------------------------
-            */
-
-            $verificationEmailSent = false;
-
-            if (!$user->verification_email_sent_at) {
-                try {
-                    Log::info('MAIL BEFORE VERIFICATION', [
-                        'default' => config('mail.default'),
-                        'host' =>
-                        config('mail.mailers.smtp.host'),
-                        'port' =>
-                        config('mail.mailers.smtp.port'),
-                        'scheme' =>
-                        config('mail.mailers.smtp.scheme'),
-                        'url' =>
-                        config('mail.mailers.smtp.url'),
-                    ]);
-
-                    $user->sendEmailVerificationNotification();
-
-                    $user->verification_email_sent_at = now();
-                    $user->save();
-
-                    $verificationEmailSent = true;
-                } catch (\Throwable $e) {
-                    return response()->json([
-                        'message' =>
-                        'ইমেইল যাচাইকরণ বার্তা পাঠানো যায়নি।',
-
-                        'error' => $e->getMessage(),
-
-                        'exception' => get_class($e),
-
-                        'mail_config' => [
-                            'default' =>
-                            config('mail.default'),
-
-                            'smtp_host' =>
-                            config('mail.mailers.smtp.host'),
-
-                            'smtp_port' =>
-                            config('mail.mailers.smtp.port'),
-
-                            'smtp_scheme' =>
-                            config('mail.mailers.smtp.scheme'),
-
-                            'smtp_url' =>
-                            config('mail.mailers.smtp.url'),
-                        ],
-                    ], 500);
-                }
+            if ($user->verification_method !== 'demo') {
+                $user->verification_method = 'demo';
+                $user->save();
             }
 
             return response()->json([
                 'message' =>
-                'লগইন করার আগে আপনার ইমেইল ঠিকানা যাচাই করুন।',
+                'লগইন করার আগে এই ডেমো অ্যাকাউন্টটি যাচাই করুন।',
 
-                'verification_method' => 'email',
-
+                'verification_method' => 'demo',
                 'user_id' => $user->id,
-
                 'email' => $user->email,
-
-                'email_verified' =>
-                $user->hasVerifiedEmail(),
-
+                'email_verified' => $user->hasVerifiedEmail(),
                 'status' => $user->status,
-
-                'verification_email_sent' =>
-                $verificationEmailSent,
-
-                'can_resend' => true,
+                'verification_email_sent' => false,
             ], 403);
         }
 
         /*
-        |--------------------------------------------------------------------------
-        | Verified + active account
-        |--------------------------------------------------------------------------
-        */
+    |--------------------------------------------------------------------------
+    | Verified + active account
+    |--------------------------------------------------------------------------
+    */
 
         $token = $user
             ->createToken('auth_token')
@@ -990,7 +903,7 @@ class AuthController extends Controller
             $frontendUrl = rtrim(
                 config(
                     'app.frontend_url',
-                    env('FRONTEND_URL', 'http://localhost:5173')
+                    env('FRONTEND_URL', 'https://foundation-management-system.vercel.app'),
                 ),
                 '/'
             );

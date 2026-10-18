@@ -405,7 +405,7 @@ class AdminController extends Controller
 
             'verification_method' => [
                 'required',
-                'in:email,demo',
+                'in:demo',
             ],
 
             'phone' => [
@@ -580,7 +580,7 @@ class AdminController extends Controller
 
             'verification_method' => [
                 'required',
-                'in:email,demo',
+                'in:demo',
             ],
         ]);
 
@@ -598,15 +598,19 @@ class AdminController extends Controller
         $targetUser->verification_method =
             $validated['verification_method'];
 
-        if ($validated['verification_method'] === 'demo') {
-            $targetUser->email_verified_at = now();
+        if ($emailChanged) {
+            $targetUser->verification_method = 'demo';
+            $targetUser->email_verified_at = null;
             $targetUser->verification_email_sent_at = null;
+            $targetUser->status = 'inactive';
         } else {
-            if ($emailChanged || $verificationMethodChanged) {
-                $targetUser->email_verified_at = null;
-                $targetUser->verification_email_sent_at = null;
+            $targetUser->verification_method = 'demo';
+
+            if (!$targetUser->hasVerifiedEmail()) {
                 $targetUser->status = 'inactive';
             }
+
+            $targetUser->verification_email_sent_at = null;
         }
 
         $targetUser->save();
@@ -746,7 +750,7 @@ class AdminController extends Controller
                 'phone' => $validated['phone'] ?? null,
                 'password' => $temporaryPassword,
                 'role' => 'organization',
-                'verification_method' => 'email',
+                'verification_method' => 'demo',
                 'status' => 'inactive',
                 'email_verified_at' => null,
             ]);

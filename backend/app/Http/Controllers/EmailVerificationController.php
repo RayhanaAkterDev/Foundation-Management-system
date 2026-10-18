@@ -145,18 +145,21 @@ class EmailVerificationController extends Controller
      */
     public function verifyDemo(Request $request, int $id)
     {
-        $frontendUrl = env(
-            'FRONTEND_URL',
-            'http://localhost:5173'
+        $frontendUrl = rtrim(
+            env(
+                'FRONTEND_URL',
+                'http://localhost:5173'
+            ),
+            '/'
         );
 
         $user = User::findOrFail($id);
 
         /*
-        |--------------------------------------------------------------------------
-        | Must be a demo account
-        |--------------------------------------------------------------------------
-        */
+    |--------------------------------------------------------------------------
+    | Must be a demo account
+    |--------------------------------------------------------------------------
+    */
 
         if ($user->verification_method !== 'demo') {
             return redirect(
@@ -169,12 +172,15 @@ class EmailVerificationController extends Controller
         }
 
         /*
-        |--------------------------------------------------------------------------
-        | Already verified
-        |--------------------------------------------------------------------------
-        */
+    |--------------------------------------------------------------------------
+    | Already verified and active
+    |--------------------------------------------------------------------------
+    */
 
-        if ($user->hasVerifiedEmail()) {
+        if (
+            $user->hasVerifiedEmail() &&
+            $user->status === 'active'
+        ) {
             return redirect(
                 $frontendUrl .
                     '/email-verification?status=already-verified'
@@ -182,12 +188,15 @@ class EmailVerificationController extends Controller
         }
 
         /*
-        |--------------------------------------------------------------------------
-        | Verify and activate
-        |--------------------------------------------------------------------------
-        */
+    |--------------------------------------------------------------------------
+    | Verify and activate
+    |--------------------------------------------------------------------------
+    */
 
-        $user->markEmailAsVerified();
+        if (!$user->hasVerifiedEmail()) {
+            $user->markEmailAsVerified();
+        }
+
         $user->status = 'active';
         $user->verification_email_sent_at = null;
         $user->save();
@@ -300,7 +309,7 @@ class EmailVerificationController extends Controller
         return response()->json([
             'message' =>
             'A new verification email has been sent to your email address.',
-            'verification_method' => 'email',
+            'verification_method' => 'demo',
             'verification_email_sent' => true,
         ]);
     }

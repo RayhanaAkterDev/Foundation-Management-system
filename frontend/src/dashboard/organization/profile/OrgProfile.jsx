@@ -224,7 +224,7 @@ export default function OrgProfile() {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 font-sans!">
             <PageHeader
                 title="Organization Profile"
                 subtitle="Manage your organization's information and public identity."

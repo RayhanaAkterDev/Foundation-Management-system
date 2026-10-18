@@ -1,392 +1,254 @@
 import React from 'react';
 import {
     Building2,
-    Globe,
-    Mail,
-    MapPin,
-    Phone,
     Pencil,
+    Mail,
+    Phone,
+    Globe,
+    MapPin,
+    ArrowUpRight,
+    ShieldCheck,
     Users,
     Target,
-    HandHeart,
-    ShieldCheck,
-    ImagePlus,
 } from 'lucide-react';
 
-const sectionClass = 'border border-[#2b3836] bg-[#15201e]';
+const panel = 'border border-[#252D38] bg-[#0E1219]';
+const list = (value) =>
+    (Array.isArray(value)
+        ? value
+        : typeof value === 'string'
+          ? value.split(',')
+          : []
+    )
+        .map((v) => String(v).trim())
+        .filter(Boolean);
+const readable = (value) => String(value || '').replaceAll('_', ' ');
 
-function formatValue(value) {
-    if (Array.isArray(value)) {
-        return value.length ? value.join(', ') : '';
-    }
-
-    if (value === null || value === undefined) {
-        return '';
-    }
-
-    return String(value).trim();
+function Items({ values }) {
+    const items = list(values);
+    return items.length ? (
+        <div className="flex flex-wrap gap-2">
+            {items.map((item, i) => (
+                <span
+                    key={`${item}-${i}`}
+                    className="border border-[#303A47] bg-[#151B24] px-3 py-1.5 text-[13px] text-[#B8C0CA]"
+                >
+                    {readable(item)}
+                </span>
+            ))}
+        </div>
+    ) : (
+        <p className="text-[14px] text-[#697586]">Not provided</p>
+    );
 }
-
-function Detail({ icon: Icon, label, value, href }) {
-    const displayValue = formatValue(value);
-
+function Contact({ icon: Icon, label, value, href }) {
     return (
-        <div className="flex min-w-0 items-start gap-3 py-3">
-            <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center border border-[#34413f] bg-[#1b2a27] text-[#a5c9bd]">
-                <Icon size={17} strokeWidth={1.7} />
-            </div>
-
-            <div className="min-w-0 flex-1">
-                <p className="text-xs font-medium text-[#82918d]">{label}</p>
-
-                {displayValue ? (
-                    href ? (
-                        <a
-                            href={href}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="mt-1 block break-words text-sm leading-6 text-[#c8e6dc] underline decoration-[#426b60] underline-offset-4 transition hover:text-white"
-                        >
-                            {displayValue}
-                        </a>
-                    ) : (
-                        <p className="mt-1 break-words text-sm leading-6 text-[#d6dfdc]">
-                            {displayValue}
-                        </p>
-                    )
+        <div className="flex min-w-0 gap-3 py-4 first:pt-0 last:pb-0">
+            <Icon
+                size={18}
+                className="mt-0.5 shrink-0 text-[#8792A1]"
+                strokeWidth={1.7}
+            />
+            <div className="min-w-0">
+                <p className="text-[13px] text-[#8792A1]">{label}</p>
+                {href && value ? (
+                    <a
+                        href={href}
+                        target={href.startsWith('http') ? '_blank' : undefined}
+                        rel={
+                            href.startsWith('http')
+                                ? 'noopener noreferrer'
+                                : undefined
+                        }
+                        className="mt-1 inline-flex max-w-full items-center gap-1 break-all text-[14px] font-medium text-[#EEF1F5] hover:underline"
+                    >
+                        {value}
+                        {href.startsWith('http') && <ArrowUpRight size={13} />}
+                    </a>
                 ) : (
-                    <p className="mt-1 text-sm text-[#657570]">Not provided</p>
+                    <p className="mt-1 break-words text-[14px] font-medium text-[#EEF1F5]">
+                        {value || 'Not provided'}
+                    </p>
                 )}
             </div>
         </div>
     );
 }
-
-function TagList({ title, items }) {
-    const values = Array.isArray(items)
-        ? items.map(formatValue).filter(Boolean)
-        : typeof items === 'string'
-          ? items
-                .split(',')
-                .map((item) => item.trim())
-                .filter(Boolean)
-          : [];
-
+function Heading({ children, icon: Icon }) {
     return (
-        <div>
-            <h3 className="text-sm font-medium text-[#cbd5d1]">{title}</h3>
-
-            {values.length ? (
-                <div className="mt-3 flex flex-wrap gap-2">
-                    {values.map((item, index) => (
-                        <span
-                            key={`${item}-${index}`}
-                            className="border border-[#344d45] bg-[#1a2b26] px-3 py-1.5 text-xs leading-5 text-[#c4ded3]"
-                        >
-                            {item}
-                        </span>
-                    ))}
-                </div>
-            ) : (
-                <p className="mt-2 text-sm text-[#657570]">
-                    No information added yet.
-                </p>
-            )}
+        <div className="mb-6 flex items-center gap-3">
+            <Icon size={18} className="text-[#8792A1]" />
+            <h3 className="text-[17px] font-semibold text-[#EEF1F5]">
+                {children}
+            </h3>
         </div>
     );
 }
-
-function StatusLabel({ status }) {
-    const value = formatValue(status) || 'pending';
-    const normalized = value.toLowerCase();
-
-    const isVerified = normalized === 'verified';
-    const isRejected = normalized === 'rejected';
-
-    const statusClass = isVerified
-        ? 'border-[#315b4e] bg-[#19312c] text-[#b9e5d7]'
-        : isRejected
-          ? 'border-red-900/60 bg-red-950/30 text-red-300'
-          : 'border-[#574b36] bg-[#2b271e] text-[#e5c99a]';
-
-    return (
-        <span
-            className={`inline-flex items-center border px-3 py-1.5 text-xs font-medium capitalize ${statusClass}`}
-        >
-            {value.replaceAll('_', ' ')}
-        </span>
-    );
-}
-
 export default function OrgProfileView({ profile, onEdit }) {
-    const logoUrl = profile?.photo ?? profile?.user?.photo ?? null;
-    const bannerUrl = profile?.banner ?? null;
-
     const name = profile?.name || 'Your organization';
-    const email = profile?.email ?? profile?.user?.email ?? '';
-    const phone = profile?.phone ?? profile?.user?.phone ?? '';
-    const website = profile?.website ?? '';
-
+    const logo = profile?.photo ?? profile?.user?.photo;
+    const email = profile?.email ?? profile?.user?.email;
+    const phone = profile?.phone ?? profile?.user?.phone;
+    const website = profile?.website;
+    const websiteHref = website
+        ? /^https?:\/\//i.test(website)
+            ? website
+            : `https://${website}`
+        : undefined;
+    const status = readable(profile?.verification_status || 'pending');
     return (
-        <div className="space-y-6">
-            {/* Organization identity */}
-            <section className={`${sectionClass} overflow-hidden`}>
-                <div className="relative">
-                    <div className="h-40 overflow-hidden bg-[#20332f] sm:h-52 lg:h-60">
-                        {bannerUrl ? (
-                            <img
-                                src={bannerUrl}
-                                alt={`${name} banner`}
-                                className="h-full w-full object-cover"
-                            />
-                        ) : (
-                            <div className="flex h-full items-center justify-center bg-gradient-to-r from-[#142521] via-[#203b33] to-[#28483d]">
-                                <div className="flex items-center gap-3 text-[#a5c9bd]">
-                                    <ImagePlus size={22} />
-                                    <span className="text-sm">
-                                        Organization banner
-                                    </span>
-                                </div>
+        <div className="space-y-5 pb-8 font-sans">
+            <section className={`${panel} overflow-hidden`}>
+                <div className="relative h-36 bg-[#151B24] sm:h-44 lg:h-48">
+                    {profile?.banner ? (
+                        <img
+                            src={profile.banner}
+                            alt={`${name} banner`}
+                            className="h-full w-full object-cover"
+                        />
+                    ) : (
+                        <div className="flex h-full items-center justify-center text-[14px] text-[#697586]">
+                            Organization cover image
+                        </div>
+                    )}
+                </div>
+                <div className="px-5 pb-6 sm:px-7 lg:px-8">
+                    <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+                        <div className="flex min-w-0 items-end gap-4">
+                            <div className="-mt-10 flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden border-4 border-[#0E1219] bg-[#1A222D] sm:h-28 sm:w-28">
+                                {logo ? (
+                                    <img
+                                        src={logo}
+                                        alt={`${name} logo`}
+                                        className="h-full w-full object-cover"
+                                    />
+                                ) : (
+                                    <Building2
+                                        size={34}
+                                        className="text-[#8792A1]"
+                                    />
+                                )}
                             </div>
-                        )}
+                            <div className="min-w-0 pb-1">
+                                <p className="mb-1 text-[13px] text-[#8792A1]">
+                                    Organization profile
+                                </p>
+                                <h2 className="break-words text-[23px] font-semibold leading-tight text-[#EEF1F5] sm:text-[27px]">
+                                    {name}
+                                </h2>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={onEdit}
+                            className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 self-start border border-[#414B57] bg-[#20252D] px-5 text-[14px] font-medium text-[#EEF1F5] transition-colors hover:border-[#697584] hover:bg-[#2A3039] sm:self-auto"
+                        >
+                            <Pencil size={16} />
+                            Edit profile
+                        </button>
                     </div>
-
-                    <div className="px-5 pb-5 sm:px-7 sm:pb-7">
-                        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                            <div className="-mt-10 flex min-w-0 items-end gap-4 sm:-mt-12">
-                                <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden border-4 border-[#15201e] bg-[#20332f] sm:h-24 sm:w-24">
-                                    {logoUrl ? (
-                                        <img
-                                            src={logoUrl}
-                                            alt={`${name} logo`}
-                                            className="h-full w-full object-cover"
-                                        />
-                                    ) : (
-                                        <Building2
-                                            size={32}
-                                            strokeWidth={1.4}
-                                            className="text-[#a5c9bd]"
-                                        />
-                                    )}
-                                </div>
-
-                                <div className="min-w-0 pb-1">
-                                    <p className="text-xs font-medium uppercase tracking-[0.14em] text-[#91a09b]">
-                                        Organization profile
-                                    </p>
-
-                                    <h2 className="mt-1 break-words text-xl font-semibold leading-tight text-[#edf3f1]! sm:text-2xl">
-                                        {name}
-                                    </h2>
-                                </div>
-                            </div>
-
-                            <button
-                                type="button"
-                                onClick={onEdit}
-                                className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 self-start border border-[#426b60] px-4 py-2.5 text-sm font-medium text-[#c9e9df] transition hover:bg-[#19312c] sm:self-auto"
-                            >
-                                <Pencil size={15} />
-                                Edit profile
-                            </button>
-                        </div>
-
-                        <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-[#2b3836] pt-4">
-                            <StatusLabel
-                                status={profile?.verification_status}
-                            />
-
-                            {profile?.registration_number && (
-                                <span className="text-xs text-[#91a09b]">
-                                    Registration no.{' '}
-                                    <span className="font-medium text-[#cbd5d1]">
-                                        {profile.registration_number}
-                                    </span>
+                    <div className="mt-6 flex flex-wrap items-center gap-x-7 gap-y-2 border-t border-[#29323E] pt-4 text-[13px]">
+                        <span className="inline-flex items-center gap-2 text-[#B8C0CA]">
+                            <ShieldCheck size={16} className="text-[#8792A1]" />
+                            Verification:{' '}
+                            <strong className="font-medium text-[#EEF1F5]">
+                                {status}
+                            </strong>
+                        </span>
+                        {profile?.registration_number && (
+                            <span className="text-[#8792A1]">
+                                Registration:{' '}
+                                <span className="text-[#B8C0CA]">
+                                    {profile.registration_number}
                                 </span>
-                            )}
-                        </div>
+                            </span>
+                        )}
+                        {profile?.organization_type && (
+                            <span className="text-[#8792A1]">
+                                Type:{' '}
+                                <span className="text-[#B8C0CA]">
+                                    {readable(profile.organization_type)}
+                                </span>
+                            </span>
+                        )}
                     </div>
                 </div>
             </section>
-
-            {/* Contact information */}
-            <section className={sectionClass}>
-                <div className="border-b border-[#2b3836] px-5 py-5 sm:px-6">
-                    <h2 className="text-base font-semibold text-[#edf3f1]!">
-                        Contact information
-                    </h2>
-                    <p className="mt-1 text-sm leading-6 text-[#91a09b]">
-                        The main contact details for your organization.
-                    </p>
+            <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1.65fr)_minmax(300px,1fr)]">
+                <div className="min-w-0 space-y-5">
+                    <section className={`${panel} p-5 sm:p-7 lg:p-8`}>
+                        <Heading icon={Target}>Mission and purpose</Heading>
+                        <p className="whitespace-pre-wrap break-words text-[15px] leading-8 text-[#B8C0CA]">
+                            {profile?.mission ||
+                                'Your organization has not added a mission statement yet.'}
+                        </p>
+                        <div className="mt-7 grid gap-7 border-t border-[#29323E] pt-6 md:grid-cols-2">
+                            <div>
+                                <h4 className="mb-3 text-[14px] font-semibold text-[#EEF1F5]">
+                                    Focus areas
+                                </h4>
+                                <Items values={profile?.focus_areas} />
+                            </div>
+                            <div>
+                                <h4 className="mb-3 text-[14px] font-semibold text-[#EEF1F5]">
+                                    Communities served
+                                </h4>
+                                <Items values={profile?.communities_served} />
+                            </div>
+                        </div>
+                    </section>
+                    <section className={`${panel} p-5 sm:p-7 lg:p-8`}>
+                        <Heading icon={Users}>Organization operations</Heading>
+                        <div className="grid gap-6 md:grid-cols-[180px_minmax(0,1fr)]">
+                            <div>
+                                <p className="mb-2 text-[13px] text-[#8792A1]">
+                                    Team size
+                                </p>
+                                <p className="text-[16px] font-medium text-[#EEF1F5]">
+                                    {readable(profile?.team_size) ||
+                                        'Not provided'}
+                                </p>
+                            </div>
+                            <div>
+                                <p className="mb-3 text-[13px] text-[#8792A1]">
+                                    Primary activities
+                                </p>
+                                <Items values={profile?.primary_activities} />
+                            </div>
+                        </div>
+                    </section>
                 </div>
-
-                <div className="grid grid-cols-1 divide-y divide-[#2b3836] px-5 sm:grid-cols-2 sm:gap-x-8 sm:divide-y-0 sm:px-6">
-                    <div>
-                        <Detail
+                <aside className={`${panel} min-w-0 p-5 sm:p-7`}>
+                    <h3 className="mb-5 text-[17px] font-semibold text-[#EEF1F5]">
+                        Contact information
+                    </h3>
+                    <div className="divide-y divide-[#29323E]">
+                        <Contact
                             icon={Mail}
-                            label="Contact email"
+                            label="Email address"
                             value={email}
                             href={email ? `mailto:${email}` : undefined}
                         />
-
-                        <Detail
+                        <Contact
                             icon={Phone}
                             label="Phone number"
                             value={phone}
                             href={phone ? `tel:${phone}` : undefined}
                         />
-                    </div>
-
-                    <div>
-                        <Detail
+                        <Contact
                             icon={Globe}
                             label="Website"
                             value={website}
-                            href={
-                                website
-                                    ? /^https?:\/\//i.test(website)
-                                        ? website
-                                        : `https://${website}`
-                                    : undefined
-                            }
+                            href={websiteHref}
                         />
-
-                        <Detail
+                        <Contact
                             icon={MapPin}
-                            label="Address"
+                            label="Office address"
                             value={profile?.address}
                         />
                     </div>
-                </div>
-            </section>
-
-            {/* Mission */}
-            <section className={sectionClass}>
-                <div className="border-b border-[#2b3836] px-5 py-5 sm:px-6">
-                    <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 items-center justify-center border border-[#344d45] bg-[#1a2b26] text-[#a5c9bd]">
-                            <Target size={18} />
-                        </div>
-
-                        <div>
-                            <h2 className="text-base font-semibold text-[#edf3f1]!">
-                                Mission and purpose
-                            </h2>
-                            <p className="mt-1 text-sm text-[#91a09b]">
-                                What your organization works to achieve.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="px-5 py-5 sm:px-6 sm:py-6">
-                    {profile?.mission ? (
-                        <p className="whitespace-pre-wrap break-words text-sm leading-7 text-[#cbd5d1]">
-                            {profile.mission}
-                        </p>
-                    ) : (
-                        <p className="text-sm leading-6 text-[#657570]">
-                            No mission statement added yet.
-                        </p>
-                    )}
-                </div>
-            </section>
-
-            {/* Focus areas and communities */}
-            <section className={sectionClass}>
-                <div className="border-b border-[#2b3836] px-5 py-5 sm:px-6">
-                    <h2 className="text-base font-semibold text-[#edf3f1]!">
-                        Areas of impact
-                    </h2>
-                    <p className="mt-1 text-sm leading-6 text-[#91a09b]">
-                        The issues you address and the people you serve.
-                    </p>
-                </div>
-
-                <div className="space-y-6 px-5 py-5 sm:px-6 sm:py-6">
-                    <TagList title="Focus areas" items={profile?.focus_areas} />
-
-                    <div className="border-t border-[#2b3836]" />
-
-                    <TagList
-                        title="Communities served"
-                        items={profile?.communities_served}
-                    />
-                </div>
-            </section>
-
-            {/* Organization details */}
-            <section className={sectionClass}>
-                <div className="border-b border-[#2b3836] px-5 py-5 sm:px-6">
-                    <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 items-center justify-center border border-[#344d45] bg-[#1a2b26] text-[#a5c9bd]">
-                            <HandHeart size={18} />
-                        </div>
-
-                        <div>
-                            <h2 className="text-base font-semibold text-[#edf3f1]!">
-                                Organization details
-                            </h2>
-                            <p className="mt-1 text-sm text-[#91a09b]">
-                                Team and operational information.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="space-y-6 px-5 py-5 sm:px-6 sm:py-6">
-                    <Detail
-                        icon={Users}
-                        label="Team size"
-                        value={profile?.team_size}
-                    />
-
-                    <div className="border-t border-[#2b3836]" />
-
-                    <TagList
-                        title="Primary activities"
-                        items={profile?.primary_activities}
-                    />
-                </div>
-            </section>
-
-            {/* Verification details */}
-            <section className={sectionClass}>
-                <div className="flex items-start gap-3 px-5 py-5 sm:px-6">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center border border-[#344d45] bg-[#1a2b26] text-[#a5c9bd]">
-                        <ShieldCheck size={18} />
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                        <h2 className="text-base font-semibold text-[#edf3f1]!">
-                            Verification
-                        </h2>
-
-                        <p className="mt-1 text-sm leading-6 text-[#91a09b]">
-                            Your organization’s verification status and
-                            registration details.
-                        </p>
-
-                        <div className="mt-4">
-                            <StatusLabel
-                                status={profile?.verification_status}
-                            />
-                        </div>
-
-                        <p className="mt-3 break-words text-sm leading-6 text-[#cbd5d1]">
-                            Registration number:{' '}
-                            <span className="text-[#edf3f1]!">
-                                {profile?.registration_number || 'Not assigned'}
-                            </span>
-                        </p>
-
-                        <p className="mt-3 text-xs leading-5 text-[#82918d]">
-                            Verification and registration details are managed by
-                            the platform administrator.
-                        </p>
-                    </div>
-                </div>
-            </section>
+                </aside>
+            </div>
         </div>
     );
 }

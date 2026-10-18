@@ -1,16 +1,13 @@
 import React from 'react';
 import {
-    AlertCircle,
-    Check,
-    CheckCircle2,
-    ImagePlus,
-    Upload,
-    Save,
-    X,
     ArrowLeft,
+    Save,
+    Upload,
     Building2,
+    Check,
+    AlertCircle,
+    CheckCircle2,
 } from 'lucide-react';
-
 import {
     focusAreaOptions,
     communityOptions,
@@ -20,348 +17,131 @@ import {
     getStatusLabel,
 } from '../utils/orgProfileUtils';
 
-/* =========================================================
-   STYLES
-========================================================= */
-
-const inputClass = `
-    w-full min-w-0 border border-[#303A47] bg-[#151B24]
-    px-4 py-3 text-[14px] leading-6 text-[#EEF1F5]!
-    outline-none transition-colors duration-150
-    placeholder:text-[#697586]
-    hover:border-[#465261]
-    focus:border-[#8493A6]
-    focus:ring-0
-    disabled:cursor-not-allowed disabled:opacity-50
-`;
-
-const labelClass = 'mb-2 block text-[14px] font-medium text-[#B8C0CA]';
-
-const panelClass = 'border border-[#252D38] bg-[#0E1219]';
-
-/* =========================================================
-   FORM FIELD
-========================================================= */
-
-function Field({
-    label,
-    name,
-    value,
-    onChange,
-    placeholder,
-    type = 'text',
-    required = false,
-    autoComplete,
-    ...props
-}) {
+const input =
+    'w-full min-w-0 border border-[#303A47] bg-[#151B24] px-4 py-3 text-[14px] text-[#EEF1F5] outline-none transition-colors placeholder:text-[#697586] hover:border-[#465261] focus:border-[#8493A6] disabled:opacity-50';
+const panel = 'border border-[#252D38] bg-[#0E1219] p-5 sm:p-7';
+function Field({ label, name, value, onChange, ...rest }) {
     return (
-        <div className="min-w-0">
-            <label className={labelClass} htmlFor={name}>
+        <label className="block min-w-0">
+            <span className="mb-2 block text-[14px] font-medium text-[#B8C0CA]">
                 {label}
-                {required && <span className="ml-1 text-[#D5B37F]">*</span>}
-            </label>
-
+            </span>
             <input
-                id={name}
                 name={name}
-                type={type}
                 value={value ?? ''}
-                onChange={(event) => onChange(name, event.target.value)}
-                placeholder={placeholder}
-                required={required}
-                autoComplete={autoComplete}
-                className={inputClass}
-                {...props}
+                onChange={(e) => onChange(name, e.target.value)}
+                className={input}
+                {...rest}
             />
-        </div>
+        </label>
     );
 }
-
-/* =========================================================
-   SECTION HEADER
-========================================================= */
-
-function SectionHeading({ number, title, description }) {
+function Section({ title, children, description }) {
     return (
-        <div className="mb-6 flex items-start gap-4">
-            <span
-                className="
-                    flex h-9 w-9 shrink-0 items-center justify-center
-                    border border-[#303A47] bg-[#1A222D]
-                    text-[13px] font-semibold text-[#AEB7C3]
-                "
-            >
-                {number}
-            </span>
-
-            <div className="min-w-0">
-                <h2 className="text-[17px] font-semibold text-[#EEF1F5]!">
+        <section className={panel}>
+            <div className="mb-6">
+                <h3 className="text-[18px] font-semibold text-[#EEF1F5]">
                     {title}
-                </h2>
-
+                </h3>
                 {description && (
-                    <p className="mt-1 text-[14px] leading-6 text-[#8792A1]">
+                    <p className="mt-1 text-[14px] text-[#8792A1]">
                         {description}
                     </p>
                 )}
             </div>
-        </div>
+            {children}
+        </section>
     );
 }
-
-/* =========================================================
-   IMAGE UPLOADER
-
-   IMPORTANT FIELD MAPPING:
-   - Organization logo  -> photo
-   - Organization banner -> banner
-
-   The field value is passed unchanged to the parent handler.
-========================================================= */
-
-function ImageUploader({
-    field,
-    title,
-    description,
-    imageUrl,
-    uploadingImage,
-    onUploadImage,
-    variant = 'logo',
-}) {
-    const uploading = uploadingImage === field;
-    const disabled = Boolean(uploadingImage);
-    const isBanner = field === 'banner' && variant === 'banner';
-
-    const inputId = `organization-image-${field}`;
-
-    const handleFileChange = (event) => {
-        const file = event.target.files?.[0];
-
-        if (!file) return;
-
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
-
-        if (!allowedTypes.includes(file.type)) {
-            event.target.value = '';
-            return;
-        }
-
-        if (file.size > 5 * 1024 * 1024) {
-            event.target.value = '';
-            return;
-        }
-
-        // Pass the uploader's exact field to the parent handler.
-        onUploadImage?.(field, file);
-
-        event.target.value = '';
-    };
-
-    return (
-        <div className="min-w-0">
-            <div className="mb-3">
-                <h3 className="text-[15px] font-semibold text-[#EEF1F5]!">
-                    {title}
-                </h3>
-
-                <p className="mt-1 text-[13px] leading-5 text-[#8792A1]">
-                    {description}
-                </p>
-            </div>
-
-            <div
-                className={`
-                    relative overflow-hidden border border-[#303A47]
-                    bg-[#121821]
-                    ${isBanner ? 'h-44 sm:h-52' : 'h-44 sm:h-52'}
-                `}
-            >
-                {isBanner ? (
-                    imageUrl ? (
-                        <img
-                            src={imageUrl}
-                            alt="Organization banner"
-                            className="h-full w-full object-cover"
-                        />
-                    ) : (
-                        <div className="flex h-full flex-col items-center justify-center gap-3 text-[#8792A1]">
-                            <ImagePlus size={30} strokeWidth={1.4} />
-                            <span className="text-[13px]">
-                                No banner uploaded
-                            </span>
-                        </div>
-                    )
-                ) : (
-                    <div className="flex h-full items-center justify-center">
-                        <div
-                            className="
-                                flex h-28 w-28 items-center justify-center
-                                overflow-hidden border border-[#303A47]
-                                bg-[#1A222D]
-                            "
-                        >
-                            {imageUrl ? (
-                                <img
-                                    src={imageUrl}
-                                    alt="Organization logo"
-                                    className="h-full w-full object-cover"
-                                />
-                            ) : (
-                                <Building2
-                                    size={36}
-                                    strokeWidth={1.4}
-                                    className="text-[#8792A1]"
-                                />
-                            )}
-                        </div>
-                    </div>
-                )}
-
-                {uploading && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-[#0E1219]/80">
-                        <div className="flex items-center gap-3 text-[14px] text-white">
-                            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                            Uploading...
-                        </div>
-                    </div>
-                )}
-            </div>
-
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-                <p className="text-[12px] text-[#8792A1]">
-                    JPG, PNG or WebP · Max 5 MB
-                </p>
-
-                <label
-                    htmlFor={inputId}
-                    className={`
-                        inline-flex min-h-10 items-center justify-center
-                        gap-2 border border-[#394555] bg-[#1A222D]
-                        px-4 py-2 text-[13px] font-medium text-[#EEF1F5]
-                        transition-colors
-                        ${
-                            disabled
-                                ? 'cursor-not-allowed opacity-50'
-                                : 'cursor-pointer hover:border-[#586678] hover:bg-[#1D2632]'
-                        }
-                    `}
-                >
-                    <Upload size={15} />
-
-                    {uploading
-                        ? 'Uploading...'
-                        : imageUrl
-                          ? 'Change image'
-                          : 'Upload image'}
-
-                    <input
-                        id={inputId}
-                        name={field}
-                        type="file"
-                        accept="image/jpeg,image/png,image/webp"
-                        className="sr-only"
-                        disabled={disabled}
-                        onChange={handleFileChange}
-                    />
-                </label>
-            </div>
-        </div>
-    );
-}
-
-/* =========================================================
-   MULTI SELECT
-========================================================= */
-
-function MultiSelect({ options, value, onChange }) {
+function Choices({ options, value, onChange }) {
     const selected = toArray(value);
-    const known = new Set(options.map((item) => item.value));
-
-    const legacy = selected
-        .filter((item) => !known.has(item))
-        .map((item) => ({
-            value: item,
-            label: item,
-        }));
-
+    const known = new Set(options.map((x) => x.value));
+    const all = [
+        ...selected
+            .filter((x) => !known.has(x))
+            .map((x) => ({ value: x, label: x })),
+        ...options,
+    ];
     return (
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-            {[...legacy, ...options].map((option) => {
+        <div className="grid gap-2 sm:grid-cols-2">
+            {all.map((option) => {
                 const active = selected.includes(option.value);
-
                 return (
                     <button
                         key={option.value}
                         type="button"
                         aria-pressed={active}
-                        onClick={() => {
-                            const next = active
-                                ? selected.filter(
-                                      (item) => item !== option.value,
-                                  )
-                                : [...selected, option.value];
-
-                            onChange(next);
-                        }}
-                        className={`
-                            flex min-w-0 items-center gap-3 border
-                            px-3.5 py-3 text-left transition-colors
-                            ${
+                        onClick={() =>
+                            onChange(
                                 active
-                                    ? 'border-[#586678] bg-[#1D2632]'
-                                    : 'border-[#303A47] bg-[#151B24] hover:border-[#586678] hover:bg-[#1A222D]'
-                            }
-                        `}
+                                    ? selected.filter((x) => x !== option.value)
+                                    : [...selected, option.value],
+                            )
+                        }
+                        className={`flex min-h-11 items-center gap-3 border px-3.5 py-2.5 text-left text-[14px] transition-colors ${active ? 'border-[#586678] bg-[#1D2632] text-[#EEF1F5]' : 'border-[#303A47] bg-[#151B24] text-[#B8C0CA] hover:border-[#586678] hover:bg-[#1A222D]'}`}
                     >
                         <span
-                            className={`
-                                flex h-5 w-5 shrink-0 items-center
-                                justify-center border
-                                ${
-                                    active
-                                        ? 'border-[#8493A6] bg-[#8493A6] text-white'
-                                        : 'border-[#465261] bg-[#151B24] text-transparent'
-                                }
-                            `}
+                            className={`flex h-5 w-5 shrink-0 items-center justify-center border ${active ? 'border-[#8493A6] bg-[#8493A6] text-white' : 'border-[#465261] text-transparent'}`}
                         >
-                            <Check size={13} strokeWidth={2.5} />
+                            <Check size={13} />
                         </span>
-
-                        <span
-                            className={`
-                                min-w-0 text-[14px] leading-6
-                                ${active ? 'text-[#EEF1F5]' : 'text-[#B8C0CA]'}
-                            `}
-                        >
-                            {option.label}
-                        </span>
+                        {option.label}
                     </button>
                 );
             })}
         </div>
     );
 }
-
-/* =========================================================
-   READ ONLY DETAIL
-========================================================= */
-
-function ReadOnlyDetail({ label, value }) {
+function ImageControl({ field, label, image, uploadingImage, onUploadImage }) {
+    const busy = Boolean(uploadingImage);
+    const isBanner = field === 'banner';
     return (
-        <div className="min-w-0 border-b border-[#29323E] py-3 last:border-0">
-            <p className="text-[13px] text-[#8792A1]">{label}</p>
-
-            <p className="mt-1 break-words text-[14px] font-medium text-[#EEF1F5]">
-                {value || 'Not provided'}
+        <div className="min-w-0">
+            <p className="mb-3 text-[14px] font-medium text-[#B8C0CA]">
+                {label}
             </p>
+            <div
+                className={`flex items-center justify-center overflow-hidden border border-[#303A47] bg-[#151B24] ${isBanner ? 'h-36' : 'h-36'}`}
+            >
+                {image ? (
+                    <img
+                        src={image}
+                        alt={label}
+                        className={
+                            isBanner
+                                ? 'h-full w-full object-cover'
+                                : 'h-24 w-24 object-cover'
+                        }
+                    />
+                ) : (
+                    <Building2 size={30} className="text-[#8792A1]" />
+                )}
+            </div>
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                <span className="text-[12px] text-[#8792A1]">
+                    JPG, PNG, WebP · Max 5 MB
+                </span>
+                <label
+                    className={`inline-flex min-h-10 items-center gap-2 border border-[#394555] bg-[#1A222D] px-3.5 text-[13px] font-medium text-[#EEF1F5] ${busy ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:border-[#586678] hover:bg-[#1D2632]'}`}
+                >
+                    <Upload size={15} />
+                    {uploadingImage === field ? 'Uploading...' : 'Change image'}
+                    <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        disabled={busy}
+                        className="sr-only"
+                        onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) onUploadImage(field, file);
+                            e.target.value = '';
+                        }}
+                    />
+                </label>
+            </div>
         </div>
     );
 }
-
-/* =========================================================
-   MAIN COMPONENT
-========================================================= */
-
 export default function OrgProfileEdit({
     form,
     profile,
@@ -374,132 +154,82 @@ export default function OrgProfileEdit({
     imageUploadError,
     imageUploadSuccess,
 }) {
-    // Logo belongs to users.photo, NOT organizations.banner.
-    const logoUrl = profile?.photo ?? profile?.user?.photo ?? null;
-
-    // Banner belongs exclusively to organizations.banner.
-    const bannerUrl = profile?.banner ?? null;
-
+    const busy = saving || Boolean(uploadingImage);
     return (
-        <div className="space-y-6 pb-8 font-sans!">
-            {/* TOP HEADER */}
-
+        <div className="space-y-5 pb-8 font-sans">
             <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
-                    <h2 className="text-xl font-semibold text-[#EEF1F5]!">
-                        Edit organization information
+                    <h2 className="text-[21px] font-semibold text-[#EEF1F5]">
+                        Edit organization profile
                     </h2>
-
                     <p className="mt-1 text-[14px] text-[#8792A1]">
-                        Update your profile information and visual identity.
+                        Update your organization's information and appearance.
                     </p>
                 </div>
-
                 <button
                     type="button"
                     onClick={onCancel}
-                    disabled={saving || Boolean(uploadingImage)}
-                    className="
-                        inline-flex min-h-10 items-center gap-2
-                        border border-[#394555] px-4 py-2
-                        text-[13px] font-medium text-[#B8C0CA]
-                        transition-colors hover:bg-[#1A222D]
-                        disabled:opacity-50
-                    "
+                    disabled={busy}
+                    className="inline-flex min-h-10 items-center gap-2 border border-[#394555] px-4 text-[14px] text-[#B8C0CA] hover:bg-[#1A222D] disabled:opacity-50"
                 >
-                    <ArrowLeft size={15} />
+                    <ArrowLeft size={16} />
                     Back to profile
                 </button>
             </div>
-
-            {/* VISUAL IDENTITY */}
-
-            <section className={`${panelClass} p-5 sm:p-7`}>
-                <SectionHeading
-                    number="01"
-                    title="Visual identity"
-                    description="Manage your organization's logo and banner."
-                />
-
-                {imageUploadError && (
-                    <div
-                        role="alert"
-                        className="mb-5 flex items-start gap-3 border border-red-900/50 bg-red-950/25 p-4 text-[14px] text-red-300"
-                    >
-                        <AlertCircle size={18} className="shrink-0" />
-                        {imageUploadError}
-                    </div>
-                )}
-
-                {imageUploadSuccess && (
-                    <div
-                        role="status"
-                        className="mb-5 flex items-start gap-3 border border-[#303A47] bg-[#1A222D] p-4 text-[14px] text-[#B8C0CA]"
-                    >
-                        <CheckCircle2 size={18} className="shrink-0" />
-                        {imageUploadSuccess}
-                    </div>
-                )}
-
-                <div className="grid grid-cols-1 gap-7 lg:grid-cols-2">
-                    {/* users.photo -> users folder */}
-
-                    <ImageUploader
+            <Section title="Profile appearance">
+                <div className="grid gap-7 lg:grid-cols-2">
+                    <ImageControl
                         field="photo"
-                        title="Organization logo"
-                        description="The logo displayed across your profile."
-                        imageUrl={logoUrl}
+                        label="Organization logo"
+                        image={profile?.photo ?? profile?.user?.photo}
                         uploadingImage={uploadingImage}
                         onUploadImage={onUploadImage}
-                        variant="logo"
                     />
-
-                    {/* organizations.banner -> organizations folder */}
-
-                    <ImageUploader
+                    <ImageControl
                         field="banner"
-                        title="Profile banner"
-                        description="The cover image displayed behind your identity."
-                        imageUrl={bannerUrl}
+                        label="Cover banner"
+                        image={profile?.banner}
                         uploadingImage={uploadingImage}
                         onUploadImage={onUploadImage}
-                        variant="banner"
                     />
                 </div>
-            </section>
-
-            {/* PROFILE FORM */}
-
-            <form onSubmit={onSave} className="space-y-6">
-                {/* BASIC INFORMATION */}
-
-                <section className={`${panelClass} p-5 sm:p-7`}>
-                    <SectionHeading
-                        number="02"
-                        title="Basic information"
-                        description="Your organization's official contact information."
-                    />
-
-                    <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                {imageUploadError && (
+                    <p
+                        role="alert"
+                        className="mt-4 flex gap-2 text-[14px] text-red-300"
+                    >
+                        <AlertCircle size={17} />
+                        {imageUploadError}
+                    </p>
+                )}
+                {imageUploadSuccess && (
+                    <p
+                        role="status"
+                        className="mt-4 flex gap-2 text-[14px] text-[#B8C0CA]"
+                    >
+                        <CheckCircle2 size={17} />
+                        {imageUploadSuccess}
+                    </p>
+                )}
+            </Section>
+            <form onSubmit={onSave} className="space-y-5">
+                <Section title="Organization information">
+                    <div className="grid gap-5 md:grid-cols-2">
                         <Field
                             label="Organization name"
                             name="name"
                             value={form.name}
                             onChange={onChange}
-                            placeholder="Organization name"
                             required
                         />
-
                         <Field
                             label="Contact email"
                             name="email"
                             type="email"
                             value={form.email}
                             onChange={onChange}
-                            placeholder="contact@example.org"
                             required
                         />
-
                         <Field
                             label="Phone number"
                             name="phone"
@@ -512,13 +242,12 @@ export default function OrgProfileEdit({
                                     value.replace(/\D/g, '').slice(0, 11),
                                 )
                             }
-                            placeholder="01XXXXXXXXX"
                             minLength={11}
                             maxLength={11}
                             pattern="01[0-9]{9}"
                             title="Enter exactly 11 digits starting with 01"
+                            placeholder="01XXXXXXXXX"
                         />
-
                         <Field
                             label="Website"
                             name="website"
@@ -526,201 +255,147 @@ export default function OrgProfileEdit({
                             value={form.website}
                             onChange={onChange}
                             placeholder="https://example.org"
-                            pattern="https?://[a-zA-Z0-9-]+(\\.[a-zA-Z0-9-]+)+(:[0-9]{1,5})?(/[^\\s]*)?"
+                            pattern="https?://[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)+(:[0-9]{1,5})?(/[^\s]*)?"
                             title="Enter a valid URL starting with http:// or https://"
                         />
-
-                        <div className="md:col-span-2">
-                            <label className={labelClass} htmlFor="address">
-                                Address
-                            </label>
-
+                        <label className="block md:col-span-2">
+                            <span className="mb-2 block text-[14px] font-medium text-[#B8C0CA]">
+                                Office address
+                            </span>
                             <textarea
-                                id="address"
                                 rows={3}
                                 value={form.address ?? ''}
-                                onChange={(event) =>
-                                    onChange('address', event.target.value)
+                                onChange={(e) =>
+                                    onChange('address', e.target.value)
                                 }
-                                placeholder="Organization address"
-                                className={`${inputClass} resize-y`}
+                                className={`${input} resize-y`}
+                            />
+                        </label>
+                    </div>
+                </Section>
+                <Section title="Mission and purpose">
+                    <label className="block">
+                        <span className="mb-2 block text-[14px] font-medium text-[#B8C0CA]">
+                            Mission statement
+                        </span>
+                        <textarea
+                            rows={5}
+                            value={form.mission ?? ''}
+                            onChange={(e) =>
+                                onChange('mission', e.target.value)
+                            }
+                            className={`${input} resize-y leading-7`}
+                            placeholder="Describe your organization's mission..."
+                        />
+                    </label>
+                </Section>
+                <Section
+                    title="Work and communities"
+                    description="Define the causes you work on and the people you support."
+                >
+                    <div className="grid gap-8 lg:grid-cols-2">
+                        <div>
+                            <h4 className="mb-3 text-[14px] font-medium text-[#B8C0CA]">
+                                Focus areas
+                            </h4>
+                            <Choices
+                                options={focusAreaOptions}
+                                value={form.focus_areas}
+                                onChange={(v) => onChange('focus_areas', v)}
+                            />
+                        </div>
+                        <div>
+                            <h4 className="mb-3 text-[14px] font-medium text-[#B8C0CA]">
+                                Communities served
+                            </h4>
+                            <Choices
+                                options={communityOptions}
+                                value={form.communities_served}
+                                onChange={(v) =>
+                                    onChange('communities_served', v)
+                                }
                             />
                         </div>
                     </div>
-                </section>
-
-                {/* MISSION */}
-
-                <section className={`${panelClass} p-5 sm:p-7`}>
-                    <SectionHeading
-                        number="03"
-                        title="Mission and purpose"
-                        description="Describe the humanitarian purpose of your organization."
-                    />
-
-                    <label className={labelClass} htmlFor="mission">
-                        Mission statement
-                    </label>
-
-                    <textarea
-                        id="mission"
-                        rows={5}
-                        value={form.mission ?? ''}
-                        onChange={(event) =>
-                            onChange('mission', event.target.value)
-                        }
-                        placeholder="Describe your organization's mission..."
-                        className={`${inputClass} resize-y leading-7`}
-                    />
-                </section>
-
-                {/* FOCUS AREAS */}
-
-                <section className={`${panelClass} p-5 sm:p-7`}>
-                    <SectionHeading
-                        number="04"
-                        title="Focus areas"
-                        description="Select the fields your organization actively works in."
-                    />
-
-                    <MultiSelect
-                        options={focusAreaOptions}
-                        value={form.focus_areas}
-                        onChange={(value) => onChange('focus_areas', value)}
-                    />
-                </section>
-
-                {/* COMMUNITIES */}
-
-                <section className={`${panelClass} p-5 sm:p-7`}>
-                    <SectionHeading
-                        number="05"
-                        title="Communities served"
-                        description="Identify the communities your organization supports."
-                    />
-
-                    <MultiSelect
-                        options={communityOptions}
-                        value={form.communities_served}
-                        onChange={(value) =>
-                            onChange('communities_served', value)
-                        }
-                    />
-                </section>
-
-                {/* ORGANIZATION ACTIVITIES */}
-
-                <section className={`${panelClass} p-5 sm:p-7`}>
-                    <SectionHeading
-                        number="06"
-                        title="Organization activities"
-                        description="Manage your team size and primary activities."
-                    />
-
+                </Section>
+                <Section title="Team and activities">
                     <div className="mb-7">
-                        <p className={labelClass}>Team size</p>
-
-                        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
-                            {teamSizeOptions.map((option) => {
-                                const active = form.team_size === option.value;
-
-                                return (
-                                    <button
-                                        key={option.value}
-                                        type="button"
-                                        aria-pressed={active}
-                                        onClick={() =>
-                                            onChange(
-                                                'team_size',
-                                                active ? '' : option.value,
-                                            )
-                                        }
-                                        className={`
-                                            min-h-12 border px-3 py-3
-                                            text-[14px] font-medium transition-colors
-                                            ${
-                                                active
-                                                    ? 'border-[#586678] bg-[#1D2632] text-[#EEF1F5]'
-                                                    : 'border-[#303A47] bg-[#151B24] text-[#B8C0CA] hover:border-[#586678] hover:bg-[#1A222D]'
-                                            }
-                                        `}
-                                    >
-                                        {option.label}
-                                    </button>
-                                );
-                            })}
+                        <h4 className="mb-3 text-[14px] font-medium text-[#B8C0CA]">
+                            Team size
+                        </h4>
+                        <div className="flex flex-wrap gap-2">
+                            {teamSizeOptions.map((option) => (
+                                <button
+                                    key={option.value}
+                                    type="button"
+                                    aria-pressed={
+                                        form.team_size === option.value
+                                    }
+                                    onClick={() =>
+                                        onChange(
+                                            'team_size',
+                                            form.team_size === option.value
+                                                ? ''
+                                                : option.value,
+                                        )
+                                    }
+                                    className={`min-h-10 border px-4 text-[14px] transition-colors ${form.team_size === option.value ? 'border-[#586678] bg-[#1D2632] text-[#EEF1F5]' : 'border-[#303A47] bg-[#151B24] text-[#B8C0CA] hover:border-[#586678] hover:bg-[#1A222D]'}`}
+                                >
+                                    {option.label}
+                                </button>
+                            ))}
                         </div>
                     </div>
-
                     <div className="border-t border-[#29323E] pt-6">
-                        <p className={labelClass}>Primary activities</p>
-
-                        <MultiSelect
+                        <h4 className="mb-3 text-[14px] font-medium text-[#B8C0CA]">
+                            Primary activities
+                        </h4>
+                        <Choices
                             options={activityOptions}
                             value={form.primary_activities}
-                            onChange={(value) =>
-                                onChange('primary_activities', value)
-                            }
+                            onChange={(v) => onChange('primary_activities', v)}
                         />
                     </div>
-                </section>
-
-                {/* VERIFICATION */}
-
-                <section className={`${panelClass} p-5 sm:p-7`}>
-                    <SectionHeading
-                        number="07"
-                        title="Verification information"
-                        description="These details are managed by the platform."
-                    />
-
-                    <div className="grid grid-cols-1 gap-x-8 sm:grid-cols-2">
-                        <ReadOnlyDetail
-                            label="Registration number"
-                            value={profile?.registration_number}
-                        />
-
-                        <ReadOnlyDetail
-                            label="Organization type"
-                            value={profile?.organization_type}
-                        />
-
-                        <ReadOnlyDetail
-                            label="Verification status"
-                            value={getStatusLabel(profile?.verification_status)}
-                        />
+                </Section>
+                <section className={`${panel} flex flex-wrap gap-x-10 gap-y-4`}>
+                    <div>
+                        <p className="text-[13px] text-[#8792A1]">
+                            Registration number
+                        </p>
+                        <p className="mt-1 text-[14px] text-[#EEF1F5]">
+                            {profile?.registration_number || 'Not provided'}
+                        </p>
+                    </div>
+                    <div>
+                        <p className="text-[13px] text-[#8792A1]">
+                            Organization type
+                        </p>
+                        <p className="mt-1 text-[14px] text-[#EEF1F5]">
+                            {profile?.organization_type || 'Not provided'}
+                        </p>
+                    </div>
+                    <div>
+                        <p className="text-[13px] text-[#8792A1]">
+                            Verification
+                        </p>
+                        <p className="mt-1 text-[14px] text-[#EEF1F5]">
+                            {getStatusLabel(profile?.verification_status)}
+                        </p>
                     </div>
                 </section>
-
-                {/* ACTIONS */}
-
-                <div className="flex flex-col-reverse items-stretch justify-end gap-3 border-t border-[#29323E] pt-6 sm:flex-row sm:items-center">
+                <div className="flex flex-col-reverse justify-end gap-3 border-t border-[#29323E] pt-5 sm:flex-row">
                     <button
                         type="button"
+                        disabled={busy}
                         onClick={onCancel}
-                        disabled={saving || Boolean(uploadingImage)}
-                        className="
-                            inline-flex min-h-11 items-center justify-center
-                            gap-2 border border-[#394555] px-5 py-3
-                            text-[14px] font-medium text-[#B8C0CA]
-                            transition-colors hover:bg-[#1A222D]
-                            disabled:cursor-not-allowed disabled:opacity-50
-                        "
+                        className="min-h-11 border border-[#394555] px-5 text-[14px] text-[#B8C0CA] hover:bg-[#1A222D] disabled:opacity-50"
                     >
-                        <X size={16} />
                         Cancel
                     </button>
-
                     <button
                         type="submit"
-                        disabled={saving || Boolean(uploadingImage)}
-                        className="
-                            inline-flex min-h-11 items-center justify-center
-                            gap-2 bg-[#465261] px-6 py-3
-                            text-[14px] font-semibold text-white
-                            transition-colors hover:bg-[#586678]
-                            disabled:cursor-not-allowed disabled:opacity-50
-                        "
+                        disabled={busy}
+                        className="inline-flex min-h-11 items-center justify-center gap-2 bg-[#465261] px-6 text-[14px] font-semibold text-white hover:bg-[#586678] disabled:opacity-50"
                     >
                         <Save size={16} />
                         {saving ? 'Saving changes...' : 'Save changes'}

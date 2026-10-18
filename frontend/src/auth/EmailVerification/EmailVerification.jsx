@@ -34,7 +34,7 @@ const EmailVerification = () => {
     const isSuccess = status === 'success';
     const isAlreadyVerified = status === 'already-verified';
     const isExpired = status === 'expired';
-    const isDemo = status === 'demo';
+    const isDemo = method === 'demo' || status === 'demo';
 
     /*
     |--------------------------------------------------------------------------
@@ -326,7 +326,7 @@ const EmailVerification = () => {
 
                     <div className="mt-5 text-center sm:mt-6">
                         <Link
-                            to="/account"
+                            to="/login?role=individual"
                             className="inline-flex min-h-10 items-center text-sm font-medium! text-slate-500 transition hover:text-primary"
                         >
                             Back to Sign In
@@ -440,7 +440,7 @@ const EmailVerification = () => {
 
                     <div className="mt-5 text-center sm:mt-6">
                         <Link
-                            to="/account"
+                            to="/login?role=individual"
                             className="inline-flex min-h-10 items-center text-sm font-medium! text-slate-500 transition hover:text-primary"
                         >
                             Back to Sign In
@@ -484,7 +484,7 @@ const EmailVerification = () => {
                     </p>
 
                     <Link
-                        to="/account"
+                        to="/login?role=individual"
                         className="mt-7 inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium! text-white! transition hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 sm:mt-8"
                     >
                         Continue to Sign In
@@ -523,7 +523,7 @@ const EmailVerification = () => {
                     </p>
 
                     <Link
-                        to="/account"
+                        to="/login?role=individual"
                         className="mt-7 inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium! text-white! transition hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 sm:mt-8"
                     >
                         Continue to Sign In
@@ -691,7 +691,7 @@ const EmailVerification = () => {
 
                     <div className="mt-5 text-center sm:mt-6">
                         <Link
-                            to="/account"
+                            to="/login?role=individual"
                             className="inline-flex min-h-10 items-center text-sm font-medium! text-slate-500 transition hover:text-primary"
                         >
                             Back to Sign In
@@ -735,7 +735,7 @@ const EmailVerification = () => {
                 </p>
 
                 <Link
-                    to="/account"
+                    to="/login?role=individual"
                     className="mt-7 inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-5 py-2.5 text-sm font-medium! text-slate-700 transition hover:border-primary hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 sm:mt-8"
                 >
                     Back to Sign In

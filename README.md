@@ -23,9 +23,6 @@ https://foundation-management-system.vercel.app/
 * **Account Registration:**
   https://foundation-management-system.vercel.app/register
 
-* **Account Selection:**
-  https://foundation-management-system.vercel.app/account/
-
 * **Individual Login:**
   https://foundation-management-system.vercel.app/login?role=individual
 

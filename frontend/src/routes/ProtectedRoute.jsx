@@ -22,7 +22,7 @@ const ProtectedRoute = ({ allowedRoles = [] }) => {
 
         return (
             <Navigate
-                to={isAdminRoute ? '/admin/login' : '/account'}
+                to={isAdminRoute ? '/admin/login' : '/login?role=individual'}
                 replace
                 state={{ from: location }}
             />
@@ -42,7 +42,7 @@ const ProtectedRoute = ({ allowedRoles = [] }) => {
         const isAdminRoute = allowedRoles.includes('admin');
 
         return (
-            <Navigate to={isAdminRoute ? '/admin/login' : '/account'} replace />
+            <Navigate to={isAdminRoute ? '/admin/login' : '/login?role=individual'} replace />
         );
     }
 
@@ -72,7 +72,7 @@ const ProtectedRoute = ({ allowedRoles = [] }) => {
         sessionStorage.removeItem('auth_token');
         sessionStorage.removeItem('user');
 
-        return <Navigate to="/account" replace />;
+        return <Navigate to="/login?role=individual" replace />;
     }
 
     return <Outlet />;

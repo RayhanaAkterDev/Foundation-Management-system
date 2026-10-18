@@ -130,7 +130,25 @@ const LoginForm = ({ loginRole }) => {
 
             const data = await response.json();
 
+            console.log('[LOGIN DEBUG]', {
+                status: response.status,
+                verification_method: data?.verification_method,
+                user_id: data?.user_id,
+            });
+
             if (!response.ok) {
+                if (
+                    response.status === 403 &&
+                    data?.verification_method === 'demo' &&
+                    data?.user_id
+                ) {
+                    navigate(
+                        `/email-verification?method=demo&user_id=${encodeURIComponent(data.user_id)}&email=${encodeURIComponent(data.email || formData.email)}`,
+                    );
+
+                    return;
+                }
+
                 if (data?.errors) {
                     const firstError = Object.values(data.errors)
                         .flat()

@@ -1,11 +1,15 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import {
     AlertCircle,
     AlertTriangle,
     ArrowRight,
-    ShieldCheck,
+    ChevronDown,
 } from 'lucide-react';
+
+import DashboardInput from '@/components/dashboard/DashboardInput';
+import LoadingUI from '@/components/dashboard/LoadingUI';
+import LoadingError from '@/components/dashboard/LoadingError';
 
 import { ORGANIZATION_TYPES } from '../data/organizationTypes';
 
@@ -50,31 +54,28 @@ const getInitialForm = (mode, organization) => {
 const FieldError = ({ name, fieldErrors }) => {
     const error = fieldErrors?.[name];
 
-    if (!error) {
-        return null;
-    }
+    if (!error) return null;
 
     const message = Array.isArray(error) ? error[0] : error;
+
+    if (!message) return null;
 
     return (
         <div
             className="
                 mt-2
-                flex
-                items-start
-                gap-2
-
+                flex items-start gap-2
                 font-sans!
-                text-[10.5px]
+                text-[13px]
                 leading-5
-
                 text-[#D99A9F]!
             "
         >
             <AlertCircle
-                size={13}
+                size={15}
                 strokeWidth={1.8}
                 className="mt-0.5 shrink-0"
+                aria-hidden="true"
             />
 
             <span>{message}</span>
@@ -83,7 +84,7 @@ const FieldError = ({ name, fieldErrors }) => {
 };
 
 /* ==========================================================================
-   EDITOR FIELD
+   EDITOR FIELD — SAME AS USER FORM
 ============================================================================ */
 
 const EditorField = ({
@@ -95,123 +96,46 @@ const EditorField = ({
     placeholder,
     disabled = false,
     required = false,
+    showRequiredMark = true,
     autoComplete,
     fieldErrors,
     onChange,
     onPhoneChange,
 }) => {
-    const hasError = Boolean(fieldErrors?.[name]);
+    const error = fieldErrors?.[name];
+    const hasError = Boolean(Array.isArray(error) ? error.length : error);
 
     return (
         <div className="min-w-0">
-            <label
-                htmlFor={id}
-                className="
-                    mb-2.5
-                    block
+            <DashboardInput
+                id={id}
+                name={name}
+                label={label}
+                type={type}
+                value={value}
+                placeholder={placeholder}
+                disabled={disabled}
+                required={required}
+                requiredMark={required && showRequiredMark}
+                autoComplete={autoComplete}
+                invalid={hasError}
+                onChange={onPhoneChange || onChange}
+                maxLength={name === 'phone' ? 11 : undefined}
+                inputMode={name === 'phone' ? 'numeric' : undefined}
+                aria-describedby={hasError ? `${id}-error` : undefined}
+            />
 
-                    font-sans!
-                    text-[9.5px]
-                    font-semibold!
-                    uppercase
-                    tracking-[0.11em]
-
-                    text-[#8792A1]!
-                "
-            >
-                {label}
-
-                {required && <span className="ml-1 text-[#697586]!">*</span>}
-            </label>
-
-            <div
-                className={`
-                    relative
-                    h-[48px]
-
-                    border
-
-                    transition-[border-color,background-color]
-                    duration-150
-                    ease-out
-
-                    ${
-                        hasError
-                            ? `
-                                border-[#5B3840]
-                                bg-[#281A1F]
-                            `
-                            : `
-                                border-[#303A47]
-                                bg-[#151B24]
-
-                                hover:border-[#394555]
-
-                                focus-within:border-[#4B5869]
-                                focus-within:bg-[#171E28]
-                            `
-                    }
-                `}
-            >
-                <input
-                    id={id}
-                    name={name}
-                    type={type}
-                    value={value}
-                    placeholder={placeholder}
-                    disabled={disabled}
-                    required={required}
-                    autoComplete={autoComplete}
-                    onChange={onPhoneChange || onChange}
-                    maxLength={name === 'phone' ? 11 : undefined}
-                    inputMode={name === 'phone' ? 'numeric' : undefined}
-                    className="
-                        h-full
-                        w-full
-                        appearance-none
-
-                        border-0!
-                        bg-transparent!
-
-                        px-4
-
-                        font-sans!
-                        text-[12px]
-                        font-medium!
-
-                        text-[#EEF1F5]!
-
-                        shadow-none!
-                        outline-none!
-                        ring-0!
-
-                        placeholder:font-normal!
-                        placeholder:text-[#657181]!
-
-                        focus:border-0!
-                        focus:bg-transparent!
-                        focus:outline-none!
-                        focus:ring-0!
-
-                        disabled:cursor-not-allowed
-                        disabled:opacity-45
-
-                        [&:-webkit-autofill]:[-webkit-text-fill-color:#EEF1F5]
-                        [&:-webkit-autofill]:[transition:background-color_999999s_ease-in-out_0s]
-                        [&:-webkit-autofill]:[box-shadow:0_0_0_1000px_#151B24_inset]
-                        [&:-webkit-autofill:hover]:[box-shadow:0_0_0_1000px_#151B24_inset]
-                        [&:-webkit-autofill:focus]:[box-shadow:0_0_0_1000px_#171E28_inset]
-                    "
-                />
-            </div>
-
-            <FieldError name={name} fieldErrors={fieldErrors} />
+            {hasError && (
+                <div id={`${id}-error`}>
+                    <FieldError name={name} fieldErrors={fieldErrors} />
+                </div>
+            )}
         </div>
     );
 };
 
 /* ==========================================================================
-   SELECT FIELD
+   EDITOR SELECT — MATCHED TO DASHBOARD INPUT
 ============================================================================ */
 
 const EditorSelect = ({
@@ -223,60 +147,62 @@ const EditorSelect = ({
     placeholder,
     disabled = false,
     required = false,
+    showRequiredMark = true,
     fieldErrors,
     onChange,
 }) => {
-    const hasError = Boolean(fieldErrors?.[name]);
+    const error = fieldErrors?.[name];
+    const hasError = Boolean(Array.isArray(error) ? error.length : error);
 
     return (
         <div className="min-w-0">
             <label
                 htmlFor={id}
-                className="
-                    mb-2.5
-                    block
-
+                className={`
+                    mb-[7px] block
                     font-sans!
-                    text-[9.5px]
-                    font-semibold!
-                    uppercase
-                    tracking-[0.11em]
-
-                    text-[#8792A1]!
-                "
+                    text-[13px]
+                    font-medium!
+                    leading-5
+                    ${hasError ? 'text-[#C99AA2]!' : 'text-[#9BA7B6]!'}
+                `}
             >
                 {label}
 
-                {required && <span className="ml-1 text-[#697586]!">*</span>}
+                {required && showRequiredMark && (
+                    <span aria-hidden="true" className="ml-1 text-[#8793A2]!">
+                        *
+                    </span>
+                )}
             </label>
 
             <div
                 className={`
-                    relative
-                    h-[48px]
+                    relative flex w-full min-w-0
+                    items-center overflow-hidden
+                    rounded-[4px] border
 
-                    border
-
-                    transition-[border-color,background-color]
+                    transition-[background-color,border-color,box-shadow]
                     duration-150
-                    ease-out
 
                     ${
                         hasError
-                            ? `
-                                border-[#5B3840]
-                                bg-[#281A1F]
-                            `
+                            ? 'border-[#86545E] bg-[#211E25]'
                             : `
-                                border-[#303A47]
-                                bg-[#151B24]
+                                border-[#29313D]
+                                bg-[#151B23]
+                                shadow-[inset_0_1px_3px_rgba(0,0,0,0.18)]
 
-                                hover:border-[#394555]
+                                hover:border-[#3C4654]
+                                hover:bg-[#171E27]
 
-                                focus-within:border-[#4B5869]
-                                focus-within:bg-[#171E28]
+                                focus-within:border-[#637489]
+                                focus-within:bg-[#1A222D]
+                                focus-within:shadow-[inset_0_1px_3px_rgba(0,0,0,0.12)]
                             `
                     }
+
+                    ${disabled ? 'opacity-50' : ''}
                 `}
             >
                 <select
@@ -286,37 +212,32 @@ const EditorSelect = ({
                     required={required}
                     disabled={disabled}
                     onChange={onChange}
-                    className="
-                        h-full
-                        w-full
-                        appearance-none
+                    aria-invalid={hasError || undefined}
+                    aria-describedby={hasError ? `${id}-error` : undefined}
+                    className={`
+                        block h-11 w-full min-w-0
+                        appearance-none rounded-none
 
-                        border-0!
-                        bg-transparent!
+                        border-0! bg-transparent!
+                        shadow-none! outline-none! ring-0!
 
-                        px-4
-                        pr-11
+                        pl-3.5 pr-11
 
                         font-sans!
-                        text-[12px]
-                        font-medium!
+                        text-[14px]
+                        font-normal!
+                        tracking-normal
 
-                        text-[#EEF1F5]!
-
-                        shadow-none!
-                        outline-none!
-                        ring-0!
+                        ${value ? 'text-[#D8DEE7]!' : 'text-[#778393]!'}
 
                         focus:border-0!
-                        focus:bg-transparent!
                         focus:outline-none!
                         focus:ring-0!
 
                         disabled:cursor-not-allowed
-                        disabled:opacity-45
-                    "
+                    `}
                 >
-                    <option value="" className="bg-[#151B24] text-[#697586]">
+                    <option value="" className="bg-[#151B23] text-[#778393]">
                         {placeholder}
                     </option>
 
@@ -331,7 +252,10 @@ const EditorSelect = ({
                             <option
                                 key={optionValue}
                                 value={optionValue}
-                                className="bg-[#151B24] text-[#EEF1F5]"
+                                className="
+                                    bg-[#151B23]
+                                    text-[#D8DEE7]
+                                "
                             >
                                 {optionLabel}
                             </option>
@@ -339,109 +263,82 @@ const EditorSelect = ({
                     })}
                 </select>
 
-                <span
+                <ChevronDown
+                    size={16}
+                    strokeWidth={1.7}
                     aria-hidden="true"
                     className="
                         pointer-events-none
-                        absolute
-                        right-4
-                        top-1/2
-
-                        h-0
-                        w-0
+                        absolute right-3.5 top-1/2
                         -translate-y-1/2
-
-                        border-l-[4px]
-                        border-r-[4px]
-                        border-t-[5px]
-
-                        border-l-transparent
-                        border-r-transparent
-                        border-t-[#697586]
+                        text-[#8290A1]
                     "
                 />
             </div>
 
-            <FieldError name={name} fieldErrors={fieldErrors} />
+            {hasError && (
+                <div id={`${id}-error`}>
+                    <FieldError name={name} fieldErrors={fieldErrors} />
+                </div>
+            )}
         </div>
     );
 };
 
 /* ==========================================================================
-   SECTION HEADING
+   SECTION HEADING — SAME AS USER FORM
 ============================================================================ */
 
-const FormSectionHeading = ({ number, title, description }) => {
-    return (
+const FormSectionHeading = ({ number, title, description }) => (
+    <div className="flex items-start gap-3.5">
         <div
+            aria-hidden="true"
             className="
-                flex
-                items-start
-                gap-3.5
+                flex h-7 w-7 shrink-0
+                items-center justify-center
+                border border-[#35404E]
+                bg-[#171E28]
+
+                font-sans!
+                text-[12px]
+                font-semibold!
+                tabular-nums
+                text-[#AEB7C3]!
             "
         >
-            <div
+            {number}
+        </div>
+
+        <div className="min-w-0 pt-0.5">
+            <h3
                 className="
-                    flex
-                    h-[27px]
-                    w-[27px]
-                    shrink-0
-                    items-center
-                    justify-center
-
-                    border
-                    border-[#303A47]
-
-                    bg-[#171E28]
-
                     font-sans!
-                    text-[9px]
+                    text-[15px]
                     font-semibold!
-                    tabular-nums
-
-                    text-[#8792A1]!
+                    leading-6
+                    tracking-[-0.015em]
+                    text-[#EEF1F5]!
                 "
             >
-                {number}
-            </div>
+                {title}
+            </h3>
 
-            <div className="min-w-0 pt-px">
-                <h3
+            {description && (
+                <p
                     className="
+                        mt-1 max-w-[570px]
                         font-sans!
-
                         text-[13px]
-                        font-semibold!
-                        leading-5
-                        tracking-[-0.01em]
-
-                        text-[#EEF1F5]!
+                        leading-[1.65]
+                        text-[#8792A1]!
                     "
                 >
-                    {title}
-                </h3>
-
-                {description && (
-                    <p
-                        className="
-                            mt-1.5
-                            max-w-[570px]
-
-                            font-sans!
-                            text-[10px]
-                            font-normal!
-                            leading-[1.65]
-
-                            text-[#697586]!
-                        "
-                    >
-                        {description}
-                    </p>
-                )}
-            </div>
+                    {description}
+                </p>
+            )}
         </div>
-    );
-};
+    </div>
+);
 
 /* ==========================================================================
    ORGANIZATION FORM
@@ -457,14 +354,9 @@ const OrganizationForm = ({
     onCancel,
     onChange,
 }) => {
-    const initialForm = useMemo(
-        () => getInitialForm(mode, organization),
-        [mode, organization],
-    );
-
-    const [form, setForm] = useState(initialForm);
-
     const isEditMode = mode === 'edit';
+
+    const [form, setForm] = useState(() => getInitialForm(mode, organization));
 
     const verificationStatus = organization?.verification_status || '';
 
@@ -487,14 +379,14 @@ const OrganizationForm = ({
     }, [form, onChange]);
 
     /* ======================================================================
-       CHANGE
+       CHANGE HANDLERS
     ====================================================================== */
 
     const handleChange = (event) => {
         const { name, value } = event.target;
 
-        setForm((current) => ({
-            ...current,
+        setForm((previous) => ({
+            ...previous,
             [name]: value,
         }));
     };
@@ -502,8 +394,8 @@ const OrganizationForm = ({
     const handlePhoneChange = (event) => {
         const digitsOnly = event.target.value.replace(/\D/g, '').slice(0, 11);
 
-        setForm((current) => ({
-            ...current,
+        setForm((previous) => ({
+            ...previous,
             phone: digitsOnly,
         }));
     };
@@ -526,113 +418,33 @@ const OrganizationForm = ({
     };
 
     return (
-        <form onSubmit={handleSubmit} className="w-full font-sans!">
-            {/* =============================================================
-                GENERAL ERROR
-            ============================================================== */}
+        <form
+            onSubmit={handleSubmit}
+            className="@container w-full min-w-0 font-sans!"
+        >
+            {/* GENERAL ERROR */}
 
             {error && (
-                <div
-                    className="
-                        mb-8
-
-                        flex
-                        items-start
-                        gap-3.5
-
-                        border
-                        border-[#493038]
-
-                        bg-[#281A1F]
-
-                        px-4
-                        py-3.5
-                    "
-                >
-                    <div
-                        className="
-                            flex
-                            h-8
-                            w-8
-                            shrink-0
-                            items-center
-                            justify-center
-
-                            border
-                            border-[#493038]
-
-                            bg-[#301F25]
-
-                            text-[#D99A9F]
-                        "
-                    >
-                        <AlertCircle size={14} strokeWidth={1.8} />
-                    </div>
-
-                    <div className="min-w-0 pt-px">
-                        <p
-                            className="
-                                font-sans!
-                                text-[11px]
-                                font-semibold!
-
-                                text-[#E4B0B4]!
-                            "
-                        >
-                            Organization could not be saved
-                        </p>
-
-                        <p
-                            className="
-                                mt-1
-
-                                font-sans!
-                                text-[10px]
-                                leading-5
-
-                                text-[#B98289]!
-                            "
-                        >
-                            {error}
-                        </p>
-                    </div>
-                </div>
+                <LoadingError
+                    className="mb-7"
+                    title="Organization could not be saved"
+                    message={error}
+                />
             )}
 
-            {/* =============================================================
+            {/* ==========================================================
                 01 — ORGANIZATION DETAILS
-            ============================================================== */}
+            ========================================================== */}
 
-            <section
-                className="
-                    grid
-                    gap-7
-
-                    xl:grid-cols-[180px_minmax(0,1fr)]
-                    xl:gap-10
-                "
-            >
-                <FormSectionHeading
-                    number="01"
-                    title="Organization details"
-                    description={
-                        isEditMode
-                            ? 'Identity and classification information attached to this organization.'
-                            : 'Basic information used to identify and classify this organization.'
-                    }
-                />
+            <section className="grid gap-6 sm:gap-7">
+                <FormSectionHeading number="01" title="Organization details" />
 
                 <div
                     className="
-                        grid
-                        min-w-0
-
-                        gap-x-5
-                        gap-y-6
-
-                        md:grid-cols-2
-
-                        xl:gap-x-6
+                        grid min-w-0
+                        gap-x-5 gap-y-6
+                        @[620px]:grid-cols-2
+                        @[950px]:gap-x-6
                     "
                 >
                     <EditorField
@@ -644,6 +456,7 @@ const OrganizationForm = ({
                         disabled={loading}
                         autoComplete="organization"
                         required
+                        showRequiredMark={!isEditMode}
                         fieldErrors={fieldErrors}
                         onChange={handleChange}
                     />
@@ -658,11 +471,12 @@ const OrganizationForm = ({
                         disabled={loading}
                         autoComplete="email"
                         required
+                        showRequiredMark={!isEditMode}
                         fieldErrors={fieldErrors}
                         onChange={handleChange}
                     />
 
-                    <div className="md:col-span-2">
+                    <div className="min-w-0 @[620px]:col-span-2">
                         <EditorSelect
                             id="organization-type"
                             name="organization_type"
@@ -671,6 +485,7 @@ const OrganizationForm = ({
                             placeholder="Select organization type"
                             disabled={loading}
                             required
+                            showRequiredMark={!isEditMode}
                             options={ORGANIZATION_TYPES}
                             fieldErrors={fieldErrors}
                             onChange={handleChange}
@@ -678,52 +493,35 @@ const OrganizationForm = ({
 
                         {isVerified && organizationTypeChanged && (
                             <div
+                                role="status"
                                 className="
-                                        mt-4
-
-                                        flex
-                                        items-start
-                                        gap-3.5
-
-                                        border
-                                        border-[#493D2C]
-
+                                        mt-4 flex items-start gap-3.5
+                                        border border-[#493D2C]
                                         bg-[#201D18]
-
-                                        px-4
-                                        py-3.5
+                                        px-4 py-4
                                     "
                             >
                                 <div
                                     className="
-                                            flex
-                                            h-8
-                                            w-8
-                                            shrink-0
-                                            items-center
-                                            justify-center
-
-                                            border
-                                            border-[#493D2C]
-
+                                            flex h-9 w-9 shrink-0
+                                            items-center justify-center
+                                            border border-[#493D2C]
                                             bg-[#282219]
-
                                             text-[#C5A06B]
                                         "
                                 >
                                     <AlertTriangle
-                                        size={14}
+                                        size={16}
                                         strokeWidth={1.7}
                                     />
                                 </div>
 
-                                <div className="min-w-0 pt-px">
+                                <div className="min-w-0 pt-0.5">
                                     <p
                                         className="
                                                 font-sans!
-                                                text-[10.5px]
+                                                text-[14px]
                                                 font-semibold!
-
                                                 text-[#D4BB94]!
                                             "
                                     >
@@ -732,13 +530,11 @@ const OrganizationForm = ({
 
                                     <p
                                         className="
-                                                mt-1
-
+                                                mt-1.5
                                                 font-sans!
-                                                text-[9.5px]
-                                                leading-[1.6]
-
-                                                text-[#8E816F]!
+                                                text-[13px]
+                                                leading-[1.65]
+                                                text-[#A39480]!
                                             "
                                     >
                                         Changing the organization type will move
@@ -755,43 +551,26 @@ const OrganizationForm = ({
                 </div>
             </section>
 
-            {/* =============================================================
+            {/* ==========================================================
                 02 — CONTACT INFORMATION
-            ============================================================== */}
+            ========================================================== */}
 
             <section
                 className="
-                    mt-10
-
-                    grid
-                    gap-7
-
-                    border-t
-                    border-[#252D38]
-
-                    pt-8
-
-                    xl:grid-cols-[180px_minmax(0,1fr)]
-                    xl:gap-10
+                    mt-8 grid gap-6
+                    border-t border-[#303A47]
+                    pt-7
+                    sm:mt-9 sm:gap-7 sm:pt-8
                 "
             >
-                <FormSectionHeading
-                    number="02"
-                    title="Contact information"
-                    description="Contact and location details used for organization communication."
-                />
+                <FormSectionHeading number="02" title="Contact information" />
 
                 <div
                     className="
-                        grid
-                        min-w-0
-
-                        gap-x-5
-                        gap-y-6
-
-                        md:grid-cols-2
-
-                        xl:gap-x-6
+                        grid min-w-0
+                        gap-x-5 gap-y-6
+                        @[620px]:grid-cols-2
+                        @[950px]:gap-x-6
                     "
                 >
                     <EditorField
@@ -821,7 +600,7 @@ const OrganizationForm = ({
                         onChange={handleChange}
                     />
 
-                    <div className="md:col-span-2">
+                    <div className="min-w-0 @[620px]:col-span-2">
                         <EditorField
                             id="organization-address"
                             name="address"
@@ -837,345 +616,123 @@ const OrganizationForm = ({
                 </div>
             </section>
 
-            {/* =============================================================
-                VERIFICATION INFO — EDIT MODE ONLY
-            ============================================================== */}
-
-            {/* {isEditMode && (
-                <div
-                    className="
-                        mt-8
-
-                        flex
-                        flex-col
-                        gap-4
-
-                        border
-                        border-[#303A47]
-
-                        bg-[#121821]
-
-                        px-4
-                        py-3.5
-
-                        sm:flex-row
-                        sm:items-center
-                        sm:justify-between
-                        sm:px-5
-                    "
-                >
-                    <div
-                        className="
-                            flex
-                            min-w-0
-                            items-center
-                            gap-3.5
-                        "
-                    >
-                        <div
-                            className="
-                                flex
-                                h-9
-                                w-9
-                                shrink-0
-                                items-center
-                                justify-center
-
-                                border
-                                border-[#29323E]
-
-                                bg-[#171E28]
-
-                                text-[#8792A1]
-                            "
-                        >
-                            {isVerified ? (
-                                <CheckCircle2 size={15} strokeWidth={1.7} />
-                            ) : (
-                                <ShieldCheck size={15} strokeWidth={1.65} />
-                            )}
-                        </div>
-
-                        <div className="min-w-0">
-                            <p
-                                className="
-                                    font-sans!
-                                    text-[10.5px]
-                                    font-semibold!
-
-                                    text-[#C2C9D2]!
-                                "
-                            >
-                                Verification status
-                            </p>
-
-                            <p
-                                className="
-                                    mt-1
-
-                                    font-sans!
-                                    text-[9.5px]
-                                    leading-[1.6]
-
-                                    text-[#697586]!
-                                "
-                            >
-                                {isVerified
-                                    ? 'This organization has completed verification.'
-                                    : verificationStatus === 'rejected'
-                                      ? 'This organization is currently rejected.'
-                                      : 'This organization is waiting for verification.'}
-                            </p>
-                        </div>
-                    </div>
-
-                    <div
-                        className="
-                            flex
-                            shrink-0
-                            items-center
-                            gap-2
-
-                            font-sans!
-                            text-[9.5px]
-                            font-medium!
-
-                            sm:border-l
-                            sm:border-[#29323E]
-                            sm:pl-5
-                        "
-                    >
-                        <span
-                            className={`
-                                h-1.5
-                                w-1.5
-                                rounded-full
-
-                                ${
-                                    verificationStatus === 'verified'
-                                        ? 'bg-[#8FAE9B]'
-                                        : verificationStatus === 'rejected'
-                                          ? 'bg-[#C47D84]'
-                                          : 'bg-[#D39A4A]'
-                                }
-                            `}
-                        />
-
-                        <span
-                            className={`
-                                ${
-                                    verificationStatus === 'verified'
-                                        ? 'text-[#A9C2B2]!'
-                                        : verificationStatus === 'rejected'
-                                          ? 'text-[#D99A9F]!'
-                                          : 'text-[#C5A06B]!'
-                                }
-                            `}
-                        >
-                            {verificationStatus === 'verified'
-                                ? 'Verified'
-                                : verificationStatus === 'rejected'
-                                  ? 'Rejected'
-                                  : 'Pending'}
-                        </span>
-                    </div>
-                </div>
-            )} */}
-
-            {/* =============================================================
-                ACTION BAR
-            ============================================================== */}
+            {/* ==========================================================
+                ACTION BAR — SAME AS USER FORM
+            ========================================================== */}
 
             <footer
                 className="
-                    mt-10
-
-                    border-t
-                    border-[#252D38]
-
-                    pt-6
+                    mt-11
+                    border-t border-[#303A47]
+                    pt-7
+                    sm:mt-12 sm:pt-8
                 "
             >
                 <div
                     className="
-                        flex
-                        flex-col
-                        gap-5
-
-                        sm:flex-row
-                        sm:items-center
-                        sm:justify-between
+                        flex flex-col-reverse gap-3
+                        @[620px]:flex-row
+                        @[620px]:items-center
+                        @[620px]:justify-end
                     "
                 >
-                    <div
-                        className="
-                            flex
-                            max-w-[430px]
-                            items-start
-                            gap-2.5
-                        "
-                    >
-                        <ShieldCheck
-                            size={14}
-                            strokeWidth={1.6}
-                            className="
-                                mt-0.5
-                                shrink-0
-                                text-[#697586]
-                            "
-                        />
-
-                        <p
-                            className="
-                                font-sans!
-                                text-[9.5px]
-                                leading-[1.65]
-
-                                text-[#697586]!
-                            "
-                        >
-                            {isEditMode
-                                ? 'Review the information before saving. Changes will be applied directly to this organization.'
-                                : 'Review the organization details above before creating the profile.'}
-                        </p>
-                    </div>
-
-                    <div
-                        className="
-                            flex
-                            w-full
-                            items-center
-                            gap-2.5
-
-                            sm:w-auto
-                        "
-                    >
-                        {onCancel && (
-                            <button
-                                type="button"
-                                onClick={onCancel}
-                                disabled={loading}
-                                className="
-                                    h-[42px]
-                                    flex-1
-
-                                    border
-                                    border-[#303A47]
-
-                                    bg-[#0E1219]
-
-                                    px-5
-
-                                    font-sans!
-                                    text-[10.5px]
-                                    font-medium!
-
-                                    text-[#AEB7C3]!
-
-                                    transition-[border-color,background-color,color]
-                                    duration-150
-
-                                    hover:border-[#3B4655]
-                                    hover:bg-[#151B24]
-                                    hover:text-[#EEF1F5]!
-
-                                    disabled:cursor-not-allowed
-                                    disabled:opacity-40
-
-                                    focus:outline-none
-                                    focus:ring-0
-
-                                    sm:flex-none
-                                "
-                            >
-                                Cancel
-                            </button>
-                        )}
-
+                    {onCancel && (
                         <button
-                            type="submit"
+                            type="button"
+                            onClick={onCancel}
                             disabled={loading}
                             className="
-                                group
-
-                                flex
-                                h-[42px]
-                                min-w-[170px]
-                                flex-1
-                                items-center
-                                justify-center
-                                gap-2.5
-
-                                border
-                                border-[#465261]
-
-                                bg-[#1D2632]
-
+                                h-11 w-full
+                                border border-[#303A47]
+                                bg-[#0E1219]
                                 px-5
 
                                 font-sans!
-                                text-[10.5px]
-                                font-semibold!
+                                text-[13px]
+                                font-medium!
+                                text-[#AEB7C3]!
 
-                                text-[#EEF1F5]!
-
-                                transition-[border-color,background-color]
+                                transition-[border-color,background-color,color]
                                 duration-150
 
-                                hover:border-[#5A6878]
-                                hover:bg-[#222D3A]
+                                hover:border-[#465261]
+                                hover:bg-[#151B24]
+                                hover:text-[#EEF1F5]!
 
                                 disabled:cursor-not-allowed
-                                disabled:opacity-50
+                                disabled:opacity-40
 
-                                focus:outline-none
-                                focus:ring-0
+                                focus-visible:outline-2
+                                focus-visible:outline-offset-2
+                                focus-visible:outline-[#8792A1]
 
-                                sm:flex-none
+                                @[620px]:w-auto
                             "
                         >
-                            <span>
-                                {loading
-                                    ? isEditMode
-                                        ? 'Saving...'
-                                        : 'Creating...'
-                                    : isEditMode
-                                      ? 'Save changes'
-                                      : 'Create organization'}
-                            </span>
+                            Cancel
+                        </button>
+                    )}
 
-                            {!loading && (
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="
+                            group flex h-11 w-full
+                            min-w-[170px]
+                            items-center justify-center
+                            gap-2.5
+
+                            border border-[#586678]
+                            bg-[#273342]
+                            px-5
+
+                            font-sans!
+                            text-[13px]
+                            font-semibold!
+                            text-[#EEF1F5]!
+
+                            transition-[border-color,background-color]
+                            duration-150
+
+                            hover:border-[#5A6878]
+                            hover:bg-[#303D4E]
+
+                            disabled:cursor-not-allowed
+                            disabled:opacity-50
+
+                            focus-visible:outline-2
+                            focus-visible:outline-offset-2
+                            focus-visible:outline-[#AEB7C3]
+
+                            @[620px]:w-auto
+                        "
+                    >
+                        {loading ? (
+                            <LoadingUI
+                                variant="button"
+                                title={isEditMode ? 'Saving...' : 'Creating...'}
+                            />
+                        ) : (
+                            <>
+                                <span>
+                                    {isEditMode
+                                        ? 'Save changes'
+                                        : 'Create organization'}
+                                </span>
+
                                 <ArrowRight
-                                    size={14}
-                                    strokeWidth={1.8}
+                                    size={15}
+                                    strokeWidth={1.9}
                                     className="
-                                        text-[#AEB7C3]
-
+                                        text-[#B8C0CA]
                                         transition-transform
                                         duration-150
-
                                         group-hover:translate-x-0.5
                                     "
                                 />
-                            )}
-
-                            {loading && (
-                                <span
-                                    className="
-                                        h-3.5
-                                        w-3.5
-
-                                        animate-spin
-                                        rounded-full
-
-                                        border
-                                        border-[#697586]
-                                        border-t-[#EEF1F5]
-                                    "
-                                />
-                            )}
-                        </button>
-                    </div>
+                            </>
+                        )}
+                    </button>
                 </div>
             </footer>
         </form>

@@ -42,7 +42,7 @@ const OrganizationIdentity = ({ row, value, onView }) => {
             : '';
 
     return (
-        <div className="flex min-w-0 items-center gap-3">
+        <div className="flex min-w-0 max-w-70 items-center gap-3">
             <div
                 className="
                     flex h-8 w-8 shrink-0 items-center justify-center
@@ -79,8 +79,8 @@ const OrganizationIdentity = ({ row, value, onView }) => {
                     onClick={() => onView(row.id)}
                     title={name}
                     className="
-                        truncate text-[12px] font-semibold!
-                        leading-4 text-[#EEF1F5]
+                        block max-w-full truncate text-left text-[12px] font-semibold!
+                        leading-5 text-[#EEF1F5] hover:text-white
                     "
                 >
                     {name}
@@ -163,257 +163,137 @@ const MobileOrganizationAvatar = ({ row }) => {
 
 const MobileOrganizationRow = ({ row, onView, onReview, onEdit, onDelete }) => {
     const name = row?.name || 'Unnamed organization';
-    const email = row?.contactEmail || '';
+    const email = row?.contactEmail || row?.user?.email || '';
     const userStatus = getOrganizationUserStatus(row);
+    const pending = row?.verification_status === 'pending';
+    const canEdit = row?.verification_status !== 'rejected';
+
+    const actionClass = `inline-flex min-h-9 items-center justify-center gap-1.5
+        border border-[#29323E] bg-[#151B24] px-3 text-[11px] font-medium!
+        text-[#AEB7C3] transition-colors duration-150 hover:border-[#394555]
+        hover:bg-[#1A222D] hover:text-[#EEF1F5] focus:outline-none focus:ring-0`;
 
     return (
-        <article
-            className="
-                border-b border-[#202832] bg-[#0E1219]
-                px-4 py-4 transition-colors duration-150
-                last:border-b-0 hover:bg-[#111720]
-            "
-        >
-            {/* ORGANIZATION INFORMATION */}
-
-            <div className="flex min-w-0 items-start gap-3">
-                <button
-                    type="button"
-                    onClick={() => onView(row.id)}
-                    aria-label={`View ${name}`}
-                    className="
-                        flex min-w-0 flex-1 items-center gap-3
-                        text-left focus:outline-none focus:ring-0
-                    "
-                >
-                    <MobileOrganizationAvatar row={row} />
-
-                    <div className="min-w-0 flex-1">
-                        <p
-                            title={name}
-                            className="
-                                truncate text-[14px] font-semibold!
-                                leading-5 text-[#F1F3F6]
-                            "
-                        >
-                            {name}
-                        </p>
-
-                        <p
-                            title={email}
-                            className="
-                                mt-0.5 truncate text-[12px]
-                                leading-4.5 text-[#7F8A99]
-                            "
-                        >
-                            {email || 'No contact email'}
-                        </p>
-                    </div>
-                </button>
-            </div>
-
-            {/* TYPE AND VERIFICATION STATUS */}
-
-            <div
-                className="
-                    mt-3 ml-13 flex min-w-0 flex-wrap
-                    items-center gap-x-2 gap-y-2
-                "
+        <article className="min-w-0 border-b border-[#202832] bg-[#0E1219] px-4 py-4 last:border-b-0 hover:bg-[#111720] sm:px-5">
+            <button
+                type="button"
+                onClick={() => onView(row.id)}
+                aria-label={`View ${name}`}
+                className="flex w-full min-w-0 items-center gap-3 text-left focus:outline-none focus:ring-0"
             >
-                <div
-                    className="
-                        flex min-w-0 max-w-42.5 items-center
-                        gap-1.5 text-[#AEB7C3]
-                    "
-                >
+                <MobileOrganizationAvatar row={row} />
+                <span className="min-w-0 flex-1">
+                    <span
+                        className="block truncate text-[14px] font-semibold! leading-5 text-[#F1F3F6]"
+                        title={name}
+                    >
+                        {name}
+                    </span>
+                    <span
+                        className="mt-0.5 block truncate text-[12px] leading-4.5 text-[#7F8A99]"
+                        title={email}
+                    >
+                        {email || 'No contact email'}
+                    </span>
+                </span>
+            </button>
+
+            <div className="mt-3 flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-2 pl-13">
+                <span className="inline-flex min-w-0 max-w-full items-center gap-1.5 text-[#AEB7C3]">
                     <Building2
                         size={13}
                         strokeWidth={1.8}
                         className="shrink-0 text-[#737F8F]"
                     />
-
                     <span
+                        className="min-w-0 truncate text-[11px] font-medium! capitalize"
                         title={row.organization_type || 'Not specified'}
-                        className="
-                            truncate text-[11px] font-medium!
-                            capitalize leading-4
-                        "
                     >
                         {row.organization_type || 'Not specified'}
                     </span>
-                </div>
-
+                </span>
                 <span
                     aria-hidden="true"
                     className="h-1 w-1 shrink-0 rounded-full bg-[#36404C]"
                 />
-
-                <div className="shrink-0">
-                    <StatusBadge status={row.verification_status} />
-                </div>
+                <StatusBadge status={row.verification_status} />
             </div>
 
-            {/* USER ACCOUNT STATUS */}
-
-            <div
-                className="
-                    mt-3 ml-13 flex min-w-0 flex-wrap
-                    items-center justify-between gap-2
-                    border-t border-[#1B232D] pt-2.5
-                "
-            >
-                <span
-                    className="
-                        text-[10px] font-medium! uppercase
-                        tracking-[0.06em] text-[#5F6B7A]
-                    "
-                >
-                    User Status
-                </span>
-
-                {userStatus ? (
-                    <StatusBadge status={userStatus} />
-                ) : (
-                    <span className="text-[11px] text-[#697586]">
-                        Not available
-                    </span>
-                )}
-            </div>
-
-            {/* REGISTRATION INFORMATION */}
-
-            <div
-                className="
-                    mt-3 ml-13 flex min-w-0 items-start
-                    justify-between gap-4 border-t border-[#1B232D] pt-3
-                "
-            >
-                <div className="min-w-0 flex-1">
-                    <p
-                        className="
-                            text-[10px] font-medium! uppercase
-                            tracking-[0.06em] text-[#5F6B7A]
-                        "
-                    >
-                        Registration
+            <div className="mt-3 grid min-w-0 grid-cols-2 gap-x-4 gap-y-3 border-t border-[#1B232D] pt-3 sm:grid-cols-3">
+                <div className="min-w-0">
+                    <p className="text-[10px] font-medium! text-[#697586]">
+                        Account status
                     </p>
-
-                    <p
-                        title={row.registration_number || '—'}
-                        className="
-                            mt-1 truncate text-[11px] font-medium!
-                            tabular-nums text-[#AEB7C3]
-                        "
-                    >
-                        {row.registration_number || '—'}
-                    </p>
+                    <div className="mt-1.5">
+                        {userStatus ? (
+                            <StatusBadge status={userStatus} />
+                        ) : (
+                            <span className="text-[11px] text-[#697586]">
+                                Not available
+                            </span>
+                        )}
+                    </div>
                 </div>
-
-                <div className="shrink-0 text-right">
-                    <p
-                        className="
-                            text-[10px] font-medium! uppercase
-                            tracking-[0.06em] text-[#5F6B7A]
-                        "
-                    >
+                <div className="min-w-0">
+                    <p className="text-[10px] font-medium! text-[#697586]">
                         Registered
                     </p>
-
                     <p
+                        className="mt-1.5 truncate text-[11px] font-medium! text-[#AEB7C3]"
                         title={row.registeredDate || '—'}
-                        className="
-                            mt-1 truncate text-[11px] font-medium!
-                            text-[#AEB7C3]
-                        "
                     >
                         {row.registeredDate || '—'}
                     </p>
                 </div>
+                <div className="col-span-2 min-w-0 sm:col-span-1">
+                    <p className="text-[10px] font-medium! text-[#697586]">
+                        Registration number
+                    </p>
+                    <p
+                        className="mt-1.5 truncate text-[11px] font-medium! tabular-nums text-[#AEB7C3]"
+                        title={row.registration_number || '—'}
+                    >
+                        {row.registration_number || '—'}
+                    </p>
+                </div>
             </div>
 
-            {/* ACTIONS */}
-
-            <div className="mt-3 ml-13 flex min-w-0 flex-wrap items-center gap-2">
-                {row.verification_status === 'pending' && (
+            <div className="mt-3 flex min-w-0 flex-wrap items-center gap-2 border-t border-[#1B232D] pt-3">
+                {pending && (
                     <button
                         type="button"
                         onClick={() => onReview(row)}
-                        title="Review organization"
                         aria-label={`Review ${name}`}
-                        className="
-                            inline-flex h-8 items-center justify-center
-                            gap-1.5 border border-[#493D27]
-                            bg-[#241E15] px-2.5 text-[11px]
-                            font-medium! text-[#D8B979]
-                            transition-colors duration-150
-                            hover:border-[#594A30] hover:bg-[#2A2218]
-                            focus:outline-none focus:ring-0
-                        "
+                        className="inline-flex min-h-9 items-center justify-center gap-1.5 border border-[#493D27] bg-[#241E15] px-3 text-[11px] font-medium! text-[#D8B979] transition-colors hover:bg-[#2A2218] focus:outline-none focus:ring-0"
                     >
-                        <ShieldCheck size={13} strokeWidth={1.8} />
-                        Review
+                        <ShieldCheck size={13} strokeWidth={1.8} /> Review
                     </button>
                 )}
-
                 <button
                     type="button"
                     onClick={() => onView(row.id)}
-                    title="View organization"
                     aria-label={`View ${name}`}
-                    className="
-                        inline-flex h-8 items-center justify-center
-                        gap-1.5 border border-[#29323E]
-                        bg-[#151B24] px-2.5 text-[11px]
-                        font-medium! text-[#AEB7C3]
-                        transition-colors duration-150
-                        hover:border-[#394555] hover:bg-[#1A222D]
-                        hover:text-[#EEF1F5]
-                        focus:outline-none focus:ring-0
-                    "
+                    className={actionClass}
                 >
-                    <Eye size={13} strokeWidth={1.8} />
-                    View
+                    <Eye size={13} strokeWidth={1.8} /> View
                 </button>
-
-                {row.verification_status !== 'rejected' && (
+                {canEdit && (
                     <button
                         type="button"
                         onClick={() => onEdit(row.id)}
-                        title="Edit organization"
                         aria-label={`Edit ${name}`}
-                        className="
-                            inline-flex h-8 items-center justify-center
-                            gap-1.5 border border-[#29323E]
-                            bg-[#151B24] px-2.5 text-[11px]
-                            font-medium! text-[#AEB7C3]
-                            transition-colors duration-150
-                            hover:border-[#394555] hover:bg-[#1A222D]
-                            hover:text-[#EEF1F5]
-                            focus:outline-none focus:ring-0
-                        "
+                        className={actionClass}
                     >
-                        <Pencil size={13} strokeWidth={1.8} />
-                        Edit
+                        <Pencil size={13} strokeWidth={1.8} /> Edit
                     </button>
                 )}
-
                 <button
                     type="button"
                     onClick={() => onDelete(row)}
-                    title="Delete organization"
                     aria-label={`Delete ${name}`}
-                    className="
-                        ml-auto inline-flex h-8 w-8 shrink-0
-                        items-center justify-center border
-                        border-transparent bg-transparent
-                        text-[#B4777E] transition-colors
-                        duration-150 hover:border-[#493038]
-                        hover:bg-[#281A1F] hover:text-[#E1A0A6]
-                        focus:outline-none focus:ring-0
-                    "
+                    className="ml-auto inline-flex min-h-9 items-center justify-center gap-1.5 border border-[#493038] bg-[#241A1E] px-3 text-[11px] font-medium! text-[#D1959B] transition-colors hover:border-[#69404A] hover:bg-[#302025] hover:text-[#F0B0B6] focus:outline-none focus:ring-0"
                 >
-                    <Trash2 size={13} strokeWidth={1.8} />
-                    Delete
+                    <Trash2 size={13} strokeWidth={1.8} /> Delete
                 </button>
             </div>
         </article>
@@ -454,7 +334,9 @@ const Table = ({
         if (onEdit) {
             onEdit(id);
         } else {
-            navigate(`/admin/dashboard/organizations/${id}/edit`);
+            navigate(`/admin/dashboard/organizations/${id}`, {
+                state: { edit: true },
+            });
         }
     };
 

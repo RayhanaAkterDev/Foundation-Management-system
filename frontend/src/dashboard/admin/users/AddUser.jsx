@@ -276,11 +276,50 @@ const AddUser = () => {
                         grid
                         min-w-0
 
-                        @container
-                        @[1100px]:grid-cols-[290px_minmax(0,1fr)]
-                        @[1350px]:grid-cols-[310px_minmax(0,1fr)]
+                        @6xl:grid-cols-[290px_minmax(0,1fr)]
+                        @7xl:grid-cols-[310px_minmax(0,1fr)]
                     "
                 >
+                    {/* COMPACT USER HEADER — shown until the wide-container breakpoint */}
+                    <div className="min-w-0 border-b border-[#252D38] bg-[#141B24] px-4 py-4 sm:px-6 @6xl:hidden">
+                        <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+                            <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden border border-[#303A47] bg-[#1A222D] text-[15px] font-semibold text-[#DCE2EA]">
+                                {initial || (
+                                    <UserRound size={19} strokeWidth={1.6} />
+                                )}
+                            </div>
+
+                            <div className="min-w-0 flex-1">
+                                <p
+                                    className="truncate text-[14px] font-semibold text-[#DCE2EA]"
+                                    title={displayName}
+                                >
+                                    {displayName}
+                                </p>
+
+                                <div className="mt-1 flex min-w-0 items-center gap-1.5 text-[11px] text-[#8792A1]">
+                                    <RoleIcon
+                                        size={12}
+                                        className="shrink-0"
+                                        strokeWidth={1.7}
+                                    />
+
+                                    <span className="truncate">
+                                        {selectedRole?.label ||
+                                            'Account type not selected'}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <span
+                                className="hidden max-w-[35%] truncate text-right text-[11px] text-[#8792A1] sm:block"
+                                title={formPreview.email || ''}
+                            >
+                                {formPreview.email || 'No email'}
+                            </span>
+                        </div>
+                    </div>
+
                     {/* =================================================
                         LIVE PREVIEW
                     ================================================== */}
@@ -293,8 +332,8 @@ const AddUser = () => {
 
                             bg-[#141B24]
 
-                            @[1100px]:block
-                            @[1100px]:border-r
+                            @6xl:block
+                            @6xl:border-r
                         "
                     >
                         <div

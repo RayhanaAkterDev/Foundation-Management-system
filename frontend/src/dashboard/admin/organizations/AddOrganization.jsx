@@ -1,4 +1,3 @@
-// src/dashboard/admin/organizations/AddOrganization.jsx
 
 import React, { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -7,25 +6,18 @@ import {
     ArrowLeft,
     Building2,
     Check,
-    FileText,
-    Globe,
-    Mail,
-    MapPin,
-    Phone,
     ShieldCheck,
 } from 'lucide-react';
 
 import PageHeader from '@/components/dashboard/PageHeader';
-
-import OrganizationForm from './components/OrganizationForm';
 import SuccessDialog from '@/components/dashboard/SuccessDialog';
 
+import OrganizationForm from './components/OrganizationForm';
 import { createOrganization } from './api/organizationApi';
-
 import { formatType } from './utils/organizationDetailsUtils';
 
 /* ==========================================================================
-   EMPTY PREVIEW
+   CONSTANTS
 ============================================================================ */
 
 const EMPTY_PREVIEW = {
@@ -42,86 +34,41 @@ const EMPTY_PREVIEW = {
    PREVIEW DETAIL
 ============================================================================ */
 
-const DetailRow = ({
-    icon: Icon,
-    label,
-    value,
-    muted = false,
-    breakWords = false,
-}) => {
-    return (
-        <div
-            className="
-                group
-                flex
-                min-w-0
-                items-start
-                gap-4
-            "
-        >
-            <div
+const DetailRow = ({ label, value, muted = false }) => (
+    <div className="group flex min-w-0 items-start gap-4">
+        <div className="min-w-0 pt-0.5">
+            <p
                 className="
-                    flex
-                    h-9
-                    w-9
-                    shrink-0
-                    items-center
-                    justify-center
-
-                    border
-                    border-[#29323E]
-
-                    bg-[#151B24]
-
+                    font-sans!
+                    text-[10px]
+                    font-semibold!
+                    uppercase
+                    tracking-[0.14em]
                     text-[#697586]
-
-                    transition-[background-color,border-color,color]
-                    duration-150
-
-                    group-hover:border-[#394555]
-                    group-hover:bg-[#1A222D]
-                    group-hover:text-[#AEB7C3]
                 "
             >
-                <Icon size={14} strokeWidth={1.65} />
-            </div>
+                {label}
+            </p>
 
-            <div className="min-w-0 flex-1 pt-0.5">
-                <p
-                    className="
-                        font-sans!
-
-                        text-[9px]
-                        font-semibold!
-                        uppercase
-                        tracking-[0.14em]
-
-                        text-[#697586]
-                    "
-                >
-                    {label}
-                </p>
-
-                <p
-                    className={`
-                        mt-1.5
-
-                        font-sans!
-                        text-[11px]
-                        font-medium!
-                        leading-5
-
-                        ${breakWords ? 'wrap-break-word' : 'truncate'}
-
-                        ${muted ? 'text-[#5E6978]!' : 'text-[#B8C0CA]!'}
-                    `}
-                >
-                    {value}
-                </p>
-            </div>
+            <p
+                title={value}
+                className={`
+                    mt-1.5 truncate
+                    font-sans!
+                    text-[12px]
+                    font-medium!
+                    ${
+                        muted
+                            ? 'text-[#5E6978]!'
+                            : 'text-[#B8C0CA]!'
+                    }
+                `}
+            >
+                {value}
+            </p>
         </div>
-    );
-};
+    </div>
+);
 
 /* ==========================================================================
    ADD ORGANIZATION
@@ -133,7 +80,12 @@ const AddOrganization = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [fieldErrors, setFieldErrors] = useState({});
-    const [success, setSuccess] = useState({ open: false, name: '' });
+
+    const [success, setSuccess] = useState({
+        open: false,
+        name: '',
+    });
+
     const [formResetKey, setFormResetKey] = useState(0);
 
     const [formPreview, setFormPreview] = useState({
@@ -145,9 +97,7 @@ const AddOrganization = () => {
     ====================================================================== */
 
     const handleBack = () => {
-        if (loading) {
-            return;
-        }
+        if (loading) return;
 
         navigate('/admin/dashboard/organizations');
     };
@@ -178,9 +128,7 @@ const AddOrganization = () => {
                 name: formData.name?.trim() || 'Organization',
             });
 
-            setFormPreview({
-                ...EMPTY_PREVIEW,
-            });
+            setFormPreview({ ...EMPTY_PREVIEW });
 
             setFormResetKey((previous) => previous + 1);
         } catch (err) {
@@ -188,7 +136,9 @@ const AddOrganization = () => {
                 setFieldErrors(err.errors);
             }
 
-            setError(err.message || 'Unable to create organization.');
+            setError(
+                err.message || 'Unable to create organization.',
+            );
         } finally {
             setLoading(false);
         }
@@ -202,50 +152,23 @@ const AddOrganization = () => {
 
     const displayName = name || 'New organization';
 
-    const initial = name ? name.charAt(0).toUpperCase() : null;
+    const initial = name
+        ? name.charAt(0).toUpperCase()
+        : null;
 
-    const organizationType = formPreview.organization_type
+    const hasType = Boolean(formPreview.organization_type);
+
+    const type = hasType
         ? formatType(formPreview.organization_type)
         : 'No organization type selected';
-
-    const email = formPreview.email?.trim() || 'Not entered yet';
-
-    const phone = formPreview.phone?.trim() || 'Not entered yet';
-
-    const website = formPreview.website?.trim() || 'Not entered yet';
-
-    const address = formPreview.address?.trim() || 'Not entered yet';
-
-    const completedFields = [
-        formPreview.name,
-        formPreview.email,
-        formPreview.organization_type,
-        formPreview.registration_number,
-        formPreview.phone,
-        formPreview.website,
-        formPreview.address,
-    ].filter((value) => value?.trim?.() || value).length;
-
-    const totalPreviewFields = 6;
-
-    const completionPercentage = (completedFields / totalPreviewFields) * 100;
 
     /* ======================================================================
        UI
     ====================================================================== */
 
     return (
-        <div
-            className="
-                space-y-10
-                font-sans!
-
-                lg:space-y-12
-            "
-        >
-            {/* =============================================================
-                PAGE HEADER
-            ============================================================== */}
+        <div className="space-y-5 font-sans! lg:space-y-6">
+            {/* PAGE HEADER */}
 
             <PageHeader
                 title="Add Organization"
@@ -256,55 +179,41 @@ const AddOrganization = () => {
                         onClick={handleBack}
                         disabled={loading}
                         className="
-                            group
+                            group inline-flex h-10
+                            items-center justify-center gap-2
 
-                            inline-flex
-                            h-10
-                            items-center
-                            justify-center
-                            gap-2.5
-
-                            border
-                            border-[#29323E]
-
-                            bg-[#0E1219]
-
-                            px-3.5
+                            border border-[#343e4b]
+                            bg-transparent px-3.5
 
                             font-sans!
-                            text-[11px]
+                            text-[12px]
                             font-medium!
                             whitespace-nowrap
+                            text-[#b8c2cf]
 
-                            text-[#AEB7C3]!
+                            transition-colors duration-150
 
-                            transition-[background-color,border-color,color]
-                            duration-150
-                            ease-out
+                            hover:border-[#4b596a]
+                            hover:bg-[#1c232d]
+                            hover:text-[#f1f5f9]
 
-                            hover:border-[#394555]
-                            hover:bg-[#1A222D]
-                            hover:text-[#EEF1F5]!
+                            focus-visible:outline-none
+                            focus-visible:ring-2
+                            focus-visible:ring-[#8792A1]
+                            focus-visible:ring-offset-2
+                            focus-visible:ring-offset-[#171c24]
 
                             disabled:cursor-not-allowed
                             disabled:opacity-40
-
-                            focus:outline-none
-                            focus:ring-0
                         "
                     >
                         <ArrowLeft
-                            size={14}
+                            size={15}
                             strokeWidth={1.8}
                             className="
-                                shrink-0
-                                text-[#697586]
-
-                                transition-[transform,color]
-                                duration-150
-
-                                group-hover:-translate-x-0.5
-                                group-hover:text-[#AEB7C3]
+                                shrink-0 text-[#8492a3]
+                                transition-colors duration-150
+                                group-hover:text-[#e2e8f0]
                             "
                         />
 
@@ -313,411 +222,176 @@ const AddOrganization = () => {
                 }
             />
 
-            {/* =============================================================
-                SUCCESS
-            ============================================================== */}
+            {/* SUCCESS DIALOG */}
 
             <SuccessDialog
                 open={success.open}
                 action="created"
                 entity="organization"
                 name={success.name}
-                onClose={() => setSuccess({ open: false, name: '' })}
+                onClose={() =>
+                    setSuccess({ open: false, name: '' })
+                }
             />
 
-            {/* =============================================================
-                WORKSPACE
-            ============================================================== */}
+            {/* WORKSPACE */}
 
             <section
                 className="
-                    overflow-hidden
-
-                    border
-                    border-[#252D38]
-
+                    @container
+                    min-w-0 overflow-hidden
+                    border border-[#303A47]
                     bg-[#0E1219]
                 "
             >
-                {/* =========================================================
-                    WORKSPACE HEADER
-                ========================================================== */}
-
-                <header
+                <div
                     className="
-                        relative
-
-                        border-b
-                        border-[#252D38]
-
-                        bg-[#1A222D]
-
-                        px-6
-                        py-7
-
-                        sm:px-7
-                        sm:py-8
-
-                        lg:px-8
-                        lg:py-8
-
-                        xl:px-10
-                        xl:py-9
+                        grid min-w-0
+                        @6xl:grid-cols-[290px_minmax(0,1fr)]
+                        @7xl:grid-cols-[310px_minmax(0,1fr)]
                     "
                 >
-                    <span
-                        aria-hidden="true"
-                        className="
-                            absolute
-                            bottom-0
-                            left-0
-                            top-0
-
-                            w-[2px]
-
-                            bg-[#697586]
-                        "
-                    />
+                    {/* COMPACT PREVIEW HEADER */}
 
                     <div
                         className="
-                            flex
-                            flex-col
-                            gap-7
-
-                            sm:flex-row
-                            sm:items-center
-                            sm:justify-between
-                            sm:gap-10
-
-                            lg:gap-12
+                            min-w-0
+                            border-b border-[#252D38]
+                            bg-[#141B24]
+                            px-4 py-4
+                            sm:px-6
+                            @6xl:hidden
                         "
                     >
-                        {/* LEFT */}
-
-                        <div className="min-w-0 flex-1">
+                        <div className="flex min-w-0 items-center gap-3 sm:gap-4">
                             <div
                                 className="
-                                    flex
-                                    items-center
-                                    gap-3.5
+                                    flex h-11 w-11 shrink-0
+                                    items-center justify-center
+                                    overflow-hidden
+
+                                    border border-[#303A47]
+                                    bg-[#1A222D]
+
+                                    text-[15px]
+                                    font-semibold
+                                    text-[#DCE2EA]
                                 "
                             >
+                                {initial || (
+                                    <Building2
+                                        size={19}
+                                        strokeWidth={1.6}
+                                    />
+                                )}
+                            </div>
+
+                            <div className="min-w-0 flex-1">
+                                <p
+                                    title={displayName}
+                                    className="
+                                        truncate
+                                        text-[14px]
+                                        font-semibold
+                                        text-[#DCE2EA]
+                                    "
+                                >
+                                    {displayName}
+                                </p>
+
                                 <div
                                     className="
-                                        flex
-                                        h-9
-                                        w-9
-                                        shrink-0
-                                        items-center
-                                        justify-center
+                                        mt-1 flex min-w-0
+                                        items-center gap-1.5
 
-                                        border
-                                        border-[#303A47]
-
-                                        bg-[#151B24]
-
+                                        text-[11px]
                                         text-[#8792A1]
                                     "
                                 >
-                                    <Building2 size={15} strokeWidth={1.8} />
-                                </div>
-
-                                <div
-                                    className="
-                                        flex
-                                        min-w-0
-                                        flex-wrap
-                                        items-center
-                                        gap-x-2.5
-                                        gap-y-1
-                                    "
-                                >
-                                    <span
-                                        className="
-                                            font-sans!
-
-                                            text-[9px]
-                                            font-semibold!
-                                            uppercase
-                                            tracking-[0.16em]
-
-                                            text-[#8792A1]
-                                        "
-                                    >
-                                        Organization directory
-                                    </span>
-
-                                    <span
-                                        aria-hidden="true"
-                                        className="
-                                            h-1
-                                            w-1
-                                            shrink-0
-                                            rounded-full
-
-                                            bg-[#4B5869]
-                                        "
+                                    <Building2
+                                        size={12}
+                                        strokeWidth={1.7}
+                                        className="shrink-0"
                                     />
 
-                                    <span
-                                        className="
-                                            font-sans!
-
-                                            text-[9px]
-                                            font-medium!
-                                            uppercase
-                                            tracking-[0.12em]
-
-                                            text-[#697586]
-                                        "
-                                    >
-                                        New profile
+                                    <span className="truncate">
+                                        {type}
                                     </span>
                                 </div>
                             </div>
 
-                            <h2
+                            <span
+                                title={formPreview.email || ''}
                                 className="
-                                    mt-5
-
-                                    font-sans!
-
-                                    text-[18px]
-                                    font-semibold!
-                                    leading-[1.3]
-                                    tracking-[-0.02em]
-
-                                    text-[#EEF1F5]!
-
-                                    sm:text-[19px]
-                                "
-                            >
-                                Create a new organization
-                            </h2>
-
-                            <p
-                                className="
-                                    mt-2.5
-                                    max-w-[650px]
-
-                                    font-sans!
+                                    hidden max-w-[35%]
+                                    truncate text-right
 
                                     text-[11px]
-                                    font-normal!
-                                    leading-[1.75]
-
-                                    text-[#8792A1]!
-
-                                    sm:text-[11.5px]
-                                "
-                            >
-                                Enter the organization&apos;s identity,
-                                registration and contact information before
-                                adding it to the organization directory.
-                            </p>
-                        </div>
-
-                        {/* RIGHT */}
-
-                        <div
-                            className="hidden
-                                lg:flex
-                                shrink-0
-                                items-center
-                                gap-3.5
-
-                                border-t
-                                border-[#303A47]
-
-                                pt-5
-
-                                sm:border-l
-                                sm:border-t-0
-                                sm:pl-7
-                                sm:pt-0
-
-                                lg:pl-8
-                            "
-                        >
-                            <div
-                                className="
-                                    flex
-                                    h-9
-                                    w-9
-                                    shrink-0
-                                    items-center
-                                    justify-center
-
-                                    border
-                                    border-[#303A47]
-
-                                    bg-[#151B24]
-
                                     text-[#8792A1]
+
+                                    sm:block
                                 "
                             >
-                                <Check size={14} strokeWidth={2} />
-                            </div>
-
-                            <div className="min-w-0">
-                                <p
-                                    className="
-                                        font-sans!
-
-                                        text-[9px]
-                                        font-semibold!
-                                        uppercase
-                                        tracking-[0.13em]
-
-                                        text-[#697586]
-                                    "
-                                >
-                                    Form guide
-                                </p>
-
-                                <p
-                                    className="
-                                        mt-1.5
-
-                                        font-sans!
-
-                                        text-[10px]
-                                        font-normal!
-
-                                        text-[#8792A1]
-                                    "
-                                >
-                                    Required fields are marked *
-                                </p>
-                            </div>
+                                {formPreview.email || 'No email'}
+                            </span>
                         </div>
                     </div>
-                </header>
 
-                {/* =========================================================
-                    BODY
-                ========================================================== */}
-
-                <div
-                    className="
-                        grid
-                        min-w-0
-
-                        lg:grid-cols-[310px_minmax(0,1fr)]
-                        xl:grid-cols-[330px_minmax(0,1fr)]
-                    "
-                >
-                    {/* =====================================================
-                        LIVE PREVIEW
-                    ====================================================== */}
+                    {/* LIVE PREVIEW SIDEBAR */}
 
                     <aside
                         className="
                             hidden
-
                             border-[#252D38]
+                            bg-[#141B24]
 
-                            bg-[#0E1219]
-
-                            lg:block
-                            lg:border-r
+                            @6xl:block
+                            @6xl:border-r
                         "
                     >
                         <div
                             className="
-                                flex
-                                h-full
-                                min-h-[760px]
+                                flex h-full min-h-[520px]
                                 flex-col
 
-                                px-7
-                                py-9
-
-                                xl:px-8
-                                xl:py-10
+                                px-6 py-7
+                                xl:px-7 xl:py-8
                             "
                         >
-                            {/* =============================================
-                                PREVIEW LABEL
-                            ============================================== */}
+                            {/* PREVIEW LABEL */}
 
-                            <div
-                                className="
-                                    flex
-                                    items-center
-                                    justify-between
-                                    gap-4
-                                "
-                            >
-                                <div
-                                    className="
-                                        flex
-                                        min-w-0
-                                        items-center
-                                        gap-3
-                                    "
-                                >
-                                    <span
-                                        aria-hidden="true"
-                                        className="
-                                            h-[2px]
-                                            w-4
-                                            shrink-0
-
-                                            bg-[#697586]
-                                        "
-                                    />
-
-                                    <p
-                                        className="
-                                            truncate
-
-                                            font-sans!
-
-                                            text-[9px]
-                                            font-semibold!
-                                            uppercase
-                                            tracking-[0.16em]
-
-                                            text-[#8792A1]
-                                        "
-                                    >
-                                        Organization preview
-                                    </p>
-                                </div>
-
+                            <div className="flex items-center gap-3">
                                 <span
+                                    aria-hidden="true"
                                     className="
-                                        shrink-0
+                                        h-[2px] w-4 shrink-0
+                                        bg-[#697586]
+                                    "
+                                />
 
+                                <p
+                                    className="
+                                        truncate
                                         font-sans!
-
-                                        text-[9px]
-                                        font-medium!
-                                        tabular-nums
-
-                                        text-[#697586]
+                                        text-[10px]
+                                        font-semibold!
+                                        uppercase
+                                        tracking-[0.16em]
+                                        text-[#8792A1]
                                     "
                                 >
-                                    {completedFields}/{totalPreviewFields}
-                                </span>
+                                    Organization preview
+                                </p>
                             </div>
 
-                            {/* =============================================
-                                IDENTITY
-                            ============================================== */}
+                            {/* ORGANIZATION IDENTITY */}
 
                             <div className="mt-10">
                                 <div
                                     className={`
-                                        relative
-
-                                        flex
-                                        h-[68px]
-                                        w-[68px]
-                                        items-center
-                                        justify-center
+                                        relative flex
+                                        h-[68px] w-[68px]
+                                        items-center justify-center
 
                                         border
 
@@ -753,21 +427,13 @@ const AddOrganization = () => {
                                     {name && (
                                         <span
                                             className="
-                                                absolute
-                                                -bottom-1
-                                                -right-1
-
-                                                flex
-                                                h-5
-                                                w-5
-                                                items-center
-                                                justify-center
+                                                absolute -bottom-1 -right-1
+                                                flex h-5 w-5
+                                                items-center justify-center
 
                                                 border-2
                                                 border-[#0E1219]
-
                                                 bg-[#303A47]
-
                                                 text-[#DCE1E7]
                                             "
                                         >
@@ -780,12 +446,11 @@ const AddOrganization = () => {
                                 </div>
 
                                 <h2
+                                    title={displayName}
                                     className={`
-                                        mt-6
-                                        truncate
+                                        mt-6 truncate
 
                                         font-sans!
-
                                         text-[18px]
                                         font-semibold!
                                         leading-[1.3]
@@ -797,26 +462,21 @@ const AddOrganization = () => {
                                                 : 'text-[#697586]!'
                                         }
                                     `}
-                                    title={displayName}
                                 >
                                     {displayName}
                                 </h2>
 
                                 <div
                                     className="
-                                        mt-3.5
-
-                                        flex
-                                        min-w-0
-                                        items-center
-                                        gap-2.5
+                                        mt-3.5 flex min-w-0
+                                        items-center gap-2.5
                                     "
                                 >
                                     <Building2
                                         size={14}
                                         strokeWidth={1.7}
                                         className={
-                                            formPreview.organization_type
+                                            hasType
                                                 ? 'shrink-0 text-[#A6AFBB]'
                                                 : 'shrink-0 text-[#5E6978]'
                                         }
@@ -825,175 +485,77 @@ const AddOrganization = () => {
                                     <span
                                         className={`
                                             truncate
-
                                             font-sans!
-
-                                            text-[11px]
+                                            text-[12px]
                                             font-medium!
 
                                             ${
-                                                formPreview.organization_type
+                                                hasType
                                                     ? 'text-[#AEB7C3]'
                                                     : 'text-[#5E6978]'
                                             }
                                         `}
                                     >
-                                        {organizationType}
+                                        {type}
                                     </span>
                                 </div>
                             </div>
 
-                            {/* =============================================
-                                ORGANIZATION DETAILS
-                            ============================================== */}
+                            {/* CONTACT DETAILS */}
 
-                            <div
-                                className="
-                                    mt-10
-                                    space-y-6
-
-                                    border-t
-                                    border-[#252D38]
-
-                                    pt-8
-                                "
-                            >
+                            <div className="mt-6 space-y-6 py-8">
                                 <DetailRow
-                                    icon={Mail}
                                     label="Email"
-                                    value={email}
-                                    muted={!formPreview.email?.trim()}
+                                    value={
+                                        formPreview.email ||
+                                        'Not entered yet'
+                                    }
+                                    muted={!formPreview.email}
                                 />
 
                                 <DetailRow
-                                    icon={Phone}
                                     label="Phone"
-                                    value={phone}
-                                    muted={!formPreview.phone?.trim()}
+                                    value={
+                                        formPreview.phone ||
+                                        'Not entered yet'
+                                    }
+                                    muted={!formPreview.phone}
                                 />
 
                                 <DetailRow
-                                    icon={Globe}
                                     label="Website"
-                                    value={website}
-                                    muted={!formPreview.website?.trim()}
+                                    value={
+                                        formPreview.website ||
+                                        'Not entered yet'
+                                    }
+                                    muted={!formPreview.website}
                                 />
 
                                 <DetailRow
-                                    icon={MapPin}
                                     label="Address"
-                                    value={address}
-                                    muted={!formPreview.address?.trim()}
-                                    breakWords
+                                    value={
+                                        formPreview.address ||
+                                        'Not entered yet'
+                                    }
+                                    muted={!formPreview.address}
                                 />
                             </div>
 
-                            {/* =============================================
-                                COMPLETION
-                            ============================================== */}
-
-                            <div
-                                className="
-                                    mt-10
-
-                                    border-t
-                                    border-[#252D38]
-
-                                    pt-8
-                                "
-                            >
-                                <div
-                                    className="
-                                        flex
-                                        items-center
-                                        justify-between
-                                        gap-4
-                                    "
-                                >
-                                    <span
-                                        className="
-                                            font-sans!
-
-                                            text-[10px]
-                                            font-normal!
-
-                                            text-[#697586]
-                                        "
-                                    >
-                                        Details completed
-                                    </span>
-
-                                    <span
-                                        className="
-                                            font-sans!
-
-                                            text-[10px]
-                                            font-semibold!
-                                            tabular-nums
-
-                                            text-[#AEB7C3]
-                                        "
-                                    >
-                                        {completedFields}/{totalPreviewFields}
-                                    </span>
-                                </div>
-
-                                <div
-                                    className="
-                                        mt-3.5
-                                        h-[3px]
-
-                                        overflow-hidden
-
-                                        bg-[#202832]
-                                    "
-                                >
-                                    <div
-                                        className="
-                                            h-full
-
-                                            bg-[#697586]
-
-                                            transition-[width]
-                                            duration-300
-                                            ease-out
-                                        "
-                                        style={{
-                                            width: `${completionPercentage}%`,
-                                        }}
-                                    />
-                                </div>
-                            </div>
-
-                            {/* =============================================
-                                FOOTER NOTE
-                            ============================================== */}
+                            {/* PREVIEW FOOTER */}
 
                             <div
                                 className="
                                     mt-auto
-                                    pt-12
+                                    border-t border-[#252D38]
                                 "
                             >
-                                <div
-                                    className="
-                                        pt-7
-                                    "
-                                >
-                                    <div
-                                        className="
-                                            flex
-                                            items-start
-                                            gap-3.5
-                                        "
-                                    >
+                                <div className="pt-7">
+                                    <div className="flex items-start gap-3.5">
                                         <ShieldCheck
                                             size={15}
                                             strokeWidth={1.6}
                                             className="
-                                                mt-0.5
-                                                shrink-0
-
+                                                mt-0.5 shrink-0
                                                 text-[#697586]
                                             "
                                         />
@@ -1001,18 +563,14 @@ const AddOrganization = () => {
                                         <p
                                             className="
                                                 max-w-[225px]
-
                                                 font-sans!
-
-                                                text-[10px]
-                                                font-normal!
+                                                text-[11px]
+                                                font-medium!
                                                 leading-[1.75]
-
                                                 text-[#697586]
                                             "
                                         >
-                                            Verification can be reviewed after
-                                            this organization has been created.
+                                            Confirm the details before creating.
                                         </p>
                                     </div>
                                 </div>
@@ -1020,9 +578,7 @@ const AddOrganization = () => {
                         </div>
                     </aside>
 
-                    {/* =====================================================
-                        FORM
-                    ====================================================== */}
+                    {/* ORGANIZATION FORM */}
 
                     <main
                         className="
@@ -1033,28 +589,13 @@ const AddOrganization = () => {
                         <div
                             className="
                                 min-w-0
-
-                                px-6
-                                py-9
-
-                                sm:px-7
-                                sm:py-10
-
-                                lg:px-9
-                                lg:py-11
-
-                                xl:px-11
-                                xl:py-12
-
-                                2xl:px-12
+                                px-4 py-7
+                                sm:px-8 sm:py-9
+                                lg:px-9 lg:py-10
+                                xl:px-10
                             "
                         >
-                            <div
-                                className="
-                                    mx-auto
-                                    w-full
-                                "
-                            >
+                            <div className="mx-auto w-full">
                                 <OrganizationForm
                                     key={formResetKey}
                                     mode="add"

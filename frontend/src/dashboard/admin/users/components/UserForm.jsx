@@ -1,5 +1,3 @@
-// src/pages/Admin/Users/components/UserForm.jsx
-
 import React, { useEffect, useState } from 'react';
 
 import {
@@ -17,6 +15,7 @@ import {
     UserRound,
 } from 'lucide-react';
 
+import DashboardInput from '@/components/dashboard/DashboardInput';
 import LoadingUI from '@/components/dashboard/LoadingUI';
 import LoadingError from '@/components/dashboard/LoadingError';
 
@@ -104,50 +103,6 @@ const getInitialForm = (mode, user) => {
 };
 
 /* ==========================================================================
-   SHARED STYLES
-============================================================================ */
-
-const fieldLabelClass = `
-    mb-2
-    block
-    font-sans!
-    text-[13px]
-    font-medium!
-    tracking-normal
-    text-[#8792A1]!
-`;
-
-const fieldInputClass = `
-    h-full
-    w-full
-    appearance-none
-    border-0!
-    bg-transparent!
-    px-4
-    pr-12
-    font-sans!
-    text-[15px]
-    font-normal!
-    text-[#EEF1F5]!
-    shadow-none!
-    outline-none!
-    ring-0!
-    placeholder:font-normal!
-    placeholder:text-[#657181]!
-    focus:border-0!
-    focus:bg-transparent!
-    focus:outline-none!
-    focus:ring-0!
-    disabled:cursor-not-allowed
-    disabled:opacity-45
-    [&:-webkit-autofill]:[-webkit-text-fill-color:#EEF1F5]
-    [&:-webkit-autofill]:[transition:background-color_999999s_ease-in-out_0s]
-    [&:-webkit-autofill]:[box-shadow:0_0_0_1000px_#151B24_inset]
-    [&:-webkit-autofill:hover]:[box-shadow:0_0_0_1000px_#151B24_inset]
-    [&:-webkit-autofill:focus]:[box-shadow:0_0_0_1000px_#171E28_inset]
-`;
-
-/* ==========================================================================
    FIELD ERROR
 ============================================================================ */
 
@@ -182,7 +137,7 @@ const FieldError = ({ name, fieldErrors }) => {
 };
 
 /* ==========================================================================
-   EDITOR FIELD
+   EDITOR FIELD — SHARED FLOATING INPUT
 ============================================================================ */
 
 const EditorField = ({
@@ -195,6 +150,7 @@ const EditorField = ({
     disabled,
     autoComplete,
     required = false,
+    showRequiredMark = true,
     fieldErrors,
     onChange,
     onPhoneChange,
@@ -204,65 +160,24 @@ const EditorField = ({
 
     return (
         <div className="min-w-0">
-            <label htmlFor={id} className={fieldLabelClass}>
-                {label}
-
-                {required && <span className="ml-1 text-[#697586]!">*</span>}
-            </label>
-
-            <div
-                className={`
-                    relative
-                    h-[52px]
-                    border
-                    transition-[border-color,background-color]
-                    duration-150
-                    ease-out
-                    ${
-                        hasError
-                            ? `
-                                border-[#5B3840]
-                                bg-[#281A1F]
-                            `
-                            : `
-                                border-[#303A47]
-                                bg-[#151B24]
-                                hover:border-[#465261]
-                                focus-within:border-[#68788B]
-                                focus-within:bg-[#171E28]
-                            `
-                    }
-                `}
-            >
-                <input
-                    id={id}
-                    name={name}
-                    type={type}
-                    value={value}
-                    onChange={onPhoneChange || onChange}
-                    placeholder={placeholder}
-                    disabled={disabled}
-                    autoComplete={autoComplete}
-                    maxLength={name === 'phone' ? 11 : undefined}
-                    inputMode={name === 'phone' ? 'numeric' : undefined}
-                    aria-invalid={hasError}
-                    aria-describedby={hasError ? `${id}-error` : undefined}
-                    className={fieldInputClass}
-                />
-
-                {trailing && (
-                    <div
-                        className="
-                            absolute
-                            right-2
-                            top-1/2
-                            -translate-y-1/2
-                        "
-                    >
-                        {trailing}
-                    </div>
-                )}
-            </div>
+            <DashboardInput
+                id={id}
+                name={name}
+                label={label}
+                type={type}
+                value={value}
+                placeholder={placeholder}
+                disabled={disabled}
+                autoComplete={autoComplete}
+                required={required}
+                requiredMark={required && showRequiredMark}
+                invalid={hasError}
+                onChange={onPhoneChange || onChange}
+                maxLength={name === 'phone' ? 11 : undefined}
+                inputMode={name === 'phone' ? 'numeric' : undefined}
+                aria-describedby={hasError ? `${id}-error` : undefined}
+                rightElement={trailing}
+            />
 
             {hasError && (
                 <div id={`${id}-error`}>
@@ -319,7 +234,7 @@ const FormSectionHeading = ({ number, title, description }) => (
                 <p
                     className="
                         mt-1
-                        max-w-[570px]
+                        max-w-142.5
                         font-sans!
                         text-[13px]
                         font-normal!
@@ -472,6 +387,7 @@ const UserForm = ({
                         disabled={loading}
                         autoComplete="name"
                         required
+                        showRequiredMark={!isEdit}
                         fieldErrors={fieldErrors}
                         onChange={handleChange}
                     />
@@ -486,6 +402,7 @@ const UserForm = ({
                         disabled={loading}
                         autoComplete="email"
                         required
+                        showRequiredMark={!isEdit}
                         fieldErrors={fieldErrors}
                         onChange={handleChange}
                     />
@@ -541,7 +458,6 @@ const UserForm = ({
                                         transition-colors
                                         duration-150
                                         hover:text-[#EEF1F5]!
-                                        focus-visible:outline
                                         focus-visible:outline-2
                                         focus-visible:outline-offset-[-3px]
                                         focus-visible:outline-[#8792A1]
@@ -594,7 +510,7 @@ const UserForm = ({
                                             group
                                             relative
                                             flex
-                                            min-h-[100px]
+                                            min-h-25
                                             min-w-0
                                             items-start
                                             gap-3.5
@@ -605,16 +521,12 @@ const UserForm = ({
                                             transition-[border-color,background-color]
                                             duration-150
                                             ease-out
-                                            focus-visible:outline
                                             focus-visible:outline-2
                                             focus-visible:outline-offset-2
                                             focus-visible:outline-[#8792A1]
                                             ${
                                                 selected
-                                                    ? `
-                                                        border-[#586678]
-                                                        bg-[#1D2632]
-                                                    `
+                                                    ? 'border-[#586678] bg-[#1D2632]'
                                                     : `
                                                         border-[#303A47]
                                                         bg-[#121821]
@@ -634,7 +546,7 @@ const UserForm = ({
                                                     bottom-0
                                                     left-0
                                                     top-0
-                                                    w-[3px]
+                                                    w-0.75
                                                     bg-[#AEB7C3]
                                                 "
                                             />
@@ -653,11 +565,7 @@ const UserForm = ({
                                                 duration-150
                                                 ${
                                                     selected
-                                                        ? `
-                                                            border-[#4B5869]
-                                                            bg-[#222D3A]
-                                                            text-[#C9D0D9]
-                                                        `
+                                                        ? 'border-[#4B5869] bg-[#222D3A] text-[#C9D0D9]'
                                                         : `
                                                             border-[#29323E]
                                                             bg-[#171E28]
@@ -691,8 +599,8 @@ const UserForm = ({
                                                 <span
                                                     className={`
                                                         flex
-                                                        h-[18px]
-                                                        w-[18px]
+                                                        h-4.5
+                                                        w-4.5
                                                         shrink-0
                                                         items-center
                                                         justify-center
@@ -702,16 +610,8 @@ const UserForm = ({
                                                         duration-150
                                                         ${
                                                             selected
-                                                                ? `
-                                                                    border-[#AEB7C3]
-                                                                    bg-[#AEB7C3]
-                                                                    text-[#121821]
-                                                                `
-                                                                : `
-                                                                    border-[#465261]
-                                                                    bg-transparent
-                                                                    text-transparent
-                                                                `
+                                                                ? 'border-[#AEB7C3] bg-[#AEB7C3] text-[#121821]'
+                                                                : 'border-[#465261] bg-transparent text-transparent'
                                                         }
                                                     `}
                                                 >
@@ -840,7 +740,7 @@ const UserForm = ({
                                         className={`
                                             group
                                             flex
-                                            min-h-[88px]
+                                            min-h-22
                                             items-center
                                             gap-3
                                             border
@@ -850,22 +750,14 @@ const UserForm = ({
                                             transition-[border-color,background-color]
                                             duration-150
                                             ease-out
-                                            focus-visible:outline
                                             focus-visible:outline-2
                                             focus-visible:outline-offset-2
                                             focus-visible:outline-[#8792A1]
                                             ${
                                                 activeBlocked
-                                                    ? `
-                                                        border-[#252D38]
-                                                        bg-[#10151C]
-                                                        opacity-55
-                                                    `
+                                                    ? 'border-[#252D38] bg-[#10151C] opacity-55'
                                                     : selected
-                                                      ? `
-                                                            border-[#586678]
-                                                            bg-[#1D2632]
-                                                        `
+                                                      ? 'border-[#586678] bg-[#1D2632]'
                                                       : `
                                                             border-[#303A47]
                                                             bg-[#121821]
@@ -887,17 +779,9 @@ const UserForm = ({
                                                 border
                                                 ${
                                                     activeBlocked
-                                                        ? `
-                                                            border-[#252D38]
-                                                            bg-[#151B24]
-                                                            text-[#4B5664]
-                                                        `
+                                                        ? 'border-[#252D38] bg-[#151B24] text-[#4B5664]'
                                                         : selected
-                                                          ? `
-                                                                border-[#4B5869]
-                                                                bg-[#222D3A]
-                                                                text-[#C9D0D9]
-                                                            `
+                                                          ? 'border-[#4B5869] bg-[#222D3A] text-[#C9D0D9]'
                                                           : `
                                                                 border-[#29323E]
                                                                 bg-[#171E28]
@@ -992,7 +876,7 @@ const UserForm = ({
                         onClick={onCancel}
                         disabled={loading}
                         className="
-                            h-[44px]
+                            h-11
                             w-full
                             border
                             border-[#303A47]
@@ -1009,7 +893,6 @@ const UserForm = ({
                             hover:text-[#EEF1F5]!
                             disabled:cursor-not-allowed
                             disabled:opacity-40
-                            focus-visible:outline
                             focus-visible:outline-2
                             focus-visible:outline-offset-2
                             focus-visible:outline-[#8792A1]
@@ -1023,34 +906,33 @@ const UserForm = ({
                         type="submit"
                         disabled={loading}
                         className="
-        group
-        flex
-        h-[44px]
-        w-full
-        min-w-[170px]
-        items-center
-        justify-center
-        gap-2.5
-        border
-        border-[#586678]
-        bg-[#273342]
-        px-5
-        font-sans!
-        text-[13px]
-        font-semibold!
-        text-[#EEF1F5]!
-        transition-[border-color,background-color]
-        duration-150
-        hover:border-[#5A6878]
-        hover:bg-[#303D4E]
-        disabled:cursor-not-allowed
-        disabled:opacity-50
-        focus-visible:outline
-        focus-visible:outline-2
-        focus-visible:outline-offset-2
-        focus-visible:outline-[#AEB7C3]
-        @[620px]:w-auto
-    "
+                            group
+                            flex
+                            h-11
+                            w-full
+                            min-w-42.5
+                            items-center
+                            justify-center
+                            gap-2.5
+                            border
+                            border-[#586678]
+                            bg-[#273342]
+                            px-5
+                            font-sans!
+                            text-[13px]
+                            font-semibold!
+                            text-[#EEF1F5]!
+                            transition-[border-color,background-color]
+                            duration-150
+                            hover:border-[#5A6878]
+                            hover:bg-[#303D4E]
+                            disabled:cursor-not-allowed
+                            disabled:opacity-50
+                            focus-visible:outline-2
+                            focus-visible:outline-offset-2
+                            focus-visible:outline-[#AEB7C3]
+                            @[620px]:w-auto
+                        "
                     >
                         {loading ? (
                             <LoadingUI
@@ -1067,11 +949,11 @@ const UserForm = ({
                                     size={15}
                                     strokeWidth={1.9}
                                     className="
-                    text-[#B8C0CA]
-                    transition-transform
-                    duration-150
-                    group-hover:translate-x-0.5
-                "
+                                        text-[#B8C0CA]
+                                        transition-transform
+                                        duration-150
+                                        group-hover:translate-x-0.5
+                                    "
                                 />
                             </>
                         )}

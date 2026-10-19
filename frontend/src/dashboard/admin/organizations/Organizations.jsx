@@ -52,6 +52,9 @@ const Organizations = () => {
     const [activeCategory, setActiveCategory] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
     const [typeFilter, setTypeFilter] = useState('all');
+    const [accountStatusFilter, setAccountStatusFilter] = useState('all');
+    const [emailVerificationFilter, setEmailVerificationFilter] =
+        useState('all');
 
     const [sortConfig, setSortConfig] = useState({
         key: 'created_at',
@@ -354,8 +357,15 @@ const Organizations = () => {
             count += 1;
         }
 
+        if (accountStatusFilter !== 'all') count += 1;
+        if (emailVerificationFilter !== 'all') count += 1;
         return count;
-    }, [activeCategory, typeFilter]);
+    }, [
+        activeCategory,
+        typeFilter,
+        accountStatusFilter,
+        emailVerificationFilter,
+    ]);
 
     // ============================================================
     // FILTERING + SORTING
@@ -375,6 +385,33 @@ const Organizations = () => {
             result = result.filter(
                 (organization) => organization.organization_type === typeFilter,
             );
+        }
+
+        if (accountStatusFilter !== 'all') {
+            result = result.filter((organization) => {
+                const status = String(
+                    organization.user?.status ?? organization.status ?? '',
+                )
+                    .trim()
+                    .toLowerCase();
+                return status === accountStatusFilter;
+            });
+        }
+
+        if (emailVerificationFilter !== 'all') {
+            result = result.filter((organization) => {
+                const user = organization.user ?? {};
+                const verifiedValue = user.email_verified ?? user.emailVerified;
+                const verified =
+                    Boolean(user.email_verified_at ?? user.emailVerifiedAt) ||
+                    verifiedValue === true ||
+                    verifiedValue === 1 ||
+                    verifiedValue === '1' ||
+                    verifiedValue === 'verified';
+                return emailVerificationFilter === 'verified'
+                    ? verified
+                    : !verified;
+            });
         }
 
         const search = searchTerm.trim().toLowerCase();
@@ -444,7 +481,15 @@ const Organizations = () => {
         });
 
         return result;
-    }, [organizations, activeCategory, typeFilter, searchTerm, sortConfig]);
+    }, [
+        organizations,
+        activeCategory,
+        typeFilter,
+        accountStatusFilter,
+        emailVerificationFilter,
+        searchTerm,
+        sortConfig,
+    ]);
 
     // ============================================================
     // PAGINATION
@@ -709,31 +754,58 @@ const Organizations = () => {
         );
     }
 
+    const clearOrganizationFilters = () => {
+        setActiveCategory('all');
+        setTypeFilter('all');
+        setAccountStatusFilter('all');
+        setEmailVerificationFilter('all');
+        setCurrentPage(1);
+    };
+
     const organizationFilters = (
-        <>
-            <div className="px-5 pb-5 pt-6">
-                <p className="font-sans! text-[10px] font-semibold! uppercase tracking-[0.14em] text-[#697586]">
-                    Directory controls
-                </p>
-                <h3 className="mt-2 font-sans! text-[18px] font-semibold! text-[#EEF1F5]">
-                    Refine organizations
+        <div className="w-full bg-[#0E1219]">
+            {/* Desktop sidebar heading; the mobile drawer has its own heading. */}
+            <div className="hidden items-center justify-between gap-3 border-b border-[#252D38] bg-[#1A222D] px-5 py-4 xl:flex">
+                <h3 className="text-[15px] font-semibold! text-[#EEF1F5]!">
+                    Filter
                 </h3>
-                <p className="mt-2 text-[12px] leading-[1.65] text-[#8792A1]">
-                    Filter by verification status and organization type.
-                </p>
+                {activeFilterCount > 0 && (
+                    <button
+                        type="button"
+                        onClick={clearOrganizationFilters}
+                        className="text-[11px] font-medium! text-[#8792A1] transition-colors hover:text-[#EEF1F5] focus-visible:outline focus-visible:outline-1 focus-visible:outline-[#697586]"
+                    >
+                        Clear all
+                    </button>
+                )}
             </div>
-            <div className="border-t border-[#252D38] px-3 py-4">
-                <p className="mb-3 px-1 font-sans! text-[10px] font-semibold! uppercase tracking-[0.12em] text-[#697586]">
+
+            <section className="px-4 py-4">
+                <h4 className="mb-3 px-1 text-[10px] font-semibold! uppercase tracking-normal text-[#697586]!">
                     Verification status
-                </p>
+                </h4>
                 <CategoryTabs
                     tabs={categoryTabs}
                     activeCategory={activeCategory}
                     onChange={handleCategoryChange}
                 />
-            </div>
-            <Filters typeFilter={typeFilter} onTypeChange={handleTypeChange} />
-        </>
+            </section>
+
+            <Filters
+                typeFilter={typeFilter}
+                onTypeChange={handleTypeChange}
+                accountStatusFilter={accountStatusFilter}
+                onAccountStatusChange={(value) => {
+                    setAccountStatusFilter(value);
+                    setCurrentPage(1);
+                }}
+                emailVerificationFilter={emailVerificationFilter}
+                onEmailVerificationChange={(value) => {
+                    setEmailVerificationFilter(value);
+                    setCurrentPage(1);
+                }}
+            />
+        </div>
     );
 
     // ============================================================
@@ -1406,11 +1478,21 @@ const Organizations = () => {
                                 </p>
                             </div>
 
-                            <button
-                                type="button"
-                                onClick={() => setMobileFiltersOpen(false)}
-                                aria-label="Close filters"
-                                className="
+                            <div className="flex items-center gap-3">
+                                {activeFilterCount > 0 && (
+                                    <button
+                                        type="button"
+                                        onClick={clearOrganizationFilters}
+                                        className="text-[11px] font-medium! text-[#8792A1] hover:text-[#EEF1F5]"
+                                    >
+                                        Clear all
+                                    </button>
+                                )}
+                                <button
+                                    type="button"
+                                    onClick={() => setMobileFiltersOpen(false)}
+                                    aria-label="Close filters"
+                                    className="
                                     flex
                                     h-9
                                     w-9
@@ -1431,9 +1513,10 @@ const Organizations = () => {
                                     hover:bg-[#1A222D]
                                     hover:text-[#EEF1F5]
                                 "
-                            >
-                                <X size={16} strokeWidth={1.8} />
-                            </button>
+                                >
+                                    <X size={16} strokeWidth={1.8} />
+                                </button>
+                            </div>
                         </div>
 
                         {organizationFilters}

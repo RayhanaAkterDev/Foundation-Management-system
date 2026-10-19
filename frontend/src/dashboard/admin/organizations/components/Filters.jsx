@@ -1,8 +1,49 @@
 import React from 'react';
-import { Check, Building2 } from 'lucide-react';
+import {
+    Check,
+    Building2,
+    ChevronDown,
+    ShieldCheck,
+    MailCheck,
+} from 'lucide-react';
 import { ORGANIZATION_TYPES } from '../data/organizationTypes';
 
-const Filters = ({ typeFilter, onTypeChange }) => {
+const DropdownFilter = ({ label, icon: Icon, value, onChange, options }) => (
+    <section className="border-t border-[#252D38] px-4 py-4">
+        <label className="mb-3 flex items-center gap-2 px-1 text-[10px] font-semibold! uppercase text-[#697586]!">
+            <Icon size={13} strokeWidth={1.7} />
+            {label}
+        </label>
+        <div className="relative">
+            <select
+                aria-label={label}
+                value={value}
+                onChange={(event) => onChange(event.target.value)}
+                className="h-10 w-full appearance-none border border-[#29323E] bg-[#151B24] px-3 pr-9 text-[12px] font-medium! text-[#B8C0CA] outline-none transition-colors hover:border-[#394555] focus:border-[#586679] focus:ring-0"
+            >
+                {options.map((option) => (
+                    <option key={option.value} value={option.value}>
+                        {option.label}
+                    </option>
+                ))}
+            </select>
+            <ChevronDown
+                size={15}
+                strokeWidth={1.8}
+                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#8792A1]"
+            />
+        </div>
+    </section>
+);
+
+const Filters = ({
+    typeFilter,
+    onTypeChange,
+    accountStatusFilter,
+    onAccountStatusChange,
+    emailVerificationFilter,
+    onEmailVerificationChange,
+}) => {
     const organizationTypes = [
         { value: 'all', label: 'All organization types' },
         ...ORGANIZATION_TYPES.map((type) => ({ value: type, label: type })),
@@ -10,11 +51,6 @@ const Filters = ({ typeFilter, onTypeChange }) => {
 
     return (
         <div className="w-full bg-[#0E1219]">
-            <div className="bg-[#1A222D] p-4 sm:p-5.5">
-                <h3 className="text-[15px] font-semibold! leading-8 text-[#EEF1F5]!">
-                    Filter
-                </h3>
-            </div>
             <section className="border-t border-[#252D38] px-4 py-4">
                 <h4 className="mb-3 px-1 text-[10px] font-semibold! uppercase tracking-normal text-[#697586]!">
                     Organization type
@@ -57,6 +93,29 @@ const Filters = ({ typeFilter, onTypeChange }) => {
                     })}
                 </div>
             </section>
+            <DropdownFilter
+                label="Account status"
+                icon={ShieldCheck}
+                value={accountStatusFilter}
+                onChange={onAccountStatusChange}
+                options={[
+                    { value: 'all', label: 'All account statuses' },
+                    { value: 'active', label: 'Active' },
+                    { value: 'inactive', label: 'Inactive' },
+                    { value: 'suspended', label: 'Suspended' },
+                ]}
+            />
+            <DropdownFilter
+                label="Email verification"
+                icon={MailCheck}
+                value={emailVerificationFilter}
+                onChange={onEmailVerificationChange}
+                options={[
+                    { value: 'all', label: 'All email statuses' },
+                    { value: 'verified', label: 'Verified' },
+                    { value: 'unverified', label: 'Unverified' },
+                ]}
+            />
         </div>
     );
 };

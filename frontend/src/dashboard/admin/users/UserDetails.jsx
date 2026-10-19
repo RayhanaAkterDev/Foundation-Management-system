@@ -6,6 +6,8 @@ import { ArrowLeft, CircleAlert, Pencil, X } from 'lucide-react';
 
 import PageHeader from '@/components/dashboard/PageHeader';
 import SuccessDialog from '@/components/dashboard/SuccessDialog';
+import LoadingUI from '@/components/dashboard/LoadingUI';
+import LoadingError from '@/components/dashboard/LoadingError';
 
 import EditUserView from './components/EditUserView';
 import UserDetailsView from './components/UserDetailsView';
@@ -130,107 +132,35 @@ const UserDetails = () => {
         }
     };
 
-    /* ======================================================================
-       LOADING
-    ====================================================================== */
+    /* ==========================================================================
+   LOADING
+============================================================================ */
 
     if (loading) {
         return (
-            <div
-                className="
-                    space-y-6
-                    font-sans!
-                    sm:space-y-8
-                "
-            >
+            <div className="space-y-6 font-sans! sm:space-y-8">
                 <PageHeader
                     title="User Details"
                     subtitle="Loading account information..."
                 />
 
-                <div
-                    className="
-                        flex
-                        min-h-[520px]
-                        items-center
-                        justify-center
-
-                        border
-                        border-[#252D38]
-
-                        bg-[#0E1219]
-
-                        px-6
-                        py-12
-                    "
-                >
-                    <div className="text-center">
-                        <div
-                            className="
-                                mx-auto
-
-                                h-8
-                                w-8
-
-                                animate-spin
-
-                                rounded-full
-
-                                border-2
-                                border-[#29323E]
-                                border-t-[#8792A1]
-                            "
-                        />
-
-                        <p
-                            className="
-                                mt-5
-
-                                font-sans!
-
-                                text-[12px]
-                                font-semibold!
-
-                                text-[#EEF1F5]!
-                            "
-                        >
-                            Loading user details
-                        </p>
-
-                        <p
-                            className="
-                                mt-1.5
-
-                                font-sans!
-
-                                text-[12px]
-                                font-medium!
-                                leading-5
-
-                                text-[#697586]!
-                            "
-                        >
-                            Retrieving account information.
-                        </p>
-                    </div>
-                </div>
+                <LoadingUI
+                    variant="page"
+                    title="Loading user details"
+                    description="Retrieving account information."
+                    minHeight="520px"
+                />
             </div>
         );
     }
 
-    /* ======================================================================
-       LOAD ERROR
-    ====================================================================== */
+    /* ==========================================================================
+   LOAD ERROR
+============================================================================ */
 
     if (loadError || !user) {
         return (
-            <div
-                className="
-                    space-y-6
-                    font-sans!
-                    sm:space-y-8
-                "
-            >
+            <div className="space-y-6 font-sans! sm:space-y-8">
                 <PageHeader
                     title="User Details"
                     subtitle="The requested account could not be loaded."
@@ -239,56 +169,44 @@ const UserDetails = () => {
                             type="button"
                             onClick={handleBack}
                             className="
-                                group
-
-                                inline-flex
-                                h-10
-                                w-full
-                                sm:w-auto
-                                items-center
-                                justify-center
-                                gap-2.5
-
-                                border
-                                border-[#29323E]
-
-                                bg-[#0E1219]
-
-                                px-3.5
-
-                                font-sans!
-                                text-[12px]
-                                font-medium!
-                                whitespace-nowrap
-
-                                text-[#AEB7C3]!
-
-                                transition-[background-color,border-color,color]
-                                duration-150
-                                ease-out
-
-                                hover:border-[#394555]
-                                hover:bg-[#1A222D]
-                                hover:text-[#EEF1F5]!
-
-                                focus:outline-none
-                                focus:ring-0
-                            "
+                            group
+                            inline-flex
+                            h-10
+                            w-full
+                            items-center
+                            justify-center
+                            gap-2.5
+                            border
+                            border-[#29323E]
+                            bg-[#0E1219]
+                            px-3.5
+                            font-sans!
+                            text-[12px]
+                            font-medium!
+                            whitespace-nowrap
+                            text-[#AEB7C3]!
+                            transition-[background-color,border-color,color]
+                            duration-150
+                            ease-out
+                            hover:border-[#394555]
+                            hover:bg-[#1A222D]
+                            hover:text-[#EEF1F5]!
+                            focus:outline-none
+                            focus:ring-0
+                            sm:w-auto
+                        "
                         >
                             <ArrowLeft
                                 size={14}
                                 strokeWidth={1.8}
                                 className="
-                                    shrink-0
-
-                                    text-[#697586]
-
-                                    transition-[transform,color]
-                                    duration-150
-
-                                    group-hover:-translate-x-0.5
-                                    group-hover:text-[#AEB7C3]
-                                "
+                                shrink-0
+                                text-[#697586]
+                                transition-[transform,color]
+                                duration-150
+                                group-hover:-translate-x-0.5
+                                group-hover:text-[#AEB7C3]
+                            "
                             />
 
                             <span>Back to users</span>
@@ -296,76 +214,12 @@ const UserDetails = () => {
                     }
                 />
 
-                <div
-                    className="
-                        flex
-                        items-start
-                        gap-3.5
-
-                        border
-                        border-[#493038]
-
-                        bg-[#281A1F]
-
-                        px-5
-                        py-4
-
-                        sm:px-6
-                        sm:py-5
-                    "
-                >
-                    <div
-                        className="
-                            flex
-                            h-8
-                            w-8
-                            shrink-0
-                            items-center
-                            justify-center
-
-                            border
-                            border-[#493038]
-
-                            bg-[#301F25]
-
-                            text-[#D99A9F]
-                        "
-                    >
-                        <CircleAlert size={15} strokeWidth={1.8} />
-                    </div>
-
-                    <div className="min-w-0 pt-0.5">
-                        <p
-                            className="
-                                font-sans!
-
-                                text-[11.5px]
-                                font-semibold!
-
-                                text-[#E4B0B4]!
-                            "
-                        >
-                            Unable to load user
-                        </p>
-
-                        <p
-                            className="
-                                mt-1
-
-                                font-sans!
-
-                                text-[11px]
-                                font-normal!
-                                leading-5
-
-                                text-[#B98289]!
-                            "
-                        >
-                            {loadError ||
-                                'The requested user could not be found.'}
-                        </p>
-                    </div>
-                </div>
+                <LoadingError
+                    title="Unable to load user"
+                    message={
+                        loadError || 'The requested user could not be found.'
+                    }
+                />
             </div>
         );
     }

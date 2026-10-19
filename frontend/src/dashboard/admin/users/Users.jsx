@@ -21,6 +21,8 @@ import UserFilters from './components/Filters';
 import UserTable from './components/Table';
 import UserPagination from './components/Pagination';
 import SuccessDialog from '@/components/dashboard/SuccessDialog';
+import LoadingUI from '@/components/dashboard/LoadingUI';
+import LoadingError from '@/components/dashboard/LoadingError';
 
 import { fetchUsers, deleteUser } from './api/userApi';
 
@@ -544,59 +546,11 @@ const Users = () => {
                     subtitle="Manage all registered users on the Stand For People platform."
                 />
 
-                <div
-                    className="
-                        flex
-                        min-h-130
-                        items-center
-                        justify-center
-
-                        border
-                        border-[#252D38]
-
-                        bg-[#0E1219]
-                    "
-                >
-                    <div className="text-center">
-                        <div
-                            className="
-                                mx-auto
-                                mb-4
-                                h-8
-                                w-8
-
-                                animate-spin
-                                rounded-full
-
-                                border-2
-                                border-[#252D38]
-                                border-t-[#84909F]
-                            "
-                        />
-
-                        <p
-                            className="
-                                font-sans!
-                                text-[13px]
-                                font-semibold!
-                                text-[#EEF1F5]
-                            "
-                        >
-                            Loading users...
-                        </p>
-
-                        <p
-                            className="
-                                mt-1.5
-                                font-sans!
-                                text-[11px]
-                                text-[#7F8A99]
-                            "
-                        >
-                            Please wait while we retrieve the user list.
-                        </p>
-                    </div>
-                </div>
+                <LoadingUI
+                    variant="page"
+                    title="Loading users..."
+                    description="Please wait while we retrieve the user list."
+                />
             </div>
         );
     }
@@ -613,23 +567,7 @@ const Users = () => {
                     subtitle="Manage all registered users on the Stand For People platform."
                 />
 
-                <div
-                    className="
-                        border
-                        border-[#5A343B]
-
-                        bg-[#28181D]
-
-                        px-5
-                        py-4
-
-                        font-sans!
-                        text-[12px]
-                        text-[#E9A1A8]
-                    "
-                >
-                    {error}
-                </div>
+                <LoadingError title="Unable to load users" message={error} />
             </div>
         );
     }

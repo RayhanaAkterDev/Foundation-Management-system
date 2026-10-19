@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { AlertCircle, Trash2, X } from 'lucide-react';
+import LoadingUI from '@/components/dashboard/LoadingUI';
 
 const DeleteModal = ({ user, loading = false, error, onClose, onConfirm }) => {
     useEffect(() => {
@@ -125,10 +126,7 @@ const DeleteModal = ({ user, loading = false, error, onClose, onConfirm }) => {
                         className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-[#B4515B] bg-[#A54450] px-5 font-sans! text-[13px] font-semibold! text-white! transition-colors hover:bg-[#B34C58] disabled:cursor-not-allowed disabled:opacity-55 sm:min-w-[142px]"
                     >
                         {loading ? (
-                            <>
-                                <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                                Deleting...
-                            </>
+                            <LoadingUI variant="button" title="Deleting..." />
                         ) : (
                             <>
                                 <Trash2 size={14} strokeWidth={1.8} />

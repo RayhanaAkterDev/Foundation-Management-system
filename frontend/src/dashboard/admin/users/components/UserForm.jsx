@@ -17,6 +17,9 @@ import {
     UserRound,
 } from 'lucide-react';
 
+import LoadingUI from '@/components/dashboard/LoadingUI';
+import LoadingError from '@/components/dashboard/LoadingError';
+
 /* ==========================================================================
    CONSTANTS
 ============================================================================ */
@@ -440,62 +443,11 @@ const UserForm = ({
             {/* GENERAL ERROR */}
 
             {error && (
-                <div
-                    role="alert"
-                    className="
-                        mb-7
-                        flex
-                        items-start
-                        gap-3.5
-                        border
-                        border-[#493038]
-                        bg-[#281A1F]
-                        px-4
-                        py-4
-                    "
-                >
-                    <div
-                        className="
-                            flex
-                            h-9
-                            w-9
-                            shrink-0
-                            items-center
-                            justify-center
-                            border
-                            border-[#493038]
-                            bg-[#301F25]
-                            text-[#D99A9F]
-                        "
-                    >
-                        <AlertCircle size={16} strokeWidth={1.8} />
-                    </div>
-
-                    <div className="min-w-0 pt-0.5">
-                        <p
-                            className="
-                                font-sans!
-                                text-[14px]
-                                font-semibold!
-                                text-[#E4B0B4]!
-                            "
-                        >
-                            Account could not be saved
-                        </p>
-
-                        <p
-                            className="
-                                mt-1.5
-                                font-sans!
-                                text-[13px]
-                                leading-[1.65]
-                                text-[#B98289]!
-                            "
-                        >
-                            {error}
-                        </p>
-                    </div>
-                </div>
+                <LoadingError
+                    title="Account could not be saved"
+                    message={error}
+                    className="mb-7"
+                />
             )}
 
             {/* INITIAL ACCESS + COMPLETION */}
@@ -1191,71 +1143,57 @@ const UserForm = ({
                         type="submit"
                         disabled={loading}
                         className="
-                            group
-                            flex
-                            h-[44px]
-                            w-full
-                            min-w-[170px]
-                            items-center
-                            justify-center
-                            gap-2.5
-                            border
-                            border-[#586678]
-                            bg-[#273342]
-                            px-5
-                            font-sans!
-                            text-[13px]
-                            font-semibold!
-                            text-[#EEF1F5]!
-                            transition-[border-color,background-color]
-                            duration-150
-                            hover:border-[#5A6878]
-                            hover:bg-[#303D4E]
-                            disabled:cursor-not-allowed
-                            disabled:opacity-50
-                            focus-visible:outline
-                            focus-visible:outline-2
-                            focus-visible:outline-offset-2
-                            focus-visible:outline-[#AEB7C3]
-                            @[620px]:w-auto
-                        "
+        group
+        flex
+        h-[44px]
+        w-full
+        min-w-[170px]
+        items-center
+        justify-center
+        gap-2.5
+        border
+        border-[#586678]
+        bg-[#273342]
+        px-5
+        font-sans!
+        text-[13px]
+        font-semibold!
+        text-[#EEF1F5]!
+        transition-[border-color,background-color]
+        duration-150
+        hover:border-[#5A6878]
+        hover:bg-[#303D4E]
+        disabled:cursor-not-allowed
+        disabled:opacity-50
+        focus-visible:outline
+        focus-visible:outline-2
+        focus-visible:outline-offset-2
+        focus-visible:outline-[#AEB7C3]
+        @[620px]:w-auto
+    "
                     >
-                        <span>
-                            {loading
-                                ? isEdit
-                                    ? 'Saving...'
-                                    : 'Creating...'
-                                : isEdit
-                                  ? 'Save changes'
-                                  : 'Create account'}
-                        </span>
-
-                        {!loading && (
-                            <ArrowRight
-                                size={15}
-                                strokeWidth={1.9}
-                                className="
-                                    text-[#B8C0CA]
-                                    transition-transform
-                                    duration-150
-                                    group-hover:translate-x-0.5
-                                "
+                        {loading ? (
+                            <LoadingUI
+                                variant="button"
+                                title={isEdit ? 'Saving...' : 'Creating...'}
                             />
-                        )}
+                        ) : (
+                            <>
+                                <span>
+                                    {isEdit ? 'Save changes' : 'Create account'}
+                                </span>
 
-                        {loading && (
-                            <span
-                                className="
-                                    h-4
-                                    w-4
-                                    animate-spin
-                                    rounded-full
-                                    border
-                                    border-[#697586]
-                                    border-t-[#EEF1F5]
-                                "
-                                aria-hidden="true"
-                            />
+                                <ArrowRight
+                                    size={15}
+                                    strokeWidth={1.9}
+                                    className="
+                    text-[#B8C0CA]
+                    transition-transform
+                    duration-150
+                    group-hover:translate-x-0.5
+                "
+                                />
+                            </>
                         )}
                     </button>
                 </div>

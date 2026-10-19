@@ -5,73 +5,21 @@ import {
     CalendarDays,
     Camera,
     Check,
-    CheckCircle2,
-    ChevronRight,
+    ChevronDown,
     HeartHandshake,
-    ImagePlus,
+    Mail,
     MapPin,
+    Phone,
     Save,
     ShieldCheck,
     SlidersHorizontal,
     Sparkles,
-    Upload,
     UserRound,
 } from 'lucide-react';
 
 /* =========================================================
-   DESIGN SYSTEM
+   OPTIONS
 ========================================================= */
-
-const UI = {
-    surface: '#111720',
-    content: '#0E1219',
-    raised: '#171E27',
-    raisedHover: '#202A35',
-    border: '#303A47',
-    borderStrong: '#465364',
-    text: '#DDE4EC',
-    muted: '#9AA6B5',
-};
-
-/*
- * Explicitly reset browser and global CSS focus styles.
- * Focus changes are limited to the intended dashboard colors.
- */
-const inputClass = `
-    peer block h-[52px] w-full min-w-0
-    appearance-none
-    rounded-none
-    border-0 border-b border-[#3B4654]
-    bg-[#171E27]
-    px-4 pt-4 pb-2
-    text-[14px] font-medium
-    !text-[#DCE4ED]
-    shadow-none
-    outline-none
-    ring-0
-    transition-[background-color,border-color]
-    duration-200
-
-    placeholder:!text-[#738191]
-
-    hover:bg-[#1C2530]
-    hover:border-[#627285]
-
-    focus:!border-b-[#A4B5C6]
-    focus:!bg-[#202A35]
-    focus:!outline-none
-    focus:!shadow-none
-    focus:!ring-0
-    focus:!ring-offset-0
-
-    focus-visible:!outline-none
-    focus-visible:!shadow-none
-    focus-visible:!ring-0
-    focus-visible:!ring-offset-0
-
-    disabled:cursor-not-allowed
-    disabled:opacity-50
-`;
 
 const PARTICIPATION_OPTIONS = [
     {
@@ -113,28 +61,91 @@ const SECTIONS = [
     {
         id: 'details',
         label: 'Personal details',
+        eyebrow: 'YOUR INFORMATION',
+        title: 'Personal details',
+        description: 'Manage your name and contact information.',
         icon: UserRound,
-        number: '01',
     },
     {
         id: 'location',
         label: 'Location',
+        eyebrow: 'YOUR LOCATION',
+        title: 'Location details',
+        description: 'Update the location associated with your profile.',
         icon: MapPin,
-        number: '02',
     },
     {
         id: 'preferences',
         label: 'Participation',
+        eyebrow: 'YOUR INVOLVEMENT',
+        title: 'Participation',
+        description: 'Choose how you want to contribute or receive support.',
         icon: HeartHandshake,
-        number: '03',
     },
     {
         id: 'causes',
         label: 'Causes of interest',
+        eyebrow: 'YOUR INTERESTS',
+        title: 'Causes of interest',
+        description: 'Select the causes you would like to support.',
         icon: SlidersHorizontal,
-        number: '04',
     },
 ];
+
+/* =========================================================
+   SHARED STYLES — MATCH ADMIN INPUT UI
+========================================================= */
+
+const inputClass = `
+    block h-[48px] w-full min-w-0
+    appearance-none rounded-none
+    border border-[#343E4B]
+    bg-[#1A222D]
+    pl-10 pr-3.5
+    font-sans text-[14px] font-medium!
+    !text-[#DCE4ED]
+    caret-[#DCE4ED]
+    outline-none
+    placeholder:!text-[#697586]
+    transition-colors duration-150
+    hover:border-[#4B596A]
+    focus:border-[#0F766E]
+    focus:bg-[#1A222D]
+    focus:ring-1 focus:ring-[#0F766E]/25
+    disabled:cursor-not-allowed
+    disabled:opacity-50
+`;
+
+const secondaryButtonClass = `
+    inline-flex min-h-10 items-center justify-center
+    gap-2 border border-[#343E4B]
+    bg-transparent px-4
+    text-[13px] font-medium! !text-[#B8C0CA]
+    transition-colors duration-150
+    hover:border-[#4B596A]
+    hover:bg-[#1A222D]
+    hover:!text-[#EEF1F5]
+    focus-visible:outline-none
+    focus-visible:ring-2 focus-visible:ring-[#0F766E]
+    disabled:cursor-not-allowed
+    disabled:opacity-50
+`;
+
+const primaryButtonClass = `
+    inline-flex min-h-10 items-center justify-center
+    gap-2.5 border border-[#0F766E]
+    bg-[#0F766E] px-5
+    text-[13px] font-semibold! !text-white
+    transition-colors duration-150
+    hover:border-[#115E59]
+    hover:bg-[#115E59]
+    focus-visible:outline-none
+    focus-visible:ring-2 focus-visible:ring-[#0F766E]
+    focus-visible:ring-offset-2
+    focus-visible:ring-offset-[#151C25]
+    disabled:cursor-not-allowed
+    disabled:opacity-50
+`;
 
 /* =========================================================
    HELPERS
@@ -149,7 +160,7 @@ function toArray(value) {
 
             if (Array.isArray(parsed)) return parsed;
         } catch {
-            // Fall through to delimiter parsing.
+            // Fall back to delimiter parsing.
         }
 
         return value
@@ -161,23 +172,8 @@ function toArray(value) {
     return [];
 }
 
-function formatMemberSince(value) {
-    if (!value) return 'Not available';
-
-    const date = new Date(value);
-
-    if (Number.isNaN(date.getTime())) {
-        return 'Not available';
-    }
-
-    return date.toLocaleDateString('en-BD', {
-        month: 'short',
-        year: 'numeric',
-    });
-}
-
 /* =========================================================
-   FORM FIELD
+   FORM FIELD — MATCH ADMIN PROFILE EDITOR
 ========================================================= */
 
 function Field({
@@ -185,8 +181,11 @@ function Field({
     name,
     value,
     onChange,
+    icon: Icon,
     className = '',
     hint,
+    required = false,
+    disabled = false,
     ...props
 }) {
     return (
@@ -194,71 +193,44 @@ function Field({
             <label
                 htmlFor={`individual-${name}`}
                 className="
-                    mb-2.5 flex items-center gap-1
-                    text-[13px] font-medium
-                    !text-[#B3BFCC]
+                    mb-2 block text-[13px]
+                    font-medium! !text-[#B8C0CA]
                 "
             >
                 {label}
 
-                {props.required && <span className="!text-[#E79B75]">*</span>}
+                {required && <span className="ml-1 !text-[#E5A083]">*</span>}
             </label>
 
-            <input
-                id={`individual-${name}`}
-                name={name}
-                value={value ?? ''}
-                onChange={(event) => onChange(name, event.target.value)}
-                className={inputClass}
-                {...props}
-            />
+            <div className="relative">
+                {Icon && (
+                    <Icon
+                        size={16}
+                        strokeWidth={1.7}
+                        className="
+                            pointer-events-none absolute
+                            left-3.5 top-1/2
+                            -translate-y-1/2
+                            !text-[#697586]
+                        "
+                    />
+                )}
 
-            {hint && <p className="mt-2 text-[12px] !text-[#8794A4]">{hint}</p>}
-        </div>
-    );
-}
-
-/* =========================================================
-   EDITOR SECTION HEADER
-========================================================= */
-
-function SectionHeading({ eyebrow, title, description }) {
-    return (
-        <div className="mb-9">
-            <div className="mb-4 flex items-center gap-3">
-                <span className="h-px w-7 bg-[#8294A6]" />
-
-                <span
-                    className="
-                        text-[11px] font-semibold
-                        uppercase tracking-[0.12em]
-                        !text-[#A3B0BE]
-                    "
-                >
-                    {eyebrow}
-                </span>
+                <input
+                    {...props}
+                    id={`individual-${name}`}
+                    name={name}
+                    value={value ?? ''}
+                    required={required}
+                    disabled={disabled}
+                    onChange={(event) => onChange(name, event.target.value)}
+                    className={inputClass}
+                />
             </div>
 
-            <h3
-                className="
-                    text-[24px] font-semibold
-                    leading-tight tracking-[-0.025em]
-                    !text-[#E1E7EE]
-                    sm:text-[28px]
-                "
-            >
-                {title}
-            </h3>
-
-            {description && (
-                <p
-                    className="
-                        mt-3 max-w-xl
-                        text-[13px] leading-6
-                        !text-[#9BA8B7]
-                    "
-                >
-                    {description}
+            {hint && (
+                <p className="mt-2 text-[12px] leading-5 !text-[#8792A1]">
+                    {hint}
                 </p>
             )}
         </div>
@@ -266,121 +238,92 @@ function SectionHeading({ eyebrow, title, description }) {
 }
 
 /* =========================================================
-   PARTICIPATION CARD
+   SECTION HEADING
 ========================================================= */
 
-function ParticipationChoice({ option, selected, onClick }) {
+function SectionHeading({ title, description }) {
+    return (
+        <div className="mb-7 border-b border-[#252D38] pb-5 sm:mb-8 sm:pb-6">
+            <div className="flex items-start gap-3.5">
+                <span className="mt-1 h-8 w-[3px] shrink-0 bg-[#0F766E]" />
+
+                <div className="min-w-0">
+                    <h3 className="m-0 text-[26px] font-semibold! leading-[1.15] tracking-[-0.04em] text-[#EEF1F5]! sm:text-[30px]">
+                        {title}
+                    </h3>
+
+                    {description && (
+                        <p className="mt-2 max-w-lg text-[13px] leading-[1.7] text-[#8792A1]">
+                            {description}
+                        </p>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+/* =========================================================
+   PARTICIPATION OPTION
+========================================================= */
+
+function ParticipationChoice({ option, selected, onClick, disabled }) {
     const Icon = option.icon;
 
     return (
         <button
             type="button"
             onClick={onClick}
+            disabled={disabled}
             aria-pressed={selected}
             className={`
                 group relative flex min-w-0
-                flex-col items-start
-                border p-5 text-left
-                transition-[border-color,background-color]
-                duration-200
+                items-start gap-3.5 border p-4
+                text-left transition-colors duration-150
                 focus-visible:outline-none
                 focus-visible:ring-2
-                focus-visible:ring-[#91A4B8]
+                focus-visible:ring-[#0F766E]
+                disabled:cursor-not-allowed
+                disabled:opacity-50
                 ${
                     selected
-                        ? 'border-[#718396] bg-[#25313D]'
-                        : 'border-[#35404C] bg-[#171E27] hover:border-[#526071] hover:bg-[#202A35]'
-                }
-            `}
-        >
-            <div className="flex w-full items-start justify-between">
-                <span
-                    className={`
-                        flex size-11
-                        items-center justify-center
-                        border
-                        ${
-                            selected
-                                ? 'border-[#5B6D7E] bg-[#354555] !text-[#D5E0EA]'
-                                : 'border-[#354454] bg-[#202A35] !text-[#91A2B3]'
-                        }
-                    `}
-                >
-                    <Icon size={20} strokeWidth={1.6} />
-                </span>
-
-                <span
-                    className={`
-                        flex size-5
-                        items-center justify-center
-                        border
-                        ${
-                            selected
-                                ? 'border-[#B5C2D0] bg-[#B5C2D0] !text-[#111720]'
-                                : 'border-[#69798A] bg-transparent'
-                        }
-                    `}
-                >
-                    {selected && <Check size={13} strokeWidth={3} />}
-                </span>
-            </div>
-
-            <span className="mt-5 text-[15px] font-semibold !text-[#DCE4ED]">
-                {option.label}
-            </span>
-
-            <span className="mt-1.5 text-[12px] leading-5 !text-[#9AA8B7]">
-                {option.description}
-            </span>
-        </button>
-    );
-}
-
-/* =========================================================
-   CAUSE CHOICE
-========================================================= */
-
-function CauseChoice({ option, selected, onClick }) {
-    return (
-        <button
-            type="button"
-            onClick={onClick}
-            aria-pressed={selected}
-            className={`
-                group flex min-h-[52px]
-                min-w-0 items-center
-                justify-between gap-3
-                border px-4 py-3
-                text-left
-                transition-[border-color,background-color]
-                duration-200
-                focus-visible:outline-none
-                focus-visible:ring-2
-                focus-visible:ring-[#91A4B8]
-                ${
-                    selected
-                        ? 'border-[#718396] bg-[#25313D]'
-                        : 'border-[#35404C] bg-[#171E27] hover:border-[#526071] hover:bg-[#202A35]'
+                        ? 'border-[#0F766E] bg-[#1A292A]'
+                        : 'border-[#252D38] bg-[#151C25] hover:border-[#4B596A] hover:bg-[#1A222D]'
                 }
             `}
         >
             <span
                 className={`
-                    text-[13px] font-medium leading-5
-                    ${selected ? '!text-[#E1E8F0]' : '!text-[#B6C2CE]'}
-                `}
-            >
-                {option.label}
-            </span>
-
-            <span
-                className={`
-                    flex size-[19px] shrink-0
+                    flex size-10 shrink-0
                     items-center justify-center border
                     ${
                         selected
-                            ? 'border-[#B5C2D0] bg-[#B5C2D0] !text-[#111720]'
-                            : 'border-[#647487] bg-[#111720]'
+                            ? 'border-[#285A56] bg-[#134E4A] !text-[#BCE9E2]'
+                            : 'border-[#343E4B] bg-[#1A222D] !text-[#9AA6B5]'
+                    }
+                `}
+            >
+                <Icon size={19} strokeWidth={1.7} />
+            </span>
+
+            <span className="min-w-0 flex-1 pt-0.5">
+                <span className="block text-[14px] font-semibold! !text-[#EEF1F5]">
+                    {option.label}
+                </span>
+
+                <span className="mt-1 block text-[12px] leading-5 !text-[#8792A1]">
+                    {option.description}
+                </span>
+            </span>
+
+            <span
+                className={`
+                    mt-1 flex size-[18px] shrink-0
+                    items-center justify-center border
+                    ${
+                        selected
+                            ? 'border-[#0F766E] bg-[#0F766E] !text-white'
+                            : 'border-[#4B596A]'
                     }
                 `}
             >
@@ -391,12 +334,311 @@ function CauseChoice({ option, selected, onClick }) {
 }
 
 /* =========================================================
+   CAUSE OPTION
+========================================================= */
+
+function CauseChoice({ option, selected, onClick, disabled }) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            disabled={disabled}
+            aria-pressed={selected}
+            className={`
+                flex min-h-[46px] min-w-0
+                items-center justify-between gap-3
+                border px-3.5 py-2.5 text-left
+                transition-colors duration-150
+                focus-visible:outline-none
+                focus-visible:ring-2
+                focus-visible:ring-[#0F766E]
+                disabled:cursor-not-allowed
+                disabled:opacity-50
+                ${
+                    selected
+                        ? 'border-[#0F766E] bg-[#1A292A]'
+                        : 'border-[#252D38] bg-[#151C25] hover:border-[#4B596A] hover:bg-[#1A222D]'
+                }
+            `}
+        >
+            <span
+                className={`
+                    min-w-0 text-[13px]
+                    font-medium! leading-5
+                    ${selected ? '!text-[#EEF1F5]' : '!text-[#B8C0CA]'}
+                `}
+            >
+                {option.label}
+            </span>
+
+            <span
+                className={`
+                    flex size-[17px] shrink-0
+                    items-center justify-center border
+                    ${
+                        selected
+                            ? 'border-[#0F766E] bg-[#0F766E] !text-white'
+                            : 'border-[#4B596A]'
+                    }
+                `}
+            >
+                {selected && <Check size={11} strokeWidth={3} />}
+            </span>
+        </button>
+    );
+}
+
+/* =========================================================
+   PROFILE IDENTITY
+========================================================= */
+
+function ProfileIdentity({
+    form,
+    photoPreview,
+    uploadingPhoto,
+    busy,
+    onPhotoUpload,
+}) {
+    const [photoError, setPhotoError] = useState(false);
+
+    const savedPhoto = typeof form.photo === 'string' ? form.photo.trim() : '';
+
+    const photo = photoPreview || savedPhoto;
+    const hasPhoto = Boolean(photo) && !photoError;
+
+    const initial = form.name?.trim()?.charAt(0)?.toUpperCase() || 'U';
+
+    const handleFileChange = (event) => {
+        const file = event.target.files?.[0];
+
+        if (file && onPhotoUpload) {
+            setPhotoError(false);
+            onPhotoUpload(file);
+        }
+
+        event.target.value = '';
+    };
+
+    return (
+        <div className="px-5 pb-6 pt-7 sm:px-6 lg:px-6 lg:pt-8">
+            <div className="flex min-w-0 flex-col gap-4">
+                <div className="relative shrink-0">
+                    <div
+                        className="
+                            flex size-28 items-center justify-center
+                            overflow-hidden border border-[#343E4B]
+                            bg-[#1A222D] text-[30px] font-semibold!
+                            !text-[#EEF1F5]
+                        "
+                    >
+                        {hasPhoto ? (
+                            <img
+                                key={photo}
+                                src={photo}
+                                alt="Profile"
+                                className="size-full object-cover"
+                                onError={() => setPhotoError(true)}
+                                onLoad={() => setPhotoError(false)}
+                            />
+                        ) : (
+                            <span>{initial}</span>
+                        )}
+                    </div>
+
+                    <label
+                        title="Change profile photo"
+                        className={`
+                            absolute -bottom-1.5 left-21.5
+                            flex size-8 cursor-pointer items-center
+                            justify-center border-2 border-[#151C25]
+                            bg-[#0F766E] !text-white
+                            transition-colors hover:bg-[#115E59]
+                            ${busy ? 'pointer-events-none opacity-50' : ''}
+                        `}
+                    >
+                        <Camera size={14} strokeWidth={1.8} />
+
+                        <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            disabled={busy}
+                            onChange={handleFileChange}
+                            className="sr-only"
+                            aria-label="Change profile photo"
+                        />
+                    </label>
+                </div>
+
+                <div className="min-w-0 flex-1">
+                    <h3 className="mt-2 break-words text-[18px] font-semibold! leading-snug !text-[#EEF1F5]">
+                        {form.name?.trim() || 'Your profile'}
+                    </h3>
+
+                    <p className="mt-1.5 break-all text-[12px] font-medium! !text-[#B8C0CA]">
+                        {form.email || 'No email address'}
+                    </p>
+                </div>
+            </div>
+
+            <div className="mt-6 border-t border-[#252D38] pt-5">
+                <label
+                    className={`
+                        inline-flex min-h-9 cursor-pointer
+                        items-center justify-center gap-2
+                        border border-[#343E4B] bg-[#1A222D]
+                        px-3.5 text-[12px] font-medium! !text-[#B8C0CA]
+                        transition-colors hover:border-[#4B596A]
+                        hover:bg-[#202A35] hover:!text-[#EEF1F5]
+                        ${busy ? 'pointer-events-none opacity-50' : ''}
+                    `}
+                >
+                    <Camera size={14} strokeWidth={1.8} />
+
+                    {uploadingPhoto
+                        ? 'Uploading...'
+                        : photo
+                          ? 'Change photo'
+                          : 'Upload photo'}
+
+                    <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        disabled={busy}
+                        onChange={handleFileChange}
+                        className="sr-only"
+                    />
+                </label>
+
+                <p className="mt-2.5 text-[11px] !text-[#697586]">
+                    JPG, PNG or WebP
+                </p>
+
+                {photoPreview && !uploadingPhoto && (
+                    <p
+                        role="status"
+                        className="mt-3 flex items-center gap-2 text-[12px] !text-[#B8C0CA]"
+                    >
+                        <Check size={14} className="!text-[#0F766E]" />
+                        Photo selected. Save to apply.
+                    </p>
+                )}
+
+                {uploadingPhoto && (
+                    <p
+                        role="status"
+                        className="mt-3 text-[12px] !text-[#B8C0CA]"
+                    >
+                        Preparing your photo...
+                    </p>
+                )}
+            </div>
+        </div>
+    );
+}
+
+/* =========================================================
+   EDITOR NAVIGATION
+========================================================= */
+
+function EditorNavigation({ activeSection, onSectionChange }) {
+    return (
+        <nav
+            aria-label="Profile editor sections"
+            className="border-t border-[#252D38] px-4 py-5 sm:px-5 lg:px-4 lg:py-6"
+        >
+            <p className="mb-3 px-2 text-[11px] font-semibold! tracking-[0.11em] !text-[#697586]">
+                PROFILE SETTINGS
+            </p>
+
+            <div className="relative lg:hidden">
+                <select
+                    value={activeSection}
+                    onChange={(event) => onSectionChange(event.target.value)}
+                    aria-label="Choose profile section"
+                    className="
+                        h-11 w-full appearance-none border
+                        border-[#343E4B] bg-[#1A222D]
+                        px-3.5 pr-10 text-[13px] font-medium!
+                        !text-[#B8C0CA] outline-none
+                        focus:border-[#0F766E]
+                    "
+                >
+                    {SECTIONS.map((section) => (
+                        <option key={section.id} value={section.id}>
+                            {section.label}
+                        </option>
+                    ))}
+                </select>
+
+                <ChevronDown
+                    size={16}
+                    className="
+                        pointer-events-none absolute right-3.5
+                        top-1/2 -translate-y-1/2 text-[#8792A1]
+                    "
+                />
+            </div>
+
+            <div className="hidden space-y-1 lg:block">
+                {SECTIONS.map((section) => {
+                    const Icon = section.icon;
+                    const active = section.id === activeSection;
+
+                    return (
+                        <button
+                            key={section.id}
+                            type="button"
+                            onClick={() => onSectionChange(section.id)}
+                            aria-current={active ? 'step' : undefined}
+                            className={`
+                                group relative flex min-h-[45px] w-full
+                                items-center gap-3 px-3 py-2.5
+                                text-left transition-colors duration-150
+                                focus-visible:outline-none
+                                focus-visible:ring-1
+                                focus-visible:ring-[#0F766E]
+                                ${
+                                    active
+                                        ? 'bg-[#1A222D] !text-[#EEF1F5]'
+                                        : '!text-[#8792A1] hover:bg-[#1A222D] hover:!text-[#B8C0CA]'
+                                }
+                            `}
+                        >
+                            {active && (
+                                <span className="absolute inset-y-2 left-0 w-[2px] bg-[#0F766E]" />
+                            )}
+
+                            <Icon
+                                size={17}
+                                strokeWidth={1.7}
+                                className={
+                                    active
+                                        ? '!text-[#2DD4BF]'
+                                        : '!text-[#697586]'
+                                }
+                            />
+
+                            <span className="min-w-0 text-[13px] font-medium! leading-5">
+                                {section.label}
+                            </span>
+
+                            {active && (
+                                <span className="ml-auto size-1.5 shrink-0 bg-[#0F766E]" />
+                            )}
+                        </button>
+                    );
+                })}
+            </div>
+        </nav>
+    );
+}
+
+/* =========================================================
    MAIN COMPONENT
 ========================================================= */
 
 export default function IndividualProfileEdit({
     form,
-    memberSince,
     saving,
     uploadingPhoto = false,
     photoPreview = '',
@@ -405,23 +647,16 @@ export default function IndividualProfileEdit({
     onSave,
     onCancel,
 }) {
-    const [photoPreviewError, setPhotoPreviewError] = useState(false);
     const [activeSection, setActiveSection] = useState('details');
+
+    const busy = saving || uploadingPhoto;
+
+    const currentSection =
+        SECTIONS.find((section) => section.id === activeSection) || SECTIONS[0];
 
     const participationPreferences = toArray(form.participation_preferences);
 
     const categoryPreferences = toArray(form.category_preferences);
-
-    // Preview is local and temporary; it must not update form.photo.
-    const savedPhoto = typeof form.photo === 'string' ? form.photo.trim() : '';
-
-    const photo = photoPreview || savedPhoto;
-    const hasPhoto = Boolean(photo) && !photoPreviewError;
-    const busy = saving || uploadingPhoto;
-    const joinedText = formatMemberSince(memberSince);
-
-    const currentSection =
-        SECTIONS.find((section) => section.id === activeSection) || SECTIONS[0];
 
     const togglePreference = (field, currentValues, value) => {
         const nextValues = currentValues.includes(value)
@@ -431,478 +666,233 @@ export default function IndividualProfileEdit({
         onChange(field, nextValues);
     };
 
-    const handleFileChange = (event) => {
-        const file = event.target.files?.[0];
+    const handleSubmit = (event) => {
+        event.preventDefault();
 
-        if (file && onPhotoUpload) {
-            setPhotoPreviewError(false);
-            onPhotoUpload(file);
+        if (!busy) {
+            onSave(event);
         }
-
-        // Allows selecting the same file again.
-        event.target.value = '';
     };
 
     return (
-        <div className="min-w-0 pb-8 font-sans !text-[#D3DCE5]">
-            <form onSubmit={onSave} className="min-w-0">
-                {/* PROFILE MASTHEAD */}
+        <div className="min-w-0 pb-8 font-sans">
+            {/* PAGE HEADING */}
 
-                <div className="border border-[#343F4D] bg-[#111720]">
-                    <div
-                        className="
-                            flex flex-col gap-6
-                            px-5 py-6
-                            sm:px-8 sm:py-7
-                            lg:flex-row
-                            lg:items-center
-                            lg:justify-between
-                        "
-                    >
-                        <div className="flex min-w-0 items-center gap-5">
-                            <div className="relative shrink-0">
-                                <div
-                                    className="
-                                        flex size-[82px]
-                                        items-center justify-center
-                                        overflow-hidden
-                                        border border-[#465364]
-                                        bg-[#273240]
-                                        sm:size-[94px]
-                                    "
-                                >
-                                    {hasPhoto ? (
-                                        <img
-                                            src={photo}
-                                            alt="Profile preview"
-                                            className="size-full object-cover"
-                                            onError={() =>
-                                                setPhotoPreviewError(true)
-                                            }
-                                            onLoad={() =>
-                                                setPhotoPreviewError(false)
-                                            }
-                                        />
-                                    ) : (
-                                        <ImagePlus
-                                            size={31}
-                                            strokeWidth={1.4}
-                                            className="!text-[#AAB5C2]"
-                                        />
-                                    )}
-                                </div>
+            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                    <p className="mb-2 text-[12px] font-medium! !text-[#8792A1]">
+                        Individual
+                        <span className="mx-2.5 text-[#343E4B]">/</span>
+                        Edit profile
+                    </p>
 
-                                <span
-                                    className="
-                                        absolute -bottom-1.5 -right-1.5
-                                        flex size-8
-                                        items-center justify-center
-                                        border-[3px] border-[#111720]
-                                        bg-[#465261]
-                                        !text-[#E3EAF1]
-                                    "
-                                >
-                                    <Camera size={14} />
-                                </span>
-                            </div>
-
-                            <div className="min-w-0">
-                                <p className="text-[12px] font-medium !text-[#9FAEBD]">
-                                    Editing profile
-                                </p>
-
-                                <h2
-                                    className="
-                                        mt-1.5 break-words
-                                        text-[23px] font-semibold
-                                        leading-tight tracking-[-0.02em]
-                                        !text-[#E1E7EE]
-                                        sm:text-[27px]
-                                    "
-                                >
-                                    {form.name?.trim() || 'Your profile'}
-                                </h2>
-
-                                <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2">
-                                    <span className="inline-flex items-center gap-1.5 text-[12px] !text-[#A7B5C3]">
-                                        <UserRound size={14} />
-                                        Individual account
-                                    </span>
-
-                                    <span className="inline-flex items-center gap-1.5 text-[12px] !text-[#A7B5C3]">
-                                        <CalendarDays size={14} />
-                                        Member since {joinedText}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="flex flex-wrap items-center gap-2.5">
-                            <label
-                                htmlFor="individual-photo"
-                                aria-disabled={busy}
-                                className={`
-                                    inline-flex min-h-11
-                                    cursor-pointer
-                                    items-center justify-center gap-2.5
-                                    border border-[#3C4856]
-                                    bg-[#202A35] px-4
-                                    text-[13px] font-semibold
-                                    !text-[#DFE6EE]
-                                    transition-colors duration-200
-                                    hover:border-[#657789]
-                                    hover:bg-[#2A3643]
-                                    ${
-                                        busy
-                                            ? 'pointer-events-none opacity-50'
-                                            : ''
-                                    }
-                                `}
-                            >
-                                <Upload size={15} strokeWidth={1.8} />
-
-                                {uploadingPhoto
-                                    ? 'Uploading...'
-                                    : photoPreview || savedPhoto
-                                      ? 'Change photo'
-                                      : 'Upload photo'}
-                            </label>
-
-                            <input
-                                id="individual-photo"
-                                name="photo"
-                                type="file"
-                                accept="image/jpeg,image/png,image/webp"
-                                disabled={busy}
-                                onChange={handleFileChange}
-                                className="sr-only"
-                            />
-                        </div>
-                    </div>
-
-                    {uploadingPhoto && (
-                        <p
-                            role="status"
-                            className="px-5 pb-4 text-[12px] !text-[#A6B3C1] sm:px-8"
-                        >
-                            Preparing your profile photo. Please wait...
-                        </p>
-                    )}
-
-                    {photoPreview && !uploadingPhoto && (
-                        <p
-                            role="status"
-                            className="px-5 pb-4 text-[12px] !text-[#A6B3C1] sm:px-8"
-                        >
-                            Photo selected. Save changes to apply it.
-                        </p>
-                    )}
+                    <h2 className="m-0 text-[28px] font-semibold! leading-tight tracking-[-0.035em] !text-[#EEF1F5] sm:text-[31px]">
+                        Edit profile
+                    </h2>
                 </div>
 
-                {/* TWO-COLUMN EDITOR */}
+                <button
+                    type="button"
+                    onClick={onCancel}
+                    disabled={busy}
+                    className={`${secondaryButtonClass} self-start sm:self-auto`}
+                >
+                    <ArrowLeft size={15} strokeWidth={1.8} />
+                    Back to profile
+                </button>
+            </div>
 
+            {/* FIXED-HEIGHT EDITOR */}
+
+            <form
+                onSubmit={handleSubmit}
+                className="
+                    min-w-0 overflow-hidden
+                    border border-[#252D38]
+                    bg-[#0E1219]
+                    lg:h-[626px]
+                "
+            >
                 <div
                     className="
-                        mt-5 grid min-w-0
-                        items-stretch gap-4
-                        lg:h-[620px]
-                        lg:grid-cols-[258px_minmax(0,1fr)]
-                        lg:gap-5
-                        xl:grid-cols-[278px_minmax(0,1fr)]
+                        grid min-w-0 grid-cols-1 items-stretch
+                        lg:h-full lg:min-h-0
+                        lg:grid-cols-[270px_minmax(0,1fr)]
+                        xl:grid-cols-[300px_minmax(0,1fr)]
                     "
                 >
-                    {/* LEFT NAVIGATION */}
+                    {/* LEFT SIDEBAR */}
 
-                    <nav
-                        aria-label="Profile editor sections"
+                    <aside
                         className="
-                            flex min-w-0 flex-col overflow-hidden
-                            border border-[#343F4D] bg-[#111720]
+                            flex min-w-0 flex-col
+                            border-b border-[#252D38]
+                            bg-[#151C25]
                             lg:h-full lg:min-h-0
+                            lg:overflow-y-auto
+                            lg:border-b-0 lg:border-r
                         "
                     >
-                        <div className="hidden border-b border-[#303A47] px-5 py-5 lg:block">
-                            <h3 className="mt-2 text-[17px] font-semibold !text-[#DDE4EC]">
-                                Edit information
-                            </h3>
+                        <ProfileIdentity
+                            form={form}
+                            photoPreview={photoPreview}
+                            uploadingPhoto={uploadingPhoto}
+                            busy={busy}
+                            onPhotoUpload={onPhotoUpload}
+                        />
+
+                        <div className="mt-auto">
+                            <EditorNavigation
+                                activeSection={activeSection}
+                                onSectionChange={setActiveSection}
+                            />
                         </div>
+                    </aside>
+
+                    {/* RIGHT EDITOR PANEL */}
+
+                    <div className="flex min-w-0 flex-col bg-[#0E1219] lg:h-full lg:min-h-0">
+                        {/* ONLY THIS AREA SCROLLS */}
 
                         <div
                             className="
-                                flex min-w-0 gap-1 overflow-x-auto p-2
-                                lg:min-h-0 lg:flex-col lg:gap-1
-                                lg:overflow-y-auto lg:overflow-x-hidden
-                                lg:p-3
+                                min-w-0 flex-1 px-5 py-7
+                                sm:px-7 sm:py-8
+                                lg:overflow-y-auto
+                                lg:px-8 lg:py-9 xl:px-10
                             "
                         >
-                            {SECTIONS.map((section) => {
-                                const Icon = section.icon;
-                                const active = activeSection === section.id;
+                            <SectionHeading
+                                title={currentSection.title}
+                                description={currentSection.description}
+                            />
 
-                                return (
-                                    <button
-                                        key={section.id}
-                                        type="button"
-                                        onClick={() =>
-                                            setActiveSection(section.id)
-                                        }
-                                        aria-current={
-                                            active ? 'step' : undefined
-                                        }
-                                        className={`
-                                            group relative flex min-h-[52px]
-                                            shrink-0 items-center gap-3
-                                            px-3.5 py-3 text-left
-                                            transition-[background-color,color]
-                                            duration-200
-                                            focus:outline-none
-                                            focus:ring-0
-                                            focus-visible:outline-none
-                                            focus-visible:ring-0
-                                            lg:w-full lg:min-h-[62px]
-                                            ${
-                                                active
-                                                    ? 'bg-[#273440]'
-                                                    : 'hover:bg-[#1D2731]'
-                                            }
-                                        `}
-                                    >
-                                        {active && (
-                                            <span
-                                                aria-hidden="true"
-                                                className="
-                                                    absolute bottom-0 left-3 right-3
-                                                    h-[2px] bg-[#A1B2C3]
-                                                    lg:inset-y-2 lg:left-0
-                                                    lg:right-auto lg:h-auto lg:w-[3px]
-                                                "
-                                            />
-                                        )}
-
-                                        <span
-                                            className={`
-                                                flex size-9 shrink-0
-                                                items-center justify-center
-                                                ${
-                                                    active
-                                                        ? 'bg-[#3A4B5C] !text-[#D6E0EA]'
-                                                        : 'bg-[#202A35] !text-[#91A1B1]'
-                                                }
-                                            `}
-                                        >
-                                            <Icon size={17} strokeWidth={1.8} />
-                                        </span>
-
-                                        <span className="min-w-0">
-                                            <span
-                                                className={`
-                                                    block whitespace-nowrap
-                                                    text-[13px] font-semibold
-                                                    ${
-                                                        active
-                                                            ? '!text-[#E1E8F0]'
-                                                            : '!text-[#AAB7C5] group-hover:!text-[#D0D9E2]'
-                                                    }
-                                                `}
-                                            >
-                                                {section.label}
-                                            </span>
-
-                                            <span className="mt-1 hidden text-[11px] !text-[#7F90A1] lg:block">
-                                                Section {section.number}
-                                            </span>
-                                        </span>
-
-                                        <ChevronRight
-                                            size={15}
-                                            className={`
-                                                ml-auto hidden shrink-0 lg:block
-                                                ${
-                                                    active
-                                                        ? '!text-[#B8C6D4]'
-                                                        : '!text-[#647184] opacity-0 group-hover:opacity-100'
-                                                }
-                                            `}
-                                        />
-                                    </button>
-                                );
-                            })}
-                        </div>
-
-                        <div className="mt-auto hidden border-t border-[#303A47] px-5 py-5 lg:block">
-                            <div className="flex items-start gap-3">
-                                <CheckCircle2
-                                    size={17}
-                                    className="mt-0.5 shrink-0 !text-[#8FA5B8]"
-                                />
-
-                                <p className="text-[12px] leading-5 !text-[#9AA8B7]">
-                                    Save your changes when you finish editing.
-                                </p>
-                            </div>
-                        </div>
-                    </nav>
-
-                    {/* RIGHT CONTENT */}
-
-                    <div
-                        className="
-                            flex min-h-[500px] min-w-0 flex-col
-                            overflow-hidden border border-[#303A47]
-                            bg-[#0E1219]
-                            lg:h-full lg:min-h-0
-                        "
-                    >
-                        <div
-                            className="
-                                flex shrink-0 items-center justify-between gap-4
-                                border-b border-[#303A47]
-                                px-5 py-4 sm:px-8
-                            "
-                        >
-                            <span className="text-[12px] font-medium !text-[#A9B6C4]">
-                                {currentSection.label}
-                            </span>
-
-                            <span className="text-[12px] font-medium tabular-nums !text-[#8797A8]">
-                                {currentSection.number} / 04
-                            </span>
-                        </div>
-
-                        <div
-                            className="
-                                min-w-0 flex-1 px-5 py-8
-                                sm:px-8 sm:py-10 xl:px-10
-                                lg:min-h-0 lg:overflow-y-auto
-                                lg:overscroll-contain
-                                lg:[scrollbar-width:thin]
-                                lg:[scrollbar-color:#465364_transparent]
-                            "
-                        >
                             {/* PERSONAL DETAILS */}
 
-                            {activeSection === 'details' && (
-                                <section>
-                                    <SectionHeading
-                                        eyebrow="Account identity"
-                                        title="Personal details"
-                                        description="Keep your personal information accurate and up to date."
+                            <section
+                                hidden={activeSection !== 'details'}
+                                aria-label="Personal details"
+                            >
+                                <div className="grid min-w-0 gap-x-6 gap-y-6 sm:grid-cols-2 xl:gap-x-8">
+                                    <Field
+                                        label="Full name"
+                                        name="name"
+                                        icon={UserRound}
+                                        type="text"
+                                        value={form.name}
+                                        onChange={onChange}
+                                        required
+                                        placeholder="Enter your full name"
+                                        autoComplete="name"
+                                        disabled={busy}
+                                        className="sm:col-span-2"
                                     />
 
-                                    <div className="grid min-w-0 gap-x-7 gap-y-7 sm:grid-cols-2 xl:gap-x-10">
-                                        <Field
-                                            label="Full name"
-                                            name="name"
-                                            value={form.name}
-                                            onChange={onChange}
-                                            required
-                                            placeholder="Enter your full name"
-                                            autoComplete="name"
-                                        />
+                                    <Field
+                                        label="Email address"
+                                        name="email"
+                                        icon={Mail}
+                                        type="email"
+                                        value={form.email}
+                                        onChange={onChange}
+                                        required
+                                        placeholder="name@example.com"
+                                        autoComplete="email"
+                                        disabled={busy}
+                                    />
 
-                                        <Field
-                                            label="Email address"
-                                            name="email"
-                                            type="email"
-                                            value={form.email}
-                                            onChange={onChange}
-                                            required
-                                            placeholder="name@example.com"
-                                            autoComplete="email"
-                                        />
+                                    <Field
+                                        label="Phone number"
+                                        name="phone"
+                                        icon={Phone}
+                                        type="tel"
+                                        inputMode="numeric"
+                                        value={form.phone}
+                                        onChange={(name, value) =>
+                                            onChange(
+                                                name,
+                                                value
+                                                    .replace(/\D/g, '')
+                                                    .slice(0, 11),
+                                            )
+                                        }
+                                        placeholder="01XXXXXXXXX"
+                                        minLength={11}
+                                        maxLength={11}
+                                        pattern="01[0-9]{9}"
+                                        title="Enter exactly 11 digits starting with 01"
+                                        autoComplete="tel"
+                                        disabled={busy}
+                                    />
 
-                                        <Field
-                                            label="Phone number"
-                                            name="phone"
-                                            type="tel"
-                                            inputMode="numeric"
-                                            value={form.phone}
-                                            onChange={(name, value) =>
-                                                onChange(
-                                                    name,
-                                                    value
-                                                        .replace(/\D/g, '')
-                                                        .slice(0, 11),
-                                                )
-                                            }
-                                            placeholder="01XXXXXXXXX"
-                                            minLength={11}
-                                            maxLength={11}
-                                            pattern="01[0-9]{9}"
-                                            title="Enter exactly 11 digits starting with 01"
-                                            autoComplete="tel"
-                                        />
+                                    <Field
+                                        label="Date of birth"
+                                        name="date_of_birth"
+                                        icon={CalendarDays}
+                                        type="date"
+                                        max={new Date()
+                                            .toISOString()
+                                            .slice(0, 10)}
+                                        value={form.date_of_birth}
+                                        onChange={onChange}
+                                        disabled={busy}
+                                        className="sm:col-span-2"
+                                    />
+                                </div>
 
-                                        <Field
-                                            label="Date of birth"
-                                            name="date_of_birth"
-                                            type="date"
-                                            max={new Date()
-                                                .toISOString()
-                                                .slice(0, 10)}
-                                            value={form.date_of_birth}
-                                            onChange={onChange}
-                                        />
-                                    </div>
+                                <div className="mt-7 flex items-start gap-3 border-t border-[#252D38] pt-5">
+                                    <ShieldCheck
+                                        size={17}
+                                        strokeWidth={1.7}
+                                        className="mt-0.5 shrink-0 !text-[#8792A1]"
+                                    />
 
-                                    {/* SECURITY NOTE */}
-
-                                    <div
-                                        className="flex items-start
-                                                                        gap-3
-                                                                        pt-8
-                                                                    "
-                                    >
-                                        <ShieldCheck
-                                            size={17}
-                                            strokeWidth={1.7}
-                                            className="
-                                                                            mt-0.5 shrink-0
-                                                                            !text-[#94A9BC]
-                                                                        "
-                                        />
-
-                                        <p
-                                            className="
-                                                                            text-[12px] leading-6
-                                                                            !text-[#A0AFBE]
-                                                                        "
-                                        >
-                                            Changing your email address may
-                                            require verification and signing in
-                                            again.
-                                        </p>
-                                    </div>
-                                </section>
-                            )}
+                                    <p className="text-[12px] leading-6 !text-[#8792A1]">
+                                        Changing your email address may require
+                                        verification and signing in again.
+                                    </p>
+                                </div>
+                            </section>
 
                             {/* LOCATION */}
 
-                            {activeSection === 'location' && (
-                                <section>
-                                    <SectionHeading
-                                        eyebrow="Where you're based"
-                                        title="Location details"
-                                        description="Manage the location associated with your profile."
+                            <section
+                                hidden={activeSection !== 'location'}
+                                aria-label="Location"
+                            >
+                                <div className="max-w-2xl space-y-6">
+                                    <Field
+                                        label="District"
+                                        name="district"
+                                        icon={MapPin}
+                                        value={form.district}
+                                        onChange={onChange}
+                                        placeholder="Enter your district"
+                                        autoComplete="address-level2"
+                                        disabled={busy}
                                     />
 
-                                    <div className="max-w-3xl space-y-7">
-                                        <Field
-                                            label="District"
-                                            name="district"
-                                            value={form.district}
-                                            onChange={onChange}
-                                            placeholder="Enter your district"
-                                            autoComplete="address-level2"
-                                        />
+                                    <div>
+                                        <label
+                                            htmlFor="individual-address"
+                                            className="
+                                                mb-2 block text-[13px]
+                                                font-medium! !text-[#B8C0CA]
+                                            "
+                                        >
+                                            Address
+                                        </label>
 
-                                        <div>
-                                            <label
-                                                htmlFor="individual-address"
-                                                className="mb-2.5 block text-[13px] font-medium !text-[#B3BFCC]"
-                                            >
-                                                Address
-                                            </label>
+                                        <div className="relative">
+                                            <MapPin
+                                                size={16}
+                                                strokeWidth={1.7}
+                                                className="
+                                                    pointer-events-none absolute
+                                                    left-3.5 top-4
+                                                    !text-[#697586]
+                                                "
+                                            />
 
                                             <textarea
                                                 id="individual-address"
@@ -916,129 +906,112 @@ export default function IndividualProfileEdit({
                                                     )
                                                 }
                                                 placeholder="Enter your address"
+                                                disabled={busy}
                                                 className={`
                                                     ${inputClass}
-                                                    !h-auto min-h-[130px]
-                                                    resize-y !py-4 leading-6
+                                                    !h-auto min-h-[124px]
+                                                    resize-y !py-3.5
+                                                    leading-6
                                                 `}
                                             />
                                         </div>
                                     </div>
-                                </section>
-                            )}
+                                </div>
+                            </section>
 
                             {/* PARTICIPATION */}
 
-                            {activeSection === 'preferences' && (
-                                <section>
-                                    <SectionHeading
-                                        eyebrow="Your involvement"
-                                        title="Participation"
-                                        description="Choose how you want to take part in humanitarian activities."
-                                    />
-
-                                    <div className="grid min-w-0 gap-3.5 sm:grid-cols-2 xl:grid-cols-3">
-                                        {PARTICIPATION_OPTIONS.map((option) => (
-                                            <ParticipationChoice
-                                                key={option.value}
-                                                option={option}
-                                                selected={participationPreferences.includes(
+                            <section
+                                hidden={activeSection !== 'preferences'}
+                                aria-label="Participation"
+                            >
+                                <div className="grid min-w-0 gap-3 sm:grid-cols-2 2xl:grid-cols-3">
+                                    {PARTICIPATION_OPTIONS.map((option) => (
+                                        <ParticipationChoice
+                                            key={option.value}
+                                            option={option}
+                                            disabled={busy}
+                                            selected={participationPreferences.includes(
+                                                option.value,
+                                            )}
+                                            onClick={() =>
+                                                togglePreference(
+                                                    'participation_preferences',
+                                                    participationPreferences,
                                                     option.value,
-                                                )}
-                                                onClick={() =>
-                                                    togglePreference(
-                                                        'participation_preferences',
-                                                        participationPreferences,
-                                                        option.value,
-                                                    )
-                                                }
-                                            />
-                                        ))}
-                                    </div>
-                                </section>
-                            )}
+                                                )
+                                            }
+                                        />
+                                    ))}
+                                </div>
+                            </section>
 
-                            {/* CAUSES */}
+                            {/* CAUSES OF INTEREST */}
 
-                            {activeSection === 'causes' && (
-                                <section>
-                                    <SectionHeading
-                                        eyebrow="Your interests"
-                                        title="Causes of interest"
-                                        description="Select the areas you care about most."
-                                    />
-
-                                    <div className="grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                                        {CATEGORY_OPTIONS.map((option) => (
-                                            <CauseChoice
-                                                key={option.value}
-                                                option={option}
-                                                selected={categoryPreferences.includes(
+                            <section
+                                hidden={activeSection !== 'causes'}
+                                aria-label="Causes of interest"
+                            >
+                                <div className="grid min-w-0 gap-2.5 sm:grid-cols-2 2xl:grid-cols-3">
+                                    {CATEGORY_OPTIONS.map((option) => (
+                                        <CauseChoice
+                                            key={option.value}
+                                            option={option}
+                                            disabled={busy}
+                                            selected={categoryPreferences.includes(
+                                                option.value,
+                                            )}
+                                            onClick={() =>
+                                                togglePreference(
+                                                    'category_preferences',
+                                                    categoryPreferences,
                                                     option.value,
-                                                )}
-                                                onClick={() =>
-                                                    togglePreference(
-                                                        'category_preferences',
-                                                        categoryPreferences,
-                                                        option.value,
-                                                    )
-                                                }
-                                            />
-                                        ))}
-                                    </div>
-                                </section>
-                            )}
+                                                )
+                                            }
+                                        />
+                                    ))}
+                                </div>
+                            </section>
                         </div>
 
-                        {/* FOOTER ACTIONS */}
+                        {/* STATIONARY FOOTER */}
 
                         <div
                             className="
-                                mt-auto flex shrink-0 flex-col-reverse gap-3
-                                border-t border-[#303A47] bg-[#151B24]
-                                px-5 py-5
-                                sm:flex-row sm:items-center sm:justify-end
-                                sm:px-8
+                                mt-auto shrink-0 flex flex-col-reverse gap-3
+                                border-t border-[#252D38]
+                                bg-[#151C25] px-5 py-4
+                                sm:flex-row sm:items-center
+                                sm:justify-between sm:px-7
+                                lg:px-8 xl:px-10
                             "
                         >
-                            <button
-                                type="button"
-                                onClick={onCancel}
-                                disabled={busy}
-                                className="
-                                    inline-flex min-h-11 items-center justify-center gap-2.5
-                                    border border-[#3C4856] bg-[#202A35] px-5
-                                    text-[13px] font-semibold !text-[#DFE6EE]
-                                    shadow-none outline-none ring-0
-                                    transition-colors duration-200
-                                    hover:border-[#657789] hover:bg-[#2A3643]
-                                    focus:outline-none focus:ring-0
-                                    focus-visible:outline-none focus-visible:ring-0
-                                    disabled:cursor-not-allowed disabled:opacity-50
-                                "
-                            >
-                                <ArrowLeft size={15} strokeWidth={1.8} />
-                                Back to profile
-                            </button>
+                            <p className="hidden text-[12px] !text-[#697586] sm:block">
+                                Make sure your details are up to date.
+                            </p>
 
-                            <button
-                                type="submit"
-                                disabled={busy}
-                                className="
-                                    inline-flex min-h-11 items-center justify-center gap-2.5
-                                    border border-[#667789] bg-[#414E5D] px-6
-                                    text-[13px] font-semibold !text-[#EDF2F7]
-                                    shadow-none outline-none ring-0
-                                    transition-colors duration-200
-                                    hover:border-[#8493A6] hover:bg-[#586678]
-                                    focus:outline-none focus:ring-0
-                                    focus-visible:outline-none focus-visible:ring-0
-                                    disabled:cursor-not-allowed disabled:opacity-50
-                                "
-                            >
-                                <Save size={16} strokeWidth={1.8} />
-                                {saving ? 'Saving changes...' : 'Save changes'}
-                            </button>
+                            <div className="flex flex-col-reverse gap-2.5 sm:flex-row sm:items-center">
+                                <button
+                                    type="button"
+                                    onClick={onCancel}
+                                    disabled={busy}
+                                    className={secondaryButtonClass}
+                                >
+                                    Cancel
+                                </button>
+
+                                <button
+                                    type="submit"
+                                    disabled={busy}
+                                    className={primaryButtonClass}
+                                >
+                                    <Save size={15} strokeWidth={1.8} />
+
+                                    {saving
+                                        ? 'Saving changes...'
+                                        : 'Save changes'}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -4,8 +4,6 @@ import {
     AlertCircle,
     AlertTriangle,
     ArrowRight,
-    Building2,
-    CheckCircle2,
     ShieldCheck,
 } from 'lucide-react';
 

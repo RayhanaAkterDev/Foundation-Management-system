@@ -15,24 +15,23 @@ import {
 ========================================================= */
 
 const inputClass = `
-  block h-[52px] w-full min-w-0
-  appearance-none rounded-none
-  border border-[#343F4D]
-  bg-[#171E27]
-  px-4 pl-11
-  font-sans text-[14px] font-medium
-  !text-[#CDD6E0]
-  caret-[#CDD6E0]
-  !outline-none !ring-0 !shadow-none
-  transition-[background-color,border-color] duration-200
-  placeholder:!text-[#718092]
-  hover:border-[#506073]
-  hover:bg-[#1B2530]
-  focus:border-[#718398]
-  focus:bg-[#1B2530]
-  focus:!outline-none focus:!ring-0 focus:!shadow-none
-  focus-visible:!outline-none focus-visible:!ring-0
-  disabled:cursor-not-allowed disabled:opacity-50
+    block h-[48px] w-full min-w-0
+    appearance-none rounded-none
+    border border-[#343E4B]
+    bg-[#1A222D]
+    pl-10 pr-3.5
+    font-sans text-[14px] font-medium
+    !text-[#DCE4ED]
+    caret-[#DCE4ED]
+    outline-none
+    placeholder:!text-[#697586]
+    transition-colors duration-150
+    hover:border-[#4B596A]
+    focus:border-[#0F766E]
+    focus:bg-[#1A222D]
+    focus:ring-1 focus:ring-[#0F766E]/25
+    disabled:cursor-not-allowed
+    disabled:opacity-50
 `;
 
 function EditField({
@@ -48,16 +47,16 @@ function EditField({
         <div className={`min-w-0 ${className}`}>
             <label
                 htmlFor={id}
-                className="mb-2.5 block text-[13px] font-medium !text-[#AAB6C4]"
+                className="mb-2 block text-[13px] font-medium !text-[#B8C0CA]"
             >
                 {label}
             </label>
 
             <div className="relative">
                 <Icon
-                    size={17}
+                    size={16}
                     strokeWidth={1.7}
-                    className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#8796A7]"
+                    className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 !text-[#697586]"
                 />
 
                 <input
@@ -116,13 +115,13 @@ export default function ProfileEdit({
 
             <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0">
-                    <p className="mb-2 text-[12px] font-medium !text-[#8897A9]">
+                    <p className="mb-2 text-[12px] font-medium !text-[#8792A1]">
                         Administrator
-                        <span className="mx-2.5 text-[#526071]">/</span>
+                        <span className="mx-2.5 text-[#343E4B]">/</span>
                         Edit profile
                     </p>
 
-                    <h2 className="m-0 font-sans text-[27px] font-semibold leading-tight tracking-[-0.025em] !text-[#DCE3EB] sm:text-[30px]">
+                    <h2 className="m-0 font-sans text-[28px] font-semibold leading-tight tracking-[-0.035em] !text-[#EEF1F5] sm:text-[31px]">
                         Edit profile
                     </h2>
                 </div>
@@ -132,19 +131,20 @@ export default function ProfileEdit({
                     onClick={onCancel}
                     disabled={saving}
                     className="
-            inline-flex h-10 shrink-0 items-center
-            justify-center gap-2 self-start
-            border border-[#354150]
-            bg-[#171E27] px-4
-            text-[12px] font-medium text-[#B9C5D1]
-            transition-colors duration-200
-            hover:border-[#657588]
-            hover:bg-[#222D39]
-            hover:text-[#E0E6ED]
-            focus:outline-none
-            disabled:cursor-not-allowed disabled:opacity-50
-            sm:self-auto
-          "
+                        inline-flex h-10 shrink-0 items-center
+                        justify-center gap-2 self-start
+                        border border-[#343E4B]
+                        bg-transparent px-4
+                        text-[13px] font-medium !text-[#B8C0CA]
+                        transition-colors duration-150
+                        hover:border-[#4B596A]
+                        hover:bg-[#1A222D]
+                        hover:!text-[#EEF1F5]
+                        focus-visible:outline-none
+                        focus-visible:ring-2 focus-visible:ring-[#0F766E]
+                        disabled:cursor-not-allowed disabled:opacity-50
+                        sm:self-auto
+                    "
                 >
                     <ArrowLeft size={15} strokeWidth={1.8} />
                     Back to profile
@@ -156,33 +156,50 @@ export default function ProfileEdit({
             <form
                 onSubmit={handleSubmit}
                 className="
-          min-w-0 overflow-hidden
-          border border-[#303A47]
-          bg-[#111720]
-        "
+                    min-w-0 overflow-hidden
+                    border border-[#252D38]
+                    bg-[#0E1219]
+                "
             >
                 <div className="grid min-w-0 lg:grid-cols-[285px_minmax(0,1fr)] xl:grid-cols-[310px_minmax(0,1fr)]">
                     {/* LEFT PROFILE PANEL */}
-
                     <aside
                         className="
-              flex min-w-0 flex-col
-              border-b border-[#303A47]
-              bg-[#151C25]
-              lg:border-b-0 lg:border-r
-            "
+        flex min-w-0 flex-col
+        border-b border-[#252D38]
+        bg-[#151C25]
+        lg:border-b-0 lg:border-r
+    "
                     >
-                        <div className="flex flex-1 flex-col px-6 py-8 sm:px-8 lg:px-7 lg:py-9">
-                            {/* PHOTO */}
-
-                            <div className="flex items-start gap-5 lg:block">
+                        <div
+                            className="
+            flex flex-1 flex-col
+            px-4 py-5
+            sm:px-6 sm:py-7
+            lg:px-6 lg:py-8
+            xl:px-7 xl:py-9
+        "
+                        >
+                            {/* PROFILE IDENTITY */}
+                            <div
+                                className="
+                flex min-w-0 items-center gap-4
+                sm:gap-5
+                lg:flex-col lg:items-start lg:gap-0
+            "
+                            >
+                                {/* PROFILE PHOTO */}
                                 <div className="relative shrink-0">
                                     <div
                                         className="
-                      flex size-[104px] items-center justify-center
-                      overflow-hidden border border-[#455364]
-                      bg-[#252F3B]
-                      text-[35px] font-semibold !text-[#DCE3EB]
+                        flex size-23 items-center justify-center
+                        overflow-hidden
+                        border border-[#343E4B]
+                        bg-[#1A222D]
+                        text-[27px] font-semibold text-[#EEF1F5]
+                        sm:size-[112px] sm:text-[31px]
+                        lg:size-[128px] lg:text-[34px]
+                        xl:size-[144px]
                     "
                                     >
                                         {hasPhoto ? (
@@ -203,16 +220,19 @@ export default function ProfileEdit({
                                         )}
                                     </div>
 
+                                    {/* PHOTO UPLOAD SHORTCUT */}
                                     <label
                                         className={`
-                      absolute -bottom-2 left-20
-                      flex size-9 cursor-pointer
-                      items-center justify-center
-                      border-[3px] border-[#151C25]
-                      bg-[#465666] text-[#E0E7EF]
-                      transition-colors
-                      hover:bg-[#627488]
-                      ${saving ? 'pointer-events-none opacity-50' : ''}
+                        absolute -bottom-1.5 -right-1.5
+                        flex size-9 cursor-pointer items-center justify-center
+                        border-[3px] border-[#151C25]
+                        bg-[#0F766E] text-white
+                        transition-colors duration-150
+                        hover:bg-[#115E59]
+                        focus-within:outline
+                        focus-within:outline-2
+                        focus-within:outline-[#2DD4BF]
+                        ${saving ? 'pointer-events-none opacity-50' : ''}
                     `}
                                         title="Change profile photo"
                                         aria-label="Change profile photo"
@@ -229,60 +249,84 @@ export default function ProfileEdit({
                                     </label>
                                 </div>
 
-                                {/* MOBILE IDENTITY */}
-
-                                <div className="min-w-0 pt-1 lg:hidden">
-                                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] !text-[#91A0B1]">
+                                {/* IDENTITY DETAILS */}
+                                <div
+                                    className="
+                    min-w-0 flex-1
+                    lg:mt-6 lg:w-full lg:flex-none
+                "
+                                >
+                                    <p
+                                        className="
+                        mb-1.5 text-[10px] font-semibold uppercase
+                        tracking-[0.14em] text-[#8290A1]
+                    "
+                                    >
                                         Administrator
                                     </p>
 
-                                    <h3 className="m-0 mt-2 break-words text-[19px] font-semibold !text-[#D9E1EA]">
+                                    <h3
+                                        className="
+                        m-0 break-words text-[17px] font-semibold
+                        leading-snug text-[#EEF1F5]!
+                        sm:text-[19px]
+                        lg:text-[20px]
+                        xl:text-[21px]
+                    "
+                                    >
                                         {form.name?.trim() || 'Administrator'}
                                     </h3>
 
-                                    <p className="mt-2 break-all text-[12px] leading-5 !text-[#94A3B4]">
+                                    <p
+                                        className="
+                        mt-2 min-w-0 break-all
+                        text-[11px] leading-[1.7] text-[#A7B1BE]
+                        sm:text-[12px]
+                    "
+                                    >
                                         {form.email || 'No email address'}
                                     </p>
                                 </div>
                             </div>
 
-                            {/* DESKTOP IDENTITY */}
-
-                            <div className="mt-8 hidden min-w-0 lg:block">
-                                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] !text-[#91A0B1]">
-                                    Administrator
+                            {/* PHOTO SETTINGS */}
+                            <div
+                                className="
+                mt-6 border-t border-[#252D38] pt-5
+                sm:mt-7 sm:pt-6
+                lg:mt-8
+            "
+                            >
+                                <p className="mb-3 text-[12px] font-medium text-[#D5DBE3]">
+                                    Profile photo
                                 </p>
 
-                                <h3 className="m-0 mt-2 break-words font-sans text-[21px] font-semibold leading-snug !text-[#D9E1EA]">
-                                    {form.name?.trim() || 'Administrator'}
-                                </h3>
-
-                                <p className="mt-2 break-all text-[12px] leading-5 !text-[#94A3B4]">
-                                    {form.email || 'No email address'}
-                                </p>
-                            </div>
-
-                            {/* PHOTO ACTION */}
-
-                            <div className="mt-8 border-t border-[#303A47] pt-6">
                                 <label
                                     className={`
-                    inline-flex min-h-10 cursor-pointer
-                    items-center justify-center gap-2.5
-                    border border-[#465363]
-                    bg-[#202A35] px-4
-                    text-[12px] font-medium text-[#C7D2DE]
-                    transition-colors duration-200
-                    hover:border-[#748497]
-                    hover:bg-[#2B3745]
+                    flex min-h-10 w-full cursor-pointer
+                    items-center justify-center gap-2
+                    border border-[#343E4B]
+                    bg-[#1A222D] px-3 py-2
+                    text-center text-[12px] font-medium text-[#C4CCD6]
+                    transition-colors duration-150
+                    hover:border-[#4B596A]
+                    hover:bg-[#202A35]
+                    hover:text-[#EEF1F5]
+                    sm:w-fit sm:min-w-[170px] sm:px-4
                     ${saving ? 'pointer-events-none opacity-50' : ''}
-                  `}
+                `}
                                 >
-                                    <Camera size={15} strokeWidth={1.8} />
+                                    <Camera
+                                        size={15}
+                                        strokeWidth={1.8}
+                                        className="shrink-0"
+                                    />
 
-                                    {pendingPhoto
-                                        ? 'Change selected photo'
-                                        : 'Change photo'}
+                                    <span>
+                                        {pendingPhoto
+                                            ? 'Change selected photo'
+                                            : 'Change photo'}
+                                    </span>
 
                                     <input
                                         type="file"
@@ -293,49 +337,60 @@ export default function ProfileEdit({
                                     />
                                 </label>
 
-                                <p className="mt-3 text-[11px] leading-5 !text-[#8796A7]">
-                                    JPG, PNG or WebP · Max 5 MB
+                                <p className="mt-3 text-[11px] leading-5 text-[#8792A1]">
+                                    JPG, PNG or WebP. Maximum file size: 5 MB.
                                 </p>
 
+                                {/* PENDING PHOTO STATUS */}
                                 {pendingPhoto && (
                                     <div
                                         role="status"
-                                        className="mt-4 flex items-start gap-2"
+                                        className="
+                        mt-4 flex items-start gap-2
+                        border-l-2 border-[#2DD4BF]
+                        bg-[#102A2B] px-3 py-3
+                    "
                                     >
                                         <Check
                                             size={15}
                                             strokeWidth={2}
-                                            className="mt-0.5 shrink-0 text-[#AFC0D0]"
+                                            className="mt-0.5 shrink-0 text-[#2DD4BF]"
                                         />
 
-                                        <p className="text-[12px] leading-5 !text-[#B5C2CF]">
-                                            New photo selected. Save to apply.
+                                        <p className="text-[12px] leading-5 text-[#C5D8D8]">
+                                            New photo selected. Save your
+                                            changes to apply it.
                                         </p>
                                     </div>
                                 )}
                             </div>
+
+                            {/* DESKTOP SPACING */}
+                            <div className="hidden flex-1 lg:block" />
                         </div>
                     </aside>
 
                     {/* RIGHT FORM PANEL */}
 
-                    <div className="flex min-w-0 flex-col bg-[#111720]">
+                    <div className="flex min-w-0 flex-col bg-[#0E1219]">
                         <div className="min-w-0 flex-1 px-5 py-8 sm:px-8 lg:px-10 lg:py-10 xl:px-12">
                             {/* FORM HEADING */}
 
-                            <div className="mb-9 border-b border-[#303A47] pb-7">
-                                <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] !text-[#8FA0B2]">
-                                    Account settings
-                                </p>
+                            <div className="mb-9 border-b border-[#252D38] pb-7">
+                                <div className="flex items-start gap-3.5">
+                                    <span className="mt-1 h-8 w-[3px] shrink-0 bg-[#0F766E]" />
 
-                                <h3 className="m-0 font-sans text-[23px] font-semibold leading-tight tracking-[-0.02em] !text-[#D9E1EA] sm:text-[25px]">
-                                    Personal details
-                                </h3>
+                                    <div className="min-w-0">
+                                        <h3 className="m-0 text-[26px] font-semibold leading-[1.15] tracking-[-0.04em] !text-[#EEF1F5] sm:text-[30px]">
+                                            Personal details
+                                        </h3>
 
-                                <p className="mt-2 text-[13px] leading-6 !text-[#94A3B4]">
-                                    Update your administrator account
-                                    information.
-                                </p>
+                                        <p className="mt-2 max-w-lg text-[13px] leading-[1.7] !text-[#8792A1]">
+                                            Update your administrator account
+                                            information.
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
 
                             {/* FORM FIELDS */}
@@ -408,30 +463,31 @@ export default function ProfileEdit({
 
                         <div
                             className="
-                mt-auto flex flex-col-reverse gap-3
-                border-t border-[#303A47]
-                bg-[#151C25]
-                px-5 py-5
-                sm:flex-row sm:items-center sm:justify-end
-                sm:px-8 xl:px-12
-              "
+                                mt-auto flex flex-col-reverse gap-3
+                                border-t border-[#252D38]
+                                bg-[#151C25]
+                                px-5 py-5
+                                sm:flex-row sm:items-center sm:justify-end
+                                sm:px-8 xl:px-12
+                            "
                         >
                             <button
                                 type="button"
                                 onClick={onCancel}
                                 disabled={saving}
                                 className="
-                  inline-flex min-h-11 items-center justify-center
-                  border border-[#3A4756]
-                  bg-transparent px-6
-                  text-[13px] font-medium text-[#B7C4D0]
-                  transition-colors duration-200
-                  hover:border-[#627588]
-                  hover:bg-[#222D39]
-                  hover:text-[#E1E8EF]
-                  focus:outline-none
-                  disabled:cursor-not-allowed disabled:opacity-50
-                "
+                                    inline-flex min-h-11 items-center justify-center
+                                    border border-[#343E4B]
+                                    bg-transparent px-6
+                                    text-[13px] font-medium !text-[#B8C0CA]
+                                    transition-colors duration-150
+                                    hover:border-[#4B596A]
+                                    hover:bg-[#1A222D]
+                                    hover:!text-[#EEF1F5]
+                                    focus-visible:outline-none
+                                    focus-visible:ring-2 focus-visible:ring-[#0F766E]
+                                    disabled:cursor-not-allowed disabled:opacity-50
+                                "
                             >
                                 Cancel
                             </button>
@@ -440,17 +496,18 @@ export default function ProfileEdit({
                                 type="submit"
                                 disabled={saving}
                                 className="
-                  inline-flex min-h-11 items-center justify-center
-                  gap-2.5
-                  border border-[#687C90]
-                  bg-[#465666] px-6
-                  text-[13px] font-semibold text-[#F0F4F8]
-                  transition-colors duration-200
-                  hover:border-[#8B9FB2]
-                  hover:bg-[#586B7D]
-                  focus:outline-none
-                  disabled:cursor-not-allowed disabled:opacity-50
-                "
+                                    inline-flex min-h-11 items-center justify-center
+                                    gap-2.5
+                                    border border-[#0F766E]
+                                    bg-[#0F766E] px-6
+                                    text-[13px] font-semibold !text-white
+                                    transition-colors duration-150
+                                    hover:border-[#115E59]
+                                    hover:bg-[#115E59]
+                                    focus-visible:outline-none
+                                    focus-visible:ring-2 focus-visible:ring-[#0F766E]
+                                    disabled:cursor-not-allowed disabled:opacity-50
+                                "
                             >
                                 <Save size={16} strokeWidth={1.8} />
 

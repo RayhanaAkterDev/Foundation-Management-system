@@ -176,16 +176,6 @@ const AddUser = () => {
     const displayName = name || 'New user';
     const initial = name ? name.charAt(0).toUpperCase() : null;
 
-    const completedFields = [
-        formPreview.name,
-        formPreview.email,
-        formPreview.phone,
-        formPreview.password,
-        formPreview.role,
-    ].filter((value) => String(value ?? '').trim().length > 0).length;
-
-    const completionPercentage = (completedFields / 5) * 100;
-
     /* ========================================================
        UI
     ======================================================== */
@@ -193,10 +183,10 @@ const AddUser = () => {
     return (
         <div
             className="
-                space-y-10
+                space-y-5
                 font-sans!
 
-                lg:space-y-12
+                lg:space-y-6
             "
         >
             {/* =================================================
@@ -230,7 +220,7 @@ const AddUser = () => {
 
             focus-visible:outline-none
             focus-visible:ring-2
-            focus-visible:ring-[#0f766e]
+            focus-visible:ring-[#8792A1]
             focus-visible:ring-offset-2
             focus-visible:ring-offset-[#171c24]
 
@@ -272,48 +262,11 @@ const AddUser = () => {
             <section
                 className="
                     @container
-                    overflow-hidden
-
-                    border
-                    border-[#252D38]
-
+                    min-w-0 overflow-hidden
+                    border border-[#303A47]
                     bg-[#0E1219]
                 "
             >
-                {/* =================================================
-                    WORKSPACE HEADER
-                ================================================== */}
-
-                <header
-                    className="
-                        relative
-
-                        border-b
-                        border-[#252D38]
-
-                        bg-[#1A222D]
-
-                        p-6
-                    "
-                >
-                    <h2
-                        className="
-
-                                    font-sans!
-
-                                    text-[24px]
-                                    font-medium!
-                                    capitalize
-                                    leading-[1.3]
-                                    tracking-[-0.02em]
-
-                                    text-[#EEF1F5]!
-                                "
-                    >
-                        Create new user
-                    </h2>
-                </header>
-
                 {/* =================================================
                     BODY
                 ================================================== */}
@@ -324,8 +277,8 @@ const AddUser = () => {
                         min-w-0
 
                         @container
-                        @[1100px]:grid-cols-[310px_minmax(0,1fr)]
-                        @[1350px]:grid-cols-[330px_minmax(0,1fr)]
+                        @[1100px]:grid-cols-[290px_minmax(0,1fr)]
+                        @[1350px]:grid-cols-[310px_minmax(0,1fr)]
                     "
                 >
                     {/* =================================================
@@ -338,7 +291,7 @@ const AddUser = () => {
 
                             border-[#252D38]
 
-                            bg-[#0E1219]
+                            bg-[#141B24]
 
                             @[1100px]:block
                             @[1100px]:border-r
@@ -348,14 +301,14 @@ const AddUser = () => {
                             className="
                                 flex
                                 h-full
-                                min-h-[720px]
+                                min-h-[520px]
                                 flex-col
 
-                                px-7
-                                py-9
+                                px-6
+                                py-7
 
-                                xl:px-8
-                                xl:py-10
+                                xl:px-7
+                                xl:py-8
                             "
                         >
                             {/* =========================================
@@ -646,8 +599,7 @@ const AddUser = () => {
                                                 text-[#697586]
                                             "
                                         >
-                                            Review the details above before
-                                            creating the account.
+                                            Confirm the details before creating.
                                         </p>
                                     </div>
                                 </div>
@@ -669,19 +621,10 @@ const AddUser = () => {
                             className="
                                 min-w-0
 
-                                px-6
-                                py-9
-
-                                sm:px-7
-                                sm:py-10
-
-                                lg:px-9
-                                lg:py-11
-
-                                xl:px-11
-                                xl:py-12
-
-                                2xl:px-12
+                                px-4 py-7
+                                sm:px-8 sm:py-9
+                                lg:px-9 lg:py-10
+                                xl:px-10
                             "
                         >
                             <div
@@ -699,8 +642,6 @@ const AddUser = () => {
                                     onSubmit={handleAddUser}
                                     onCancel={handleBack}
                                     onFormChange={handleFormChange}
-                                    completedFields={completedFields}
-                                    completionPercentage={completionPercentage}
                                 />
                             </div>
                         </div>

@@ -1,269 +1,62 @@
 import React from 'react';
-
-import { Check } from 'lucide-react';
-
+import { Check, Building2 } from 'lucide-react';
 import { ORGANIZATION_TYPES } from '../data/organizationTypes';
 
 const Filters = ({ typeFilter, onTypeChange }) => {
     const organizationTypes = [
-        {
-            value: 'all',
-            label: 'All organization types',
-        },
-        ...ORGANIZATION_TYPES.map((type) => ({
-            value: type,
-            label: type,
-        })),
+        { value: 'all', label: 'All organization types' },
+        ...ORGANIZATION_TYPES.map((type) => ({ value: type, label: type })),
     ];
 
     return (
         <div className="w-full bg-[#0E1219]">
-            {/* ============================================================
-                ORGANIZATION TYPE
-            ============================================================ */}
-
-            <div
-                className="
-                    border-t
-                    border-[#252D38]
-
-                    px-4
-                    py-4
-
-                    sm:px-5
-                    sm:py-5
-
-                    xl:px-3
-                    xl:py-4
-                "
-            >
-                {/* ========================================================
-                    SECTION HEADER
-                ======================================================== */}
-
-                <div
-                    className="
-                        mb-3
-                        flex
-                        items-center
-                        justify-between
-
-                        sm:mb-3.5
-
-                        xl:mb-3
-                        xl:px-1
-                    "
-                >
-                    <p
-                        className="
-                            text-[10px]
-                            font-semibold!
-                            uppercase
-                            tracking-[0.14em]
-
-                            text-[#697586]
-
-                            xl:text-[9px]
-                            xl:tracking-[0.15em]
-                        "
-                    >
-                        Organization type
-                    </p>
-
-                    <span
-                        className="
-                            flex
-                            min-w-5
-                            items-center
-                            justify-center
-
-                            text-[10px]
-                            font-medium!
-                            tabular-nums
-
-                            text-[#5E6978]
-
-                            xl:text-[9px]
-                        "
-                    >
-                        {organizationTypes.length}
-                    </span>
-                </div>
-
-                {/* ========================================================
-                    OPTIONS
-                ======================================================== */}
-
-                <div
-                    className="
-                        overflow-hidden
-
-                        border
-                        border-[#252D38]
-
-                        bg-[#0E1219]
-                    "
-                >
-                    {organizationTypes.map((type, index) => {
+            <div className="bg-[#1A222D] p-4 sm:p-5.5">
+                <h3 className="text-[15px] font-semibold! leading-8 text-[#EEF1F5]!">
+                    Filter
+                </h3>
+            </div>
+            <section className="border-t border-[#252D38] px-4 py-4">
+                <h4 className="mb-3 px-1 text-[10px] font-semibold! uppercase tracking-normal text-[#697586]!">
+                    Organization type
+                </h4>
+                <div className="space-y-0.5">
+                    {organizationTypes.map((type) => {
                         const active = typeFilter === type.value;
-
                         return (
                             <button
                                 key={type.value}
                                 type="button"
                                 onClick={() => onTypeChange(type.value)}
-                                className={`
-                                    group
-
-                                    flex
-                                    min-h-11
-                                    w-full
-                                    items-center
-                                    gap-3
-
-                                    border-b
-                                    border-[#252D38]
-
-                                    px-3
-                                    py-2.5
-
-                                    text-left
-
-                                    transition-[background-color,color,border-color]
-                                    duration-150
-                                    ease-out
-
-                                    last:border-b-0
-
-                                    sm:min-h-12
-                                    sm:px-3.5
-
-                                    xl:min-h-10
-                                    xl:gap-2.5
-                                    xl:px-3
-                                    xl:py-2
-
-                                    ${
-                                        active
-                                            ? 'bg-[#171E28]'
-                                            : 'bg-transparent hover:bg-[#151B24]'
-                                    }
-
-                                    focus:outline-none
-                                    focus:ring-0
-                                `}
+                                aria-pressed={active}
+                                className={`group flex min-h-9.5 w-full items-center gap-2.5 px-3 py-2 text-left transition-colors duration-150 focus-visible:outline focus-visible:outline-1 focus-visible:outline-[#697586] ${active ? 'bg-[#1A222D]' : 'bg-transparent hover:bg-[#151B24]'}`}
                             >
-                                {/* =================================================
-                                    INDEX / SELECTED STATE
-                                ================================================= */}
-
+                                <Building2
+                                    size={14}
+                                    strokeWidth={1.75}
+                                    className={`shrink-0 transition-colors duration-150 ${active ? 'text-[#C2CBD6]' : 'text-[#697586] group-hover:text-[#AEB7C3]'}`}
+                                />
                                 <span
-                                    className={`
-                                        flex
-                                        h-6
-                                        w-6
-                                        shrink-0
-                                        items-center
-                                        justify-center
-
-                                        border
-
-                                        text-[9px]
-                                        font-semibold!
-                                        tabular-nums
-
-                                        transition-[background-color,border-color,color]
-                                        duration-150
-
-                                        xl:h-5
-                                        xl:w-5
-                                        xl:text-[8px]
-
-                                        ${
-                                            active
-                                                ? `
-                                                    border-[#465363]
-                                                    bg-[#202A36]
-                                                    text-[#D7DCE3]
-                                                `
-                                                : `
-                                                    border-[#29323E]
-                                                    bg-[#121821]
-                                                    text-[#657181]
-
-                                                    group-hover:border-[#394553]
-                                                    group-hover:text-[#AEB7C3]
-                                                `
-                                        }
-                                    `}
-                                >
-                                    {active ? (
-                                        <Check
-                                            size={11}
-                                            strokeWidth={2.2}
-                                            className="xl:h-2.5 xl:w-2.5"
-                                        />
-                                    ) : (
-                                        String(index + 1).padStart(2, '0')
-                                    )}
-                                </span>
-
-                                {/* =================================================
-                                    LABEL
-                                ================================================= */}
-
-                                <span
-                                    className={`
-                                        min-w-0
-                                        flex-1
-
-                                        text-[12px]
-                                        leading-5
-
-                                        transition-colors
-                                        duration-150
-
-                                        xl:text-[11px]
-                                        xl:leading-4
-
-                                        ${
-                                            active
-                                                ? `
-                                                    font-semibold!
-                                                    text-[#EEF1F5]
-                                                `
-                                                : `
-                                                    font-medium!
-                                                    text-[#96A0AE]
-
-                                                    group-hover:text-[#C5CBD3]
-                                                `
-                                        }
-                                    `}
+                                    className={`min-w-0 flex-1 truncate text-[11px] leading-5 ${active ? 'font-semibold! text-[#EEF1F5]' : 'font-medium! text-[#8792A1] group-hover:text-[#B8C0CA]'}`}
                                 >
                                     {type.label}
                                 </span>
-
-                                {/* MOBILE ACTIVE INDICATOR */}
-
-                                {active && (
-                                    <span
-                                        className="
-                                            h-1.5
-                                            w-1.5
-                                            shrink-0
-                                            rounded-full
-                                            bg-[#8795A7]
-
-                                            xl:hidden
-                                        "
-                                    />
-                                )}
+                                <span
+                                    aria-hidden="true"
+                                    className={`flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full border transition-colors duration-150 ${active ? 'border-[#8493A6] bg-[#8493A6]' : 'border-[#455160] bg-transparent group-hover:border-[#697586]'}`}
+                                >
+                                    {active && (
+                                        <Check
+                                            size={9}
+                                            strokeWidth={2.5}
+                                            className="text-[#0E1219]"
+                                        />
+                                    )}
+                                </span>
                             </button>
                         );
                     })}
                 </div>
-            </div>
+            </section>
         </div>
     );
 };

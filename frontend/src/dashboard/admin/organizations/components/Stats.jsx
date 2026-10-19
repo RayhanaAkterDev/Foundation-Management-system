@@ -91,34 +91,20 @@ const Stats = ({ total, verified, pending, rejected, onOpenReviewQueue }) => {
                 "
             >
                 <div className="min-w-0">
-                    <p
-                        className="
-                            font-sans!
-                            text-[10px]
-                            font-semibold!
-                            uppercase
-                            tracking-[0.13em]
-                            text-[#758192]
-                        "
-                    >
-                        Organization overview
-                    </p>
-
                     <h2
                         id="organization-overview-heading"
                         className="
-                            mt-1.5
-                            font-sans!
-                            text-[17px]
-                            font-semibold!
-                            leading-[1.35]
-                            tracking-[-0.015em]
-                            text-[#F0F2F5]!
 
-                            sm:text-[18px]
+                                    font-sans!
+
+                                    text-[18px]
+                                    font-semibold!
+                                    leading-tight
+                                    tracking-[-0.02em]
+                                    text-[#EEF1F5]!
                         "
                     >
-                        Platform organizations
+                        Organization overview
                     </h2>
                 </div>
 

@@ -1,8 +1,20 @@
-import React, { useEffect, useId } from 'react';
-import { Check } from 'lucide-react';
+import React, { useEffect, useId, useRef } from 'react';
+import { Check, X } from 'lucide-react';
 
-/** One success dialog for user and organization create/update/delete actions. */
-const SuccessDialog = ({
+const AUTO_CLOSE_DURATION = 1500;
+
+const ENTITY_LABELS = {
+    user: 'User',
+    organization: 'Organization',
+};
+
+const ACTION_LABELS = {
+    created: 'created',
+    updated: 'updated',
+    deleted: 'deleted',
+};
+
+export default function SuccessDialog({
     open,
     show,
     action = 'updated',
@@ -11,65 +23,168 @@ const SuccessDialog = ({
     title,
     message,
     onClose,
-}) => {
+}) {
     const visible = open ?? show ?? false;
-    const id = useId();
-    const label = entity === 'organization' ? 'Organization' : 'User';
-    const verb =
-        { created: 'created', updated: 'updated', deleted: 'deleted' }[
-            action
-        ] || 'updated';
-    const heading = title || `${label} ${verb} successfully`;
+    const messageId = useId();
+    const onCloseRef = useRef(onClose);
+    const dismissedRef = useRef(false);
+
+    useEffect(() => {
+        onCloseRef.current = onClose;
+    }, [onClose]);
+
+    useEffect(() => {
+        if (!visible) {
+            dismissedRef.current = false;
+            return undefined;
+        }
+
+        dismissedRef.current = false;
+
+        return () => {
+            dismissedRef.current = true;
+        };
+    }, [visible]);
+
+    const dismiss = () => {
+        if (dismissedRef.current) return;
+
+        dismissedRef.current = true;
+        onCloseRef.current?.();
+    };
+
+    if (!visible) return null;
+
+    const entityName = ENTITY_LABELS[entity] || String(entity);
+    const verb = ACTION_LABELS[action] || 'updated';
+
+    const heading = title || `${entityName} ${verb}`;
+
     const description =
         message ||
         (name
             ? `${name} was ${verb} successfully.`
-            : `The ${label.toLowerCase()} was ${verb} successfully.`);
+            : `The ${entityName.toLowerCase()} was ${verb} successfully.`);
 
-    useEffect(() => {
-        if (!visible) return undefined;
-        const onKeyDown = (event) => {
-            if (event.key === 'Escape') onClose?.();
-        };
-        window.addEventListener('keydown', onKeyDown);
-        return () => window.removeEventListener('keydown', onKeyDown);
-    }, [visible, onClose]);
-
-    if (!visible) return null;
     return (
-        <div className="fixed inset-0 z-200 flex items-center justify-center bg-[#05070A]/80 px-4 py-6 backdrop-blur-[3px]">
+        <div
+            className="
+                pointer-events-none fixed inset-x-0 top-0 z-[200]
+                flex justify-center px-3 pt-3
+                sm:inset-x-auto sm:right-5 sm:top-5
+                sm:w-[min(100%-2.5rem,390px)]
+                sm:justify-end sm:px-0 sm:pt-0
+                md:right-6 md:top-6
+            "
+        >
             <section
-                role="dialog"
-                aria-modal="true"
-                aria-labelledby={`${id}-title`}
-                aria-describedby={`${id}-description`}
-                className="w-full max-w-112.5 rounded-xl border border-[#303844] bg-[#0E1219] px-6 pb-8 pt-9 text-center shadow-[0_28px_80px_rgba(0,0,0,.52)] sm:px-9 sm:pb-9 sm:pt-10"
+                role="status"
+                aria-live="polite"
+                aria-atomic="true"
+                aria-describedby={messageId}
+                className="
+                    pointer-events-auto relative flex w-full min-w-0
+                    items-start gap-3 overflow-hidden
+                    border border-[#29323E]
+                    bg-[#171C24]
+                    px-3.5 py-3.5
+                    shadow-[0_12px_36px_rgba(0,0,0,0.35)]
+                    sm:gap-3.5 sm:px-4 sm:py-4
+                "
             >
-                <div className="mx-auto flex h-15 w-15 items-center justify-center rounded-full border-2 border-[#6FAE87] bg-[#17231D] text-[#8EC5A3]">
-                    <Check size={30} strokeWidth={2} />
+                <span
+                    aria-hidden="true"
+                    className="
+                        mt-px flex h-9 w-9 shrink-0
+                        items-center justify-center
+                        border border-[#303A47]
+                        bg-[#1A222D]
+                        text-[#0f766e]
+                    "
+                >
+                    <Check size={19} strokeWidth={2.2} />
+                </span>
+
+                <div className="min-w-0 flex-1 pt-0.5 pr-4">
+                    <h2
+                        className="
+                            break-words
+                            text-[18px] font-semibold!
+                            leading-[1.45] tracking-[-0.15px]
+                            text-[#EEF1F5]!
+                        "
+                    >
+                        {heading}
+                    </h2>
+
+                    <p
+                        id={messageId}
+                        className="
+                            mt-3 break-words
+                            text-[12px] font-medium! leading-[1.7]
+                            text-[#AAB3BF]
+                            [overflow-wrap:anywhere]
+                            sm:text-[13px]
+                        "
+                    >
+                        {description}
+                    </p>
                 </div>
-                <h2
-                    id={`${id}-title`}
-                    className="mt-5 font-sans! text-[20px] font-semibold! leading-[1.4] text-[#EEF1F5]! sm:text-[21px]"
-                >
-                    {heading}
-                </h2>
-                <p
-                    id={`${id}-description`}
-                    className="mx-auto mt-2.5 max-w-87.5 wrap-break-word font-sans! text-[13px] leading-[1.7] text-[#98A2B0]! sm:text-[14px]"
-                >
-                    {description}
-                </p>
+
                 <button
                     type="button"
-                    onClick={() => onClose?.()}
-                    className="mt-7 inline-flex h-10 min-w-28.5 items-center justify-center gap-2 rounded-lg border border-[#365344] bg-[#18231D] px-5 font-sans! text-[13px] font-semibold! text-[#8EC5A3]! transition-colors hover:border-[#4C765B] hover:bg-[#203329] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8EC5A3]"
+                    onClick={dismiss}
+                    aria-label="Dismiss notification"
+                    className="
+                        absolute right-2 top-2
+                        flex h-7 w-7 items-center justify-center
+                        text-[#8792A1]
+                        transition-colors duration-150
+                        hover:bg-[#252D38]
+                        hover:text-[#EEF1F5]
+                        focus-visible:outline-2
+                        focus-visible:outline-offset-[-2px]
+                        focus-visible:outline-[#0f766e]
+                    "
                 >
-                    <Check size={15} strokeWidth={2.1} />
-                    Done
+                    <X size={15} strokeWidth={1.9} />
                 </button>
+
+                <span
+                    aria-hidden="true"
+                    className="
+                        success-toast-progress
+                        absolute bottom-0 left-0
+                        h-[2px] w-full origin-left
+                        bg-[#0f766e]
+                    "
+                    onAnimationEnd={dismiss}
+                />
             </section>
+
+            <style>{`
+                .success-toast-progress {
+                    transform: scaleX(0);
+                    animation: success-toast-progress-fill
+                        ${AUTO_CLOSE_DURATION}ms linear forwards;
+                }
+
+                @keyframes success-toast-progress-fill {
+                    from {
+                        transform: scaleX(0);
+                    }
+                    to {
+                        transform: scaleX(1);
+                    }
+                }
+
+                @media (prefers-reduced-motion: reduce) {
+                    .success-toast-progress {
+                        animation: none;
+                        transform: scaleX(1);
+                    }
+                }
+            `}</style>
         </div>
     );
-};
-export default SuccessDialog;
+}

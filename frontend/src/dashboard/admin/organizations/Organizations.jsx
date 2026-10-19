@@ -1,4 +1,3 @@
-import SuccessDialog from '@/components/dashboard/SuccessDialog';
 // src/dashboard/admin/organizations/Organizations.jsx
 
 import React, { useEffect, useMemo, useState } from 'react';
@@ -23,7 +22,9 @@ import Stats from './components/Stats';
 import Table from './components/Table';
 import Filters from './components/Filters';
 import Pagination from './components/Pagination';
-import SuccessToast from '@/components/dashboard/SuccessDialog';
+import SuccessDialog from '@/components/dashboard/SuccessDialog';
+import LoadingUI from '@/components/dashboard/LoadingUI';
+import LoadingError from '@/components/dashboard/LoadingError';
 
 import VerificationModal from './modals/VerificationModal';
 import VerificationEmailErrorModal from './modals/VerificationEmailErrorModal';
@@ -50,7 +51,6 @@ const Organizations = () => {
 
     const [activeCategory, setActiveCategory] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
-    const [statusFilter] = useState('all');
     const [typeFilter, setTypeFilter] = useState('all');
 
     const [sortConfig, setSortConfig] = useState({
@@ -80,6 +80,8 @@ const Organizations = () => {
 
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [deleteError, setDeleteError] = useState('');
+    const [deletedOrganizationName, setDeletedOrganizationName] =
+        useState(null);
 
     // ============================================================
     // SUCCESS TOAST
@@ -95,15 +97,6 @@ const Organizations = () => {
             show: true,
             message,
         });
-
-        if (message.includes('deleted successfully')) return;
-
-        window.setTimeout(() => {
-            setToast({
-                show: false,
-                message: '',
-            });
-        }, 3000);
     };
 
     const [showEmailVerificationError, setShowEmailVerificationError] =
@@ -274,15 +267,16 @@ const Organizations = () => {
         setDeleteError('');
 
         try {
+            const removedName =
+                selectedDeleteOrganization.name || 'Organization';
             await deleteOrganization(selectedDeleteOrganization.id);
 
             setSelectedDeleteOrganization(null);
+            setDeletedOrganizationName(removedName);
 
             await loadOrganizations();
 
             setCurrentPage(1);
-
-            showSuccessToast('Organization deleted successfully.');
         } catch (err) {
             setDeleteError(err.message || 'Unable to delete organization.');
         } finally {
@@ -377,13 +371,6 @@ const Organizations = () => {
             );
         }
 
-        if (statusFilter !== 'all') {
-            result = result.filter(
-                (organization) =>
-                    organization.verification_status === statusFilter,
-            );
-        }
-
         if (typeFilter !== 'all') {
             result = result.filter(
                 (organization) => organization.organization_type === typeFilter,
@@ -457,14 +444,7 @@ const Organizations = () => {
         });
 
         return result;
-    }, [
-        organizations,
-        activeCategory,
-        statusFilter,
-        typeFilter,
-        searchTerm,
-        sortConfig,
-    ]);
+    }, [organizations, activeCategory, typeFilter, searchTerm, sortConfig]);
 
     // ============================================================
     // PAGINATION
@@ -673,7 +653,7 @@ const Organizations = () => {
 
         {
             key: 'status',
-            label: 'Status',
+            header: 'Status',
             sortable: true,
         },
 
@@ -695,7 +675,7 @@ const Organizations = () => {
     ];
 
     // ============================================================
-    // LOADING STATE
+    // LOADING / ERROR — SHARED DASHBOARD COMPONENTS
     // ============================================================
 
     if (loading) {
@@ -705,39 +685,14 @@ const Organizations = () => {
                     title="Organizations"
                     subtitle="Manage organizations registered on the Stand For People platform."
                 />
-
-                <div className="flex min-h-130 items-center justify-center border-y border-[#252D38] bg-[#0E1219]">
-                    <div className="text-center">
-                        <div
-                            className="
-                                mx-auto
-                                mb-4
-                                h-8
-                                w-8
-                                animate-spin
-                                rounded-full
-                                border-2
-                                border-[#252D38]
-                                border-t-[#84909F]
-                            "
-                        />
-
-                        <p className="text-[13px] font-semibold! text-[#EEF1F5]">
-                            Loading organizations...
-                        </p>
-
-                        <p className="mt-1 text-xs text-[#8792A1]">
-                            Please wait while we retrieve the organization list.
-                        </p>
-                    </div>
-                </div>
+                <LoadingUI
+                    variant="page"
+                    title="Loading organizations..."
+                    description="Please wait while we retrieve the organization list."
+                />
             </div>
         );
     }
-
-    // ============================================================
-    // ERROR STATE
-    // ============================================================
 
     if (error) {
         return (
@@ -746,89 +701,150 @@ const Organizations = () => {
                     title="Organizations"
                     subtitle="Manage organizations registered on the Stand For People platform."
                 />
-
-                <div className="border-l-4 border-[#5A343B] bg-[#28181D] px-5 py-4 text-sm text-[#E9A1A8]">
-                    {error}
-                </div>
+                <LoadingError
+                    title="Unable to load organizations"
+                    message={error}
+                />
             </div>
         );
     }
 
+    const organizationFilters = (
+        <>
+            <div className="px-5 pb-5 pt-6">
+                <p className="font-sans! text-[10px] font-semibold! uppercase tracking-[0.14em] text-[#697586]">
+                    Directory controls
+                </p>
+                <h3 className="mt-2 font-sans! text-[18px] font-semibold! text-[#EEF1F5]">
+                    Refine organizations
+                </h3>
+                <p className="mt-2 text-[12px] leading-[1.65] text-[#8792A1]">
+                    Filter by verification status and organization type.
+                </p>
+            </div>
+            <div className="border-t border-[#252D38] px-3 py-4">
+                <p className="mb-3 px-1 font-sans! text-[10px] font-semibold! uppercase tracking-[0.12em] text-[#697586]">
+                    Verification status
+                </p>
+                <CategoryTabs
+                    tabs={categoryTabs}
+                    activeCategory={activeCategory}
+                    onChange={handleCategoryChange}
+                />
+            </div>
+            <Filters typeFilter={typeFilter} onTypeChange={handleTypeChange} />
+        </>
+    );
+
     // ============================================================
-    // PAGE
+    // MAIN
     // ============================================================
 
     return (
         <>
             <div className="space-y-12 lg:space-y-14">
+                {/* ====================================================
+                    PAGE HEADER
+                ==================================================== */}
+
                 <PageHeader
                     title="Organizations"
-                    subtitle="Manage organizations registered on the Stand For People platform."
+                    subtitle="Manage organization profiles, verification, and access."
                     action={
-                        <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto">
+                        <div
+                            className="
+            flex w-full flex-wrap items-center gap-2.5
+            sm:w-auto sm:justify-end
+        "
+                        >
+                            {/* EXPORT CSV — SECONDARY ACTION */}
+
                             <button
                                 type="button"
                                 onClick={handleExportCSV}
                                 disabled={filteredOrganizations.length === 0}
                                 className="
-                                    group
-                                    inline-flex
-                                    h-10
-                                    items-center
-                                    gap-2
-                                    border
-                                    border-[#252D38]
-                                    bg-[#0E1219]
-                                    px-4
-                                    text-[11px]
-                                    font-medium!
-                                    text-[#EEF1F5]
-                                    transition-all
-                                    hover:border-[#394555]
-                                    hover:bg-[#1A222D]
-                                    disabled:cursor-not-allowed
-                                    disabled:opacity-50
-                                "
+                group inline-flex h-10
+                items-center justify-center gap-2
+                border border-[#343e4b]
+                bg-transparent px-3.5
+
+                font-sans text-[12px] font-medium
+                whitespace-nowrap text-[#b8c2cf]
+
+                transition-colors duration-150
+
+                hover:border-[#4b596a]
+                hover:bg-[#1c232d]
+                hover:text-[#f1f5f9]
+
+                focus-visible:outline-none
+                focus-visible:ring-2
+                focus-visible:ring-[#0f766e]
+                focus-visible:ring-offset-2
+                focus-visible:ring-offset-[#171c24]
+
+                disabled:cursor-not-allowed
+                disabled:opacity-40
+            "
                             >
                                 <Download
                                     size={15}
                                     strokeWidth={1.8}
                                     className="
-                                        text-[#8792A1]
-                                        transition-colors
-                                        group-hover:text-[#EEF1F5]
-                                    "
+                    shrink-0 text-[#8492a3]
+                    transition-colors
+                    group-hover:text-[#d5dde6]
+                    group-disabled:text-[#8492a3]
+                "
                                 />
 
                                 <span>Export CSV</span>
                             </button>
 
+                            {/* ADD USER — PRIMARY ACTION */}
+
                             <button
                                 type="button"
-                                onClick={handleAddOrganization}
+                                onClick={() => handleAddOrganization()}
                                 className="
-                                    inline-flex
-                                    h-10
-                                    items-center
-                                    gap-2
-                                    border
-                                    border-[#252D38]
-                                    bg-[#1A222D]
-                                    px-4
-                                    text-[13px]
-                                    font-semibold!
-                                    text-[#EEF1F5]!
-                                    transition-all
-                                    hover:bg-[#1D2632]
-                                "
+                group inline-flex h-10
+                items-center justify-center gap-2.5
+                border border-[#0f766e]
+                bg-[#0f766e] px-4
+
+                font-sans text-[12px] font-semibold
+                whitespace-nowrap text-white
+
+                transition-colors duration-150
+
+                hover:border-[#115e59]
+                hover:bg-[#115e59]
+
+                focus-visible:outline-none
+                focus-visible:ring-2
+                focus-visible:ring-[#5eead4]
+                focus-visible:ring-offset-2
+                focus-visible:ring-offset-[#171c24]
+
+                active:bg-[#134e4a]
+            "
                             >
-                                <Plus size={17} strokeWidth={2} />
+                                <Plus
+                                    size={16}
+                                    strokeWidth={2}
+                                    className="shrink-0"
+                                />
 
                                 <span>Add Organization</span>
                             </button>
                         </div>
                     }
                 />
+
+                {/* ====================================================
+                    STATS
+                ==================================================== */}
 
                 <Stats
                     total={statistics.total}
@@ -838,48 +854,62 @@ const Organizations = () => {
                     onOpenReviewQueue={() => handleCategoryChange('pending')}
                 />
 
-                <section
-                    id="organizations-table"
-                    className="scroll-mt-6 pt-2 lg:pt-3"
-                >
+                {/* ====================================================
+                    USER MANAGEMENT
+                ==================================================== */}
+
+                <section className="pt-2 lg:pt-3">
+                    {/* ===============================================
+                        SECTION HEADING
+                    =============================================== */}
+
                     <div
-                        className="min-w-0 mb-5
-                    sm:mb-6"
+                        className="
+                            flex
+                            flex-col
+                            gap-5
+                            pb-5
+                            sm:pb-6
+                            sm:flex-row
+                            sm:items-end
+                            sm:justify-between
+                        "
                     >
-                        <p
-                            className="
-                            font-sans!
-                            text-[10px]
-                            font-semibold!
-                            uppercase
-                            tracking-[0.13em]
-                            text-[#758192]
-                        "
-                        >
-                            Organization management
-                        </p>
+                        <div className="min-w-0">
+                            <h2
+                                className="
+                                    font-sans!
 
-                        <h2
-                            id="organization-overview-heading"
-                            className="
-                            mt-1.5
-                            font-sans!
-                            text-[17px]
-                            font-semibold!
-                            leading-[1.35]
-                            tracking-[-0.015em]
-                            text-[#F0F2F5]!
+                                    text-[20px]
+                                    font-semibold!
+                                    leading-tight
+                                    tracking-[-0.02em]
+                                    text-[#EEF1F5]!
+                                "
+                            >
+                                Organization Directory
+                            </h2>
 
-                            sm:text-[18px]
-                        "
-                        >
-                            Registered organizations
-                        </h2>
+                            <p
+                                className="
+                                    mt-2
+                                    max-w-xl
+
+                                    font-sans!
+                                    text-[12px]
+                                    leading-[1.65]
+
+                                    text-[#8792A1]
+                                "
+                            >
+                                Browse and manage registered organizations.
+                            </p>
+                        </div>
                     </div>
 
-                    {/* ==================================================
+                    {/* ===============================================
                         MOBILE / TABLET FILTER TRIGGER
-                    ================================================== */}
+                    =============================================== */}
 
                     <div className="mb-5 xl:hidden">
                         <button
@@ -891,24 +921,35 @@ const Organizations = () => {
                                 w-full
                                 items-center
                                 justify-between
+
                                 border
                                 border-[#252D38]
+
                                 bg-[#0E1219]
+
                                 px-3.5
+
                                 font-sans!
                                 text-[11px]
                                 font-medium!
+
                                 text-[#AEB7C3]
+
                                 transition-colors
                                 duration-150
+
                                 hover:border-[#35404E]
                                 hover:bg-[#151B24]
                                 hover:text-[#EEF1F5]
-                                focus:outline-none
-                                focus:ring-0
                             "
                         >
-                            <span className="flex items-center gap-2">
+                            <span
+                                className="
+                                    flex
+                                    items-center
+                                    gap-2
+                                "
+                            >
                                 <SlidersHorizontal
                                     size={14}
                                     strokeWidth={1.8}
@@ -924,11 +965,15 @@ const Organizations = () => {
                                         min-w-5
                                         items-center
                                         justify-center
+
                                         bg-[#1D2632]
+
                                         px-1.5
+
                                         text-[9px]
                                         font-semibold!
                                         tabular-nums
+
                                         text-[#EEF1F5]
                                     "
                                 >
@@ -938,302 +983,311 @@ const Organizations = () => {
                         </button>
                     </div>
 
-                    {/* ==================================================
-                        MANAGEMENT WORKSPACE
-                    ================================================== */}
+                    {/* ===============================================
+                        WORKSPACE
+                    =============================================== */}
 
                     <div
                         className="
                             grid
-                            items-stretch
+                            min-w-0
                             gap-6
-                            xl:grid-cols-[minmax(0,1fr)_300px]
-                            2xl:grid-cols-[minmax(0,1fr)_320px]
+        xl:grid-cols-[minmax(0,1fr)_300px]
+        2xl:grid-cols-[minmax(0,1fr)_320px]
+                            xl:items-stretch
+                            xl:gap-7
                         "
                     >
-                        {/* ==================================================
-                            LEFT — ORGANIZATION TABLE WORKSPACE
-                        ================================================== */}
+                        {/* ===========================================
+                            TABLE WORKSPACE
+                        =========================================== */}
 
                         <div
                             className="
-                                flex
+                                relative
                                 min-h-0
                                 min-w-0
-                                flex-col
-                                border
-                                border-[#252D38]
-                                bg-[#0E1219]
+
+                                xl:h-full
                             "
                         >
-                            {/* Workspace toolbar */}
                             <div
                                 className="
-                                    shrink-0
-                                    border-b
+                                    flex
+                                    min-h-0
+                                    min-w-0
+                                    flex-col
+
+                                    overflow-hidden
+
+                                    border
                                     border-[#252D38]
-                                    px-5
-                                    py-4
+
+                                    bg-[#0E1219]
+
+                                    xl:absolute
+                                    xl:inset-0
                                 "
                             >
+                                {/* ===================================
+                                    SEARCH TOOLBAR
+                                =================================== */}
+
                                 <div
                                     className="
-                                        flex
-                                        flex-col
-                                        gap-4
-                                        lg:flex-row
-                                        lg:items-center
-                                        lg:justify-between
+                                        shrink-0
+
+                                        border-b
+                                        border-[#252D38]
+
+                                        bg-[#1A222D]
+
+                                        px-4
+                                        py-3.5
+
+                                        sm:px-5
                                     "
                                 >
-                                    <div className="min-w-0 flex-1">
-                                        <div className="relative">
-                                            <Search
-                                                size={17}
-                                                strokeWidth={1.8}
-                                                className="
-                                                    pointer-events-none
-                                                    absolute
-                                                    left-3.5
-                                                    top-1/2
-                                                    -translate-y-1/2
-                                                    text-[#8792A1]
-                                                "
-                                            />
-
-                                            <input
-                                                type="text"
-                                                value={searchTerm}
-                                                onChange={handleSearchChange}
-                                                placeholder="Search by organization name, email, registration number"
-                                                className="
-                                                    h-10
-                                                    w-full
-                                                    border
-                                                    border-[#252D38]
-                                                    bg-[#0A0E14]
-                                                    pl-10
-                                                    pr-16
-                                                    text-[12px]
-                                                    font-medium!
-                                                    text-[#EEF1F5]
-                                                    outline-none
-                                                    transition-colors
-                                                    placeholder:text-[#8792A1]/70
-                                                    hover:border-text-secondary/30
-                                                    focus:border-[#4B5869]
-                                                    focus:bg-[#0E1219]
-                                                "
-                                            />
-
-                                            {searchTerm && (
-                                                <button
-                                                    type="button"
-                                                    onClick={handleClearSearch}
-                                                    className="
-                                                        absolute
-                                                        right-3
-                                                        top-1/2
-                                                        -translate-y-1/2
-                                                        text-[10px]
-                                                        font-semibold!
-                                                        uppercase
-                                                        tracking-wide
-                                                        text-[#8792A1]
-                                                        transition-colors
-                                                        hover:text-[#EEF1F5]
-                                                    "
-                                                >
-                                                    Clear
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-
                                     <div
                                         className="
                                             flex
-                                            shrink-0
-                                            items-center
-                                            gap-5
+                                            flex-col
+                                            gap-3.5
+
+                                            lg:flex-row
+                                            lg:items-center
+                                            lg:justify-between
                                         "
                                     >
                                         <div
                                             className="
-                                                hidden
-                                                h-7
-                                                border-l
-                                                border-[#252D38]
-                                                lg:block
+                                                min-w-0
+                                                flex-1
                                             "
-                                        />
+                                        >
+                                            <div className="relative">
+                                                <Search
+                                                    size={15}
+                                                    strokeWidth={1.8}
+                                                    className="
+                                                        pointer-events-none
 
-                                        <div>
-                                            <p
+                                                        absolute
+                                                        left-3
+                                                        top-1/2
+
+                                                        -translate-y-1/2
+
+                                                        text-[#697586]
+                                                    "
+                                                />
+
+                                                <input
+                                                    type="text"
+                                                    value={searchTerm}
+                                                    onChange={
+                                                        handleSearchChange
+                                                    }
+                                                    placeholder="Search by organization name, email, or registration number"
+                                                    className="
+                                                        h-10
+                                                        w-full
+
+                                                        border
+                                                        border-[#29323E]
+
+                                                        bg-[#0A0E14]
+
+                                                        pl-9
+                                                        pr-16
+
+                                                        font-sans!
+                                                        text-[12px]
+                                                        font-medium!
+
+                                                        text-[#EEF1F5]
+
+                                                        outline-none
+
+                                                        transition-colors
+                                                        duration-150
+
+                                                        placeholder:text-[#5E6978]
+
+                                                        hover:border-[#394553]
+
+                                                        focus:border-[#4B5869]
+                                                        focus:ring-0
+                                                    "
+                                                />
+
+                                                {searchTerm && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={
+                                                            handleClearSearch
+                                                        }
+                                                        className="
+                                                            absolute
+                                                            right-3
+                                                            top-1/2
+
+                                                            -translate-y-1/2
+
+                                                            font-sans!
+                                                            text-[9px]
+                                                            font-semibold!
+                                                            uppercase
+                                                            tracking-[0.08em]
+
+                                                            text-[#788493]
+
+                                                            transition-colors
+
+                                                            hover:text-[#EEF1F5]
+
+                                                            focus:outline-none
+                                                            focus:ring-0
+                                                        "
+                                                    >
+                                                        Clear
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div
+                                            className="
+                                                flex
+                                                shrink-0
+                                                items-center
+                                                gap-4
+                                            "
+                                        >
+                                            <span
                                                 className="
-                                                    text-[9px]
-                                                    font-bold!
-                                                    uppercase
-                                                    tracking-[0.16em]
-                                                    text-[#8792A1]
-                                                "
-                                            >
-                                                Showing
-                                            </p>
+                                                    hidden
+                                                    h-7
+                                                    w-px
 
-                                            <p className="mt-0.5 text-xs font-medium! text-[#EEF1F5]">
-                                                {filteredOrganizations.length}{' '}
-                                                {filteredOrganizations.length ===
-                                                1
-                                                    ? 'result'
-                                                    : 'results'}
-                                            </p>
+                                                    bg-[#303A47]
+
+                                                    lg:block
+                                                "
+                                            />
+
+                                            <div>
+                                                <p
+                                                    className="
+                                                        mt-1
+
+                                                        font-sans!
+                                                        text-[11px]
+                                                        font-medium!
+
+                                                        text-[#AAB3BF]
+                                                    "
+                                                >
+                                                    {
+                                                        filteredOrganizations.length
+                                                    }{' '}
+                                                    {filteredOrganizations.length ===
+                                                    1
+                                                        ? 'result'
+                                                        : 'results'}
+                                                </p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* TABLE */}
-                            <div
-                                className="
-                                    min-h-0
-                                    min-w-0
-                                    flex-1
-                                    overflow-auto
-                                    bg-[#0E1219]
-                                    [&::-webkit-scrollbar]:h-1.5
-                                    [&::-webkit-scrollbar]:w-1.5
-                                    [&::-webkit-scrollbar-track]:bg-[#0A0E14]
-                                    [&::-webkit-scrollbar-thumb]:bg-[#303A47]
-                                    hover:[&::-webkit-scrollbar-thumb]:bg-[#465261]
-                                "
-                            >
-                                <Table
-                                    columns={columns}
-                                    rows={rows}
-                                    onSort={handleSort}
-                                    getSortIcon={getSortIcon}
-                                    resultCount={filteredOrganizations.length}
-                                    onView={handleViewOrganization}
-                                    onReview={handleReviewOrganization}
-                                    onEdit={handleEditOrganization}
-                                    onDelete={openDeleteModal}
-                                />
-                            </div>
+                                {/* ===================================
+                                    TABLE
+                                =================================== */}
 
-                            {filteredOrganizations.length > 0 && (
-                                <div className="shrink-0 border-t border-[#252D38]">
-                                    <Pagination
-                                        currentPage={safeCurrentPage}
-                                        totalPages={totalPages}
-                                        totalItems={
+                                <div
+                                    className="
+                                        min-h-0
+                                        min-w-0
+                                        flex-1
+
+                                        overflow-auto
+
+                                        bg-[#0E1219]
+
+                                        [&::-webkit-scrollbar]:h-1.5
+                                        [&::-webkit-scrollbar]:w-1.5
+
+                                        [&::-webkit-scrollbar-track]:bg-[#0A0E14]
+                                        [&::-webkit-scrollbar-thumb]:bg-[#303A47]
+
+                                        hover:[&::-webkit-scrollbar-thumb]:bg-[#465261]
+                                    "
+                                >
+                                    <Table
+                                        columns={columns}
+                                        rows={rows}
+                                        onSort={handleSort}
+                                        getSortIcon={getSortIcon}
+                                        resultCount={
                                             filteredOrganizations.length
                                         }
-                                        itemsPerPage={ORGANIZATIONS_PER_PAGE}
-                                        onPageChange={setCurrentPage}
+                                        onView={handleViewOrganization}
+                                        onReview={handleReviewOrganization}
+                                        onEdit={handleEditOrganization}
+                                        onDelete={openDeleteModal}
                                     />
                                 </div>
-                            )}
+
+                                {/* ===================================
+                                    PAGINATION
+                                =================================== */}
+
+                                {filteredOrganizations.length > 0 && (
+                                    <div
+                                        className="
+                                            shrink-0
+
+                                            border-t
+                                            border-[#252D38]
+
+                                            bg-[#1A222D]
+                                        "
+                                    >
+                                        <Pagination
+                                            currentPage={safeCurrentPage}
+                                            totalPages={totalPages}
+                                            totalItems={
+                                                filteredOrganizations.length
+                                            }
+                                            itemsPerPage={
+                                                ORGANIZATIONS_PER_PAGE
+                                            }
+                                            onPageChange={setCurrentPage}
+                                        />
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
-                        {/* ==================================================
-                            RIGHT — ORGANIZATION FILTER SIDEBAR
-                        ================================================== */}
+                        {/* ===========================================
+                            DESKTOP FILTER SIDEBAR
+                        =========================================== */}
 
                         <aside
                             className="
                                 hidden
                                 min-w-0
-                                flex-col
-                                self-start
+
                                 border
                                 border-[#252D38]
+
                                 bg-[#0E1219]
-                                xl:flex
+
+                                xl:block
                             "
                         >
-                            <div className="shrink-0 px-5 pb-5 pt-6">
-                                <p
-                                    className="
-                                        text-[10px]
-                                        font-bold!
-                                        uppercase
-                                        tracking-[0.18em]
-                                        text-[#697586]!
-                                    "
-                                >
-                                    Directory controls
-                                </p>
-
-                                <h2
-                                    className="
-                                        mt-1.5
-                                        font-sans!
-                                        text-[21px]
-                                        leading-tight
-                                        text-[#EEF1F5]!
-                                    "
-                                >
-                                    Refine organizations
-                                </h2>
-
-                                <p
-                                    className="
-                                        mt-2
-                                        text-[12px]
-                                        leading-5
-                                        text-[#8792A1]!
-                                    "
-                                >
-                                    Narrow the organization directory by
-                                    verification state and organization type.
-                                </p>
-                            </div>
-
-                            <div
-                                className="
-                                    border-t
-                                    border-[#252D38]
-                                    px-3
-                                    py-4
-                                "
-                            >
-                                <div className="mb-3 flex items-center justify-between px-1">
-                                    <p
-                                        className="
-                                            text-[10px]
-                                            font-bold!
-                                            uppercase
-                                            tracking-[0.16em]
-                                            text-[#697586]!
-                                        "
-                                    >
-                                        Organization status
-                                    </p>
-
-                                    <span
-                                        className="
-                                            text-[10px]
-                                            font-medium!
-                                            tabular-nums
-                                            text-[#5E6978]!
-                                        "
-                                    >
-                                        {categoryTabs.length}
-                                    </span>
-                                </div>
-
-                                <CategoryTabs
-                                    tabs={categoryTabs}
-                                    activeCategory={activeCategory}
-                                    onChange={handleCategoryChange}
-                                />
-                            </div>
-
-                            <Filters
-                                typeFilter={typeFilter}
-                                onTypeChange={handleTypeChange}
-                            />
+                            {organizationFilters}
                         </aside>
                     </div>
                 </section>
@@ -1244,7 +1298,15 @@ const Organizations = () => {
             ======================================================== */}
 
             {mobileFiltersOpen && (
-                <div className="fixed inset-0 z-100 xl:hidden">
+                <div
+                    className="
+                        fixed
+                        inset-0
+                        z-100
+
+                        xl:hidden
+                    "
+                >
                     <button
                         type="button"
                         aria-label="Close filters"
@@ -1252,49 +1314,65 @@ const Organizations = () => {
                         className="
                             absolute
                             inset-0
+
                             bg-[#05070A]/75
+
                             backdrop-blur-[2px]
                         "
                     />
 
                     <div
                         className="
-                            absolute
-                            bottom-0
-                            left-0
-                            right-0
-                            max-h-[85vh]
-                            overflow-y-auto
-                            border-t
-                            border-[#252D38]
-                            bg-[#0E1219]
-                            shadow-[0_-20px_60px_rgba(0,0,0,0.45)]
-                            sm:bottom-0
-                            sm:left-auto
-                            sm:right-0
-                            sm:top-0
-                            sm:h-full
-                            sm:max-h-none
-                            sm:w-[340px]
-                            md:w-[360px]
-                            lg:w-[380px]
-                            sm:border-l
-                            sm:border-t-0
-                        "
+        absolute
+        bottom-0
+        left-0
+        right-0
+
+        max-h-[85vh]
+        overflow-y-auto
+
+        border-t
+        border-[#252D38]
+
+        bg-[#0E1219]
+
+        shadow-[0_-20px_60px_rgba(0,0,0,0.45)]
+
+        sm:bottom-0
+        sm:left-auto
+        sm:right-0
+        sm:top-0
+
+        sm:h-full
+        sm:max-h-none
+        sm:w-[340px]
+
+        md:w-[360px]
+
+        lg:w-[380px]
+
+        sm:border-l
+        sm:border-t-0
+    "
                     >
                         <div
                             className="
                                 sticky
                                 top-0
                                 z-30
+
                                 flex
                                 items-center
                                 justify-between
+
                                 border-b
                                 border-[#252D38]
+
                                 bg-[#0E1219]/95
+
                                 px-4
                                 py-3.5
+
                                 backdrop-blur-md
                             "
                         >
@@ -1306,6 +1384,7 @@ const Organizations = () => {
                                         font-semibold!
                                         uppercase
                                         tracking-[0.14em]
+
                                         text-[#697586]
                                     "
                                 >
@@ -1315,9 +1394,11 @@ const Organizations = () => {
                                 <p
                                     className="
                                         mt-1
+
                                         font-sans!
                                         text-[13px]
                                         font-semibold!
+
                                         text-[#EEF1F5]
                                     "
                                 >
@@ -1335,109 +1416,41 @@ const Organizations = () => {
                                     w-9
                                     items-center
                                     justify-center
+
                                     border
                                     border-[#29323E]
+
                                     bg-[#151B24]
+
                                     text-[#8792A1]
+
                                     transition-colors
                                     duration-150
+
                                     hover:border-[#3B4655]
                                     hover:bg-[#1A222D]
                                     hover:text-[#EEF1F5]
-                                    focus:outline-none
-                                    focus:ring-0
                                 "
                             >
                                 <X size={16} strokeWidth={1.8} />
                             </button>
                         </div>
 
-                        <div className="shrink-0 px-5 pb-5 pt-6">
-                            <p
-                                className="
-                                    text-[10px]
-                                    font-bold!
-                                    uppercase
-                                    tracking-[0.18em]
-                                    text-[#697586]!
-                                "
-                            >
-                                Directory controls
-                            </p>
-
-                            <h2
-                                className="
-                                    mt-1.5
-                                    font-sans!
-                                    text-[21px]
-                                    leading-tight
-                                    text-[#EEF1F5]!
-                                "
-                            >
-                                Refine organizations
-                            </h2>
-
-                            <p
-                                className="
-                                    mt-2
-                                    max-w-55
-                                    text-[12px]
-                                    leading-5
-                                    text-[#8792A1]!
-                                "
-                            >
-                                Narrow the organization directory by
-                                verification state and organization type.
-                            </p>
-                        </div>
-
-                        <div className="border-t border-[#252D38] px-3 py-4">
-                            <div className="mb-3 flex items-center justify-between px-1">
-                                <p
-                                    className="
-                                        text-[10px]
-                                        font-bold!
-                                        uppercase
-                                        tracking-[0.16em]
-                                        text-[#697586]!
-                                    "
-                                >
-                                    Organization status
-                                </p>
-
-                                <span
-                                    className="
-                                        text-[10px]
-                                        font-medium!
-                                        tabular-nums
-                                        text-[#5E6978]!
-                                    "
-                                >
-                                    {categoryTabs.length}
-                                </span>
-                            </div>
-
-                            <CategoryTabs
-                                tabs={categoryTabs}
-                                activeCategory={activeCategory}
-                                onChange={handleCategoryChange}
-                            />
-                        </div>
-
-                        <Filters
-                            typeFilter={typeFilter}
-                            onTypeChange={handleTypeChange}
-                        />
+                        {organizationFilters}
 
                         <div
                             className="
                                 sticky
                                 bottom-0
                                 z-30
+
                                 border-t
                                 border-[#252D38]
+
                                 bg-[#0E1219]/95
+
                                 p-4
+
                                 backdrop-blur-md
                             "
                         >
@@ -1450,19 +1463,23 @@ const Organizations = () => {
                                     w-full
                                     items-center
                                     justify-center
+
                                     border
                                     border-[#394555]
+
                                     bg-[#171E28]
+
                                     font-sans!
                                     text-[11px]
                                     font-semibold!
+
                                     text-[#EEF1F5]
+
                                     transition-colors
                                     duration-150
+
                                     hover:border-[#4B5869]
                                     hover:bg-[#1D2632]
-                                    focus:outline-none
-                                    focus:ring-0
                                 "
                             >
                                 Show {filteredOrganizations.length}{' '}
@@ -1479,20 +1496,27 @@ const Organizations = () => {
                 FEEDBACK / MODALS
             ======================================================== */}
 
-            <SuccessToast
-                show={
-                    toast.show &&
-                    !toast.message.includes('deleted successfully')
+            <SuccessDialog
+                open={toast.show}
+                title={
+                    toast.message.includes('exported')
+                        ? 'Export completed'
+                        : 'Verification updated'
                 }
                 message={toast.message}
+                onClose={() => setToast({ show: false, message: '' })}
             />
             <SuccessDialog
-                open={
-                    toast.show && toast.message.includes('deleted successfully')
-                }
-                entity="organization"
+                open={deletedOrganizationName !== null}
                 action="deleted"
-                onClose={() => setToast({ show: false, message: '' })}
+                entity="organization"
+                name={deletedOrganizationName || ''}
+                message={
+                    deletedOrganizationName
+                        ? `${deletedOrganizationName} has been removed from the platform.`
+                        : 'The organization has been removed from the platform.'
+                }
+                onClose={() => setDeletedOrganizationName(null)}
             />
 
             <VerificationEmailErrorModal

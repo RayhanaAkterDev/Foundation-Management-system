@@ -584,12 +584,12 @@ const Table = ({
     getSortIcon,
     resultCount,
     onView,
-    onEdit,
     onDelete,
 }) => {
     const navigate = useNavigate();
-    const handleEdit = (id) =>
-        onEdit ? onEdit(id) : navigate(`/admin/dashboard/users/${id}/edit`);
+    const handleEdit = (id) => {
+        navigate(`/admin/dashboard/users/${id}/edit`);
+    };
 
     const enhancedColumns = columns
         .filter((column) => column.key !== 'email')

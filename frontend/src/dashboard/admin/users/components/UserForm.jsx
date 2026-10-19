@@ -38,19 +38,19 @@ const ROLE_OPTIONS = [
     {
         value: 'individual',
         label: 'Individual',
-        description: 'Personal platform account',
+        description: 'Personal account',
         icon: UserRound,
     },
     {
         value: 'organization',
         label: 'Organization',
-        description: 'Organization or NGO account',
+        description: 'Organization account',
         icon: Building2,
     },
     {
         value: 'admin',
         label: 'Administrator',
-        description: 'Platform management access',
+        description: 'Admin access',
         icon: UserCog,
     },
 ];
@@ -59,19 +59,19 @@ const STATUS_OPTIONS = [
     {
         value: 'active',
         label: 'Active',
-        description: 'Normal platform access',
+        description: 'Can sign in',
         icon: CheckCircle2,
     },
     {
         value: 'inactive',
         label: 'Inactive',
-        description: 'Account access disabled',
+        description: 'Sign-in disabled',
         icon: LockKeyhole,
     },
     {
         value: 'suspended',
         label: 'Suspended',
-        description: 'Access temporarily restricted',
+        description: 'Temporarily restricted',
         icon: ShieldAlert,
     },
 ];
@@ -282,8 +282,8 @@ const FormSectionHeading = ({ number, title, description }) => (
         <div
             className="
                 flex
-                h-[30px]
-                w-[30px]
+                h-7
+                w-7
                 shrink-0
                 items-center
                 justify-center
@@ -305,7 +305,7 @@ const FormSectionHeading = ({ number, title, description }) => (
             <h3
                 className="
                     font-sans!
-                    text-[17px]
+                    text-[15px]
                     font-semibold!
                     leading-6
                     tracking-[-0.015em]
@@ -347,8 +347,6 @@ const UserForm = ({
     onSubmit,
     onCancel,
     onFormChange,
-    completedFields = 0,
-    completionPercentage = 0,
 }) => {
     const isEdit = mode === 'edit';
 
@@ -444,129 +442,15 @@ const UserForm = ({
 
             {error && (
                 <LoadingError
+                    className="mb-7"
                     title="Account could not be saved"
                     message={error}
-                    className="mb-7"
                 />
-            )}
-
-            {/* INITIAL ACCESS + COMPLETION */}
-
-            {!isEdit && (
-                <div className="mb-8 border-b border-[#252D38] pb-7">
-                    <div
-                        className="
-                            flex
-                            flex-col
-                            gap-4
-                            @[620px]:flex-row
-                            @[620px]:items-center
-                            @[620px]:justify-between
-                        "
-                    >
-                        <p
-                            className="
-                                font-sans!
-                                text-[12px]
-                                font-semibold!
-                                uppercase
-                                tracking-[0.1em]
-                                text-[#8792A1]!
-                            "
-                        >
-                            Initial access
-                        </p>
-
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-                            <span
-                                className="
-                                    flex
-                                    items-center
-                                    gap-2
-                                    font-sans!
-                                    text-[13px]
-                                    font-medium!
-                                    text-[#AEB7C3]!
-                                "
-                            >
-                                <span className="h-2 w-2 shrink-0 rounded-full bg-[#697586]" />
-                                Inactive
-                            </span>
-
-                            <span className="text-[#465261]">/</span>
-
-                            <span
-                                className="
-                                    flex
-                                    items-center
-                                    gap-2
-                                    font-sans!
-                                    text-[13px]
-                                    font-medium!
-                                    text-[#D8B278]!
-                                "
-                            >
-                                <Mail size={15} strokeWidth={1.7} />
-                                Email unverified
-                            </span>
-                        </div>
-                    </div>
-
-                    <div className="mt-7">
-                        <div className="flex items-center justify-between gap-4">
-                            <span
-                                className="
-                                    font-sans!
-                                    text-[13px]
-                                    font-medium!
-                                    text-[#8792A1]!
-                                "
-                            >
-                                Details completed
-                            </span>
-
-                            <span
-                                className="
-                                    shrink-0
-                                    font-sans!
-                                    text-[13px]
-                                    font-semibold!
-                                    tabular-nums
-                                    text-[#B8C0CA]!
-                                "
-                            >
-                                {completedFields}/5
-                            </span>
-                        </div>
-
-                        <div
-                            className="mt-3 h-1 w-full overflow-hidden bg-[#202832]"
-                            role="progressbar"
-                            aria-valuemin={0}
-                            aria-valuemax={100}
-                            aria-valuenow={completionPercentage}
-                            aria-label="Form completion"
-                        >
-                            <div
-                                className="
-                                    h-full
-                                    bg-[#8792A1]
-                                    transition-[width]
-                                    duration-300
-                                    ease-out
-                                "
-                                style={{
-                                    width: `${completionPercentage}%`,
-                                }}
-                            />
-                        </div>
-                    </div>
-                </div>
             )}
 
             {/* PERSONAL DETAILS */}
 
-            <section className="grid gap-6">
+            <section className="grid gap-6 sm:gap-7">
                 <FormSectionHeading number="01" title="Personal details" />
 
                 <div
@@ -678,7 +562,7 @@ const UserForm = ({
             {/* ACCOUNT TYPE */}
 
             {!isEdit && (
-                <section className="mt-11 grid gap-6 border-t border-[#252D38] pt-8">
+                <section className="mt-8 grid gap-5 border-t border-[#303A47] pt-7 sm:mt-9 sm:pt-8">
                     <FormSectionHeading number="02" title="Account type" />
 
                     <div className="min-w-0">
@@ -863,12 +747,8 @@ const UserForm = ({
             {/* ACCOUNT ACCESS — EDIT ONLY */}
 
             {isEdit && (
-                <section className="mt-10 grid gap-6 border-t border-[#252D38] pt-8">
-                    <FormSectionHeading
-                        number="02"
-                        title="Account access"
-                        description="Set whether this user can currently sign in and use the platform."
-                    />
+                <section className="mt-8 grid gap-5 border-t border-[#303A47] pt-7 sm:mt-9 sm:pt-8">
+                    <FormSectionHeading number="02" title="Account access" />
 
                     <div className="min-w-0">
                         {!emailVerified && (
@@ -1096,7 +976,7 @@ const UserForm = ({
 
             {/* ACTION BAR */}
 
-            <footer className="mt-10 border-t border-[#252D38] pt-7">
+            <footer className="mt-11 border-t border-[#303A47] pt-7 sm:mt-12 sm:pt-8">
                 <div
                     className="
                         flex

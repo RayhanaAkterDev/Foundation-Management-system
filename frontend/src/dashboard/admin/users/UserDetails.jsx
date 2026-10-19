@@ -1,7 +1,7 @@
 // src/dashboard/admin/users/UserDetails.jsx
 
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, CircleAlert, Pencil, X } from 'lucide-react';
 
 import PageHeader from '@/components/dashboard/PageHeader';
@@ -21,12 +21,13 @@ import { fetchUser, updateUserAndRefresh } from './api/userApi';
 const UserDetails = () => {
     const navigate = useNavigate();
     const { userId } = useParams();
+    const { pathname } = useLocation();
+    const isEditing = pathname.endsWith('/edit');
 
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [loadError, setLoadError] = useState('');
 
-    const [isEditing, setIsEditing] = useState(false);
     const [saving, setSaving] = useState(false);
     const [saveError, setSaveError] = useState('');
     const [fieldErrors, setFieldErrors] = useState({});
@@ -87,7 +88,7 @@ const UserDetails = () => {
         setSaveError('');
         setFieldErrors({});
         setSuccessMessage('');
-        setIsEditing(true);
+        navigate(`/admin/dashboard/users/${userId}/edit`);
     };
 
     const handleCancelEdit = () => {
@@ -95,7 +96,7 @@ const UserDetails = () => {
             return;
         }
 
-        setIsEditing(false);
+        navigate(`/admin/dashboard/users/${userId}`);
         setSaveError('');
         setFieldErrors({});
     };
@@ -118,7 +119,7 @@ const UserDetails = () => {
             const refreshed = await updateUserAndRefresh(user.id, formData);
 
             setUser(refreshed.user);
-            setIsEditing(false);
+            navigate(`/admin/dashboard/users/${userId}`, { replace: true });
 
             setSuccessMessage('User updated successfully.');
         } catch (error) {
@@ -140,15 +141,19 @@ const UserDetails = () => {
         return (
             <div className="space-y-6 font-sans! sm:space-y-8">
                 <PageHeader
-                    title="User Details"
+                    title={isEditing ? 'Edit User' : 'User Details'}
                     subtitle="Loading account information..."
                 />
 
                 <LoadingUI
                     variant="page"
-                    title="Loading user details"
+                    title={
+                        isEditing
+                            ? 'Loading user for editing'
+                            : 'Loading user details'
+                    }
                     description="Retrieving account information."
-                    minHeight="520px"
+                    className="min-h-72 sm:min-h-100 lg:min-h-130"
                 />
             </div>
         );
@@ -162,7 +167,7 @@ const UserDetails = () => {
         return (
             <div className="space-y-6 font-sans! sm:space-y-8">
                 <PageHeader
-                    title="User Details"
+                    title={isEditing ? 'Edit User' : 'User Details'}
                     subtitle="The requested account could not be loaded."
                     action={
                         <button
@@ -331,12 +336,12 @@ const UserDetails = () => {
         >
             <PageHeader
                 title="User Details"
-                subtitle="Review identity, profile information and platform access."
+                subtitle="Review account identity, verification, and role-specific profile details."
                 action={
                     <div
                         className="
-            flex w-full flex-wrap items-center gap-2.5
-            sm:w-auto sm:justify-end
+            grid w-full grid-cols-2 items-center gap-2.5
+            sm:flex sm:w-auto sm:flex-wrap sm:justify-end
         "
                     >
                         {/* BACK — SECONDARY ACTION */}
@@ -345,7 +350,7 @@ const UserDetails = () => {
                             type="button"
                             onClick={handleBack}
                             className="
-                group inline-flex h-10
+                group inline-flex h-10 min-w-0
                 items-center justify-center gap-2
                 border border-[#343e4b]
                 bg-transparent px-3.5
@@ -361,7 +366,7 @@ const UserDetails = () => {
 
                 focus-visible:outline-none
                 focus-visible:ring-2
-                focus-visible:ring-[#0f766e]
+                focus-visible:ring-[#8492A3]
                 focus-visible:ring-offset-2
                 focus-visible:ring-offset-[#171c24]
             "
@@ -385,26 +390,26 @@ const UserDetails = () => {
                             type="button"
                             onClick={handleStartEdit}
                             className="
-                group inline-flex h-10
+                group inline-flex h-10 min-w-0
                 items-center justify-center gap-2.5
-                border border-[#0f766e]
-                bg-[#0f766e] px-4
+                border border-[#465363]
+                bg-[#354253] px-4
 
                 font-sans text-[12px] font-semibold
                 whitespace-nowrap text-white
 
                 transition-colors duration-150
 
-                hover:border-[#115e59]
-                hover:bg-[#115e59]
+                hover:border-[#627286]
+                hover:bg-[#455468]
 
                 focus-visible:outline-none
                 focus-visible:ring-2
-                focus-visible:ring-[#5eead4]
+                focus-visible:ring-[#9DAABD]
                 focus-visible:ring-offset-2
                 focus-visible:ring-offset-[#171c24]
 
-                active:bg-[#134e4a]
+                active:bg-[#2B3645]
             "
                         >
                             <Pencil

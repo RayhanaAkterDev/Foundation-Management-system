@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 import { useNavigate } from 'react-router-dom';
 
@@ -23,7 +23,8 @@ const getOrganizationUserStatus = (row) => {
    ORGANIZATION IDENTITY
 ============================================================================ */
 
-const OrganizationIdentity = ({ row, value }) => {
+const OrganizationIdentity = ({ row, value, onView }) => {
+    const [failedPhoto, setFailedPhoto] = useState(null);
     const name = value || row?.name || 'Unnamed organization';
     const email = row?.contactEmail || '';
 
@@ -41,21 +42,21 @@ const OrganizationIdentity = ({ row, value }) => {
             : '';
 
     return (
-        <div className="flex min-w-0 items-center gap-2.5">
+        <div className="flex min-w-0 items-center gap-3">
             <div
                 className="
-                    flex h-7 w-7 shrink-0 items-center justify-center
+                    flex h-8 w-8 shrink-0 items-center justify-center
                     overflow-hidden border border-[#29323E]
                     bg-[#151B24] text-[#8792A1]
                 "
             >
-                {photo ? (
+                {photo && failedPhoto !== photo ? (
                     <img
                         src={photo}
                         alt={`${name} logo`}
                         className="h-full w-full object-cover"
-                        onError={(event) => {
-                            event.currentTarget.style.display = 'none';
+                        onError={() => {
+                            setFailedPhoto(photo);
                         }}
                     />
                 ) : initials ? (
@@ -73,7 +74,9 @@ const OrganizationIdentity = ({ row, value }) => {
             </div>
 
             <div className="min-w-0 flex-1">
-                <p
+                <button
+                    type="button"
+                    onClick={() => onView(row.id)}
                     title={name}
                     className="
                         truncate text-[12px] font-semibold!
@@ -81,7 +84,7 @@ const OrganizationIdentity = ({ row, value }) => {
                     "
                 >
                     {name}
-                </p>
+                </button>
 
                 {email && (
                     <p
@@ -104,6 +107,7 @@ const OrganizationIdentity = ({ row, value }) => {
 ============================================================================ */
 
 const MobileOrganizationAvatar = ({ row }) => {
+    const [failedPhoto, setFailedPhoto] = useState(null);
     const name = row?.name || 'Unnamed organization';
     const photo = row?.photo || row?.user?.photo || '';
 
@@ -126,15 +130,15 @@ const MobileOrganizationAvatar = ({ row }) => {
                 bg-[#151B24] text-[#8792A1]
             "
         >
-            {photo ? (
+            {photo && failedPhoto !== photo ? (
                 <img
                     src={photo}
                     alt=""
                     className="block h-full w-full object-cover"
                     loading="lazy"
                     decoding="async"
-                    onError={(event) => {
-                        event.currentTarget.style.display = 'none';
+                    onError={() => {
+                        setFailedPhoto(photo);
                     }}
                 />
             ) : initials ? (
@@ -199,7 +203,7 @@ const MobileOrganizationRow = ({ row, onView, onReview, onEdit, onDelete }) => {
                             title={email}
                             className="
                                 mt-0.5 truncate text-[12px]
-                                leading-[18px] text-[#7F8A99]
+                                leading-4.5 text-[#7F8A99]
                             "
                         >
                             {email || 'No contact email'}
@@ -212,13 +216,13 @@ const MobileOrganizationRow = ({ row, onView, onReview, onEdit, onDelete }) => {
 
             <div
                 className="
-                    mt-3 ml-[52px] flex min-w-0 flex-wrap
+                    mt-3 ml-13 flex min-w-0 flex-wrap
                     items-center gap-x-2 gap-y-2
                 "
             >
                 <div
                     className="
-                        flex min-w-0 max-w-[170px] items-center
+                        flex min-w-0 max-w-42.5 items-center
                         gap-1.5 text-[#AEB7C3]
                     "
                 >
@@ -253,9 +257,9 @@ const MobileOrganizationRow = ({ row, onView, onReview, onEdit, onDelete }) => {
 
             <div
                 className="
-                    mt-3 ml-[52px] flex min-w-0 flex-wrap
+                    mt-3 ml-13 flex min-w-0 flex-wrap
                     items-center justify-between gap-2
-                    border-t border-[#1B232D] pt-3
+                    border-t border-[#1B232D] pt-2.5
                 "
             >
                 <span
@@ -280,7 +284,7 @@ const MobileOrganizationRow = ({ row, onView, onReview, onEdit, onDelete }) => {
 
             <div
                 className="
-                    mt-3 ml-[52px] flex min-w-0 items-start
+                    mt-3 ml-13 flex min-w-0 items-start
                     justify-between gap-4 border-t border-[#1B232D] pt-3
                 "
             >
@@ -329,7 +333,7 @@ const MobileOrganizationRow = ({ row, onView, onReview, onEdit, onDelete }) => {
 
             {/* ACTIONS */}
 
-            <div className="mt-3 ml-[52px] flex min-w-0 flex-wrap items-center gap-2">
+            <div className="mt-3 ml-13 flex min-w-0 flex-wrap items-center gap-2">
                 {row.verification_status === 'pending' && (
                     <button
                         type="button"
@@ -408,7 +412,8 @@ const MobileOrganizationRow = ({ row, onView, onReview, onEdit, onDelete }) => {
                         focus:outline-none focus:ring-0
                     "
                 >
-                    <Trash2 size={14} strokeWidth={1.8} />
+                    <Trash2 size={13} strokeWidth={1.8} />
+                    Delete
                 </button>
             </div>
         </article>
@@ -498,7 +503,11 @@ const Table = ({
             return {
                 ...column,
                 render: (value, row) => (
-                    <OrganizationIdentity row={row} value={value} />
+                    <OrganizationIdentity
+                        row={row}
+                        value={value}
+                        onView={handleView}
+                    />
                 ),
             };
         }

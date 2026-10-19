@@ -242,7 +242,7 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
     return (
         <section
             className="
-\1mt-5\2
+mt-5
                 overflow-hidden
                 border
                 border-[#252D38]
@@ -286,7 +286,7 @@ const VolunteerSection = ({ isVolunteer, volunteerCampaignCount }) => {
                             border
                             border-[#29323E]
                             bg-[#121821]
-                            sm:grid-cols-[minmax(0,1fr)_220px]
+
                             @[720px]:grid-cols-[minmax(0,1fr)_220px]
                         "
                     >
@@ -727,7 +727,7 @@ const PersonalInformation = ({ individualProfile }) => {
     return (
         <section
             className="
-\1mt-5\2
+mt-5
                 overflow-hidden
                 border
                 border-[#252D38]
@@ -966,9 +966,9 @@ const PersonalInformation = ({ individualProfile }) => {
                     className="
                         grid
                         gap-6
-                        sm:grid-cols-[180px_minmax(0,1fr)]
+                        @[720px]:grid-cols-[180px_minmax(0,1fr)]
                         sm:gap-8
-                        md:grid-cols-[180px_minmax(0,1fr)] lg:grid-cols-[200px_minmax(0,1fr)]
+                         @[950px]:grid-cols-[200px_minmax(0,1fr)]
                         lg:gap-10
                     "
                 >
@@ -1026,11 +1026,11 @@ const PersonalInformation = ({ individualProfile }) => {
                                 border-[#29323E]
                                 py-5
                                 first:pt-0
-                                sm:grid-cols-[150px_minmax(0,1fr)]
+                                @[720px]:grid-cols-[150px_minmax(0,1fr)]
                                 sm:items-start
                                 sm:gap-6
                                 sm:first:pt-0
-                                md:grid-cols-[145px_minmax(0,1fr)] lg:grid-cols-[170px_minmax(0,1fr)]
+                                 @[950px]:grid-cols-[170px_minmax(0,1fr)]
                                 lg:gap-8
                             "
                         >
@@ -1080,10 +1080,10 @@ const PersonalInformation = ({ individualProfile }) => {
                                 gap-3
                                 py-5
                                 pb-0
-                                sm:grid-cols-[150px_minmax(0,1fr)]
+                                @[720px]:grid-cols-[150px_minmax(0,1fr)]
                                 sm:items-start
                                 sm:gap-6
-                                md:grid-cols-[145px_minmax(0,1fr)] lg:grid-cols-[170px_minmax(0,1fr)]
+                                 @[950px]:grid-cols-[170px_minmax(0,1fr)]
                                 lg:gap-8
                             "
                         >
@@ -1189,7 +1189,7 @@ const OrganizationInformation = ({ organization }) => {
                         grid
                         grid-cols-1
                         gap-y-6
-                        sm:grid-cols-[minmax(0,0.9fr)_minmax(0,0.9fr)_minmax(0,1.2fr)]
+                        @[850px]:grid-cols-[minmax(0,0.9fr)_minmax(0,0.9fr)_minmax(0,1.2fr)]
                         sm:gap-x-0
                     "
                 >
@@ -1332,9 +1332,9 @@ const OrganizationInformation = ({ organization }) => {
                     className="
                         grid
                         gap-6
-                        sm:grid-cols-[180px_minmax(0,1fr)]
+                        @[720px]:grid-cols-[180px_minmax(0,1fr)]
                         sm:gap-8
-                        md:grid-cols-[180px_minmax(0,1fr)] lg:grid-cols-[200px_minmax(0,1fr)]
+                         @[950px]:grid-cols-[200px_minmax(0,1fr)]
                         lg:gap-10
                     "
                 >
@@ -1398,11 +1398,11 @@ const OrganizationInformation = ({ organization }) => {
                                 border-[#29323E]
                                 py-5
                                 first:pt-0
-                                sm:grid-cols-[150px_minmax(0,1fr)]
+                                @[720px]:grid-cols-[150px_minmax(0,1fr)]
                                 sm:items-start
                                 sm:gap-6
                                 sm:first:pt-0
-                                md:grid-cols-[145px_minmax(0,1fr)] lg:grid-cols-[170px_minmax(0,1fr)]
+                                 @[950px]:grid-cols-[170px_minmax(0,1fr)]
                                 lg:gap-8
                             "
                         >
@@ -1458,10 +1458,10 @@ const OrganizationInformation = ({ organization }) => {
                                 border-b
                                 border-[#29323E]
                                 py-5
-                                sm:grid-cols-[150px_minmax(0,1fr)]
+                                @[720px]:grid-cols-[150px_minmax(0,1fr)]
                                 sm:items-start
                                 sm:gap-6
-                                md:grid-cols-[145px_minmax(0,1fr)] lg:grid-cols-[170px_minmax(0,1fr)]
+                                 @[950px]:grid-cols-[170px_minmax(0,1fr)]
                                 lg:gap-8
                             "
                         >
@@ -1516,10 +1516,10 @@ const OrganizationInformation = ({ organization }) => {
                                 gap-3
                                 py-5
                                 pb-0
-                                sm:grid-cols-[150px_minmax(0,1fr)]
+                                @[720px]:grid-cols-[150px_minmax(0,1fr)]
                                 sm:items-start
                                 sm:gap-6
-                                md:grid-cols-[145px_minmax(0,1fr)] lg:grid-cols-[170px_minmax(0,1fr)]
+                                 @[950px]:grid-cols-[170px_minmax(0,1fr)]
                                 lg:gap-8
                             "
                         >
@@ -1580,7 +1580,7 @@ const OrganizationPurpose = ({ organization }) => {
     return (
         <section
             className="
-\1mt-5\2
+mt-5
                 overflow-hidden
                 border
                 border-[#252D38]
@@ -1627,9 +1627,9 @@ const OrganizationPurpose = ({ organization }) => {
                     className="
                         grid
                         gap-5
-                        sm:grid-cols-[180px_minmax(0,1fr)]
+                        @[720px]:grid-cols-[180px_minmax(0,1fr)]
                         sm:gap-8
-                        md:grid-cols-[180px_minmax(0,1fr)] lg:grid-cols-[200px_minmax(0,1fr)]
+                         @[950px]:grid-cols-[200px_minmax(0,1fr)]
                         lg:gap-10
                     "
                 >
@@ -1725,9 +1725,9 @@ const OrganizationPurpose = ({ organization }) => {
                     className="
                         grid
                         gap-6
-                        sm:grid-cols-[180px_minmax(0,1fr)]
+                        @[720px]:grid-cols-[180px_minmax(0,1fr)]
                         sm:gap-8
-                        md:grid-cols-[180px_minmax(0,1fr)] lg:grid-cols-[200px_minmax(0,1fr)]
+                         @[950px]:grid-cols-[200px_minmax(0,1fr)]
                         lg:gap-10
                     "
                 >
@@ -1791,11 +1791,11 @@ const OrganizationPurpose = ({ organization }) => {
                                 border-[#29323E]
                                 py-5
                                 first:pt-0
-                                sm:grid-cols-[150px_minmax(0,1fr)]
+                                @[720px]:grid-cols-[150px_minmax(0,1fr)]
                                 sm:items-start
                                 sm:gap-6
                                 sm:first:pt-0
-                                md:grid-cols-[145px_minmax(0,1fr)] lg:grid-cols-[170px_minmax(0,1fr)]
+                                 @[950px]:grid-cols-[170px_minmax(0,1fr)]
                                 lg:gap-8
                             "
                         >
@@ -1835,10 +1835,10 @@ const OrganizationPurpose = ({ organization }) => {
                                 gap-3
                                 py-5
                                 pb-0
-                                sm:grid-cols-[150px_minmax(0,1fr)]
+                                @[720px]:grid-cols-[150px_minmax(0,1fr)]
                                 sm:items-start
                                 sm:gap-6
-                                md:grid-cols-[145px_minmax(0,1fr)] lg:grid-cols-[170px_minmax(0,1fr)]
+                                 @[950px]:grid-cols-[170px_minmax(0,1fr)]
                                 lg:gap-8
                             "
                         >
@@ -1891,7 +1891,7 @@ const OrganizationOperations = ({ organization }) => {
     return (
         <section
             className="
-\1mt-5\2
+mt-5
                 overflow-hidden
                 border
                 border-[#252D38]
@@ -1941,8 +1941,8 @@ const OrganizationOperations = ({ organization }) => {
                         border
                         border-[#29323E]
                         bg-[#121821]
-                        md:grid-cols-[minmax(0,1fr)_240px]
-                        lg:grid-cols-[minmax(0,1fr)_270px]
+                        @[850px]:grid-cols-[minmax(0,1fr)_240px]
+                        @[1100px]:grid-cols-[minmax(0,1fr)_270px]
                     "
                 >
                     {/* =========================================
@@ -2179,294 +2179,140 @@ const UserDetailsView = ({ user }) => {
         volunteerCampaignCount,
     } = getUserDetailsData(user);
 
+    const accountStatus =
+        user.status === 'active'
+            ? 'Active account'
+            : user.status === 'suspended'
+              ? 'Suspended account'
+              : 'Inactive account';
+
+    const accountTone =
+        user.status === 'active'
+            ? 'text-[#A3C5AF]'
+            : user.status === 'suspended'
+              ? 'text-[#D7A4A7]'
+              : 'text-[#A5AFBC]';
+
     return (
-        <div className="@container min-w-0 font-sans!">
-            {/* =================================================
-                PROFILE HEADER
-            ================================================== */}
+        <div className="@container min-w-0 space-y-6 font-sans! sm:space-y-8">
+            {/* SHARED IDENTITY HEADER — INDIVIDUAL & ORGANIZATION */}
+            <section className="min-w-0 overflow-hidden border border-[#29323E] bg-[#0E1219]">
+                <div className="border-b border-[#252D38] px-5 py-4 sm:px-7 lg:px-9">
+                    <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
+                        <div className="flex min-w-0 items-center gap-2.5">
+                            {isOrganization ? (
+                                <Building2
+                                    size={15}
+                                    strokeWidth={1.7}
+                                    className="shrink-0 text-[#8492A3]"
+                                />
+                            ) : (
+                                <UserRound
+                                    size={15}
+                                    strokeWidth={1.7}
+                                    className="shrink-0 text-[#8492A3]"
+                                />
+                            )}
+                            <span className="text-[11px] font-semibold! uppercase tracking-[0.11em] text-[#A9B4C2]!">
+                                {isOrganization
+                                    ? 'Organization account'
+                                    : 'Individual account'}
+                            </span>
+                        </div>
+                        <span className="text-[11px] tabular-nums text-[#758294]!">
+                            Account ID · {user.id ?? '—'}
+                        </span>
+                    </div>
+                </div>
 
-            <section
-                className="
-                                        overflow-hidden
-                    border
-                    border-[#252D38]
-                    bg-[#0E1219]
-                "
-            >
-                <div
-                    className="
-                        grid
-                        min-w-0
-                        lg:grid-cols-[minmax(0,1fr)_300px]
-                        lg:grid-cols-[minmax(0,1fr)_300px]
-                        xl:grid-cols-[minmax(0,1fr)_330px]
-                    "
-                >
-                    {/* IDENTITY */}
-
-                    <div
-                        className="
-                            min-w-0
-                            px-6
-                            py-8
-                            sm:px-8
-                            sm:py-9
-                            lg:px-9
-                            lg:py-10
-                            xl:px-10
-                            xl:py-11
-                        "
-                    >
-                        <div
-                            className="
-                                flex
-                                flex-col
-                                gap-6
-                                sm:flex-row
-                                sm:gap-7
-                            "
-                        >
-                            <div
-                                className="
-                                    flex
-                                    h-[72px]
-                                    w-[72px]
-                                    shrink-0
-                                    items-center
-                                    justify-center
-                                    border
-                                    border-[#303A47]
-                                    bg-[#151B24]
-                                    font-sans!
-                                    text-[22px]
-                                    font-semibold!
-                                    text-[#DCE1E7]
-                                "
-                            >
-                                {userInitial ? (
+                <div className="grid min-w-0 @[850px]:grid-cols-[minmax(0,1fr)_290px] @[1100px]:grid-cols-[minmax(0,1fr)_320px]">
+                    <div className="min-w-0 px-5 py-7 sm:px-7 sm:py-9 lg:px-9 lg:py-10">
+                        <div className="flex min-w-0 flex-col items-start gap-5 @[620px]:flex-row @[620px]:gap-6">
+                            <div className="flex h-17 w-17 shrink-0 items-center justify-center overflow-hidden border border-[#37414E] bg-[#1B2430] text-[23px] font-semibold! text-[#D5DDE7]! sm:h-20 sm:w-20">
+                                {user.photo ? (
+                                    <img
+                                        src={user.photo}
+                                        alt=""
+                                        className="h-full w-full object-cover"
+                                    />
+                                ) : userInitial ? (
                                     userInitial
                                 ) : isOrganization ? (
-                                    <Building2 size={25} strokeWidth={1.55} />
+                                    <Building2 size={28} strokeWidth={1.5} />
                                 ) : (
-                                    <UserRound size={25} strokeWidth={1.55} />
+                                    <UserRound size={28} strokeWidth={1.5} />
                                 )}
                             </div>
-
-                            <div className="min-w-0 flex-1 pt-0.5">
-                                <p
-                                    className="
-                                        font-sans!
-                                        text-[12px]
-                                        font-semibold!
-                                        uppercase
-                                        tracking-[0.16em]
-                                        text-[#8792A1]!
-                                    "
-                                >
-                                    {roleLabel}
-                                </p>
-
-                                <h1
-                                    className="
-                                        mt-2.5
-                                        wrap-break-word
-                                        font-sans!
-                                        text-[25px]
-                                        font-semibold!
-                                        leading-[1.2]
-                                        tracking-[-0.03em]
-                                        text-[#EEF1F5]!
-                                        sm:text-[34px]
-                                    "
-                                >
-                                    {user.name || 'User'}
-                                </h1>
-
-                                <div
-                                    className="
-                                        mt-4
-                                        flex
-                                        items-center
-                                        gap-2.5
-                                    "
-                                >
-                                    <Calendar
-                                        size={13}
-                                        strokeWidth={1.65}
-                                        className="text-[#697586]"
-                                    />
-
+                            <div className="min-w-0 flex-1">
+                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                                     <span
-                                        className="
-                                            font-sans!
-                                            text-[13px]
-                                            font-normal!
-                                            text-[#697586]!
-                                        "
+                                        className={`text-[12px] font-medium! ${accountTone}`}
                                     >
-                                        Member since
+                                        {accountStatus}
                                     </span>
-
-                                    <span
-                                        className="
-                                            font-sans!
-                                            text-[13px]
-                                            font-medium!
-                                            text-[#AEB7C3]!
-                                        "
-                                    >
-                                        {formatDate(user.created_at)}
+                                    <span className="text-[#465260]">·</span>
+                                    <span className="text-[12px] text-[#8996A6]!">
+                                        {roleLabel}
                                     </span>
                                 </div>
-
-                                <div
-                                    className="
-                                        mt-3
-                                        flex
-                                        flex-col
-                                        gap-x-6
-                                        gap-y-3
-                                    "
-                                >
-                                    <span
-                                        className="
-                                            flex
-                                            min-w-0
-                                            items-center
-                                            gap-2.5
-                                            font-sans!
-                                            text-[14px]
-                                            font-normal!
-                                            text-[#8792A1]!
-                                        "
-                                    >
+                                <h1 className="mt-2 break-words text-[24px] font-semibold! leading-[1.25] tracking-[-0.025em] text-[#E5EAF0]! sm:text-[29px] lg:text-[32px]">
+                                    {user.name ||
+                                        (isOrganization
+                                            ? 'Unnamed organization'
+                                            : 'Unnamed user')}
+                                </h1>
+                                <div className="mt-4 flex min-w-0 flex-col gap-2.5">
+                                    <div className="flex min-w-0 items-center gap-2.5 text-[13px] text-[#A2ADBA]">
                                         <Mail
-                                            size={14}
-                                            strokeWidth={1.65}
-                                            className="
-                                                shrink-0
-                                                text-[#697586]
-                                            "
+                                            size={15}
+                                            strokeWidth={1.7}
+                                            className="shrink-0 text-[#778596]"
                                         />
-
-                                        <span className="truncate">
-                                            {user.email || 'Not provided'}
+                                        <span className="min-w-0 break-all">
+                                            {user.email || 'No email address'}
                                         </span>
-                                    </span>
-
+                                    </div>
                                     {user.phone && (
-                                        <span
-                                            className="
-                                                flex
-                                                items-center
-                                                gap-2.5
-                                                font-sans!
-                                                text-[14px]
-                                                font-normal!
-                                                text-[#8792A1]!
-                                            "
-                                        >
+                                        <div className="flex min-w-0 items-center gap-2.5 text-[13px] text-[#A2ADBA]">
                                             <Phone
-                                                size={14}
-                                                strokeWidth={1.65}
-                                                className="text-[#697586]"
+                                                size={15}
+                                                strokeWidth={1.7}
+                                                className="shrink-0 text-[#778596]"
                                             />
-
-                                            {user.phone}
-                                        </span>
+                                            <span className="break-words">
+                                                {user.phone}
+                                            </span>
+                                        </div>
                                     )}
+                                    <div className="flex min-w-0 items-center gap-2.5 text-[13px] text-[#A2ADBA]">
+                                        <Calendar
+                                            size={15}
+                                            strokeWidth={1.7}
+                                            className="shrink-0 text-[#778596]"
+                                        />
+                                        <span>
+                                            Joined {formatDate(user.created_at)}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* ACCESS & VERIFICATION */}
-
-                    <aside
-                        className="
-                            border-t
-                            border-[#29323E]
-                            bg-[#121821]
-                            px-4
-                            py-5
-                            sm:px-6
-                            sm:py-6
-                            lg:border-t-0
-                            lg:border-l
-                            lg:px-7
-                            lg:py-9
-                            xl:px-8
-                            xl:py-10
-                        "
-                    >
-                        <div
-                            className="
-                                flex
-                                items-center
-                                justify-between
-                                gap-3
-                                sm:gap-4
-                            "
-                        >
-                            <div
-                                className="
-                                    flex
-                                    min-w-0
-                                    items-center
-                                    gap-2
-                                    sm:gap-2.5
-                                "
-                            >
-                                <Shield
-                                    size={14}
-                                    strokeWidth={1.7}
-                                    className="
-                                        shrink-0
-                                        text-[#8792A1]
-                                    "
-                                />
-
-                                <p
-                                    className="
-                                        truncate
-                                        font-sans!
-                                        text-[12px]
-                                        font-semibold!
-                                        uppercase
-                                        tracking-[0.13em]
-                                        text-[#8792A1]!
-                                        sm:text-[12px]
-                                        sm:tracking-[0.14em]
-                                    "
-                                >
-                                    Access & verification
-                                </p>
-                            </div>
-
-                            <span
-                                className="
-                                    shrink-0
-                                    font-sans!
-                                    text-[12px]
-                                    font-medium!
-                                    tabular-nums
-                                    text-[#697586]!
-                                    sm:text-[12px]
-                                "
-                            >
-                                ID #{user.id}
-                            </span>
+                    <aside className="min-w-0 border-t border-[#29323E] bg-[#121821] px-5 py-6 sm:px-7 @[850px]:border-t-0 @[850px]:border-l lg:px-7 lg:py-9">
+                        <div className="flex items-center gap-2.5">
+                            <Shield
+                                size={16}
+                                strokeWidth={1.7}
+                                className="text-[#8C9AAA]"
+                            />
+                            <h2 className="text-[14px] font-semibold! text-[#D8E0E9]!">
+                                Account standing
+                            </h2>
                         </div>
-
-                        <div
-                            className="
-                                mt-4
-                                sm:mt-5
-                                lg:mt-6
-                            "
-                        >
+                        <div className="mt-5 divide-y divide-[#27303C] border-t border-[#27303C]">
                             <StatusLine
-                                label="Platform access"
+                                label="Account access"
                                 value={formatType(user.status)}
                                 tone={
                                     user.status === 'active'
@@ -2476,22 +2322,20 @@ const UserDetailsView = ({ user }) => {
                                           : 'neutral'
                                 }
                             />
-
                             <StatusLine
-                                label="Email"
+                                label="Email verification"
                                 value={
                                     emailVerified ? 'Verified' : 'Unverified'
                                 }
                                 tone={emailVerified ? 'positive' : 'warning'}
                             />
-
                             {isOrganization && (
                                 <StatusLine
-                                    label="Organization"
+                                    label="Organization verification"
                                     value={
                                         organizationVerified
                                             ? 'Verified'
-                                            : 'Verification pending'
+                                            : 'Pending review'
                                     }
                                     tone={
                                         organizationVerified
@@ -2505,38 +2349,26 @@ const UserDetailsView = ({ user }) => {
                 </div>
             </section>
 
-            {/* =================================================
-                INDIVIDUAL DETAILS
-            ================================================== */}
-
-            {!isOrganization && (
-                <>
+            {/* ROLE-SPECIFIC DETAILS — KEEP ALL EXISTING DATA SECTIONS */}
+            {!isOrganization ? (
+                <div className="min-w-0 space-y-6 sm:space-y-8">
                     <PersonalInformation
                         individualProfile={individualProfile}
                     />
-
                     <VolunteerSection
                         isVolunteer={isVolunteer}
                         volunteerCampaignCount={volunteerCampaignCount}
                     />
-                </>
-            )}
-
-            {/* =================================================
-                ORGANIZATION DETAILS
-            ================================================== */}
-
-            {isOrganization && (
-                <>
+                </div>
+            ) : (
+                <div className="min-w-0 space-y-6 sm:space-y-8">
                     <OrganizationInformation
                         organization={organization}
                         organizationVerified={organizationVerified}
                     />
-
                     <OrganizationPurpose organization={organization} />
-
                     <OrganizationOperations organization={organization} />
-                </>
+                </div>
             )}
         </div>
     );

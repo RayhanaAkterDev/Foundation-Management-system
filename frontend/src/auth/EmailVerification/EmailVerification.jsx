@@ -41,7 +41,7 @@ const EmailVerification = () => {
 
     /*
     |--------------------------------------------------------------------------
-    | Redirect after successful demo verification
+    | Redirect after successful verification
     |--------------------------------------------------------------------------
     */
 
@@ -60,7 +60,7 @@ const EmailVerification = () => {
     const handleDemoVerification = () => {
         if (!userId) {
             setResendError(
-                'The demo verification link is missing the account ID.',
+                'The verification link is missing the account ID.',
             );
             return;
         }
@@ -346,12 +346,12 @@ const EmailVerification = () => {
                     </div>
 
                     <h1 className="font-jost text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
-                        Verify your demo account
+                        Verify your account
                     </h1>
 
                     <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-500 sm:text-[15px]">
-                        This demo account needs to be verified before you can
-                        sign in. Since this is a demo account, you can complete
+                        This account needs to be verified before you can
+                        sign in. Since this is a account, you can complete
                         the verification directly here.
                     </p>
 
@@ -398,7 +398,7 @@ const EmailVerification = () => {
                         ) : (
                             <>
                                 <ShieldCheck size={17} strokeWidth={1.8} />
-                                Verify Demo Account
+                                Verify Account
                             </>
                         )}
                     </button>
@@ -444,7 +444,7 @@ const EmailVerification = () => {
 
                     <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-slate-500 sm:text-[15px]">
                         {isDemoSuccess
-                            ? 'Your demo account has been verified and is now active. You can sign in to continue.'
+                            ? 'Your account has been verified and is now active. You can sign in to continue.'
                             : 'Your email address has been verified and your Stand For People account is now active. You can sign in to continue.'}
                     </p>
 

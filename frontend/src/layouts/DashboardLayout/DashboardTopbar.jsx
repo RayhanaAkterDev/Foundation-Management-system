@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+
+import React, { useCallback, useEffect, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 
 import {
@@ -22,12 +23,14 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
     const { pathname } = useLocation();
 
     const [userMenuOpen, setUserMenuOpen] = useState(false);
+    const [user, setUser] = useState(() => getStoredUser());
+    const [userAvatarError, setUserAvatarError] = useState(false);
 
     /* ======================================================================
        USER
     ====================================================================== */
 
-    const getStoredUser = () => {
+    function getStoredUser() {
         try {
             const storedUser =
                 localStorage.getItem('user') || sessionStorage.getItem('user');
@@ -41,9 +44,34 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
             console.error('Failed to parse stored user:', error);
             return null;
         }
-    };
+    }
 
-    const user = getStoredUser();
+    const refreshUser = useCallback(() => {
+        setUser(getStoredUser());
+        setUserAvatarError(false);
+    }, []);
+
+    useEffect(() => {
+        // Updates made in another browser tab.
+        const handleStorageChange = (event) => {
+            if (event.key === 'user' || event.key === null) {
+                refreshUser();
+            }
+        };
+
+        // Updates made by the profile editor in this tab.
+        const handleUserUpdated = () => {
+            refreshUser();
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+        window.addEventListener('user-updated', handleUserUpdated);
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+            window.removeEventListener('user-updated', handleUserUpdated);
+        };
+    }, [refreshUser]);
 
     const userName =
         user?.name ||
@@ -55,12 +83,8 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
 
     const userEmail = user?.email || '';
 
-    const userAvatar =
-        user?.avatar ||
-        user?.avatar_url ||
-        user?.profile_image ||
-        user?.profileImage ||
-        null;
+    // The profile photo is stored in users.photo.
+    const userAvatar = user?.photo || null;
 
     const userRole = user?.role || role || 'individual';
 
@@ -77,10 +101,16 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
             .trim()
             .split(/\s+/)
             .filter(Boolean)
-            .slice(0, 2)
+            .slice(0, 1)
             .map((part) => part.charAt(0))
             .join('')
             .toUpperCase() || 'U';
+
+    const showAvatar = Boolean(userAvatar) && !userAvatarError;
+
+    const handleAvatarError = () => {
+        setUserAvatarError(true);
+    };
 
     /* ======================================================================
        PAGE TITLE — MAIN NAVIGATION LABEL
@@ -160,6 +190,8 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
         sessionStorage.removeItem('token');
         sessionStorage.removeItem('authToken');
 
+        setUser(null);
+        setUserAvatarError(false);
         closeUserMenu();
 
         navigate('/');
@@ -235,13 +267,14 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                     <div className="min-w-0">
                         <span
                             className="
-                                    truncate text-[9px] font-semibold
-                                    uppercase tracking-[0.18em]
-                                    !text-[#8792A1]
-                                "
+                                truncate text-[9px] font-semibold
+                                uppercase tracking-[0.18em]
+                                !text-[#8792A1]
+                            "
                         >
                             {roleLabel}
                         </span>
+
                         <h1
                             className="
                                 max-w-[calc(100vw-170px)] truncate
@@ -325,15 +358,12 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                     group-hover:border-[#414D5C]
                                 "
                             >
-                                {userAvatar ? (
+                                {showAvatar ? (
                                     <img
                                         src={userAvatar}
                                         alt={userName}
                                         className="h-full w-full object-cover"
-                                        onError={(event) => {
-                                            event.currentTarget.style.display =
-                                                'none';
-                                        }}
+                                        onError={handleAvatarError}
                                     />
                                 ) : (
                                     initials
@@ -349,16 +379,6 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                     "
                                 >
                                     {userName}
-                                </p>
-
-                                <p
-                                    className="
-                                        mt-0.5 max-w-37.5 truncate
-                                        text-[9.5px] font-medium!
-                                        leading-3 !text-[#7F8998]
-                                    "
-                                >
-                                    {roleLabel}
                                 </p>
                             </div>
 
@@ -432,7 +452,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                                 !text-[#F1F3F5]
                                             "
                                         >
-                                            {userAvatar ? (
+                                            {showAvatar ? (
                                                 <img
                                                     src={userAvatar}
                                                     alt={userName}
@@ -440,6 +460,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                                         h-full w-full
                                                         object-cover
                                                     "
+                                                    onError={handleAvatarError}
                                                 />
                                             ) : (
                                                 initials
@@ -465,17 +486,6 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                                 "
                                             >
                                                 {userEmail || 'Account'}
-                                            </p>
-
-                                            <p
-                                                className="
-                                                    mt-1 text-[8.5px]
-                                                    font-semibold uppercase
-                                                    tracking-[0.14em]
-                                                    !text-[#657184]
-                                                "
-                                            >
-                                                {roleLabel}
                                             </p>
                                         </div>
                                     </div>

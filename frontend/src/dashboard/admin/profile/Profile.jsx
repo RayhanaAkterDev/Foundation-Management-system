@@ -1,75 +1,72 @@
 import React, { useEffect, useState } from 'react';
-
-import {
-    Save,
-    Mail,
-    Phone,
-    UserRound,
-    CalendarDays,
-    ShieldCheck,
-    CheckCircle2,
-    ArrowRight,
-    X,
-} from 'lucide-react';
-
+import { AlertCircle, ArrowRight, CheckCircle2, Mail, X } from 'lucide-react';
 import PageHeader from '@/components/dashboard/PageHeader';
+import SuccessDialog from '@/components/dashboard/SuccessDialog';
+import ProfileView from './components/ProfileView';
+import ProfileEdit from './components/ProfileEdit';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
-
-const Field = ({ label, children }) => (
-    <div className="space-y-2">
-        <label className="block text-[12px] font-semibold uppercase tracking-[0.06em] text-[#64716c]">
-            {label}
-        </label>
-        {children}
-    </div>
-);
-
-const inputCls =
-    'h-11 w-full rounded-[7px] border border-[#d9e1dd] bg-[#fcfdfc] px-3.5 text-[14px] text-[#17211e] placeholder-[#8b9691] outline-none transition-all duration-200 hover:border-[#cbd6d1] focus:border-primary focus:bg-white focus:ring-[3px] focus:ring-primary/10';
+const SUCCESS_DURATION = 1500;
 
 const getToken = () =>
     localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
 
-const formatMemberSince = (date) => {
-    if (!date) return '—';
+const getAuthStorage = () =>
+    localStorage.getItem('auth_token') ? localStorage : sessionStorage;
 
-    const parsedDate = new Date(date);
+const parseResponse = async (response) => {
+    const text = await response.text();
+    let data = {};
 
-    if (Number.isNaN(parsedDate.getTime())) {
-        return '—';
+    if (text) {
+        try {
+            data = JSON.parse(text);
+        } catch {
+            data = {};
+        }
     }
 
-    return parsedDate.toLocaleDateString('en-BD', {
-        month: 'long',
-        year: 'numeric',
-    });
+    if (!response.ok) {
+        const validationError = data?.errors
+            ? Object.values(data.errors).flat().find(Boolean)
+            : null;
+
+        throw new Error(
+            validationError ||
+                data?.message ||
+                `Request failed (${response.status}).`,
+        );
+    }
+
+    return data;
 };
 
-const Profile = () => {
-    const [form, setForm] = useState({
-        name: '',
-        email: '',
-        phone: '',
-    });
+const getValues = (user) => ({
+    name: user?.name || '',
+    email: user?.email || '',
+    phone: user?.phone || '',
+    photo: user?.photo || '',
+});
 
+export default function Profile() {
+    const [profile, setProfile] = useState(null);
+    const [form, setForm] = useState(getValues(null));
     const [originalEmail, setOriginalEmail] = useState('');
     const [memberSince, setMemberSince] = useState(null);
+    const [pendingPhoto, setPendingPhoto] = useState(null);
 
+    const [editing, setEditing] = useState(false);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-
     const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
-
+    const [successOpen, setSuccessOpen] = useState(false);
     const [showEmailChangeModal, setShowEmailChangeModal] = useState(false);
 
     useEffect(() => {
+        let cancelled = false;
+
         const fetchProfile = async () => {
             try {
-                setLoading(true);
-                setError('');
-
                 const token = getToken();
 
                 if (!token) {
@@ -79,42 +76,84 @@ const Profile = () => {
                 }
 
                 const response = await fetch(`${API_URL}/user`, {
-                    method: 'GET',
                     headers: {
                         Accept: 'application/json',
                         Authorization: `Bearer ${token}`,
                     },
                 });
 
-                const data = await response.json();
+                const data = await parseResponse(response);
 
-                if (!response.ok) {
-                    throw new Error(
-                        data.message || 'Unable to load your profile.',
-                    );
+                if (cancelled) return;
+
+                if (!data.user) {
+                    throw new Error('Unable to load your profile.');
                 }
 
-                const user = data.user;
-                const profileEmail = user?.email || '';
-
-                setForm({
-                    name: user?.name || '',
-                    email: profileEmail,
-                    phone: user?.phone || '',
-                });
-
-                setOriginalEmail(profileEmail);
-                setMemberSince(user?.created_at || null);
+                setProfile(data.user);
+                setForm(getValues(data.user));
+                setOriginalEmail(data.user.email || '');
+                setMemberSince(data.user.created_at || null);
             } catch (err) {
-                console.error('Admin profile error:', err);
-                setError(err.message || 'Unable to load your profile.');
+                if (!cancelled) {
+                    setError(err.message || 'Unable to load your profile.');
+                }
             } finally {
-                setLoading(false);
+                if (!cancelled) setLoading(false);
             }
         };
 
         fetchProfile();
+
+        return () => {
+            cancelled = true;
+        };
     }, []);
+
+    useEffect(() => {
+        return () => {
+            if (pendingPhoto?.preview) {
+                URL.revokeObjectURL(pendingPhoto.preview);
+            }
+        };
+    }, [pendingPhoto]);
+
+    // Automatically close the success dialog, then return to profile view.
+    useEffect(() => {
+        if (!successOpen) return undefined;
+
+        const timeoutId = window.setTimeout(() => {
+            setSuccessOpen(false);
+            setEditing(false);
+        }, SUCCESS_DURATION);
+
+        return () => {
+            window.clearTimeout(timeoutId);
+        };
+    }, [successOpen]);
+
+    const handleSuccessClose = () => {
+        setSuccessOpen(false);
+        setEditing(false);
+    };
+
+    const handleEdit = () => {
+        setForm(getValues(profile));
+        setPendingPhoto(null);
+        setError('');
+        setSuccessOpen(false);
+        setEditing(true);
+    };
+
+    const handleCancel = () => {
+        if (saving) return;
+
+        setForm(getValues(profile));
+        setPendingPhoto(null);
+        setError('');
+        setSuccessOpen(false);
+        setEditing(false);
+    };
 
     const handleChange = (key, value) => {
         setForm((current) => ({
@@ -123,15 +162,37 @@ const Profile = () => {
         }));
 
         setError('');
-        setSuccess('');
+    };
+
+    const handlePhotoSelect = (file) => {
+        if (!file || saving) return;
+
+        if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+            setError('Choose a JPG, PNG, or WebP image.');
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            setError('The image must be 5 MB or smaller.');
+            return;
+        }
+
+        setPendingPhoto({
+            file,
+            preview: URL.createObjectURL(file),
+        });
+
+        setError('');
     };
 
     const handleSave = async () => {
-        try {
-            setSaving(true);
-            setError('');
-            setSuccess('');
+        if (saving) return;
 
+        setSaving(true);
+        setError('');
+        setSuccessOpen(false);
+
+        try {
             const token = getToken();
 
             if (!token) {
@@ -140,11 +201,36 @@ const Profile = () => {
                 );
             }
 
-            const currentEmail = form.email.trim();
+            let uploadedPhoto = profile?.photo || '';
 
+            // Upload the selected image only after Save Changes is clicked.
+            if (pendingPhoto?.file) {
+                const body = new FormData();
+                body.append('photo', pendingPhoto.file);
+
+                const photoResponse = await fetch(`${API_URL}/profile/photo`, {
+                    method: 'POST',
+                    headers: {
+                        Accept: 'application/json',
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body,
+                });
+
+                const photoData = await parseResponse(photoResponse);
+
+                uploadedPhoto = photoData.photo || photoData.user?.photo || '';
+
+                if (!uploadedPhoto) {
+                    throw new Error(
+                        'The server did not return the uploaded photo URL.',
+                    );
+                }
+            }
+
+            const email = form.email.trim();
             const emailChanged =
-                currentEmail.toLowerCase() !==
-                originalEmail.trim().toLowerCase();
+                email.toLowerCase() !== originalEmail.trim().toLowerCase();
 
             const response = await fetch(`${API_URL}/profile`, {
                 method: 'PUT',
@@ -155,77 +241,52 @@ const Profile = () => {
                 },
                 body: JSON.stringify({
                     name: form.name.trim(),
-                    email: currentEmail,
+                    email,
                     phone: form.phone.trim(),
+                    photo: uploadedPhoto || null,
                 }),
             });
 
-            const data = await response.json();
+            const data = await parseResponse(response);
 
-            if (!response.ok) {
-                if (data.errors) {
-                    const firstError = Object.values(data.errors)
-                        .flat()
-                        .find(Boolean);
-
-                    throw new Error(
-                        firstError ||
-                            data.message ||
-                            'Unable to update your profile.',
-                    );
-                }
-
+            if (!data.user) {
                 throw new Error(
-                    data.message || 'Unable to update your profile.',
+                    'The server did not return your updated profile.',
                 );
             }
 
-            const updatedUser = data.user;
+            const updatedUser = {
+                ...data.user,
+                photo: data.user.photo || uploadedPhoto || '',
+            };
 
-            setForm({
-                name: updatedUser?.name || '',
-                email: updatedUser?.email || '',
-                phone: updatedUser?.phone || '',
-            });
+            setProfile(updatedUser);
+            setForm(getValues(updatedUser));
+            setOriginalEmail(updatedUser.email || email);
+            setMemberSince(updatedUser.created_at || memberSince);
+            setPendingPhoto(null);
 
-            setMemberSince(updatedUser?.created_at || memberSince);
-
-            /*
-             * EMAIL CHANGED
-             *
-             * Do not use browser alert.
-             * Show the custom modal first.
-             */
-            if (emailChanged) {
-                setShowEmailChangeModal(true);
-                return;
-            }
-
-            /*
-             * NORMAL PROFILE UPDATE
-             *
-             * Name/phone changes do not require logout.
-             */
-            const storage = localStorage.getItem('auth_token')
-                ? localStorage
-                : sessionStorage;
-
-            const existingUser = JSON.parse(storage.getItem('user') || 'null');
+            const storage = getAuthStorage();
+            const storedUser = JSON.parse(storage.getItem('user') || 'null');
 
             storage.setItem(
                 'user',
                 JSON.stringify({
-                    ...existingUser,
+                    ...(storedUser || {}),
                     ...updatedUser,
                 }),
             );
 
-            setOriginalEmail(updatedUser?.email || currentEmail);
+            // Keep the existing email-change flow unchanged.
+            if (emailChanged) {
+                setEditing(false);
+                setShowEmailChangeModal(true);
+                return;
+            }
 
-            setSuccess('Your profile has been updated successfully.');
+            // Keep the edit screen underneath the dialog until it closes.
+            setSuccessOpen(true);
         } catch (err) {
-            console.error('Admin profile update error:', err);
-
             setError(err.message || 'Unable to update your profile.');
         } finally {
             setSaving(false);
@@ -233,363 +294,136 @@ const Profile = () => {
     };
 
     const handleContinueToLogin = () => {
-        /*
-         * Clear both storage locations to guarantee
-         * the previous admin session is removed.
-         */
         localStorage.removeItem('auth_token');
         localStorage.removeItem('user');
-
         sessionStorage.removeItem('auth_token');
         sessionStorage.removeItem('user');
 
         window.location.href = '/admin/login';
     };
 
-    if (loading) {
-        return (
-            <div className="space-y-6">
-                <PageHeader
-                    title="My Profile"
-                    subtitle="Manage your personal information and account details."
-                />
-
-                <div className="overflow-hidden border-y border-[#e1e7e4] bg-white">
-                    <div className="border-b border-[#e7ece9] bg-[#fafcfb] px-5 py-7 sm:px-8">
-                        <div className="flex items-center gap-4">
-                            <div className="h-14 w-14 animate-pulse rounded-full bg-[#e8eeeb]" />
-
-                            <div className="space-y-2">
-                                <div className="h-4 w-36 animate-pulse rounded bg-[#e8eeeb]" />
-                                <div className="h-3 w-52 animate-pulse rounded bg-[#eef2f0]" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="px-5 py-7 sm:px-8">
-                        <div className="mb-6 space-y-2">
-                            <div className="h-4 w-40 animate-pulse rounded bg-[#e8eeeb]" />
-                            <div className="h-3 w-64 animate-pulse rounded bg-[#eef2f0]" />
-                        </div>
-
-                        <div className="grid gap-5 md:grid-cols-2">
-                            {[1, 2, 3, 4].map((item) => (
-                                <div key={item} className="space-y-2">
-                                    <div className="h-3 w-20 animate-pulse rounded bg-[#e8eeeb]" />
-                                    <div className="h-11 animate-pulse rounded-[7px] bg-[#f1f4f2]" />
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    const firstLetter = form.name?.trim()?.charAt(0)?.toUpperCase() || 'A';
-
     return (
         <>
-            <div className="space-y-6">
+            <div className="min-w-0 space-y-6 font-sans">
                 <PageHeader
                     title="My Profile"
-                    subtitle="Manage your personal information and account details."
+                    subtitle="Manage your administrator account and personal information."
                 />
 
-                <div className="overflow-hidden border-y border-[#dfe6e2] bg-white">
-                    {/* Profile Header */}
-                    <div className="relative border-b border-[#e3e9e6] bg-[#f8faf9] px-5 py-7 sm:px-8">
-                        <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-center">
-                            <div className="flex items-center gap-4">
-                                <div className="relative">
-                                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-xl font-semibold text-white! shadow-[0_4px_12px_rgba(15,118,110,0.16)]">
-                                        {firstLetter}
-                                    </div>
-
-                                    <div className="absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full border-2 border-[#f8faf9] bg-white">
-                                        <span className="h-2.5 w-2.5 rounded-full bg-primary" />
-                                    </div>
-                                </div>
-
-                                <div className="min-w-0">
-                                    <div className="flex flex-wrap items-center gap-2.5">
-                                        <h2 className="truncate text-[18px] font-semibold tracking-[-0.01em] text-[#17211e]">
-                                            {form.name || 'Admin'}
-                                        </h2>
-
-                                        <span className="inline-flex items-center gap-1.5 border border-primary/15 bg-primary/5 px-2.5 py-1 text-[11px] font-semibold text-primary">
-                                            <ShieldCheck
-                                                size={13}
-                                                strokeWidth={2}
-                                            />
-                                            Administrator
-                                        </span>
-                                    </div>
-
-                                    <p className="mt-1 text-[13px] text-[#697570]">
-                                        Member since{' '}
-                                        <span className="font-medium! text-[#4f5b56]">
-                                            {formatMemberSince(memberSince)}
-                                        </span>
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="hidden border-l border-[#dfe6e2] pl-6 sm:block">
-                                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[#89938f]">
-                                    Account status
-                                </p>
-
-                                <div className="mt-1.5 flex items-center gap-2">
-                                    <span className="h-2 w-2 rounded-full bg-primary" />
-
-                                    <span className="text-[13px] font-medium! text-[#34413c]">
-                                        Active
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
+                {error && (
+                    <div
+                        role="alert"
+                        className="flex items-start gap-3 border border-red-900/50 bg-red-950/20 px-4 py-3 text-[13px] text-red-300"
+                    >
+                        <AlertCircle size={18} className="mt-0.5 shrink-0" />
+                        <p>{error}</p>
                     </div>
+                )}
 
-                    {/* Main Content */}
-                    <div className="px-5 py-8 sm:px-8">
-                        {/* Feedback */}
-                        {error && (
-                            <div className="mb-7 flex items-start gap-3 border border-red-200 bg-red-50/70 px-4 py-3.5">
-                                <div className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-red-500" />
-
-                                <p className="text-[13px] leading-5 text-red-700">
-                                    {error}
-                                </p>
-                            </div>
-                        )}
-
-                        {success && (
-                            <div className="mb-7 flex items-start gap-3 border border-green-200 bg-green-50/70 px-4 py-3.5">
-                                <div className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-green-600" />
-
-                                <p className="text-[13px] leading-5 text-green-700">
-                                    {success}
-                                </p>
-                            </div>
-                        )}
-
-                        {/* Section Heading */}
-                        <div className="mb-6 flex items-start justify-between gap-6">
-                            <div>
-                                <div className="flex items-center gap-2.5">
-                                    <div className="h-5 w-1 bg-primary" />
-
-                                    <h3 className="text-[15px] font-semibold text-[#17211e]">
-                                        Account Information
-                                    </h3>
-                                </div>
-
-                                <p className="mt-1.5 pl-3.5 text-[12px] leading-5 text-[#7a8581]">
-                                    Keep your administrator account information
-                                    accurate and up to date.
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* Form */}
-                        <div className="grid gap-x-7 gap-y-6 md:grid-cols-2">
-                            <Field label="Full Name">
-                                <div className="group relative">
-                                    <UserRound
-                                        className="pointer-events-none absolute left-3.5 top-1/2 h-4.25 w-4.25 -translate-y-1/2 text-[#87928d] transition-colors group-focus-within:text-primary"
-                                        strokeWidth={1.8}
-                                    />
-
-                                    <input
-                                        type="text"
-                                        value={form.name}
-                                        onChange={(e) =>
-                                            handleChange('name', e.target.value)
-                                        }
-                                        className={`${inputCls} pl-11`}
-                                    />
-                                </div>
-                            </Field>
-
-                            <Field label="Email Address">
-                                <div className="group relative">
-                                    <Mail
-                                        className="pointer-events-none absolute left-3.5 top-1/2 h-4.25 w-4.25 -translate-y-1/2 text-[#87928d] transition-colors group-focus-within:text-primary"
-                                        strokeWidth={1.8}
-                                    />
-
-                                    <input
-                                        type="email"
-                                        value={form.email}
-                                        onChange={(e) =>
-                                            handleChange(
-                                                'email',
-                                                e.target.value,
-                                            )
-                                        }
-                                        className={`${inputCls} pl-11`}
-                                    />
-                                </div>
-                            </Field>
-
-                            <Field label="Phone Number">
-                                <div className="group relative">
-                                    <Phone
-                                        className="pointer-events-none absolute left-3.5 top-1/2 h-4.25 w-4.25 -translate-y-1/2 text-[#87928d] transition-colors group-focus-within:text-primary"
-                                        strokeWidth={1.8}
-                                    />
-
-                                    <input
-                                        type="tel"
-                                        value={form.phone}
-                                        onChange={(e) =>
-                                            handleChange(
-                                                'phone',
-                                                e.target.value,
-                                            )
-                                        }
-                                        className={`${inputCls} pl-11`}
-                                    />
-                                </div>
-                            </Field>
-
-                            <Field label="Member Since">
-                                <div className="relative cursor-not-allowed">
-                                    <CalendarDays
-                                        className="pointer-events-none absolute left-3.5 top-1/2 h-4.25 w-4.25 -translate-y-1/2 text-[#87928d]"
-                                        strokeWidth={1.8}
-                                    />
-
-                                    <div
-                                        className={`${inputCls} flex items-center pl-11 text-[#5f6b67]`}
-                                    >
-                                        {formatMemberSince(memberSince)}
-                                    </div>
-                                </div>
-                            </Field>
-                        </div>
-
-                        {/* Footer */}
-                        <div className="mt-9 flex flex-col gap-4 border-t border-[#e4e9e7] pt-5 sm:flex-row sm:items-center sm:justify-between">
-                            <div>
-                                <p className="text-[12px] font-medium! text-[#697570]">
-                                    Administrator account
-                                </p>
-
-                                <p className="mt-0.5 text-[11px] text-[#929b97]">
-                                    Your changes will be saved to your account.
-                                </p>
-                            </div>
-
-                            <button
-                                type="button"
-                                onClick={handleSave}
-                                disabled={saving}
-                                className="
-                                    inline-flex h-10 items-center justify-center gap-2
-                                    cursor-pointer
-                                    bg-primary px-5
-                                    text-[13px] font-semibold text-white!
-                                    shadow-sm
-                                    transition-all duration-200
-                                    hover:bg-primary-hover
-                                    hover:shadow-[0_3px_10px_rgba(15,118,110,0.14)]
-                                    disabled:cursor-not-allowed
-                                    disabled:opacity-60
-                                    disabled:shadow-none
-                                "
-                            >
-                                <Save className="h-4 w-4" strokeWidth={1.9} />
-
-                                {saving ? 'Saving...' : 'Save Changes'}
-                            </button>
-                        </div>
+                {loading ? (
+                    <div className="space-y-5">
+                        <div className="h-36 animate-pulse border border-[#252D38] bg-[#0E1219]" />
+                        <div className="h-72 animate-pulse border border-[#252D38] bg-[#0E1219]" />
                     </div>
-                </div>
+                ) : !profile ? (
+                    <div className="border border-[#252D38] bg-[#0E1219] px-5 py-12 text-center text-[13px] text-[#B8C0CA]">
+                        Your profile could not be loaded.
+                    </div>
+                ) : editing ? (
+                    <ProfileEdit
+                        form={form}
+                        profile={profile}
+                        memberSince={memberSince}
+                        pendingPhoto={pendingPhoto}
+                        saving={saving}
+                        onChange={handleChange}
+                        onPhotoSelect={handlePhotoSelect}
+                        onSave={handleSave}
+                        onCancel={handleCancel}
+                    />
+                ) : (
+                    <ProfileView
+                        profile={profile}
+                        memberSince={memberSince}
+                        onEdit={handleEdit}
+                    />
+                )}
             </div>
 
-            {/* Email Change Confirmation Modal */}
+            <SuccessDialog
+                open={successOpen}
+                action="updated"
+                entity="user"
+                name={form.name?.trim() || ''}
+                onClose={handleSuccessClose}
+            />
+
             {showEmailChangeModal && (
                 <div
-                    className="fixed inset-0 z-100 flex items-center justify-center bg-text-primary/45 px-4 backdrop-blur-[3px]"
+                    className="fixed inset-0 z-[100] flex items-center justify-center bg-black/65 px-4 backdrop-blur-sm"
                     role="dialog"
                     aria-modal="true"
                     aria-labelledby="email-change-title"
                 >
-                    <div className="relative w-full max-w-117.5 overflow-hidden bg-white shadow-[0_20px_60px_rgba(15,23,42,0.18)]">
-                        {/* Close */}
+                    <div className="relative w-full max-w-lg border border-[#303A47] bg-[#0E1219] shadow-2xl">
                         <button
                             type="button"
                             onClick={() => setShowEmailChangeModal(false)}
-                            className="absolute right-4 top-4 flex h-8 w-8 cursor-pointer items-center justify-center text-[#7b8782] transition-colors hover:bg-[#f1f4f2] hover:text-[#34413c]"
+                            className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center text-[#8792A1] transition hover:bg-[#1A222D] hover:text-[#EEF1F5]"
                             aria-label="Close"
                         >
-                            <X size={17} strokeWidth={1.8} />
+                            <X size={18} />
                         </button>
 
-                        <div className="px-6 pb-6 pt-7 sm:px-8 sm:pb-8 sm:pt-8">
-                            {/* Icon */}
-                            <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary">
-                                <CheckCircle2 size={23} strokeWidth={1.8} />
+                        <div className="px-6 pb-6 pt-8 sm:px-8 sm:pb-8">
+                            <div className="mb-5 flex h-11 w-11 items-center justify-center border border-[#303A47] bg-[#1A222D] text-[#B8C0CA]">
+                                <CheckCircle2 size={22} />
                             </div>
 
                             <h2
                                 id="email-change-title"
-                                className="text-[20px] font-semibold tracking-[-0.02em] text-[#17211e]"
+                                className="text-xl font-semibold text-[#EEF1F5]"
                             >
                                 Email address updated
                             </h2>
 
-                            <p className="mt-2.5 text-[13px] leading-6 text-[#66736e]">
+                            <p className="mt-2 text-[13px] leading-6 text-[#8792A1]">
                                 Your administrator email has been changed
                                 successfully.
                             </p>
 
-                            <div className="mt-5 border border-[#dfe7e3] bg-[#f8faf9] px-4 py-3.5">
+                            <div className="mt-5 border border-[#303A47] bg-[#151B24] px-4 py-4">
                                 <div className="flex items-start gap-3">
                                     <Mail
-                                        className="mt-0.5 shrink-0 text-primary"
-                                        size={17}
-                                        strokeWidth={1.8}
+                                        size={18}
+                                        className="mt-0.5 shrink-0 text-[#B8C0CA]"
                                     />
-
-                                    <div className="min-w-0">
-                                        <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[#89938f]">
+                                    <div>
+                                        <p className="text-[11px] font-semibold uppercase tracking-wider text-[#8792A1]">
                                             Verification required
                                         </p>
-
-                                        <p className="mt-1 text-[13px] leading-5 text-[#4d5954]">
-                                            A verification email has been sent
-                                            to your new email address.
+                                        <p className="mt-1 text-[13px] leading-5 text-[#D6DBE1]">
+                                            Follow the email verification
+                                            instructions sent to your new
+                                            address.
                                         </p>
                                     </div>
                                 </div>
                             </div>
 
-                            <p className="mt-5 text-[12px] leading-5 text-[#7a8581]">
+                            <p className="mt-5 text-[12px] leading-5 text-[#8792A1]">
                                 For security, you have been signed out. Verify
-                                your new email address, then log in again using
-                                the new email.
+                                your new email address, then log in again.
                             </p>
 
                             <div className="mt-7 flex justify-end">
                                 <button
                                     type="button"
                                     onClick={handleContinueToLogin}
-                                    className="
-                                        inline-flex h-10 items-center justify-center gap-2
-                                        cursor-pointer
-                                        bg-primary px-5
-                                        text-[13px] font-semibold text-white!
-                                        shadow-sm
-                                        transition-all duration-200
-                                        hover:bg-primary-hover
-                                        hover:shadow-[0_4px_12px_rgba(15,118,110,0.16)]
-                                    "
+                                    className="inline-flex min-h-10 items-center justify-center gap-2 bg-[#465261] px-5 text-[13px] font-semibold text-white transition hover:bg-[#586678]"
                                 >
                                     Continue to Login
-                                    <ArrowRight size={15} strokeWidth={2} />
+                                    <ArrowRight size={15} />
                                 </button>
                             </div>
                         </div>
@@ -598,6 +432,4 @@ const Profile = () => {
             )}
         </>
     );
-};
-
-export default Profile;
+}

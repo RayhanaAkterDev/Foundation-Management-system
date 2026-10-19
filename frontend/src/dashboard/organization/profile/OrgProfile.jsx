@@ -19,6 +19,17 @@ const toForm = (data) => ({
     primary_activities: toArray(data?.primary_activities),
 });
 
+const createEmptyPendingImages = () => ({
+    photo: null,
+    banner: null,
+});
+
+const revokePreview = (pendingImage) => {
+    if (pendingImage?.preview) {
+        URL.revokeObjectURL(pendingImage.preview);
+    }
+};
+
 export default function OrgProfile() {
     const [form, setForm] = useState(emptyForm);
     const [profile, setProfile] = useState(null);
@@ -33,6 +44,10 @@ export default function OrgProfile() {
     const [uploadingImage, setUploadingImage] = useState('');
     const [imageUploadError, setImageUploadError] = useState('');
     const [imageUploadSuccess, setImageUploadSuccess] = useState('');
+
+    const [pendingImages, setPendingImages] = useState(
+        createEmptyPendingImages,
+    );
 
     useEffect(() => {
         let cancelled = false;
@@ -73,6 +88,23 @@ export default function OrgProfile() {
         };
     }, []);
 
+    // Clean up locally generated preview URLs on unmount.
+    useEffect(() => {
+        return () => {
+            revokePreview(pendingImages.photo);
+            revokePreview(pendingImages.banner);
+        };
+    }, [pendingImages]);
+
+    const clearPendingImages = () => {
+        setPendingImages((current) => {
+            revokePreview(current.photo);
+            revokePreview(current.banner);
+
+            return createEmptyPendingImages();
+        });
+    };
+
     const handleChange = (field, value) => {
         setForm((current) => ({
             ...current,
@@ -85,6 +117,7 @@ export default function OrgProfile() {
 
     const handleEdit = () => {
         setForm(toForm(profile));
+        clearPendingImages();
         setError('');
         setSuccess('');
         setImageUploadError('');
@@ -93,7 +126,10 @@ export default function OrgProfile() {
     };
 
     const handleCancel = () => {
+        if (saving || uploadingImage) return;
+
         setForm(toForm(profile));
+        clearPendingImages();
         setError('');
         setSuccess('');
         setImageUploadError('');
@@ -101,62 +137,12 @@ export default function OrgProfile() {
         setEditing(false);
     };
 
-    const handleSave = async (event) => {
-        event?.preventDefault();
+    // Selecting an image only creates a local preview.
+    // No request is sent and nothing is uploaded at this stage.
+    const handleImageUpload = (field, file) => {
+        if (!file || saving || uploadingImage) return;
 
-        if (saving) return;
-
-        setSaving(true);
-        setError('');
-        setSuccess('');
-
-        try {
-            const payload = {
-                ...form,
-                focus_areas: toArray(form.focus_areas),
-                communities_served: toArray(form.communities_served),
-                primary_activities: toArray(form.primary_activities),
-            };
-
-            const response = await apiRequest('/organization/profile', {
-                method: 'PUT',
-                body: JSON.stringify(payload),
-            });
-
-            const updatedProfile = getProfilePayload(response);
-
-            setProfile((current) => ({
-                ...(current || {}),
-                ...payload,
-                ...(updatedProfile || {}),
-                photo:
-                    updatedProfile?.photo ??
-                    current?.photo ??
-                    current?.user?.photo ??
-                    null,
-                banner: updatedProfile?.banner ?? current?.banner ?? null,
-            }));
-
-            setForm(
-                toForm({
-                    ...payload,
-                    ...(updatedProfile || {}),
-                }),
-            );
-
-            setEditing(false);
-            setSuccess('Organization information updated successfully.');
-        } catch (err) {
-            setError(
-                err?.message || 'Failed to update organization information.',
-            );
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    const handleImageUpload = async (field, file) => {
-        if (!file || uploadingImage) return;
+        if (!['photo', 'banner'].includes(field)) return;
 
         const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
 
@@ -172,54 +158,135 @@ export default function OrgProfile() {
             return;
         }
 
-        setUploadingImage(field);
+        const preview = URL.createObjectURL(file);
+
+        setPendingImages((current) => {
+            revokePreview(current[field]);
+
+            return {
+                ...current,
+                [field]: {
+                    file,
+                    preview,
+                },
+            };
+        });
+
         setImageUploadError('');
         setImageUploadSuccess('');
+        setError('');
+        setSuccess('');
+    };
 
+    // This function is called only from Save changes.
+    const uploadPendingImage = async (field, file) => {
         const body = new FormData();
         body.append(field, file);
 
-        try {
-            const response = await apiRequest(
-                `/organization/profile/${field}`,
-                {
-                    method: 'POST',
-                    body,
-                },
+        const response = await apiRequest(`/organization/profile/${field}`, {
+            method: 'POST',
+            body,
+        });
+
+        const imageUrl = response?.[field];
+
+        if (!imageUrl) {
+            throw new Error(
+                `The server did not return the uploaded ${field} URL.`,
             );
+        }
 
-            const imageUrl = response?.[field];
+        return imageUrl;
+    };
 
-            if (!imageUrl) {
-                throw new Error(
-                    'The upload response did not include an image URL.',
+    const handleSave = async (event) => {
+        event?.preventDefault();
+
+        if (saving || uploadingImage) return;
+
+        setSaving(true);
+        setError('');
+        setSuccess('');
+        setImageUploadError('');
+        setImageUploadSuccess('');
+
+        let uploadedPhoto = null;
+        let uploadedBanner = null;
+
+        try {
+            // Upload the selected logo only when saving.
+            if (pendingImages.photo?.file) {
+                setUploadingImage('photo');
+
+                uploadedPhoto = await uploadPendingImage(
+                    'photo',
+                    pendingImages.photo.file,
                 );
             }
 
-            setProfile((current) => ({
-                ...(current || {}),
-                [field]: imageUrl,
-                ...(field === 'photo' && current?.user
-                    ? {
-                          user: {
-                              ...current.user,
-                              photo: imageUrl,
-                          },
-                      }
-                    : {}),
-            }));
+            // Upload the selected banner only when saving.
+            if (pendingImages.banner?.file) {
+                setUploadingImage('banner');
 
-            setImageUploadSuccess(
-                field === 'photo'
-                    ? 'Organization logo updated successfully.'
-                    : 'Organization banner updated successfully.',
-            );
+                uploadedBanner = await uploadPendingImage(
+                    'banner',
+                    pendingImages.banner.file,
+                );
+            }
+
+            const payload = {
+                ...form,
+                focus_areas: toArray(form.focus_areas),
+                communities_served: toArray(form.communities_served),
+                primary_activities: toArray(form.primary_activities),
+            };
+
+            // Preserve the existing organization profile endpoint.
+            const response = await apiRequest('/organization/profile', {
+                method: 'PUT',
+                body: JSON.stringify(payload),
+            });
+
+            const updatedProfile = getProfilePayload(response);
+
+            const finalProfile = {
+                ...(profile || {}),
+                ...payload,
+                ...(updatedProfile || {}),
+                photo:
+                    uploadedPhoto ??
+                    updatedProfile?.photo ??
+                    profile?.photo ??
+                    profile?.user?.photo ??
+                    null,
+                banner:
+                    uploadedBanner ??
+                    updatedProfile?.banner ??
+                    profile?.banner ??
+                    null,
+            };
+
+            // Keep the shared account photo synchronized in local UI state.
+            if (uploadedPhoto && finalProfile.user) {
+                finalProfile.user = {
+                    ...finalProfile.user,
+                    photo: uploadedPhoto,
+                };
+            }
+
+            setProfile(finalProfile);
+            setForm(toForm(finalProfile));
+
+            clearPendingImages();
+
+            setEditing(false);
+            setImageUploadSuccess('');
+            setSuccess('Organization profile updated successfully.');
         } catch (err) {
-            setImageUploadError(
-                err?.message || 'Image upload failed. Please try again.',
-            );
+            setError(err?.message || 'Failed to save organization profile.');
         } finally {
             setUploadingImage('');
+            setSaving(false);
         }
     };
 
@@ -251,7 +318,7 @@ export default function OrgProfile() {
             )}
 
             {loading ? (
-                <div className="border border-[#252D38] bg-[#0E1219] px-5 py-12 text-center text-sm text-[#8792A1]">
+                <div className="border border-[#252D38] bg-[#0E1219] px-5 py-12 h-130 text-center text-sm text-[#8792A1]">
                     Loading organization profile...
                 </div>
             ) : !profile ? (
@@ -278,6 +345,7 @@ export default function OrgProfile() {
                     onCancel={handleCancel}
                     onUploadImage={handleImageUpload}
                     uploadingImage={uploadingImage}
+                    pendingImages={pendingImages}
                     imageUploadError={imageUploadError}
                     imageUploadSuccess={imageUploadSuccess}
                 />

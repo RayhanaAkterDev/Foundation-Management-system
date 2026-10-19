@@ -228,6 +228,12 @@ Route::middleware('auth:sanctum')->group(function () {
         [AuthController::class, 'updateProfile']
     );
 
+    // Upload the authenticated individual's profile photo.
+    Route::post(
+        '/profile/photo',
+        [AuthController::class, 'uploadProfilePhoto']
+    );
+
     // ---------------------------------------------------------
     // COMMUNITY TESTIMONIALS
     // ---------------------------------------------------------

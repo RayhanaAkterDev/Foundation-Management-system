@@ -692,6 +692,12 @@ class AuthController extends Controller
                         ->ignore($user->id),
                 ],
 
+                'photo' => [
+                    'nullable',
+                    'url',
+                    'max:2048',
+                ],
+
                 'district' => 'nullable|string|max:255',
 
                 'address' => 'nullable|string',
@@ -803,6 +809,11 @@ class AuthController extends Controller
 
         $user->phone = $validated['phone'] ?? null;
 
+        // Update the shared account photo only when the request includes it.
+        if (array_key_exists('photo', $validated)) {
+            $user->photo = $validated['photo'];
+        }
+
         if ($emailChanged) {
             $user->email = $validated['email'];
 
@@ -863,6 +874,73 @@ class AuthController extends Controller
             'user' => $user,
         ]);
     }
+
+
+    /**
+     * Upload the authenticated individual's profile photo.
+     * The image URL is stored in users.photo.
+     * ImageKit folder: /users/photos
+     */
+    public function uploadProfilePhoto(Request $request)
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            return response()->json([
+                'message' => 'Unauthenticated.',
+            ], 401);
+        }
+
+        $validated = $request->validate([
+            'photo' => [
+                'required',
+                'image',
+                'mimes:jpeg,jpg,png,webp',
+                'max:5120',
+            ],
+        ]);
+
+        $file = $validated['photo'];
+
+        $imageKit = new \ImageKit\ImageKit(
+            config('services.imagekit.public_key'),
+            config('services.imagekit.private_key'),
+            config('services.imagekit.url_endpoint')
+        );
+
+        $fileContents = file_get_contents($file->getRealPath());
+
+        if ($fileContents === false) {
+            return response()->json([
+                'message' => 'The profile photo could not be read.',
+            ], 500);
+        }
+
+        $uploadResponse = $imageKit->uploadFile([
+            'file' => base64_encode($fileContents),
+            'fileName' => $file->getClientOriginalName(),
+            'folder' => '/users/photos',
+            'useUniqueFileName' => true,
+        ]);
+
+        if (
+            !isset($uploadResponse->result) ||
+            !isset($uploadResponse->result->url)
+        ) {
+            return response()->json([
+                'message' => 'The profile photo could not be uploaded.',
+            ], 500);
+        }
+
+        $user->photo = $uploadResponse->result->url;
+        $user->save();
+
+        return response()->json([
+            'message' => 'Profile photo updated successfully.',
+            'photo' => $user->photo,
+        ]);
+    }
+
 
     /**
      * Send or generate a password reset link.

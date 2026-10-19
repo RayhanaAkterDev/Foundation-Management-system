@@ -59,9 +59,12 @@ import AdminOrganizations from '@/dashboard/admin/organizations/Organizations';
 import AdminAddOrganization from '@/dashboard/admin/organizations/AddOrganization';
 import AdminOrganizationsDetails from '@/dashboard/admin/organizations/OrganizationDetails';
 
+// admin volunteers routes
+import AdminVolunteers from '@/dashboard/admin/volunteers/Volunteers';
+import AdminVolunteerRequests from '@/dashboard/admin/volunteers/VolunteerRequests';
+
 import AdminHelpRequests from '@/dashboard/admin/helpRequests/HelpRequests';
 import AdminDonations from '@/dashboard/admin/donations/Donations';
-import AdminVolunteers from '@/dashboard/admin/volunteers/Volunteers';
 import AdminCampaigns from '@/dashboard/admin/campaigns/Campaigns';
 import AdminCampaignDetails from '@/dashboard/admin/campaigns/CampaignDetails';
 import AdminProfile from '@/dashboard/admin/profile/Profile';
@@ -337,6 +340,19 @@ const router = createBrowserRouter([
                     },
 
                     // ========================
+                    // ADMIN VOLUNTEERS ROUTES
+                    // ========================
+
+                    {
+                        path: 'volunteers',
+                        element: <AdminVolunteers />,
+                    },
+                    {
+                        path: 'volunteers/requests',
+                        element: <AdminVolunteerRequests />,
+                    },
+
+                    // ========================
 
                     {
                         path: 'help-requests',
@@ -346,10 +362,7 @@ const router = createBrowserRouter([
                         path: 'donations',
                         element: <AdminDonations />,
                     },
-                    {
-                        path: 'volunteers',
-                        element: <AdminVolunteers />,
-                    },
+
                     {
                         path: 'campaigns',
                         element: <AdminCampaigns />,

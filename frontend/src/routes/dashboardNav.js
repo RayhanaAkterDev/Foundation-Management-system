@@ -382,23 +382,24 @@ export const NAV_CONFIG = {
             ],
         },
 
+      {
+    key: 'volunteers',
+    label: 'Volunteers',
+    icon: UserCheck,
+
+    children: [
         {
-            key: 'volunteers',
-            label: 'Volunteers',
-            icon: UserCheck,
-
-            children: [
-                {
-                    key: 'volunteers-all',
-                    label: 'View All Volunteers',
-                    path: '/admin/dashboard/volunteers',
-                },
-
-                // Future:
-                // Volunteer Verification
-                // Volunteer Activity
-            ],
+            key: 'volunteers-all',
+            label: 'All Volunteers',
+            path: '/admin/dashboard/volunteers',
         },
+        {
+            key: 'volunteers-requests',
+            label: 'Volunteer Requests',
+            path: '/admin/dashboard/volunteers/requests',
+        },
+    ],
+},
 
         /* ------------------------------------------------------------------
            OPERATIONS

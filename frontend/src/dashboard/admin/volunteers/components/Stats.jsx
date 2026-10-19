@@ -1,145 +1,241 @@
 import React from 'react';
 
-import { CircleCheck, Clock3, UserRound, UserRoundCheck } from 'lucide-react';
+import {
+    UsersRound,
+    UserRoundCheck,
+    UserRoundMinus,
+    Send,
+    ClipboardList,
+    ArrowUpRight,
+} from 'lucide-react';
 
-const Stats = ({ total = 0, active = 0, pending = 0, inactive = 0 }) => {
-    const secondaryStats = [
-        {
-            label: 'Active',
-            value: active,
-            icon: UserRoundCheck,
-            accent: 'bg-emerald-500',
-            iconBg: 'bg-emerald-50',
-            iconColor: 'text-emerald-600',
-        },
-        {
-            label: 'Pending',
-            value: pending,
-            icon: Clock3,
-            accent: 'bg-amber-500',
-            iconBg: 'bg-amber-50',
-            iconColor: 'text-amber-600',
-        },
-        {
-            label: 'Inactive',
-            value: inactive,
-            icon: CircleCheck,
-            accent: 'bg-slate-400',
-            iconBg: 'bg-slate-100',
-            iconColor: 'text-slate-500',
-        },
-    ];
+/* =========================================================
+   METRIC
+========================================================= */
 
+const Metric = ({ icon: Icon, label, value, description, divider = false }) => {
     return (
-        <section className="overflow-hidden border border-border bg-white">
-            <div className="grid lg:grid-cols-[1.35fr_2fr]">
-                {/* TOTAL VOLUNTEERS */}
-                <div className="relative overflow-hidden bg-primary px-6 py-7 sm:px-8 sm:py-8">
-                    <div className="absolute -right-16 -top-20 h-56 w-56 rounded-full border border-white/10" />
-                    <div className="absolute -bottom-24 -left-20 h-64 w-64 rounded-full border border-white/5" />
+        <div
+            className={`
+                group flex min-w-0 flex-col
+                px-4 py-5
+                transition-colors duration-200
+                hover:bg-[#151C26]
+                sm:px-5 sm:py-6
+                lg:px-6
+                ${
+                    divider
+                        ? 'border-t border-[#29323E] sm:border-t-0 sm:border-l'
+                        : ''
+                }
+            `}
+        >
+            <div className="flex min-w-0 items-center gap-2.5">
+                <Icon
+                    size={16}
+                    strokeWidth={1.7}
+                    className="shrink-0 text-[#8492A3]"
+                    aria-hidden="true"
+                />
 
-                    <div className="relative flex min-h-36 flex-col justify-between">
-                        <div className="flex items-start justify-between gap-5">
-                            <div>
-                                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white!/55">
-                                    Volunteer network
-                                </p>
+                <span className="min-w-0 break-words font-sans! text-[12px] font-medium! leading-5 text-[#AAB5C3]!">
+                    {label}
+                </span>
+            </div>
 
-                                <h3 className="mt-2 text-[17px] font-semibold tracking-[-0.02em] text-white!">
-                                    Total volunteers
-                                </h3>
-                            </div>
+            <div className="mt-4 flex min-w-0 items-end justify-between gap-3 sm:mt-5">
+                <p className="min-w-0 break-words font-sans! text-[30px] font-semibold! leading-none tracking-[-0.035em] text-[#E5EAF0]! sm:text-[34px]">
+                    {value}
+                </p>
+            </div>
 
-                            <div className="flex h-10 w-10 shrink-0 items-center justify-center border border-white/15 bg-white/10">
-                                <UserRound
-                                    size={19}
-                                    strokeWidth={1.7}
-                                    className="text-white!"
-                                />
-                            </div>
+            <p className="mt-3 max-w-full font-sans! text-[12px] leading-[1.7] text-[#788596]!">
+                {description}
+            </p>
+        </div>
+    );
+};
+
+/* =========================================================
+   MEMBERSHIP STATISTIC
+========================================================= */
+
+const MembershipStat = ({
+    icon: Icon,
+    label,
+    value,
+    iconClassName = 'text-[#8492A3]',
+}) => {
+    return (
+        <div className="flex min-w-0 items-center px-4 py-5 sm:px-5 sm:py-6">
+            <div className="min-w-0 flex-1">
+                <div className="flex min-w-0 items-center gap-2">
+                    <Icon
+                        size={15}
+                        strokeWidth={1.7}
+                        className={`shrink-0 ${iconClassName}`}
+                        aria-hidden="true"
+                    />
+
+                    <p className="min-w-0 break-words font-sans! text-[12px] font-medium! text-[#AAB5C3]!">
+                        {label}
+                    </p>
+                </div>
+
+                <p className="mt-2.5 font-sans! text-[26px] font-semibold! leading-none tracking-[-0.03em] text-[#E5EAF0]! sm:text-[29px]">
+                    {value}
+                </p>
+            </div>
+        </div>
+    );
+};
+
+/* =========================================================
+   MAIN STATS
+========================================================= */
+
+export default function Stats({
+    total = 0,
+    active = 0,
+    inactive = 0,
+    invitations = 0,
+    applications = 0,
+}) {
+    return (
+        <section className="min-w-0 w-full">
+            {/* SECTION HEADING */}
+
+            <div className="mb-4 flex min-w-0 flex-wrap items-end justify-between gap-3 sm:mb-5">
+                <div className="min-w-0">
+                    <h2 className="font-sans! text-[19px] font-semibold! tracking-[-0.025em] text-[#EEF1F5]! sm:text-[20px]">
+                        Volunteer overview
+                    </h2>
+                </div>
+            </div>
+
+            {/* OVERVIEW */}
+
+            <div className="grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] xl:gap-5">
+                {/* =================================================
+                    MEMBERSHIP
+                ================================================= */}
+
+                <div className="min-w-0 overflow-hidden border border-[#29323E] bg-[#0E1219]">
+                    {/* PANEL HEADING */}
+
+                    <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-[#29323E] bg-[#151C26] px-4 py-3.5 sm:px-6">
+                        <div className="flex min-w-0 items-center gap-2.5">
+                            <UsersRound
+                                size={15}
+                                strokeWidth={1.7}
+                                className="shrink-0 text-[#8996A6]"
+                                aria-hidden="true"
+                            />
+
+                            <h3 className="font-sans! text-[13px] font-semibold! text-[#D5DDE7]!">
+                                Volunteer membership
+                            </h3>
                         </div>
 
-                        <div className="mt-7 flex items-end justify-between gap-5">
-                            <div>
-                                <p className="font-jost text-[42px] font-semibold leading-none tracking-[-0.04em] text-white!">
-                                    {total}
-                                </p>
+                        <span className="font-sans! text-[11px] leading-relaxed text-[#788596]!">
+                            Registered members
+                        </span>
+                    </div>
 
-                                <p className="mt-2 text-[11px] leading-4 text-white!/50">
-                                    Registered across the platform
-                                </p>
+                    {/* MEMBERSHIP CONTENT */}
+
+                    <div className="grid min-w-0 grid-cols-1 md:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
+                        {/* CONFIRMED VOLUNTEERS */}
+
+                        <div className="relative min-w-0 border-b border-[#29323E] bg-[#1A222D] px-5 py-6 sm:px-6 sm:py-7 md:border-r md:border-b-0">
+                            <span
+                                aria-hidden="true"
+                                className="absolute inset-x-0 top-0 h-px bg-[#778698]"
+                            />
+
+                            <p className="font-sans! text-[12px] font-medium! text-[#AAB5C3]!">
+                                Confirmed volunteers
+                            </p>
+
+                            <div className="mt-4 flex min-w-0 items-end gap-3">
+                                <span className="break-words font-sans! text-[40px] font-semibold! leading-none tracking-[-0.05em] text-[#EEF1F5]! sm:text-[46px]">
+                                    {total}
+                                </span>
                             </div>
 
-                            <span className="hidden border-l border-white/15 pl-4 text-[9px] font-bold uppercase leading-4 tracking-[0.12em] text-white!/45 sm:block">
-                                Community
-                                <br />
-                                support
-                            </span>
+                            <p className="mt-4 max-w-[240px] font-sans! text-[12px] leading-[1.7] text-[#8996A6]!">
+                                People officially part of the volunteer network.
+                            </p>
+                        </div>
+
+                        {/* ACTIVE / INACTIVE */}
+
+                        <div className="grid min-w-0 grid-cols-2 divide-x divide-[#29323E] md:grid-cols-1 md:divide-x-0 md:divide-y md:divide-[#29323E]">
+                            <MembershipStat
+                                icon={UserRoundCheck}
+                                label="Active"
+                                value={active}
+                                iconClassName="text-[#91A99E]"
+                            />
+
+                            <MembershipStat
+                                icon={UserRoundMinus}
+                                label="Inactive"
+                                value={inactive}
+                            />
                         </div>
                     </div>
                 </div>
 
-                {/* STATUS STATS */}
-                <div className="grid divide-y divide-border sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-                    {secondaryStats.map((stat) => {
-                        const Icon = stat.icon;
+                {/* =================================================
+                    RECRUITMENT
+                ================================================= */}
 
-                        return (
-                            <div
-                                key={stat.label}
-                                className="relative bg-white px-5 py-6 transition-colors hover:bg-surface-soft sm:px-6 sm:py-7"
-                            >
-                                {/* Status accent */}
-                                <div
-                                    className={`absolute left-0 top-0 h-0.5 w-full ${stat.accent}`}
-                                />
+                <div className="min-w-0 overflow-hidden border border-[#29323E] bg-[#0E1219]">
+                    {/* PANEL HEADING */}
 
-                                <div className="flex min-h-36 flex-col justify-between">
-                                    <div className="flex items-start justify-between gap-3">
-                                        <div>
-                                            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-text-secondary">
-                                                {stat.label}
-                                            </p>
+                    <div className="flex min-w-0 items-center justify-between gap-3 border-b border-[#29323E] bg-[#151C26] px-4 py-3.5 sm:px-6">
+                        <div className="flex min-w-0 items-center gap-2.5">
+                            <ClipboardList
+                                size={15}
+                                strokeWidth={1.7}
+                                className="shrink-0 text-[#8996A6]"
+                                aria-hidden="true"
+                            />
 
-                                            <p className="mt-1.5 text-[10px] text-slate-400">
-                                                Volunteer status
-                                            </p>
-                                        </div>
+                            <h3 className="min-w-0 font-sans! text-[13px] font-semibold! text-[#D5DDE7]!">
+                                Volunteer requests
+                            </h3>
+                        </div>
 
-                                        <div
-                                            className={`flex h-9 w-9 shrink-0 items-center justify-center ${stat.iconBg}`}
-                                        >
-                                            <Icon
-                                                size={17}
-                                                strokeWidth={1.8}
-                                                className={stat.iconColor}
-                                            />
-                                        </div>
-                                    </div>
+                        <ArrowUpRight
+                            size={15}
+                            strokeWidth={1.6}
+                            className="shrink-0 text-[#697586]"
+                            aria-hidden="true"
+                        />
+                    </div>
 
-                                    <div className="mt-7">
-                                        <p className="font-jost text-[34px] font-semibold leading-none tracking-[-0.035em] text-text-primary">
-                                            {stat.value}
-                                        </p>
+                    {/* RECRUITMENT METRICS */}
 
-                                        <div className="mt-3 flex items-center gap-2">
-                                            <span
-                                                className={`h-1.5 w-1.5 rounded-full ${stat.accent}`}
-                                            />
+                    <div className="grid min-w-0 grid-cols-1 sm:grid-cols-2">
+                        <Metric
+                            icon={Send}
+                            label="Pending invitations"
+                            value={invitations}
+                            description="Awaiting a response from invited individuals."
+                        />
 
-                                            <span className="text-[9px] font-semibold uppercase tracking-[0.1em] text-slate-400">
-                                                {stat.label} volunteers
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })}
+                        <Metric
+                            icon={ClipboardList}
+                            label="Applications to review"
+                            value={applications}
+                            description="Applications waiting for administrator approval."
+                            divider
+                        />
+                    </div>
                 </div>
             </div>
         </section>
     );
-};
-
-export default Stats;
+}

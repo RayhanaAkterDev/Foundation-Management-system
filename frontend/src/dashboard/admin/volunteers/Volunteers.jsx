@@ -1,8 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, Download, Loader2, Send, X } from 'lucide-react';
+import { Download, Send, X, Search, SlidersHorizontal } from 'lucide-react';
 
 import PageHeader from '@/components/dashboard/PageHeader';
+import LoadingUI from '@/components/dashboard/LoadingUI';
+import LoadingError from '@/components/dashboard/LoadingError';
 
 import VolunteerRequestModal from './modals/VolunteerRequestModal';
 import ViewModal from './modals/ViewModal';
@@ -12,15 +14,13 @@ import VolunteerStats from './components/Stats';
 import VolunteerFilters from './components/Filters';
 import VolunteerTable from './components/Table';
 import VolunteerPagination from './components/Pagination';
-import VolunteerSuccessToast from './components/SuccessToast';
+import SuccessDialog from '@/components/dashboard/SuccessDialog';
 
 import {
     fetchVolunteers,
     fetchVolunteerCandidates,
     fetchVolunteerRequests,
     sendVolunteerRequests,
-    acceptVolunteerApplication,
-    rejectVolunteerApplication,
     fetchVolunteerDetails,
     updateVolunteerStatus,
 } from './api/volunteerApi';
@@ -36,11 +36,9 @@ const Volunteers = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [currentPage, setCurrentPage] = useState(1);
+    const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
     const [volunteerRequests, setVolunteerRequests] = useState([]);
-    const [requestsLoading, setRequestsLoading] = useState(true);
-    const [requestsError, setRequestsError] = useState('');
-    const [processingRequest, setProcessingRequest] = useState(null);
 
     const [showRequestModal, setShowRequestModal] = useState(false);
     const [candidateUsers, setCandidateUsers] = useState([]);
@@ -60,23 +58,23 @@ const Volunteers = () => {
     const [editSaving, setEditSaving] = useState(false);
     const [editError, setEditError] = useState('');
 
-    const [toast, setToast] = useState({
-        show: false,
-        message: '',
+    const [success, setSuccess] = useState({
+        open: false,
+        action: 'updated',
+        entity: 'volunteer',
+        name: '',
     });
 
-    const showSuccessToast = (message) => {
-        setToast({
-            show: true,
-            message,
-        });
+    const showSuccessDialog = (
+        name,
+        action = 'updated',
+        entity = 'volunteer',
+    ) => {
+        setSuccess({ open: true, action, entity, name });
+    };
 
-        window.setTimeout(() => {
-            setToast({
-                show: false,
-                message: '',
-            });
-        }, 3000);
+    const closeSuccessDialog = () => {
+        setSuccess((current) => ({ ...current, open: false }));
     };
 
     // ============================================================
@@ -190,10 +188,8 @@ const Volunteers = () => {
 
         const loadInitialData = async () => {
             setLoading(true);
-            setRequestsLoading(true);
 
             setPageError('');
-            setRequestsError('');
 
             try {
                 const [volunteerResponse, requestResponse] = await Promise.all([
@@ -220,12 +216,10 @@ const Volunteers = () => {
                         err?.message || 'Unable to load volunteer information.';
 
                     setPageError(message);
-                    setRequestsError(message);
                 }
             } finally {
                 if (!cancelled) {
                     setLoading(false);
-                    setRequestsLoading(false);
                 }
             }
         };
@@ -244,7 +238,6 @@ const Volunteers = () => {
     const refreshVolunteerData = async () => {
         try {
             setPageError('');
-            setRequestsError('');
 
             const [volunteerResponse, requestResponse] = await Promise.all([
                 fetchVolunteers(),
@@ -265,7 +258,6 @@ const Volunteers = () => {
                 err?.message || 'Unable to refresh volunteer information.';
 
             setPageError(message);
-            setRequestsError(message);
 
             throw err;
         }
@@ -358,10 +350,12 @@ const Volunteers = () => {
 
             await refreshVolunteerData();
 
-            showSuccessToast(
+            showSuccessDialog(
                 selectedCount === 1
-                    ? 'Volunteer invitation sent successfully.'
-                    : `${selectedCount} volunteer invitations sent successfully.`,
+                    ? 'Volunteer invitation'
+                    : `${selectedCount} volunteer invitations`,
+                'created',
+                'volunteer invitation',
             );
         } catch (err) {
             console.error('VOLUNTEER REQUEST SEND ERROR:', err);
@@ -371,76 +365,6 @@ const Volunteers = () => {
             );
         } finally {
             setRequestLoading(false);
-        }
-    };
-
-    // ============================================================
-    // APPLICATION ACTIONS
-    // ============================================================
-
-    const handleAcceptApplication = async (request) => {
-        const requestId = request?.id;
-
-        if (!requestId || processingRequest !== null) {
-            return;
-        }
-
-        setProcessingRequest({
-            id: requestId,
-            action: 'accept',
-        });
-
-        setRequestsError('');
-
-        try {
-            await acceptVolunteerApplication(requestId);
-
-            await refreshVolunteerData();
-
-            showSuccessToast(
-                `${request?.user?.name || 'Applicant'} is now an active volunteer.`,
-            );
-        } catch (err) {
-            console.error('VOLUNTEER APPLICATION ACCEPT ERROR:', err);
-
-            setRequestsError(
-                err?.message || 'Unable to accept this volunteer application.',
-            );
-        } finally {
-            setProcessingRequest(null);
-        }
-    };
-
-    const handleRejectApplication = async (request) => {
-        const requestId = request?.id;
-
-        if (!requestId || processingRequest !== null) {
-            return;
-        }
-
-        setProcessingRequest({
-            id: requestId,
-            action: 'reject',
-        });
-
-        setRequestsError('');
-
-        try {
-            await rejectVolunteerApplication(requestId);
-
-            await refreshVolunteerData();
-
-            showSuccessToast(
-                `${request?.user?.name || 'Applicant'}'s application was rejected.`,
-            );
-        } catch (err) {
-            console.error('VOLUNTEER APPLICATION REJECT ERROR:', err);
-
-            setRequestsError(
-                err?.message || 'Unable to reject this volunteer application.',
-            );
-        } finally {
-            setProcessingRequest(null);
         }
     };
 
@@ -556,7 +480,12 @@ const Volunteers = () => {
 
             await refreshVolunteerData();
 
-            showSuccessToast('Volunteer status updated successfully.');
+            showSuccessDialog(
+                selectedVolunteer?.user?.name ||
+                    selectedVolunteer?.name ||
+                    'Volunteer',
+                'updated',
+            );
         } catch (err) {
             console.error('VOLUNTEER STATUS UPDATE ERROR:', err);
 
@@ -593,58 +522,48 @@ const Volunteers = () => {
         });
     }, [volunteerRequests]);
 
-    /*
-     * ONLY individual applications / reactivation requests.
-     *
-     * Admin invitations are intentionally excluded from
-     * the Accept/Reject application review section.
-     */
-    const pendingApplicationRequests = useMemo(() => {
-        return pendingRequests.filter(
-            (request) => request?.request_direction === 'user_to_admin',
-        );
-    }, [pendingRequests]);
-
     // ============================================================
     // STATISTICS
     // ============================================================
 
-    const statistics = useMemo(() => {
-        const active = volunteers.filter(
-            (volunteer) => volunteer.status === 'active',
-        ).length;
+    // Pending invitation records are not confirmed volunteer memberships.
+    // Use membership status for the directory, request direction for requests.
+    const confirmedVolunteers = useMemo(
+        () =>
+            volunteers.filter((volunteer) =>
+                ['active', 'inactive', 'suspended'].includes(
+                    String(volunteer?.status ?? '').toLowerCase(),
+                ),
+            ),
+        [volunteers],
+    );
 
-        const inactive = volunteers.filter(
-            (volunteer) => volunteer.status === 'inactive',
-        ).length;
-
-        const suspended = volunteers.filter(
-            (volunteer) => volunteer.status === 'suspended',
-        ).length;
-
-        /*
-         * Pending includes BOTH:
-         *
-         * - user -> admin applications
-         * - admin -> user invitations
-         */
-        const pendingApplications = pendingRequests.length;
-
-        return {
-            total: volunteers.length,
-            active,
-            inactive,
-            suspended,
-            pendingApplications,
-        };
-    }, [volunteers, pendingRequests]);
+    const statistics = useMemo(
+        () => ({
+            total: confirmedVolunteers.length,
+            active: confirmedVolunteers.filter((v) => v.status === 'active')
+                .length,
+            inactive: confirmedVolunteers.filter((v) => v.status === 'inactive')
+                .length,
+            suspended: confirmedVolunteers.filter(
+                (v) => v.status === 'suspended',
+            ).length,
+            invitations: pendingRequests.filter(
+                (r) => r.request_direction === 'admin_to_user',
+            ).length,
+            applications: pendingRequests.filter(
+                (r) => r.request_direction === 'user_to_admin',
+            ).length,
+        }),
+        [confirmedVolunteers, pendingRequests],
+    );
 
     // ============================================================
     // FILTER
     // ============================================================
 
     const filteredVolunteers = useMemo(() => {
-        let result = [...volunteers];
+        let result = [...confirmedVolunteers];
 
         if (statusFilter !== 'all') {
             result = result.filter(
@@ -673,7 +592,7 @@ const Volunteers = () => {
         }
 
         return result;
-    }, [volunteers, searchTerm, statusFilter]);
+    }, [confirmedVolunteers, searchTerm, statusFilter]);
 
     // ============================================================
     // PAGINATION
@@ -751,7 +670,11 @@ const Volunteers = () => {
 
         URL.revokeObjectURL(url);
 
-        showSuccessToast('Volunteer directory exported successfully.');
+        showSuccessDialog(
+            'Volunteer directory export',
+            'created',
+            'volunteer export',
+        );
     };
 
     // ============================================================
@@ -794,92 +717,80 @@ const Volunteers = () => {
     ];
 
     // ============================================================
-    // LOADING
+    // LOADING / ERROR — SAME STRUCTURE AS USERS
     // ============================================================
 
     if (loading) {
         return (
-            <div className="space-y-8">
+            <div className="space-y-10 lg:space-y-12">
                 <PageHeader
                     title="Volunteers"
-                    subtitle="Manage registered volunteers, review applications, and coordinate volunteer participation."
+                    subtitle="Manage volunteer accounts, applications, and participation."
                 />
-
-                <div className="flex min-h-70 items-center justify-center border-y border-border bg-white">
-                    <div className="text-center">
-                        <Loader2
-                            size={28}
-                            className="mx-auto mb-4 animate-spin text-primary"
-                        />
-
-                        <p className="text-sm font-semibold text-text-primary">
-                            Loading volunteers...
-                        </p>
-
-                        <p className="mt-1 text-xs text-text-secondary">
-                            Retrieving the volunteer directory and pending
-                            applications.
-                        </p>
-                    </div>
-                </div>
+                <LoadingUI
+                    variant="page"
+                    title="Loading volunteers..."
+                    description="Please wait while we retrieve the volunteer directory."
+                />
             </div>
         );
     }
-
-    // ============================================================
-    // ERROR
-    // ============================================================
 
     if (pageError) {
         return (
-            <div className="space-y-8">
+            <div className="space-y-10 lg:space-y-12">
                 <PageHeader
                     title="Volunteers"
-                    subtitle="Manage registered volunteers, review applications, and coordinate volunteer participation."
+                    subtitle="Manage volunteer accounts, applications, and participation."
                 />
-
-                <div className="border-l-4 border-red-500 bg-red-50 px-5 py-4 text-sm text-red-600">
-                    {pageError}
-                </div>
+                <LoadingError
+                    title="Unable to load volunteers"
+                    message={pageError}
+                />
             </div>
         );
     }
 
-    // ============================================================
-    // MAIN
-    // ============================================================
+    const activeFilterCount = statusFilter === 'all' ? 0 : 1;
+    const filters = (
+        <VolunteerFilters
+            statusFilter={statusFilter}
+            onStatusChange={handleStatusChange}
+        />
+    );
 
     return (
         <>
-            <div className="space-y-10">
+            <div className="space-y-10 lg:space-y-12">
                 <PageHeader
-                    title="Volunteers"
-                    subtitle="Manage registered volunteers, review applications, and coordinate volunteer participation."
+                    title="All Volunteers"
+                    subtitle="Manage confirmed volunteer memberships and availability."
                     action={
-                        <div className="flex w-full items-center justify-end gap-3">
+                        <div className="flex w-full flex-wrap items-center gap-2.5 sm:w-auto sm:justify-end">
                             <button
                                 type="button"
                                 onClick={handleExportCSV}
                                 disabled={filteredVolunteers.length === 0}
-                                className="group inline-flex h-10 items-center gap-2 border border-border bg-surface px-4 text-sm font-medium! text-text-primary transition-all hover:border-primary/30 hover:bg-background-alt disabled:cursor-not-allowed disabled:opacity-50"
+                                className="group inline-flex h-10 items-center justify-center gap-2 border border-[#343e4b] bg-transparent px-3.5 font-sans text-[12px] font-medium whitespace-nowrap text-[#b8c2cf] transition-colors duration-150 hover:border-[#4b596a] hover:bg-[#1c232d] hover:text-[#f1f5f9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4b596a] disabled:cursor-not-allowed disabled:opacity-40"
                             >
                                 <Download
                                     size={15}
                                     strokeWidth={1.8}
-                                    className="text-text-secondary transition-colors group-hover:text-primary"
+                                    className="shrink-0 text-[#8492a3] transition-colors group-hover:text-[#d5dde6]"
                                 />
-
-                                <span>Export CSV</span>
+                                Export CSV
                             </button>
-
                             <button
                                 type="button"
                                 onClick={openRequestModal}
-                                className="inline-flex h-10 items-center gap-2 bg-primary px-4 text-sm font-semibold text-white! shadow-sm transition-all hover:bg-primary-hover"
+                                className="group inline-flex h-10 items-center justify-center gap-2.5 border border-[#0f766e] bg-[#0f766e] px-4 font-sans text-[12px] font-semibold whitespace-nowrap text-white transition-colors duration-150 hover:border-[#115e59] hover:bg-[#115e59] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5eead4]"
                             >
-                                <Send size={16} strokeWidth={2} />
-
-                                <span>Invite Volunteers</span>
+                                <Send
+                                    size={16}
+                                    strokeWidth={2}
+                                    className="shrink-0"
+                                />
+                                Invite Volunteers
                             </button>
                         </div>
                     }
@@ -888,333 +799,86 @@ const Volunteers = () => {
                 <VolunteerStats
                     total={statistics.total}
                     active={statistics.active}
-                    pending={statistics.pendingApplications}
+                    invitations={statistics.invitations}
+                    applications={statistics.applications}
                     inactive={statistics.inactive}
                     suspended={statistics.suspended}
                 />
 
-                {/* APPLICATION REVIEW */}
-
-                <section>
-                    <div className="mb-5 flex flex-col gap-4 border-b border-border pb-5 sm:flex-row sm:items-end sm:justify-between">
-                        <div>
-                            <div className="mb-2 flex items-center gap-2.5 px-2">
-                                <span className="h-1.5 w-1.5 bg-primary" />
-
-                                <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary">
-                                    Requires review
-                                </span>
-                            </div>
-
-                            <h2 className="font-fraunces text-[25px] font-semibold leading-tight tracking-tight text-text-primary">
-                                Volunteer applications
+                {/* VOLUNTEER DIRECTORY */}
+                <section className="pt-2 lg:pt-3">
+                    <div className="flex flex-col gap-5 pb-5 sm:flex-row sm:items-end sm:justify-between sm:pb-6">
+                        <div className="min-w-0">
+                            <h2 className="font-sans! text-[20px] font-semibold! leading-tight tracking-[-0.02em] text-[#EEF1F5]!">
+                                Volunteer Directory
                             </h2>
-
-                            <p className="mt-1.5 max-w-xl text-[13px] leading-5 text-text-secondary">
-                                Review individuals who have applied to join the
-                                volunteer network. Accepted applications create
-                                active volunteer profiles.
+                            <p className="mt-2 max-w-xl font-sans! text-[12px] leading-[1.65] text-[#8792A1]">
+                                Browse and manage registered volunteer profiles.
                             </p>
                         </div>
-
-                        <div className="flex shrink-0 items-center gap-3">
-                            <div className="hidden h-8 border-l border-border sm:block" />
-
-                            <div>
-                                <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-text-secondary">
-                                    Pending
-                                </p>
-
-                                <p className="mt-0.5 text-sm font-semibold text-text-primary">
-                                    {statistics.pendingApplications}{' '}
-                                    <span className="font-normal text-text-secondary">
-                                        {statistics.pendingApplications === 1
-                                            ? 'request'
-                                            : 'requests'}
-                                    </span>
-                                </p>
-                            </div>
-                        </div>
                     </div>
 
-                    {requestsError && (
-                        <div className="mb-5 border-l-4 border-red-500 bg-red-50 px-5 py-4 text-sm text-red-600">
-                            {requestsError}
-                        </div>
-                    )}
-
-                    <div className="border border-border bg-surface">
-                        {requestsLoading ? (
-                            <div className="flex min-h-35 items-center justify-center">
-                                <div className="flex items-center gap-3 text-sm text-text-secondary">
-                                    <Loader2
-                                        size={17}
-                                        className="animate-spin text-primary"
-                                    />
-
-                                    <span>
-                                        Loading volunteer applications...
-                                    </span>
-                                </div>
-                            </div>
-                        ) : pendingApplicationRequests.length === 0 ? (
-                            <div className="flex min-h-35 items-center justify-center px-6">
-                                <div className="text-center">
-                                    <p className="text-sm font-semibold text-text-primary">
-                                        No pending applications
-                                    </p>
-
-                                    <p className="mt-1 text-xs text-text-secondary">
-                                        New individual applications will appear
-                                        here for review.
-                                    </p>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="divide-y divide-border">
-                                {pendingApplicationRequests.map((request) => {
-                                    const user = request.user || {};
-
-                                    const name =
-                                        user.name ||
-                                        request.name ||
-                                        'Unknown applicant';
-
-                                    const email =
-                                        user.email || request.email || 'N/A';
-
-                                    const phone =
-                                        user.phone || request.phone || '';
-
-                                    const createdAt = request.created_at
-                                        ? new Date(
-                                              request.created_at,
-                                          ).toLocaleDateString()
-                                        : 'N/A';
-
-                                    const isProcessing =
-                                        processingRequest?.id === request.id;
-
-                                    const isAccepting =
-                                        isProcessing &&
-                                        processingRequest?.action === 'accept';
-
-                                    const isRejecting =
-                                        isProcessing &&
-                                        processingRequest?.action === 'reject';
-
-                                    return (
-                                        <div
-                                            key={request.id}
-                                            className="group flex flex-col gap-5 px-5 py-5 transition-colors hover:bg-background lg:flex-row lg:items-center lg:justify-between"
-                                        >
-                                            <div className="min-w-0 flex-1">
-                                                <div className="flex min-w-0 items-start gap-4">
-                                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-primary/8 text-sm font-semibold text-primary">
-                                                        {name
-                                                            .charAt(0)
-                                                            .toUpperCase()}
-                                                    </div>
-
-                                                    <div className="min-w-0">
-                                                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                                                            <h3 className="truncate text-sm font-semibold text-text-primary">
-                                                                {name}
-                                                            </h3>
-
-                                                            <span className="inline-flex items-center border border-amber-200 bg-amber-50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.12em] text-amber-700">
-                                                                Pending
-                                                            </span>
-                                                        </div>
-
-                                                        <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-text-secondary">
-                                                            <span>{email}</span>
-
-                                                            {phone && (
-                                                                <>
-                                                                    <span className="text-border">
-                                                                        •
-                                                                    </span>
-
-                                                                    <span>
-                                                                        {phone}
-                                                                    </span>
-                                                                </>
-                                                            )}
-                                                        </div>
-
-                                                        <p className="mt-2 text-[11px] text-text-secondary">
-                                                            Applied {createdAt}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex shrink-0 items-center gap-2 lg:pl-6">
-                                                <button
-                                                    type="button"
-                                                    disabled={isProcessing}
-                                                    onClick={() =>
-                                                        handleRejectApplication(
-                                                            request,
-                                                        )
-                                                    }
-                                                    className="inline-flex h-9 items-center gap-2 border border-border bg-surface px-3.5 text-xs font-semibold text-text-secondary transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
-                                                >
-                                                    {isRejecting ? (
-                                                        <Loader2
-                                                            size={14}
-                                                            className="animate-spin"
-                                                        />
-                                                    ) : (
-                                                        <X
-                                                            size={14}
-                                                            strokeWidth={2}
-                                                        />
-                                                    )}
-
-                                                    <span>
-                                                        {isRejecting
-                                                            ? 'Rejecting...'
-                                                            : 'Reject'}
-                                                    </span>
-                                                </button>
-
-                                                <button
-                                                    type="button"
-                                                    disabled={isProcessing}
-                                                    onClick={() =>
-                                                        handleAcceptApplication(
-                                                            request,
-                                                        )
-                                                    }
-                                                    className="inline-flex h-9 items-center gap-2 bg-primary px-3.5 text-xs font-semibold text-white! transition-colors hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
-                                                >
-                                                    {isAccepting ? (
-                                                        <Loader2
-                                                            size={14}
-                                                            className="animate-spin"
-                                                        />
-                                                    ) : (
-                                                        <Check
-                                                            size={14}
-                                                            strokeWidth={2}
-                                                        />
-                                                    )}
-
-                                                    <span>
-                                                        {isAccepting
-                                                            ? 'Accepting...'
-                                                            : 'Accept'}
-                                                    </span>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
-                    </div>
-                </section>
-
-                {/* VOLUNTEER DIRECTORY */}
-
-                <section className="mt-20">
-                    <div className="mb-6">
-                        <div className="flex flex-col gap-4 border-b border-border pb-5 sm:flex-row sm:items-end sm:justify-between">
-                            <div className="min-w-0">
-                                <div className="mb-2 flex items-center gap-2.5 px-2">
-                                    <span className="h-1.5 w-1.5 bg-primary" />
-
-                                    <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-primary">
-                                        Administration
-                                    </span>
-                                </div>
-
-                                <h2 className="font-fraunces text-[25px] font-semibold leading-tight tracking-tight text-text-primary">
-                                    Volunteer directory
-                                </h2>
-
-                                <p className="mt-1.5 max-w-xl text-[13px] leading-5 text-text-secondary">
-                                    Manage registered volunteer profiles and
-                                    their current status and availability.
-                                </p>
-                            </div>
-
-                            <div className="flex shrink-0 items-center gap-2.5">
-                                <span className="hidden h-8 border-l border-border sm:block" />
-
-                                <div>
-                                    <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-text-secondary">
-                                        Showing
-                                    </p>
-
-                                    <p className="mt-0.5 text-sm font-semibold text-text-primary">
-                                        {filteredVolunteers.length}{' '}
-                                        <span className="font-normal text-text-secondary">
-                                            {filteredVolunteers.length === 1
-                                                ? 'volunteer'
-                                                : 'volunteers'}
-                                        </span>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="grid items-stretch gap-6 xl:grid-cols-[minmax(0,1fr)_280px]">
-                        <div className="flex min-h-0 min-w-0 flex-col border border-border bg-surface">
-                            <div className="shrink-0 border-b border-border px-5 py-4">
-                                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                                    <div className="min-w-0 flex-1">
-                                        <input
-                                            type="text"
-                                            value={searchTerm}
-                                            onChange={handleSearchChange}
-                                            placeholder="Search by volunteer name or email"
-                                            className="h-10 w-full border border-border bg-background px-3.5 text-[13px] font-medium! text-text-primary outline-none transition-colors placeholder:text-text-secondary/70 hover:border-text-secondary/30 focus:border-primary/50 focus:bg-surface"
-                                        />
-                                    </div>
-
-                                    <div className="flex shrink-0 items-center gap-5">
-                                        <div className="hidden h-7 border-l border-border lg:block" />
-
-                                        <div>
-                                            <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-text-secondary">
-                                                Directory
-                                            </p>
-
-                                            <p className="mt-0.5 text-xs font-medium! text-text-primary">
-                                                {filteredVolunteers.length}{' '}
-                                                {filteredVolunteers.length === 1
-                                                    ? 'result'
-                                                    : 'results'}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="flex shrink-0 flex-col gap-2 border-b border-border bg-white px-5 py-3.5 sm:flex-row sm:items-center sm:justify-between">
-                                <div>
-                                    <p className="text-sm font-semibold text-text-primary">
-                                        Registered volunteers
-                                    </p>
-
-                                    <p className="mt-0.5 text-xs text-text-secondary">
-                                        Status is managed by the administrator.
-                                        Availability is derived from current
-                                        campaign assignments.
-                                    </p>
-                                </div>
-
-                                <span className="text-[11px] font-medium! text-text-secondary">
-                                    {filteredVolunteers.length} registered
+                    <div className="mb-5 xl:hidden">
+                        <button
+                            type="button"
+                            onClick={() => setMobileFiltersOpen(true)}
+                            className="flex h-10 w-full items-center justify-between border border-[#252D38] bg-[#0E1219] px-3.5 font-sans! text-[11px] font-medium! text-[#AEB7C3]! transition-colors hover:border-[#35404E] hover:bg-[#151B24]"
+                        >
+                            <span className="flex items-center gap-2">
+                                <SlidersHorizontal size={14} /> Filters
+                            </span>
+                            {activeFilterCount > 0 && (
+                                <span className="flex h-5 min-w-5 items-center justify-center bg-[#1D2632] px-1.5 text-[10px] text-[#EEF1F5]">
+                                    {activeFilterCount}
                                 </span>
-                            </div>
+                            )}
+                        </button>
+                    </div>
 
-                            <div className="min-h-0 flex-1 overflow-x-auto overflow-y-auto">
-                                <div className="min-w-190">
+                    <div className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_300px] xl:items-stretch xl:min-h-[460px] xl:gap-7 2xl:grid-cols-[minmax(0,1fr)_320px]">
+                        <div className="relative min-h-0 min-w-0 xl:min-h-[460px] xl:h-full">
+                            <div className="flex min-h-0 min-w-0 flex-col overflow-hidden border border-[#252D38] bg-[#0E1219] xl:absolute xl:inset-0">
+                                <div className="shrink-0 border-b border-[#252D38] bg-[#1A222D] px-4 py-3.5 sm:px-5">
+                                    <div className="flex flex-col gap-3.5 lg:flex-row lg:items-center lg:justify-between">
+                                        <div className="min-w-0 flex-1">
+                                            <div className="relative">
+                                                <Search
+                                                    size={15}
+                                                    strokeWidth={1.8}
+                                                    className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[#697586]"
+                                                />
+                                                <input
+                                                    type="text"
+                                                    value={searchTerm}
+                                                    onChange={
+                                                        handleSearchChange
+                                                    }
+                                                    placeholder="Search by name or email"
+                                                    className="h-10 w-full border border-[#29323E] bg-[#0A0E14] pr-16 pl-9 font-sans! text-[12px] font-medium! text-[#EEF1F5]! outline-none transition-colors placeholder:text-[#5E6978] hover:border-[#394553] focus:border-[#4B5869] focus:ring-0"
+                                                />
+                                                {searchTerm && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setSearchTerm('');
+                                                            setCurrentPage(1);
+                                                        }}
+                                                        className="absolute top-1/2 right-3 -translate-y-1/2 font-sans! text-[10px] font-semibold! text-[#788493]! hover:text-[#EEF1F5]!"
+                                                    >
+                                                        Clear
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <span className="shrink-0 font-sans! text-[11px] font-medium! text-[#AAB3BF]!">
+                                            {filteredVolunteers.length}{' '}
+                                            {filteredVolunteers.length === 1
+                                                ? 'result'
+                                                : 'results'}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="min-h-0 min-w-0 flex-1 overflow-auto bg-[#0E1219] [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-[#0A0E14] [&::-webkit-scrollbar-thumb]:bg-[#303A47] hover:[&::-webkit-scrollbar-thumb]:bg-[#465261]">
                                     <VolunteerTable
                                         columns={tableColumns}
                                         rows={rows}
@@ -1223,57 +887,78 @@ const Volunteers = () => {
                                         onEdit={handleEditVolunteer}
                                     />
                                 </div>
+                                {filteredVolunteers.length > 0 && (
+                                    <div className="shrink-0 border-t border-[#252D38] bg-[#1A222D]">
+                                        <VolunteerPagination
+                                            currentPage={safeCurrentPage}
+                                            totalPages={totalPages}
+                                            totalItems={
+                                                filteredVolunteers.length
+                                            }
+                                            perPage={VOLUNTEERS_PER_PAGE}
+                                            onPageChange={setCurrentPage}
+                                        />
+                                    </div>
+                                )}
                             </div>
-
-                            {filteredVolunteers.length > 0 && (
-                                <div className="shrink-0 border-t border-border">
-                                    <VolunteerPagination
-                                        currentPage={safeCurrentPage}
-                                        totalPages={totalPages}
-                                        totalItems={filteredVolunteers.length}
-                                        perPage={VOLUNTEERS_PER_PAGE}
-                                        onPageChange={setCurrentPage}
-                                    />
-                                </div>
-                            )}
                         </div>
-
-                        <aside className="flex flex-col self-start border border-primary/90 bg-primary">
-                            <div className="shrink-0 px-5 pb-5 pt-6">
-                                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white!/45">
-                                    Directory controls
-                                </p>
-
-                                <h2 className="mt-1.5 font-fraunces text-[21px] leading-tight text-white!">
-                                    Refine volunteers
-                                </h2>
-
-                                <p className="mt-2 max-w-55 text-[12px] leading-5 text-white!/50">
-                                    Filter registered volunteers by their
-                                    current account status.
-                                </p>
-                            </div>
-
-                            <div className="bg-black/4 px-4 py-5">
-                                <VolunteerFilters
-                                    statusFilter={statusFilter}
-                                    onStatusChange={handleStatusChange}
-                                />
-                            </div>
+                        <aside className="hidden min-w-0 border border-[#252D38] bg-[#0E1219] xl:min-h-[460px] xl:block">
+                            {filters}
                         </aside>
                     </div>
                 </section>
             </div>
 
-            <VolunteerSuccessToast
-                show={toast.show}
-                message={toast.message}
-                onClose={() =>
-                    setToast({
-                        show: false,
-                        message: '',
-                    })
-                }
+            {mobileFiltersOpen && (
+                <div className="fixed inset-0 z-100 xl:hidden">
+                    <button
+                        type="button"
+                        aria-label="Close filters"
+                        onClick={() => setMobileFiltersOpen(false)}
+                        className="absolute inset-0 bg-[#05070A]/75 backdrop-blur-[2px]"
+                    />
+                    <div className="absolute right-0 bottom-0 left-0 max-h-[85vh] overflow-y-auto border-t border-[#252D38] bg-[#0E1219] shadow-[0_-20px_60px_rgba(0,0,0,0.45)] sm:top-0 sm:right-0 sm:bottom-0 sm:left-auto sm:h-full sm:max-h-none sm:w-[340px] sm:border-t-0 sm:border-l md:w-[360px] lg:w-[380px]">
+                        <div className="sticky top-0 z-30 flex items-center justify-between border-b border-[#252D38] bg-[#0E1219]/95 px-4 py-3.5 backdrop-blur-md">
+                            <div>
+                                <p className="font-sans! text-[10px] font-semibold! uppercase tracking-[0.12em] text-[#697586]!">
+                                    Volunteer directory
+                                </p>
+                                <p className="mt-1 font-sans! text-[14px] font-semibold! text-[#EEF1F5]!">
+                                    Filters
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                aria-label="Close filters"
+                                onClick={() => setMobileFiltersOpen(false)}
+                                className="flex h-9 w-9 items-center justify-center border border-[#29323E] bg-[#151B24] text-[#8792A1] transition-colors hover:bg-[#1A222D] hover:text-[#EEF1F5]"
+                            >
+                                <X size={16} />
+                            </button>
+                        </div>
+                        {filters}
+                        <div className="sticky bottom-0 z-30 border-t border-[#252D38] bg-[#0E1219]/95 p-4 backdrop-blur-md">
+                            <button
+                                type="button"
+                                onClick={() => setMobileFiltersOpen(false)}
+                                className="flex h-10 w-full items-center justify-center border border-[#394555] bg-[#171E28] font-sans! text-[12px] font-semibold! text-[#EEF1F5]! hover:bg-[#1D2632]"
+                            >
+                                Show {filteredVolunteers.length}{' '}
+                                {filteredVolunteers.length === 1
+                                    ? 'volunteer'
+                                    : 'volunteers'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <SuccessDialog
+                open={success.open}
+                entity={success.entity}
+                action={success.action}
+                name={success.name}
+                onClose={closeSuccessDialog}
             />
 
             <VolunteerRequestModal

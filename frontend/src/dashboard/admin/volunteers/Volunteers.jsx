@@ -1,13 +1,21 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Download, Send, X, Search, SlidersHorizontal } from 'lucide-react';
+import {
+    Download,
+    Send,
+    X,
+    Search,
+    SlidersHorizontal,
+    ArrowUp,
+    ArrowDown,
+    ChevronsUpDown,
+} from 'lucide-react';
 
 import PageHeader from '@/components/dashboard/PageHeader';
 import LoadingUI from '@/components/dashboard/LoadingUI';
 import LoadingError from '@/components/dashboard/LoadingError';
 
 import VolunteerRequestModal from './modals/VolunteerRequestModal';
-import ViewModal from './modals/ViewModal';
 import EditModal from './modals/EditModal';
 
 import VolunteerStats from './components/Stats';
@@ -35,6 +43,11 @@ const Volunteers = () => {
     const [pageError, setPageError] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
+    const [availabilityFilter, setAvailabilityFilter] = useState('all');
+    const [sortConfig, setSortConfig] = useState({
+        key: 'volunteerName',
+        direction: 'asc',
+    });
     const [currentPage, setCurrentPage] = useState(1);
     const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
@@ -49,9 +62,6 @@ const Volunteers = () => {
     const [requestError, setRequestError] = useState('');
 
     const [selectedVolunteer, setSelectedVolunteer] = useState(null);
-    const [viewModalOpen, setViewModalOpen] = useState(false);
-    const [viewLoading, setViewLoading] = useState(false);
-    const [viewError, setViewError] = useState('');
 
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [editLoading, setEditLoading] = useState(false);
@@ -369,57 +379,14 @@ const Volunteers = () => {
     };
 
     // ============================================================
-    // VIEW VOLUNTEER
+    // VIEW VOLUNTEER — DEDICATED DETAILS PAGE
     // ============================================================
 
-    const handleViewVolunteer = async (volunteerId) => {
-        if (!volunteerId) {
-            return;
-        }
-
-        setViewModalOpen(true);
-        setViewLoading(true);
-        setViewError('');
-        setSelectedVolunteer(null);
-
-        try {
-            const response = await fetchVolunteerDetails(volunteerId);
-
-            const volunteer = normalizeVolunteerDetailsResponse(response);
-
-            setSelectedVolunteer(volunteer);
-        } catch (err) {
-            console.error('VOLUNTEER DETAILS LOAD ERROR:', err);
-
-            setViewError(
-                err?.message || 'Unable to load volunteer information.',
-            );
-        } finally {
-            setViewLoading(false);
-        }
-    };
-
-    const closeViewModal = () => {
-        setViewModalOpen(false);
-        setViewLoading(false);
-        setViewError('');
-        setSelectedVolunteer(null);
-    };
-
-    // ============================================================
-    // VIEW CAMPAIGN
-    //
-    // IMPORTANT:
-    // Use React Router navigation instead of window.location.href.
-    // This prevents a full browser page reload.
-    // ============================================================
-
-    const handleViewCampaign = (campaignId) => {
-        if (!campaignId) {
-            return;
-        }
-
-        navigate(`/admin/dashboard/campaigns/${campaignId}`);
+    const handleViewVolunteer = (volunteerId) => {
+        if (volunteerId == null || volunteerId === '') return;
+        navigate(
+            `/admin/dashboard/volunteers/${encodeURIComponent(volunteerId)}`,
+        );
     };
 
     // ============================================================
@@ -522,41 +489,95 @@ const Volunteers = () => {
         });
     }, [volunteerRequests]);
 
+    // Requests are managed on the dedicated Volunteer Requests page.
+    const pendingApplicationRequests = useMemo(() => {
+        return pendingRequests.filter(
+            (request) => request?.request_direction === 'user_to_admin',
+        );
+    }, [pendingRequests]);
+
     // ============================================================
     // STATISTICS
     // ============================================================
 
-    // Pending invitation records are not confirmed volunteer memberships.
-    // Use membership status for the directory, request direction for requests.
     const confirmedVolunteers = useMemo(
         () =>
-            volunteers.filter((volunteer) =>
-                ['active', 'inactive', 'suspended'].includes(
-                    String(volunteer?.status ?? '').toLowerCase(),
-                ),
+            volunteers.filter(
+                (volunteer) =>
+                    !['pending', 'invited'].includes(
+                        String(volunteer.status ?? '').toLowerCase(),
+                    ),
             ),
         [volunteers],
     );
 
-    const statistics = useMemo(
-        () => ({
+    const statistics = useMemo(() => {
+        const active = confirmedVolunteers.filter(
+            (volunteer) => volunteer.status === 'active',
+        ).length;
+
+        const inactive = confirmedVolunteers.filter(
+            (volunteer) => volunteer.status === 'inactive',
+        ).length;
+
+        const suspended = confirmedVolunteers.filter(
+            (volunteer) => volunteer.status === 'suspended',
+        ).length;
+
+        /*
+         * Pending includes BOTH:
+         *
+         * - user -> admin applications
+         * - admin -> user invitations
+         */
+        const pendingApplications = pendingRequests.length;
+
+        return {
             total: confirmedVolunteers.length,
-            active: confirmedVolunteers.filter((v) => v.status === 'active')
-                .length,
-            inactive: confirmedVolunteers.filter((v) => v.status === 'inactive')
-                .length,
-            suspended: confirmedVolunteers.filter(
-                (v) => v.status === 'suspended',
-            ).length,
+            active,
+            inactive,
+            suspended,
+            pendingApplications,
             invitations: pendingRequests.filter(
-                (r) => r.request_direction === 'admin_to_user',
+                (request) => request?.request_direction === 'admin_to_user',
             ).length,
-            applications: pendingRequests.filter(
-                (r) => r.request_direction === 'user_to_admin',
-            ).length,
-        }),
-        [confirmedVolunteers, pendingRequests],
-    );
+            applications: pendingApplicationRequests.length,
+        };
+    }, [confirmedVolunteers, pendingRequests, pendingApplicationRequests]);
+
+    const getAvailability = (volunteer) => {
+        const value = volunteer.availability ?? volunteer.user?.availability;
+        if (value === true || value === 1 || value === '1') return 'available';
+        if (value === false || value === 0 || value === '0')
+            return 'unavailable';
+        const normalized = String(value ?? '')
+            .trim()
+            .toLowerCase();
+        if (['available', 'yes', 'true'].includes(normalized))
+            return 'available';
+        if (['unavailable', 'no', 'false'].includes(normalized))
+            return 'unavailable';
+        return 'unknown';
+    };
+
+    const handleSort = (key) => {
+        setSortConfig((previous) => {
+            if (previous.key !== key) return { key, direction: 'asc' };
+            if (previous.direction === 'asc') return { key, direction: 'desc' };
+            return { key: null, direction: null };
+        });
+        setCurrentPage(1);
+    };
+
+    const getSortIcon = (key) => {
+        if (sortConfig.key !== key || !sortConfig.direction)
+            return <ChevronsUpDown size={14} strokeWidth={1.8} />;
+        return sortConfig.direction === 'asc' ? (
+            <ArrowUp size={14} strokeWidth={1.8} />
+        ) : (
+            <ArrowDown size={14} strokeWidth={1.8} />
+        );
+    };
 
     // ============================================================
     // FILTER
@@ -568,6 +589,13 @@ const Volunteers = () => {
         if (statusFilter !== 'all') {
             result = result.filter(
                 (volunteer) => volunteer.status === statusFilter,
+            );
+        }
+
+        if (availabilityFilter !== 'all') {
+            result = result.filter(
+                (volunteer) =>
+                    getAvailability(volunteer) === availabilityFilter,
             );
         }
 
@@ -591,8 +619,38 @@ const Volunteers = () => {
             });
         }
 
+        if (sortConfig.key && sortConfig.direction) {
+            const getValue = (volunteer) => {
+                switch (sortConfig.key) {
+                    case 'volunteerName':
+                        return volunteer.user?.name || volunteer.name || '';
+                    case 'status':
+                        return volunteer.status || '';
+                    case 'availability':
+                        return getAvailability(volunteer);
+                    default:
+                        return volunteer[sortConfig.key] ?? '';
+                }
+            };
+            result.sort((a, b) => {
+                const comparison = String(getValue(a)).localeCompare(
+                    String(getValue(b)),
+                    undefined,
+                    { numeric: true, sensitivity: 'base' },
+                );
+                return sortConfig.direction === 'asc'
+                    ? comparison
+                    : -comparison;
+            });
+        }
         return result;
-    }, [confirmedVolunteers, searchTerm, statusFilter]);
+    }, [
+        confirmedVolunteers,
+        searchTerm,
+        statusFilter,
+        availabilityFilter,
+        sortConfig,
+    ]);
 
     // ============================================================
     // PAGINATION
@@ -621,6 +679,11 @@ const Volunteers = () => {
 
     const handleStatusChange = (event) => {
         setStatusFilter(event.target.value);
+        setCurrentPage(1);
+    };
+
+    const handleAvailabilityChange = (event) => {
+        setAvailabilityFilter(event.target.value);
         setCurrentPage(1);
     };
 
@@ -689,30 +752,36 @@ const Volunteers = () => {
 
         email: volunteer.user?.email || volunteer.email || 'N/A',
 
-        availability: volunteer.availability || 'unavailable',
+        availability: getAvailability(volunteer),
     }));
 
     const tableColumns = [
         {
             key: 'volunteerName',
             header: 'Volunteer',
-        },
-        {
-            key: 'email',
-            header: 'Email',
+            sortable: true,
+            sortKey: 'volunteerName',
+            width: 'minmax(210px, 1.6fr)',
         },
         {
             key: 'status',
             header: 'Status',
+            sortable: true,
+            sortKey: 'status',
+            width: 'minmax(115px, 0.85fr)',
         },
         {
             key: 'availability',
             header: 'Availability',
+            sortable: true,
+            sortKey: 'availability',
+            width: 'minmax(145px, 1fr)',
         },
         {
             key: 'actions',
             header: 'Actions',
             align: 'right',
+            width: '100px',
         },
     ];
 
@@ -751,11 +820,14 @@ const Volunteers = () => {
         );
     }
 
-    const activeFilterCount = statusFilter === 'all' ? 0 : 1;
+    const activeFilterCount =
+        Number(statusFilter !== 'all') + Number(availabilityFilter !== 'all');
     const filters = (
         <VolunteerFilters
             statusFilter={statusFilter}
             onStatusChange={handleStatusChange}
+            availabilityFilter={availabilityFilter}
+            onAvailabilityChange={handleAvailabilityChange}
         />
     );
 
@@ -835,8 +907,8 @@ const Volunteers = () => {
                         </button>
                     </div>
 
-                    <div className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_300px] xl:items-stretch xl:min-h-[460px] xl:gap-7 2xl:grid-cols-[minmax(0,1fr)_320px]">
-                        <div className="relative min-h-0 min-w-0 xl:min-h-[460px] xl:h-full">
+                    <div className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_300px] xl:items-stretch xl:min-h-[610px] xl:gap-7 2xl:grid-cols-[minmax(0,1fr)_320px]">
+                        <div className="relative min-h-0 min-w-0 xl:min-h-[610px] xl:h-full">
                             <div className="flex min-h-0 min-w-0 flex-col overflow-hidden border border-[#252D38] bg-[#0E1219] xl:absolute xl:inset-0">
                                 <div className="shrink-0 border-b border-[#252D38] bg-[#1A222D] px-4 py-3.5 sm:px-5">
                                     <div className="flex flex-col gap-3.5 lg:flex-row lg:items-center lg:justify-between">
@@ -883,6 +955,8 @@ const Volunteers = () => {
                                         columns={tableColumns}
                                         rows={rows}
                                         resultCount={filteredVolunteers.length}
+                                        onSort={handleSort}
+                                        getSortIcon={getSortIcon}
                                         onView={handleViewVolunteer}
                                         onEdit={handleEditVolunteer}
                                     />
@@ -902,7 +976,7 @@ const Volunteers = () => {
                                 )}
                             </div>
                         </div>
-                        <aside className="hidden min-w-0 border border-[#252D38] bg-[#0E1219] xl:min-h-[460px] xl:block">
+                        <aside className="hidden min-w-0 border border-[#252D38] bg-[#0E1219] xl:min-h-[610px] xl:block">
                             {filters}
                         </aside>
                     </div>
@@ -972,17 +1046,6 @@ const Volunteers = () => {
                 onToggleUser={handleToggleUser}
                 onSelectAll={handleSelectAll}
                 onSubmit={handleSendRequests}
-            />
-
-            {/* VIEW VOLUNTEER */}
-
-            <ViewModal
-                open={viewModalOpen}
-                volunteer={selectedVolunteer}
-                loading={viewLoading}
-                error={viewError}
-                onClose={closeViewModal}
-                onViewCampaign={handleViewCampaign}
             />
 
             {/* EDIT VOLUNTEER */}

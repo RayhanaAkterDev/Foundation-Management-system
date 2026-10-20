@@ -1,0 +1,10 @@
+import React, { useState } from 'react';
+import { X } from 'lucide-react';
+export default function AssignmentReasonModal({ request, loading, onClose, onConfirm }) {
+ const [reason,setReason] = useState('');
+ const [error,setError] = useState('');
+ if(!request) return null;
+ const decline=request.type==='reject';
+ const submit=(e)=>{e.preventDefault();if(reason.trim().length<5){setError('Please enter at least 5 characters.');return;}onConfirm(reason.trim());};
+ return <div role="dialog" aria-modal="true" aria-labelledby="reason-title" className="fixed inset-0 z-[110] flex items-center justify-center bg-[#05070A]/80 p-4 backdrop-blur-sm"><form onSubmit={submit} className="w-full max-w-lg border border-[#35404E] bg-[#0E1219] shadow-2xl"><div className="flex items-start justify-between gap-4 border-b border-[#252D38] p-5"><div><h2 id="reason-title" className="text-[17px] font-semibold text-[#EEF1F5]">{decline?'Decline assignment':'Request withdrawal'}</h2><p className="mt-1 text-[12px] text-[#8792A1]">{request.assignment?.campaign?.title || 'Campaign assignment'}</p></div><button type="button" onClick={onClose} disabled={loading} className="text-[#8792A1] hover:text-[#EEF1F5]"><X size={18}/></button></div><div className="p-5"><label htmlFor="assignment-reason" className="text-[12px] font-medium text-[#CDD5DF]">Reason</label><textarea id="assignment-reason" autoFocus rows={4} value={reason} onChange={e=>{setReason(e.target.value);setError('');}} placeholder="Explain your reason..." className="mt-2 w-full resize-y border border-[#35404E] bg-[#0A0E14] p-3 text-[13px] text-[#EEF1F5] outline-none focus:border-[#0F766E] focus:ring-0"/>{error&&<p className="mt-2 text-[12px] text-[#E7A1A5]">{error}</p>}</div><div className="flex justify-end gap-2 border-t border-[#252D38] bg-[#1A222D] p-4"><button type="button" onClick={onClose} disabled={loading} className="border border-[#35404E] px-4 py-2.5 text-[12px] text-[#CDD5DF]">Cancel</button><button type="submit" disabled={loading} className="bg-[#0F766E] px-4 py-2.5 text-[12px] font-semibold text-white disabled:opacity-50">{loading?'Processing...':'Confirm'}</button></div></form></div>;
+}

@@ -367,7 +367,7 @@ export const NAV_CONFIG = {
             children: [
                 {
                     key: 'organizations-all',
-                    label: 'View All Organizations',
+                    label: 'All Organizations',
                     path: '/admin/dashboard/organizations',
                 },
                 {

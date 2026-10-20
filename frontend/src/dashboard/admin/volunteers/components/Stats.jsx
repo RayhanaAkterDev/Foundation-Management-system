@@ -17,7 +17,7 @@ const Metric = ({ icon: Icon, label, value, description, divider = false }) => {
     return (
         <div
             className={`
-                group flex min-w-0 flex-col
+                group flex h-full min-h-0 min-w-0 flex-col
                 px-4 py-5
                 transition-colors duration-200
                 hover:bg-[#151C26]
@@ -115,12 +115,12 @@ export default function Stats({
 
             {/* OVERVIEW */}
 
-            <div className="grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] xl:gap-5">
+            <div className="grid min-w-0 grid-cols-1 items-stretch gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] xl:gap-5">
                 {/* =================================================
                     MEMBERSHIP
                 ================================================= */}
 
-                <div className="min-w-0 overflow-hidden border border-[#29323E] bg-[#0E1219]">
+                <div className="flex min-w-0 flex-col overflow-hidden border border-[#29323E] bg-[#0E1219]">
                     {/* PANEL HEADING */}
 
                     <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-[#29323E] bg-[#151C26] px-4 py-3.5 sm:px-6">
@@ -144,7 +144,7 @@ export default function Stats({
 
                     {/* MEMBERSHIP CONTENT */}
 
-                    <div className="grid min-w-0 grid-cols-1 md:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
+                    <div className="grid min-h-0 min-w-0 flex-1 grid-cols-1 md:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]">
                         {/* CONFIRMED VOLUNTEERS */}
 
                         <div className="relative min-w-0 border-b border-[#29323E] bg-[#1A222D] px-5 py-6 sm:px-6 sm:py-7 md:border-r md:border-b-0">
@@ -170,7 +170,7 @@ export default function Stats({
 
                         {/* ACTIVE / INACTIVE */}
 
-                        <div className="grid min-w-0 grid-cols-2 divide-x divide-[#29323E] md:grid-cols-1 md:divide-x-0 md:divide-y md:divide-[#29323E]">
+                        <div className="grid min-h-0 min-w-0 grid-cols-2 divide-x divide-[#29323E] md:grid-cols-1 md:grid-rows-2 md:divide-x-0 md:divide-y md:divide-[#29323E]">
                             <MembershipStat
                                 icon={UserRoundCheck}
                                 label="Active"
@@ -191,10 +191,10 @@ export default function Stats({
                     RECRUITMENT
                 ================================================= */}
 
-                <div className="min-w-0 overflow-hidden border border-[#29323E] bg-[#0E1219]">
+                <div className="flex min-h-0 min-w-0 flex-col overflow-hidden border border-[#29323E] bg-[#0E1219]">
                     {/* PANEL HEADING */}
 
-                    <div className="flex min-w-0 items-center justify-between gap-3 border-b border-[#29323E] bg-[#151C26] px-4 py-3.5 sm:px-6">
+                    <div className="flex min-w-0 shrink-0 items-center justify-between gap-3 border-b border-[#29323E] bg-[#151C26] px-4 py-3.5 sm:px-6">
                         <div className="flex min-w-0 items-center gap-2.5">
                             <ClipboardList
                                 size={15}
@@ -216,9 +216,16 @@ export default function Stats({
                         />
                     </div>
 
-                    {/* RECRUITMENT METRICS */}
+                    {/* RECRUITMENT METRICS
+                        flex-1 stretches this area to the full
+                        remaining height of the requests panel.
 
-                    <div className="grid min-w-0 grid-cols-1 sm:grid-cols-2">
+                        grid rows and Metric h-full ensure both
+                        the hover background and divider extend
+                        to the bottom border.
+                    */}
+
+                    <div className="grid min-h-0 min-w-0 flex-1 grid-cols-1 grid-rows-2 items-stretch sm:grid-cols-2 sm:grid-rows-1">
                         <Metric
                             icon={Send}
                             label="Pending invitations"

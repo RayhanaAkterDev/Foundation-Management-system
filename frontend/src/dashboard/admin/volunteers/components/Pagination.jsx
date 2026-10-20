@@ -1,97 +1,260 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-const Pagination = ({
+export default function Pagination({
     currentPage = 1,
     totalPages = 1,
     totalItems = 0,
-    perPage = 10,
     itemsPerPage,
+    perPage = 10,
     onPageChange,
-}) => {
-    if (totalItems === 0) return null;
-    const size = itemsPerPage ?? perPage;
-    const start = (currentPage - 1) * size + 1;
-    const end = Math.min(currentPage * size, totalItems);
-    const pages = Array.from({ length: totalPages }, (_, i) => i + 1).filter(
-        (page) =>
-            totalPages <= 5 ||
-            page === 1 ||
-            page === totalPages ||
-            Math.abs(page - currentPage) <= 1,
-    );
-    const move = (page) =>
-        onPageChange?.(Math.max(1, Math.min(totalPages, page)));
-    const arrowClass =
-        'inline-flex h-8 shrink-0 items-center justify-center gap-1 border border-[#29323E] bg-[#0E1219] px-2.5 text-[10px] font-medium! text-[#8792A1] transition-colors hover:border-[#394555] hover:bg-[#151B24] hover:text-[#EEF1F5] focus:outline-none focus:ring-0 disabled:cursor-not-allowed disabled:opacity-30 sm:px-3';
+    itemLabel = 'volunteers',
+}) {
+    const size = Math.max(1, Number(itemsPerPage ?? perPage) || 10);
+
+    const pageCount = Math.max(1, Number(totalPages) || 1);
+
+    const page = Math.max(1, Math.min(Number(currentPage) || 1, pageCount));
+
+    if (totalItems === 0) {
+        return null;
+    }
+
+    const startItem = (page - 1) * size + 1;
+    const endItem = Math.min(page * size, totalItems);
+
+    const pages = Array.from(
+        { length: pageCount },
+        (_, index) => index + 1,
+    ).filter((number) => {
+        if (pageCount <= 5) {
+            return true;
+        }
+
+        return (
+            number === 1 || number === pageCount || Math.abs(number - page) <= 1
+        );
+    });
+
+    const goToPrevious = () => {
+        onPageChange?.(Math.max(1, page - 1));
+    };
+
+    const goToNext = () => {
+        onPageChange?.(Math.min(pageCount, page + 1));
+    };
+
     return (
         <nav
-            aria-label="Volunteer pagination"
-            className="bg-[#121821] px-3 py-3 sm:px-4"
+            aria-label={`${itemLabel} pagination`}
+            className="
+                bg-[#121821]
+                px-3 py-3
+                sm:px-4
+            "
         >
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-[11px] leading-5 text-[#697586]">
-                    Showing{' '}
-                    <span className="font-semibold! tabular-nums text-[#B8C0CA]">
-                        {start}–{end}
-                    </span>{' '}
-                    of{' '}
-                    <span className="font-semibold! tabular-nums text-[#B8C0CA]">
-                        {totalItems}
-                    </span>{' '}
-                    volunteers
-                </p>
-                <div className="flex min-w-0 items-center justify-between gap-2 sm:justify-end">
+            <div
+                className="
+                    flex flex-col gap-3
+                    sm:flex-row
+                    sm:items-center
+                    sm:justify-between
+                "
+            >
+                {/* RESULT SUMMARY */}
+
+                <div
+                    className="
+                        flex min-w-0 items-center
+                        justify-between gap-3
+                        sm:justify-start
+                    "
+                >
+                    <p
+                        className="
+                            whitespace-nowrap
+                            text-[10px] leading-5
+                            text-[#697586]
+                            sm:text-[11px]
+                        "
+                    >
+                        Showing{' '}
+                        <span
+                            className="
+                                font-semibold!
+                                tabular-nums
+                                text-[#B8C0CA]
+                            "
+                        >
+                            {startItem}–{endItem}
+                        </span>{' '}
+                        of{' '}
+                        <span
+                            className="
+                                font-semibold!
+                                tabular-nums
+                                text-[#B8C0CA]
+                            "
+                        >
+                            {totalItems}
+                        </span>
+                    </p>
+                </div>
+
+                {/* PAGINATION CONTROLS */}
+
+                <div
+                    className="
+                        flex min-w-0 items-center
+                        justify-between gap-2
+                        sm:justify-end
+                    "
+                >
+                    {/* PREVIOUS */}
+
                     <button
                         type="button"
-                        onClick={() => move(currentPage - 1)}
-                        disabled={currentPage <= 1}
+                        onClick={goToPrevious}
+                        disabled={page === 1}
                         aria-label="Previous page"
-                        className={arrowClass}
+                        className="
+                            inline-flex h-8 shrink-0
+                            items-center justify-center gap-1
+                            border border-[#29323E]
+                            bg-[#0E1219] px-2.5
+                            text-[10px] font-medium!
+                            text-[#8792A1]
+                            transition-[background-color,border-color,color]
+                            duration-150 ease-out
+                            hover:border-[#394555]
+                            hover:bg-[#151B24]
+                            hover:text-[#EEF1F5]
+                            focus:outline-none
+                            focus:ring-0
+                            disabled:cursor-not-allowed
+                            disabled:opacity-30
+                            disabled:hover:border-[#29323E]
+                            disabled:hover:bg-[#0E1219]
+                            disabled:hover:text-[#8792A1]
+                            sm:px-3
+                        "
                     >
                         <ChevronLeft size={13} strokeWidth={1.8} />
-                        <span className="hidden sm:inline">Previous</span>
+
+                        <span className="hidden xs:inline sm:inline">
+                            Previous
+                        </span>
                     </button>
-                    <div className="flex min-w-0 items-center justify-center gap-1">
-                        {pages.map((page, index) => (
-                            <React.Fragment key={page}>
-                                {index > 0 && page - pages[index - 1] > 1 && (
-                                    <span
-                                        aria-hidden="true"
-                                        className="flex h-8 w-4 items-center justify-center text-[10px] text-[#5E6978]"
+
+                    {/* PAGE NUMBERS */}
+
+                    <div
+                        className="
+                            flex min-w-0 items-center
+                            justify-center gap-1
+                        "
+                    >
+                        {pages.map((number, index) => {
+                            const previousPage = pages[index - 1];
+
+                            const showEllipsis =
+                                previousPage && number - previousPage > 1;
+
+                            const active = page === number;
+
+                            return (
+                                <React.Fragment key={number}>
+                                    {showEllipsis && (
+                                        <span
+                                            aria-hidden="true"
+                                            className="
+                                                flex h-8 w-4
+                                                items-center justify-center
+                                                text-[10px]
+                                                text-[#5E6978]
+                                            "
+                                        >
+                                            …
+                                        </span>
+                                    )}
+
+                                    <button
+                                        type="button"
+                                        aria-current={
+                                            active ? 'page' : undefined
+                                        }
+                                        aria-label={`Go to page ${number}`}
+                                        onClick={() => onPageChange?.(number)}
+                                        className={`
+                                            flex h-8 min-w-8
+                                            items-center justify-center
+                                            border px-2
+                                            text-[10px] font-semibold!
+                                            tabular-nums
+                                            transition-[background-color,border-color,color]
+                                            duration-150 ease-out
+                                            focus:outline-none
+                                            focus:ring-0
+                                            ${
+                                                active
+                                                    ? `
+                                                        border-[#394555]
+                                                        bg-[#1D2632]
+                                                        text-[#EEF1F5]
+                                                    `
+                                                    : `
+                                                        border-transparent
+                                                        bg-transparent
+                                                        text-[#697586]
+                                                        hover:border-[#29323E]
+                                                        hover:bg-[#151B24]
+                                                        hover:text-[#B8C0CA]
+                                                    `
+                                            }
+                                        `}
                                     >
-                                        …
-                                    </span>
-                                )}
-                                <button
-                                    type="button"
-                                    aria-current={
-                                        currentPage === page
-                                            ? 'page'
-                                            : undefined
-                                    }
-                                    aria-label={`Go to page ${page}`}
-                                    onClick={() => move(page)}
-                                    className={`flex h-8 min-w-8 items-center justify-center border px-2 text-[10px] font-semibold! tabular-nums transition-colors focus:outline-none focus:ring-0 ${currentPage === page ? 'border-[#394555] bg-[#1D2632] text-[#EEF1F5]' : 'border-transparent bg-transparent text-[#697586] hover:border-[#29323E] hover:bg-[#151B24] hover:text-[#B8C0CA]'}`}
-                                >
-                                    {page}
-                                </button>
-                            </React.Fragment>
-                        ))}
+                                        {number}
+                                    </button>
+                                </React.Fragment>
+                            );
+                        })}
                     </div>
+
+                    {/* NEXT */}
+
                     <button
                         type="button"
-                        onClick={() => move(currentPage + 1)}
-                        disabled={currentPage >= totalPages}
+                        onClick={goToNext}
+                        disabled={page === pageCount}
                         aria-label="Next page"
-                        className={arrowClass}
+                        className="
+                            inline-flex h-8 shrink-0
+                            items-center justify-center gap-1
+                            border border-[#29323E]
+                            bg-[#0E1219] px-2.5
+                            text-[10px] font-medium!
+                            text-[#8792A1]
+                            transition-[background-color,border-color,color]
+                            duration-150 ease-out
+                            hover:border-[#394555]
+                            hover:bg-[#151B24]
+                            hover:text-[#EEF1F5]
+                            focus:outline-none
+                            focus:ring-0
+                            disabled:cursor-not-allowed
+                            disabled:opacity-30
+                            disabled:hover:border-[#29323E]
+                            disabled:hover:bg-[#0E1219]
+                            disabled:hover:text-[#8792A1]
+                            sm:px-3
+                        "
                     >
-                        <span className="hidden sm:inline">Next</span>
+                        <span className="hidden xs:inline sm:inline">Next</span>
+
                         <ChevronRight size={13} strokeWidth={1.8} />
                     </button>
                 </div>
             </div>
         </nav>
     );
-};
-export default Pagination;
+}

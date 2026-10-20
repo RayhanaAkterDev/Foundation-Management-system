@@ -62,6 +62,7 @@ import AdminOrganizationsDetails from '@/dashboard/admin/organizations/Organizat
 // admin volunteers routes
 import AdminVolunteers from '@/dashboard/admin/volunteers/Volunteers';
 import AdminVolunteerRequests from '@/dashboard/admin/volunteers/VolunteerRequests';
+import AdminVolunteerDetails from '@/dashboard/admin/volunteers/VolunteerDetails';
 
 import AdminHelpRequests from '@/dashboard/admin/helpRequests/HelpRequests';
 import AdminDonations from '@/dashboard/admin/donations/Donations';
@@ -343,13 +344,22 @@ const router = createBrowserRouter([
                     // ADMIN VOLUNTEERS ROUTES
                     // ========================
 
+                    // All Volunteers
                     {
                         path: 'volunteers',
                         element: <AdminVolunteers />,
                     },
+
+                    // Volunteer Requests
                     {
                         path: 'volunteers/requests',
                         element: <AdminVolunteerRequests />,
+                    },
+
+                    // Volunteer Details
+                    {
+                        path: 'volunteers/:volunteerId',
+                        element: <AdminVolunteerDetails />,
                     },
 
                     // ========================

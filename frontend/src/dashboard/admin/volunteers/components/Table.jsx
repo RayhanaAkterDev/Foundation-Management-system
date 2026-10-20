@@ -1,7 +1,13 @@
 import React, { useState } from 'react';
 import DataTable from '@/components/dashboard/DataTable';
 import StatusBadge from '@/components/dashboard/StatusBadge';
-import { Users, Eye, Pencil, CheckCircle2, CircleAlert } from 'lucide-react';
+import {
+    Users,
+    Eye,
+    UserRoundCog,
+    CheckCircle2,
+    CircleAlert,
+} from 'lucide-react';
 
 const getName = (row) =>
     row.volunteerName || row.user?.name || row.name || 'Unnamed volunteer';
@@ -37,7 +43,9 @@ const VolunteerAvatar = ({ row, mobile = false }) => {
 };
 
 const Availability = ({ value }) => {
-    const available = String(value ?? '').toLowerCase() === 'available';
+    const normalized = String(value ?? '').toLowerCase();
+    const available = normalized === 'available';
+    const unknown = normalized === 'unknown';
     return (
         <div className="flex items-center gap-2 whitespace-nowrap">
             {available ? (
@@ -56,7 +64,11 @@ const Availability = ({ value }) => {
             <span
                 className={`text-[11px] font-medium! ${available ? 'text-[#A2CBB0]' : 'text-[#8792A1]'}`}
             >
-                {available ? 'Available' : 'Unavailable'}
+                {unknown
+                    ? 'Not specified'
+                    : available
+                      ? 'Available'
+                      : 'Unavailable'}
             </span>
         </div>
     );
@@ -68,13 +80,17 @@ const Actions = ({ row, onView, onEdit, mobile = false }) => (
     >
         {[
             { label: 'View', Icon: Eye, action: onView },
-            { label: 'Edit', Icon: Pencil, action: onEdit },
+            { label: 'Manage status', Icon: UserRoundCog, action: onEdit },
         ].map(({ label, Icon, action }) => (
             <button
                 key={label}
                 type="button"
                 onClick={() => action?.(row.id)}
-                title={`${label} volunteer`}
+                title={
+                    label === 'Manage status'
+                        ? `Manage status for ${getName(row)}`
+                        : `View ${getName(row)}`
+                }
                 aria-label={`${label} ${getName(row)}`}
                 className={
                     mobile
@@ -83,7 +99,7 @@ const Actions = ({ row, onView, onEdit, mobile = false }) => (
                 }
             >
                 <Icon size={mobile ? 13 : 14} strokeWidth={1.8} />
-                {mobile && label}
+                {mobile && (label === 'Manage status' ? 'Status' : label)}
             </button>
         ))}
     </div>

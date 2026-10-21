@@ -104,7 +104,7 @@ const Stats = ({ total, verified, pending, rejected, onOpenReviewQueue }) => {
                                     text-[#EEF1F5]!
                         "
                     >
-                        Organization overview
+                        Organizations overview
                     </h2>
                 </div>
 

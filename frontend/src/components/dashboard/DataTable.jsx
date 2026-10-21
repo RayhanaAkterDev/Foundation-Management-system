@@ -457,7 +457,7 @@ const DataTable = ({
                         w-full min-w-0
                         overflow-x-auto
                         overflow-y-hidden
-                        [scrollbar-width:none]
+                        scrollbar-none
                         [&::-webkit-scrollbar]:hidden
                     "
                 >
@@ -652,7 +652,6 @@ const DataTable = ({
                                     bg-[#0E1219]
                                     px-3
                                     transition-colors duration-150 ease-out
-                                    last:border-b-0
                                     hover:bg-[#151B24]
                                     sm:px-4
                                 "

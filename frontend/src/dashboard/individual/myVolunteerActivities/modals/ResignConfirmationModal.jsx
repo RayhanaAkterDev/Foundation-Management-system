@@ -13,7 +13,7 @@ const ResignConfirmationModal = ({ open, loading, onCancel, onConfirm }) => {
             aria-labelledby="resign-modal-title"
         >
             <div className="w-full max-w-md overflow-hidden rounded-none border border-[#29323E] bg-[#0E1219] shadow-2xl">
-                <div className="border-b border-[#252D38] px-6 py-5">
+                <div className="border-b border-[#29323E] bg-[#151C25] px-6 py-6">
                     <div className="flex items-start gap-4">
                         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-none bg-[#321D22] text-[#E7A1A5]">
                             <LogOut className="h-5 w-5" />
@@ -46,7 +46,7 @@ const ResignConfirmationModal = ({ open, loading, onCancel, onConfirm }) => {
                     </div>
                 </div>
 
-                <div className="flex flex-col-reverse gap-2 border-t border-[#252D38] bg-[#1A222D] px-6 py-4 sm:flex-row sm:justify-end">
+                <div className="flex flex-col-reverse gap-2 border-t border-[#29323E] bg-[#151C25] px-6 py-4 sm:flex-row sm:justify-end">
                     <button
                         type="button"
                         disabled={loading}

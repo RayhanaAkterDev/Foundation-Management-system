@@ -1,17 +1,3 @@
-// ============================================================================
-// DASHBOARD NAVIGATION
-// Stand For People
-//
-// Navigation hierarchy:
-// Section label
-//   └── Main navigation item
-//         └── Optional submenu items
-//
-// IMPORTANT:
-// Existing application routes are preserved.
-// New submenu routes/actions should only be added when the corresponding
-// page/action actually exists.
-// ============================================================================
 
 import {
     LayoutDashboard,
@@ -27,29 +13,24 @@ import {
     BarChart3,
     Banknote,
     UserCheck,
-    Activity,
 } from 'lucide-react';
 
-/* ==========================================================================
-   NAVIGATION CONFIG
-============================================================================ */
+// ============================================================
+// DASHBOARD NAVIGATION CONFIGURATION
+// Stand For People
+// ============================================================
 
 export const NAV_CONFIG = {
-    /* ======================================================================
-       INDIVIDUAL
-    ====================================================================== */
-
+    // ========================================================
+    // INDIVIDUAL
+    // ========================================================
     individual: [
-        /* ------------------------------------------------------------------
-           OVERVIEW
-        ------------------------------------------------------------------ */
-
+        // Overview
         {
             type: 'section',
             key: 'overview',
             label: 'Overview',
         },
-
         {
             key: 'dashboard',
             label: 'Dashboard',
@@ -57,112 +38,79 @@ export const NAV_CONFIG = {
             path: '/individual/dashboard',
         },
 
-        /* ------------------------------------------------------------------
-           MY ACTIVITY
-        ------------------------------------------------------------------ */
-
+        // My Activity
         {
             type: 'section',
             key: 'my-activity',
             label: 'My Activity',
         },
-
         {
             key: 'help-requests',
             label: 'Help Requests',
             icon: HeartHandshake,
-
             children: [
                 {
                     key: 'help-requests-all',
                     label: 'My Help Requests',
                     path: '/individual/dashboard/help-requests',
                 },
-
-                // Future:
-                // Create Request
-                // Request History
             ],
         },
-
         {
             key: 'donations',
             label: 'Donations',
             icon: HandCoins,
-
             children: [
                 {
                     key: 'donations-all',
                     label: 'My Donations',
                     path: '/individual/dashboard/donations',
                 },
-
-                // Future:
-                // Donation History
-                // Saved Campaigns
             ],
         },
-
         {
             key: 'volunteer',
             label: 'Volunteer Activities',
             icon: Users,
-
             children: [
                 {
                     key: 'volunteer-all',
                     label: 'My Activities',
                     path: '/individual/dashboard/volunteer',
                 },
-
-                // Future:
-                // Find Opportunities
-                // Activity History
             ],
         },
-
         {
             key: 'campaigns',
             label: 'Campaigns',
             icon: Megaphone,
-
             children: [
                 {
                     key: 'campaigns-all',
                     label: 'Browse Campaigns',
                     path: '/individual/dashboard/campaigns',
                 },
-
-                // Future:
-                // Saved Campaigns
-                // Supported Campaigns
             ],
         },
 
-        /* ------------------------------------------------------------------
-           ACCOUNT
-        ------------------------------------------------------------------ */
-
+        // Account
         {
             type: 'section',
             key: 'account',
             label: 'Account',
         },
-
         {
             key: 'profile',
             label: 'Profile',
             icon: UserCircle,
             path: '/individual/dashboard/profile',
         },
-
         {
             key: 'notifications',
             label: 'Notifications',
             icon: Bell,
             path: '/individual/dashboard/notifications',
         },
-
         {
             key: 'settings',
             label: 'Settings',
@@ -171,21 +119,16 @@ export const NAV_CONFIG = {
         },
     ],
 
-    /* ======================================================================
-       ORGANIZATION
-    ====================================================================== */
-
+    // ========================================================
+    // ORGANIZATION
+    // ========================================================
     organization: [
-        /* ------------------------------------------------------------------
-           OVERVIEW
-        ------------------------------------------------------------------ */
-
+        // Overview
         {
             type: 'section',
             key: 'overview',
             label: 'Overview',
         },
-
         {
             key: 'dashboard',
             label: 'Dashboard',
@@ -193,82 +136,55 @@ export const NAV_CONFIG = {
             path: '/organization/dashboard',
         },
 
-        /* ------------------------------------------------------------------
-           OPERATIONS
-        ------------------------------------------------------------------ */
-
+        // Operations
         {
             type: 'section',
             key: 'operations',
             label: 'Operations',
         },
-
         {
             key: 'help-requests',
             label: 'Help Requests',
             icon: ClipboardList,
-
             children: [
                 {
                     key: 'help-requests-all',
                     label: 'View All Requests',
                     path: '/organization/dashboard/help-requests',
                 },
-
-                // Future:
-                // Create Request
-                // Assigned Requests
-                // Request History
             ],
         },
-
         {
             key: 'campaigns',
             label: 'Campaigns',
             icon: Megaphone,
-
             children: [
                 {
                     key: 'campaigns-all',
                     label: 'View All Campaigns',
                     path: '/organization/dashboard/campaigns',
                 },
-
-                // Future:
-                // Create Campaign
-                // Draft Campaigns
-                // Completed Campaigns
             ],
         },
-
         {
             key: 'volunteers',
             label: 'Volunteers',
             icon: Users,
-
             children: [
                 {
                     key: 'volunteers-all',
                     label: 'View Volunteers',
                     path: '/organization/dashboard/volunteers',
                 },
-
-                // Future:
-                // Volunteer Applications
-                // Assignments
             ],
         },
 
-        /* ------------------------------------------------------------------
-           INSIGHTS
-        ------------------------------------------------------------------ */
-
+        // Insights
         {
             type: 'section',
             key: 'insights',
             label: 'Insights',
         },
-
         {
             key: 'reports',
             label: 'Impact & Reports',
@@ -276,30 +192,24 @@ export const NAV_CONFIG = {
             path: '/organization/dashboard/reports',
         },
 
-        /* ------------------------------------------------------------------
-           ACCOUNT
-        ------------------------------------------------------------------ */
-
+        // Account
         {
             type: 'section',
             key: 'account',
             label: 'Account',
         },
-
         {
             key: 'profile',
             label: 'Organization Profile',
             icon: Building2,
             path: '/organization/dashboard/profile',
         },
-
         {
             key: 'notifications',
             label: 'Notifications',
             icon: Bell,
             path: '/organization/dashboard/notifications',
         },
-
         {
             key: 'settings',
             label: 'Settings',
@@ -308,21 +218,16 @@ export const NAV_CONFIG = {
         },
     ],
 
-    /* ======================================================================
-       ADMIN
-    ====================================================================== */
-
+    // ========================================================
+    // ADMIN
+    // ========================================================
     admin: [
-        /* ------------------------------------------------------------------
-           OVERVIEW
-        ------------------------------------------------------------------ */
-
+        // Overview
         {
             type: 'section',
             key: 'overview',
             label: 'Overview',
         },
-
         {
             key: 'dashboard',
             label: 'Dashboard',
@@ -330,40 +235,33 @@ export const NAV_CONFIG = {
             path: '/admin/dashboard',
         },
 
-        /* ------------------------------------------------------------------
-           PEOPLE & NETWORK
-        ------------------------------------------------------------------ */
-
+        // People & Network
         {
             type: 'section',
             key: 'people-network',
             label: 'People & Network',
         },
-
-       {
-    key: 'users',
-    label: 'Users',
-    icon: Users,
-
-    children: [
         {
-            key: 'users-all',
-            label: 'All Users',
-            path: '/admin/dashboard/users',
+            key: 'users',
+            label: 'Users',
+            icon: Users,
+            children: [
+                {
+                    key: 'users-all',
+                    label: 'All Users',
+                    path: '/admin/dashboard/users',
+                },
+                {
+                    key: 'users-add',
+                    label: 'Add User',
+                    path: '/admin/dashboard/users/add',
+                },
+            ],
         },
-        {
-            key: 'users-add',
-            label: 'Add User',
-            path: '/admin/dashboard/users/add',
-        }
-    ],
-},
-
         {
             key: 'organizations',
             label: 'Organizations',
             icon: Building2,
-
             children: [
                 {
                     key: 'organizations-all',
@@ -374,126 +272,89 @@ export const NAV_CONFIG = {
                     key: 'organizations-add',
                     label: 'Add Organization',
                     path: '/admin/dashboard/organizations/add',
-                }
-
-                // Future:
-                // Pending Verification
-                // Verified Organizations
+                },
+            ],
+        },
+        {
+            key: 'volunteers',
+            label: 'Volunteers',
+            icon: UserCheck,
+            children: [
+                {
+                    key: 'volunteers-all',
+                    label: 'All Volunteers',
+                    path: '/admin/dashboard/volunteers',
+                },
+                {
+                    key: 'volunteers-requests',
+                    label: 'Volunteer Requests',
+                    path: '/admin/dashboard/volunteers/requests',
+                },
             ],
         },
 
-      {
-    key: 'volunteers',
-    label: 'Volunteers',
-    icon: UserCheck,
-
-    children: [
-        {
-            key: 'volunteers-all',
-            label: 'All Volunteers',
-            path: '/admin/dashboard/volunteers',
-        },
-        {
-            key: 'volunteers-requests',
-            label: 'Volunteer Requests',
-            path: '/admin/dashboard/volunteers/requests',
-        },
-    ],
-},
-
-        /* ------------------------------------------------------------------
-           OPERATIONS
-        ------------------------------------------------------------------ */
-
+        // Operations
         {
             type: 'section',
             key: 'operations',
             label: 'Operations',
         },
-
         {
             key: 'help-requests',
             label: 'Help Requests',
             icon: ClipboardList,
-
             children: [
                 {
                     key: 'help-requests-all',
-                    label: 'View All Requests',
+                    label: 'All Help Requests',
                     path: '/admin/dashboard/help-requests',
                 },
-
-                // Future:
-                // Pending Review
-                // Assigned Requests
-                // Resolved Requests
             ],
         },
-
         {
             key: 'campaigns',
             label: 'Campaigns',
             icon: Megaphone,
-
             children: [
                 {
                     key: 'campaigns-all',
                     label: 'View All Campaigns',
                     path: '/admin/dashboard/campaigns',
                 },
-
-                // Future:
-                // Pending Review
-                // Active Campaigns
-                // Completed Campaigns
             ],
         },
 
-        /* ------------------------------------------------------------------
-           FINANCE
-        ------------------------------------------------------------------ */
-
+        // Finance
         {
             type: 'section',
             key: 'finance',
             label: 'Finance',
         },
-
         {
             key: 'donations',
             label: 'Donations',
             icon: Banknote,
-
             children: [
                 {
                     key: 'donations-all',
                     label: 'View All Donations',
                     path: '/admin/dashboard/donations',
                 },
-
-                // Future:
-                // Transactions
-                // Donation Activity
             ],
         },
 
-        /* ------------------------------------------------------------------
-           SYSTEM
-        ------------------------------------------------------------------ */
-
+        // System
         {
             type: 'section',
             key: 'system',
             label: 'System',
         },
-
         {
             key: 'profile',
             label: 'Profile',
             icon: UserCircle,
             path: '/admin/dashboard/profile',
         },
-
         {
             key: 'settings',
             label: 'Settings',
@@ -503,9 +364,9 @@ export const NAV_CONFIG = {
     ],
 };
 
-/* ==========================================================================
-   ROLE LABELS
-============================================================================ */
+// ============================================================
+// ROLE LABELS
+// ============================================================
 
 export const ROLE_LABELS = {
     individual: 'Individual',
@@ -513,12 +374,10 @@ export const ROLE_LABELS = {
     admin: 'Administrator',
 };
 
-/* ==========================================================================
-   ROLE COLORS
-
-   Kept for compatibility with existing components.
-   Dashboard dark-theme styling will be handled separately.
-============================================================================ */
+// ============================================================
+// ROLE COLORS
+// Kept unchanged for compatibility with existing components.
+// ============================================================
 
 export const ROLE_COLORS = {
     individual: 'bg-[#0f766e]/10 text-[#0f766e]',

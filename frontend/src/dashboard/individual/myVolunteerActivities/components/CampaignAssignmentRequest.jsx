@@ -11,11 +11,11 @@ const CampaignAssignmentRequest = ({
     const isLoading = actionLoading === assignment?.id;
 
     return (
-        <div className="overflow-hidden rounded-none border border-[#29323E] bg-[#0E1219] shadow-sm">
-            <div className="border-b border-[#252D38] px-5 py-4 sm:px-6">
+        <div className="overflow-hidden border border-[#29323E] bg-[#0E1219] transition-colors hover:border-[#3B4654]">
+            <div className="border-b border-[#29323E] bg-[#151C25] px-5 py-5 sm:px-6">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0">
-                        <p className="mb-1 text-xs font-semibold uppercase tracking-[0.12em] text-[#788595]">
+                        <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.13em] text-[#788595]">
                             Campaign Assignment
                         </p>
 
@@ -31,7 +31,7 @@ const CampaignAssignmentRequest = ({
                 </div>
             </div>
 
-            <div className="grid gap-4 px-5 py-5 sm:grid-cols-2 lg:grid-cols-3 sm:px-6">
+            <div className="grid gap-5 px-5 py-6 sm:grid-cols-2 lg:grid-cols-3 sm:px-6">
                 <div className="flex items-start gap-3">
                     <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-none bg-[#1A222D] text-[#8792A1]">
                         <MapPin className="h-4 w-4" />
@@ -77,7 +77,7 @@ const CampaignAssignmentRequest = ({
                 )}
             </div>
 
-            <div className="flex flex-col gap-2 border-t border-[#252D38] bg-[#1A222D] px-5 py-4 sm:flex-row sm:justify-end sm:px-6">
+            <div className="flex flex-col gap-2 border-t border-[#252D38] bg-[#151C25] px-5 py-4 sm:flex-row sm:justify-end sm:px-6">
                 <button
                     type="button"
                     disabled={isLoading}

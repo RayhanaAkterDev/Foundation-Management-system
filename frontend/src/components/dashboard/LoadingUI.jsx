@@ -137,7 +137,7 @@ const LoadingUI = ({
                 {description && (
                     <p
                         className="
-                            mt-2 max-w-70 mb-6
+                            mt-2 w-full mb-6
                             font-sans!
                             text-[12px]
                             leading-[1.75]

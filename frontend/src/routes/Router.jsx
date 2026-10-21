@@ -1,14 +1,20 @@
 import { createBrowserRouter } from 'react-router-dom';
 
 import ProtectedRoute from './ProtectedRoute';
-
-// 404
 import NotFound from '../pages/NotFound';
 
-// layouts
-import PublicLayout from '@/layouts/PublicLayout/PublicLayout';
+// =========================
+// LAYOUTS
+// =========================
 
-// public pages
+import PublicLayout from '@/layouts/PublicLayout/PublicLayout';
+import AuthLayout from '@/layouts/AuthLayout/AuthLayout';
+import DashboardLayout from '@/layouts/DashboardLayout/DashboardLayout';
+
+// =========================
+// PUBLIC PAGES
+// =========================
+
 import Home from '@/pages/public/home/Home';
 import HowItWorksPage from '@/pages/public/howItWorksPage/HowItWorksPage';
 import Categories from '@/pages/public/categoriesPage/CategoriesPage';
@@ -31,8 +37,10 @@ import Report from '@/pages/public/about/report/Report';
 import TrustSafety from '@/pages/public/about/trustSafety/TrustSafety';
 import Community from '@/pages/public/communityPage/Community';
 
-// Account pages
-import AuthLayout from '@/layouts/AuthLayout/AuthLayout';
+// =========================
+// AUTHENTICATION
+// =========================
+
 import Login from '@/auth/Login/Login';
 import Register from '@/auth/Register/Register';
 import AdminLogin from '@/auth/AdminLogin/AdminLogin';
@@ -40,36 +48,36 @@ import EmailVerification from '@/auth/EmailVerification/EmailVerification';
 import ResetPassword from '@/auth/ResetPassword/ResetPassword';
 import ForgotPassword from '@/auth/ForgotPassword/ForgotPassword';
 
-// Dashboard layout
-import DashboardLayout from '@/layouts/DashboardLayout/DashboardLayout';
-
 // =========================
 // ADMIN DASHBOARD
 // =========================
 
 import AdminDashboard from '@/dashboard/admin/dashboard/Dashboard';
 
-// admin users routes
+// Admin Users
 import AdminUsers from '@/dashboard/admin/users/Users';
 import AdminAddUser from '@/dashboard/admin/users/AddUser';
 import AdminUserDetails from '@/dashboard/admin/users/UserDetails';
 
-// admin organizations routes
+// Admin Organizations
 import AdminOrganizations from '@/dashboard/admin/organizations/Organizations';
 import AdminAddOrganization from '@/dashboard/admin/organizations/AddOrganization';
 import AdminOrganizationsDetails from '@/dashboard/admin/organizations/OrganizationDetails';
 
-// admin volunteers routes
+// Admin Volunteers
 import AdminVolunteers from '@/dashboard/admin/volunteers/Volunteers';
 import AdminVolunteerRequests from '@/dashboard/admin/volunteers/VolunteerRequests';
 import AdminVolunteerDetails from '@/dashboard/admin/volunteers/VolunteerDetails';
 
+// Admin Help Requests
 import AdminHelpRequests from '@/dashboard/admin/helpRequests/HelpRequests';
+import AdminHelpRequestDetails from '@/dashboard/admin/helpRequests/HelpRequestDetails';
+
+// Other Admin Pages
 import AdminDonations from '@/dashboard/admin/donations/Donations';
 import AdminCampaigns from '@/dashboard/admin/campaigns/Campaigns';
 import AdminCampaignDetails from '@/dashboard/admin/campaigns/CampaignDetails';
 import AdminProfile from '@/dashboard/admin/profile/Profile';
-// import AdminReports from "@/dashboard/admin/reports/AdminReports";
 import AdminSettings from '@/dashboard/admin/settings/Settings';
 
 // =========================
@@ -98,11 +106,14 @@ import MyDonations from '@/dashboard/individual/myDonations/MyDonations';
 import MyHelpRequests from '@/dashboard/individual/myHelpRequests/MyHelpRequests';
 import MyVolunteerActivities from '@/dashboard/individual/myVolunteerActivities/MyVolunteerActivities';
 
-const router = createBrowserRouter([
-    // =====================================================
-    // PUBLIC ROUTES
-    // =====================================================
+// =========================
+// ROUTER CONFIGURATION
+// =========================
 
+const router = createBrowserRouter([
+    // ==========================================
+    // PUBLIC ROUTES
+    // ==========================================
     {
         path: '/',
         element: <PublicLayout />,
@@ -144,7 +155,7 @@ const router = createBrowserRouter([
                 element: <TrustSafety />,
             },
 
-            // CATEGORY PAGE
+            // Categories
             {
                 path: 'categories',
                 element: <Categories />,
@@ -154,7 +165,7 @@ const router = createBrowserRouter([
                 element: <Categories />,
             },
 
-            // CAMPAIGNS
+            // Campaigns
             {
                 path: 'campaigns',
                 element: <Campaigns />,
@@ -171,13 +182,12 @@ const router = createBrowserRouter([
                 path: 'campaigns/urgent',
                 element: <UrgentCampaigns />,
             },
-
             {
                 path: 'campaign/:id',
                 element: <CampaignDetails />,
             },
 
-            // DONATE
+            // Donations
             {
                 path: 'donate',
                 element: <DonateHub />,
@@ -191,25 +201,25 @@ const router = createBrowserRouter([
                 element: <PaymentResult />,
             },
 
-            // VOLUNTEER
+            // Volunteer
             {
                 path: 'volunteer',
                 element: <Volunteer />,
             },
 
-            // REQUEST HELP
+            // Request Help
             {
                 path: 'request-help',
                 element: <RequestHelp />,
             },
 
-            // PARTNER
+            // Organizations
             {
                 path: 'organizations',
                 element: <Organizations />,
             },
 
-            // COMMUNITY
+            // Community
             {
                 path: 'community',
                 element: <Community />,
@@ -217,10 +227,9 @@ const router = createBrowserRouter([
         ],
     },
 
-    // =====================================================
-    // ACCOUNT ROUTES
-    // =====================================================
-
+    // ==========================================
+    // AUTHENTICATION ROUTES
+    // ==========================================
     {
         path: '/login',
         element: <AuthLayout />,
@@ -241,47 +250,26 @@ const router = createBrowserRouter([
             },
         ],
     },
-
-    // =====================================================
-    // EMAIL VERIFICATION
-    // =====================================================
-
     {
         path: '/email-verification',
         element: <EmailVerification />,
     },
-
-    // =====================================================
-    // PASSWORD RESET
-    // =====================================================
-
     {
         path: '/reset-password',
         element: <ResetPassword />,
     },
-
-    // =====================================================
-    // FORGOT PASSWORD
-    // =====================================================
-
     {
         path: '/forgot-password',
         element: <ForgotPassword />,
     },
-
-    // =====================================================
-    // ADMIN AUTHENTICATION
-    // =====================================================
-
     {
         path: '/admin/login',
         element: <AdminLogin />,
     },
 
-    // =====================================================
-    // ADMIN DASHBOARD
-    // =====================================================
-
+    // ==========================================
+    // ADMIN DASHBOARD ROUTES
+    // ==========================================
     {
         path: '/admin/dashboard',
         element: <DashboardLayout />,
@@ -289,15 +277,15 @@ const router = createBrowserRouter([
             {
                 element: <ProtectedRoute allowedRoles={['admin']} />,
                 children: [
+                    // Dashboard Overview
                     {
                         index: true,
                         element: <AdminDashboard />,
                     },
 
-                    // ========================
-                    // ADMIN USERS ROUTES
-                    // ========================
-
+                    // ==========================
+                    // ADMIN USERS
+                    // ==========================
                     {
                         path: 'users',
                         element: <AdminUsers />,
@@ -307,20 +295,17 @@ const router = createBrowserRouter([
                         element: <AdminAddUser />,
                     },
                     {
-                        // View user
                         path: 'users/:userId',
                         element: <AdminUserDetails />,
                     },
                     {
-                        // Edit user
                         path: 'users/:userId/edit',
                         element: <AdminUserDetails />,
                     },
 
-                    // ========================
-                    // ADMIN ORGANIZATIONS ROUTES
-                    // ========================
-
+                    // ==========================
+                    // ADMIN ORGANIZATIONS
+                    // ==========================
                     {
                         path: 'organizations',
                         element: <AdminOrganizations />,
@@ -330,49 +315,63 @@ const router = createBrowserRouter([
                         element: <AdminAddOrganization />,
                     },
                     {
-                        // View organization
                         path: 'organizations/:organizationId',
                         element: <AdminOrganizationsDetails />,
                     },
                     {
-                        // Edit organization
                         path: 'organizations/:organizationId/edit',
                         element: <AdminOrganizationsDetails />,
                     },
 
-                    // ========================
-                    // ADMIN VOLUNTEERS ROUTES
-                    // ========================
-
-                    // All Volunteers
+                    // ==========================
+                    // ADMIN VOLUNTEERS
+                    // ==========================
                     {
                         path: 'volunteers',
                         element: <AdminVolunteers />,
                     },
-
-                    // Volunteer Requests
                     {
                         path: 'volunteers/requests',
                         element: <AdminVolunteerRequests />,
                     },
-
-                    // Volunteer Details
                     {
                         path: 'volunteers/:volunteerId',
                         element: <AdminVolunteerDetails />,
                     },
 
-                    // ========================
+                    // ==========================
+                    // ADMIN HELP REQUESTS
+                    // ==========================
 
+                    // All Help Requests
                     {
                         path: 'help-requests',
                         element: <AdminHelpRequests />,
                     },
+
+                    // View Help Request
+                    {
+                        path: 'help-requests/:requestId',
+                        element: <AdminHelpRequestDetails />,
+                    },
+
+                    // Edit Help Request
+                    {
+                        path: 'help-requests/:requestId/edit',
+                        element: <AdminHelpRequestDetails />,
+                    },
+
+                    // ==========================
+                    // ADMIN DONATIONS
+                    // ==========================
                     {
                         path: 'donations',
                         element: <AdminDonations />,
                     },
 
+                    // ==========================
+                    // ADMIN CAMPAIGNS
+                    // ==========================
                     {
                         path: 'campaigns',
                         element: <AdminCampaigns />,
@@ -381,14 +380,14 @@ const router = createBrowserRouter([
                         path: 'campaigns/:id',
                         element: <AdminCampaignDetails />,
                     },
+
+                    // ==========================
+                    // ADMIN PROFILE & SETTINGS
+                    // ==========================
                     {
                         path: 'profile',
                         element: <AdminProfile />,
                     },
-                    // {
-                    //   path: "reports",
-                    //   element: <AdminReports />,
-                    // },
                     {
                         path: 'settings',
                         element: <AdminSettings />,
@@ -398,10 +397,9 @@ const router = createBrowserRouter([
         ],
     },
 
-    // =====================================================
-    // INDIVIDUAL DASHBOARD
-    // =====================================================
-
+    // ==========================================
+    // INDIVIDUAL DASHBOARD ROUTES
+    // ==========================================
     {
         path: '/individual/dashboard',
         element: <DashboardLayout />,
@@ -450,10 +448,9 @@ const router = createBrowserRouter([
         ],
     },
 
-    // =====================================================
-    // ORGANIZATION DASHBOARD
-    // =====================================================
-
+    // ==========================================
+    // ORGANIZATION DASHBOARD ROUTES
+    // ==========================================
     {
         path: '/organization/dashboard',
         element: <DashboardLayout />,
@@ -498,10 +495,9 @@ const router = createBrowserRouter([
         ],
     },
 
-    // =====================================================
-    // 404
-    // =====================================================
-
+    // ==========================================
+    // 404 NOT FOUND
+    // ==========================================
     {
         path: '*',
         element: <NotFound />,

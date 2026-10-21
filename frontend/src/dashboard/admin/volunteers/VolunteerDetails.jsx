@@ -3,23 +3,29 @@ import { useNavigate, useParams } from 'react-router-dom';
 import {
     ArrowLeft,
     ArrowUpRight,
-    CalendarDays,
     CheckCircle2,
     CircleAlert,
-    Clock3,
     Mail,
     MapPin,
     Phone,
     BriefcaseBusiness,
     UserRound,
-    Activity,
     FileText,
-    RefreshCw,
+    Search,
+    SlidersHorizontal,
+    ChevronDown,
+    Layers3,
+    RotateCcw,
+    ShieldCheck,
 } from 'lucide-react';
 
+import PageHeader from '@/components/dashboard/PageHeader';
 import LoadingUI from '@/components/dashboard/LoadingUI';
 import LoadingError from '@/components/dashboard/LoadingError';
 import StatusBadge from '@/components/dashboard/StatusBadge';
+import DataTable from '@/components/dashboard/DataTable';
+import UsersPagination from '../users/components/Pagination';
+import DashboardInput from '@/components/dashboard/DashboardInput';
 import { fetchVolunteerDetails } from './api/volunteerApi';
 
 const formatDate = (value) => {
@@ -35,8 +41,9 @@ const formatDate = (value) => {
 };
 
 const normalizeResponse = (response) => {
-    if (!response || typeof response !== 'object')
+    if (!response || typeof response !== 'object') {
         return { volunteer: null, assignments: [] };
+    }
     const root =
         response.data &&
         typeof response.data === 'object' &&
@@ -77,6 +84,7 @@ const availabilityLabel = (value) => {
 
 const getCampaignId = (item) =>
     item?.campaign?.id ?? item?.campaign_id ?? item?.campaignId ?? null;
+
 const getCampaignTitle = (item) =>
     item?.campaign?.title ??
     item?.campaign?.name ??
@@ -88,33 +96,235 @@ const getCampaignTitle = (item) =>
         ? `Campaign #${getCampaignId(item)}`
         : 'Campaign details unavailable');
 
-const Detail = ({ icon: Icon, label, children }) => (
-    <div className="min-w-0 border-b border-[#222B36] py-4 last:border-b-0 sm:py-5">
-        <div className="mb-2 flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.08em] text-[#788698]">
-            <Icon size={14} strokeWidth={1.7} /> {label}
-        </div>
-        <div className="wrap-break-word text-[14px] font-medium text-[#DCE2EA]">
-            {children || '—'}
-        </div>
-    </div>
-);
-
-const SectionHeading = ({ eyebrow, title, aside }) => (
-    <div className="flex flex-wrap items-end justify-between gap-3 border-b border-[#29323E] pb-4">
-        <div>
-            <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#8290A1]">
-                {eyebrow}
+function Field({ icon: Icon, label, value, wide = false }) {
+    return (
+        <div className={`min-w-0 py-4 ${wide ? 'sm:col-span-2' : ''}`}>
+            <div className="flex items-center gap-2 text-[11px] font-medium! uppercase tracking-[0.075em] text-[#8290A1]!">
+                <Icon size={14} strokeWidth={1.7} className="shrink-0" />
+                {label}
+            </div>
+            <p className="mt-2 wrap-break-word text-[14px] font-medium! leading-6 text-[#DCE4ED]!">
+                {value || '—'}
             </p>
-            <h2 className="text-[18px] font-semibold tracking-[-0.02em] text-[#E6EBF1]">
-                {title}
-            </h2>
         </div>
-        {aside}
-    </div>
-);
+    );
+}
+
+function SectionTitle({ icon: Icon, title, extra }) {
+    return (
+        <div className="flex min-w-0 flex-wrap items-center justify-between gap-3 border-b border-[#29323E] pb-4">
+            <div className="flex min-w-0 items-center gap-3">
+                <Icon
+                    size={18}
+                    strokeWidth={1.65}
+                    className="shrink-0 text-[#93A3B5]"
+                />
+                <h2 className="text-[17px] font-semibold! tracking-tight text-[#E6ECF3]! sm:text-[18px]">
+                    {title}
+                </h2>
+            </div>
+            {extra}
+        </div>
+    );
+}
+
+function SelectFilter({
+    label,
+    value,
+    options,
+    onChange,
+    allLabel,
+    setCampaignPage,
+}) {
+    const labelOf = (value) =>
+        value.replace(/[_-]+/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+    const selectClass =
+        'h-10 w-full min-w-0 appearance-none border border-[#35404E] bg-[#151C25] px-3 pr-9 text-[12px] text-[#DCE5EF] outline-none transition-colors hover:border-[#526173] focus:border-[#8190A3]';
+    return (
+        <div className="border-t border-[#29323E] px-4 py-5 sm:px-5">
+            <label className="mb-3 block text-[10px] font-semibold! uppercase tracking-[0.08em] text-[#91A0B2]!">
+                {label}
+            </label>
+            <div className="relative">
+                <select
+                    aria-label={label}
+                    value={value}
+                    onChange={(event) => {
+                        onChange(event.target.value);
+                        setCampaignPage(1);
+                    }}
+                    className={selectClass}
+                >
+                    <option value="all">{allLabel}</option>
+                    {options.map((option) => (
+                        <option key={option} value={option}>
+                            {labelOf(option)}
+                        </option>
+                    ))}
+                </select>
+                <ChevronDown
+                    size={15}
+                    className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#8999AA]"
+                />
+            </div>
+        </div>
+    );
+}
+
+function CampaignFilters({
+    campaignFiltersActive,
+    resetCampaignFilters,
+    campaignStatusFilter,
+    campaignTypeFilter,
+    campaignCategoryFilter,
+    campaignOrganizationFilter,
+    campaignRows,
+    campaignTypes,
+    campaignCategories,
+    campaignOrganizations,
+    setCampaignStatusFilter,
+    setCampaignTypeFilter,
+    setCampaignCategoryFilter,
+    setCampaignOrganizationFilter,
+    setCampaignPage,
+}) {
+    const statuses = [
+        'all',
+        'unverified',
+        'active',
+        'in_progress',
+        'pending',
+        'completed',
+        'rejected',
+        'cancelled',
+    ];
+    const statusCounts = Object.fromEntries(
+        statuses.map((status) => [
+            status,
+            status === 'all'
+                ? campaignRows.length
+                : campaignRows.filter(
+                      (row) =>
+                          String(row.status ?? '')
+                              .toLowerCase()
+                              .replace(/[\s-]+/g, '_') === status,
+                  ).length,
+        ]),
+    );
+    // Keep unexpected API statuses visible rather than silently hiding them.
+    const extraStatuses = [
+        ...new Set(
+            campaignRows.map((row) =>
+                String(row.status ?? 'unknown')
+                    .toLowerCase()
+                    .replace(/[\s-]+/g, '_'),
+            ),
+        ),
+    ].filter((status) => !statuses.includes(status));
+    const allStatuses = [...statuses, ...extraStatuses];
+    const labelOf = (value) =>
+        value === 'all'
+            ? 'All Campaigns'
+            : value
+                  .replace(/[_-]+/g, ' ')
+                  .replace(/\b\w/g, (c) => c.toUpperCase());
+    return (
+        <aside className="min-w-0 overflow-hidden border border-[#29323E] bg-[#0E1219]">
+            <div className="flex min-h-14 items-center justify-between gap-3 border-b border-[#29323E] bg-[#1A222D] px-5">
+                <h3 className="text-[15px] font-semibold! text-[#E7EDF4]!">
+                    Filter
+                </h3>
+                {campaignFiltersActive && (
+                    <button
+                        type="button"
+                        onClick={resetCampaignFilters}
+                        className="inline-flex items-center gap-1.5 text-[11px] text-[#A7B4C3] hover:text-[#EEF1F5]"
+                    >
+                        <RotateCcw size={13} /> Reset
+                    </button>
+                )}
+            </div>
+            <div className="px-3 py-4 sm:px-4">
+                <p className="mb-3 px-2 text-[10px] font-semibold! uppercase tracking-[0.08em] text-[#91A0B2]!">
+                    Campaign status
+                </p>
+                <div className="space-y-1">
+                    {allStatuses.map((status, index) => {
+                        const selected = campaignStatusFilter === status;
+                        const count =
+                            statusCounts[status] ??
+                            campaignRows.filter(
+                                (row) =>
+                                    String(row.status ?? '')
+                                        .toLowerCase()
+                                        .replace(/[\s-]+/g, '_') === status,
+                            ).length;
+                        return (
+                            <button
+                                key={status}
+                                type="button"
+                                aria-pressed={selected}
+                                onClick={() => {
+                                    setCampaignStatusFilter(status);
+                                    setCampaignPage(1);
+                                }}
+                                className={`group flex min-h-10 w-full items-center gap-2.5 border-l-2 px-2.5 text-left transition-colors ${selected ? 'border-[#8FA3B8] bg-[#1B2531]' : 'border-transparent hover:bg-[#161F29]'}`}
+                            >
+                                <span
+                                    className={`flex h-6 min-w-6 shrink-0 items-center justify-center bg-[#202D3A] px-1 text-[10px] tabular-nums ${selected ? 'text-[#DCE8F3]' : 'text-[#8E9EAF]'}`}
+                                >
+                                    {String(index + 1).padStart(2, '0')}
+                                </span>
+                                <span
+                                    className={`min-w-0 flex-1 truncate text-[12px] ${selected ? 'font-semibold! text-[#EEF1F5]!' : 'font-medium! text-[#9AA8B9]! group-hover:text-[#DCE5EF]!'}`}
+                                >
+                                    {labelOf(status)}
+                                </span>
+                                <span
+                                    className={`shrink-0 text-[11px] tabular-nums ${selected ? 'font-semibold! text-[#E1E9F2]' : 'text-[#7E8C9E]'}`}
+                                >
+                                    {count}
+                                </span>
+                            </button>
+                        );
+                    })}
+                </div>
+            </div>
+            <SelectFilter
+                setCampaignPage={setCampaignPage}
+                label="Campaign type"
+                value={campaignTypeFilter}
+                options={campaignTypes}
+                onChange={setCampaignTypeFilter}
+                allLabel="All campaign types"
+            />
+            <SelectFilter
+                setCampaignPage={setCampaignPage}
+                label="Category"
+                value={campaignCategoryFilter}
+                options={campaignCategories}
+                onChange={setCampaignCategoryFilter}
+                allLabel="All categories"
+            />
+            <SelectFilter
+                setCampaignPage={setCampaignPage}
+                label="Organization"
+                value={campaignOrganizationFilter}
+                options={campaignOrganizations}
+                onChange={setCampaignOrganizationFilter}
+                allLabel="All organizations"
+            />
+        </aside>
+    );
+}
 
 export default function VolunteerDetails() {
-    const { id } = useParams();
+    const params = useParams();
+    const id =
+        params.id ??
+        params.volunteerId ??
+        params.volunteer_id ??
+        Object.values(params)[0];
     const navigate = useNavigate();
     const [details, setDetails] = useState({
         volunteer: null,
@@ -122,17 +332,30 @@ export default function VolunteerDetails() {
     });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [reloadKey, setReloadKey] = useState(0);
+    const [failedPhoto, setFailedPhoto] = useState(null);
+    const [campaignPage, setCampaignPage] = useState(1);
+    const [campaignSearch, setCampaignSearch] = useState('');
+    const [campaignStatusFilter, setCampaignStatusFilter] = useState('all');
+    const [campaignTypeFilter, setCampaignTypeFilter] = useState('all');
+    const [campaignCategoryFilter, setCampaignCategoryFilter] = useState('all');
+    const [campaignOrganizationFilter, setCampaignOrganizationFilter] =
+        useState('all');
+    const [mobileCampaignFiltersOpen, setMobileCampaignFiltersOpen] =
+        useState(false);
+    const [campaignSort, setCampaignSort] = useState({
+        key: 'assigned',
+        direction: 'desc',
+    });
 
     useEffect(() => {
         let cancelled = false;
-        const load = async () => {
+        async function load() {
             setLoading(true);
             setError('');
             try {
                 if (!id) throw new Error('Volunteer ID is missing.');
-                const response = await fetchVolunteerDetails(id);
-                if (!cancelled) setDetails(normalizeResponse(response));
+                const result = await fetchVolunteerDetails(id);
+                if (!cancelled) setDetails(normalizeResponse(result));
             } catch (err) {
                 if (!cancelled)
                     setError(
@@ -141,19 +364,18 @@ export default function VolunteerDetails() {
             } finally {
                 if (!cancelled) setLoading(false);
             }
-        };
+        }
         load();
         return () => {
             cancelled = true;
         };
-    }, [id, reloadKey]);
+    }, [id]);
 
     const volunteer = details.volunteer;
     const user = volunteer?.user || {};
     const name = user.name || volunteer?.name || 'Unnamed volunteer';
     const email = user.email || volunteer?.email || 'No email address';
     const photo = user.photo || volunteer?.photo;
-    const [failedPhoto, setFailedPhoto] = useState(null);
     const availability = availabilityLabel(
         volunteer?.availability ?? user.availability,
     );
@@ -163,40 +385,264 @@ export default function VolunteerDetails() {
         : typeof rawSkills === 'string'
           ? rawSkills
                 .split(',')
-                .map((skill) => skill.trim())
+                .map((item) => item.trim())
                 .filter(Boolean)
           : [];
 
-    return (
-        <div className="min-w-0 space-y-8 pb-10 font-sans lg:space-y-10">
-            <header className="border-b border-[#29323E] pb-6 sm:pb-8">
-                <button
-                    type="button"
-                    onClick={() => navigate('/admin/dashboard/volunteers')}
-                    className="mb-5 inline-flex items-center gap-2 text-[12px] font-medium text-[#94A0AE] transition-colors hover:text-[#EEF1F5]"
+    const campaignRows = details.assignments.map((assignment, index) => {
+        const campaign = assignment.campaign || {};
+        const category = campaign.category || assignment.category;
+        const organization =
+            campaign.organization ||
+            campaign.organisation ||
+            assignment.organization ||
+            assignment.organisation;
+        const campaignType =
+            campaign.type ||
+            campaign.campaign_type ||
+            assignment.campaign_type ||
+            assignment.type;
+        const textOf = (value) => {
+            if (typeof value === 'string' || typeof value === 'number')
+                return String(value);
+            if (value && typeof value === 'object')
+                return value.name || value.title || value.label || '—';
+            return '—';
+        };
+        return {
+            id: assignment.id ?? `assignment-${index}`,
+            campaignId: getCampaignId(assignment),
+            campaignName: getCampaignTitle(assignment),
+            campaignType: textOf(campaignType),
+            category: textOf(category),
+            organization: textOf(organization?.organization || organization),
+            assigned: formatDate(
+                assignment.assigned_at || assignment.created_at,
+            ),
+            assignedTimestamp:
+                new Date(
+                    assignment.assigned_at || assignment.created_at || 0,
+                ).getTime() || 0,
+            status: assignment.status || 'unknown',
+        };
+    });
+    /* CAMPAIGN HISTORY FILTERS */
+
+    const campaignTypes = [
+        ...new Set(
+            campaignRows
+                .map((row) => row.campaignType)
+                .filter((value) => value !== '—'),
+        ),
+    ].sort();
+    const campaignCategories = [
+        ...new Set(
+            campaignRows
+                .map((row) => row.category)
+                .filter((value) => value !== '—'),
+        ),
+    ].sort();
+    const campaignOrganizations = [
+        ...new Set(
+            campaignRows
+                .map((row) => row.organization)
+                .filter((value) => value !== '—'),
+        ),
+    ].sort();
+
+    const filteredCampaignRows = campaignRows.filter((row) => {
+        const query = campaignSearch.trim().toLowerCase();
+        const matchesSearch =
+            !query ||
+            [
+                row.campaignName,
+                row.campaignType,
+                row.category,
+                row.organization,
+            ].some((value) =>
+                String(value || '')
+                    .toLowerCase()
+                    .includes(query),
+            );
+        return (
+            matchesSearch &&
+            (campaignStatusFilter === 'all' ||
+                String(row.status)
+                    .toLowerCase()
+                    .replace(/[\s-]+/g, '_') === campaignStatusFilter) &&
+            (campaignTypeFilter === 'all' ||
+                row.campaignType === campaignTypeFilter) &&
+            (campaignCategoryFilter === 'all' ||
+                row.category === campaignCategoryFilter) &&
+            (campaignOrganizationFilter === 'all' ||
+                row.organization === campaignOrganizationFilter)
+        );
+    });
+
+    const resetCampaignFilters = () => {
+        setCampaignSearch('');
+        setCampaignStatusFilter('all');
+        setCampaignTypeFilter('all');
+        setCampaignCategoryFilter('all');
+        setCampaignOrganizationFilter('all');
+        setCampaignPage(1);
+    };
+
+    const campaignFiltersActive =
+        campaignStatusFilter !== 'all' ||
+        campaignTypeFilter !== 'all' ||
+        campaignCategoryFilter !== 'all' ||
+        campaignOrganizationFilter !== 'all' ||
+        campaignSearch.trim() !== '';
+
+    const sortedCampaignRows = [...filteredCampaignRows].sort((a, b) => {
+        const av =
+            campaignSort.key === 'assigned'
+                ? a.assignedTimestamp
+                : String(a[campaignSort.key] ?? '').toLowerCase();
+        const bv =
+            campaignSort.key === 'assigned'
+                ? b.assignedTimestamp
+                : String(b[campaignSort.key] ?? '').toLowerCase();
+        const comparison =
+            typeof av === 'number'
+                ? av - bv
+                : String(av).localeCompare(String(bv));
+        return campaignSort.direction === 'asc' ? comparison : -comparison;
+    });
+    const campaignPageSize = 25;
+    const campaignTotalPages = Math.max(
+        1,
+        Math.ceil(sortedCampaignRows.length / campaignPageSize),
+    );
+    const currentCampaignPage = Math.min(campaignPage, campaignTotalPages);
+    const paginatedCampaignRows = sortedCampaignRows.slice(
+        (currentCampaignPage - 1) * campaignPageSize,
+        currentCampaignPage * campaignPageSize,
+    );
+    const toggleCampaignSort = (key) => {
+        setCampaignSort((previous) => ({
+            key,
+            direction:
+                previous.key === key && previous.direction === 'asc'
+                    ? 'desc'
+                    : 'asc',
+        }));
+        setCampaignPage(1);
+    };
+    const displayCampaignRows = paginatedCampaignRows.map((row, index) => ({
+        ...row,
+        serialNumber: (currentCampaignPage - 1) * campaignPageSize + index + 1,
+    }));
+
+    const campaignColumns = [
+        {
+            key: 'campaignName',
+            header: 'Campaign',
+            sortable: true,
+            width: 'minmax(210px, 2fr)',
+            render: (value) => (
+                <div className="min-w-0">
+                    <p
+                        className="truncate text-[12px] font-semibold! text-[#E3EAF2]!"
+                        title={value}
+                    >
+                        {value}
+                    </p>
+                </div>
+            ),
+        },
+        {
+            key: 'campaignType',
+            sortable: true,
+            header: 'Type',
+            width: 'minmax(115px, 0.8fr)',
+            render: (value) => (
+                <span className="text-[12px] text-[#B9C4D0]">{value}</span>
+            ),
+        },
+        {
+            key: 'category',
+            sortable: true,
+            header: 'Category',
+            width: 'minmax(120px, 0.9fr)',
+            render: (value) => (
+                <span className="text-[12px] text-[#B9C4D0]">{value}</span>
+            ),
+        },
+        {
+            key: 'organization',
+            sortable: true,
+            header: 'Connected org',
+            width: 'minmax(160px, 1.2fr)',
+            render: (value) => (
+                <span
+                    className="block truncate text-[12px] text-[#B9C4D0]"
+                    title={value}
                 >
-                    <ArrowLeft size={15} /> All Volunteers
-                </button>
-                <div className="flex flex-wrap items-end justify-between gap-4">
-                    <div>
-                        <h1 className="font-serif text-[32px] leading-tight tracking-[-0.035em] text-[#EEF1F5] sm:text-[42px]">
-                            Volunteer Details
-                        </h1>
-                        <p className="mt-2 text-[13px] text-[#97A3B2]">
-                            Profile information and campaign participation
-                            history.
-                        </p>
-                    </div>
+                    {value}
+                </span>
+            ),
+        },
+        {
+            key: 'assigned',
+            sortable: true,
+            header: 'Assigned',
+            width: 'minmax(120px, 0.8fr)',
+            render: (value) => (
+                <span className="whitespace-nowrap text-[12px] text-[#B9C4D0]">
+                    {value}
+                </span>
+            ),
+        },
+        {
+            key: 'status',
+            sortable: true,
+            header: 'Status',
+            width: 'minmax(125px, 0.8fr)',
+            render: (value) => <StatusBadge status={value} />,
+        },
+        {
+            key: 'actions',
+            header: 'Actions',
+            align: 'right',
+            width: '95px',
+            render: (_, row) =>
+                row.campaignId != null ? (
                     <button
                         type="button"
-                        onClick={() => setReloadKey((v) => v + 1)}
-                        disabled={loading}
-                        className="inline-flex h-9 items-center gap-2 border border-[#343E4B] px-3 text-[12px] font-medium text-[#BAC4D0] hover:bg-[#1A222D] disabled:opacity-50"
+                        onClick={() =>
+                            navigate(
+                                `/admin/dashboard/campaigns/${encodeURIComponent(row.campaignId)}`,
+                            )
+                        }
+                        className="inline-flex h-8 items-center gap-1.5 border border-[#35404E] px-2.5 text-[11px] font-medium! text-[#C6D0DC]! transition-colors hover:bg-[#1D2733] hover:text-[#EEF1F5]"
                     >
-                        <RefreshCw size={14} /> Refresh
+                        View <ArrowUpRight size={13} />
                     </button>
-                </div>
-            </header>
+                ) : (
+                    <span className="text-[#697586]">—</span>
+                ),
+        },
+    ];
+
+    return (
+        <main className="min-w-0 space-y-10 pb-10 font-sans lg:space-y-12">
+            {/* Shared dashboard heading — same component as Users and Volunteers */}
+            <PageHeader
+                title="Volunteer Details"
+                subtitle="Membership information and campaign participation."
+                action={
+                    <button
+                        type="button"
+                        onClick={() => navigate('/admin/dashboard/volunteers')}
+                        className="inline-flex h-10 shrink-0 items-center justify-center gap-2 border border-[#343E4B] bg-transparent px-3.5 font-sans text-[12px] font-medium text-[#B8C2CF] transition-colors duration-150 hover:border-[#4B596A] hover:bg-[#1C232D] hover:text-[#F1F5F9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4B596A]"
+                    >
+                        <ArrowLeft size={15} strokeWidth={1.8} />
+                        All Volunteers
+                    </button>
+                }
+            />
 
             {loading ? (
                 <LoadingUI
@@ -210,15 +656,20 @@ export default function VolunteerDetails() {
                     message={error}
                 />
             ) : !volunteer ? (
-                <div className="border border-[#29323E] bg-[#0E1219] px-6 py-12 text-center text-[#9AA6B5]">
+                <div className="border border-[#29323E] bg-[#0E1219] px-6 py-12 text-center text-[#9AA6B5]!">
                     Volunteer information is unavailable.
                 </div>
             ) : (
-                <>
-                    <section className="border border-[#29323E] bg-[#0E1219]">
-                        <div className="flex flex-col gap-5 px-5 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-7 sm:py-7">
-                            <div className="flex min-w-0 items-center gap-4">
-                                <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden border border-[#394454] bg-[#1C2632] text-[19px] font-semibold text-[#D8E0E9] sm:h-16 sm:w-16">
+                <div className="space-y-6 sm:space-y-7">
+                    {/* IDENTITY STRIP */}
+                    <section className="relative overflow-hidden border border-[#29323E] bg-[#101720]">
+                        <div
+                            aria-hidden="true"
+                            className="absolute inset-y-0 left-0 w-0.75 bg-[#75879B]"
+                        />
+                        <div className="flex min-w-0 flex-col gap-5 px-5 py-6 sm:px-7 sm:py-7 lg:flex-row lg:items-center lg:justify-between">
+                            <div className="flex min-w-0 items-center gap-4 sm:gap-5">
+                                <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden border border-[#394656] bg-[#222E3B] text-[23px] font-semibold! text-[#D9E2EB]! sm:h-18 sm:w-18">
                                     {photo && failedPhoto !== photo ? (
                                         <img
                                             src={photo}
@@ -234,27 +685,33 @@ export default function VolunteerDetails() {
                                     )}
                                 </div>
                                 <div className="min-w-0">
-                                    <h2 className="wrap-break-word text-[19px] font-semibold text-[#E6EBF1] sm:text-[22px]">
+                                    <p className="mb-1 text-[10px] font-semibold! uppercase tracking-[0.12em] text-[#8292A4]!">
+                                        Volunteer member
+                                    </p>
+                                    <h2 className="wrap-break-word text-[21px] font-semibold! tracking-tight text-[#E9EEF4]! sm:text-[25px]">
                                         {name}
                                     </h2>
-                                    <p className="mt-1 flex min-w-0 items-center gap-2 break-all text-[12px] text-[#93A0B0]">
+                                    <p className="mt-1.5 flex min-w-0 items-center gap-2 break-all text-[12px] text-[#9BA8B8]! sm:text-[13px]">
                                         <Mail size={14} className="shrink-0" />{' '}
                                         {email}
                                     </p>
                                 </div>
                             </div>
-                            <div className="flex flex-wrap items-center gap-3">
+                            <div className="flex flex-wrap items-center gap-2 lg:justify-end">
                                 <StatusBadge
                                     status={volunteer.status || 'inactive'}
                                 />
-                                <span className="inline-flex items-center gap-2 border border-[#29323E] bg-[#151C25] px-3 py-1.5 text-[12px] text-[#AAB6C5]">
+                                <span className="inline-flex min-h-8 items-center gap-2 border border-[#35404E] bg-[#1A222D] px-3 text-[12px] text-[#B5C0CD]!">
                                     {availability === 'Available' ? (
                                         <CheckCircle2
                                             size={14}
-                                            className="text-[#8EC5A3]"
+                                            className="text-[#8DB8A4]"
                                         />
                                     ) : (
-                                        <CircleAlert size={14} />
+                                        <CircleAlert
+                                            size={14}
+                                            className="text-[#94A1B1]"
+                                        />
                                     )}
                                     {availability}
                                 </span>
@@ -262,184 +719,330 @@ export default function VolunteerDetails() {
                         </div>
                     </section>
 
-                    <section className="min-w-0 border border-[#29323E] bg-[#0E1219] p-5 sm:p-7">
-                        <SectionHeading
-                            eyebrow="Profile"
-                            title="Basic Information"
-                        />
-                        <div className="grid gap-x-8 sm:grid-cols-2 xl:grid-cols-3">
-                            <Detail icon={UserRound} label="Full Name">
-                                {name}
-                            </Detail>
-                            <Detail icon={Mail} label="Email">
-                                {email}
-                            </Detail>
-                            <Detail icon={Phone} label="Phone">
-                                {volunteer.phone || user.phone}
-                            </Detail>
-                            <Detail icon={MapPin} label="District">
-                                {volunteer.district || user.district}
-                            </Detail>
-                            <Detail icon={MapPin} label="Address">
-                                {volunteer.address || user.address}
-                            </Detail>
-                            <Detail icon={CalendarDays} label="Joined">
-                                {formatDate(volunteer.created_at)}
-                            </Detail>
-                        </div>
-                    </section>
-
-                    <section className="min-w-0 border border-[#29323E] bg-[#0E1219] p-5 sm:p-7">
-                        <SectionHeading eyebrow="Capabilities" title="Skills" />
-                        {skills.length ? (
-                            <div className="flex flex-wrap gap-2 pt-5">
-                                {skills.map((skill, index) => (
-                                    <span
-                                        key={`${skill}-${index}`}
-                                        className="inline-flex items-center gap-2 border border-[#303B48] bg-[#151C25] px-3 py-2 text-[12px] text-[#C8D1DC]"
-                                    >
-                                        <BriefcaseBusiness
-                                            size={14}
-                                            className="text-[#8494A6]"
-                                        />{' '}
-                                        {skill}
-                                    </span>
-                                ))}
-                            </div>
-                        ) : (
-                            <p className="pt-5 text-[13px] text-[#8792A1]">
-                                No skills have been added.
-                            </p>
-                        )}
-                    </section>
-
-                    <section className="min-w-0 border border-[#29323E] bg-[#0E1219] p-5 sm:p-7">
-                        <SectionHeading
-                            eyebrow="Activity"
-                            title="Campaign History"
-                            aside={
-                                <span className="text-[12px] text-[#8792A1]">
-                                    {details.assignments.length}{' '}
-                                    {details.assignments.length === 1
-                                        ? 'assignment'
-                                        : 'assignments'}
-                                </span>
-                            }
-                        />
-                        {!details.assignments.length ? (
-                            <div className="py-12 text-center">
-                                <Activity
-                                    size={23}
-                                    className="mx-auto text-[#687789]"
+                    {/* PROFILE & MEMBERSHIP */}
+                    <div className="grid min-w-0 items-start gap-6 xl:grid-cols-[minmax(0,1.65fr)_minmax(280px,0.8fr)]">
+                        <section className="min-w-0 border border-[#29323E] bg-[#0E1219] px-5 py-5 sm:px-7 sm:py-6">
+                            <SectionTitle
+                                icon={UserRound}
+                                title="Personal information"
+                            />
+                            <div className="mt-3 grid min-w-0 grid-cols-1 gap-x-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-2 2xl:grid-cols-3">
+                                <Field
+                                    icon={UserRound}
+                                    label="Full name"
+                                    value={name}
                                 />
-                                <p className="mt-3 text-[14px] font-medium text-[#D6DEE8]">
-                                    No campaign history
-                                </p>
-                                <p className="mt-1 text-[12px] text-[#8792A1]">
-                                    This volunteer has not been assigned to a
-                                    campaign yet.
-                                </p>
+                                <Field
+                                    icon={Mail}
+                                    label="Email address"
+                                    value={email}
+                                />
+                                <Field
+                                    icon={Phone}
+                                    label="Phone number"
+                                    value={volunteer.phone || user.phone}
+                                />
+                                <Field
+                                    icon={MapPin}
+                                    label="District"
+                                    value={volunteer.district || user.district}
+                                />
+                                <Field
+                                    icon={MapPin}
+                                    label="Address"
+                                    value={volunteer.address || user.address}
+                                    wide
+                                />
                             </div>
-                        ) : (
-                            <div className="mt-5 overflow-hidden border border-[#29323E]">
-                                <div className="hidden grid-cols-[minmax(0,1fr)_150px_140px_120px] gap-4 border-b border-[#29323E] bg-[#1A222D] px-4 py-3 text-[11px] font-medium uppercase tracking-[0.08em] text-[#8290A1] md:grid">
-                                    <span>Campaign</span>
-                                    <span>Assigned</span>
-                                    <span>Status</span>
-                                    <span className="text-right">Action</span>
+                            <div className="mt-3 border-t border-[#29323E] pt-5">
+                                <div className="flex items-center gap-2.5">
+                                    <BriefcaseBusiness
+                                        size={16}
+                                        strokeWidth={1.7}
+                                        className="text-[#93A3B5]"
+                                    />
+                                    <h3 className="text-[14px] font-semibold! text-[#DCE4ED]!">
+                                        Skills & capabilities
+                                    </h3>
                                 </div>
-                                {details.assignments.map(
-                                    (assignment, index) => {
-                                        const campaignId =
-                                            getCampaignId(assignment);
-                                        const assigned =
-                                            assignment.assigned_at ||
-                                            assignment.created_at;
-                                        return (
-                                            <div
-                                                key={
-                                                    assignment.id ??
-                                                    `${campaignId ?? 'unknown'}-${index}`
-                                                }
-                                                className="grid gap-3 border-b border-[#252D38] px-4 py-4 last:border-b-0 md:grid-cols-[minmax(0,1fr)_150px_140px_120px] md:items-center md:gap-4"
+                                {skills.length ? (
+                                    <div className="mt-4 flex flex-wrap gap-2">
+                                        {skills.map((skill, index) => (
+                                            <span
+                                                key={`${skill}-${index}`}
+                                                className="border border-[#35404E] bg-[#1A222D] px-3 py-1.5 text-[12px] text-[#C9D3DF]!"
                                             >
-                                                <div className="min-w-0">
-                                                    <p className="flex items-start gap-2 wrap-break-word text-[13px] font-semibold text-[#DEE5ED]">
-                                                        <FileText
-                                                            size={15}
-                                                            className="mt-0.5 shrink-0 text-[#8998AA]"
-                                                        />{' '}
-                                                        {getCampaignTitle(
-                                                            assignment,
-                                                        )}
-                                                    </p>
-                                                    {campaignId != null && (
-                                                        <p className="mt-1 pl-5.75 text-[11px] text-[#788698]">
-                                                            Campaign #
-                                                            {campaignId}
-                                                        </p>
-                                                    )}
-                                                </div>
-                                                <div className="text-[12px] text-[#B3BECA]">
-                                                    <span className="mr-2 text-[#788698] md:hidden">
-                                                        Assigned:
-                                                    </span>
-                                                    {formatDate(assigned)}
-                                                </div>
-                                                <div>
-                                                    <StatusBadge
-                                                        status={
-                                                            assignment.status ||
-                                                            'unknown'
-                                                        }
-                                                    />
-                                                </div>
-                                                <div className="md:text-right">
-                                                    {campaignId != null ? (
-                                                        <button
-                                                            type="button"
-                                                            onClick={() =>
-                                                                navigate(
-                                                                    `/admin/dashboard/campaigns/${encodeURIComponent(campaignId)}`,
-                                                                )
-                                                            }
-                                                            className="inline-flex items-center gap-1.5 border border-[#35404E] px-2.5 py-2 text-[11px] font-medium text-[#C4CED9] hover:bg-[#1A222D] hover:text-white"
-                                                        >
-                                                            View{' '}
-                                                            <ArrowUpRight
-                                                                size={13}
-                                                            />
-                                                        </button>
-                                                    ) : (
-                                                        <span className="text-[11px] text-[#697586]">
-                                                            Unavailable
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        );
-                                    },
+                                                {skill}
+                                            </span>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="mt-3 text-[13px] text-[#91A0B1]!">
+                                        No skills have been added.
+                                    </p>
                                 )}
                             </div>
-                        )}
-                    </section>
+                        </section>
+                        <aside className="min-w-0 border border-[#29323E] bg-[#0E1219] px-5 py-5 sm:px-6 sm:py-6">
+                            <SectionTitle
+                                icon={ShieldCheck}
+                                title="Membership"
+                            />
+                            <div className="divide-y divide-[#27313D]">
+                                <div className="flex items-center justify-between gap-3 py-4">
+                                    <span className="text-[12px] text-[#92A0B0]!">
+                                        Member status
+                                    </span>
+                                    <StatusBadge
+                                        status={volunteer.status || 'inactive'}
+                                    />
+                                </div>
+                                <div className="flex items-center justify-between gap-3 py-4">
+                                    <span className="text-[12px] text-[#92A0B0]!">
+                                        Availability
+                                    </span>
+                                    <span className="text-right text-[12px] font-medium! text-[#D7E0EA]!">
+                                        {availability}
+                                    </span>
+                                </div>
+                                <div className="flex items-center justify-between gap-3 py-4">
+                                    <span className="text-[12px] text-[#92A0B0]!">
+                                        Joined
+                                    </span>
+                                    <span className="text-right text-[12px] font-medium! text-[#D7E0EA]!">
+                                        {formatDate(volunteer.created_at)}
+                                    </span>
+                                </div>
+                                <div className="flex items-center justify-between gap-3 py-4">
+                                    <span className="text-[12px] text-[#92A0B0]!">
+                                        Last updated
+                                    </span>
+                                    <span className="text-right text-[12px] font-medium! text-[#D7E0EA]!">
+                                        {formatDate(volunteer.updated_at)}
+                                    </span>
+                                </div>
+                                <div className="flex items-center justify-between gap-3 pt-4">
+                                    <span className="text-[12px] text-[#92A0B0]!">
+                                        Campaigns
+                                    </span>
+                                    <span className="text-[17px] font-semibold! tabular-nums text-[#E7EDF4]!">
+                                        {details.assignments.length}
+                                    </span>
+                                </div>
+                            </div>
+                        </aside>
+                    </div>
 
-                    <section className="grid gap-4 border-t border-[#29323E] pt-6 sm:grid-cols-3">
-                        <Detail icon={CheckCircle2} label="Volunteer Status">
-                            {String(volunteer.status || 'unknown').replaceAll(
-                                '_',
-                                ' ',
+                    {/* CAMPAIGN HISTORY — SAME DIRECTORY / FILTER SIDEBAR STRUCTURE AS USERS */}
+                    <section className="min-w-0 mt-12">
+                        <div className="my-6 flex flex-wrap items-end justify-between gap-3">
+                            <div className="min-w-0">
+                                <h2 className="font-sans! text-[20px] font-semibold! tracking-[-0.02em] text-[#EEF1F5]!">
+                                    Campaign history
+                                </h2>
+                                <p className="mt-1.5 text-[12px] text-[#8792A1]">
+                                    Campaign assignments and participation
+                                    status.
+                                </p>
+                            </div>
+                            <span className="text-[12px] text-[#96A4B4]!">
+                                {campaignRows.length}{' '}
+                                {campaignRows.length === 1
+                                    ? 'assignment'
+                                    : 'assignments'}
+                            </span>
+                        </div>
+
+                        <div
+                            className={`grid min-w-0 gap-5 ${campaignRows.length > 0 ? 'xl:grid-cols-[minmax(0,1fr)_280px] 2xl:grid-cols-[minmax(0,1fr)_300px]' : ''} xl:items-start`}
+                        >
+                            <div className="flex min-w-0 flex-col overflow-hidden border border-[#29323E] bg-[#0E1219]">
+                                {campaignRows.length > 0 && (
+                                    <div className="flex flex-wrap items-center gap-3 border-b border-[#29323E] bg-[#1A222D] px-4 py-3 sm:flex-nowrap sm:px-5">
+                                        <div className="min-w-0 flex-1">
+                                            <DashboardInput
+                                                type="search"
+                                                variant="default"
+                                                leftIcon={Search}
+                                                value={campaignSearch}
+                                                onChange={(event) => {
+                                                    setCampaignSearch(
+                                                        event.target.value,
+                                                    );
+                                                    setCampaignPage(1);
+                                                }}
+                                                placeholder="Search campaigns, type, category or organization"
+                                                aria-label="Search campaign history"
+                                                className="h-10! border-[#303A47]! bg-[#0E1219]! text-[12px]! focus:border-[#4B596A]! focus:ring-0!"
+                                            />
+                                        </div>
+                                        <span className="shrink-0 border-l border-[#35404E] pl-3 text-[11px] tabular-nums text-[#A8B5C4]!">
+                                            {filteredCampaignRows.length}{' '}
+                                            results
+                                        </span>
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setMobileCampaignFiltersOpen(
+                                                    (open) => !open,
+                                                )
+                                            }
+                                            className="inline-flex h-10 items-center gap-2 border border-[#35404E] px-3 text-[12px] text-[#B9C5D2] xl:hidden"
+                                        >
+                                            <SlidersHorizontal size={14} />{' '}
+                                            Filters
+                                        </button>
+                                    </div>
+                                )}
+                                {campaignRows.length > 0 &&
+                                    mobileCampaignFiltersOpen && (
+                                        <div className="border-b border-[#29323E] xl:hidden">
+                                            <CampaignFilters
+                                                campaignFiltersActive={
+                                                    campaignFiltersActive
+                                                }
+                                                resetCampaignFilters={
+                                                    resetCampaignFilters
+                                                }
+                                                campaignStatusFilter={
+                                                    campaignStatusFilter
+                                                }
+                                                campaignTypeFilter={
+                                                    campaignTypeFilter
+                                                }
+                                                campaignCategoryFilter={
+                                                    campaignCategoryFilter
+                                                }
+                                                campaignOrganizationFilter={
+                                                    campaignOrganizationFilter
+                                                }
+                                                campaignRows={campaignRows}
+                                                campaignTypes={campaignTypes}
+                                                campaignCategories={
+                                                    campaignCategories
+                                                }
+                                                campaignOrganizations={
+                                                    campaignOrganizations
+                                                }
+                                                setCampaignStatusFilter={
+                                                    setCampaignStatusFilter
+                                                }
+                                                setCampaignTypeFilter={
+                                                    setCampaignTypeFilter
+                                                }
+                                                setCampaignCategoryFilter={
+                                                    setCampaignCategoryFilter
+                                                }
+                                                setCampaignOrganizationFilter={
+                                                    setCampaignOrganizationFilter
+                                                }
+                                                setCampaignPage={
+                                                    setCampaignPage
+                                                }
+                                            />
+                                        </div>
+                                    )}
+                                {campaignRows.length === 0 ? (
+                                    <div className="flex min-h-36 flex-col items-center justify-center gap-2 px-5 py-8 text-center">
+                                        <FileText
+                                            size={19}
+                                            strokeWidth={1.5}
+                                            className="text-[#728094]"
+                                        />
+                                        <p className="text-[13px] font-medium text-[#D5DEE9]">
+                                            No campaign assignments yet
+                                        </p>
+                                        <p className="text-[12px] text-[#8792A1]">
+                                            This volunteer has not been assigned
+                                            to a campaign.
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <div className="min-w-0">
+                                        <DataTable
+                                            columns={campaignColumns}
+                                            onSort={toggleCampaignSort}
+                                            getSortIcon={(key) =>
+                                                campaignSort.key === key
+                                                    ? campaignSort.direction ===
+                                                      'asc'
+                                                        ? '↑'
+                                                        : '↓'
+                                                    : '↕'
+                                            }
+                                            rows={displayCampaignRows}
+                                            resultCount={
+                                                filteredCampaignRows.length
+                                            }
+                                            resizableColumns
+                                            empty={{
+                                                icon: FileText,
+                                                title: 'No campaigns found',
+                                                message:
+                                                    'Try adjusting the search or filters.',
+                                            }}
+                                        />
+                                    </div>
+                                )}
+                                {campaignRows.length > 0 && (
+                                    <div className="mt-auto border-t border-[#29323E]">
+                                        <UsersPagination
+                                            currentPage={currentCampaignPage}
+                                            totalPages={campaignTotalPages}
+                                            totalItems={
+                                                filteredCampaignRows.length
+                                            }
+                                            itemsPerPage={campaignPageSize}
+                                            onPageChange={setCampaignPage}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                            {campaignRows.length > 0 && (
+                                <aside className="hidden min-w-0 overflow-hidden border border-[#29323E] bg-[#0E1219] xl:block">
+                                    <CampaignFilters
+                                        campaignFiltersActive={
+                                            campaignFiltersActive
+                                        }
+                                        resetCampaignFilters={
+                                            resetCampaignFilters
+                                        }
+                                        campaignStatusFilter={
+                                            campaignStatusFilter
+                                        }
+                                        campaignTypeFilter={campaignTypeFilter}
+                                        campaignCategoryFilter={
+                                            campaignCategoryFilter
+                                        }
+                                        campaignOrganizationFilter={
+                                            campaignOrganizationFilter
+                                        }
+                                        campaignRows={campaignRows}
+                                        campaignTypes={campaignTypes}
+                                        campaignCategories={campaignCategories}
+                                        campaignOrganizations={
+                                            campaignOrganizations
+                                        }
+                                        setCampaignStatusFilter={
+                                            setCampaignStatusFilter
+                                        }
+                                        setCampaignTypeFilter={
+                                            setCampaignTypeFilter
+                                        }
+                                        setCampaignCategoryFilter={
+                                            setCampaignCategoryFilter
+                                        }
+                                        setCampaignOrganizationFilter={
+                                            setCampaignOrganizationFilter
+                                        }
+                                        setCampaignPage={setCampaignPage}
+                                    />
+                                </aside>
                             )}
-                        </Detail>
-                        <Detail icon={CircleAlert} label="Availability">
-                            {availability}
-                        </Detail>
-                        <Detail icon={Clock3} label="Last Updated">
-                            {formatDate(volunteer.updated_at)}
-                        </Detail>
+                        </div>
                     </section>
-                </>
+                </div>
             )}
-        </div>
+        </main>
     );
 }

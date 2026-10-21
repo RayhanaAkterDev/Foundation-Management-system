@@ -1,160 +1,298 @@
 import React from 'react';
-import { MapPin, CalendarDays, PlayCircle, CheckCircle2, LogOut, Clock3 } from 'lucide-react';
-import { formatDate, getCampaignLocation } from '../utils/volunteerHelpers';
-import AssignmentStatusBadge from './AssignmentStatusBadge';
-export default function CurrentActivities({ assignments, actionLoading, onStart, onComplete, onWithdraw }) {
-return (
-                    
-                        <section className="space-y-4">
-                            <div>
-                                <h2 className="text-lg font-semibold text-[#EEF1F5]">
-                                    Current Activities
-                                </h2>
+import {
+    MapPin,
+    CalendarDays,
+    PlayCircle,
+    CheckCircle2,
+    LogOut,
+    Clock3,
+    ArrowUpRight,
+    UsersRound,
+} from 'lucide-react';
 
-                                <p className="mt-1 text-sm text-[#8792A1]">
-                                    Campaign assignments you have accepted or
-                                    started.
-                                </p>
+import { formatDate, getCampaignLocation } from '../utils/volunteerHelpers';
+
+import AssignmentStatusBadge from './AssignmentStatusBadge';
+
+// Original button styles — unchanged.
+const buttonBase =
+    'inline-flex min-h-10 w-full min-w-0 items-center justify-center gap-2 border px-4 py-2.5 text-center text-[12px] font-semibold leading-5 transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto';
+
+const primaryButton = `${buttonBase} border-[#526173] bg-[#D7DEE7] !text-[#111821] hover:bg-[#F0F3F7]`;
+
+const secondaryButton = `${buttonBase} border-[#35404E] bg-[#1A222D] !text-[#C5CED9] hover:border-[#536173] hover:bg-[#25303D]`;
+
+function ActionButton({ children, variant = 'secondary', ...props }) {
+    return (
+        <button
+            type="button"
+            className={variant === 'primary' ? primaryButton : secondaryButton}
+            {...props}
+        >
+            {children}
+        </button>
+    );
+}
+
+export default function CurrentActivities({
+    assignments,
+    actionLoading,
+    onStart,
+    onComplete,
+    onWithdraw,
+}) {
+    return (
+        <section
+            aria-labelledby="current-activities-heading"
+            className="min-w-0 space-y-5 font-sans"
+        >
+            {/* SECTION HEADING */}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+                <h2
+                    id="current-activities-heading"
+                    className="!m-0 !font-sans !text-[18px] !font-semibold !leading-7 !tracking-[-0.02em] !text-[#EEF1F5]"
+                >
+                    Current activities
+                </h2>
+
+                {assignments?.length > 0 && (
+                    <span className="text-[12px] text-[#8792A1]">
+                        {assignments.length}{' '}
+                        {assignments.length === 1
+                            ? 'assignment'
+                            : 'assignments'}
+                    </span>
+                )}
+            </div>
+
+            {/* ASSIGNMENT LIST */}
+            <div className="grid min-w-0 gap-4">
+                {assignments?.map((assignment) => {
+                    const campaign = assignment?.campaign;
+                    const isLoading = actionLoading === assignment?.id;
+
+                    const assignmentStatus = assignment?.status;
+
+                    const hasActions = [
+                        'accepted',
+                        'in_progress',
+                        'withdrawal_requested',
+                    ].includes(assignmentStatus);
+
+                    const description =
+                        campaign?.shortDescription ||
+                        campaign?.short_description ||
+                        campaign?.description ||
+                        '';
+
+                    return (
+                        <article
+                            key={assignment.id}
+                            className="min-w-0 overflow-hidden border border-[#29323E] bg-[#0E1219]"
+                        >
+                            {/* CAMPAIGN CONTENT */}
+                            <div className="px-5 py-6 sm:px-7 sm:py-7">
+                                {/* TITLE + STATUS */}
+                                <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+                                    <div className="min-w-0 flex-1">
+                                        <p className="!font-sans text-[10px] font-semibold uppercase tracking-[0.13em] !text-[#8792A1]">
+                                            Campaign assignment
+                                        </p>
+
+                                        <h3 className="mt-2.5 break-words !font-sans !text-[17px] !font-semibold !leading-[1.5] !tracking-[-0.02em] !text-[#EEF1F5] sm:!text-[19px]">
+                                            {campaign?.title ||
+                                                'Untitled campaign'}
+                                        </h3>
+                                    </div>
+
+                                    <div className="shrink-0 self-start sm:pt-1">
+                                        <AssignmentStatusBadge
+                                            status={assignmentStatus}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* CAMPAIGN METADATA */}
+                                <div className="mt-5 flex min-w-0 flex-wrap items-center gap-x-7 gap-y-3">
+                                    <div className="flex min-w-0 items-center gap-2">
+                                        <MapPin
+                                            size={15}
+                                            strokeWidth={1.7}
+                                            className="shrink-0 text-[#8190A2]"
+                                            aria-hidden="true"
+                                        />
+
+                                        <span className="break-words text-[12px] leading-5 text-[#AAB5C3] sm:text-[13px]">
+                                            {getCampaignLocation(campaign) ||
+                                                'Not specified'}
+                                        </span>
+                                    </div>
+
+                                    <div className="flex min-w-0 items-center gap-2">
+                                        <CalendarDays
+                                            size={15}
+                                            strokeWidth={1.7}
+                                            className="shrink-0 text-[#8190A2]"
+                                            aria-hidden="true"
+                                        />
+
+                                        <span className="text-[12px] leading-5 text-[#AAB5C3] sm:text-[13px]">
+                                            Assigned{' '}
+                                            {formatDate(
+                                                assignment?.assigned_at,
+                                            )}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* CAMPAIGN DESCRIPTION */}
+                                {description && (
+                                    <div className="mt-6 border-t border-[#29323E] pt-5">
+                                        <p className="!font-sans text-[10px] font-semibold uppercase tracking-[0.12em] !text-[#8792A1]">
+                                            About the campaign
+                                        </p>
+
+                                        <p className="mt-2.5 max-w-[850px] overflow-hidden break-words !font-sans text-[13px] leading-[1.85] !text-[#A3AFBD] sm:text-[14px] [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:3]">
+                                            {description}
+                                        </p>
+                                    </div>
+                                )}
                             </div>
 
-                            <div className="grid gap-4 lg:grid-cols-2">
-                                {assignments.map((assignment) => {
-                                    const campaign = assignment?.campaign;
-                                    const isLoading =
-                                        actionLoading === assignment?.id;
+                            {/* ACTION AREA */}
+                            {hasActions && (
+                                <div className="border-t border-[#29323E] bg-[#121922] px-5 py-4 sm:px-7 sm:py-5">
+                                    {assignmentStatus === 'accepted' && (
+                                        <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
+                                            <ActionButton
+                                                variant="primary"
+                                                disabled={isLoading}
+                                                onClick={() =>
+                                                    onStart(assignment)
+                                                }
+                                            >
+                                                <PlayCircle
+                                                    size={16}
+                                                    className="shrink-0"
+                                                />
 
-                                    
+                                                {isLoading
+                                                    ? 'Processing...'
+                                                    : 'Start activity'}
 
-                                    return (
-                                        <div
-                                            key={assignment.id}
-                                            className="rounded-none border border-[#29323E] bg-[#0E1219] p-5 shadow-sm"
-                                        >
-                                            <div className="flex items-start justify-between gap-4">
-                                                <div className="min-w-0">
-                                                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#788595]">
-                                                        Active Campaign
-                                                    </p>
-
-                                                    <h3 className="mt-1 text-base font-semibold leading-6 text-[#EEF1F5]">
-                                                        {campaign?.title ||
-                                                            'Untitled campaign'}
-                                                    </h3>
-                                                </div>
-
-                                                <AssignmentStatusBadge status={assignment?.status} />
-                                            </div>
-
-                                            <div className="mt-5 space-y-3">
-                                                <div className="flex items-center gap-2 text-sm text-[#AAB3BF]">
-                                                    <MapPin className="h-4 w-4 text-[#788595]" />
-
-                                                    {getCampaignLocation(campaign)}
-                                                </div>
-
-                                                <div className="flex items-center gap-2 text-sm text-[#AAB3BF]">
-                                                    <CalendarDays className="h-4 w-4 text-[#788595]" />
-                                                    Assigned{' '}
-                                                    {formatDate(
-                                                        assignment?.assigned_at,
-                                                    )}
-                                                </div>
-                                            </div>
-
-                                            <div className="mt-5 flex flex-wrap gap-2 border-t border-[#252D38] pt-4">
-                                                {assignment?.status ===
-                                                    'accepted' && (
-                                                    <>
-                                                        <button
-                                                            type="button"
-                                                            disabled={isLoading}
-                                                            onClick={() =>
-                                                                onStart(
-                                                                    assignment,
-                                                                )
-                                                            }
-                                                            className="inline-flex min-h-10 items-center justify-center rounded-none bg-[#0f766e] px-4 text-sm font-semibold text-white! transition hover:bg-[#115e59] disabled:cursor-not-allowed disabled:opacity-50"
-                                                        >
-                                                            <PlayCircle className="mr-2 h-4 w-4" />
-
-                                                            {isLoading
-                                                                ? 'Processing...'
-                                                                : 'Start Activity'}
-                                                        </button>
-
-                                                        <button
-                                                            type="button"
-                                                            disabled={isLoading}
-                                                            onClick={() =>
-                                                                onWithdraw(
-                                                                    assignment,
-                                                                )
-                                                            }
-                                                            className="inline-flex min-h-10 items-center justify-center rounded-none border border-[#29323E] bg-[#0E1219] px-4 text-sm font-semibold text-[#AAB3BF] transition hover:border-[#72552B] hover:bg-[#2B2318] hover:text-[#D8B47B] disabled:cursor-not-allowed disabled:opacity-50"
-                                                        >
-                                                            <LogOut className="mr-2 h-4 w-4" />
-
-                                                            {isLoading
-                                                                ? 'Processing...'
-                                                                : 'Request Withdrawal'}
-                                                        </button>
-                                                    </>
+                                                {!isLoading && (
+                                                    <ArrowUpRight
+                                                        size={14}
+                                                        className="shrink-0"
+                                                    />
                                                 )}
+                                            </ActionButton>
 
-                                                {assignment?.status ===
-                                                    'in_progress' && (
-                                                    <>
-                                                        <button
-                                                            type="button"
-                                                            disabled={isLoading}
-                                                            onClick={() =>
-                                                                onComplete(
-                                                                    assignment,
-                                                                )
-                                                            }
-                                                            className="inline-flex min-h-10 items-center justify-center rounded-none bg-emerald-600 px-4 text-sm font-semibold text-white! transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
-                                                        >
-                                                            <CheckCircle2 className="mr-2 h-4 w-4" />
+                                            <ActionButton
+                                                disabled={isLoading}
+                                                onClick={() =>
+                                                    onWithdraw(assignment)
+                                                }
+                                            >
+                                                <LogOut
+                                                    size={15}
+                                                    className="shrink-0"
+                                                />
 
-                                                            {isLoading
-                                                                ? 'Processing...'
-                                                                : 'Mark Completed'}
-                                                        </button>
+                                                {isLoading
+                                                    ? 'Processing...'
+                                                    : 'Request withdrawal'}
+                                            </ActionButton>
+                                        </div>
+                                    )}
 
-                                                        <button
-                                                            type="button"
-                                                            disabled={isLoading}
-                                                            onClick={() =>
-                                                                onWithdraw(
-                                                                    assignment,
-                                                                )
-                                                            }
-                                                            className="inline-flex min-h-10 items-center justify-center rounded-none border border-[#29323E] bg-[#0E1219] px-4 text-sm font-semibold text-[#AAB3BF] transition hover:border-[#72552B] hover:bg-[#2B2318] hover:text-[#D8B47B] disabled:cursor-not-allowed disabled:opacity-50"
-                                                        >
-                                                            <LogOut className="mr-2 h-4 w-4" />
+                                    {assignmentStatus === 'in_progress' && (
+                                        <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
+                                            <ActionButton
+                                                variant="primary"
+                                                disabled={isLoading}
+                                                onClick={() =>
+                                                    onComplete(assignment)
+                                                }
+                                            >
+                                                <CheckCircle2
+                                                    size={16}
+                                                    className="shrink-0"
+                                                />
 
-                                                            {isLoading
-                                                                ? 'Processing...'
-                                                                : 'Request Withdrawal'}
-                                                        </button>
-                                                    </>
-                                                )}
+                                                {isLoading
+                                                    ? 'Processing...'
+                                                    : 'Mark completed'}
+                                            </ActionButton>
 
-                                                {assignment?.status ===
-                                                    'withdrawal_requested' && (
-                                                    <div className="flex w-full items-center gap-2 rounded-none border border-[#72552B] bg-[#2B2318] px-4 py-3 text-sm font-medium! text-[#D8B47B]">
-                                                        <Clock3 className="h-4 w-4 shrink-0" />
-                                                        Your withdrawal request
-                                                        is awaiting admin
-                                                        review.
-                                                    </div>
-                                                )}
+                                            <ActionButton
+                                                disabled={isLoading}
+                                                onClick={() =>
+                                                    onWithdraw(assignment)
+                                                }
+                                            >
+                                                <LogOut
+                                                    size={15}
+                                                    className="shrink-0"
+                                                />
+
+                                                {isLoading
+                                                    ? 'Processing...'
+                                                    : 'Request withdrawal'}
+                                            </ActionButton>
+                                        </div>
+                                    )}
+
+                                    {assignmentStatus ===
+                                        'withdrawal_requested' && (
+                                        <div className="flex min-w-0 items-start gap-3">
+                                            <Clock3
+                                                size={17}
+                                                className="mt-0.5 shrink-0 text-[#D8B47B]"
+                                            />
+
+                                            <div className="min-w-0">
+                                                <p className="!font-sans text-[13px] font-semibold !text-[#D8B47B]">
+                                                    Withdrawal under review
+                                                </p>
+
+                                                <p className="mt-1 text-[12px] leading-6 text-[#AAB3BF]">
+                                                    Your withdrawal request is
+                                                    awaiting admin review. You
+                                                    remain assigned to this
+                                                    campaign until a decision is
+                                                    made.
+                                                </p>
                                             </div>
                                         </div>
-                                    );
-                                })}
-                            </div>
-                        </section>
+                                    )}
+                                </div>
+                            )}
+                        </article>
+                    );
+                })}
 
-);
+                {/* EMPTY STATE */}
+                {(!assignments || assignments.length === 0) && (
+                    <div className="border border-[#29323E] bg-[#0E1219] px-5 py-9 text-center sm:px-8">
+                        <UsersRound
+                            size={20}
+                            strokeWidth={1.6}
+                            className="mx-auto text-[#8792A1]"
+                        />
+
+                        <h3 className="mt-3 !font-sans !text-[15px] !font-semibold !text-[#E5EAF0]">
+                            No current activities
+                        </h3>
+
+                        <p className="mx-auto mt-2 max-w-md text-[13px] leading-6 text-[#8792A1]">
+                            You don't have any accepted or ongoing campaign
+                            assignments right now. Your next assignment will
+                            appear here.
+                        </p>
+                    </div>
+                )}
+            </div>
+        </section>
+    );
 }

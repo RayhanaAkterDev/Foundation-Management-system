@@ -1781,11 +1781,11 @@ class VolunteerController extends Controller
         ]);
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | ADMIN — VIEW SINGLE VOLUNTEER
-    |--------------------------------------------------------------------------
-    */
+ /*
+|--------------------------------------------------------------------------
+| ADMIN — VIEW SINGLE VOLUNTEER
+|--------------------------------------------------------------------------
+*/
 
     /**
      * Admin: View a registered volunteer.
@@ -1804,21 +1804,23 @@ class VolunteerController extends Controller
 
         $volunteer = Volunteer::with([
             'user:id,name,email,phone,status,email_verified_at',
-            'campaignVolunteerAssignments',
+
+            'campaignVolunteerAssignments.campaign:id,title,type,category,organization_id',
+
+            'campaignVolunteerAssignments.campaign.organization',
+
         ])
             ->whereKey($id)
             ->first();
 
         if (!$volunteer) {
             return response()->json([
-                'message' =>
-                'Volunteer not found.',
+                'message' => 'Volunteer not found.',
             ], 404);
         }
 
         return response()->json([
-            'volunteer' =>
-            $this->volunteerWithAvailability(
+            'volunteer' => $this->volunteerWithAvailability(
                 $volunteer
             ),
         ]);

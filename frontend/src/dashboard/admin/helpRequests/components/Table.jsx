@@ -1,855 +1,470 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import {
-    Building2,
-    CalendarDays,
-    ChevronDown,
-    MapPin,
+    ClipboardList,
+    Eye,
+    Pencil,
     UserRound,
+    UserRoundCheck,
+    UserRoundPlus,
+    RefreshCcw,
+    HandHeart,
+    CalendarDays,
+    AlertCircle,
 } from 'lucide-react';
 
-const priorityStyles = {
-    critical: {
-        label: 'Critical',
-        text: 'text-red-700',
-        dot: 'bg-red-500',
-    },
-    urgent: {
-        label: 'Urgent',
-        text: 'text-orange-700',
-        dot: 'bg-orange-700',
-    },
-    high: {
-        label: 'High',
-        text: 'text-amber-700',
-        dot: 'bg-amber-700',
-    },
-    normal: {
-        label: 'Normal',
-        text: 'text-slate-600',
-        dot: 'bg-slate-400',
-    },
-    low: {
-        label: 'Low',
-        text: 'text-emerald-700',
-        dot: 'bg-emerald-500',
-    },
+import DataTable from '@/components/dashboard/DataTable';
+
+const BASE = '/admin/dashboard/help-requests';
+
+const STATUS = {
+    pending: ['Pending', 'border-[#443723] bg-[#241E15] text-[#D0AA70]'],
+    verified: ['Verified', 'border-[#294438] bg-[#14231D] text-[#8EC5A3]'],
+    in_progress: [
+        'In progress',
+        'border-[#3D3A57] bg-[#222136] text-[#B4ADD9]',
+    ],
+    completed: ['Completed', 'border-[#294438] bg-[#14231D] text-[#8EC5A3]'],
+    rejected: ['Rejected', 'border-[#493038] bg-[#281A1F] text-[#D1959B]'],
 };
 
-const statusStyles = {
-    pending: {
-        label: 'Pending',
-        text: 'text-amber-700',
-        bg: 'bg-amber-50',
-        border: 'border-amber-200',
-        dot: 'bg-amber-500',
-    },
-    verified: {
-        label: 'Verified',
-        text: 'text-emerald-700',
-        bg: 'bg-emerald-50',
-        border: 'border-emerald-200',
-        dot: 'bg-emerald-500',
-    },
-    rejected: {
-        label: 'Rejected',
-        text: 'text-red-700',
-        bg: 'bg-red-50',
-        border: 'border-red-200',
-        dot: 'bg-red-500',
-    },
-    completed: {
-        label: 'Completed',
-        text: 'text-emerald-700',
-        bg: 'bg-emerald-50',
-        border: 'border-emerald-200',
-        dot: 'bg-emerald-500',
-    },
-    assigned: {
-        label: 'Assigned',
-        text: 'text-sky-700',
-        bg: 'bg-sky-50',
-        border: 'border-sky-200',
-        dot: 'bg-sky-500',
-    },
-    accepted: {
-        label: 'Accepted',
-        text: 'text-sky-700',
-        bg: 'bg-sky-50',
-        border: 'border-sky-200',
-        dot: 'bg-sky-500',
-    },
-    in_progress: {
-        label: 'In progress',
-        text: 'text-indigo-700',
-        bg: 'bg-indigo-50',
-        border: 'border-indigo-200',
-        dot: 'bg-indigo-500',
-    },
+const PRIORITY = {
+    low: 'text-[#8EC5A3]',
+    normal: 'text-[#AEB7C3]',
+    high: 'text-[#D0AA70]',
+    urgent: 'text-[#E3A06E]',
+    critical: 'text-[#E19A9F]',
 };
 
-const SortHeader = ({ column, onSort, getSortIcon }) => {
-    if (!column) return null;
+const ACTIONS = {
+    view: Eye,
+    edit: Pencil,
+    verify: UserRoundCheck,
+    assign: UserRoundPlus,
+    reassign: RefreshCcw,
+    'add support': HandHeart,
+    'review withdrawal': AlertCircle,
+};
 
-    const sortable = column.sortable !== false;
+const titleCase = (value) =>
+    String(value || '')
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, (letter) => letter.toUpperCase());
 
-    const getColumnLabel = (value) =>
-        value?.label || value?.header || value?.title || value?.key;
+const getRequester = (row) => {
+    const user = row.user || row.requester || {};
 
-    if (!sortable) {
+    return {
+        id: row.requesterId ?? user.id ?? row.user_id,
+        name:
+            row.requesterName ||
+            user.name ||
+            user.full_name ||
+            'Unknown requester',
+        email: row.requesterEmail || user.email || '',
+    };
+};
+
+// ============================================================
+// REQUEST STATUS
+// ============================================================
+
+function RequestStatus({ row }) {
+    const withdrawal =
+        Array.isArray(row.assignments) &&
+        row.assignments.some(
+            (item) =>
+                item.withdrawal_status === 'pending' ||
+                item.withdrawal_request_status === 'pending',
+        );
+
+    if (withdrawal) {
         return (
-            <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-text-secondary">
-                {getColumnLabel(column)}
+            <span className="inline-flex items-center gap-1.5 whitespace-nowrap border border-[#443723] bg-[#241E15] px-2 py-1 text-[10px] font-medium text-[#D0AA70]">
+                <RefreshCcw size={11} />
+                Withdrawal requested
             </span>
         );
     }
 
+    const [label, classes] = STATUS[String(row.status || '').toLowerCase()] || [
+        titleCase(row.status || 'Unknown'),
+        'border-[#343E4B] bg-[#1A222D] text-[#AEB7C3]',
+    ];
+
     return (
-        <button
-            type="button"
-            onClick={() => onSort?.(column.key)}
-            className="
-                group/header
-                inline-flex
-                items-center
-                gap-1.5
-                text-[10px]
-                font-bold
-                uppercase
-                tracking-[0.14em]
-                text-text-secondary
-                transition-colors
-                hover:text-text-primary
-            "
+        <span
+            className={`inline-flex items-center gap-1.5 whitespace-nowrap border px-2 py-1 text-[10px] font-medium ${classes}`}
         >
-            <span>{getColumnLabel(column)}</span>
-
-            <span
-                className="
-                    flex
-                    h-5
-                    w-5
-                    items-center
-                    justify-center
-                    rounded
-                    text-slate-400
-                    transition-colors
-                    group-hover/header:bg-slate-100
-                    group-hover/header:text-primary
-                "
-            >
-                {getSortIcon?.(column.key) || (
-                    <ChevronDown className="h-3 w-3" />
-                )}
-            </span>
-        </button>
+            <span className="h-1.5 w-1.5 rounded-full bg-current" />
+            {label}
+        </span>
     );
-};
+}
 
-const Table = ({
-    columns = [],
-    rows = [],
-    onSort,
-    getSortIcon,
-    onRequesterClick,
-    onOrganizationClick,
-    onSetPriority,
-}) => {
-    const requestColumn = columns.find((column) => column.key === 'title');
+// ============================================================
+// REQUEST IDENTITY
+// ============================================================
 
-    const organizationColumn = columns.find(
-        (column) => column.key === 'assignedOrganization',
-    );
+function RequestIdentity({ row }) {
+    const date = row.created_at ? new Date(row.created_at) : null;
 
-    /*
-     * Find the actual action column instead of assuming
-     * that actions are always attached to the `id` column.
-     *
-     * This supports:
-     * - key: "actions"
-     * - key: "action"
-     * - key: "id"
-     * - any other column containing a render function
-     */
-    const actionColumn =
-        columns.find(
-            (column) =>
-                ['actions', 'action', 'id'].includes(column.key) &&
-                typeof column.render === 'function',
-        ) ||
-        columns.find((column) => typeof column.render === 'function');
-
-    const getPriority = (row) => {
-        const value = row.priority || row.urgency || 'normal';
-
-        const normalized = String(value).toLowerCase();
-
-        return {
-            value,
-            style: priorityStyles[normalized] || priorityStyles.normal,
-        };
-    };
-
-    const getRequester = (row) => {
-        const requester = row.user || row.requester;
-
-        return {
-            name:
-                requester?.name ||
-                requester?.full_name ||
-                row.requesterName ||
-                'Unknown user',
-
-            email: requester?.email || row.requesterEmail || '',
-
-            id: requester?.id || row.requesterId || row.user_id || null,
-        };
-    };
-
-    const getOrganization = (row) => {
-        const organization =
-            row.assignedOrganization || row.assigned_organization || null;
-
-        const value = organizationColumn
-            ? row[organizationColumn.key]
-            : null;
-
-        const name =
-            typeof organization === 'string'
-                ? organization
-                : organization?.name ||
-                  row.assignedOrganizationName ||
-                  value ||
-                  '';
-
-        const id =
-            row.assignedOrganizationId ||
-            row.assigned_organization_id ||
-            (typeof organization === 'object'
-                ? organization?.id
-                : null);
-
-        return {
-            name,
-            id,
-        };
-    };
-
-    const getSubmittedDate = (row) => {
-        const value =
-            row.submittedDate ||
-            row.submitted_date ||
-            row.created_at ||
-            null;
-
-        if (!value) return null;
-
-        const date = new Date(value);
-
-        if (Number.isNaN(date.getTime())) {
-            return null;
-        }
-
-        return date.toLocaleDateString(undefined, {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric',
-        });
-    };
-
-    const getCategory = (row) =>
-        row.category || row.needCategory || 'General need';
-
-    const getLocation = (row) => row.district || row.location || '';
-
-    /*
-     * Render actions using the complete row.
-     *
-     * This is important for Edit/View handlers because they
-     * usually need the entire help-request object.
-     */
-    const renderAction = (row) => {
-        if (!actionColumn?.render) return null;
-
-        const value =
-            actionColumn.key && actionColumn.key in row
-                ? row[actionColumn.key]
-                : row.id;
-
-        return actionColumn.render(value, row);
-    };
-
-    const getStatus = (row) => {
-        const normalized = String(row.status || 'unknown').toLowerCase();
-
-        return (
-            statusStyles[normalized] || {
-                label: normalized.replace(/_/g, ' '),
-                text: 'text-slate-600',
-                bg: 'bg-slate-50',
-                border: 'border-slate-200',
-                dot: 'bg-slate-400',
-            }
-        );
-    };
+    const formattedDate =
+        date && !Number.isNaN(date.getTime())
+            ? date.toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+              })
+            : row.submittedDate || '';
 
     return (
-        <div className="w-full overflow-hidden border-y border-border">
-            {/* =========================================================
-                TABLE HEADER
-            ========================================================= */}
+        <div className="min-w-0">
+            <p
+                title={row.title || ''}
+                className="truncate text-[12px] font-semibold! leading-5 text-[#EEF1F5]"
+            >
+                {row.title || 'Untitled request'}
+            </p>
 
-            <div className="hidden bg-background-alt lg:block">
-                <div className="grid grid-cols-[minmax(0,2.4fr)_minmax(250px,2fr)_minmax(150px,0.8fr)] border-b border-border">
-                    {/* NEED */}
+            <div className="mt-0.5 flex min-w-0 items-center gap-2 text-[10px] leading-4 text-[#697586]">
+                <span className="min-w-0 truncate">
+                    {titleCase(row.category || 'General')}
+                </span>
 
-                    <div className="px-7 py-3.5 pl-8">
-                        {requestColumn && (
-                            <SortHeader
-                                column={requestColumn}
-                                onSort={onSort}
-                                getSortIcon={getSortIcon}
-                            />
-                        )}
-                    </div>
-
-                    {/* REQUEST STATUS */}
-
-                    <div className="border-l border-border px-7 py-3.5">
-                        <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-text-secondary">
-                            Request status
-                        </span>
-                    </div>
-
-                    {/* ACTIONS */}
-
-                    <div className="border-l border-border px-6 py-3.5">
-                        <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-text-secondary">
-                            Actions
-                        </span>
-                    </div>
-                </div>
-            </div>
-
-            {/* =========================================================
-                ROWS
-            ========================================================= */}
-
-            <div>
-                {!Array.isArray(rows) || rows.length === 0 ? (
-                    <div className="m-4 border border-dashed border-border bg-background px-6 py-16 text-center">
-                        <div className="text-sm font-semibold text-text-primary">
-                            No help requests found
-                        </div>
-
-                        <p className="mt-1.5 text-xs text-text-secondary">
-                            Try changing your search or filter options.
-                        </p>
-                    </div>
-                ) : (
-                    rows.map((row) => {
-                        const requester = getRequester(row);
-
-                        const priority = getPriority(row);
-
-                        const submittedDate = getSubmittedDate(row);
-
-                        const category = getCategory(row);
-
-                        const location = getLocation(row);
-
-                        const organization = getOrganization(row);
-
-                        const status = getStatus(row);
-
-                        return (
-                            <article
-                                key={row.id}
-                                className="
-                                    group
-                                    relative
-                                    border-b
-                                    border-border
-                                    bg-background
-                                    transition-all
-                                    duration-200
-                                    last:border-b-0
-                                    hover:z-10
-                                    hover:border-primary/35
-                                    hover:bg-[#f0fdfa]
-                                    hover:shadow-[0_4px_16px_rgba(15,118,110,0.10)]
-                                    hover:ring-1
-                                    hover:ring-primary/20
-                                "
-                            >
-                                {/* ACTIVE ROW ACCENT */}
-
-                                <span
-                                    className="
-                                        pointer-events-none
-                                        absolute
-                                        inset-y-0
-                                        left-0
-                                        z-20
-                                        w-0.5
-                                        bg-primary
-                                        opacity-0
-                                        transition-opacity
-                                        duration-150
-                                        group-hover:opacity-100
-                                    "
-                                />
-
-                                {/* =================================================
-                                    MAIN 3-COLUMN STRUCTURE
-                                ================================================= */}
-
-                                <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,2.4fr)_minmax(250px,2fr)_minmax(150px,0.8fr)]">
-                                    {/* =================================================
-                                        COLUMN 1 — NEED
-                                    ================================================= */}
-
-                                    <section className="min-w-0 px-7 py-5 pl-8">
-                                        <div className="min-w-0">
-                                            {/* CATEGORY / LOCATION */}
-
-                                            <div className="flex min-w-0 items-center gap-2">
-                                                <span className="shrink-0 text-[9px] font-bold uppercase tracking-[0.13em] text-primary">
-                                                    {category}
-                                                </span>
-
-                                                {location && (
-                                                    <>
-                                                        <span className="h-1 w-1 shrink-0 rounded-full bg-slate-300" />
-
-                                                        <span className="inline-flex min-w-0 items-center gap-1 text-[10px] font-medium! text-slate-500">
-                                                            <MapPin className="h-3 w-3 shrink-0 text-slate-400" />
-
-                                                            <span className="truncate">
-                                                                {location}
-                                                            </span>
-                                                        </span>
-                                                    </>
-                                                )}
-                                            </div>
-
-                                            {/* TITLE */}
-
-                                            <h3 className="mt-2 text-[14px] font-semibold leading-5 text-text-primary transition-colors duration-150 group-hover:text-primary">
-                                                {row.title ||
-                                                    'Untitled request'}
-                                            </h3>
-
-                                            {/* DESCRIPTION */}
-
-                                            {row.description && (
-                                                <p className="mt-1.5 max-w-2xl line-clamp-2 text-[11px] leading-[1.65] text-text-secondary">
-                                                    {row.description}
-                                                </p>
-                                            )}
-                                        </div>
-
-                                        {/* PRIORITY */}
-
-                                        <div className="mt-4 flex items-center gap-2">
-                                            <span
-                                                className={`
-                                                    h-1.5
-                                                    w-1.5
-                                                    shrink-0
-                                                    rounded-full
-                                                    ${priority.style.dot}
-                                                `}
-                                            />
-
-                                            <span
-                                                className={`
-                                                    text-[10px]
-                                                    font-semibold
-                                                    ${priority.style.text}
-                                                `}
-                                            >
-                                                {priority.style.label} priority
-                                            </span>
-
-                                            {row.status === 'verified' &&
-                                                onSetPriority && (
-                                                    <>
-                                                        <span className="h-3 w-px bg-slate-200" />
-
-                                                        <button
-                                                            type="button"
-                                                            onClick={() =>
-                                                                onSetPriority(
-                                                                    row,
-                                                                )
-                                                            }
-                                                            className="
-                                                                text-[10px]
-                                                                font-semibold
-                                                                text-primary
-                                                                transition-colors
-                                                                hover:text-primary-hover
-                                                                hover:underline
-                                                            "
-                                                        >
-                                                            {row.priority ||
-                                                            row.urgency
-                                                                ? 'Change'
-                                                                : 'Set'}
-                                                        </button>
-                                                    </>
-                                                )}
-                                        </div>
-                                    </section>
-
-                                    {/* =================================================
-                                        COLUMN 2 — REQUEST STATUS
-                                    ================================================= */}
-
-                                    <section className="border-t border-border px-7 py-5 lg:border-l lg:border-t-0">
-                                        <div className="grid grid-cols-2 gap-x-7">
-                                            {/* REQUESTER */}
-
-                                            <div className="min-w-0">
-                                                <div className="mb-2 flex items-center gap-1.5">
-                                                    <UserRound className="h-3 w-3 text-slate-400" />
-
-                                                    <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-slate-400">
-                                                        Requester
-                                                    </span>
-                                                </div>
-
-                                                <button
-                                                    type="button"
-                                                    disabled={!requester.id}
-                                                    onClick={() =>
-                                                        requester.id &&
-                                                        onRequesterClick?.(
-                                                            requester.id,
-                                                            row,
-                                                        )
-                                                    }
-                                                    className="
-                                                        group/requester
-                                                        flex
-                                                        min-w-0
-                                                        max-w-full
-                                                        items-center
-                                                        gap-1.5
-                                                        border-0
-                                                        bg-transparent
-                                                        p-0
-                                                        text-left
-                                                        disabled:cursor-default
-                                                    "
-                                                >
-                                                    <span
-                                                        className="
-                                                            min-w-0
-                                                            truncate
-                                                            text-[11.5px]
-                                                            font-semibold
-                                                            leading-5
-                                                            text-text-primary
-                                                            transition-colors
-                                                            duration-150
-                                                            group-hover/requester:text-primary
-                                                        "
-                                                    >
-                                                        {requester.name}
-                                                    </span>
-
-                                                    {requester.id && (
-                                                        <span
-                                                            className="
-                                                                flex
-                                                                h-4
-                                                                w-4
-                                                                shrink-0
-                                                                items-center
-                                                                justify-center
-                                                                rounded
-                                                                text-slate-300
-                                                                opacity-0
-                                                                transition-all
-                                                                duration-150
-                                                                group-hover/requester:translate-x-0.5
-                                                                group-hover/requester:text-primary
-                                                                group-hover/requester:opacity-100
-                                                            "
-                                                        >
-                                                            <ChevronDown className="h-3 w-3 -rotate-90" />
-                                                        </span>
-                                                    )}
-                                                </button>
-
-                                                {requester.email && (
-                                                    <p className="mt-0.5 truncate text-[10px] leading-4 text-text-secondary">
-                                                        {requester.email}
-                                                    </p>
-                                                )}
-                                            </div>
-
-                                            {/* ORGANIZATION */}
-
-                                            <div className="min-w-0">
-                                                <div className="mb-2 flex items-center gap-1.5">
-                                                    <Building2 className="h-3 w-3 text-slate-400" />
-
-                                                    <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-slate-400">
-                                                        Organization
-                                                    </span>
-                                                </div>
-
-                                                {organization.name ? (
-                                                    organization.id ? (
-                                                        <button
-                                                            type="button"
-                                                            onClick={() =>
-                                                                onOrganizationClick?.(
-                                                                    organization.id,
-                                                                    row,
-                                                                )
-                                                            }
-                                                            className="
-                                                                group/organization
-                                                                flex
-                                                                min-w-0
-                                                                max-w-full
-                                                                items-center
-                                                                gap-1.5
-                                                                border-0
-                                                                bg-transparent
-                                                                p-0
-                                                                text-left
-                                                            "
-                                                        >
-                                                            <span
-                                                                className="
-                                                                    min-w-0
-                                                                    truncate
-                                                                    text-[11.5px]
-                                                                    font-semibold
-                                                                    leading-5
-                                                                    text-text-primary
-                                                                    transition-colors
-                                                                    duration-150
-                                                                    group-hover/organization:text-primary
-                                                                "
-                                                            >
-                                                                {
-                                                                    organization.name
-                                                                }
-                                                            </span>
-
-                                                            <span
-                                                                className="
-                                                                    flex
-                                                                    h-4
-                                                                    w-4
-                                                                    shrink-0
-                                                                    items-center
-                                                                    justify-center
-                                                                    rounded
-                                                                    text-slate-300
-                                                                    opacity-0
-                                                                    transition-all
-                                                                    duration-150
-                                                                    group-hover/organization:translate-x-0.5
-                                                                    group-hover/organization:text-primary
-                                                                    group-hover/organization:opacity-100
-                                                                "
-                                                            >
-                                                                <ChevronDown className="h-3 w-3 -rotate-90" />
-                                                            </span>
-                                                        </button>
-                                                    ) : (
-                                                        <span
-                                                            className="
-                                                                block
-                                                                max-w-full
-                                                                truncate
-                                                                text-[11.5px]
-                                                                font-semibold
-                                                                leading-5
-                                                                text-text-primary
-                                                            "
-                                                        >
-                                                            {
-                                                                organization.name
-                                                            }
-                                                        </span>
-                                                    )
-                                                ) : (
-                                                    <span
-                                                        className="
-                                                            block
-                                                            text-[10.5px]
-                                                            font-medium!
-                                                            leading-5
-                                                            text-slate-400
-                                                        "
-                                                    >
-                                                        Not assigned
-                                                    </span>
-                                                )}
-                                            </div>
-
-                                            {/* STATUS */}
-
-                                            <div className="col-span-2 mt-4 flex items-center justify-between border-t border-border pt-3.5">
-                                                <div className="flex items-center gap-1.5">
-                                                    <span
-                                                        className={`
-                                                            h-1.5
-                                                            w-1.5
-                                                            rounded-full
-                                                            ${status.dot}
-                                                        `}
-                                                    />
-
-                                                    <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-slate-400">
-                                                        Status
-                                                    </span>
-                                                </div>
-
-                                                <span
-                                                    className={`
-                                                        inline-flex
-                                                        items-center
-                                                        gap-1.5
-                                                        rounded-full
-                                                        border
-                                                        px-2.5
-                                                        py-1
-                                                        text-[10px]
-                                                        font-semibold
-                                                        ${status.bg}
-                                                        ${status.border}
-                                                        ${status.text}
-                                                    `}
-                                                >
-                                                    <span
-                                                        className={`
-                                                            h-1.5
-                                                            w-1.5
-                                                            rounded-full
-                                                            ${status.dot}
-                                                        `}
-                                                    />
-
-                                                    {status.label}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </section>
-
-                                    {/* =================================================
-                                        COLUMN 3 — ACTIONS
-                                    ================================================= */}
-
-                                    <section className="border-t border-border px-5 py-5 lg:border-l lg:border-t-0">
-                                        <div className="flex h-full items-center">
-                                            <div
-                                                className="
-                                                    w-full
-
-                                                    [&>div]:flex!
-                                                    [&>div]:w-full!
-                                                    [&>div]:flex-col!
-                                                    [&>div]:items-stretch!
-                                                    [&>div]:gap-0.5!
-
-                                                    [&>div>button]:flex!
-                                                    [&>div>button]:w-full!
-                                                    [&>div>button]:items-center!
-                                                    [&>div>button]:justify-start!
-
-                                                    [&>div>button]:rounded-md!
-                                                    [&>div>button]:border!
-                                                    [&>div>button]:border-transparent!
-                                                    [&>div>button]:px-2.5!
-                                                    [&>div>button]:py-1.5!
-
-                                                    [&>div>button]:text-left!
-                                                    [&>div>button]:text-[10.5px]!
-                                                    [&>div>button]:font-medium!!
-                                                    [&>div>button]:text-slate-600!
-
-                                                    [&>div>button]:transition-all!
-                                                    [&>div>button]:duration-150!
-
-                                                    [&>div>button]:hover:border-border!
-                                                    [&>div>button]:hover:bg-slate-50!
-                                                    [&>div>button]:hover:text-primary!
-
-                                                    [&>div>button]:focus-visible:outline-none!
-                                                    [&>div>button]:focus-visible:ring-2!
-                                                    [&>div>button]:focus-visible:ring-primary/20!
-                                                "
-                                            >
-                                                {renderAction(row)}
-                                            </div>
-                                        </div>
-                                    </section>
-                                </div>
-
-                                {/* =================================================
-                                    FOOTER
-                                ================================================= */}
-
-                                <footer
-                                    className="
-                                        flex
-                                        h-8.5
-                                        items-center
-                                        justify-between
-                                        border-t
-                                        border-border
-                                        bg-background
-                                        px-5
-                                        pl-8
-                                        transition-colors
-                                        duration-150
-                                        group-hover:bg-surface
-                                    "
-                                >
-                                    <div
-                                        className="
-                                            flex
-                                            items-center
-                                            gap-1.5
-                                            text-[9.5px]
-                                            font-medium!
-                                            text-slate-400
-                                        "
-                                    >
-                                        <CalendarDays className="h-3 w-3" />
-
-                                        <span>
-                                            {submittedDate
-                                                ? `Submitted ${submittedDate}`
-                                                : 'Submission date unavailable'}
-                                        </span>
-                                    </div>
-
-                                    {row.id && (
-                                        <span className="font-mono text-[9.5px] font-medium! text-slate-400">
-                                            #
-                                            <span className="text-slate-600">
-                                                {row.id}
-                                            </span>
-                                        </span>
-                                    )}
-                                </footer>
-                            </article>
-                        );
-                    })
+                {formattedDate && (
+                    <span className="inline-flex shrink-0 items-center gap-1">
+                        <CalendarDays size={11} strokeWidth={1.7} />
+                        {formattedDate}
+                    </span>
                 )}
             </div>
         </div>
     );
-};
+}
 
-export default Table;
+// ============================================================
+// REQUESTER CELL
+// ============================================================
+
+function RequesterCell({ row, onRequesterClick }) {
+    const requester = getRequester(row);
+
+    return (
+        <button
+            type="button"
+            disabled={!requester.id || !onRequesterClick}
+            onClick={() => onRequesterClick?.(requester.id, row)}
+            className="flex min-w-0 max-w-full items-center gap-2.5 text-left disabled:cursor-default"
+        >
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center border border-[#29323E] bg-[#151B24]">
+                <UserRound
+                    size={15}
+                    strokeWidth={1.7}
+                    className="text-[#8792A1]"
+                />
+            </span>
+
+            <span className="min-w-0">
+                <span className="block truncate text-[12px] font-semibold! text-[#EEF1F5]">
+                    {requester.name}
+                </span>
+
+                <span className="mt-0.5 block truncate text-[10px] text-[#697586]">
+                    {requester.email}
+                </span>
+            </span>
+        </button>
+    );
+}
+
+// ============================================================
+// PRIORITY CELL
+// ============================================================
+
+function PriorityCell({ row }) {
+    const priority = String(
+        row.priority || row.urgency || 'normal',
+    ).toLowerCase();
+
+    return (
+        <span
+            className={`text-[11px] font-medium ${
+                PRIORITY[priority] || PRIORITY.normal
+            }`}
+        >
+            {titleCase(priority)}
+        </span>
+    );
+}
+
+// ============================================================
+// EXTRACT EXISTING PARENT ACTION BUTTONS
+// ============================================================
+
+function extractButtons(node, output = []) {
+    React.Children.forEach(node, (child) => {
+        if (!React.isValidElement(child)) return;
+
+        if (child.type === 'button') {
+            output.push(child);
+        } else if (child.props?.children) {
+            extractButtons(child.props.children, output);
+        }
+    });
+
+    return output;
+}
+
+function getButtonLabel(button) {
+    const parts = [];
+
+    const collect = (node) => {
+        React.Children.forEach(node, (child) => {
+            if (typeof child === 'string') {
+                parts.push(child);
+            } else if (React.isValidElement(child) && child.props?.children) {
+                collect(child.props.children);
+            }
+        });
+    };
+
+    collect(button.props.children);
+
+    return (
+        parts.join(' ').trim() ||
+        button.props['aria-label'] ||
+        button.props.title ||
+        'Action'
+    );
+}
+
+// ============================================================
+// ROW ACTIONS
+//
+// View / Edit -> Dedicated routes
+// All other actions -> Existing parent handlers
+// ============================================================
+
+function RowActions({ column, row }) {
+    const navigate = useNavigate();
+
+    if (typeof column?.render !== 'function') {
+        return null;
+    }
+
+    const original = column.render(row[column.key] ?? row.id, row);
+
+    const buttons = extractButtons(original);
+
+    const handleAction = (button, label, event) => {
+        const action = label.trim().toLowerCase();
+
+        if (action === 'view') {
+            navigate(`${BASE}/${encodeURIComponent(row.id)}`);
+            return;
+        }
+
+        if (action === 'edit') {
+            navigate(`${BASE}/${encodeURIComponent(row.id)}/edit`);
+            return;
+        }
+
+        // Preserve the original functionality for all
+        // non-navigation actions.
+        button.props.onClick?.(event);
+    };
+
+    return (
+        <div className="flex items-center justify-end gap-0.5 whitespace-nowrap">
+            {buttons.map((button, index) => {
+                const label = getButtonLabel(button);
+                const action = label.trim().toLowerCase();
+
+                const Icon = ACTIONS[action] || AlertCircle;
+
+                const warning = action.includes('withdrawal');
+
+                const isNavigationAction =
+                    action === 'view' || action === 'edit';
+
+                const disabled =
+                    button.props.disabled ||
+                    (isNavigationAction &&
+                        (row.id === null ||
+                            row.id === undefined ||
+                            row.id === ''));
+
+                return React.cloneElement(button, {
+                    key: button.key ?? `${label}-${index}`,
+                    type: 'button',
+                    disabled,
+                    title: label,
+                    'aria-label': `${label} ${row.title || 'request'}`,
+                    onClick: (event) => handleAction(button, label, event),
+                    className: `inline-flex h-7 w-7 shrink-0 items-center justify-center border border-transparent bg-transparent p-0 transition-colors duration-150 focus:outline-none focus:ring-0 disabled:cursor-not-allowed disabled:opacity-40 ${
+                        warning
+                            ? 'text-[#D0AA70] hover:border-[#443723] hover:bg-[#241E15]'
+                            : 'text-[#8792A1] hover:border-[#303A47] hover:bg-[#1A222D] hover:text-[#EEF1F5]'
+                    }`,
+                    children: <Icon size={14} strokeWidth={1.8} />,
+                });
+            })}
+        </div>
+    );
+}
+
+// ============================================================
+// MOBILE REQUEST ROW
+// ============================================================
+
+function MobileRequestRow({ row, actionColumn, onRequesterClick }) {
+    return (
+        <article className="border-b border-[#202832] bg-[#0E1219] px-4 py-4 last:border-b-0">
+            <RequestIdentity row={row} />
+
+            <div className="mt-3 border-t border-[#202832] pt-3">
+                <RequesterCell row={row} onRequesterClick={onRequesterClick} />
+            </div>
+
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                    <PriorityCell row={row} />
+                    <RequestStatus row={row} />
+                </div>
+            </div>
+
+            <div className="mt-3 flex items-center justify-between border-t border-[#202832] pt-3">
+                <span className="text-[10px] text-[#697586]">
+                    Request #{row.serialNumber ?? row.id}
+                </span>
+
+                <RowActions column={actionColumn} row={row} />
+            </div>
+        </article>
+    );
+}
+
+// ============================================================
+// HELP REQUEST TABLE
+// ============================================================
+
+export default function Table({
+    columns = [],
+    rows = [],
+    onSort,
+    getSortIcon,
+    resultCount,
+    onRequesterClick,
+}) {
+    const actionColumn = columns.find(
+        (column) => column.key === 'id' || column.key === 'actions',
+    );
+
+    const enhancedColumns = [
+        {
+            key: 'serialNumber',
+            header: '#',
+            align: 'center',
+            width: '56px',
+            render: (value) => (
+                <span className="text-[11px] font-medium! tabular-nums text-[#697586]">
+                    {String(value ?? '—').padStart(2, '0')}
+                </span>
+            ),
+        },
+        {
+            key: 'title',
+            header: 'Help Request',
+            sortable: true,
+            sortKey: 'title',
+            width: 'minmax(210px, 1.7fr)',
+            render: (_, row) => <RequestIdentity row={row} />,
+        },
+        {
+            key: 'requesterName',
+            header: 'Requester',
+            width: 'minmax(155px, 1fr)',
+            render: (_, row) => (
+                <RequesterCell row={row} onRequesterClick={onRequesterClick} />
+            ),
+        },
+        {
+            key: 'priority',
+            header: 'Urgency',
+            sortable: true,
+            sortKey: 'priority',
+            width: 'minmax(90px, 0.55fr)',
+            render: (_, row) => <PriorityCell row={row} />,
+        },
+        {
+            key: 'status',
+            header: 'Status',
+            sortable: true,
+            sortKey: 'status',
+            width: 'minmax(115px, 0.75fr)',
+            render: (_, row) => <RequestStatus row={row} />,
+        },
+        {
+            key: 'actions',
+            header: 'Actions',
+            align: 'right',
+            width: '155px',
+            render: (_, row) => <RowActions column={actionColumn} row={row} />,
+        },
+    ];
+
+    const emptyState = (
+        <div className="flex min-h-65 flex-col items-center justify-center bg-[#0E1219] px-6 py-10 text-center">
+            <ClipboardList
+                size={21}
+                strokeWidth={1.5}
+                className="text-[#697586]"
+            />
+
+            <p className="mt-3 text-[13px] font-semibold! text-[#EEF1F5]">
+                No help requests found
+            </p>
+
+            <p className="mt-1 text-[11px] text-[#697586]">
+                Try changing your search or filter options.
+            </p>
+        </div>
+    );
+
+    return (
+        <>
+            {/* MOBILE */}
+            <div className="bg-[#0E1219] lg:hidden">
+                {rows.length === 0
+                    ? emptyState
+                    : rows.map((row) => (
+                          <MobileRequestRow
+                              key={row.id}
+                              row={row}
+                              actionColumn={actionColumn}
+                              onRequesterClick={onRequesterClick}
+                          />
+                      ))}
+            </div>
+
+            {/* DESKTOP — SHARED DATA TABLE */}
+            <div className="hidden min-w-0 bg-[#0E1219] lg:block">
+                <DataTable
+                    columns={enhancedColumns}
+                    rows={rows}
+                    onSort={onSort}
+                    getSortIcon={getSortIcon}
+                    resultCount={resultCount}
+                    resizableColumns
+                    empty={{
+                        icon: ClipboardList,
+                        title: 'No help requests found',
+                        message: 'Try changing your search or filter options.',
+                    }}
+                />
+            </div>
+        </>
+    );
+}

@@ -105,12 +105,32 @@ export default function Stats({
         <section className="min-w-0 w-full">
             {/* SECTION HEADING */}
 
-            <div className="mb-4 flex min-w-0 flex-wrap items-end justify-between gap-3 sm:mb-5">
-                <div className="min-w-0">
-                    <h2 className="font-sans! text-[19px] font-semibold! tracking-[-0.025em] text-[#EEF1F5]! sm:text-[20px]">
-                        Volunteer overview
-                    </h2>
-                </div>
+            <div
+                className="
+                    mb-5
+
+                    flex
+                    items-end
+                    justify-between
+                    gap-6
+
+                    sm:mb-6
+                "
+            >
+                <h2
+                    id="user-overview-heading"
+                    className="
+                                    font-sans!
+
+                                    text-[18px]
+                                    font-semibold!
+                                    leading-tight
+                                    tracking-[-0.02em]
+                                    text-[#EEF1F5]!
+                                "
+                >
+                    Volunteer overview
+                </h2>
             </div>
 
             {/* OVERVIEW */}

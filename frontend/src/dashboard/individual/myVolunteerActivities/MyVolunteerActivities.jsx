@@ -1,7 +1,23 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { CalendarDays, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { CalendarDays } from 'lucide-react';
 import PageHeader from '@/components/dashboard/PageHeader';
-import { acceptCampaignAssignment, acceptVolunteerRequest, cancelVolunteerRequest, completeCampaignAssignment, getMyVolunteer, rejectCampaignAssignment, rejectVolunteerRequest, requestCampaignWithdrawal, requestVolunteerReactivation, resignVolunteer, sendVolunteerRequest, startCampaignAssignment } from './api/volunteerApi';
+import LoadingUI from '@/components/dashboard/LoadingUI';
+import LoadingError from '@/components/dashboard/LoadingError';
+import SuccessDialog from '@/components/dashboard/SuccessDialog';
+import {
+    acceptCampaignAssignment,
+    acceptVolunteerRequest,
+    cancelVolunteerRequest,
+    completeCampaignAssignment,
+    getMyVolunteer,
+    rejectCampaignAssignment,
+    rejectVolunteerRequest,
+    requestCampaignWithdrawal,
+    requestVolunteerReactivation,
+    resignVolunteer,
+    sendVolunteerRequest,
+    startCampaignAssignment,
+} from './api/volunteerApi';
 import { getCampaignLocation } from './utils/volunteerHelpers';
 import VolunteerStatusPanel from './components/VolunteerStatusPanel';
 import VolunteerStats from './components/VolunteerStats';
@@ -404,39 +420,146 @@ const MyVolunteerActivities = () => {
     // TABLE
     // ===========================================================
 
-
     const handleConfirmReason = async (reason) => {
         if (!reasonRequest?.assignment?.id) return;
         const { type, assignment } = reasonRequest;
         try {
             setAssignmentActionId(assignment.id);
-            setError(''); setRequestMessage('');
-            const response = type === 'reject'
-                ? await rejectCampaignAssignment(assignment.id, reason)
-                : await requestCampaignWithdrawal(assignment.id, reason);
-            setRequestMessage(response?.message || (type === 'reject' ? 'Assignment declined.' : 'Withdrawal requested.'));
+            setError('');
+            setRequestMessage('');
+            const response =
+                type === 'reject'
+                    ? await rejectCampaignAssignment(assignment.id, reason)
+                    : await requestCampaignWithdrawal(assignment.id, reason);
+            setRequestMessage(
+                response?.message ||
+                    (type === 'reject'
+                        ? 'Assignment declined.'
+                        : 'Withdrawal requested.'),
+            );
             setReasonRequest(null);
             await loadVolunteerData();
-        } catch(err) {setError(err?.message || 'Unable to process your request.');}
-        finally {setAssignmentActionId(null);}
+        } catch (err) {
+            setError(err?.message || 'Unable to process your request.');
+        } finally {
+            setAssignmentActionId(null);
+        }
     };
 
-    return <div className="min-w-0 space-y-8 pb-10 lg:space-y-10">
-      <PageHeader title="My Volunteer Activities" subtitle="Manage campaign assignments and track your contributions." />
-      {loading ? <div className="border border-[#252D38] bg-[#0E1219] p-8 text-[13px] text-[#AAB3BF]">Loading volunteer activities...</div> : <>
-      {error && <div role="alert" className="flex gap-3 border border-[#6D373B] bg-[#321D22] p-4 text-[13px] text-[#E7A1A5]"><AlertCircle size={17} className="shrink-0"/>{error}</div>}
-      {requestMessage && <div role="status" className="flex gap-3 border border-[#315A49] bg-[#172A23] p-4 text-[13px] text-[#9AD1AE]"><CheckCircle2 size={17} className="shrink-0"/>{requestMessage}</div>}
-      <VolunteerStatusPanel volunteer={volunteer} request={request} actionLoading={actionLoading} onSendRequest={handleSendVolunteerRequest} onAcceptRequest={handleAcceptVolunteerRequest} onRejectRequest={handleRejectVolunteerRequest} onCancelRequest={handleCancelVolunteerRequest} onRequestReactivation={handleRequestReactivation} onResign={handleOpenResignModal}/>
-      {volunteer && <div className="space-y-9 lg:space-y-11">
-        <VolunteerStats stats={stats}/>
-        {pendingAssignments.length>0 && <section className="space-y-4"><div className="flex flex-wrap items-end justify-between gap-3"><div><h2 className="text-[19px] font-semibold tracking-tight text-[#EEF1F5]">Pending assignments</h2><p className="mt-1 text-[12px] text-[#8792A1]">Review invitations to support campaigns.</p></div><span className="text-[12px] text-[#AAB3BF]">{pendingAssignments.length} awaiting response</span></div><div className="grid gap-3">{pendingAssignments.map(assignment=><CampaignAssignmentRequest key={assignment.id} assignment={assignment} actionLoading={assignmentActionId} onAccept={handleAcceptAssignment} onReject={handleRejectAssignment}/>)}</div></section>}
-        {activeAssignments.length>0 && <CurrentActivities assignments={activeAssignments} actionLoading={assignmentActionId} onStart={handleStartAssignment} onComplete={handleCompleteAssignment} onWithdraw={handleRequestWithdrawal}/>}
-        {assignments.length===0 && <section className="border border-[#252D38] bg-[#0E1219] px-5 py-10 text-center"><CalendarDays size={22} className="mx-auto text-[#788595]"/><h2 className="mt-4 text-[16px] font-semibold text-[#EEF1F5]">No campaign assignments yet</h2><p className="mx-auto mt-2 max-w-md text-[12px] leading-6 text-[#8792A1]">New assignments will appear here when an organization invites you to a campaign.</p></section>}
-        <ActivityHistory rows={activityRows}/>
-      </div>}
-      </>}
-      <ResignConfirmationModal open={resignModalOpen} loading={actionLoading==='resign'} onCancel={handleCloseResignModal} onConfirm={handleConfirmResign}/>
-      <AssignmentReasonModal key={reasonRequest?.assignment?.id ?? 'closed'} request={reasonRequest} loading={assignmentActionId!==null} onClose={()=>{if(assignmentActionId===null)setReasonRequest(null);}} onConfirm={handleConfirmReason}/>
-    </div>;
+    return (
+        <div className="min-w-0 space-y-8 pb-10 lg:space-y-10">
+            <PageHeader
+                title="My Volunteer Activities"
+                subtitle="Manage campaign assignments and track your contributions."
+            />
+            {loading ? (
+                <LoadingUI />
+            ) : (
+                <>
+                    {error && <LoadingError message={error} />}
+                    <VolunteerStatusPanel
+                        volunteer={volunteer}
+                        request={request}
+                        actionLoading={actionLoading}
+                        onSendRequest={handleSendVolunteerRequest}
+                        onAcceptRequest={handleAcceptVolunteerRequest}
+                        onRejectRequest={handleRejectVolunteerRequest}
+                        onCancelRequest={handleCancelVolunteerRequest}
+                        onRequestReactivation={handleRequestReactivation}
+                        onResign={handleOpenResignModal}
+                    />
+                    {volunteer && (
+                        <div className="space-y-9 lg:space-y-11">
+                            <VolunteerStats stats={stats} />
+                            {pendingAssignments.length > 0 && (
+                                <section className="space-y-4">
+                                    <div className="flex flex-wrap items-end justify-between gap-3">
+                                        <div>
+                                            <h2 className="text-[19px] font-semibold tracking-tight text-[#EEF1F5]">
+                                                Pending assignments
+                                            </h2>
+                                            <p className="mt-1 text-[12px] text-[#8792A1]">
+                                                Review invitations to support
+                                                campaigns.
+                                            </p>
+                                        </div>
+                                        <span className="text-[12px] text-[#AAB3BF]">
+                                            {pendingAssignments.length} awaiting
+                                            response
+                                        </span>
+                                    </div>
+                                    <div className="grid gap-3">
+                                        {pendingAssignments.map(
+                                            (assignment) => (
+                                                <CampaignAssignmentRequest
+                                                    key={assignment.id}
+                                                    assignment={assignment}
+                                                    actionLoading={
+                                                        assignmentActionId
+                                                    }
+                                                    onAccept={
+                                                        handleAcceptAssignment
+                                                    }
+                                                    onReject={
+                                                        handleRejectAssignment
+                                                    }
+                                                />
+                                            ),
+                                        )}
+                                    </div>
+                                </section>
+                            )}
+                            {activeAssignments.length > 0 && (
+                                <CurrentActivities
+                                    assignments={activeAssignments}
+                                    actionLoading={assignmentActionId}
+                                    onStart={handleStartAssignment}
+                                    onComplete={handleCompleteAssignment}
+                                    onWithdraw={handleRequestWithdrawal}
+                                />
+                            )}
+                            {assignments.length === 0 && (
+                                <section className="border border-[#252D38] bg-[#0E1219] px-5 py-10 text-center">
+                                    <CalendarDays
+                                        size={22}
+                                        className="mx-auto text-[#788595]"
+                                    />
+                                    <h2 className="mt-4 text-[16px] font-semibold text-[#EEF1F5]">
+                                        No campaign assignments yet
+                                    </h2>
+                                    <p className="mx-auto mt-2 max-w-md text-[12px] leading-6 text-[#8792A1]">
+                                        New assignments will appear here when an
+                                        organization invites you to a campaign.
+                                    </p>
+                                </section>
+                            )}
+                            <ActivityHistory rows={activityRows} />
+                        </div>
+                    )}
+                </>
+            )}
+            <SuccessDialog
+                open={Boolean(requestMessage)}
+                title="Action completed"
+                message={requestMessage}
+                onClose={() => setRequestMessage('')}
+            />
+            <ResignConfirmationModal
+                open={resignModalOpen}
+                loading={actionLoading === 'resign'}
+                onCancel={handleCloseResignModal}
+                onConfirm={handleConfirmResign}
+            />
+            <AssignmentReasonModal
+                key={reasonRequest?.assignment?.id ?? 'closed'}
+                request={reasonRequest}
+                loading={assignmentActionId !== null}
+                onClose={() => {
+                    if (assignmentActionId === null) setReasonRequest(null);
+                }}
+                onConfirm={handleConfirmReason}
+            />
+        </div>
+    );
 };
 export default MyVolunteerActivities;

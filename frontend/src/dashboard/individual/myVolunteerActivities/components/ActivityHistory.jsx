@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { MapPin } from 'lucide-react';
 import DataTable from '@/components/dashboard/DataTable';
-import { statusConfig, formatDate } from '../utils/volunteerHelpers';
+import { formatDate } from '../utils/volunteerHelpers';
 import AssignmentStatusBadge from './AssignmentStatusBadge';
 
 export default function ActivityHistory({ rows }) {
@@ -13,8 +13,8 @@ export default function ActivityHistory({ rows }) {
                 sortable: true,
 
                 render: (value, row) => (
-                    <div className="min-w-[220px]">
-                        <p className="font-semibold text-[#EEF1F5]">
+                    <div className="min-w-[240px]">
+                        <p className="font-semibold text-[#E5EAF0]">
                             {row.campaign_title}
                         </p>
 
@@ -113,5 +113,19 @@ export default function ActivityHistory({ rows }) {
         [],
     );
 
-return <section className="min-w-0 space-y-4"><div><h2 className="text-[19px] font-semibold tracking-tight text-[#EEF1F5]">Activity history</h2><p className="mt-1 text-[12px] text-[#8792A1]">All campaign assignments and their current status.</p></div><div className="min-w-0 overflow-x-auto border border-[#252D38] bg-[#0E1219]"><DataTable columns={assignmentColumns} rows={rows} /></div></section>;
+    return (
+        <section className="min-w-0 space-y-4">
+            <div>
+                <h2 className="text-[19px] font-semibold tracking-tight text-[#EEF1F5]">
+                    Activity history
+                </h2>
+                <p className="mt-1 text-[12px] text-[#8792A1]">
+                    All campaign assignments and their current status.
+                </p>
+            </div>
+            <div className="min-w-0 overflow-x-auto border border-[#29323E] bg-[#0E1219]">
+                <DataTable columns={assignmentColumns} rows={rows} />
+            </div>
+        </section>
+    );
 }

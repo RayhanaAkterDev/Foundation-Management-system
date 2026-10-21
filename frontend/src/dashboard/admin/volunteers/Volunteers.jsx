@@ -879,12 +879,49 @@ const Volunteers = () => {
 
                 {/* VOLUNTEER DIRECTORY */}
                 <section className="pt-2 lg:pt-3">
-                    <div className="flex flex-col gap-5 pb-5 sm:flex-row sm:items-end sm:justify-between sm:pb-6">
+                    {/* ===============================================
+                        SECTION HEADING
+                    =============================================== */}
+
+                    <div
+                        className="
+                            flex
+                            flex-col
+                            gap-5
+                            pb-5
+                            sm:pb-6
+                            sm:flex-row
+                            sm:items-end
+                            sm:justify-between
+                        "
+                    >
                         <div className="min-w-0">
-                            <h2 className="font-sans! text-[20px] font-semibold! leading-tight tracking-[-0.02em] text-[#EEF1F5]!">
+                            <h2
+                                className="
+                                    font-sans!
+
+                                    text-[20px]
+                                    font-semibold!
+                                    leading-tight
+                                    tracking-[-0.02em]
+                                    text-[#EEF1F5]!
+                                "
+                            >
                                 Volunteer Directory
                             </h2>
-                            <p className="mt-2 max-w-xl font-sans! text-[12px] leading-[1.65] text-[#8792A1]">
+
+                            <p
+                                className="
+                                    mt-2
+                                    max-w-xl
+
+                                    font-sans!
+                                    text-[12px]
+                                    leading-[1.65]
+
+                                    text-[#8792A1]
+                                "
+                            >
                                 Browse and manage registered volunteer profiles.
                             </p>
                         </div>

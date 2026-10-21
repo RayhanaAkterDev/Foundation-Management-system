@@ -1,23 +1,29 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+
 import {
     ArrowLeft,
     ArrowUpRight,
     CalendarDays,
     CheckCircle2,
     CircleAlert,
-    Clock3,
     FileText,
     FolderOpen,
     HandCoins,
+    MapPin,
     Target,
     Wallet,
 } from 'lucide-react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import PageHeader from '@/components/dashboard/PageHeader';
 import LoadingUI from '@/components/dashboard/LoadingUI';
 import LoadingError from '@/components/dashboard/LoadingError';
+
 import { fetchCampaigns } from './api/campaignsAPI';
+
+// ============================================================
+// CONFIGURATION
+// ============================================================
 
 const CAMPAIGNS_ROUTE = '/admin/dashboard/campaigns';
 
@@ -49,10 +55,17 @@ const STATUS_CONFIG = {
     },
 };
 
-const formatDate = (value) => {
+const PANEL = 'min-w-0 overflow-hidden border border-[#29323E] bg-[#0E1219]';
+
+// ============================================================
+// HELPERS
+// ============================================================
+
+function formatDate(value) {
     if (!value) return '—';
 
     const date = new Date(value);
+
     if (Number.isNaN(date.getTime())) return '—';
 
     return date.toLocaleDateString('en-GB', {
@@ -60,14 +73,15 @@ const formatDate = (value) => {
         month: 'short',
         year: 'numeric',
     });
-};
+}
 
-const formatMoney = (value) => {
+function formatMoney(value) {
     const amount = Number(value ?? 0);
-    return `৳${(Number.isFinite(amount) ? amount : 0).toLocaleString('en-BD')}`;
-};
 
-const formatType = (type) => {
+    return `৳${(Number.isFinite(amount) ? amount : 0).toLocaleString('en-BD')}`;
+}
+
+function formatType(type) {
     const labels = {
         local_case: 'Local Case',
         organization_proposed: 'Organization Proposed',
@@ -75,29 +89,42 @@ const formatType = (type) => {
     };
 
     return labels[type] || type || '—';
-};
+}
 
-const getLocation = (campaign) =>
-    campaign?.location ||
-    campaign?.district ||
-    campaign?.address ||
-    'Not specified';
+function getLocation(campaign) {
+    const value = campaign?.location || campaign?.district || campaign?.address;
 
-const getOrganization = (campaign) =>
-    campaign?.organization?.name ||
-    campaign?.organization_name ||
-    'Not assigned';
+    if (!value) return 'Not specified';
 
-const getProgress = (collected, target) => {
-    const a = Number(collected);
-    const b = Number(target);
+    if (typeof value === 'object') {
+        return value.name || value.district || value.address || 'Not specified';
+    }
 
-    if (!Number.isFinite(a) || !Number.isFinite(b) || b <= 0) {
+    return String(value);
+}
+
+function getOrganization(campaign) {
+    return (
+        campaign?.organization?.name ||
+        campaign?.organization_name ||
+        'Not assigned'
+    );
+}
+
+function getProgress(collected, target) {
+    const raised = Number(collected);
+    const goal = Number(target);
+
+    if (!Number.isFinite(raised) || !Number.isFinite(goal) || goal <= 0) {
         return 0;
     }
 
-    return Math.max(0, Math.min(100, (a / b) * 100));
-};
+    return Math.max(0, Math.min(100, (raised / goal) * 100));
+}
+
+// ============================================================
+// STATUS
+// ============================================================
 
 function CampaignStatus({ status }) {
     const config = STATUS_CONFIG[status] || {
@@ -110,7 +137,13 @@ function CampaignStatus({ status }) {
 
     return (
         <span
-            className={`inline-flex h-7 shrink-0 items-center gap-1.5 border px-2.5 text-[12px] font-medium ${config.className}`}
+            className={`
+                inline-flex min-h-7 shrink-0
+                items-center gap-1.5
+                border px-2.5
+                text-[11px] font-medium
+                ${config.className}
+            `}
         >
             <Icon size={13} strokeWidth={1.8} />
             {config.label}
@@ -118,137 +151,324 @@ function CampaignStatus({ status }) {
     );
 }
 
-/*
- * Shared heading for all three left-column sections.
- * Identical height, background, border, padding and typography.
- */
+// ============================================================
+// SHARED SECTION HEADING
+// Matches Donation Details
+// ============================================================
 
-function SectionHeader({ title, icon: Icon }) {
+function SectionHeading({ icon: Icon, title, action }) {
     return (
-        <div className="flex min-h-[68px] items-center justify-between gap-4 border-b border-[#2B3541] bg-[#151C25] px-4 py-4 sm:px-6">
+        <div
+            className="
+                flex min-h-15 min-w-0
+                flex-wrap items-center
+                justify-between
+                gap-x-4 gap-y-2
+                border-b border-[#29323E]
+                bg-[#171E28]
+                px-5 py-3.5
+                sm:px-6
+            "
+        >
             <div className="flex min-w-0 items-center gap-3">
-                {/* Accent line */}
-                <span
-                    aria-hidden="true"
-                    className="h-7 w-[3px] shrink-0 bg-[#82AEA2]"
+                <Icon
+                    size={17}
+                    strokeWidth={1.7}
+                    className="shrink-0 text-[#92AAA9]"
                 />
 
-                {/* Heading */}
-                <h2 className="!m-0 min-w-0 text-[15px] font-semibold leading-6 tracking-[-0.02em] !text-[#DEE5ED] sm:text-[16px]">
+                <h2
+                    className="
+                        !m-0 min-w-0
+                        !font-sans
+                        !text-[15px]
+                        !font-semibold
+                        !tracking-[-0.015em]
+                        !text-[#EEF1F5]
+                    "
+                >
                     {title}
                 </h2>
             </div>
 
-            {/* Section icon */}
-            {Icon && (
-                <Icon
-                    size={17}
-                    strokeWidth={1.65}
-                    aria-hidden="true"
-                    className="shrink-0 text-[#8292A4]"
-                />
-            )}
+            {action}
         </div>
     );
 }
+
+// ============================================================
+// INFORMATION ROW
+// ============================================================
 
 function RecordRow({ label, value, last = false }) {
     return (
         <div
-            className={`grid min-w-0 gap-1 py-3.5 sm:grid-cols-[170px_minmax(0,1fr)] sm:items-start sm:gap-5 ${
-                last ? '' : 'border-b border-[#252E39]'
-            }`}
+            className={`
+                grid min-w-0
+                gap-1.5 py-3.5
+                sm:grid-cols-[minmax(135px,0.8fr)_minmax(0,1.2fr)]
+                sm:items-center sm:gap-5
+                ${last ? '' : 'border-b border-[#252D38]'}
+            `}
         >
-            <span className="text-[13px] leading-6 text-[#8997A8]">
+            <dt
+                className="
+                    text-[12px]
+                    leading-5
+                    !text-[#8792A1]
+                "
+            >
                 {label}
-            </span>
+            </dt>
 
-            <div className="min-w-0 break-words text-[14px] font-medium leading-6 !text-[#D5DEE8]">
+            <dd
+                className="
+                    !m-0 min-w-0
+                    wrap-break-word
+                    text-[13px] font-medium
+                    leading-5
+                    !text-[#DCE4ED]
+                "
+            >
                 {value ?? '—'}
-            </div>
+            </dd>
         </div>
     );
 }
 
-function VerticalTimeline({ campaign }) {
-    const events = [
-        {
-            label: 'Proposal submitted',
-            date: campaign.proposal_date,
-            icon: FileText,
-        },
-        {
-            label: 'Campaign started',
-            date: campaign.start_date,
-            icon: CalendarDays,
-        },
-        {
-            label: 'Campaign ends',
-            date: campaign.end_date,
-            icon: Clock3,
-        },
-    ];
+// ============================================================
+// CAMPAIGN IDENTITY
+// Open summary matching Donation Details
+// ============================================================
+
+function CampaignIdentity({ campaign }) {
+    const hasDates =
+        campaign.start_date || campaign.end_date || campaign.proposal_date;
 
     return (
-        <div className="relative">
-            <div
-                aria-hidden="true"
-                className="absolute bottom-5 left-[16px] top-5 w-px bg-[#34404D]"
-            />
+        <section
+            className="
+                min-w-0
+                pb-5 sm:pb-6
+            "
+        >
+            <div className="flex min-w-0 flex-col gap-4">
+                {/* CAMPAIGN REFERENCE */}
+                <div className="flex flex-wrap items-center gap-3">
+                    <span
+                        className="
+                            text-[11px] font-semibold
+                            uppercase
+                            tracking-[0.12em]
+                            !text-[#8792A1]
+                        "
+                    >
+                        Campaign #{campaign.id}
+                    </span>
 
-            <div className="space-y-5">
-                {events.map((event, index) => {
-                    const Icon = event.icon;
+                    <CampaignStatus status={campaign.status} />
+                </div>
 
-                    return (
-                        <div
-                            key={event.label}
-                            className="relative flex min-w-0 items-start gap-3.5"
-                        >
-                            <span
-                                className={`relative z-10 flex h-[33px] w-[33px] shrink-0 items-center justify-center border ${
-                                    index === 0
-                                        ? 'border-[#46685D] bg-[#20362F] text-[#A3C8B4]'
-                                        : 'border-[#34404D] bg-[#19222D] text-[#91A0B0]'
-                                }`}
+                {/* TITLE */}
+                <h1
+                    className="
+                        !m-0 max-w-4xl
+                        wrap-break-word
+                        !font-sans
+                        !text-[23px]
+                        !font-semibold
+                        !leading-[1.35]
+                        !tracking-[-0.035em]
+                        !text-[#EEF1F5]
+                        sm:!text-[27px]
+                        xl:!text-[30px]
+                    "
+                >
+                    {campaign.title || 'Untitled campaign'}
+                </h1>
+
+                {/* DATES */}
+                {hasDates && (
+                    <div
+                        className="
+                            flex min-w-0 flex-wrap
+                            items-center
+                            gap-x-7 gap-y-3
+                            pt-1
+                        "
+                    >
+                        {(campaign.start_date || campaign.end_date) && (
+                            <div
+                                className="
+                                    flex min-w-0
+                                    items-center gap-2
+                                "
                             >
-                                <Icon size={15} strokeWidth={1.7} />
-                            </span>
+                                <CalendarDays
+                                    size={15}
+                                    strokeWidth={1.7}
+                                    className="
+                                        shrink-0
+                                        text-[#8EA7A6]
+                                    "
+                                />
 
-                            <div className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-x-5 gap-y-1 pt-1.5">
-                                <span className="text-[13px] leading-5 text-[#B3BFCC]">
-                                    {event.label}
-                                </span>
-
-                                <span className="text-[13px] font-medium tabular-nums leading-5 !text-[#D8E0E9]">
-                                    {formatDate(event.date)}
+                                <span
+                                    className="
+                                        text-[12px]
+                                        font-medium
+                                        tabular-nums
+                                        !text-[#B8C5D2]
+                                    "
+                                >
+                                    {formatDate(campaign.start_date)}
+                                    {' – '}
+                                    {formatDate(campaign.end_date)}
                                 </span>
                             </div>
-                        </div>
-                    );
-                })}
+                        )}
+
+                        {campaign.proposal_date && (
+                            <div
+                                className="
+                                    flex min-w-0
+                                    items-center gap-2
+                                "
+                            >
+                                <FileText
+                                    size={15}
+                                    strokeWidth={1.7}
+                                    className="
+                                        shrink-0
+                                        text-[#8EA7A6]
+                                    "
+                                />
+
+                                <span
+                                    className="
+                                        text-[12px]
+                                        !text-[#8792A1]
+                                    "
+                                >
+                                    Submitted{' '}
+                                    <span className="font-medium !text-[#B8C5D2]">
+                                        {formatDate(campaign.proposal_date)}
+                                    </span>
+                                </span>
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
-        </div>
+        </section>
     );
 }
 
-function FinanceRow({ icon: Icon, label, value, accent = false }) {
+// ============================================================
+// ABOUT CAMPAIGN
+// ============================================================
+
+function AboutCampaign({ campaign }) {
     return (
-        <div className="flex min-w-0 items-center justify-between gap-3 py-3.5">
+        <section className={PANEL}>
+            <SectionHeading icon={FileText} title="About this campaign" />
+
+            <div className="px-5 py-5 sm:px-6 sm:py-6">
+                <p
+                    className="
+                        !m-0 max-w-3xl
+                        whitespace-pre-wrap
+                        wrap-break-word
+                        text-[14px]
+                        leading-[1.85]
+                        !text-[#B8C5D2]
+                        sm:text-[15px]
+                    "
+                >
+                    {campaign.description ||
+                        'No campaign description has been provided.'}
+                </p>
+            </div>
+        </section>
+    );
+}
+
+// ============================================================
+// CAMPAIGN INFORMATION
+// ============================================================
+
+function CampaignInformation({ campaign }) {
+    return (
+        <section className={PANEL}>
+            <SectionHeading icon={MapPin} title="Campaign information" />
+
+            <dl className="px-5 sm:px-6">
+                <RecordRow
+                    label="Campaign type"
+                    value={formatType(campaign.type)}
+                />
+
+                <RecordRow label="Category" value={campaign.category || '—'} />
+
+                <RecordRow label="Location" value={getLocation(campaign)} />
+
+                <RecordRow
+                    label="Connected organization"
+                    value={getOrganization(campaign)}
+                />
+
+                <RecordRow
+                    label="Organization ID"
+                    value={
+                        campaign.organization_id != null
+                            ? `#${campaign.organization_id}`
+                            : '—'
+                    }
+                    last
+                />
+            </dl>
+        </section>
+    );
+}
+
+// ============================================================
+// FUNDING ROW
+// ============================================================
+
+function FinanceRow({
+    icon: Icon,
+    label,
+    value,
+    accent = false,
+    last = false,
+}) {
+    return (
+        <div
+            className={`
+                flex min-w-0 flex-wrap
+                items-center justify-between
+                gap-x-4 gap-y-1
+                py-3.5
+                ${last ? '' : 'border-b border-[#252D38]'}
+            `}
+        >
             <div className="flex min-w-0 items-center gap-2.5">
                 <Icon
                     size={15}
                     strokeWidth={1.7}
-                    className="shrink-0 text-[#8493A5]"
+                    className="shrink-0 text-[#8792A1]"
                 />
 
-                <span className="text-[13px] text-[#A1AEBC]">{label}</span>
+                <span className="text-[12px] !text-[#9DAAB9]">{label}</span>
             </div>
 
             <span
-                className={`shrink-0 text-right text-[13px] font-semibold tabular-nums ${
-                    accent ? '!text-[#A3C8B4]' : '!text-[#DCE4ED]'
-                }`}
+                className={`
+                    min-w-0 text-right
+                    text-[13px] font-semibold
+                    tabular-nums
+                    ${accent ? '!text-[#A3C8B4]' : '!text-[#DCE4ED]'}
+                `}
             >
                 {value}
             </span>
@@ -256,42 +476,71 @@ function FinanceRow({ icon: Icon, label, value, accent = false }) {
     );
 }
 
-/*
- * Existing funding design retained.
- * Only responsive width and text-overflow safeguards added.
- */
+// ============================================================
+// FUNDING OVERVIEW
+// Existing layout retained
+// ============================================================
+
 function FundingOverview({ campaign, progress, remaining }) {
     return (
-        <aside className="min-w-0 self-start overflow-hidden border border-[#303A47] bg-[#10161F]">
-            {/* COMMON SECTION HEADER */}
-            <SectionHeader title="Funding overview" icon={Wallet} />
+        <aside className={`${PANEL} self-start`}>
+            <SectionHeading icon={Wallet} title="Funding overview" />
 
-            <div className="px-5 pb-6 pt-7 sm:px-6">
-                <p className="text-[12px] font-medium text-[#94A2B2]">
-                    Total funds raised
-                </p>
+            <div className="px-5 pb-6 pt-6 sm:px-6">
+                {/* RAISED AMOUNT */}
+                <div>
+                    <p className="!m-0 text-[12px] font-medium !text-[#94A3B4]">
+                        Total funds raised
+                    </p>
 
-                <p className="!mb-0 !mt-2 break-words text-[30px] font-semibold leading-tight tracking-[-0.045em] tabular-nums !text-[#E4EAF1] sm:text-[34px]">
-                    {formatMoney(campaign.collected_amount)}
-                </p>
+                    <p
+                        className="
+                            !mb-0 !mt-2
+                            wrap-break-word
+                            !font-sans
+                            !text-[30px]
+                            !font-semibold
+                            !leading-tight
+                            !tracking-[-0.045em]
+                            tabular-nums
+                            !text-[#EEF1F5]
+                            sm:!text-[34px]
+                        "
+                    >
+                        {formatMoney(campaign.collected_amount)}
+                    </p>
 
-                <p className="mt-2 text-[13px] text-[#94A2B2]">
-                    of {formatMoney(campaign.target_amount)} target
-                </p>
+                    <p className="mt-2 text-[12px] !text-[#8792A1]">
+                        of {formatMoney(campaign.target_amount)} target
+                    </p>
+                </div>
 
+                {/* PROGRESS */}
                 <div className="mt-7">
                     <div className="mb-3 flex items-end justify-between gap-4">
-                        <span className="text-[13px] text-[#A8B5C2]">
+                        <span className="text-[12px] !text-[#A8B5C2]">
                             Goal completion
                         </span>
 
-                        <span className="text-[21px] font-semibold leading-none tabular-nums tracking-[-0.035em] !text-[#A3C8B4]">
+                        <span
+                            className="
+                                text-[21px]
+                                font-semibold
+                                leading-none
+                                tabular-nums
+                                tracking-[-0.035em]
+                                !text-[#A3C8B4]
+                            "
+                        >
                             {progress.toFixed(1)}%
                         </span>
                     </div>
 
                     <div
-                        className="h-[7px] overflow-hidden bg-[#2A3542]"
+                        className="
+                            h-1.75 overflow-hidden
+                            bg-[#2A3542]
+                        "
                         role="progressbar"
                         aria-label="Funding progress"
                         aria-valuemin={0}
@@ -299,27 +548,59 @@ function FundingOverview({ campaign, progress, remaining }) {
                         aria-valuenow={progress}
                     >
                         <div
-                            className="h-full bg-[#82AEA2] transition-[width] duration-500"
-                            style={{ width: `${progress}%` }}
+                            className="
+                                h-full
+                                bg-[#82AEA2]
+                                transition-[width]
+                                duration-500
+                            "
+                            style={{
+                                width: `${progress}%`,
+                            }}
                         />
                     </div>
 
-                    <div className="mt-2.5 flex justify-between text-[11px] tabular-nums text-[#798899]">
+                    <div
+                        className="
+                            mt-2.5 flex justify-between
+                            text-[11px]
+                            tabular-nums
+                            text-[#798899]
+                        "
+                    >
                         <span>0%</span>
                         <span>100%</span>
                     </div>
                 </div>
 
-                <div className="mt-8 border-t border-[#303A47] pt-6">
-                    <div className="mb-3 flex items-center gap-2">
-                        <HandCoins size={15} className="text-[#91A3B4]" />
+                {/* FINANCIAL BREAKDOWN */}
+                <div
+                    className="
+                        mt-7 border-t
+                        border-[#29323E]
+                        pt-5
+                    "
+                >
+                    <div className="mb-2 flex items-center gap-2">
+                        <HandCoins
+                            size={15}
+                            strokeWidth={1.7}
+                            className="text-[#92AAA9]"
+                        />
 
-                        <h3 className="!m-0 text-[14px] font-semibold !text-[#D5DEE8]">
+                        <h3
+                            className="
+                                !m-0 !font-sans
+                                !text-[13px]
+                                !font-semibold
+                                !text-[#DCE4ED]
+                            "
+                        >
                             Financial breakdown
                         </h3>
                     </div>
 
-                    <div className="divide-y divide-[#252E39]">
+                    <div>
                         <FinanceRow
                             icon={Target}
                             label="Target amount"
@@ -337,32 +618,32 @@ function FundingOverview({ campaign, progress, remaining }) {
                             icon={Wallet}
                             label="Remaining"
                             value={formatMoney(remaining)}
+                            last
                         />
                     </div>
                 </div>
             </div>
-
-            {/* <div className="flex items-center justify-between gap-3 border-t border-[#303A47] bg-[#151C25] px-5 py-4 sm:px-6">
-                <span className="text-[12px] text-[#93A1B0]">
-                    Campaign reference
-                </span>
-
-                <span className="font-mono text-[12px] font-medium !text-[#D4DDE6]">
-                    #{campaign.id}
-                </span>
-            </div> */}
         </aside>
     );
 }
 
+// ============================================================
+// MAIN PAGE
+// ============================================================
+
 export default function CampaignDetails() {
     const { id } = useParams();
+
     const navigate = useNavigate();
     const location = useLocation();
 
     const [campaign, setCampaign] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+
+    // --------------------------------------------------------
+    // VOLUNTEER NAVIGATION CONTEXT
+    // --------------------------------------------------------
 
     const volunteerContext = location.state?.fromVolunteer;
 
@@ -373,6 +654,10 @@ export default function CampaignDetails() {
         )
             ? volunteerContext.path
             : null;
+
+    // --------------------------------------------------------
+    // FETCH CAMPAIGN
+    // --------------------------------------------------------
 
     useEffect(() => {
         let cancelled = false;
@@ -417,7 +702,9 @@ export default function CampaignDetails() {
                     );
                 }
             } finally {
-                if (!cancelled) setLoading(false);
+                if (!cancelled) {
+                    setLoading(false);
+                }
             }
         };
 
@@ -427,6 +714,10 @@ export default function CampaignDetails() {
             cancelled = true;
         };
     }, [id]);
+
+    // --------------------------------------------------------
+    // FINANCIAL CALCULATIONS
+    // --------------------------------------------------------
 
     const progress = useMemo(
         () => getProgress(campaign?.collected_amount, campaign?.target_amount),
@@ -442,6 +733,10 @@ export default function CampaignDetails() {
             (Number.isFinite(collected) ? collected : 0),
     );
 
+    // --------------------------------------------------------
+    // PAGE HEADER
+    // --------------------------------------------------------
+
     const header = (
         <PageHeader
             title="Campaign Details"
@@ -452,7 +747,19 @@ export default function CampaignDetails() {
                         <button
                             type="button"
                             onClick={() => navigate(volunteerPath)}
-                            className="inline-flex h-10 min-w-0 items-center justify-center gap-2 border border-[#343E4B] bg-[#202833] px-3.5 text-[13px] font-medium !text-[#CED6DF] transition-colors hover:border-[#526071] hover:bg-[#2A3543]"
+                            className="
+                                inline-flex min-h-10
+                                min-w-0 items-center
+                                justify-center gap-2
+                                border border-[#343E4B]
+                                bg-[#202833]
+                                px-3.5
+                                text-[12px] font-medium
+                                !text-[#CED6DF]
+                                transition-colors
+                                hover:border-[#526071]
+                                hover:bg-[#2A3543]
+                            "
                         >
                             <ArrowLeft size={15} className="shrink-0" />
                             Back to Volunteer
@@ -462,13 +769,26 @@ export default function CampaignDetails() {
                     <button
                         type="button"
                         onClick={() => navigate(CAMPAIGNS_ROUTE)}
-                        className="inline-flex h-10 min-w-0 items-center justify-center gap-2 border border-[#343E4B] bg-[#151C25] px-3.5 text-[13px] font-medium !text-[#CED6DF] transition-colors hover:border-[#526071] hover:bg-[#202833]"
+                        className="
+                            inline-flex min-h-10
+                            min-w-0 items-center
+                            justify-center gap-2
+                            border border-[#343E4B]
+                            bg-transparent
+                            px-3.5
+                            text-[12px] font-medium
+                            !text-[#C3CDD8]
+                            transition-colors
+                            hover:border-[#506071]
+                            hover:bg-[#202A35]
+                            hover:!text-white
+                        "
                     >
                         <FolderOpen size={15} className="shrink-0" />
                         All Campaigns
                         <ArrowUpRight
                             size={14}
-                            className="shrink-0 text-[#8392A4]"
+                            className="shrink-0 text-[#8792A1]"
                         />
                     </button>
                 </div>
@@ -476,10 +796,15 @@ export default function CampaignDetails() {
         />
     );
 
+    // --------------------------------------------------------
+    // LOADING
+    // --------------------------------------------------------
+
     if (loading) {
         return (
-            <div className="min-w-0 space-y-7">
+            <div className="min-w-0 space-y-6">
                 {header}
+
                 <LoadingUI
                     variant="page"
                     title="Loading campaign..."
@@ -489,10 +814,15 @@ export default function CampaignDetails() {
         );
     }
 
+    // --------------------------------------------------------
+    // ERROR
+    // --------------------------------------------------------
+
     if (error || !campaign) {
         return (
-            <div className="min-w-0 space-y-7">
+            <div className="min-w-0 space-y-6">
                 {header}
+
                 <LoadingError
                     title="Unable to load campaign"
                     message={error || 'Campaign not found.'}
@@ -501,139 +831,48 @@ export default function CampaignDetails() {
         );
     }
 
+    // --------------------------------------------------------
+    // CONTENT
+    // --------------------------------------------------------
+
     return (
-        <div className="min-w-0 max-w-full space-y-5 overflow-x-hidden pb-8">
+        <main
+            className="
+                min-w-0 max-w-full
+                space-y-6
+                overflow-x-hidden
+                pb-10 font-sans
+            "
+        >
             {header}
 
-            {/* =====================================================
-    CAMPAIGN IDENTITY
-====================================================== */}
-            <section className="min-w-0 overflow-hidden border border-[#303A47] bg-[#111821]">
-                <div className="px-4 py-5 sm:px-7 sm:py-7">
-                    {/* Campaign reference and status */}
-                    <div className="flex flex-wrap items-center gap-3">
-                        <span className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#9BA9B9]">
-                            Campaign #{campaign.id}
-                        </span>
+            {/* CAMPAIGN IDENTITY */}
+            <CampaignIdentity campaign={campaign} />
 
-                        <CampaignStatus status={campaign.status} />
-                    </div>
-
-                    {/* Campaign title */}
-                    <h1 className="!mb-0 !mt-5 max-w-4xl break-words text-[22px] font-semibold leading-[1.35] tracking-[-0.035em] !text-[#E7ECF2] sm:text-[27px] xl:text-[30px]">
-                        {campaign.title || 'Untitled campaign'}
-                    </h1>
-
-                    {/* Campaign dates */}
-                    {(campaign.start_date ||
-                        campaign.end_date ||
-                        campaign.proposal_date) && (
-                        <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-[#29323E] pt-5">
-                            {/* Campaign duration */}
-                            {(campaign.start_date || campaign.end_date) && (
-                                <div className="flex min-w-0 items-center gap-2">
-                                    <CalendarDays
-                                        size={16}
-                                        strokeWidth={1.7}
-                                        className="shrink-0 text-[#8FA2B2]"
-                                    />
-
-                                    <span className="break-words text-[13px] font-medium tabular-nums text-[#B9C5D1]">
-                                        {formatDate(campaign.start_date)}
-                                        {' – '}
-                                        {formatDate(campaign.end_date)}
-                                    </span>
-                                </div>
-                            )}
-
-                            {/* Submitted date */}
-                            {campaign.proposal_date && (
-                                <div className="flex min-w-0 items-center gap-2">
-                                    <FileText
-                                        size={15}
-                                        strokeWidth={1.7}
-                                        className="shrink-0 text-[#8FA2B2]"
-                                    />
-
-                                    <span className="text-[13px] text-[#9BA9B9]">
-                                        Submitted{' '}
-                                        <span className="font-medium tabular-nums text-[#B9C5D1]">
-                                            {formatDate(campaign.proposal_date)}
-                                        </span>
-                                    </span>
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </div>
-            </section>
-
-            {/* MAIN CONTENT */}
-            <div className="grid min-w-0 grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_340px] 2xl:grid-cols-[minmax(0,1fr)_360px]">
+            {/* MAIN LAYOUT — UNCHANGED */}
+            <div
+                className="
+                    grid min-w-0
+                    grid-cols-1
+                    items-start gap-5
+                    xl:grid-cols-[minmax(0,1fr)_340px]
+                    2xl:grid-cols-[minmax(0,1fr)_360px]
+                "
+            >
+                {/* LEFT COLUMN */}
                 <div className="flex min-w-0 flex-col gap-5">
-                    {/* ABOUT */}
-                    <section className="min-w-0 overflow-hidden border border-[#303A47] bg-[#111821]">
-                        <SectionHeader
-                            title="About this campaign"
-                            icon={FileText}
-                        />
+                    <AboutCampaign campaign={campaign} />
 
-                        <div className="px-4 py-5 sm:px-6 sm:py-6">
-                            <p className="max-w-3xl whitespace-pre-wrap break-words text-[14px] leading-[1.9] text-[#B6C1CE] sm:text-[15px]">
-                                {campaign.description ||
-                                    'No campaign description has been provided.'}
-                            </p>
-                        </div>
-                    </section>
-
-                    {/* INFORMATION */}
-                    <section className="min-w-0 overflow-hidden border border-[#303A47] bg-[#10161F]">
-                        <SectionHeader
-                            title="Campaign information"
-                            icon={FileText}
-                        />
-
-                        <div className="px-4 sm:px-6">
-                            <RecordRow
-                                label="Campaign type"
-                                value={formatType(campaign.type)}
-                            />
-
-                            <RecordRow
-                                label="Category"
-                                value={campaign.category || '—'}
-                            />
-
-                            <RecordRow
-                                label="Location"
-                                value={getLocation(campaign)}
-                            />
-
-                            <RecordRow
-                                label="Connected organization"
-                                value={getOrganization(campaign)}
-                            />
-
-                            <RecordRow
-                                label="Organization ID"
-                                value={
-                                    campaign.organization_id != null
-                                        ? `#${campaign.organization_id}`
-                                        : '—'
-                                }
-                                last
-                            />
-                        </div>
-                    </section>
+                    <CampaignInformation campaign={campaign} />
                 </div>
 
-                {/* FUNDING */}
+                {/* RIGHT COLUMN */}
                 <FundingOverview
                     campaign={campaign}
                     progress={progress}
                     remaining={remaining}
                 />
             </div>
-        </div>
+        </main>
     );
 }

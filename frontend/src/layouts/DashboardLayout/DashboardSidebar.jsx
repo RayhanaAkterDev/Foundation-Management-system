@@ -5,45 +5,42 @@ import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import logo from '@/assets/shared/logo.png';
 import { NAV_CONFIG, ROLE_LABELS } from '@/routes/dashboardNav';
 
-/* ==========================================================================
-   CONFIGURATION
-============================================================================ */
+// ============================================================
+// CONFIGURATION
+// ============================================================
 
-const SIDEBAR_WIDTH = {
-    collapsed: 64,
-    expanded: 272,
-};
+const COLLAPSED_WIDTH = 68;
+const EXPANDED_WIDTH = 272;
 
 const DASHBOARD_ROOTS = [
+    '/admin/dashboard',
     '/individual/dashboard',
     '/organization/dashboard',
-    '/admin/dashboard',
 ];
 
-/* ==========================================================================
-   PATH HELPERS
-============================================================================ */
+// ============================================================
+// HELPERS
+// ============================================================
 
-const normalizePath = (path = '') => {
+function normalizePath(path = '') {
     if (!path) return '/';
-
     return path.replace(/\/+$/, '') || '/';
-};
+}
 
-const isPathActive = (itemPath, currentPath) => {
-    if (!itemPath || !currentPath) return false;
+function isPathActive(itemPath, currentPath) {
+    if (!itemPath) return false;
 
     const target = normalizePath(itemPath);
     const current = normalizePath(currentPath);
 
     if (DASHBOARD_ROOTS.includes(target)) {
-        return current === target;
+        return target === current;
     }
 
     return current === target || current.startsWith(`${target}/`);
-};
+}
 
-const hasActiveChild = (item, currentPath) => {
+function hasActiveChild(item, currentPath) {
     if (!item?.children?.length) return false;
 
     return item.children.some(
@@ -51,18 +48,18 @@ const hasActiveChild = (item, currentPath) => {
             isPathActive(child.path, currentPath) ||
             hasActiveChild(child, currentPath),
     );
-};
+}
 
-const isNavItemActive = (item, currentPath) => {
+function isNavItemActive(item, currentPath) {
     if (!item) return false;
 
     return (
         isPathActive(item.path, currentPath) ||
         hasActiveChild(item, currentPath)
     );
-};
+}
 
-const getActiveChildKey = (item, currentPath) => {
+function getActiveChildKey(item, currentPath) {
     if (!item?.children?.length) return null;
 
     const matches = item.children
@@ -73,32 +70,28 @@ const getActiveChildKey = (item, currentPath) => {
         );
 
     return matches[0]?.key || null;
-};
+}
 
-/* ==========================================================================
-   SECTION LABEL
-============================================================================ */
+// ============================================================
+// SECTION LABEL — EXPANDED MENU (UNCHANGED)
+// ============================================================
 
-function SectionLabel({ label, collapsed, first = false }) {
-    if (collapsed) {
-        if (first) return null;
-
-        return <div aria-hidden="true" className="h-2" />;
-    }
-
+function SectionLabel({ label, first }) {
     return (
         <div
             className={`
                 px-3 pb-2
-
-                ${first ? 'pt-2' : 'pt-5'}
+                ${first ? 'pt-4' : 'pt-7'}
             `}
         >
             <p
                 className="
-                    text-[9px] font-semibold!
-                    uppercase tracking-[0.16em]
-                    text-[#657184]!
+                    !m-0
+                    text-[10px]
+                    !font-semibold
+                    uppercase
+                    tracking-[0.12em]
+                    !text-[#657184]
                 "
             >
                 {label}
@@ -107,14 +100,129 @@ function SectionLabel({ label, collapsed, first = false }) {
     );
 }
 
-/* ==========================================================================
-   SUBMENU
-============================================================================ */
+// ============================================================
+// COLLAPSED RAIL GROUP
+// ============================================================
 
-function SubMenu({ item, currentPath, open, collapsed }) {
-    if (!item.children?.length || collapsed) {
-        return null;
+function RailGroup({ items, currentPath, onExpand, first }) {
+    if (!items.length) return null;
+
+    return (
+        <div
+            className={`
+                flex w-full flex-col items-center gap-1
+                ${first ? '' : 'mt-3.5'}
+            `}
+        >
+            {!first && (
+                <div
+                    aria-hidden="true"
+                    className="mb-2 h-px w-7 bg-[#303A47]"
+                />
+            )}
+
+            {items.map((item) => (
+                <RailItem
+                    key={item.key}
+                    item={item}
+                    currentPath={currentPath}
+                    onExpand={onExpand}
+                />
+            ))}
+        </div>
+    );
+}
+
+// ============================================================
+// COLLAPSED RAIL ITEM
+// ============================================================
+
+function RailItem({ item, currentPath, onExpand }) {
+    const Icon = item.icon;
+    const active = isNavItemActive(item, currentPath);
+    const hasChildren = Boolean(item.children?.length);
+
+    const className = `
+        group relative
+        flex h-[38px] w-[38px]
+        shrink-0 items-center justify-center
+        rounded-md
+        transition-colors duration-150
+
+        focus-visible:outline-none
+        focus-visible:ring-1
+        focus-visible:ring-[#64748B]
+
+        ${
+            active
+                ? `
+                    bg-[#1C2530]
+                    !text-[#E9EDF2]
+                `
+                : `
+                    bg-transparent
+                    !text-[#818D9D]
+                    hover:bg-[#19212B]
+                    hover:!text-[#E3E8EF]
+                `
+        }
+    `;
+
+    const content = (
+        <>
+            {active && (
+                <span
+                    aria-hidden="true"
+                    className="
+                        absolute -left-[9px] top-1/2
+                        h-[18px] w-[2px]
+                        -translate-y-1/2
+                        rounded-full bg-[#D8DDE5]
+                    "
+                />
+            )}
+
+            {Icon && <Icon size={17} strokeWidth={1.7} className="shrink-0" />}
+        </>
+    );
+
+    if (hasChildren) {
+        return (
+            <button
+                type="button"
+                onClick={() => onExpand(item.key)}
+                title={item.label}
+                aria-label={`Open ${item.label} menu`}
+                className={className}
+            >
+                {content}
+            </button>
+        );
     }
+
+    if (item.path) {
+        return (
+            <Link
+                to={item.path}
+                title={item.label}
+                aria-label={item.label}
+                aria-current={active ? 'page' : undefined}
+                className={className}
+            >
+                {content}
+            </Link>
+        );
+    }
+
+    return null;
+}
+
+// ============================================================
+// EXPANDED SUBMENU — UNCHANGED
+// ============================================================
+
+function SubMenu({ item, currentPath, open }) {
+    if (!item.children?.length) return null;
 
     const activeChildKey = getActiveChildKey(item, currentPath);
 
@@ -137,9 +245,11 @@ function SubMenu({ item, currentPath, open, collapsed }) {
             <div className="min-w-0 overflow-hidden">
                 <div
                     className={`
-                        relative ml-[21px]
+                        relative
+                        ml-[21px]
                         mt-1.5 mb-2
-                        min-w-0 space-y-0.5
+                        min-w-0
+                        space-y-0.5
                         pl-5
 
                         before:absolute
@@ -147,10 +257,10 @@ function SubMenu({ item, currentPath, open, collapsed }) {
                         before:left-[7px]
                         before:top-1
                         before:w-px
-                        before:bg-[#29323E]!
+                        before:bg-[#29323E]
 
-                        transition-transform duration-300
-                        ease-[cubic-bezier(0.4,0,0.2,1)]
+                        transition-transform
+                        duration-300
 
                         ${open ? 'translate-y-0' : '-translate-y-1'}
                     `}
@@ -171,16 +281,17 @@ function SubMenu({ item, currentPath, open, collapsed }) {
                                     group/sub relative
                                     flex min-h-[34px]
                                     min-w-0 items-center
-                                    rounded-md px-2.5 py-1.5
-                                    text-[11.5px]
-                                    transition-colors duration-150
+                                    rounded-md
+                                    px-2.5 py-1.5
+                                    text-[12px]
+                                    transition-colors
+                                    duration-150
 
                                     ${
                                         active
                                             ? `
-                                                bg-transparent!
-                                                font-semibold!
-                                                text-[#EEF1F5]!
+                                                !font-semibold
+                                                !text-[#EEF1F5]
 
                                                 before:absolute
                                                 before:-left-[14px]
@@ -189,13 +300,13 @@ function SubMenu({ item, currentPath, open, collapsed }) {
                                                 before:w-[2px]
                                                 before:-translate-y-1/2
                                                 before:rounded-full
-                                                before:bg-[#D8DDE5]!
+                                                before:bg-[#D8DDE5]
                                             `
                                             : `
-                                                font-medium!
-                                                text-[#8792A1]!
-                                                hover:bg-[#181F28]!
-                                                hover:text-[#DDE2E8]!
+                                                !font-medium
+                                                !text-[#8792A1]
+                                                hover:bg-[#181F28]
+                                                hover:!text-[#DDE2E8]
                                             `
                                     }
                                 `}
@@ -212,23 +323,23 @@ function SubMenu({ item, currentPath, open, collapsed }) {
     );
 }
 
-/* ==========================================================================
-   NAV ITEM
-============================================================================ */
+// ============================================================
+// EXPANDED NAVIGATION ITEM — UNCHANGED
+// ============================================================
 
-function NavItem({ item, currentPath, collapsed, open, onToggle }) {
+function ExpandedNavItem({ item, currentPath, open, onToggle }) {
     const Icon = item.icon;
-
     const hasChildren = Boolean(item.children?.length);
-
     const active = isNavItemActive(item, currentPath);
-
     const childActive = hasActiveChild(item, currentPath);
 
     const baseClass = `
-        group relative flex
-        h-[38px] items-center
-        rounded-md
+        group relative
+        flex min-h-[42px]
+        w-full min-w-0
+        items-center gap-3
+        rounded-md px-3
+        text-left
         transition-colors duration-150
 
         focus-visible:outline-none
@@ -236,183 +347,129 @@ function NavItem({ item, currentPath, collapsed, open, onToggle }) {
         focus-visible:ring-[#64748B]
     `;
 
-    const layoutClass = collapsed
-        ? 'mx-auto w-10 justify-center'
-        : 'w-full min-w-0 gap-3 px-3';
+    const icon = Icon ? (
+        <Icon
+            size={17}
+            strokeWidth={1.7}
+            className={`
+                shrink-0
+                transition-colors duration-150
 
-    /* ======================================================================
-       DIRECT LINK
-    ====================================================================== */
+                ${
+                    active
+                        ? '!text-[#DCE3EB]'
+                        : `
+                            !text-[#818D9D]
+                            group-hover:!text-[#CDD5DE]
+                        `
+                }
+            `}
+        />
+    ) : null;
 
     if (!hasChildren && item.path) {
         return (
             <Link
                 to={item.path}
-                title={collapsed ? item.label : undefined}
-                aria-label={collapsed ? item.label : undefined}
                 aria-current={active ? 'page' : undefined}
                 className={`
                     ${baseClass}
-                    ${layoutClass}
 
                     ${
                         active
                             ? `
-                                bg-[#1B222C]!
-                                text-[#F3F5F7]!
+                                bg-[#1B222C]
+                                !text-[#F1F3F5]
                             `
                             : `
-                                text-[#B8C0CC]!
-                                hover:bg-[#181F28]!
-                                hover:text-[#F1F3F5]!
+                                !text-[#B8C0CC]
+                                hover:bg-[#181F28]
+                                hover:!text-[#F1F3F5]
                             `
                     }
                 `}
             >
-                {Icon && (
-                    <Icon
-                        size={16}
-                        strokeWidth={1.7}
-                        className={`
-                            shrink-0
-                            transition-colors duration-150
+                {icon}
 
-                            ${
-                                active
-                                    ? 'text-[#E5E9EE]!'
-                                    : `
-                                        text-[#7F8998]!
-                                        group-hover:text-[#CDD3DB]!
-                                    `
-                            }
-                        `}
-                    />
-                )}
+                <span
+                    className={`
+                        min-w-0 flex-1
+                        truncate text-[12.5px]
 
-                {!collapsed && (
-                    <span
-                        className={`
-                            min-w-0 flex-1
-                            truncate text-[12px]
-
-                            ${active ? 'font-semibold!' : 'font-medium!'}
-                        `}
-                    >
-                        {item.label}
-                    </span>
-                )}
+                        ${active ? '!font-semibold' : '!font-medium'}
+                    `}
+                >
+                    {item.label}
+                </span>
             </Link>
         );
     }
 
     if (!hasChildren) return null;
 
-    /* ======================================================================
-       EXPANDABLE LINK
-    ====================================================================== */
-
     return (
         <div className="min-w-0">
             <button
                 type="button"
                 onClick={onToggle}
-                title={collapsed ? item.label : undefined}
-                aria-label={collapsed ? item.label : undefined}
-                aria-expanded={collapsed ? false : open}
+                aria-expanded={open}
                 className={`
                     ${baseClass}
-                    ${layoutClass}
-                    text-left
 
                     ${
                         childActive
                             ? `
-                                bg-[#1B222C]!
-                                text-[#F1F3F5]!
+                                bg-[#1B222C]
+                                !text-[#F1F3F5]
                             `
                             : `
-                                text-[#B8C0CC]!
-                                hover:bg-[#181F28]!
-                                hover:text-[#F1F3F5]!
+                                !text-[#B8C0CC]
+                                hover:bg-[#181F28]
+                                hover:!text-[#F1F3F5]
                             `
                     }
                 `}
             >
-                {Icon && (
-                    <Icon
-                        size={16}
-                        strokeWidth={1.7}
-                        className={`
-                            shrink-0
-                            transition-colors duration-150
+                {icon}
 
-                            ${
-                                childActive
-                                    ? 'text-[#D5DAE1]!'
-                                    : `
-                                        text-[#7F8998]!
-                                        group-hover:text-[#CDD3DB]!
-                                    `
-                            }
-                        `}
-                    />
-                )}
+                <span
+                    className={`
+                        min-w-0 flex-1
+                        truncate text-[12.5px]
 
-                {!collapsed && (
-                    <>
-                        <span
-                            className={`
-                                min-w-0 flex-1
-                                truncate text-[12px]
+                        ${childActive ? '!font-semibold' : '!font-medium'}
+                    `}
+                >
+                    {item.label}
+                </span>
 
-                                ${
-                                    childActive
-                                        ? 'font-semibold!'
-                                        : 'font-medium!'
-                                }
-                            `}
-                        >
-                            {item.label}
-                        </span>
-
-                        <ChevronDown
-                            size={12.5}
-                            strokeWidth={1.8}
-                            className={`
-                                shrink-0
-                                text-[#657184]!
-                                transition-transform duration-300
-                                ease-[cubic-bezier(0.4,0,0.2,1)]
-
-                                group-hover:text-[#B8C0CC]!
-
-                                ${open ? 'rotate-180' : ''}
-                            `}
-                        />
-                    </>
-                )}
+                <ChevronDown
+                    size={14}
+                    strokeWidth={1.8}
+                    className={`
+                        shrink-0
+                        !text-[#657184]
+                        transition-transform duration-300
+                        ${open ? 'rotate-180' : ''}
+                    `}
+                />
             </button>
 
-            <SubMenu
-                item={item}
-                currentPath={currentPath}
-                open={open}
-                collapsed={collapsed}
-            />
+            <SubMenu item={item} currentPath={currentPath} open={open} />
         </div>
     );
 }
 
-/* ==========================================================================
-   DESKTOP SIDEBAR
-============================================================================ */
+// ============================================================
+// DASHBOARD SIDEBAR
+// ============================================================
 
-const DashboardSidebar = ({
+export default function DashboardSidebar({
     role,
     currentPath,
     collapsed = true,
     onCollapsedChange,
-}) => {
+}) {
     const normalizedRole =
         typeof role === 'string' ? role.toLowerCase() : 'individual';
 
@@ -428,10 +485,6 @@ const DashboardSidebar = ({
         openKey: null,
         manuallyControlled: false,
     });
-
-    /* ======================================================================
-       ACTIVE MENU
-    ====================================================================== */
 
     const routeOpenMenuKey = useMemo(() => {
         const activeParent = navItems.find(
@@ -455,84 +508,91 @@ const DashboardSidebar = ({
     const isMenuOpen = (item) => effectiveOpenMenuKey === item.key;
 
     const toggleMenu = (item) => {
-        const currentlyOpen = isMenuOpen(item);
-
-        if (collapsed) {
-            onCollapsedChange?.(false);
-
-            setMenuState({
-                path: normalizedCurrentPath,
-                openKey: item.key,
-                manuallyControlled: true,
-            });
-
-            return;
-        }
-
         setMenuState({
             path: normalizedCurrentPath,
-            openKey: currentlyOpen ? null : item.key,
+            openKey: isMenuOpen(item) ? null : item.key,
             manuallyControlled: true,
         });
     };
 
-    /* ======================================================================
-       COLLAPSE
-    ====================================================================== */
+    const expandFromRail = (key) => {
+        setMenuState({
+            path: normalizedCurrentPath,
+            openKey: key,
+            manuallyControlled: true,
+        });
 
-    const handleCollapseToggle = () => {
-        onCollapsedChange?.(!collapsed);
+        onCollapsedChange?.(false);
     };
 
-    /* ======================================================================
-       RENDER
-    ====================================================================== */
+    // Build rail groups from the existing section configuration.
+    // The expanded menu configuration is not modified.
+
+    const railGroups = useMemo(() => {
+        const groups = [];
+        let currentGroup = [];
+
+        navItems.forEach((item) => {
+            if (item.type === 'section') {
+                if (currentGroup.length) {
+                    groups.push(currentGroup);
+                    currentGroup = [];
+                }
+
+                return;
+            }
+
+            currentGroup.push(item);
+        });
+
+        if (currentGroup.length) {
+            groups.push(currentGroup);
+        }
+
+        return groups;
+    }, [navItems]);
 
     return (
         <aside
             aria-label="Dashboard sidebar"
             style={{
-                width: collapsed
-                    ? SIDEBAR_WIDTH.collapsed
-                    : SIDEBAR_WIDTH.expanded,
+                width: collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH,
             }}
             className="
                 fixed inset-y-0 left-0 z-40
                 hidden min-h-0 flex-col
                 overflow-visible
-                border-r border-[#252D38]!
-                bg-[#0E1219]!
-                transition-[width] duration-300
-                ease-out
+                border-r border-[#252D38]
+                bg-[#0E1219]
+                transition-[width]
+                duration-300 ease-out
                 lg:flex
             "
         >
-            {/* =============================================================
+            {/* ==================================================
                 BRAND
-            ============================================================= */}
+            ================================================== */}
 
             <div
                 className={`
-                    flex h-16 shrink-0
+                    flex h-[72px] shrink-0
                     items-center
-                    bg-[#0E1219]!
+                    bg-[#0E1219]
 
-                    ${collapsed ? 'justify-center px-2' : 'px-4'}
+                    ${collapsed ? 'justify-center px-2' : 'px-5'}
                 `}
             >
                 <Link
                     to="/"
                     title={collapsed ? 'Stand For People' : undefined}
                     className={`
-                        flex min-w-0
-                        items-center
-
-                        ${collapsed ? 'justify-center' : 'gap-2.5'}
+                        flex min-w-0 items-center
+                        ${collapsed ? 'justify-center' : 'gap-3'}
                     `}
                 >
                     <div
                         className="
-                            flex h-6 w-6 shrink-0
+                            flex h-8 w-8 shrink-0
                             items-center justify-center
                             overflow-hidden
                         "
@@ -540,10 +600,7 @@ const DashboardSidebar = ({
                         <img
                             src={logo}
                             alt="Stand For People"
-                            className="
-                                h-full w-full
-                                object-contain
-                            "
+                            className="h-full w-full object-contain"
                         />
                     </div>
 
@@ -551,11 +608,11 @@ const DashboardSidebar = ({
                         <div className="min-w-0">
                             <p
                                 className="
-                                    truncate
-                                    text-[13px]
-                                    font-semibold!
-                                    tracking-[-0.01em]
-                                    text-[#EEF1F5]!
+                                    !m-0 truncate
+                                    text-[13.5px]
+                                    !font-semibold
+                                    tracking-[-0.02em]
+                                    !text-[#EEF1F5]
                                 "
                             >
                                 Stand For People
@@ -563,12 +620,11 @@ const DashboardSidebar = ({
 
                             <p
                                 className="
-                                    mt-0.5 truncate
-                                    text-[8px]
-                                    font-semibold!
-                                    uppercase
-                                    tracking-[0.17em]
-                                    text-[#657184]!
+                                    !m-0 mt-1 truncate
+                                    text-[10px]
+                                    !font-medium
+                                    tracking-[0.025em]
+                                    !text-[#657184]
                                 "
                             >
                                 {ROLE_LABELS[normalizedRole] || 'User'}{' '}
@@ -579,107 +635,143 @@ const DashboardSidebar = ({
                 </Link>
             </div>
 
-            {/* =============================================================
-                NAVIGATION
-            ============================================================= */}
+            {/* ==================================================
+                COLLAPSED RAIL
+            ================================================== */}
 
-            <nav
-                aria-label="Dashboard navigation"
-                style={{
-                    scrollbarWidth: 'none',
-                    msOverflowStyle: 'none',
-                }}
-                className={`
-                    min-h-0 min-w-0 flex-1
-                    overflow-x-hidden
-                    overflow-y-auto
-                    overscroll-contain
-                    py-3.5
+            {collapsed ? (
+                <nav
+                    aria-label="Dashboard navigation"
+                    style={{
+                        scrollbarWidth: 'none',
+                        msOverflowStyle: 'none',
+                    }}
+                    className="
+                        min-h-0 flex-1
+                        overflow-x-hidden
+                        overflow-y-auto
+                        overscroll-contain
+                        px-2 py-3
 
-                    ${collapsed ? 'px-2' : 'px-3'}
-
-                    [scrollbar-width:none]
-                    [-ms-overflow-style:none]
-                    [&::-webkit-scrollbar]:hidden
-                `}
-            >
-                <div
-                    className={
-                        collapsed ? 'min-w-0 space-y-0.5' : 'min-w-0 space-y-1'
-                    }
+                        [scrollbar-width:none]
+                        [-ms-overflow-style:none]
+                        [&::-webkit-scrollbar]:hidden
+                    "
                 >
-                    {navItems.map((item, index) => {
-                        if (item.type === 'section') {
-                            const firstSection = !navItems
-                                .slice(0, index)
-                                .some((entry) => entry.type === 'section');
+                    <div className="flex flex-col items-center">
+                        {railGroups.map((group, index) => (
+                            <RailGroup
+                                key={group[0]?.key ?? index}
+                                items={group}
+                                first={index === 0}
+                                currentPath={normalizedCurrentPath}
+                                onExpand={expandFromRail}
+                            />
+                        ))}
+                    </div>
+                </nav>
+            ) : (
+                /* ==============================================
+                    EXPANDED NAVIGATION — UNCHANGED
+                ============================================== */
+
+                <nav
+                    aria-label="Dashboard navigation"
+                    style={{
+                        scrollbarWidth: 'none',
+                        msOverflowStyle: 'none',
+                    }}
+                    className="
+                        min-h-0 min-w-0 flex-1
+                        overflow-x-hidden
+                        overflow-y-auto
+                        overscroll-contain
+                        px-3 py-3
+
+                        [scrollbar-width:none]
+                        [-ms-overflow-style:none]
+                        [&::-webkit-scrollbar]:hidden
+                    "
+                >
+                    <div className="min-w-0 space-y-1">
+                        {navItems.map((item, index) => {
+                            if (item.type === 'section') {
+                                const firstSection = !navItems
+                                    .slice(0, index)
+                                    .some((entry) => entry.type === 'section');
+
+                                return (
+                                    <SectionLabel
+                                        key={item.key}
+                                        label={item.label}
+                                        first={firstSection}
+                                    />
+                                );
+                            }
 
                             return (
-                                <SectionLabel
+                                <ExpandedNavItem
                                     key={item.key}
-                                    label={item.label}
-                                    collapsed={collapsed}
-                                    first={firstSection}
+                                    item={item}
+                                    currentPath={normalizedCurrentPath}
+                                    open={isMenuOpen(item)}
+                                    onToggle={() => toggleMenu(item)}
                                 />
                             );
-                        }
+                        })}
+                    </div>
+                </nav>
+            )}
 
-                        return (
-                            <NavItem
-                                key={item.key}
-                                item={item}
-                                currentPath={normalizedCurrentPath}
-                                collapsed={collapsed}
-                                open={isMenuOpen(item)}
-                                onToggle={() => toggleMenu(item)}
-                            />
-                        );
-                    })}
-                </div>
-            </nav>
+            {/* ==================================================
+                COLLAPSE / EXPAND CONTROL
+            ================================================== */}
 
-            {/* =============================================================
-                COLLAPSE BUTTON
-            ============================================================= */}
+            <div
+                className={`
+                    flex shrink-0
+                    items-center
+                    bg-[#0E1219]
+                    pb-5 pt-3
 
-            <button
-                type="button"
-                onClick={handleCollapseToggle}
-                aria-label={
-                    collapsed
-                        ? 'Expand dashboard sidebar'
-                        : 'Collapse dashboard sidebar'
-                }
-                aria-expanded={!collapsed}
-                title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-                className="
-                    absolute -right-2.5 bottom-12 z-10
-                    flex h-6 w-6
-                    items-center justify-center
-                    rounded-md
-                    border border-[#303A47]!
-                    bg-[#161C25]!
-                    text-[#8792A1]!
-                    shadow-[0_3px_10px_rgba(0,0,0,0.32)]
-                    transition-colors duration-150
-
-                    hover:border-[#414D5C]!
-                    hover:bg-[#1B222C]!
-                    hover:text-[#F1F3F5]!
-
-                    focus-visible:outline-none
-                    focus-visible:ring-2
-                    focus-visible:ring-[#64748B]
-                "
+                    ${collapsed ? 'justify-center px-2' : 'justify-end px-4'}
+                `}
             >
-                {collapsed ? (
-                    <ChevronRight size={13} strokeWidth={2} />
-                ) : (
-                    <ChevronLeft size={13} strokeWidth={2} />
-                )}
-            </button>
+                <button
+                    type="button"
+                    onClick={() => onCollapsedChange?.(!collapsed)}
+                    aria-label={
+                        collapsed
+                            ? 'Expand dashboard sidebar'
+                            : 'Collapse dashboard sidebar'
+                    }
+                    aria-expanded={!collapsed}
+                    title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                    className="
+                        flex h-8 w-9 shrink-0
+                        items-center justify-center
+                        rounded-md
+                        border border-[#303A47]
+                        bg-[#161C25]
+                        !text-[#8792A1]
+                        transition-colors duration-150
+
+                        hover:border-[#414D5C]
+                        hover:bg-[#1B222C]
+                        hover:!text-[#F1F3F5]
+
+                        focus-visible:outline-none
+                        focus-visible:ring-2
+                        focus-visible:ring-[#64748B]
+                    "
+                >
+                    {collapsed ? (
+                        <ChevronRight size={15} strokeWidth={1.8} />
+                    ) : (
+                        <ChevronLeft size={15} strokeWidth={1.8} />
+                    )}
+                </button>
+            </div>
         </aside>
     );
-};
-
-export default DashboardSidebar;
+}

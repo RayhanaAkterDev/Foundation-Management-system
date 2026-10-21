@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\DonationAttempt;
+use App\Notifications\PlatformNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
@@ -343,7 +344,7 @@ class SSLCOMMERZService
         DonationAttempt $attempt,
         array $payment
     ): Donation {
-        return DB::transaction(function () use (
+        $donation = DB::transaction(function () use (
             $attempt,
             $payment
         ) {
@@ -404,12 +405,26 @@ class SSLCOMMERZService
             );
 
             /**
-             * The unsuccessful-attempt record is no longer
-             * needed once it has become a real donation.
+             * Remove the completed donation attempt.
              */
             $attempt->delete();
 
             return $donation->load('campaign');
         });
+
+        /**
+         * Notify registered donors after the transaction commits.
+         * Guest donations have no associated user account.
+         */
+        if ($donation->user) {
+            $donation->user->notify(new PlatformNotification(
+                'Donation successful',
+                "Your donation of {$donation->amount} to {$donation->campaign->title} was successful. Thank you for supporting our cause!",
+                null,
+                'donation'
+            ));
+        }
+
+        return $donation;
     }
 }

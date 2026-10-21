@@ -5,41 +5,62 @@ import {
     ArrowUpRight,
     CalendarDays,
     Check,
-    Clock3,
     Copy,
     CreditCard,
     FileText,
-    Hash,
+    Heart,
     Mail,
-    MapPin,
-    Phone,
-    RefreshCw,
-    Tag,
+    ReceiptText,
+    RotateCcw,
     UserRound,
-    Wallet,
+    WalletCards,
 } from 'lucide-react';
 
 import PageHeader from '@/components/dashboard/PageHeader';
 import LoadingUI from '@/components/dashboard/LoadingUI';
 import LoadingError from '@/components/dashboard/LoadingError';
+import StatusBadge from '@/components/dashboard/StatusBadge';
 import { apiRequest } from '@/api/client';
 
-/* =========================================================
-   DATA UTILITIES
-========================================================= */
+// ============================================================
+// HELPERS
+// ============================================================
 
-const donationIdOf = (d) => d?.id ?? d?.donation_id;
+const donationIdOf = (donation) =>
+    donation?.id ?? donation?.donation_id ?? null;
 
-const donorIdOf = (d) =>
-    d?.user?.id ?? d?.donor?.id ?? d?.user_id ?? d?.donor_id;
+const donorIdOf = (donation) =>
+    donation?.user?.id ??
+    donation?.donor?.id ??
+    donation?.user_id ??
+    donation?.donor_id ??
+    null;
 
-const campaignIdOf = (d) => d?.campaign?.id ?? d?.campaign_id;
+const campaignIdOf = (donation) =>
+    donation?.campaign?.id ?? donation?.campaign_id ?? null;
 
-const transactionOf = (d) =>
-    d?.transaction_id ?? d?.transactionId ?? d?.tran_id ?? d?.transaction;
+const transactionOf = (donation) =>
+    donation?.transaction_id ??
+    donation?.transactionId ??
+    donation?.tran_id ??
+    donation?.transaction ??
+    null;
 
-function display(value) {
-    if (value === null || value === undefined || value === '') {
+const paymentReceivedOf = (donation) =>
+    donation?.payment_received_at ??
+    donation?.paymentReceivedAt ??
+    donation?.paid_at ??
+    donation?.paidAt ??
+    donation?.payment_date ??
+    donation?.paymentDate ??
+    donation?.received_at ??
+    donation?.receivedAt ??
+    donation?.created_at ??
+    donation?.createdAt ??
+    null;
+
+const text = (value) => {
+    if (value === undefined || value === null || value === '') {
         return '—';
     }
 
@@ -48,58 +69,66 @@ function display(value) {
     }
 
     return String(value);
-}
+};
 
-function label(value) {
-    const text = display(value);
+const label = (value) => {
+    const result = text(value);
 
-    if (text === '—') return text;
+    if (result === '—') return result;
 
-    return text
+    return result
         .replace(/_/g, ' ')
         .replace(/\b\w/g, (character) => character.toUpperCase());
-}
+};
 
-function amount(value) {
-    if (value === null || value === undefined || value === '') {
+const money = (value, currency = 'BDT') => {
+    if (
+        value === null ||
+        value === undefined ||
+        value === '' ||
+        !Number.isFinite(Number(value))
+    ) {
         return '—';
     }
 
-    const number = Number(value);
-
-    if (!Number.isFinite(number)) return '—';
-
-    return `৳${number.toLocaleString('en-BD', {
+    const formatted = Number(value).toLocaleString('en-BD', {
         maximumFractionDigits: 2,
-    })}`;
-}
+    });
 
-function dateTime(value) {
-    if (!value) return '—';
+    return String(currency).toUpperCase() === 'BDT'
+        ? `৳${formatted}`
+        : `${formatted} ${String(currency).toUpperCase()}`;
+};
 
-    const date = new Date(value);
+const formatDate = (value) => {
+    if (!value || Number.isNaN(new Date(value).getTime())) {
+        return '—';
+    }
 
-    if (Number.isNaN(date.getTime())) return '—';
-
-    return date.toLocaleString('en-GB', {
+    return new Date(value).toLocaleString('en-GB', {
         day: '2-digit',
         month: 'short',
         year: 'numeric',
         hour: '2-digit',
         minute: '2-digit',
     });
-}
+};
 
-function normalizeDonation(response) {
+const normalizeDonation = (response) => {
     const root = response?.data ?? response;
-    const result = root?.donation ?? root;
 
-    return result && typeof result === 'object' && !Array.isArray(result)
-        ? result
+    if (!root || typeof root !== 'object' || Array.isArray(root)) {
+        return null;
+    }
+
+    const donation = root.donation ?? root;
+
+    return donation && typeof donation === 'object' && !Array.isArray(donation)
+        ? donation
         : null;
-}
+};
 
-function donationList(response) {
+const donationList = (response) => {
     const root = response?.data ?? response;
 
     if (Array.isArray(root)) return root;
@@ -107,25 +136,45 @@ function donationList(response) {
     if (Array.isArray(root?.data)) return root.data;
 
     return [];
-}
+};
 
-/* =========================================================
-   REUSABLE DISPLAY COMPONENTS
-========================================================= */
+// ============================================================
+// SHARED STYLES
+// ============================================================
+
+const panelClass =
+    'min-w-0 overflow-hidden border border-[#29323E] bg-[#0E1219]';
+
+const sectionTitleClass =
+    '!m-0 !font-sans !text-[15px] !font-semibold !tracking-[-0.015em] !text-[#EEF1F5]';
+
+// ============================================================
+// SECTION HEADING
+// ============================================================
 
 function SectionHeading({ icon: Icon, title, action }) {
     return (
-        <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-2.5">
+        <div
+            className="
+                -mx-5 -mt-5 mb-4
+                flex min-h-15 flex-wrap
+                items-center justify-between
+                gap-x-4 gap-y-2
+                border-b border-[#29323E]
+                bg-[#171E28]
+                px-5 py-3.5
+                sm:-mx-6 sm:-mt-6
+                sm:mb-5 sm:px-6
+            "
+        >
+            <div className="flex min-w-0 items-center gap-3">
                 <Icon
                     size={17}
-                    strokeWidth={1.6}
-                    className="shrink-0 text-[#8E9CAD]"
+                    strokeWidth={1.7}
+                    className="shrink-0 text-[#92AAA9]"
                 />
 
-                <h2 className="!m-0 !font-sans !text-[15px] !font-semibold !tracking-[-0.015em] !text-[#DDE5ED]">
-                    {title}
-                </h2>
+                <h2 className={sectionTitleClass}>{title}</h2>
             </div>
 
             {action}
@@ -133,133 +182,187 @@ function SectionHeading({ icon: Icon, title, action }) {
     );
 }
 
-function RecordLink({ onClick, children }) {
+// ============================================================
+// TEXT ACTION
+// ============================================================
+
+function TextAction({ onClick, children }) {
     return (
         <button
             type="button"
             onClick={onClick}
-            className="inline-flex min-h-9 shrink-0 items-center gap-1.5 text-[12px] font-medium text-[#AAB9C8] transition-colors hover:text-[#E7EDF3]"
+            className="
+                inline-flex shrink-0
+                items-center gap-1
+                text-[12px] font-medium
+                !text-[#9BCBC2]
+                transition-colors
+                hover:!text-[#D4F1EA]
+            "
         >
             {children}
-            <ArrowUpRight size={14} strokeWidth={1.7} />
+            <ArrowUpRight size={14} />
         </button>
     );
 }
 
-function DetailField({ icon: Icon, label: title, value }) {
+// ============================================================
+// COPY BUTTON
+// ============================================================
+
+function CopyButton({ value }) {
+    const [copied, setCopied] = useState(false);
+
+    const handleCopy = async () => {
+        if (value == null || value === '—') return;
+
+        try {
+            if (!navigator.clipboard?.writeText) return;
+
+            await navigator.clipboard.writeText(String(value));
+            setCopied(true);
+
+            window.setTimeout(() => {
+                setCopied(false);
+            }, 1600);
+        } catch {
+            setCopied(false);
+        }
+    };
+
     return (
-        <div className="min-w-0">
-            <div className="flex items-center gap-2 text-[#8C9BAB]">
-                {Icon && <Icon size={14} strokeWidth={1.6} />}
-
-                <span className="text-[12px]">{title}</span>
-            </div>
-
-            <p className="mt-2 min-w-0 break-words text-[13px] font-medium leading-6 text-[#CCD6E0]">
-                {display(value)}
-            </p>
-        </div>
+        <button
+            type="button"
+            onClick={handleCopy}
+            disabled={value == null || value === '—'}
+            title={copied ? 'Copied' : 'Copy reference'}
+            aria-label={copied ? 'Copied reference' : 'Copy reference'}
+            className="
+                flex h-8 w-8 shrink-0
+                items-center justify-center
+                border border-[#343E4B]
+                bg-[#151C25]
+                text-[#9BA9B9]
+                transition-colors
+                hover:border-[#53716D]
+                hover:bg-[#1B2B2B]
+                hover:text-[#B8E4DA]
+                disabled:cursor-not-allowed
+                disabled:opacity-35
+            "
+        >
+            {copied ? <Check size={14} /> : <Copy size={14} />}
+        </button>
     );
 }
 
-function PaymentRow({ title, value, last = false }) {
+// ============================================================
+// PAYMENT ROW
+// ============================================================
+
+function PaymentRow({ name, value, mono = false, action, last = false }) {
     return (
         <div
-            className={`flex min-w-0 items-start justify-between gap-5 py-4 ${
-                last ? '' : 'border-b border-[#29323E]'
-            }`}
+            className={`
+                grid min-w-0 gap-1.5 py-3.5
+                sm:grid-cols-[minmax(120px,0.8fr)_minmax(0,1.2fr)]
+                sm:items-center sm:gap-5
+                ${last ? '' : 'border-b border-[#252D38]'}
+            `}
         >
-            <span className="shrink-0 text-[12px] leading-5 text-[#8D9BAB]">
-                {title}
-            </span>
+            <dt className="text-[12px] !text-[#8792A1]">{name}</dt>
 
-            <span className="min-w-0 break-words text-right text-[13px] font-medium leading-5 text-[#D0DAE5]">
-                {display(value)}
-            </span>
+            <dd className="!m-0 flex min-w-0 items-center gap-2">
+                <span
+                    className={`
+                        min-w-0 flex-1
+                        wrap-break-word
+                        text-[12px] font-medium
+                        !text-[#DCE4ED]
+                        ${mono ? 'font-mono break-all' : ''}
+                    `}
+                >
+                    {value === undefined || value === null || value === ''
+                        ? '—'
+                        : value}
+                </span>
+
+                {action}
+            </dd>
         </div>
     );
 }
 
-function Avatar({ name, photo }) {
-    const [failed, setFailed] = useState(false);
-
-    const initials = String(name || 'D')
-        .trim()
-        .split(/\s+/)
-        .slice(0, 2)
-        .map((part) => part[0])
-        .join('')
-        .toUpperCase();
-
-    return (
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden border border-[#3A4655] bg-[#26313E] text-[14px] font-semibold text-[#E0E8F0]">
-            {photo && !failed ? (
-                <img
-                    src={photo}
-                    alt=""
-                    className="h-full w-full object-cover"
-                    onError={() => setFailed(true)}
-                />
-            ) : (
-                initials
-            )}
-        </div>
-    );
-}
-
-/* =========================================================
-   DONATION SUMMARY
-========================================================= */
+// ============================================================
+// DONATION SUMMARY
+// ============================================================
 
 function DonationSummary({ donation }) {
     const id = donationIdOf(donation);
 
-    const created = donation.created_at ?? donation.createdAt;
-
-    const method = donation.payment_method ?? donation.paymentMethod;
-
     const status =
         donation.payment_status ?? donation.paymentStatus ?? donation.status;
 
-    const hasStatus =
-        status !== null && status !== undefined && String(status).trim() !== '';
+    const paymentMethod = donation.payment_method ?? donation.paymentMethod;
+
+    const currency = donation.currency ?? 'BDT';
 
     return (
-        <section className="min-w-0 border-b border-[#303A47] pb-6">
-            <div className="flex min-w-0 flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-                <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-3">
-                        <span className="text-[12px] font-medium text-[#95A4B4]">
-                            DONATION / {id != null ? `#${id}` : '—'}
-                        </span>
-
-                        {hasStatus && (
-                            <span className="border border-[#35404E] bg-[#202832] px-2.5 py-1 text-[11px] font-medium text-[#C4D0DC]">
-                                {label(status)}
-                            </span>
-                        )}
-                    </div>
-
-                    <div className="mt-3 flex flex-wrap items-baseline gap-x-4 gap-y-1">
-                        <h2 className="!m-0 !font-sans !text-[40px] !font-semibold !leading-[1.1] !tracking-[-0.045em] !text-[#E5EBF2] sm:!text-[48px]">
-                            {amount(donation.amount)}
-                        </h2>
-
-                        <span className="text-[13px] text-[#92A1B1]">
-                            Total contribution
-                        </span>
-                    </div>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pb-1 text-[12px] text-[#9BAABA]">
-                    <span className="inline-flex items-center gap-2">
-                        <CalendarDays size={14} strokeWidth={1.6} />
-                        {dateTime(created)}
+        <section className="min-w-0 pb-5 sm:pb-6">
+            <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-3">
+                    <span
+                        className="
+                            text-[11px] font-semibold
+                            uppercase tracking-[0.12em]
+                            !text-[#8792A1]
+                        "
+                    >
+                        Donation #{text(id)}
                     </span>
 
-                    <span className="inline-flex items-center gap-2">
-                        <Wallet size={14} strokeWidth={1.6} />
-                        {label(method)}
+                    {status != null && status !== '' && (
+                        <StatusBadge status={status} />
+                    )}
+                </div>
+
+                <div
+                    className="
+                        mt-3 flex flex-wrap
+                        items-baseline gap-x-4 gap-y-1.5
+                    "
+                >
+                    <p
+                        className="
+                            !m-0 !font-sans
+                            !text-[35px] !font-semibold
+                            !leading-tight
+                            !tracking-[-0.04em]
+                            !text-[#EEF1F5]
+                            sm:!text-[40px]
+                        "
+                    >
+                        {money(donation.amount, currency)}
+                    </p>
+
+                    <span className="text-[12px] !text-[#8792A1]">
+                        {String(currency).toUpperCase()}
+                    </span>
+                </div>
+            </div>
+
+            <div
+                className="
+                    mt-6 flex min-w-0 flex-wrap
+                    items-center gap-x-6 gap-y-3
+                    sm:pb-2
+                "
+            >
+                <div className="flex min-w-0 items-center gap-2">
+                    <CreditCard size={14} className="shrink-0 text-[#8EA7A6]" />
+
+                    <span className="wrap-break-word text-[12px] !text-[#B8C5D2]">
+                        {label(paymentMethod)}
                     </span>
                 </div>
             </div>
@@ -267,13 +370,70 @@ function DonationSummary({ donation }) {
     );
 }
 
-/* =========================================================
-   DONOR SECTION
-========================================================= */
+// ============================================================
+// PAYMENT DETAILS
+// ============================================================
 
-function DonorSection({ donation, onViewDonor }) {
+function PaymentDetails({ donation }) {
+    const transaction = transactionOf(donation);
+
+    const paymentMethod = donation.payment_method ?? donation.paymentMethod;
+
+    const receivedAt = paymentReceivedOf(donation);
+
+    return (
+        <section
+            className={`
+                ${panelClass}
+                px-5 py-5
+                sm:px-6 sm:py-6
+            `}
+        >
+            <SectionHeading icon={CreditCard} title="Payment details" />
+
+            <dl className="mt-1">
+                <PaymentRow
+                    name="Donation ID"
+                    value={`#${text(donationIdOf(donation))}`}
+                />
+
+                <PaymentRow
+                    name="Payment method"
+                    value={label(paymentMethod)}
+                />
+
+                <PaymentRow
+                    name="Currency"
+                    value={String(donation.currency ?? 'BDT').toUpperCase()}
+                />
+
+                <PaymentRow
+                    name="Payment received"
+                    value={formatDate(receivedAt)}
+                />
+
+                <PaymentRow
+                    name="Transaction reference"
+                    mono
+                    value={text(transaction)}
+                    action={
+                        transaction != null ? (
+                            <CopyButton value={transaction} />
+                        ) : null
+                    }
+                    last
+                />
+            </dl>
+        </section>
+    );
+}
+
+// ============================================================
+// DONOR INFORMATION
+// ============================================================
+
+function DonorInformation({ donation, onView }) {
     const donor = donation.user ?? donation.donor ?? {};
-    const donorId = donorIdOf(donation);
 
     const name =
         donor.name ??
@@ -283,9 +443,20 @@ function DonorSection({ donation, onViewDonor }) {
 
     const email = donor.email ?? donation.donor_email ?? donation.donorEmail;
 
-    const phone = donor.phone ?? donation.donor_phone ?? donation.donorPhone;
-
     const photo = donor.photo ?? donor.avatar ?? donor.profile_photo;
+
+    const donorId = donorIdOf(donation);
+
+    const [failed, setFailed] = useState(false);
+
+    const initials = String(name)
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0])
+        .join('')
+        .toUpperCase();
 
     return (
         <section className="min-w-0">
@@ -294,244 +465,240 @@ function DonorSection({ donation, onViewDonor }) {
                 title="Donor information"
                 action={
                     donorId != null ? (
-                        <RecordLink onClick={onViewDonor}>
-                            View donor
-                        </RecordLink>
+                        <TextAction onClick={onView}>View profile</TextAction>
                     ) : null
                 }
             />
 
-            <div className="mt-5 flex min-w-0 items-center gap-3.5">
-                <Avatar name={name} photo={photo} />
+            <div className="flex min-w-0 items-center gap-3.5 py-3">
+                <div
+                    className="
+                        flex h-11 w-11 shrink-0
+                        items-center justify-center
+                        overflow-hidden
+                        border border-[#34414D]
+                        bg-[#1B2934]
+                        text-[13px] font-semibold
+                        text-[#B8DAD4]
+                    "
+                >
+                    {photo && !failed ? (
+                        <img
+                            src={photo}
+                            alt=""
+                            className="h-full w-full object-cover"
+                            onError={() => setFailed(true)}
+                        />
+                    ) : (
+                        initials || 'D'
+                    )}
+                </div>
 
                 <div className="min-w-0">
-                    <h3 className="!m-0 break-words !font-sans !text-[16px] !font-semibold !text-[#E0E7EF]">
+                    <h3
+                        className="
+                            !m-0 wrap-break-word
+                            !font-sans !text-[13px]
+                            !font-semibold !text-[#EEF1F5]
+                        "
+                    >
                         {name}
                     </h3>
 
-                    <p className="mt-1 text-[12px] text-[#8E9CAC]">
+                    <p className="mt-1 text-[11px] !text-[#8792A1]">
                         {donorId != null ? 'Registered donor' : 'Guest donor'}
                     </p>
                 </div>
             </div>
 
-            <div className="mt-5 grid min-w-0 grid-cols-1 gap-5 border-t border-[#29323E] pt-5 sm:grid-cols-2">
-                <DetailField icon={Mail} label="Email address" value={email} />
+            <div
+                className="
+                    mt-2 flex min-w-0 items-start gap-2.5
+                    border-t border-[#252D38] pt-3.5
+                "
+            >
+                <Mail size={14} className="mt-0.5 shrink-0 text-[#8792A1]" />
 
-                <DetailField icon={Phone} label="Phone number" value={phone} />
+                <span className="min-w-0 break-all text-[12px] !text-[#B8C5D2]">
+                    {text(email)}
+                </span>
             </div>
         </section>
     );
 }
 
-/* =========================================================
-   CAMPAIGN SECTION
-========================================================= */
+// ============================================================
+// CAMPAIGN INFORMATION
+// ============================================================
 
-function CampaignSection({ donation, onViewCampaign }) {
+function CampaignInformation({ donation, onView }) {
     const campaign = donation.campaign ?? {};
-    const campaignId = campaignIdOf(donation);
 
-    const title =
+    const name =
         campaign.title ??
         campaign.name ??
         donation.campaign_title ??
         donation.campaignTitle ??
         'Campaign unavailable';
 
-    const category = campaign.category ?? donation.campaign_category;
+    const image = campaign.cover_image ?? campaign.image ?? campaign.thumbnail;
 
-    const location =
-        campaign.location ??
-        campaign.district ??
-        campaign.address ??
-        donation.campaign_location;
+    const campaignId = campaignIdOf(donation);
 
-    const description =
-        campaign.short_description ??
-        campaign.shortDescription ??
-        campaign.description ??
-        donation.campaign_description ??
-        '';
-
-    const image =
-        campaign.cover_image ?? campaign.image ?? campaign.thumbnail ?? null;
-
-    const [imageFailed, setImageFailed] = useState(false);
+    const [failed, setFailed] = useState(false);
 
     return (
         <section className="min-w-0">
-            <SectionHeading
-                icon={FileText}
-                title="Supported campaign"
-                action={
-                    campaignId != null ? (
-                        <RecordLink onClick={onViewCampaign}>
-                            View campaign
-                        </RecordLink>
-                    ) : null
-                }
-            />
+            <div
+                className="
+                    flex flex-wrap items-center
+                    justify-between gap-3
+                "
+            >
+                <div className="flex min-w-0 items-center gap-2.5">
+                    <Heart
+                        size={15}
+                        strokeWidth={1.7}
+                        className="shrink-0 text-[#92AAA9]"
+                    />
 
-            <div className="mt-5 flex min-w-0 items-start gap-4">
-                {image && !imageFailed && (
+                    <h3
+                        className="
+                            !m-0 !font-sans
+                            !text-[13px] !font-semibold
+                            !text-[#DCE5EE]
+                        "
+                    >
+                        Supported campaign
+                    </h3>
+                </div>
+
+                {campaignId != null && (
+                    <TextAction onClick={onView}>View campaign</TextAction>
+                )}
+            </div>
+
+            <div className="mt-4 flex min-w-0 items-center gap-3.5">
+                {image && !failed ? (
                     <img
                         src={image}
                         alt=""
-                        className="h-[88px] w-[110px] shrink-0 border border-[#35404E] object-cover"
-                        onError={() => setImageFailed(true)}
+                        className="
+                            h-14 w-18 shrink-0
+                            border border-[#303B48]
+                            object-cover
+                        "
+                        onError={() => setFailed(true)}
                     />
+                ) : (
+                    <div
+                        className="
+                            flex h-14 w-18 shrink-0
+                            items-center justify-center
+                            border border-[#303B48]
+                            bg-[#19232D]
+                            text-[#799A99]
+                        "
+                    >
+                        <WalletCards size={20} strokeWidth={1.5} />
+                    </div>
                 )}
 
-                <div className="min-w-0 flex-1">
-                    <h3 className="!m-0 break-words !font-sans !text-[17px] !font-semibold !leading-[1.4] !tracking-[-0.02em] !text-[#DFE7EF]">
-                        {title}
-                    </h3>
+                <div className="min-w-0">
+                    <h4
+                        className="
+                            !m-0 wrap-break-word
+                            !font-sans !text-[13px]
+                            !font-semibold !leading-5
+                            !text-[#EEF1F5]
+                        "
+                    >
+                        {name}
+                    </h4>
 
-                    {typeof description === 'string' && description.trim() && (
-                        <p className="mt-2 line-clamp-2 break-words text-[13px] leading-6 text-[#9EADBC]">
-                            {description.trim()}
-                        </p>
-                    )}
-                </div>
-            </div>
-
-            <div className="mt-5 grid min-w-0 grid-cols-2 gap-5 border-t border-[#29323E] pt-5 sm:grid-cols-3">
-                <DetailField icon={Tag} label="Category" value={category} />
-
-                <DetailField icon={MapPin} label="Location" value={location} />
-
-                <DetailField
-                    icon={Hash}
-                    label="Campaign ID"
-                    value={campaignId != null ? `#${campaignId}` : '—'}
-                />
-            </div>
-        </section>
-    );
-}
-
-/* =========================================================
-   PAYMENT DETAILS
-========================================================= */
-
-function PaymentDetails({ donation }) {
-    const method = donation.payment_method ?? donation.paymentMethod;
-
-    const status =
-        donation.payment_status ?? donation.paymentStatus ?? donation.status;
-
-    const currency = donation.currency ?? 'BDT';
-    const transaction = transactionOf(donation);
-
-    const [copied, setCopied] = useState(false);
-
-    async function copyReference() {
-        if (!transaction || !navigator.clipboard) return;
-
-        try {
-            await navigator.clipboard.writeText(String(transaction));
-            setCopied(true);
-            window.setTimeout(() => setCopied(false), 1500);
-        } catch {
-            setCopied(false);
-        }
-    }
-
-    return (
-        <section className="min-w-0 border border-[#303A47] bg-[#151C25]">
-            <div className="border-b border-[#29323E] px-5 py-4 sm:px-6">
-                <SectionHeading icon={CreditCard} title="Payment details" />
-            </div>
-
-            <div className="px-5 py-1 sm:px-6">
-                <PaymentRow title="Payment method" value={label(method)} />
-
-                <PaymentRow title="Payment status" value={label(status)} />
-
-                <PaymentRow
-                    title="Currency"
-                    value={String(currency).toUpperCase()}
-                    last
-                />
-            </div>
-
-            <div className="border-t border-[#29323E] px-5 py-5 sm:px-6">
-                <p className="text-[12px] text-[#8D9BAB]">
-                    Transaction reference
-                </p>
-
-                <div className="mt-3 flex min-w-0 items-center gap-3 border border-[#35404E] bg-[#191F29] px-3.5 py-3">
-                    <span className="min-w-0 flex-1 break-all font-mono text-[11px] leading-5 text-[#CBD6E1]">
-                        {display(transaction)}
-                    </span>
-
-                    {transaction && (
-                        <button
-                            type="button"
-                            onClick={copyReference}
-                            aria-label="Copy transaction reference"
-                            title="Copy transaction reference"
-                            className="flex h-8 w-8 shrink-0 items-center justify-center text-[#A8B6C5] transition-colors hover:bg-[#26313D] hover:text-white"
-                        >
-                            {copied ? <Check size={15} /> : <Copy size={15} />}
-                        </button>
-                    )}
+                    <p className="mt-1 text-[11px] !text-[#8792A1]">
+                        {campaignId == null
+                            ? 'Campaign ID unavailable'
+                            : `Campaign #${campaignId}`}
+                    </p>
                 </div>
             </div>
         </section>
     );
 }
 
-/* =========================================================
-   RECORD ACTIVITY
-========================================================= */
+// ============================================================
+// RELATED INFORMATION
+// ============================================================
 
-function RecordActivity({ donation }) {
-    const created = donation.created_at ?? donation.createdAt;
-
-    const updated = donation.updated_at ?? donation.updatedAt;
-
+function RelatedInformation({ donation, onViewDonor, onViewCampaign }) {
     return (
-        <section className="min-w-0">
-            <SectionHeading icon={Clock3} title="Record activity" />
+        <aside
+            className={`
+                ${panelClass}
+                px-5 py-5
+                sm:px-6 sm:py-6
+            `}
+        >
+            <DonorInformation donation={donation} onView={onViewDonor} />
 
-            <div className="mt-4 space-y-0 border-t border-[#29323E]">
-                <PaymentRow title="Created" value={dateTime(created)} />
+            <div className="my-6 border-t border-[#29323E]" />
 
-                <PaymentRow
-                    title="Last updated"
-                    value={dateTime(updated)}
-                    last
-                />
-            </div>
-        </section>
+            <CampaignInformation donation={donation} onView={onViewCampaign} />
+        </aside>
     );
 }
 
-/* =========================================================
-   OPTIONAL MESSAGE
-========================================================= */
+// ============================================================
+// DONOR MESSAGE
+// ============================================================
 
-function DonorMessage({ note }) {
-    if (typeof note !== 'string' || !note.trim()) {
+function DonorMessage({ message }) {
+    if (typeof message !== 'string' || !message.trim()) {
         return null;
     }
 
     return (
-        <section className="min-w-0 border-t border-[#303A47] pt-6">
-            <SectionHeading icon={Mail} title="Donor message" />
+        <section
+            className={`
+                ${panelClass}
+                px-5 py-5
+                sm:px-6 sm:py-6
+            `}
+        >
+            <SectionHeading icon={FileText} title="Donor message" />
 
-            <p className="mt-3 whitespace-pre-wrap break-words text-[13px] leading-7 text-[#ADBBC9]">
-                {note.trim()}
-            </p>
+            <div className="flex items-start gap-3 pt-2">
+                <div
+                    className="
+                        flex h-8 w-8 shrink-0
+                        items-center justify-center
+                        border border-[#34414D]
+                        bg-[#19242E]
+                        text-[#9BCBC2]
+                    "
+                >
+                    <Heart size={15} />
+                </div>
+
+                <p
+                    className="
+                        min-w-0 whitespace-pre-wrap
+                        wrap-break-word
+                        text-[13px] leading-6
+                        !text-[#C0CCD8]
+                    "
+                >
+                    {message.trim()}
+                </p>
+            </div>
         </section>
     );
 }
 
-/* =========================================================
-   MAIN PAGE
-========================================================= */
+// ============================================================
+// MAIN PAGE
+// ============================================================
 
 export default function DonationDetails() {
     const { donationId } = useParams();
@@ -542,10 +709,14 @@ export default function DonationDetails() {
     const [error, setError] = useState('');
     const [retryKey, setRetryKey] = useState(0);
 
+    // --------------------------------------------------------
+    // FETCH DONATION
+    // --------------------------------------------------------
+
     useEffect(() => {
         let cancelled = false;
 
-        async function loadDonation() {
+        async function load() {
             setLoading(true);
             setError('');
             setDonation(null);
@@ -558,11 +729,13 @@ export default function DonationDetails() {
                 let result = null;
 
                 try {
-                    const response = await apiRequest(
-                        `/admin/donations/${encodeURIComponent(donationId)}`,
+                    result = normalizeDonation(
+                        await apiRequest(
+                            `/admin/donations/${encodeURIComponent(
+                                donationId,
+                            )}`,
+                        ),
                     );
-
-                    result = normalizeDonation(response);
 
                     if (
                         result &&
@@ -582,7 +755,9 @@ export default function DonationDetails() {
                         message.includes('not found') ||
                         message.includes('404');
 
-                    if (!canFallback) throw err;
+                    if (!canFallback) {
+                        throw err;
+                    }
                 }
 
                 if (!result) {
@@ -618,23 +793,27 @@ export default function DonationDetails() {
             }
         }
 
-        loadDonation();
+        load();
 
         return () => {
             cancelled = true;
         };
     }, [donationId, retryKey]);
 
+    // --------------------------------------------------------
+    // NAVIGATION
+    // --------------------------------------------------------
+
     const donorId = donorIdOf(donation);
     const campaignId = campaignIdOf(donation);
 
-    const goToDonor = () => {
+    const viewDonor = () => {
         if (donorId == null) return;
 
         navigate(`/admin/dashboard/users/${encodeURIComponent(donorId)}`);
     };
 
-    const goToCampaign = () => {
+    const viewCampaign = () => {
         if (campaignId == null) return;
 
         navigate(
@@ -642,19 +821,39 @@ export default function DonationDetails() {
         );
     };
 
+    const goBack = () => {
+        navigate('/admin/dashboard/donations');
+    };
+
+    const note = donation?.note ?? donation?.message;
+
+    // --------------------------------------------------------
+    // RENDER
+    // --------------------------------------------------------
+
     return (
         <main className="min-w-0 space-y-6 pb-10 font-sans">
             <PageHeader
                 title="Donation Details"
-                subtitle="Contribution, donor and transaction information."
+                subtitle="Contribution and transaction information."
                 action={
                     <button
                         type="button"
-                        onClick={() => navigate('/admin/dashboard/donations')}
-                        className="inline-flex min-h-9 items-center gap-2 border border-[#35404E] px-3.5 text-[12px] font-medium text-[#C3CDD8] transition-colors hover:bg-[#202A35] hover:text-white"
+                        onClick={goBack}
+                        className="
+                            inline-flex min-h-10
+                            items-center gap-2
+                            border border-[#343E4B]
+                            px-4 text-[12px]
+                            font-medium !text-[#C3CDD8]
+                            transition-colors
+                            hover:border-[#506071]
+                            hover:bg-[#202A35]
+                            hover:!text-white
+                        "
                     >
-                        <ArrowLeft size={14} />
-                        All Donations
+                        <ArrowLeft size={15} />
+                        Back To Donations
                     </button>
                 }
             />
@@ -675,49 +874,58 @@ export default function DonationDetails() {
                     <button
                         type="button"
                         onClick={() => setRetryKey((key) => key + 1)}
-                        className="inline-flex min-h-9 items-center gap-2 border border-[#35404E] px-3.5 text-[12px] text-[#D6DFE9] hover:bg-[#202A35]"
+                        className="
+                            inline-flex min-h-10
+                            items-center gap-2
+                            border border-[#343E4B]
+                            px-4 text-[12px]
+                            !text-[#D6DFE9]
+                            transition-colors
+                            hover:bg-[#202A35]
+                        "
                     >
-                        <RefreshCw size={14} />
+                        <RotateCcw size={14} />
                         Try again
                     </button>
                 </div>
             ) : donation ? (
-                <div className="min-w-0">
+                <div className="min-w-0 space-y-6">
                     <DonationSummary donation={donation} />
 
-                    <div className="mt-7 grid min-w-0 grid-cols-1 items-start gap-7 xl:grid-cols-[minmax(0,1fr)_minmax(300px,0.65fr)] xl:gap-9">
-                        {/* PRIMARY INFORMATION */}
-                        <div className="min-w-0 space-y-7">
-                            <DonorSection
-                                donation={donation}
-                                onViewDonor={goToDonor}
-                            />
-
-                            <div className="border-t border-[#303A47]" />
-
-                            <CampaignSection
-                                donation={donation}
-                                onViewCampaign={goToCampaign}
-                            />
-                        </div>
-
-                        {/* PAYMENT & RECORD INFORMATION */}
-                        <div className="min-w-0 space-y-6">
+                    <div
+                        className="
+                            grid min-w-0
+                            grid-cols-1
+                            items-start gap-5
+                            xl:grid-cols-[minmax(0,1.3fr)_minmax(300px,0.85fr)]
+                        "
+                    >
+                        <div className="min-w-0 space-y-5">
                             <PaymentDetails donation={donation} />
-
-                            <RecordActivity donation={donation} />
+                            <DonorMessage message={note} />
                         </div>
-                    </div>
 
-                    <div className="mt-8">
-                        <DonorMessage
-                            note={donation.note ?? donation.message}
+                        <RelatedInformation
+                            donation={donation}
+                            onViewDonor={viewDonor}
+                            onViewCampaign={viewCampaign}
                         />
                     </div>
                 </div>
             ) : (
-                <div className="border-t border-[#303A47] py-12 text-center text-[13px] text-[#9AA6B5]">
-                    Donation information is unavailable.
+                <div
+                    className="
+                        border border-[#29323E]
+                        bg-[#0E1219]
+                        px-6 py-12
+                        text-center
+                    "
+                >
+                    <ReceiptText size={24} className="mx-auto text-[#8792A1]" />
+
+                    <p className="mt-4 text-[13px] !text-[#AAB3BF]">
+                        Donation information is unavailable.
+                    </p>
                 </div>
             )}
         </main>

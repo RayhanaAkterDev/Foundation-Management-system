@@ -296,25 +296,14 @@ admin: [
         key: 'help-requests',
         label: 'Help Requests',
         icon: ClipboardList,
-        children: [
-            {
-                key: 'help-requests-all',
-                label: 'All Help Requests',
-                path: '/admin/dashboard/help-requests',
-            },
-        ],
+        path: '/admin/dashboard/help-requests',
     },
     {
         key: 'campaigns',
         label: 'Campaigns',
         icon: Megaphone,
-        children: [
-            {
-                key: 'campaigns-all',
-                label: 'View All Campaigns',
-                path: '/admin/dashboard/campaigns',
-            },
-        ],
+        path: '/admin/dashboard/campaigns',
+
     },
 
     // Finance
@@ -327,13 +316,7 @@ admin: [
         key: 'donations',
         label: 'Donations',
         icon: Banknote,
-        children: [
-            {
-                key: 'donations-all',
-                label: 'View Donations',
-                path: '/admin/dashboard/donations',
-            },
-        ],
+        path: '/admin/dashboard/donations',
     },
 
     // Communication
@@ -346,13 +329,8 @@ admin: [
         key: 'contact-messages',
         label: 'Contact Messages',
         icon: MessageSquareText,
-        children: [
-            {
-                key: 'contact-messages-all',
-                label: 'All Messages',
-                path: '/admin/dashboard/contact-messages',
-            },
-        ],
+        path: '/admin/dashboard/contact-messages',
+
     },
     {
         key: 'notifications',

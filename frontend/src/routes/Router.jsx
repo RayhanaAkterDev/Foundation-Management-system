@@ -93,6 +93,7 @@ import AdminContactMessageDetails from '@/dashboard/admin/contactMessages/Contac
 import AdminProfile from '@/dashboard/admin/profile/Profile';
 import AdminSecurity from '@/dashboard/admin/security/Security';
 import AdminSettings from '@/dashboard/admin/settings/Settings';
+import AdminNotifications from '@/dashboard/admin/notifications/Notifications';
 
 // =========================
 // ORGANIZATION DASHBOARD
@@ -434,6 +435,12 @@ const router = createBrowserRouter([
                     {
                         path: 'help',
                         element: <HelpPage />,
+                    },
+                    
+                    // Admin Notifications
+                    {
+                        path: 'notifications',
+                        element: <AdminNotifications />,
                     },
                 ],
             },

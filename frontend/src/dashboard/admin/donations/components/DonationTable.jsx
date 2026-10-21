@@ -542,6 +542,7 @@ const DonationTable = ({ rows = [], onSort, getSortIcon, resultCount }) => {
                         "
                     >
                         <Eye size={14} strokeWidth={1.8} />
+                        View
                     </button>
                 );
             },

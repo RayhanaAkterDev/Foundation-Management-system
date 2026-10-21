@@ -7,6 +7,7 @@ use App\Models\Volunteer;
 use App\Models\VolunteerRequest;
 use App\Models\CampaignVolunteerAssignment;
 use App\Services\Campaign\CampaignService;
+use App\Notifications\PlatformNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -24,6 +25,28 @@ class VolunteerController extends Controller
         }
 
         return $user;
+    }
+
+    private function notifyActiveAdmins(
+        string $title,
+        string $body,
+        ?string $category = null
+    ): void {
+        User::where('role', 'admin')
+            ->where('status', 'active')
+            ->get()
+            ->each(function (User $admin) use (
+                $title,
+                $body,
+                $category
+            ) {
+                $admin->notify(new PlatformNotification(
+                    $title,
+                    $body,
+                    null,
+                    $category
+                ));
+            });
     }
 
     /*
@@ -846,6 +869,12 @@ class VolunteerController extends Controller
             }
         );
 
+        $this->notifyActiveAdmins(
+            'New volunteer application',
+            "{$user->name} has submitted a volunteer application.",
+            'volunteer_application'
+        );
+
         return response()->json([
             'message' =>
             'Volunteer request submitted successfully.',
@@ -1004,6 +1033,12 @@ class VolunteerController extends Controller
                     VolunteerRequest::STATUS_PENDING,
                 ]);
             }
+        );
+
+        $this->notifyActiveAdmins(
+            'Volunteer reactivation requested',
+            "{$user->name} has requested volunteer reactivation.",
+            'volunteer_reactivation'
         );
 
         return response()->json([
@@ -1667,6 +1702,17 @@ class VolunteerController extends Controller
             ? 'Volunteer reactivation approved successfully.'
             : 'Volunteer application accepted successfully.';
 
+        $volunteer->user->notify(new PlatformNotification(
+            $result['type'] === 'reactivation'
+                ? 'Volunteer reactivation approved'
+                : 'Volunteer application approved',
+            $result['type'] === 'reactivation'
+                ? 'Your volunteer profile has been reactivated successfully.'
+                : 'Your volunteer application has been approved. You are now an active volunteer.',
+            null,
+            'volunteer'
+        ));
+
         return response()->json([
             'message' =>
             $message,
@@ -1764,6 +1810,18 @@ class VolunteerController extends Controller
                 return $volunteerRequest;
             }
         );
+
+        $volunteerRequest->load('user:id,name,email');
+
+        $volunteerRequest->user->notify(new PlatformNotification(
+            'Volunteer application rejected',
+            !empty($volunteerRequest->response_note)
+                ? 'Your volunteer application was rejected. Admin note: '
+                . $volunteerRequest->response_note
+                : 'Your volunteer application was rejected by an administrator.',
+            null,
+            'volunteer'
+        ));
 
         return response()->json([
             'message' =>
@@ -2246,18 +2304,29 @@ class VolunteerController extends Controller
             }
         );
 
+        $assignment = $assignment
+            ->fresh()
+            ->load([
+                'campaign',
+                'volunteer:id,name,email',
+                'assignedBy:id,name,email',
+            ]);
+
+        if ($assignment->assignedBy) {
+            $assignment->assignedBy->notify(new PlatformNotification(
+                'Campaign assignment accepted',
+                "{$user->name} has accepted the assignment for campaign: {$assignment->campaign->title}.",
+                null,
+                'campaign_assignment'
+            ));
+        }
+
         return response()->json([
             'message' =>
             'Campaign assignment accepted successfully.',
 
             'assignment' =>
-            $assignment
-                ->fresh()
-                ->load([
-                    'campaign',
-                    'volunteer:id,name,email',
-                    'assignedBy:id,name,email',
-                ]),
+            $assignment,
         ]);
     }
 
@@ -2369,18 +2438,29 @@ class VolunteerController extends Controller
             }
         );
 
+        $assignment = $assignment
+            ->fresh()
+            ->load([
+                'campaign',
+                'volunteer:id,name,email',
+                'assignedBy:id,name,email',
+            ]);
+
+        if ($assignment->assignedBy) {
+            $assignment->assignedBy->notify(new PlatformNotification(
+                'Campaign assignment rejected',
+                "{$user->name} has rejected the assignment for campaign: {$assignment->campaign->title}. Reason: {$assignment->rejection_reason}",
+                null,
+                'campaign_assignment'
+            ));
+        }
+
         return response()->json([
             'message' =>
             'Campaign assignment rejected successfully.',
 
             'assignment' =>
-            $assignment
-                ->fresh()
-                ->load([
-                    'campaign',
-                    'volunteer:id,name,email',
-                    'assignedBy:id,name,email',
-                ]),
+            $assignment,
         ]);
     }
 

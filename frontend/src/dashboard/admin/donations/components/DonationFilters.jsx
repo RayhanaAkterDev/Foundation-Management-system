@@ -1,5 +1,13 @@
 import React, { useMemo } from 'react';
-import { Check, CreditCard, HandCoins, RotateCcw } from 'lucide-react';
+import {
+    Check,
+    CreditCard,
+    HandCoins,
+    RotateCcw,
+    UserRound,
+    Users,
+    UserRoundPlus,
+} from 'lucide-react';
 
 const getPaymentMethod = (donation) =>
     String(
@@ -7,6 +15,17 @@ const getPaymentMethod = (donation) =>
     )
         .replace(/_/g, ' ')
         .replace(/\b\w/g, (char) => char.toUpperCase());
+
+const isRegisteredDonor = (donation) => {
+    // Prefer the linked user ID to distinguish registered users from guests.
+    // Adjust these fields if your API uses a different user identifier.
+    return Boolean(
+        donation?.user_id ??
+        donation?.userId ??
+        donation?.donor?.id ??
+        donation?.user?.id,
+    );
+};
 
 const FilterOption = ({
     label,
@@ -22,14 +41,14 @@ const FilterOption = ({
             onClick={onClick}
             aria-pressed={selected}
             className={`
-        group relative flex w-full items-center
-        gap-2.5 px-3 text-left
-        transition-[background-color,color]
-        duration-150
-        focus:outline-none focus:ring-0
-        ${primary ? 'min-h-11 py-2.5' : 'min-h-[38px] py-2'}
-        ${selected ? 'bg-[#1A222D]' : 'bg-transparent hover:bg-[#151B24]'}
-      `}
+                group relative flex w-full items-center
+                gap-2.5 px-3 text-left
+                transition-[background-color,color]
+                duration-150
+                focus:outline-none focus:ring-0
+                ${primary ? 'min-h-11 py-2.5' : 'min-h-[38px] py-2'}
+                ${selected ? 'bg-[#1A222D]' : 'bg-transparent hover:bg-[#151B24]'}
+            `}
         >
             {selected && (
                 <span
@@ -42,25 +61,25 @@ const FilterOption = ({
                 size={primary ? 15 : 14}
                 strokeWidth={1.8}
                 className={`
-          shrink-0 transition-colors
-          ${
-              selected
-                  ? 'text-[#C2CBD6]'
-                  : 'text-[#697586] group-hover:text-[#AEB7C3]'
-          }
-        `}
+                    shrink-0 transition-colors
+                    ${
+                        selected
+                            ? 'text-[#C2CBD6]'
+                            : 'text-[#697586] group-hover:text-[#AEB7C3]'
+                    }
+                `}
             />
 
             <span
                 className={`
-          min-w-0 flex-1 truncate
-          text-[11px] leading-5
-          ${
-              selected
-                  ? 'font-semibold! text-[#EEF1F5]'
-                  : 'font-medium! text-[#8792A1] group-hover:text-[#B8C0CA]'
-          }
-        `}
+                    min-w-0 flex-1 truncate
+                    text-[11px] leading-5
+                    ${
+                        selected
+                            ? 'font-semibold! text-[#EEF1F5]'
+                            : 'font-medium! text-[#8792A1] group-hover:text-[#B8C0CA]'
+                    }
+                `}
             >
                 {label}
             </span>
@@ -68,13 +87,13 @@ const FilterOption = ({
             {count !== undefined && (
                 <span
                     className={`
-            shrink-0 text-[10px] tabular-nums
-            ${
-                selected
-                    ? 'font-semibold! text-[#B8C0CA]'
-                    : 'font-medium! text-[#697586]'
-            }
-          `}
+                        shrink-0 text-[10px] tabular-nums
+                        ${
+                            selected
+                                ? 'font-semibold! text-[#B8C0CA]'
+                                : 'font-medium! text-[#697586]'
+                        }
+                    `}
                 >
                     {count}
                 </span>
@@ -84,16 +103,16 @@ const FilterOption = ({
                 <span
                     aria-hidden="true"
                     className={`
-            flex h-3.5 w-3.5 shrink-0
-            items-center justify-center
-            rounded-full border
-            transition-colors duration-150
-            ${
-                selected
-                    ? 'border-[#8493A6] bg-[#8493A6]'
-                    : 'border-[#455160] bg-transparent group-hover:border-[#697586]'
-            }
-          `}
+                        flex h-3.5 w-3.5 shrink-0
+                        items-center justify-center
+                        rounded-full border
+                        transition-colors duration-150
+                        ${
+                            selected
+                                ? 'border-[#8493A6] bg-[#8493A6]'
+                                : 'border-[#455160] bg-transparent group-hover:border-[#697586]'
+                        }
+                    `}
                 >
                     {selected && (
                         <Check
@@ -122,6 +141,8 @@ const DonationFilters = ({
     donations = [],
     method = 'all',
     onMethodChange,
+    donorIdentity = 'all',
+    onDonorIdentityChange,
     onClear,
 }) => {
     const methods = useMemo(() => {
@@ -137,12 +158,28 @@ const DonationFilters = ({
             .map(([name, count]) => ({ name, count }));
     }, [donations]);
 
-    const activeFilterCount = method === 'all' ? 0 : 1;
+    const donorCounts = useMemo(() => {
+        const registered = donations.filter(isRegisteredDonor).length;
+
+        return {
+            all: donations.length,
+            guest: donations.length - registered,
+            registered,
+        };
+    }, [donations]);
+
+    const activeFilterCount =
+        (method !== 'all' ? 1 : 0) + (donorIdentity !== 'all' ? 1 : 0);
+
+    const handleClear = () => {
+        onMethodChange?.('all');
+        onDonorIdentityChange?.('all');
+        onClear?.();
+    };
 
     return (
         <aside className="flex h-full min-w-0 flex-col bg-[#0E1219]">
             {/* FILTER HEADER */}
-
             <div className="bg-[#1A222D] p-4 sm:p-[22px]">
                 <div className="flex min-h-8 items-center justify-between gap-4">
                     <h3 className="font-sans! text-[15px] font-semibold! leading-8 text-[#EEF1F5]!">
@@ -152,18 +189,18 @@ const DonationFilters = ({
                     {activeFilterCount > 0 && (
                         <button
                             type="button"
-                            onClick={onClear}
+                            onClick={handleClear}
                             className="
-                group inline-flex shrink-0
-                items-center gap-1.5
-                text-[10px] font-medium!
-                text-[#8792A1]
-                transition-colors duration-150
-                hover:text-[#EEF1F5]
-                focus-visible:outline
-                focus-visible:outline-1
-                focus-visible:outline-[#697586]
-              "
+                                group inline-flex shrink-0
+                                items-center gap-1.5
+                                text-[10px] font-medium!
+                                text-[#8792A1]
+                                transition-colors duration-150
+                                hover:text-[#EEF1F5]
+                                focus-visible:outline
+                                focus-visible:outline-1
+                                focus-visible:outline-[#697586]
+                            "
                         >
                             <RotateCcw
                                 size={11}
@@ -177,20 +214,46 @@ const DonationFilters = ({
             </div>
 
             {/* ALL DONATIONS */}
-
             <FilterSection title="Donation records">
                 <FilterOption
                     label="All donations"
                     count={donations.length}
                     selected={method === 'all'}
-                    onClick={() => onMethodChange('all')}
+                    onClick={() => onMethodChange?.('all')}
                     Icon={HandCoins}
                     primary
                 />
             </FilterSection>
 
-            {/* PAYMENT METHODS */}
+            {/* DONOR IDENTITY */}
+            <FilterSection title="Donor identity">
+                <FilterOption
+                    label="All donors"
+                    count={donorCounts.all}
+                    selected={donorIdentity === 'all'}
+                    onClick={() => onDonorIdentityChange?.('all')}
+                    Icon={Users}
+                    primary
+                />
 
+                <FilterOption
+                    label="Guest donors"
+                    count={donorCounts.guest}
+                    selected={donorIdentity === 'guest'}
+                    onClick={() => onDonorIdentityChange?.('guest')}
+                    Icon={UserRoundPlus}
+                />
+
+                <FilterOption
+                    label="Registered users"
+                    count={donorCounts.registered}
+                    selected={donorIdentity === 'registered'}
+                    onClick={() => onDonorIdentityChange?.('registered')}
+                    Icon={UserRound}
+                />
+            </FilterSection>
+
+            {/* PAYMENT METHODS */}
             <FilterSection title="Payment method">
                 {methods.length ? (
                     methods.map(({ name, count }) => (
@@ -199,7 +262,7 @@ const DonationFilters = ({
                             label={name}
                             count={count}
                             selected={method === name}
-                            onClick={() => onMethodChange(name)}
+                            onClick={() => onMethodChange?.(name)}
                             Icon={CreditCard}
                         />
                     ))

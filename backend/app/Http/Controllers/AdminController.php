@@ -13,6 +13,7 @@ use App\Models\Donation;
 use App\Models\Volunteer;
 use App\Models\VolunteerRequest;
 use App\Models\CampaignVolunteerAssignment;
+use App\Notifications\PlatformNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -3124,6 +3125,15 @@ class AdminController extends Controller
             ])
             ->latest()
             ->get();
+
+        foreach ($assignments as $assignment) {
+            $assignment->volunteer->notify(new PlatformNotification(
+                'New campaign assignment',
+                "You have been assigned to the campaign: {$assignment->campaign->title}.",
+                null,
+                'campaign_assignment'
+            ));
+        }
 
         return response()->json([
             'message' => $assignments->count() === 1

@@ -30,10 +30,10 @@ const STATUS_STYLES = {
 };
 
 const getMessage = (response) =>
+    response?.data?.contact_message ||
+    response?.contact_message ||
     response?.data?.data ||
-    response?.data?.message ||
     response?.data ||
-    response?.message ||
     response;
 
 const formatDate = (value) => {

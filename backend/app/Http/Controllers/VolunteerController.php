@@ -40,10 +40,17 @@ class VolunteerController extends Controller
                 $body,
                 $category
             ) {
+                $actionUrl = in_array($category, [
+                    'volunteer_application',
+                    'volunteer_reactivation',
+                ], true)
+                    ? '/admin/dashboard/volunteers/requests'
+                    : null;
+
                 $admin->notify(new PlatformNotification(
                     $title,
                     $body,
-                    null,
+                    $actionUrl,
                     $category
                 ));
             });
@@ -1709,7 +1716,7 @@ class VolunteerController extends Controller
             $result['type'] === 'reactivation'
                 ? 'Your volunteer profile has been reactivated successfully.'
                 : 'Your volunteer application has been approved. You are now an active volunteer.',
-            null,
+            '/individual/dashboard/volunteer',
             'volunteer'
         ));
 
@@ -1819,7 +1826,7 @@ class VolunteerController extends Controller
                 ? 'Your volunteer application was rejected. Admin note: '
                 . $volunteerRequest->response_note
                 : 'Your volunteer application was rejected by an administrator.',
-            null,
+            '/individual/dashboard/volunteer',
             'volunteer'
         ));
 
@@ -2316,7 +2323,7 @@ class VolunteerController extends Controller
             $assignment->assignedBy->notify(new PlatformNotification(
                 'Campaign assignment accepted',
                 "{$user->name} has accepted the assignment for campaign: {$assignment->campaign->title}.",
-                null,
+                '/admin/dashboard/volunteers',
                 'campaign_assignment'
             ));
         }
@@ -2450,7 +2457,7 @@ class VolunteerController extends Controller
             $assignment->assignedBy->notify(new PlatformNotification(
                 'Campaign assignment rejected',
                 "{$user->name} has rejected the assignment for campaign: {$assignment->campaign->title}. Reason: {$assignment->rejection_reason}",
-                null,
+                '/admin/dashboard/volunteers',
                 'campaign_assignment'
             ));
         }

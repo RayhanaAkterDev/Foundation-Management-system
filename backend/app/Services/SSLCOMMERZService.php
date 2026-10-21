@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\DonationAttempt;
+use App\Models\User;
 use App\Notifications\PlatformNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -420,10 +421,22 @@ class SSLCOMMERZService
             $donation->user->notify(new PlatformNotification(
                 'Donation successful',
                 "Your donation of {$donation->amount} to {$donation->campaign->title} was successful. Thank you for supporting our cause!",
-                null,
+                '/individual/dashboard/donations',
                 'donation'
             ));
         }
+
+        User::where('role', 'admin')
+            ->where('status', 'active')
+            ->get()
+            ->each(function (User $admin) use ($donation) {
+                $admin->notify(new PlatformNotification(
+                    'New donation received',
+                    "A donation of {$donation->amount} was received for {$donation->campaign->title}.",
+                    '/admin/dashboard/donations',
+                    'donation'
+                ));
+            });
 
         return $donation;
     }

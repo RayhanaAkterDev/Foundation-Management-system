@@ -7,9 +7,14 @@ import {
     Download,
     Plus,
     Search,
+    SlidersHorizontal,
+    X,
 } from 'lucide-react';
 
 import PageHeader from '@/components/dashboard/PageHeader';
+import LoadingUI from '@/components/dashboard/LoadingUI';
+import LoadingError from '@/components/dashboard/LoadingError';
+import SuccessDialog from '@/components/dashboard/SuccessDialog';
 
 import CampaignStats from './components/Stats';
 import CampaignCategoryTabs from './components/CategoryTabs';
@@ -21,7 +26,6 @@ import CampaignViewModal from './modals/ViewModal';
 import CampaignVerificationModal from './modals/VerificationModal';
 // import CampaignStatusUpdateModal from "./modals/StatusUpdateModal";
 import CampaignEditModal from './modals/EditModal';
-import CampaignSuccessToast from './components/SuccessToast';
 import CampaignRelatedDetailsModal from './modals/RelatedDetailsModal';
 import CampaignCreateModal from './modals/CampaignCreateModal';
 import CampaignAssignmentModal from './modals/AssignmentModal';
@@ -57,17 +61,7 @@ const CAMPAIGNS_PER_PAGE = 25;
 |
 */
 
-const CAMPAIGN_STATUS_TRANSITIONS = {
-    unverified: ['active', 'rejected'],
-    active: ['completed', 'cancelled'],
-    rejected: [],
-    completed: [],
-    cancelled: [],
-};
-
 const EDITABLE_STATUSES = ['unverified', 'active'];
-
-const STATUS_CHANGEABLE_STATUSES = ['active'];
 
 /*
 |--------------------------------------------------------------------------
@@ -140,23 +134,6 @@ const Campaigns = () => {
             message,
         });
     };
-
-    useEffect(() => {
-        if (!successToast.show) {
-            return;
-        }
-
-        const timer = setTimeout(() => {
-            setSuccessToast({
-                show: false,
-                message: '',
-            });
-        }, 4000);
-
-        return () => {
-            clearTimeout(timer);
-        };
-    }, [successToast.show, successToast.message]);
 
     // =========================================================
     // Create modal
@@ -238,6 +215,7 @@ const Campaigns = () => {
     // =========================================================
 
     const [currentPage, setCurrentPage] = useState(1);
+    const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
     // =========================================================
     // Load campaigns
@@ -987,50 +965,25 @@ const Campaigns = () => {
         URL.revokeObjectURL(url);
     };
 
-    // =========================================================
-    // Loading
-    // =========================================================
-
-    if (loading) {
+    if (loading || error) {
         return (
-            <div className="space-y-8">
+            <div className="space-y-10 lg:space-y-12">
                 <PageHeader
                     title="Campaigns"
                     subtitle="Review, verify, and manage fundraising campaigns across the Stand For People platform."
                 />
-
-                <div className="flex min-h-70 items-center justify-center border-y border-border bg-white">
-                    <div className="text-center">
-                        <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-border border-t-primary" />
-
-                        <p className="text-sm font-semibold text-text-primary">
-                            Loading campaigns...
-                        </p>
-
-                        <p className="mt-1 text-xs text-text-secondary">
-                            Please wait while we retrieve the campaign list.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    // =========================================================
-    // Error
-    // =========================================================
-
-    if (error) {
-        return (
-            <div className="space-y-8">
-                <PageHeader
-                    title="Campaigns"
-                    subtitle="Review, verify, and manage fundraising campaigns across the Stand For People platform."
-                />
-
-                <div className="border-l-4 border-red-500 bg-red-50 px-5 py-4 text-sm text-red-600">
-                    {error}
-                </div>
+                {loading ? (
+                    <LoadingUI
+                        variant="page"
+                        title="Loading campaigns..."
+                        description="Please wait while we retrieve the campaign list."
+                    />
+                ) : (
+                    <LoadingError
+                        title="Unable to load campaigns"
+                        message={error}
+                    />
+                )}
             </div>
         );
     }
@@ -1094,30 +1047,30 @@ const Campaigns = () => {
 
             render: (value, row) => (
                 <div className="min-w-0 max-w-90">
-                    <p className="truncate font-semibold text-text-primary">
+                    <p className="truncate font-semibold text-[#E5EAF0]">
                         {value || 'Untitled campaign'}
                     </p>
 
                     {row.description && (
-                        <p className="mt-1 line-clamp-2 text-xs leading-5 text-text-secondary">
+                        <p className="mt-1 line-clamp-2 text-xs leading-5 text-[#8792A1]">
                             {row.description}
                         </p>
                     )}
 
                     <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1">
                         {row.category && (
-                            <span className="inline-flex items-center rounded-full bg-background-alt px-2 py-0.5 text-[10px] font-semibold capitalize text-text-secondary">
+                            <span className="inline-flex items-center rounded-full bg-[#1A222D] px-2 py-0.5 text-[10px] font-semibold capitalize text-[#8792A1]">
                                 {row.category}
                             </span>
                         )}
 
                         {row.locationName !== 'Location not specified' && (
                             <>
-                                <span className="text-[10px] text-slate-300">
+                                <span className="text-[10px] text-[#596575]">
                                     •
                                 </span>
 
-                                <span className="truncate text-[10px] font-medium! text-text-secondary">
+                                <span className="truncate text-[10px] font-medium! text-[#8792A1]">
                                     {row.locationName}
                                 </span>
                             </>
@@ -1137,7 +1090,7 @@ const Campaigns = () => {
                 <button
                     type="button"
                     onClick={() => handleCampaignTypeClick(row)}
-                    className="text-left text-sm font-semibold text-primary underline decoration-primary/30 underline-offset-4 transition-colors hover:text-primary-hover hover:decoration-primary"
+                    className="text-left text-sm font-semibold text-[#A9B7C7] underline decoration-[#596575] underline-offset-4 transition-colors hover:text-[#EEF1F5] hover:decoration-[#A9B7C7]"
                     title={
                         row.type === 'local_case'
                             ? 'View connected help request'
@@ -1159,7 +1112,7 @@ const Campaigns = () => {
             sortKey: 'target_amount',
 
             render: (value) => (
-                <span className="whitespace-nowrap font-semibold text-text-primary">
+                <span className="whitespace-nowrap font-semibold text-[#E5EAF0]">
                     {value}
                 </span>
             ),
@@ -1173,7 +1126,7 @@ const Campaigns = () => {
             sortKey: 'collected_amount',
 
             render: (value) => (
-                <span className="whitespace-nowrap font-semibold text-text-primary">
+                <span className="whitespace-nowrap font-semibold text-[#E5EAF0]">
                     {value}
                 </span>
             ),
@@ -1186,7 +1139,7 @@ const Campaigns = () => {
             sortKey: 'start_date',
 
             render: (value) => (
-                <span className="whitespace-nowrap text-sm font-medium! text-text-primary">
+                <span className="whitespace-nowrap text-sm font-medium! text-[#E5EAF0]">
                     {value}
                 </span>
             ),
@@ -1199,7 +1152,7 @@ const Campaigns = () => {
             sortKey: 'end_date',
 
             render: (value) => (
-                <span className="whitespace-nowrap text-sm font-medium! text-text-primary">
+                <span className="whitespace-nowrap text-sm font-medium! text-[#E5EAF0]">
                     {value}
                 </span>
             ),
@@ -1233,7 +1186,7 @@ const Campaigns = () => {
                         <button
                             type="button"
                             onClick={() => handleView(row)}
-                            className="text-xs font-semibold text-text-secondary transition-colors hover:text-primary"
+                            className="text-xs font-semibold text-[#8792A1] transition-colors hover:text-[#A9B7C7]"
                         >
                             View
                         </button>
@@ -1242,7 +1195,7 @@ const Campaigns = () => {
                             <button
                                 type="button"
                                 onClick={() => handleEdit(row)}
-                                className="text-xs font-semibold text-text-secondary transition-colors hover:text-primary"
+                                className="text-xs font-semibold text-[#8792A1] transition-colors hover:text-[#A9B7C7]"
                             >
                                 Edit
                             </button>
@@ -1252,7 +1205,7 @@ const Campaigns = () => {
                             <button
                                 type="button"
                                 onClick={() => handleReview(row)}
-                                className="text-xs font-semibold text-primary transition-colors hover:text-primary-hover"
+                                className="text-xs font-semibold text-[#A9B7C7] transition-colors hover:text-[#EEF1F5]"
                             >
                                 Verify
                             </button>
@@ -1262,7 +1215,7 @@ const Campaigns = () => {
                             <button
                                 type="button"
                                 onClick={() => handleAssignment(row)}
-                                className="text-xs font-semibold text-primary transition-colors hover:text-primary-hover"
+                                className="text-xs font-semibold text-[#A9B7C7] transition-colors hover:text-[#EEF1F5]"
                             >
                                 Assign Volunteers
                             </button>
@@ -1273,7 +1226,7 @@ const Campaigns = () => {
                 <button
                   type="button"
                   onClick={() => handleStatusUpdate(row)}
-                  className="text-xs font-semibold text-text-secondary transition-colors hover:text-primary"
+                  className="text-xs font-semibold text-[#8792A1] transition-colors hover:text-[#A9B7C7]"
                 >
                   Change Status
                 </button>
@@ -1289,228 +1242,210 @@ const Campaigns = () => {
     // Render
     // =========================================================
 
+    const resetFilters = () => {
+        setActiveCategory('all');
+        setTypeFilter('all');
+        setCategoryFilter('all');
+        setOrganizationFilter('all');
+        setStatusFilter('all');
+        setCurrentPage(1);
+    };
+
+    const filterPanel = (
+        <div className="min-w-0">
+            <div className="border-b border-[#29323E] bg-[#151C25] px-5 py-5">
+                <h3 className="text-[15px] font-semibold text-[#EEF1F5]">
+                    Filter campaigns
+                </h3>
+                <p className="mt-1 text-[12px] text-[#8792A1]">
+                    Narrow down campaign records.
+                </p>
+            </div>
+            <div className="px-4 py-5 sm:px-5">
+                <CampaignCategoryTabs
+                    tabs={categoryTabs}
+                    activeCategory={activeCategory}
+                    onChange={handleCategoryChange}
+                />
+                <div className="mt-6 border-t border-[#29323E] pt-5">
+                    <CampaignFilters
+                        typeFilter={typeFilter}
+                        categoryFilter={categoryFilter}
+                        organizationFilter={organizationFilter}
+                        statusFilter={statusFilter}
+                        campaigns={campaigns}
+                        onTypeChange={handleTypeChange}
+                        onCategoryChange={handleCategoryFilterChange}
+                        onOrganizationChange={handleOrganizationChange}
+                        onStatusChange={handleStatusChange}
+                    />
+                </div>
+                <button
+                    type="button"
+                    onClick={resetFilters}
+                    className="mt-5 h-9 w-full border border-[#343E4B] text-[12px] font-medium text-[#AEB7C3] transition-colors hover:bg-[#1A222D]"
+                >
+                    Clear filters
+                </button>
+            </div>
+        </div>
+    );
+
     return (
-        <div className="space-y-9">
-            {/* SUCCESS TOAST */}
-
-            <CampaignSuccessToast
-                show={successToast.show}
-                message={successToast.message}
-            />
-
-            {/* =====================================================
-          PAGE HEADER
-      ===================================================== */}
-
-            <PageHeader
-                title="Campaigns"
-                subtitle="Review, verify, and manage fundraising campaigns across the Stand For People platform."
-                action={
-                    <div className="flex w-full items-center justify-end gap-3">
+        <>
+            <div className="space-y-10 lg:space-y-12">
+                <PageHeader
+                    title="Campaigns"
+                    subtitle="Review, verify, and manage fundraising campaigns across the Stand For People platform."
+                    action={
+                        <div className="flex flex-wrap items-center gap-2.5">
+                            <button
+                                type="button"
+                                onClick={handleExportCSV}
+                                disabled={!filteredCampaigns.length}
+                                className="inline-flex h-10 items-center gap-2 border border-[#343E4B] px-4 text-[12px] font-medium text-[#B8C2CF] hover:bg-[#1C232D] disabled:opacity-40"
+                            >
+                                <Download size={15} /> Export
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleCreate}
+                                className="inline-flex h-10 items-center gap-2 bg-[#263343] px-4 text-[12px] font-semibold text-[#EEF1F5] hover:bg-[#354559]"
+                            >
+                                <Plus size={16} /> Add Campaign
+                            </button>
+                        </div>
+                    }
+                />
+                <CampaignStats
+                    total={statistics.total}
+                    unverified={statistics.unverified}
+                    active={statistics.active}
+                    completed={statistics.completed}
+                    rejected={statistics.rejected}
+                    cancelled={statistics.cancelled}
+                />
+                <section className="pt-2 lg:pt-3">
+                    <div className="pb-5 sm:pb-6">
+                        <h2 className="font-sans! text-[20px]! font-semibold! tracking-[-0.02em] text-[#EEF1F5]!">
+                            Campaign Directory
+                        </h2>
+                        <p className="mt-2 text-[12px] leading-relaxed text-[#8792A1]">
+                            Browse and manage fundraising campaigns.
+                        </p>
+                    </div>
+                    <div className="mb-5 xl:hidden">
                         <button
                             type="button"
-                            onClick={handleExportCSV}
-                            disabled={filteredCampaigns.length === 0}
-                            className="
-                group
-                inline-flex
-                h-10
-                items-center
-                gap-2
-                border
-                border-border
-                bg-surface
-                px-4
-                text-sm
-                font-medium!
-                text-text-primary
-                transition-all
-                hover:border-primary/30
-                hover:bg-background-alt
-                disabled:cursor-not-allowed
-                disabled:opacity-50
-              "
+                            onClick={() => setMobileFiltersOpen(true)}
+                            className="flex h-10 w-full items-center justify-between border border-[#29323E] bg-[#0E1219] px-3.5 text-[12px] text-[#AEB7C3]"
                         >
-                            <Download
-                                size={15}
-                                strokeWidth={1.8}
-                                className="
-                  text-text-secondary
-                  transition-colors
-                  group-hover:text-primary
-                "
-                            />
-
-                            <span>Export CSV</span>
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={handleCreate}
-                            className="
-                inline-flex
-                h-10
-                items-center
-                gap-2
-                bg-primary
-                px-4
-                text-sm
-                font-semibold
-                text-white!
-                shadow-sm
-                transition-all
-                hover:bg-primary-hover
-              "
-                        >
-                            <Plus size={17} strokeWidth={2} />
-
-                            <span>Add Campaign</span>
+                            <span className="flex items-center gap-2">
+                                <SlidersHorizontal size={15} /> Filters
+                            </span>
+                            <span className="text-[#697586]">
+                                Refine campaigns
+                            </span>
                         </button>
                     </div>
-                }
-            />
-
-            {/* =====================================================
-          STATISTICS
-      ===================================================== */}
-
-            <CampaignStats
-                total={statistics.total}
-                unverified={statistics.unverified}
-                active={statistics.active}
-                completed={statistics.completed}
-                rejected={statistics.rejected}
-                cancelled={statistics.cancelled}
-            />
-
-            {/* =====================================================
-          CAMPAIGN MANAGEMENT
-      ===================================================== */}
-
-            <section className="border-t border-border pt-8">
-                <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_300px]">
-                    {/* =================================================
-              MAIN WORKSPACE
-          ================================================= */}
-
-                    <div className="min-w-0">
-                        <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-                            <div>
-                                <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-primary">
-                                    Campaign directory
-                                </p>
-
-                                <h2 className="mt-1 text-lg font-bold tracking-tight text-text-primary">
-                                    Campaign records
-                                </h2>
-                            </div>
-
-                            <p className="text-xs font-medium! text-text-secondary">
-                                {filteredCampaigns.length}{' '}
-                                {filteredCampaigns.length === 1
-                                    ? 'campaign'
-                                    : 'campaigns'}{' '}
-                                shown
-                            </p>
-                        </div>
-
-                        <div className="overflow-hidden border border-border bg-surface">
-                            {/* =================================================
-                  SEARCH
-              ================================================= */}
-
-                            <div className="border-b border-border px-5 py-4">
-                                <div className="relative w-full">
-                                    <Search
-                                        size={17}
-                                        strokeWidth={1.8}
-                                        className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-text-secondary"
-                                    />
-
-                                    <input
-                                        type="text"
-                                        value={searchTerm}
-                                        onChange={handleSearchChange}
-                                        placeholder="Search campaigns by title, organization, category or location..."
-                                        className="h-10 w-full border border-border bg-background pl-10 pr-4 text-[13px] font-medium! text-text-primary outline-none transition-colors placeholder:text-text-secondary/70 hover:border-text-secondary/30 focus:border-primary/50 focus:bg-surface"
-                                    />
+                    {mobileFiltersOpen && (
+                        <div className="fixed inset-0 z-50 xl:hidden">
+                            <button
+                                type="button"
+                                aria-label="Close filters"
+                                onClick={() => setMobileFiltersOpen(false)}
+                                className="absolute inset-0 bg-black/70"
+                            />
+                            <div className="absolute inset-y-0 right-0 w-[min(340px,90vw)] overflow-y-auto border-l border-[#29323E] bg-[#0E1219]">
+                                <div className="flex items-center justify-between border-b border-[#29323E] px-4 py-3 text-[13px] text-[#EEF1F5]">
+                                    Campaign filters
+                                    <button
+                                        type="button"
+                                        aria-label="Close filters"
+                                        onClick={() =>
+                                            setMobileFiltersOpen(false)
+                                        }
+                                    >
+                                        <X size={18} />
+                                    </button>
+                                </div>
+                                {filterPanel}
+                                <div className="p-4">
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            setMobileFiltersOpen(false)
+                                        }
+                                        className="h-10 w-full bg-[#263343] text-[12px] text-[#EEF1F5]"
+                                    >
+                                        Show results
+                                    </button>
                                 </div>
                             </div>
-
-                            {/* =================================================
-                  CAMPAIGN TABLE
-              ================================================= */}
-
-                            <CampaignTable
-                                columns={columns}
-                                rows={rows}
-                                onSort={handleSort}
-                                getSortIcon={getSortIcon}
-                                resultCount={filteredCampaigns.length}
-                            />
                         </div>
-
-                        {filteredCampaigns.length > 0 && (
-                            <CampaignPagination
-                                currentPage={safeCurrentPage}
-                                totalPages={totalPages}
-                                totalItems={filteredCampaigns.length}
-                                itemsPerPage={CAMPAIGNS_PER_PAGE}
-                                onPageChange={setCurrentPage}
-                            />
-                        )}
+                    )}
+                    <div className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_300px] xl:items-stretch xl:gap-7 2xl:grid-cols-[minmax(0,1fr)_320px]">
+                        <div className="relative min-h-0 min-w-0 xl:h-full">
+                            <div className="flex min-h-0 min-w-0 flex-col overflow-hidden border border-[#252D38] bg-[#0E1219] xl:absolute xl:inset-0">
+                                <div className="shrink-0 border-b border-[#252D38] bg-[#1A222D] px-4 py-3.5 sm:px-5">
+                                    <div className="flex flex-col gap-3.5 lg:flex-row lg:items-center lg:justify-between">
+                                        <div className="relative min-w-0 flex-1">
+                                            <Search
+                                                size={15}
+                                                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#697586]"
+                                            />
+                                            <input
+                                                type="text"
+                                                value={searchTerm}
+                                                onChange={handleSearchChange}
+                                                placeholder="Search campaigns by title, organization or location"
+                                                className="h-10 w-full border border-[#35404E] bg-[#0E1219] pl-9 pr-4 text-[12px] text-[#DCE3EC] outline-none placeholder:text-[#697586] hover:border-[#455160] focus:border-[#455160]"
+                                            />
+                                        </div>
+                                        <span className="shrink-0 text-[11px] font-medium text-[#AAB3BF]">
+                                            {filteredCampaigns.length}{' '}
+                                            {filteredCampaigns.length === 1
+                                                ? 'result'
+                                                : 'results'}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="min-h-0 min-w-0 flex-1 overflow-auto bg-[#0E1219] [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-[#303A47]">
+                                    <CampaignTable
+                                        columns={columns}
+                                        rows={rows}
+                                        onSort={handleSort}
+                                        getSortIcon={getSortIcon}
+                                        resultCount={filteredCampaigns.length}
+                                    />
+                                </div>
+                                {filteredCampaigns.length > 0 && (
+                                    <div className="shrink-0 border-t border-[#252D38] bg-[#1A222D]">
+                                        <CampaignPagination
+                                            currentPage={safeCurrentPage}
+                                            totalPages={totalPages}
+                                            totalItems={
+                                                filteredCampaigns.length
+                                            }
+                                            itemsPerPage={CAMPAIGNS_PER_PAGE}
+                                            onPageChange={setCurrentPage}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        <aside className="hidden min-w-0 border border-[#252D38] bg-[#0E1219] xl:block">
+                            {filterPanel}
+                        </aside>
                     </div>
-
-                    {/* =================================================
-              FILTER SIDEBAR
-          ================================================= */}
-
-                    <aside className="h-fit bg-primary text-white!">
-                        <div className="border-b border-white/15 px-5 py-5">
-                            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white!/65">
-                                Directory controls
-                            </p>
-
-                            <h3 className="mt-1 text-base font-bold tracking-tight text-white!">
-                                Refine campaigns
-                            </h3>
-
-                            <p className="mt-1.5 text-xs leading-5 text-white!/70">
-                                Filter campaign records using the available
-                                campaign criteria.
-                            </p>
-                        </div>
-
-                        <div className="px-5 py-5">
-                            <div className="overflow-x-auto">
-                                <CampaignCategoryTabs
-                                    tabs={categoryTabs}
-                                    activeCategory={activeCategory}
-                                    onChange={handleCategoryChange}
-                                />
-                            </div>
-
-                            <div className="mt-6">
-                                <CampaignFilters
-                                    typeFilter={typeFilter}
-                                    categoryFilter={categoryFilter}
-                                    organizationFilter={organizationFilter}
-                                    statusFilter={statusFilter}
-                                    campaigns={campaigns}
-                                    onTypeChange={handleTypeChange}
-                                    onCategoryChange={
-                                        handleCategoryFilterChange
-                                    }
-                                    onOrganizationChange={
-                                        handleOrganizationChange
-                                    }
-                                    onStatusChange={handleStatusChange}
-                                />
-                            </div>
-                        </div>
-                    </aside>
-                </div>
-            </section>
+                </section>
+            </div>
+            <SuccessDialog
+                open={successToast.show}
+                title="Action completed"
+                message={successToast.message}
+                onClose={() => setSuccessToast({ show: false, message: '' })}
+            />
 
             {/* =====================================================
           CREATE MODAL
@@ -1627,7 +1562,7 @@ const Campaigns = () => {
                     onConfirm={handleAssignmentConfirm}
                 />
             )}
-        </div>
+        </>
     );
 };
 

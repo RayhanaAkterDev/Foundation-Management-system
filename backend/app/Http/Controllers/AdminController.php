@@ -3130,7 +3130,7 @@ class AdminController extends Controller
             $assignment->volunteer->notify(new PlatformNotification(
                 'New campaign assignment',
                 "You have been assigned to the campaign: {$assignment->campaign->title}.",
-                null,
+                '/individual/dashboard/volunteer',
                 'campaign_assignment'
             ));
         }

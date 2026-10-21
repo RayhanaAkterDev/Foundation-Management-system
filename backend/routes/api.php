@@ -808,4 +808,28 @@ Route::middleware('auth:sanctum')
             '/reports',
             [AdminController::class, 'reports']
         );
+
+        // ---------------------------------------------------------
+        // CONTACT MESSAGES
+        // ---------------------------------------------------------
+
+        Route::get(
+            '/contact-messages',
+            [ContactMessageController::class, 'index']
+        );
+
+        Route::get(
+            '/contact-messages/{id}',
+            [ContactMessageController::class, 'show']
+        );
+
+        Route::patch(
+            '/contact-messages/{id}',
+            [ContactMessageController::class, 'update']
+        );
+
+        Route::post(
+            '/contact-messages/{id}/reply',
+            [ContactMessageController::class, 'reply']
+        );
     });

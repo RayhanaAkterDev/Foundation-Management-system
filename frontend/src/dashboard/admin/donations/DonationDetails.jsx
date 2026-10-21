@@ -1,49 +1,44 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
     ArrowLeft,
     ArrowUpRight,
     CalendarDays,
     Check,
-    ChevronRight,
     Clock3,
     Copy,
     CreditCard,
+    FileText,
     Hash,
     Mail,
     MapPin,
     Phone,
-    RotateCcw,
+    RefreshCw,
     Tag,
     UserRound,
-    WalletCards,
+    Wallet,
 } from 'lucide-react';
 
 import PageHeader from '@/components/dashboard/PageHeader';
 import LoadingUI from '@/components/dashboard/LoadingUI';
 import LoadingError from '@/components/dashboard/LoadingError';
-import StatusBadge from '@/components/dashboard/StatusBadge';
 import { apiRequest } from '@/api/client';
 
 /* =========================================================
-   HELPERS
+   DATA UTILITIES
 ========================================================= */
 
-const getDonationId = (d) => d?.id ?? d?.donation_id ?? null;
+const donationIdOf = (d) => d?.id ?? d?.donation_id;
 
-const getDonorId = (d) =>
-    d?.user?.id ?? d?.donor?.id ?? d?.user_id ?? d?.donor_id ?? null;
+const donorIdOf = (d) =>
+    d?.user?.id ?? d?.donor?.id ?? d?.user_id ?? d?.donor_id;
 
-const getCampaignId = (d) => d?.campaign?.id ?? d?.campaign_id ?? null;
+const campaignIdOf = (d) => d?.campaign?.id ?? d?.campaign_id;
 
-const getTransactionId = (d) =>
-    d?.transaction_id ??
-    d?.transactionId ??
-    d?.tran_id ??
-    d?.transaction ??
-    null;
+const transactionOf = (d) =>
+    d?.transaction_id ?? d?.transactionId ?? d?.tran_id ?? d?.transaction;
 
-function getText(value) {
+function display(value) {
     if (value === null || value === undefined || value === '') {
         return '—';
     }
@@ -55,17 +50,17 @@ function getText(value) {
     return String(value);
 }
 
-function getLabel(value) {
-    const valueText = getText(value);
+function label(value) {
+    const text = display(value);
 
-    if (valueText === '—') return valueText;
+    if (text === '—') return text;
 
-    return valueText
+    return text
         .replace(/_/g, ' ')
-        .replace(/\b\w/g, (char) => char.toUpperCase());
+        .replace(/\b\w/g, (character) => character.toUpperCase());
 }
 
-function getAmount(value) {
+function amount(value) {
     if (value === null || value === undefined || value === '') {
         return '—';
     }
@@ -79,7 +74,7 @@ function getAmount(value) {
     })}`;
 }
 
-function getDateTime(value) {
+function dateTime(value) {
     if (!value) return '—';
 
     const date = new Date(value);
@@ -97,19 +92,14 @@ function getDateTime(value) {
 
 function normalizeDonation(response) {
     const root = response?.data ?? response;
+    const result = root?.donation ?? root;
 
-    if (!root || typeof root !== 'object' || Array.isArray(root)) {
-        return null;
-    }
-
-    const donation = root.donation ?? root;
-
-    return donation && typeof donation === 'object' && !Array.isArray(donation)
-        ? donation
+    return result && typeof result === 'object' && !Array.isArray(result)
+        ? result
         : null;
 }
 
-function getDonationList(response) {
+function donationList(response) {
     const root = response?.data ?? response;
 
     if (Array.isArray(root)) return root;
@@ -120,38 +110,72 @@ function getDonationList(response) {
 }
 
 /* =========================================================
-   SMALL COMPONENTS
+   REUSABLE DISPLAY COMPONENTS
 ========================================================= */
 
-function SectionLabel({ children, icon: Icon }) {
+function SectionHeading({ icon: Icon, title, action }) {
     return (
-        <div className="flex items-center gap-2.5">
-            {Icon && (
+        <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-2.5">
                 <Icon
-                    size={15}
-                    strokeWidth={1.7}
-                    className="shrink-0 text-[#8C9AAA]"
+                    size={17}
+                    strokeWidth={1.6}
+                    className="shrink-0 text-[#8E9CAD]"
                 />
-            )}
 
-            <h2 className="!m-0 !font-sans !text-[14px] !font-semibold !text-[#D9E1EA]">
-                {children}
-            </h2>
+                <h2 className="!m-0 !font-sans !text-[15px] !font-semibold !tracking-[-0.015em] !text-[#DDE5ED]">
+                    {title}
+                </h2>
+            </div>
+
+            {action}
         </div>
     );
 }
 
-function Field({ label, value, icon: Icon }) {
+function RecordLink({ onClick, children }) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            className="inline-flex min-h-9 shrink-0 items-center gap-1.5 text-[12px] font-medium text-[#AAB9C8] transition-colors hover:text-[#E7EDF3]"
+        >
+            {children}
+            <ArrowUpRight size={14} strokeWidth={1.7} />
+        </button>
+    );
+}
+
+function DetailField({ icon: Icon, label: title, value }) {
     return (
         <div className="min-w-0">
-            <div className="flex items-center gap-1.5 text-[12px] text-[#8796A7]">
-                {Icon && <Icon size={13} strokeWidth={1.7} />}
-                {label}
+            <div className="flex items-center gap-2 text-[#8C9BAB]">
+                {Icon && <Icon size={14} strokeWidth={1.6} />}
+
+                <span className="text-[12px]">{title}</span>
             </div>
 
-            <div className="mt-1.5 min-w-0 break-words text-[13px] font-medium leading-6 text-[#D2DCE7]">
-                {value ?? '—'}
-            </div>
+            <p className="mt-2 min-w-0 break-words text-[13px] font-medium leading-6 text-[#CCD6E0]">
+                {display(value)}
+            </p>
+        </div>
+    );
+}
+
+function PaymentRow({ title, value, last = false }) {
+    return (
+        <div
+            className={`flex min-w-0 items-start justify-between gap-5 py-4 ${
+                last ? '' : 'border-b border-[#29323E]'
+            }`}
+        >
+            <span className="shrink-0 text-[12px] leading-5 text-[#8D9BAB]">
+                {title}
+            </span>
+
+            <span className="min-w-0 break-words text-right text-[13px] font-medium leading-5 text-[#D0DAE5]">
+                {display(value)}
+            </span>
         </div>
     );
 }
@@ -168,7 +192,7 @@ function Avatar({ name, photo }) {
         .toUpperCase();
 
     return (
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden border border-[#3A4655] bg-[#25313D] text-[14px] font-semibold text-[#DFE7EF]">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden border border-[#3A4655] bg-[#26313E] text-[14px] font-semibold text-[#E0E8F0]">
             {photo && !failed ? (
                 <img
                     src={photo}
@@ -183,57 +207,60 @@ function Avatar({ name, photo }) {
     );
 }
 
-function InlineLink({ children, onClick }) {
-    return (
-        <button
-            type="button"
-            onClick={onClick}
-            className="inline-flex min-h-8 shrink-0 items-center gap-1.5 text-[12px] font-medium text-[#AEBCCB] transition-colors hover:text-[#EEF2F6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#738398]"
-        >
-            {children}
-            <ArrowUpRight size={14} />
-        </button>
-    );
-}
-
 /* =========================================================
-   COMPACT CONTRIBUTION HEADER
+   DONATION SUMMARY
 ========================================================= */
 
-function ContributionHeader({ donation }) {
-    const id = getDonationId(donation);
+function DonationSummary({ donation }) {
+    const id = donationIdOf(donation);
+
+    const created = donation.created_at ?? donation.createdAt;
+
+    const method = donation.payment_method ?? donation.paymentMethod;
 
     const status =
         donation.payment_status ?? donation.paymentStatus ?? donation.status;
 
-    const date = donation.created_at ?? donation.createdAt;
+    const hasStatus =
+        status !== null && status !== undefined && String(status).trim() !== '';
 
     return (
-        <section className="min-w-0 border-b border-[#303A47] pb-7">
+        <section className="min-w-0 border-b border-[#303A47] pb-6">
             <div className="flex min-w-0 flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
                 <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-3">
-                        <span className="text-[12px] font-medium text-[#97A6B6]">
-                            Donation #{id ?? '—'}
+                        <span className="text-[12px] font-medium text-[#95A4B4]">
+                            DONATION / {id != null ? `#${id}` : '—'}
                         </span>
 
-                        {status && <StatusBadge status={status} />}
+                        {hasStatus && (
+                            <span className="border border-[#35404E] bg-[#202832] px-2.5 py-1 text-[11px] font-medium text-[#C4D0DC]">
+                                {label(status)}
+                            </span>
+                        )}
                     </div>
 
                     <div className="mt-3 flex flex-wrap items-baseline gap-x-4 gap-y-1">
-                        <h2 className="!m-0 !font-sans !text-[40px] !font-semibold !leading-[1.15] !tracking-[-0.045em] !text-[#E5EBF2] sm:!text-[48px]">
-                            {getAmount(donation.amount)}
+                        <h2 className="!m-0 !font-sans !text-[40px] !font-semibold !leading-[1.1] !tracking-[-0.045em] !text-[#E5EBF2] sm:!text-[48px]">
+                            {amount(donation.amount)}
                         </h2>
 
-                        <span className="text-[13px] text-[#93A2B2]">
-                            Contribution amount
+                        <span className="text-[13px] text-[#92A1B1]">
+                            Total contribution
                         </span>
                     </div>
                 </div>
 
-                <div className="flex shrink-0 items-center gap-2 text-[12px] text-[#9BA9B9] sm:pb-2">
-                    <CalendarDays size={14} strokeWidth={1.7} />
-                    {getDateTime(date)}
+                <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pb-1 text-[12px] text-[#9BAABA]">
+                    <span className="inline-flex items-center gap-2">
+                        <CalendarDays size={14} strokeWidth={1.6} />
+                        {dateTime(created)}
+                    </span>
+
+                    <span className="inline-flex items-center gap-2">
+                        <Wallet size={14} strokeWidth={1.6} />
+                        {label(method)}
+                    </span>
                 </div>
             </div>
         </section>
@@ -241,45 +268,76 @@ function ContributionHeader({ donation }) {
 }
 
 /* =========================================================
-   CONNECTED CONTRIBUTION FLOW
+   DONOR SECTION
 ========================================================= */
 
-function ContributionFlow({ donation, onViewDonor, onViewCampaign }) {
+function DonorSection({ donation, onViewDonor }) {
     const donor = donation.user ?? donation.donor ?? {};
-    const campaign = donation.campaign ?? {};
+    const donorId = donorIdOf(donation);
 
-    const donorId = getDonorId(donation);
-    const campaignId = getCampaignId(donation);
-
-    const donorName =
+    const name =
         donor.name ??
         donation.donor_name ??
         donation.donorName ??
         'Guest donor';
 
-    const donorEmail =
-        donor.email ?? donation.donor_email ?? donation.donorEmail;
+    const email = donor.email ?? donation.donor_email ?? donation.donorEmail;
 
-    const donorPhone =
-        donor.phone ?? donation.donor_phone ?? donation.donorPhone;
+    const phone = donor.phone ?? donation.donor_phone ?? donation.donorPhone;
 
-    const donorPhoto = donor.photo ?? donor.avatar ?? donor.profile_photo;
+    const photo = donor.photo ?? donor.avatar ?? donor.profile_photo;
 
-    const campaignTitle =
+    return (
+        <section className="min-w-0">
+            <SectionHeading
+                icon={UserRound}
+                title="Donor information"
+                action={
+                    donorId != null ? (
+                        <RecordLink onClick={onViewDonor}>
+                            View donor
+                        </RecordLink>
+                    ) : null
+                }
+            />
+
+            <div className="mt-5 flex min-w-0 items-center gap-3.5">
+                <Avatar name={name} photo={photo} />
+
+                <div className="min-w-0">
+                    <h3 className="!m-0 break-words !font-sans !text-[16px] !font-semibold !text-[#E0E7EF]">
+                        {name}
+                    </h3>
+
+                    <p className="mt-1 text-[12px] text-[#8E9CAC]">
+                        {donorId != null ? 'Registered donor' : 'Guest donor'}
+                    </p>
+                </div>
+            </div>
+
+            <div className="mt-5 grid min-w-0 grid-cols-1 gap-5 border-t border-[#29323E] pt-5 sm:grid-cols-2">
+                <DetailField icon={Mail} label="Email address" value={email} />
+
+                <DetailField icon={Phone} label="Phone number" value={phone} />
+            </div>
+        </section>
+    );
+}
+
+/* =========================================================
+   CAMPAIGN SECTION
+========================================================= */
+
+function CampaignSection({ donation, onViewCampaign }) {
+    const campaign = donation.campaign ?? {};
+    const campaignId = campaignIdOf(donation);
+
+    const title =
         campaign.title ??
         campaign.name ??
         donation.campaign_title ??
         donation.campaignTitle ??
         'Campaign unavailable';
-
-    const campaignDescription =
-        campaign.description ??
-        campaign.details ??
-        campaign.campaign_description ??
-        campaign.campaignDescription ??
-        donation.campaign_description ??
-        donation.campaignDescription ??
-        '';
 
     const category = campaign.category ?? donation.campaign_category;
 
@@ -289,160 +347,86 @@ function ContributionFlow({ donation, onViewDonor, onViewCampaign }) {
         campaign.address ??
         donation.campaign_location;
 
-    const hasDescription =
-        typeof campaignDescription === 'string' &&
-        campaignDescription.trim().length > 0;
+    const description =
+        campaign.short_description ??
+        campaign.shortDescription ??
+        campaign.description ??
+        donation.campaign_description ??
+        '';
+
+    const image =
+        campaign.cover_image ?? campaign.image ?? campaign.thumbnail ?? null;
+
+    const [imageFailed, setImageFailed] = useState(false);
 
     return (
         <section className="min-w-0">
-            <div className="mb-5 flex items-center justify-between gap-3">
-                <SectionLabel icon={UserRound}>
-                    Contribution overview
-                </SectionLabel>
+            <SectionHeading
+                icon={FileText}
+                title="Supported campaign"
+                action={
+                    campaignId != null ? (
+                        <RecordLink onClick={onViewCampaign}>
+                            View campaign
+                        </RecordLink>
+                    ) : null
+                }
+            />
 
-                <span className="hidden text-[12px] text-[#8796A7] sm:block">
-                    Donor and supported campaign
-                </span>
-            </div>
+            <div className="mt-5 flex min-w-0 items-start gap-4">
+                {image && !imageFailed && (
+                    <img
+                        src={image}
+                        alt=""
+                        className="h-[88px] w-[110px] shrink-0 border border-[#35404E] object-cover"
+                        onError={() => setImageFailed(true)}
+                    />
+                )}
 
-            <div className="grid min-w-0 grid-cols-1 border border-[#303A47] bg-[#151C25] lg:grid-cols-[minmax(0,1fr)_72px_minmax(0,1.15fr)]">
-                {/* DONOR */}
-                <div className="min-w-0 px-5 py-6 sm:px-6">
-                    <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
-                        <p className="text-[12px] font-medium text-[#92A1B1]">
-                            From donor
-                        </p>
-
-                        {donorId != null && (
-                            <InlineLink onClick={onViewDonor}>
-                                View profile
-                            </InlineLink>
-                        )}
-                    </div>
-
-                    <div className="mt-5 flex min-w-0 items-center gap-3.5">
-                        <Avatar name={donorName} photo={donorPhoto} />
-
-                        <div className="min-w-0">
-                            <h3 className="!m-0 break-words !font-sans !text-[16px] !font-semibold !text-[#E1E8F0]">
-                                {donorName}
-                            </h3>
-
-                            <p className="mt-1 text-[12px] text-[#8D9CAC]">
-                                {donorId != null
-                                    ? 'Registered donor'
-                                    : 'Guest donor'}
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="mt-5 space-y-3.5 border-t border-[#29333F] pt-4">
-                        <div className="flex min-w-0 items-start gap-3">
-                            <Mail
-                                size={14}
-                                className="mt-1 shrink-0 text-[#8A99AA]"
-                            />
-
-                            <span className="min-w-0 break-words text-[13px] leading-6 text-[#C5D1DD]">
-                                {getText(donorEmail)}
-                            </span>
-                        </div>
-
-                        {donorPhone && (
-                            <div className="flex min-w-0 items-start gap-3">
-                                <Phone
-                                    size={14}
-                                    className="mt-1 shrink-0 text-[#8A99AA]"
-                                />
-
-                                <span className="min-w-0 break-words text-[13px] text-[#C5D1DD]">
-                                    {getText(donorPhone)}
-                                </span>
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                {/* RELATIONSHIP INDICATOR */}
-                <div className="flex items-center justify-center border-y border-[#303A47] bg-[#191F29] py-3 lg:border-x lg:border-y-0">
-                    <div className="flex items-center gap-2 lg:flex-col">
-                        <span className="text-[10px] font-medium uppercase tracking-[0.12em] text-[#8998A8]">
-                            Supports
-                        </span>
-
-                        <ChevronRight
-                            size={18}
-                            strokeWidth={1.7}
-                            className="rotate-90 text-[#A5B4C3] lg:rotate-0"
-                        />
-                    </div>
-                </div>
-
-                {/* CAMPAIGN */}
-                <div className="min-w-0 px-5 py-6 sm:px-6">
-                    <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
-                        <p className="text-[12px] font-medium text-[#92A1B1]">
-                            To campaign
-                        </p>
-
-                        {campaignId != null && (
-                            <InlineLink onClick={onViewCampaign}>
-                                View campaign
-                            </InlineLink>
-                        )}
-                    </div>
-
-                    <h3 className="!mt-5 !mb-0 break-words !font-sans !text-[19px] !font-semibold !leading-[1.4] !tracking-[-0.025em] !text-[#E1E8F0]">
-                        {campaignTitle}
+                <div className="min-w-0 flex-1">
+                    <h3 className="!m-0 break-words !font-sans !text-[17px] !font-semibold !leading-[1.4] !tracking-[-0.02em] !text-[#DFE7EF]">
+                        {title}
                     </h3>
 
-                    {hasDescription && (
-                        <p className="mt-2.5 whitespace-pre-line break-words text-[13px] leading-6 text-[#AAB8C7]">
-                            {campaignDescription.trim()}
+                    {typeof description === 'string' && description.trim() && (
+                        <p className="mt-2 line-clamp-2 break-words text-[13px] leading-6 text-[#9EADBC]">
+                            {description.trim()}
                         </p>
                     )}
-
-                    <div className="mt-5 grid min-w-0 grid-cols-2 gap-4 border-t border-[#29333F] pt-4 sm:grid-cols-3">
-                        <Field
-                            icon={Tag}
-                            label="Category"
-                            value={getText(category)}
-                        />
-
-                        <Field
-                            icon={MapPin}
-                            label="Location"
-                            value={getText(location)}
-                        />
-
-                        <Field
-                            icon={Hash}
-                            label="Campaign ID"
-                            value={campaignId != null ? `#${campaignId}` : '—'}
-                        />
-                    </div>
                 </div>
+            </div>
+
+            <div className="mt-5 grid min-w-0 grid-cols-2 gap-5 border-t border-[#29323E] pt-5 sm:grid-cols-3">
+                <DetailField icon={Tag} label="Category" value={category} />
+
+                <DetailField icon={MapPin} label="Location" value={location} />
+
+                <DetailField
+                    icon={Hash}
+                    label="Campaign ID"
+                    value={campaignId != null ? `#${campaignId}` : '—'}
+                />
             </div>
         </section>
     );
 }
 
 /* =========================================================
-   TRANSACTION DETAILS
+   PAYMENT DETAILS
 ========================================================= */
 
-function TransactionDetails({ donation }) {
+function PaymentDetails({ donation }) {
     const method = donation.payment_method ?? donation.paymentMethod;
 
     const status =
         donation.payment_status ?? donation.paymentStatus ?? donation.status;
 
     const currency = donation.currency ?? 'BDT';
-    const transaction = getTransactionId(donation);
+    const transaction = transactionOf(donation);
 
     const [copied, setCopied] = useState(false);
 
-    const copyReference = async () => {
+    async function copyReference() {
         if (!transaction || !navigator.clipboard) return;
 
         try {
@@ -452,56 +436,45 @@ function TransactionDetails({ donation }) {
         } catch {
             setCopied(false);
         }
-    };
+    }
 
     return (
-        <section className="min-w-0">
-            <div className="mb-5">
-                <SectionLabel icon={CreditCard}>
-                    Transaction details
-                </SectionLabel>
+        <section className="min-w-0 border border-[#303A47] bg-[#151C25]">
+            <div className="border-b border-[#29323E] px-5 py-4 sm:px-6">
+                <SectionHeading icon={CreditCard} title="Payment details" />
             </div>
 
-            <div className="min-w-0 border-y border-[#303A47]">
-                <div className="grid min-w-0 grid-cols-1 gap-x-8 gap-y-5 py-5 sm:grid-cols-3">
-                    <Field
-                        icon={WalletCards}
-                        label="Payment method"
-                        value={getLabel(method)}
-                    />
+            <div className="px-5 py-1 sm:px-6">
+                <PaymentRow title="Payment method" value={label(method)} />
 
-                    <Field
-                        icon={CreditCard}
-                        label="Payment status"
-                        value={getLabel(status)}
-                    />
+                <PaymentRow title="Payment status" value={label(status)} />
 
-                    <Field
-                        icon={Hash}
-                        label="Currency"
-                        value={String(currency).toUpperCase()}
-                    />
-                </div>
+                <PaymentRow
+                    title="Currency"
+                    value={String(currency).toUpperCase()}
+                    last
+                />
+            </div>
 
-                <div className="flex min-w-0 flex-col gap-3 border-t border-[#29333F] py-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="min-w-0">
-                        <p className="text-[12px] text-[#8998A9]">
-                            Transaction reference
-                        </p>
+            <div className="border-t border-[#29323E] px-5 py-5 sm:px-6">
+                <p className="text-[12px] text-[#8D9BAB]">
+                    Transaction reference
+                </p>
 
-                        <p className="mt-1.5 break-all font-mono text-[12px] leading-6 text-[#CBD6E1]">
-                            {getText(transaction)}
-                        </p>
-                    </div>
+                <div className="mt-3 flex min-w-0 items-center gap-3 border border-[#35404E] bg-[#191F29] px-3.5 py-3">
+                    <span className="min-w-0 flex-1 break-all font-mono text-[11px] leading-5 text-[#CBD6E1]">
+                        {display(transaction)}
+                    </span>
 
                     {transaction && (
                         <button
                             type="button"
                             onClick={copyReference}
-                            className="inline-flex min-h-9 shrink-0 items-center justify-center gap-2 self-start border border-[#35404E] px-3 text-[12px] font-medium text-[#B9C7D5] transition-colors hover:bg-[#202A35] hover:text-white sm:self-auto"
+                            aria-label="Copy transaction reference"
+                            title="Copy transaction reference"
+                            className="flex h-8 w-8 shrink-0 items-center justify-center text-[#A8B6C5] transition-colors hover:bg-[#26313D] hover:text-white"
                         >
-                            {copied ? <Check size={14} /> : <Copy size={14} />}
-                            {copied ? 'Copied' : 'Copy reference'}
+                            {copied ? <Check size={15} /> : <Copy size={15} />}
                         </button>
                     )}
                 </div>
@@ -511,33 +484,33 @@ function TransactionDetails({ donation }) {
 }
 
 /* =========================================================
-   RECORD FOOTER
+   RECORD ACTIVITY
 ========================================================= */
 
-function RecordFooter({ donation }) {
+function RecordActivity({ donation }) {
     const created = donation.created_at ?? donation.createdAt;
 
     const updated = donation.updated_at ?? donation.updatedAt;
 
     return (
-        <footer className="flex min-w-0 flex-wrap items-center gap-x-8 gap-y-3 border-t border-[#303A47] pt-5 text-[12px] text-[#8998A8]">
-            <span className="inline-flex items-center gap-2">
-                <Clock3 size={14} />
-                Created:{' '}
-                <span className="text-[#B6C3D0]">{getDateTime(created)}</span>
-            </span>
+        <section className="min-w-0">
+            <SectionHeading icon={Clock3} title="Record activity" />
 
-            <span className="inline-flex items-center gap-2">
-                <RotateCcw size={13} />
-                Last updated:{' '}
-                <span className="text-[#B6C3D0]">{getDateTime(updated)}</span>
-            </span>
-        </footer>
+            <div className="mt-4 space-y-0 border-t border-[#29323E]">
+                <PaymentRow title="Created" value={dateTime(created)} />
+
+                <PaymentRow
+                    title="Last updated"
+                    value={dateTime(updated)}
+                    last
+                />
+            </div>
+        </section>
     );
 }
 
 /* =========================================================
-   DONOR MESSAGE
+   OPTIONAL MESSAGE
 ========================================================= */
 
 function DonorMessage({ note }) {
@@ -546,10 +519,10 @@ function DonorMessage({ note }) {
     }
 
     return (
-        <section className="min-w-0 border-t border-[#303A47] pt-5">
-            <SectionLabel icon={Mail}>Donor message</SectionLabel>
+        <section className="min-w-0 border-t border-[#303A47] pt-6">
+            <SectionHeading icon={Mail} title="Donor message" />
 
-            <p className="mt-3 whitespace-pre-wrap break-words text-[13px] leading-7 text-[#B2BFCD]">
+            <p className="mt-3 whitespace-pre-wrap break-words text-[13px] leading-7 text-[#ADBBC9]">
                 {note.trim()}
             </p>
         </section>
@@ -593,8 +566,8 @@ export default function DonationDetails() {
 
                     if (
                         result &&
-                        getDonationId(result) != null &&
-                        String(getDonationId(result)) !== String(donationId)
+                        donationIdOf(result) != null &&
+                        String(donationIdOf(result)) !== String(donationId)
                     ) {
                         result = null;
                     }
@@ -616,9 +589,9 @@ export default function DonationDetails() {
                     const response = await apiRequest('/admin/donations');
 
                     result =
-                        getDonationList(response).find(
+                        donationList(response).find(
                             (item) =>
-                                String(getDonationId(item)) ===
+                                String(donationIdOf(item)) ===
                                 String(donationId),
                         ) ?? null;
                 }
@@ -652,8 +625,8 @@ export default function DonationDetails() {
         };
     }, [donationId, retryKey]);
 
-    const donorId = getDonorId(donation);
-    const campaignId = getCampaignId(donation);
+    const donorId = donorIdOf(donation);
+    const campaignId = campaignIdOf(donation);
 
     const goToDonor = () => {
         if (donorId == null) return;
@@ -673,12 +646,12 @@ export default function DonationDetails() {
         <main className="min-w-0 space-y-6 pb-10 font-sans">
             <PageHeader
                 title="Donation Details"
-                subtitle="Contribution, donor and campaign information."
+                subtitle="Contribution, donor and transaction information."
                 action={
                     <button
                         type="button"
                         onClick={() => navigate('/admin/dashboard/donations')}
-                        className="inline-flex min-h-9 items-center gap-2 border border-[#35404E] px-3.5 text-[12px] font-medium text-[#C3CDD8] transition-colors hover:bg-[#202A35] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#64748B]"
+                        className="inline-flex min-h-9 items-center gap-2 border border-[#35404E] px-3.5 text-[12px] font-medium text-[#C3CDD8] transition-colors hover:bg-[#202A35] hover:text-white"
                     >
                         <ArrowLeft size={14} />
                         All Donations
@@ -704,25 +677,43 @@ export default function DonationDetails() {
                         onClick={() => setRetryKey((key) => key + 1)}
                         className="inline-flex min-h-9 items-center gap-2 border border-[#35404E] px-3.5 text-[12px] text-[#D6DFE9] hover:bg-[#202A35]"
                     >
-                        <RotateCcw size={14} />
+                        <RefreshCw size={14} />
                         Try again
                     </button>
                 </div>
             ) : donation ? (
-                <div className="min-w-0 space-y-8">
-                    <ContributionHeader donation={donation} />
+                <div className="min-w-0">
+                    <DonationSummary donation={donation} />
 
-                    <ContributionFlow
-                        donation={donation}
-                        onViewDonor={goToDonor}
-                        onViewCampaign={goToCampaign}
-                    />
+                    <div className="mt-7 grid min-w-0 grid-cols-1 items-start gap-7 xl:grid-cols-[minmax(0,1fr)_minmax(300px,0.65fr)] xl:gap-9">
+                        {/* PRIMARY INFORMATION */}
+                        <div className="min-w-0 space-y-7">
+                            <DonorSection
+                                donation={donation}
+                                onViewDonor={goToDonor}
+                            />
 
-                    <TransactionDetails donation={donation} />
+                            <div className="border-t border-[#303A47]" />
 
-                    <DonorMessage note={donation.note ?? donation.message} />
+                            <CampaignSection
+                                donation={donation}
+                                onViewCampaign={goToCampaign}
+                            />
+                        </div>
 
-                    <RecordFooter donation={donation} />
+                        {/* PAYMENT & RECORD INFORMATION */}
+                        <div className="min-w-0 space-y-6">
+                            <PaymentDetails donation={donation} />
+
+                            <RecordActivity donation={donation} />
+                        </div>
+                    </div>
+
+                    <div className="mt-8">
+                        <DonorMessage
+                            note={donation.note ?? donation.message}
+                        />
+                    </div>
                 </div>
             ) : (
                 <div className="border-t border-[#303A47] py-12 text-center text-[13px] text-[#9AA6B5]">

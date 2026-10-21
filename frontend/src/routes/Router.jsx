@@ -81,9 +81,15 @@ import AdminHelpRequestDetails from '@/dashboard/admin/helpRequests/HelpRequestD
 import AdminDonations from '@/dashboard/admin/donations/Donations';
 import AdminDonationDetails from '@/dashboard/admin/donations/DonationDetails';
 
-// Other Admin Pages
+// Admin Campaigns
 import AdminCampaigns from '@/dashboard/admin/campaigns/Campaigns';
 import AdminCampaignDetails from '@/dashboard/admin/campaigns/CampaignDetails';
+
+// Admin Contact Messages
+import AdminContactMessages from '@/dashboard/admin/contactMessages/ContactMessages';
+import AdminContactMessageDetails from '@/dashboard/admin/contactMessages/ContactMessageDetails';
+
+// Other Admin Pages
 import AdminProfile from '@/dashboard/admin/profile/Profile';
 import AdminSecurity from '@/dashboard/admin/security/Security';
 import AdminSettings from '@/dashboard/admin/settings/Settings';
@@ -412,6 +418,16 @@ const router = createBrowserRouter([
                     {
                         path: 'settings',
                         element: <AdminSettings />,
+                    },
+
+                    // Admin Contact Messages
+                    {
+                        path: 'contact-messages',
+                        element: <AdminContactMessages />,
+                    },
+                    {
+                        path: 'contact-messages/:messageId',
+                        element: <AdminContactMessageDetails />,
                     },
 
                     // Admin Help

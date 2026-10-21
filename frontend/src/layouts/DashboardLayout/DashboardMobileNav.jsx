@@ -1,19 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-
-import {
-    ChevronDown,
-    ChevronRight,
-    CircleHelp,
-    ExternalLink,
-    LogOut,
-    Settings,
-    UserCircle,
-    X,
-} from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ChevronDown, X } from 'lucide-react';
 
 import logo from '@/assets/shared/logo.png';
-
 import { NAV_CONFIG, ROLE_LABELS } from '@/routes/dashboardNav';
 
 /* ==========================================================================
@@ -26,18 +15,6 @@ const ROOT_PATHS = {
     admin: '/admin/dashboard',
 };
 
-const PROFILE_PATHS = {
-    individual: '/individual/dashboard/profile',
-    organization: '/organization/dashboard/profile',
-    admin: '/admin/dashboard/profile',
-};
-
-const SETTINGS_PATHS = {
-    individual: '/individual/dashboard/settings',
-    organization: '/organization/dashboard/settings',
-    admin: '/admin/dashboard/settings',
-};
-
 /* ==========================================================================
    PATH HELPERS
 ============================================================================ */
@@ -45,9 +22,7 @@ const SETTINGS_PATHS = {
 const normalizePath = (path = '') => {
     if (!path) return '/';
 
-    const normalized = path.replace(/\/+$/, '');
-
-    return normalized || '/';
+    return path.replace(/\/+$/, '') || '/';
 };
 
 const isRootDashboard = (path) => {
@@ -72,205 +47,59 @@ const isPathActive = (itemPath, currentPath) => {
 };
 
 const hasActiveChild = (item, currentPath) => {
-    if (!item?.children?.length) {
-        return false;
-    }
+    if (!item?.children?.length) return false;
 
-    return item.children.some((child) => {
-        if (isPathActive(child.path, currentPath)) {
-            return true;
-        }
-
-        return hasActiveChild(child, currentPath);
-    });
+    return item.children.some(
+        (child) =>
+            isPathActive(child.path, currentPath) ||
+            hasActiveChild(child, currentPath),
+    );
 };
 
 const isNavItemActive = (item, currentPath) => {
-    if (!item) return false;
-
-    if (isPathActive(item.path, currentPath)) {
-        return true;
-    }
-
-    return hasActiveChild(item, currentPath);
+    return Boolean(
+        item &&
+        (isPathActive(item.path, currentPath) ||
+            hasActiveChild(item, currentPath)),
+    );
 };
 
-/*
- * When submenu paths overlap, only highlight the most specific route.
- * This matches the desktop sidebar behavior.
- */
 const getActiveChildKey = (item, currentPath) => {
     if (!item?.children?.length) return null;
 
-    const matches = item.children
-        .filter((child) => isPathActive(child.path, currentPath))
-        .sort(
-            (a, b) =>
-                normalizePath(b.path).length - normalizePath(a.path).length,
-        );
-
-    return matches[0]?.key || null;
-};
-
-/* ==========================================================================
-   USER HELPERS
-============================================================================ */
-
-const getStoredUser = () => {
-    if (typeof window === 'undefined') {
-        return null;
-    }
-
-    const sources = [
-        window.localStorage.getItem('user'),
-        window.sessionStorage.getItem('user'),
-    ];
-
-    for (const source of sources) {
-        if (!source) continue;
-
-        try {
-            const parsed = JSON.parse(source);
-
-            return parsed?.user || parsed;
-        } catch {
-            // Ignore malformed stored user data.
-        }
-    }
-
-    return null;
-};
-
-const getUserName = (user, role) => {
     return (
-        user?.name ||
-        user?.username ||
-        user?.full_name ||
-        user?.fullName ||
-        user?.organization_name ||
-        user?.organizationName ||
-        user?.email?.split('@')[0] ||
-        ROLE_LABELS[role] ||
-        'Account'
-    );
-};
-
-const getUserEmail = (user) => {
-    return user?.email || '';
-};
-
-const getUserAvatar = (user) => {
-    return (
-        user?.avatar ||
-        user?.avatar_url ||
-        user?.avatarUrl ||
-        user?.profile_image ||
-        user?.profileImage ||
-        null
-    );
-};
-
-const getInitials = (value = '') => {
-    const cleaned = value.trim();
-
-    if (!cleaned) {
-        return 'SP';
-    }
-
-    return cleaned
-        .split(/\s+/)
-        .filter(Boolean)
-        .slice(0, 2)
-        .map((part) => part.charAt(0))
-        .join('')
-        .toUpperCase();
-};
-
-/* ==========================================================================
-   ACCOUNT AVATAR
-============================================================================ */
-
-const AccountAvatar = ({ avatar, name, size = 'normal' }) => {
-    const sizeClasses =
-        size === 'large' ? 'h-10 w-10 text-[11px]' : 'h-8 w-8 text-[10px]';
-
-    return (
-        <div
-            className={`
-                flex
-                shrink-0
-                items-center
-                justify-center
-                overflow-hidden
-
-                rounded-md
-
-                border
-                border-[#303A47]
-
-                bg-[#1B222C]
-
-                font-semibold
-
-                !text-[#F1F3F5]
-
-                ${sizeClasses}
-            `}
-        >
-            {avatar ? (
-                <img
-                    src={avatar}
-                    alt={name}
-                    className="
-                        h-full
-                        w-full
-                        object-cover
-                    "
-                />
-            ) : (
-                getInitials(name)
-            )}
-        </div>
+        item.children
+            .filter((child) => isPathActive(child.path, currentPath))
+            .sort(
+                (a, b) =>
+                    normalizePath(b.path).length - normalizePath(a.path).length,
+            )[0]?.key || null
     );
 };
 
 /* ==========================================================================
-   SECTION LABEL
+   SECTION LABEL — ORIGINAL UI
 ============================================================================ */
 
-const SectionLabel = ({ label }) => {
-    return (
-        <div
+const SectionLabel = ({ label }) => (
+    <div className="mb-2.5 mt-7 px-3">
+        <p
             className="
-                mb-1.5
-                mt-5
-                px-3
+                text-[9px] font-semibold! uppercase
+                tracking-[0.18em] !text-[#657184]
             "
         >
-            <p
-                className="
-                    text-[9.5px]
-                    font-semibold!
-                    uppercase
-                    tracking-[0.16em]
-
-                    !text-[#657184]
-                "
-            >
-                {label}
-            </p>
-        </div>
-    );
-};
+            {label}
+        </p>
+    </div>
+);
 
 /* ==========================================================================
-   SUB MENU
+   SUBMENU — ORIGINAL UI AND ANIMATION
 ============================================================================ */
 
 const MobileSubMenu = ({ item, currentPath, open, onNavigate }) => {
-    if (!item.children?.length) {
-        return null;
-    }
+    if (!item.children?.length) return null;
 
     const activeChildKey = getActiveChildKey(item, currentPath);
 
@@ -278,46 +107,26 @@ const MobileSubMenu = ({ item, currentPath, open, onNavigate }) => {
         <div
             aria-hidden={!open}
             className={`
-                grid
-
-                transition-[grid-template-rows,opacity]
-                duration-300
-                ease-[cubic-bezier(0.4,0,0.2,1)]
-
+                grid transition-[grid-template-rows,opacity]
+                duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]
                 ${
                     open
-                        ? `
-                            grid-rows-[1fr]
-                            opacity-100
-                        `
-                        : `
-                            pointer-events-none
-                            grid-rows-[0fr]
-                            opacity-0
-                        `
+                        ? 'grid-rows-[1fr] opacity-100'
+                        : 'pointer-events-none grid-rows-[0fr] opacity-0'
                 }
             `}
         >
             <div className="overflow-hidden">
                 <div
                     className={`
-                        relative
+                        relative ml-[21px] mt-1.5 space-y-0.5
+                        pb-2.5 pl-5
 
-                        ml-[22px]
-                        mt-1
-                        space-y-0.5
-                        pb-2
-                        pl-5
+                        before:absolute before:bottom-2.5
+                        before:left-[7px] before:top-1
+                        before:w-px before:bg-[#29323E]
 
-                        before:absolute
-                        before:bottom-2
-                        before:left-[7px]
-                        before:top-1
-                        before:w-px
-                        before:bg-[#29323E]
-
-                        transition-transform
-                        duration-300
+                        transition-transform duration-300
                         ease-[cubic-bezier(0.4,0,0.2,1)]
 
                         ${open ? 'translate-y-0' : '-translate-y-1'}
@@ -337,29 +146,16 @@ const MobileSubMenu = ({ item, currentPath, open, onNavigate }) => {
                                 tabIndex={open ? 0 : -1}
                                 aria-current={active ? 'page' : undefined}
                                 className={`
-                                    group/sub
-                                    relative
-
-                                    flex
-                                    min-h-9
-                                    items-center
-                                    gap-2.5
-
-                                    rounded-md
-
-                                    px-2.5
-
-                                    text-[12px]
-                                    font-medium!!
-
-                                    transition-colors
-                                    duration-150
+                                    group/sub relative flex min-h-8
+                                    items-center gap-2.5 rounded-md
+                                    px-2.5 text-[11.5px] font-medium!
+                                    transition-colors duration-150
 
                                     ${
                                         active
                                             ? `
                                                 bg-transparent
-                                                !text-[#F4F5F7]
+                                                !text-[#EEF1F5]
                                                 font-semibold!
 
                                                 before:absolute
@@ -367,11 +163,10 @@ const MobileSubMenu = ({ item, currentPath, open, onNavigate }) => {
                                                 before:h-4
                                                 before:w-[2px]
                                                 before:rounded-full
-                                                before:bg-[#D8DCE3]
+                                                before:bg-[#D8DDE5]
                                             `
                                             : `
                                                 !text-[#8792A1]
-
                                                 hover:bg-[#181F28]
                                                 hover:!text-[#DDE2E8]
                                             `
@@ -391,7 +186,7 @@ const MobileSubMenu = ({ item, currentPath, open, onNavigate }) => {
 };
 
 /* ==========================================================================
-   NAV ITEM
+   NAV ITEM — ORIGINAL UI
 ============================================================================ */
 
 const MobileNavItem = ({ item, currentPath, open, onToggle, onNavigate }) => {
@@ -403,10 +198,6 @@ const MobileNavItem = ({ item, currentPath, open, onToggle, onNavigate }) => {
 
     const childActive = hasActiveChild(item, currentPath);
 
-    /* ======================================================================
-       DIRECT ITEM
-    ====================================================================== */
-
     if (!hasChildren && item.path) {
         return (
             <Link
@@ -414,33 +205,17 @@ const MobileNavItem = ({ item, currentPath, open, onToggle, onNavigate }) => {
                 onClick={onNavigate}
                 aria-current={active ? 'page' : undefined}
                 className={`
-                    group
-                    relative
-
-                    flex
-                    min-h-11
-                    w-full
-                    items-center
-                    gap-3
-
-                    rounded-md
-
-                    px-3
-
-                    transition-colors
-                    duration-150
+                    group relative flex min-h-[40px] w-full
+                    items-center gap-3 rounded-md px-3
+                    transition-colors duration-150
 
                     ${
                         active
-                            ? `
-                                bg-[#242A33]
-                                !text-[#F3F4F6]
-                            `
+                            ? 'bg-[#1B222C] !text-[#F3F5F7]'
                             : `
-                                !text-[#C3C7CF]
-
-                                hover:bg-[#292E37]
-                                hover:!text-[#F1F2F4]
+                                !text-[#B8C0CC]
+                                hover:bg-[#181F28]
+                                hover:!text-[#F1F3F5]
                             `
                     }
                 `}
@@ -449,37 +224,25 @@ const MobileNavItem = ({ item, currentPath, open, onToggle, onNavigate }) => {
                     <span
                         aria-hidden="true"
                         className="
-                            absolute
-                            bottom-2.5
-                            left-0
-                            top-2.5
-
-                            w-0.5
-
-                            rounded-r-full
-
-                            bg-transparent
+                            absolute bottom-2.5 left-0 top-2.5
+                            w-0.5 rounded-r-full bg-transparent
                         "
                     />
                 )}
 
                 {Icon && (
                     <Icon
-                        size={17}
+                        size={16}
                         strokeWidth={1.7}
                         className={`
-                            shrink-0
-
-                            transition-colors
-                            duration-150
+                            shrink-0 transition-colors duration-150
 
                             ${
                                 active
-                                    ? '!text-[#E5E7EB]'
+                                    ? '!text-[#E5E9EE]'
                                     : `
-                                        !text-[#969EAC]
-
-                                        group-hover:!text-[#D3D6DC]
+                                        !text-[#7F8998]
+                                        group-hover:!text-[#CDD3DB]
                                     `
                             }
                         `}
@@ -488,13 +251,9 @@ const MobileNavItem = ({ item, currentPath, open, onToggle, onNavigate }) => {
 
                 <span
                     className={`
-                        min-w-0
-                        flex-1
-                        truncate
+                        min-w-0 flex-1 truncate text-[12.5px]
 
-                        text-[13px]
-
-                        ${active ? 'font-semibold!' : 'font-medium!!'}
+                        ${active ? 'font-semibold!' : 'font-medium!'}
                     `}
                 >
                     {item.label}
@@ -503,238 +262,88 @@ const MobileNavItem = ({ item, currentPath, open, onToggle, onNavigate }) => {
         );
     }
 
-    /* ======================================================================
-       EXPANDABLE ITEM
-    ====================================================================== */
-
-    if (hasChildren) {
-        return (
-            <div>
-                <button
-                    type="button"
-                    onClick={onToggle}
-                    aria-expanded={open}
-                    className={`
-                        group
-
-                        flex
-                        min-h-11
-                        w-full
-                        items-center
-                        gap-3
-
-                        rounded-lg
-
-                        px-3
-
-                        text-left
-
-                        transition-colors
-                        duration-150
-
-                        ${
-                            childActive
-                                ? `
-                                    bg-[#20252D]
-                                    !text-[#F1F2F4]
-                                `
-                                : `
-                                    !text-[#C3C7CF]
-
-                                    hover:bg-[#292E37]
-                                    hover:!text-[#F1F2F4]
-                                `
-                        }
-                    `}
-                >
-                    {Icon && (
-                        <Icon
-                            size={17}
-                            strokeWidth={1.7}
-                            className={`
-                                shrink-0
-
-                                ${
-                                    childActive
-                                        ? '!text-[#D3D6DC]'
-                                        : `
-                                            !text-[#969EAC]
-
-                                            group-hover:!text-[#D3D6DC]
-                                        `
-                                }
-                            `}
-                        />
-                    )}
-
-                    <span
-                        className={`
-                            min-w-0
-                            flex-1
-                            truncate
-
-                            text-[13px]
-
-                            ${childActive ? 'font-semibold!' : 'font-medium!!'}
-                        `}
-                    >
-                        {item.label}
-                    </span>
-
-                    <ChevronDown
-                        size={13}
-                        strokeWidth={1.8}
-                        className={`
-                            shrink-0
-
-                            !text-[#6F7785]
-
-                            transition-transform
-                            duration-300
-                            ease-[cubic-bezier(0.4,0,0.2,1)]
-
-                            group-hover:!text-[#C3C7CF]
-
-                            ${open ? 'rotate-180' : ''}
-                        `}
-                    />
-                </button>
-
-                <MobileSubMenu
-                    item={item}
-                    currentPath={currentPath}
-                    open={open}
-                    onNavigate={onNavigate}
-                />
-            </div>
-        );
-    }
-
-    return null;
-};
-
-/* ==========================================================================
-   ACCOUNT MENU LINK
-============================================================================ */
-
-const AccountMenuLink = ({
-    to,
-    icon: Icon,
-    children,
-    onClick,
-    external = false,
-}) => {
-    const className = `
-        group
-
-        flex
-        min-h-10
-        w-full
-        items-center
-        gap-3
-
-        rounded-md
-
-        px-3
-
-        text-[12px]
-        font-medium!!
-
-        !text-[#C3C7CF]
-
-        transition-colors
-        duration-150
-
-        hover:bg-[#1B222C]
-        hover:!text-[#F1F2F4]
-    `;
-
-    const content = (
-        <>
-            <Icon
-                size={16}
-                strokeWidth={1.7}
-                className="
-                    shrink-0
-
-                    !text-[#969EAC]
-
-                    transition-colors
-                    duration-150
-
-                    group-hover:!text-[#D3D6DC]
-                "
-            />
-
-            <span
-                className="
-                    min-w-0
-                    flex-1
-                    truncate
-                "
-            >
-                {children}
-            </span>
-
-            {external ? (
-                <ExternalLink
-                    size={12}
-                    strokeWidth={1.7}
-                    className="
-                        shrink-0
-                        !text-[#6F7785]
-                    "
-                />
-            ) : (
-                <ChevronRight
-                    size={12}
-                    strokeWidth={1.7}
-                    className="
-                        shrink-0
-                        !text-[#6F7785]
-                    "
-                />
-            )}
-        </>
-    );
-
-    if (external) {
-        return (
-            <a href={to} onClick={onClick} className={className}>
-                {content}
-            </a>
-        );
-    }
+    if (!hasChildren) return null;
 
     return (
-        <Link to={to} onClick={onClick} className={className}>
-            {content}
-        </Link>
+        <div>
+            <button
+                type="button"
+                onClick={onToggle}
+                aria-expanded={open}
+                className={`
+                    group flex min-h-[40px] w-full items-center
+                    gap-3 rounded-md px-3 text-left
+                    transition-colors duration-150
+
+                    ${
+                        childActive
+                            ? 'bg-[#1B222C] !text-[#F1F3F5]'
+                            : `
+                                !text-[#B8C0CC]
+                                hover:bg-[#181F28]
+                                hover:!text-[#F1F3F5]
+                            `
+                    }
+                `}
+            >
+                {Icon && (
+                    <Icon
+                        size={16}
+                        strokeWidth={1.7}
+                        className={`
+                            shrink-0 transition-colors duration-150
+
+                            ${
+                                childActive
+                                    ? '!text-[#D5DAE1]'
+                                    : `
+                                        !text-[#7F8998]
+                                        group-hover:!text-[#CDD3DB]
+                                    `
+                            }
+                        `}
+                    />
+                )}
+
+                <span
+                    className={`
+                        min-w-0 flex-1 truncate text-[12.5px]
+
+                        ${childActive ? 'font-semibold!' : 'font-medium!'}
+                    `}
+                >
+                    {item.label}
+                </span>
+
+                <ChevronDown
+                    size={12.5}
+                    strokeWidth={1.8}
+                    className={`
+                        shrink-0 !text-[#657184]
+                        transition-transform duration-300
+                        ease-[cubic-bezier(0.4,0,0.2,1)]
+                        group-hover:!text-[#B8C0CC]
+
+                        ${open ? 'rotate-180' : ''}
+                    `}
+                />
+            </button>
+
+            <MobileSubMenu
+                item={item}
+                currentPath={currentPath}
+                open={open}
+                onNavigate={onNavigate}
+            />
+        </div>
     );
 };
 
 /* ==========================================================================
-   MOBILE NAV
+   MOBILE NAVIGATION
 ============================================================================ */
 
-const DashboardMobileNav = ({
-    role,
-    currentPath,
-    open,
-    onClose,
-    user: providedUser,
-}) => {
-    const navigate = useNavigate();
-
-    const [accountOpen, setAccountOpen] = useState(false);
-
-    /*
-     * Same accordion approach as desktop.
-     *
-     * The manually selected submenu state belongs to the route where it
-     * was selected. After navigation, route-based opening becomes
-     * authoritative again.
-     */
+const DashboardMobileNav = ({ role, currentPath, open, onClose }) => {
     const [menuState, setMenuState] = useState({
         path: null,
         openKey: null,
@@ -743,28 +352,12 @@ const DashboardMobileNav = ({
 
     const navItems = useMemo(() => NAV_CONFIG[role] || [], [role]);
 
-    const storedUser = useMemo(() => getStoredUser(), []);
-
-    const user = providedUser || storedUser;
-
-    const userName = getUserName(user, role);
-
-    const userEmail = getUserEmail(user);
-
-    const avatar = getUserAvatar(user);
-
     const roleLabel = ROLE_LABELS[role] || 'User';
-
-    const profilePath = PROFILE_PATHS[role];
-
-    const settingsPath = SETTINGS_PATHS[role];
-
-    const rootPath = ROOT_PATHS[role] || ROOT_PATHS.individual;
 
     const normalizedCurrentPath = normalizePath(currentPath);
 
     /* ======================================================================
-       ROUTE OPEN MENU
+       MENU STATE
     ====================================================================== */
 
     const routeOpenMenuKey = useMemo(() => {
@@ -786,9 +379,7 @@ const DashboardMobileNav = ({
         ? menuState.openKey
         : routeOpenMenuKey;
 
-    const isMenuOpen = (item) => {
-        return effectiveOpenMenuKey === item.key;
-    };
+    const isMenuOpen = (item) => effectiveOpenMenuKey === item.key;
 
     const toggleMenu = (item) => {
         const currentlyOpen = isMenuOpen(item);
@@ -801,28 +392,24 @@ const DashboardMobileNav = ({
     };
 
     /* ======================================================================
-       ROUTE CHANGE
+       CLOSE ON ROUTE CHANGE
     ====================================================================== */
 
     useEffect(() => {
         if (open) {
-            onClose();
+            onClose?.();
         }
 
-        // currentPath intentionally controls this behavior.
+        // Close drawer when route changes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentPath]);
 
     /* ======================================================================
-       BODY SCROLL
+       BODY SCROLL LOCK
     ====================================================================== */
 
     useEffect(() => {
-        if (!open) {
-            document.body.style.overflow = '';
-
-            return undefined;
-        }
+        if (!open) return undefined;
 
         const previousOverflow = document.body.style.overflow;
 
@@ -834,25 +421,16 @@ const DashboardMobileNav = ({
     }, [open]);
 
     /* ======================================================================
-       ESCAPE
+       ESCAPE KEY
     ====================================================================== */
 
     useEffect(() => {
-        if (!open) {
-            return undefined;
-        }
+        if (!open) return undefined;
 
         const handleKeyDown = (event) => {
-            if (event.key !== 'Escape') {
-                return;
+            if (event.key === 'Escape') {
+                onClose?.();
             }
-
-            if (accountOpen) {
-                setAccountOpen(false);
-                return;
-            }
-
-            onClose();
         };
 
         document.addEventListener('keydown', handleKeyDown);
@@ -860,177 +438,65 @@ const DashboardMobileNav = ({
         return () => {
             document.removeEventListener('keydown', handleKeyDown);
         };
-    }, [open, accountOpen, onClose]);
-
-    /* ======================================================================
-       NAVIGATION
-    ====================================================================== */
+    }, [open, onClose]);
 
     const closeDrawer = () => {
-        setAccountOpen(false);
-        onClose();
+        onClose?.();
     };
 
-    /* ======================================================================
-       ACCOUNT
-    ====================================================================== */
-
-    const toggleAccountMenu = () => {
-        setAccountOpen((previous) => !previous);
-    };
-
-    /* ======================================================================
-       SIGN OUT
-    ====================================================================== */
-
-    const handleSignOut = () => {
-        const authKeys = ['auth_token', 'user', 'token', 'authToken'];
-
-        authKeys.forEach((key) => {
-            window.localStorage.removeItem(key);
-            window.sessionStorage.removeItem(key);
-        });
-
-        setAccountOpen(false);
-
-        onClose();
-
-        navigate('/');
-    };
-
-    /* ======================================================================
-       CLOSED
-    ====================================================================== */
-
-    if (!open) {
-        return null;
-    }
-
-    /* ======================================================================
-       RENDER
-    ====================================================================== */
+    if (!open) return null;
 
     return (
-        <div
-            className="
-                fixed
-                inset-0
-                z-50
-
-                lg:hidden
-            "
-        >
-            {/* =============================================================
-                BACKDROP
-            ============================================================= */}
-
+        <div className="fixed inset-0 z-50 lg:hidden">
+            {/* BACKDROP */}
             <button
                 type="button"
                 aria-label="Close navigation"
                 onClick={closeDrawer}
                 className="
-                    absolute
-                    inset-0
-
-                    cursor-default
-
-                    bg-[#030507]/80
-
-                    backdrop-blur-[2px]
+                    absolute inset-0 cursor-default
+                    bg-[#030507]/80 backdrop-blur-[2px]
                 "
             />
 
-            {/* =============================================================
-                DRAWER
-            ============================================================= */}
-
+            {/* DRAWER */}
             <aside
                 aria-label="Mobile dashboard navigation"
                 className="
-                    absolute
-                    inset-y-0
-                    left-0
-
-                    flex
-                    w-[286px]
-                    max-w-[calc(100vw-18px)]
-                    flex-col
-
-                    overflow-hidden
-
-                    border-r
-                    border-[#2B3039]
-
+                    absolute inset-y-0 left-0
+                    flex w-[320px] max-w-[calc(100vw-16px)]
+                    flex-col overflow-hidden
+                    border-r border-[#252D38]
                     bg-[#0E1219]
-
                     shadow-[18px_0_55px_rgba(0,0,0,0.48)]
+                    sm:w-[340px]
                 "
             >
-                {/* =========================================================
-                    HEADER
-                ========================================================= */}
-
+                {/* BRAND — ORIGINAL UI */}
                 <header
                     className="
-                        flex
-                        h-16
-                        shrink-0
-                        items-center
-                        justify-between
-                        gap-3
-
-                        border-b
-                        border-[#202733]
-
-                        bg-[#0B0F15]
-
-                        px-4
+                        flex h-16 shrink-0 items-center justify-between
+                        gap-3 bg-[#0E1219] px-4
                     "
                 >
                     <Link
-                        to={rootPath}
+                        to="/"
                         onClick={closeDrawer}
-                        className="
-                            flex
-                            min-w-0
-                            items-center
-                            gap-2.5
-                        "
+                        className="flex min-w-0 items-center gap-2.5"
                     >
-                        <div
-                            className="
-                                flex
-                                h-7
-                                w-7
-                                shrink-0
-                                items-center
-                                justify-center
-                                overflow-hidden
-                            "
-                        >
+                        <div className="flex h-6 shrink-0 items-center justify-center overflow-hidden">
                             <img
                                 src={logo}
                                 alt="Stand For People"
-                                className="
-                                    h-full
-                                    w-full
-                                    object-contain
-                                "
+                                className="h-full w-full object-contain"
                             />
                         </div>
 
                         <div className="min-w-0">
                             <p
                                 className="
-                                    truncate
-
-                                    !font-sans
-
-                                    text-[13px]
-                                    font-semibold!
-                                    tracking-[-0.01em]
-
-                                    !text-[#F1F2F4]
+                                    truncate text-[13px] font-semibold!
+                                    tracking-[-0.01em] !text-[#EEF1F5]
                                 "
                             >
                                 Stand For People
@@ -1038,15 +504,9 @@ const DashboardMobileNav = ({
 
                             <p
                                 className="
-                                    mt-0.5
-                                    truncate
-
-                                    text-[8.5px]
-                                    font-semibold!
-                                    uppercase
-                                    tracking-[0.15em]
-
-                                    !text-[#6F7785]
+                                    mt-0.5 truncate text-[8px] font-semibold!
+                                    uppercase tracking-[0.17em]
+                                    !text-[#657184]
                                 "
                             >
                                 {roleLabel} workspace
@@ -1059,55 +519,30 @@ const DashboardMobileNav = ({
                         onClick={closeDrawer}
                         aria-label="Close navigation"
                         className="
-                            flex
-                            h-8
-                            w-8
-                            shrink-0
-                            items-center
-                            justify-center
-
-                            rounded-md
-
-                            !text-[#9299A6]
-
-                            transition-colors
-                            duration-150
-
-                            hover:bg-[#292E37]
-                            hover:!text-[#F1F2F4]
-
+                            flex h-8 w-8 shrink-0 items-center justify-center
+                            rounded-md !text-[#8792A1]
+                            transition-colors duration-150
+                            hover:bg-[#181F28] hover:!text-[#F1F3F5]
                             focus:outline-none
                         "
                     >
-                        <X size={18} strokeWidth={1.8} />
+                        <X size={17} strokeWidth={1.8} />
                     </button>
                 </header>
 
-                {/* =========================================================
-                    NAVIGATION
-                ========================================================= */}
-
+                {/* NAVIGATION — INVISIBLE SCROLLBAR */}
                 <nav
                     aria-label="Dashboard navigation"
                     className="
-                        min-h-0
-                        flex-1
+                        min-h-0 flex-1 overflow-x-hidden overflow-y-auto
+                        px-3 py-3.5
 
-                        overflow-x-hidden
-                        overflow-y-auto
-
-                        px-3
-                        py-4
-
-                        [&::-webkit-scrollbar]:w-1
-                        [&::-webkit-scrollbar-track]:bg-transparent
-                        [&::-webkit-scrollbar-thumb]:rounded-full
-                        [&::-webkit-scrollbar-thumb]:bg-[#343944]
-
-                        hover:[&::-webkit-scrollbar-thumb]:bg-[#404754]
+                        [scrollbar-width:none]
+                        [-ms-overflow-style:none]
+                        [&::-webkit-scrollbar]:hidden
                     "
                 >
-                    <div className="space-y-1">
+                    <div className="space-y-0.5">
                         {navItems.map((item) => {
                             if (item.type === 'section') {
                                 return (
@@ -1131,296 +566,6 @@ const DashboardMobileNav = ({
                         })}
                     </div>
                 </nav>
-
-                {/* =========================================================
-                    ACCOUNT
-                ========================================================= */}
-
-                <div
-                    className="
-                        relative
-                        shrink-0
-
-                        border-t
-                        border-[#343944]
-
-                        bg-[#0B0F15]
-
-                        p-2
-                    "
-                >
-                    {/* =====================================================
-                        ACCOUNT POPUP
-                    ===================================================== */}
-
-                    {accountOpen && (
-                        <div
-                            role="menu"
-                            aria-label="Account menu"
-                            className="
-                                absolute
-                                bottom-[calc(100%+8px)]
-                                left-2
-                                right-2
-                                z-30
-
-                                overflow-hidden
-
-                                rounded-lg
-
-                                border
-                                border-[#343944]
-
-                                bg-[#141922]
-
-                                shadow-[0_18px_50px_rgba(0,0,0,0.48)]
-                            "
-                        >
-                            {/* =============================================
-                                IDENTITY
-                            ============================================= */}
-
-                            <div
-                                className="
-                                    flex
-                                    items-center
-                                    gap-3
-
-                                    border-b
-                                    border-[#343944]
-
-                                    bg-[#11161E]
-
-                                    px-3.5
-                                    py-3.5
-                                "
-                            >
-                                <AccountAvatar
-                                    avatar={avatar}
-                                    name={userName}
-                                    size="large"
-                                />
-
-                                <div className="min-w-0">
-                                    <p
-                                        className="
-                                            truncate
-
-                                            text-[12.5px]
-                                            font-semibold!
-
-                                            !text-[#F1F2F4]
-                                        "
-                                    >
-                                        {userName}
-                                    </p>
-
-                                    <p
-                                        className="
-                                            mt-0.5
-                                            truncate
-
-                                            text-[10px]
-
-                                            !text-[#9299A6]
-                                        "
-                                    >
-                                        {userEmail || roleLabel}
-                                    </p>
-
-                                    <p
-                                        className="
-                                            mt-1
-
-                                            text-[8px]
-                                            font-semibold!
-                                            uppercase
-                                            tracking-[0.14em]
-
-                                            !text-[#6F7785]
-                                        "
-                                    >
-                                        {roleLabel}
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* =============================================
-                                LINKS
-                            ============================================= */}
-
-                            <div className="p-2">
-                                {profilePath && (
-                                    <AccountMenuLink
-                                        to={profilePath}
-                                        icon={UserCircle}
-                                        onClick={closeDrawer}
-                                    >
-                                        Profile
-                                    </AccountMenuLink>
-                                )}
-
-                                {settingsPath && (
-                                    <AccountMenuLink
-                                        to={settingsPath}
-                                        icon={Settings}
-                                        onClick={closeDrawer}
-                                    >
-                                        Settings
-                                    </AccountMenuLink>
-                                )}
-
-                                <AccountMenuLink
-                                    to="/contact"
-                                    icon={CircleHelp}
-                                    onClick={closeDrawer}
-                                    external
-                                >
-                                    Help & Support
-                                </AccountMenuLink>
-                            </div>
-
-                            {/* =============================================
-                                SIGN OUT
-                            ============================================= */}
-
-                            <div
-                                className="
-                                    border-t
-                                    border-[#343944]
-
-                                    p-2
-                                "
-                            >
-                                <button
-                                    type="button"
-                                    onClick={handleSignOut}
-                                    role="menuitem"
-                                    className="
-                                        group
-
-                                        flex
-                                        min-h-10
-                                        w-full
-                                        items-center
-                                        gap-3
-
-                                        rounded-md
-
-                                        px-3
-
-                                        text-left
-                                        text-[12px]
-                                        font-medium!!
-
-                                        !text-[#CBA2A7]
-
-                                        transition-colors
-                                        duration-150
-
-                                        hover:bg-[#38272C]
-                                        hover:!text-[#E9A1A8]
-
-                                        focus:outline-none
-                                    "
-                                >
-                                    <LogOut size={16} strokeWidth={1.7} />
-
-                                    <span>Sign out</span>
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* =====================================================
-                        ACCOUNT TRIGGER
-                    ===================================================== */}
-
-                    <button
-                        type="button"
-                        onClick={toggleAccountMenu}
-                        aria-expanded={accountOpen}
-                        aria-haspopup="menu"
-                        className={`
-                            group
-
-                            flex
-                            min-h-12
-                            w-full
-                            items-center
-                            gap-2.5
-
-                            rounded-md
-
-                            px-2
-
-                            text-left
-
-                            transition-colors
-                            duration-150
-
-                            ${
-                                accountOpen
-                                    ? 'bg-[#303641]'
-                                    : 'hover:bg-[#292E37]'
-                            }
-                        `}
-                    >
-                        <AccountAvatar avatar={avatar} name={userName} />
-
-                        <div
-                            className="
-                                min-w-0
-                                flex-1
-                                text-left
-                            "
-                        >
-                            <p
-                                className="
-                                    truncate
-
-                                    text-[12px]
-                                    font-semibold!
-
-                                    !text-[#E5E7EB]
-                                "
-                            >
-                                {userName}
-                            </p>
-
-                            <p
-                                className="
-                                    mt-0.5
-                                    truncate
-
-                                    text-[9.5px]
-
-                                    !text-[#9299A6]
-                                "
-                            >
-                                {roleLabel}
-                            </p>
-                        </div>
-
-                        <ChevronRight
-                            size={13}
-                            strokeWidth={1.8}
-                            className={`
-                                shrink-0
-
-                                !text-[#6F7785]
-
-                                transition-transform
-                                duration-300
-                                ease-[cubic-bezier(0.4,0,0.2,1)]
-
-                                group-hover:!text-[#C3C7CF]
-
-                                ${accountOpen ? 'rotate-90' : ''}
-                            `}
-                        />
-                    </button>
-                </div>
             </aside>
         </div>
     );

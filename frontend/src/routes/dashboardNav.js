@@ -1,4 +1,3 @@
-
 import {
     LayoutDashboard,
     HeartHandshake,
@@ -13,6 +12,7 @@ import {
     BarChart3,
     Banknote,
     UserCheck,
+    MessageSquareText,
 } from 'lucide-react';
 
 // ============================================================
@@ -25,7 +25,6 @@ export const NAV_CONFIG = {
     // INDIVIDUAL
     // ========================================================
     individual: [
-        // Overview
         {
             type: 'section',
             key: 'overview',
@@ -38,7 +37,6 @@ export const NAV_CONFIG = {
             path: '/individual/dashboard',
         },
 
-        // My Activity
         {
             type: 'section',
             key: 'my-activity',
@@ -93,7 +91,6 @@ export const NAV_CONFIG = {
             ],
         },
 
-        // Account
         {
             type: 'section',
             key: 'account',
@@ -123,7 +120,6 @@ export const NAV_CONFIG = {
     // ORGANIZATION
     // ========================================================
     organization: [
-        // Overview
         {
             type: 'section',
             key: 'overview',
@@ -136,7 +132,6 @@ export const NAV_CONFIG = {
             path: '/organization/dashboard',
         },
 
-        // Operations
         {
             type: 'section',
             key: 'operations',
@@ -179,7 +174,6 @@ export const NAV_CONFIG = {
             ],
         },
 
-        // Insights
         {
             type: 'section',
             key: 'insights',
@@ -192,7 +186,6 @@ export const NAV_CONFIG = {
             path: '/organization/dashboard/reports',
         },
 
-        // Account
         {
             type: 'section',
             key: 'account',
@@ -218,150 +211,175 @@ export const NAV_CONFIG = {
         },
     ],
 
-    // ========================================================
-    // ADMIN
-    // ========================================================
-    admin: [
-        // Overview
-        {
-            type: 'section',
-            key: 'overview',
-            label: 'Overview',
-        },
-        {
-            key: 'dashboard',
-            label: 'Dashboard',
-            icon: LayoutDashboard,
-            path: '/admin/dashboard',
-        },
+    // ============================================================
+// ADMIN
+// ============================================================
+admin: [
+    // Overview
+    {
+        type: 'section',
+        key: 'overview',
+        label: 'Overview',
+    },
+    {
+        key: 'dashboard',
+        label: 'Dashboard',
+        icon: LayoutDashboard,
+        path: '/admin/dashboard',
+    },
 
-        // People & Network
-        {
-            type: 'section',
-            key: 'people-network',
-            label: 'People & Network',
-        },
-        {
-            key: 'users',
-            label: 'Users',
-            icon: Users,
-            children: [
-                {
-                    key: 'users-all',
-                    label: 'All Users',
-                    path: '/admin/dashboard/users',
-                },
-                {
-                    key: 'users-add',
-                    label: 'Add User',
-                    path: '/admin/dashboard/users/add',
-                },
-            ],
-        },
-        {
-            key: 'organizations',
-            label: 'Organizations',
-            icon: Building2,
-            children: [
-                {
-                    key: 'organizations-all',
-                    label: 'All Organizations',
-                    path: '/admin/dashboard/organizations',
-                },
-                {
-                    key: 'organizations-add',
-                    label: 'Add Organization',
-                    path: '/admin/dashboard/organizations/add',
-                },
-            ],
-        },
-        {
-            key: 'volunteers',
-            label: 'Volunteers',
-            icon: UserCheck,
-            children: [
-                {
-                    key: 'volunteers-all',
-                    label: 'All Volunteers',
-                    path: '/admin/dashboard/volunteers',
-                },
-                {
-                    key: 'volunteers-requests',
-                    label: 'Volunteer Requests',
-                    path: '/admin/dashboard/volunteers/requests',
-                },
-            ],
-        },
+    // People & Organizations
+    {
+        type: 'section',
+        key: 'people-network',
+        label: 'People & Organizations',
+    },
+    {
+        key: 'users',
+        label: 'Users',
+        icon: Users,
+        children: [
+            {
+                key: 'users-all',
+                label: 'All Users',
+                path: '/admin/dashboard/users',
+            },
+            {
+                key: 'users-add',
+                label: 'Add User',
+                path: '/admin/dashboard/users/add',
+            },
+        ],
+    },
+    {
+        key: 'organizations',
+        label: 'Organizations',
+        icon: Building2,
+        children: [
+            {
+                key: 'organizations-all',
+                label: 'All Organizations',
+                path: '/admin/dashboard/organizations',
+            },
+            {
+                key: 'organizations-add',
+                label: 'Add Organization',
+                path: '/admin/dashboard/organizations/add',
+            },
+        ],
+    },
+    {
+        key: 'volunteers',
+        label: 'Volunteers',
+        icon: UserCheck,
+        children: [
+            {
+                key: 'volunteers-all',
+                label: 'All Volunteers',
+                path: '/admin/dashboard/volunteers',
+            },
+            {
+                key: 'volunteers-requests',
+                label: 'Volunteer Requests',
+                path: '/admin/dashboard/volunteers/requests',
+            },
+        ],
+    },
 
-        // Operations
-        {
-            type: 'section',
-            key: 'operations',
-            label: 'Operations',
-        },
-        {
-            key: 'help-requests',
-            label: 'Help Requests',
-            icon: ClipboardList,
-            children: [
-                {
-                    key: 'help-requests-all',
-                    label: 'All Help Requests',
-                    path: '/admin/dashboard/help-requests',
-                },
-            ],
-        },
-        {
-            key: 'campaigns',
-            label: 'Campaigns',
-            icon: Megaphone,
-            children: [
-                {
-                    key: 'campaigns-all',
-                    label: 'View All Campaigns',
-                    path: '/admin/dashboard/campaigns',
-                },
-            ],
-        },
+    // Operations
+    {
+        type: 'section',
+        key: 'operations',
+        label: 'Operations',
+    },
+    {
+        key: 'help-requests',
+        label: 'Help Requests',
+        icon: ClipboardList,
+        children: [
+            {
+                key: 'help-requests-all',
+                label: 'All Help Requests',
+                path: '/admin/dashboard/help-requests',
+            },
+        ],
+    },
+    {
+        key: 'campaigns',
+        label: 'Campaigns',
+        icon: Megaphone,
+        children: [
+            {
+                key: 'campaigns-all',
+                label: 'View All Campaigns',
+                path: '/admin/dashboard/campaigns',
+            },
+        ],
+    },
 
-        // Finance
-        {
-            type: 'section',
-            key: 'finance',
-            label: 'Finance',
-        },
-        {
-            key: 'donations',
-            label: 'Donations',
-            icon: Banknote,
-            children: [
-                {
-                    key: 'donations-all',
-                    label: 'View Donations',
-                    path: '/admin/dashboard/donations',
-                },
-            ],
-        },
+    // Finance
+    {
+        type: 'section',
+        key: 'finance',
+        label: 'Finance',
+    },
+    {
+        key: 'donations',
+        label: 'Donations',
+        icon: Banknote,
+        children: [
+            {
+                key: 'donations-all',
+                label: 'View Donations',
+                path: '/admin/dashboard/donations',
+            },
+        ],
+    },
 
-        // System
-        {
-            type: 'section',
-            key: 'system',
-            label: 'System',
-        },
-        {
-            key: 'profile',
-            label: 'Profile',
-            icon: UserCircle,
-            path: '/admin/dashboard/profile',
-        },
-        {
-            key: 'settings',
-            label: 'Settings',
-            icon: Settings,
-            path: '/admin/dashboard/settings',
-        },
-    ],
+    // Communication
+    {
+        type: 'section',
+        key: 'communication',
+        label: 'Communication',
+    },
+    {
+        key: 'contact-messages',
+        label: 'Contact Messages',
+        icon: MessageSquareText,
+        children: [
+            {
+                key: 'contact-messages-all',
+                label: 'All Messages',
+                path: '/admin/dashboard/contact-messages',
+            },
+        ],
+    },
+    {
+        key: 'notifications',
+        label: 'Notifications',
+        icon: Bell,
+        path: '/admin/dashboard/notifications',
+    },
+
+    // Account & System
+    {
+        type: 'section',
+        key: 'system',
+        label: 'Account & System',
+    },
+    {
+        key: 'profile',
+        label: 'Profile',
+        icon: UserCircle,
+        path: '/admin/dashboard/profile',
+    },
+    {
+        key: 'settings',
+        label: 'Settings',
+        icon: Settings,
+        path: '/admin/dashboard/settings',
+    },
+],
 };
 
 // ============================================================

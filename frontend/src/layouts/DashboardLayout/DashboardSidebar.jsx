@@ -604,20 +604,17 @@ const DashboardSidebar = ({
 
             <nav
                 className={`
-                    min-h-0
-                    flex-1
-                    overflow-x-hidden
-                    overflow-y-auto
-                    py-3.5
-                    ${collapsed ? 'px-2' : 'px-3'}
+        min-h-0
+        flex-1
+        overflow-x-hidden
+        overflow-y-auto
+        py-3.5
+        ${collapsed ? 'px-2' : 'px-3'}
 
-                    [&::-webkit-scrollbar]:w-1
-                    [&::-webkit-scrollbar-track]:bg-transparent
-                    [&::-webkit-scrollbar-thumb]:rounded-full
-                    [&::-webkit-scrollbar-thumb]:bg-[#29323E]
-
-                    hover:[&::-webkit-scrollbar-thumb]:bg-[#36414F]
-                `}
+        [scrollbar-width:none]
+        [-ms-overflow-style:none]
+        [&::-webkit-scrollbar]:hidden
+    `}
             >
                 <div className="space-y-0.5">
                     {navItems.map((item) => {

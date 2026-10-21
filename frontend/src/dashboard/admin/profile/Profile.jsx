@@ -1,12 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { AlertCircle, ArrowRight, CheckCircle2, Mail, X } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { ArrowRight, CheckCircle2, Mail, X } from 'lucide-react';
+
 import PageHeader from '@/components/dashboard/PageHeader';
+import LoadingUI from '@/components/dashboard/LoadingUI';
+import LoadingError from '@/components/dashboard/LoadingError';
 import SuccessDialog from '@/components/dashboard/SuccessDialog';
+
 import ProfileView from './components/ProfileView';
 import ProfileEdit from './components/ProfileEdit';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
-const SUCCESS_DURATION = 1500;
+
+const PROFILE_PATH = '/admin/dashboard/profile';
+const PROFILE_EDIT_PATH = '/admin/dashboard/profile/edit';
 
 const getToken = () =>
     localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
@@ -49,18 +56,27 @@ const getValues = (user) => ({
 });
 
 export default function Profile() {
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    const editing = location.pathname.replace(/\/+$/, '') === PROFILE_EDIT_PATH;
+
     const [profile, setProfile] = useState(null);
     const [form, setForm] = useState(getValues(null));
     const [originalEmail, setOriginalEmail] = useState('');
     const [memberSince, setMemberSince] = useState(null);
     const [pendingPhoto, setPendingPhoto] = useState(null);
 
-    const [editing, setEditing] = useState(false);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
+
     const [successOpen, setSuccessOpen] = useState(false);
     const [showEmailChangeModal, setShowEmailChangeModal] = useState(false);
+
+    // ============================================================
+    // LOAD PROFILE
+    // ============================================================
 
     useEffect(() => {
         let cancelled = false;
@@ -94,12 +110,15 @@ export default function Profile() {
                 setForm(getValues(data.user));
                 setOriginalEmail(data.user.email || '');
                 setMemberSince(data.user.created_at || null);
+                setError('');
             } catch (err) {
                 if (!cancelled) {
                     setError(err.message || 'Unable to load your profile.');
                 }
             } finally {
-                if (!cancelled) setLoading(false);
+                if (!cancelled) {
+                    setLoading(false);
+                }
             }
         };
 
@@ -110,6 +129,10 @@ export default function Profile() {
         };
     }, []);
 
+    // ============================================================
+    // CLEAN UP PHOTO PREVIEW
+    // ============================================================
+
     useEffect(() => {
         return () => {
             if (pendingPhoto?.preview) {
@@ -118,31 +141,19 @@ export default function Profile() {
         };
     }, [pendingPhoto]);
 
-    // Automatically close the success dialog, then return to profile view.
-    useEffect(() => {
-        if (!successOpen) return undefined;
-
-        const timeoutId = window.setTimeout(() => {
-            setSuccessOpen(false);
-            setEditing(false);
-        }, SUCCESS_DURATION);
-
-        return () => {
-            window.clearTimeout(timeoutId);
-        };
-    }, [successOpen]);
-
-    const handleSuccessClose = () => {
-        setSuccessOpen(false);
-        setEditing(false);
-    };
+    // ============================================================
+    // NAVIGATION
+    // ============================================================
 
     const handleEdit = () => {
+        if (!profile) return;
+
         setForm(getValues(profile));
         setPendingPhoto(null);
         setError('');
         setSuccessOpen(false);
-        setEditing(true);
+
+        navigate(PROFILE_EDIT_PATH);
     };
 
     const handleCancel = () => {
@@ -152,8 +163,22 @@ export default function Profile() {
         setPendingPhoto(null);
         setError('');
         setSuccessOpen(false);
-        setEditing(false);
+
+        navigate(PROFILE_PATH);
     };
+
+    const handleSuccessClose = () => {
+        setSuccessOpen(false);
+        setPendingPhoto(null);
+
+        navigate(PROFILE_PATH, {
+            replace: true,
+        });
+    };
+
+    // ============================================================
+    // FORM CHANGE
+    // ============================================================
 
     const handleChange = (key, value) => {
         setForm((current) => ({
@@ -164,10 +189,16 @@ export default function Profile() {
         setError('');
     };
 
+    // ============================================================
+    // PHOTO SELECTION
+    // ============================================================
+
     const handlePhotoSelect = (file) => {
         if (!file || saving) return;
 
-        if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+
+        if (!allowedTypes.includes(file.type)) {
             setError('Choose a JPG, PNG, or WebP image.');
             return;
         }
@@ -185,8 +216,12 @@ export default function Profile() {
         setError('');
     };
 
+    // ============================================================
+    // SAVE PROFILE
+    // ============================================================
+
     const handleSave = async () => {
-        if (saving) return;
+        if (saving || !profile) return;
 
         setSaving(true);
         setError('');
@@ -203,9 +238,10 @@ export default function Profile() {
 
             let uploadedPhoto = profile?.photo || '';
 
-            // Upload the selected image only after Save Changes is clicked.
+            // Upload photo only when Save is clicked.
             if (pendingPhoto?.file) {
                 const body = new FormData();
+
                 body.append('photo', pendingPhoto.file);
 
                 const photoResponse = await fetch(`${API_URL}/profile/photo`, {
@@ -229,6 +265,7 @@ export default function Profile() {
             }
 
             const email = form.email.trim();
+
             const emailChanged =
                 email.toLowerCase() !== originalEmail.trim().toLowerCase();
 
@@ -266,8 +303,16 @@ export default function Profile() {
             setMemberSince(updatedUser.created_at || memberSince);
             setPendingPhoto(null);
 
+            // Update the authenticated user in storage.
             const storage = getAuthStorage();
-            const storedUser = JSON.parse(storage.getItem('user') || 'null');
+
+            let storedUser = null;
+
+            try {
+                storedUser = JSON.parse(storage.getItem('user') || 'null');
+            } catch {
+                storedUser = null;
+            }
 
             storage.setItem(
                 'user',
@@ -277,14 +322,18 @@ export default function Profile() {
                 }),
             );
 
-            // Keep the existing email-change flow unchanged.
+            // Preserve the email verification workflow.
             if (emailChanged) {
-                setEditing(false);
                 setShowEmailChangeModal(true);
+
+                navigate(PROFILE_PATH, {
+                    replace: true,
+                });
+
                 return;
             }
 
-            // Keep the edit screen underneath the dialog until it closes.
+            // Shared SuccessDialog handles auto-close.
             setSuccessOpen(true);
         } catch (err) {
             setError(err.message || 'Unable to update your profile.');
@@ -293,14 +342,23 @@ export default function Profile() {
         }
     };
 
+    // ============================================================
+    // EMAIL CHANGE — CONTINUE TO LOGIN
+    // ============================================================
+
     const handleContinueToLogin = () => {
         localStorage.removeItem('auth_token');
         localStorage.removeItem('user');
+
         sessionStorage.removeItem('auth_token');
         sessionStorage.removeItem('user');
 
         window.location.href = '/admin/login';
     };
+
+    // ============================================================
+    // RENDER
+    // ============================================================
 
     return (
         <>
@@ -310,45 +368,50 @@ export default function Profile() {
                     subtitle="Manage your administrator account and personal information."
                 />
 
-                {error && (
-                    <div
-                        role="alert"
-                        className="flex items-start gap-3 border border-red-900/50 bg-red-950/20 px-4 py-3 text-[13px] text-red-300"
-                    >
-                        <AlertCircle size={18} className="mt-0.5 shrink-0" />
-                        <p>{error}</p>
-                    </div>
-                )}
-
                 {loading ? (
-                    <div className="space-y-5">
-                        <div className="h-36 animate-pulse border border-[#252D38] bg-[#0E1219]" />
-                        <div className="h-72 animate-pulse border border-[#252D38] bg-[#0E1219]" />
-                    </div>
+                    <LoadingUI
+                        variant="page"
+                        title="Loading profile..."
+                        description="Retrieving your administrator account."
+                    />
                 ) : !profile ? (
-                    <div className="border border-[#252D38] bg-[#0E1219] px-5 py-12 text-center text-[13px] text-[#B8C0CA]">
-                        Your profile could not be loaded.
-                    </div>
-                ) : editing ? (
-                    <ProfileEdit
-                        form={form}
-                        profile={profile}
-                        memberSince={memberSince}
-                        pendingPhoto={pendingPhoto}
-                        saving={saving}
-                        onChange={handleChange}
-                        onPhotoSelect={handlePhotoSelect}
-                        onSave={handleSave}
-                        onCancel={handleCancel}
+                    <LoadingError
+                        title="Unable to load profile"
+                        message={error || 'Your profile could not be loaded.'}
                     />
                 ) : (
-                    <ProfileView
-                        profile={profile}
-                        memberSince={memberSince}
-                        onEdit={handleEdit}
-                    />
+                    <>
+                        {error && (
+                            <LoadingError
+                                title="Unable to update profile"
+                                message={error}
+                            />
+                        )}
+
+                        {editing ? (
+                            <ProfileEdit
+                                form={form}
+                                profile={profile}
+                                memberSince={memberSince}
+                                pendingPhoto={pendingPhoto}
+                                saving={saving}
+                                onChange={handleChange}
+                                onPhotoSelect={handlePhotoSelect}
+                                onSave={handleSave}
+                                onCancel={handleCancel}
+                            />
+                        ) : (
+                            <ProfileView
+                                profile={profile}
+                                memberSince={memberSince}
+                                onEdit={handleEdit}
+                            />
+                        )}
+                    </>
                 )}
             </div>
+
+            {/* SHARED SUCCESS DIALOG */}
 
             <SuccessDialog
                 open={successOpen}
@@ -357,6 +420,8 @@ export default function Profile() {
                 name={form.name?.trim() || ''}
                 onClose={handleSuccessClose}
             />
+
+            {/* EMAIL CHANGE VERIFICATION MODAL */}
 
             {showEmailChangeModal && (
                 <div
@@ -382,7 +447,7 @@ export default function Profile() {
 
                             <h2
                                 id="email-change-title"
-                                className="text-xl font-semibold text-[#EEF1F5]"
+                                className="text-xl font-semibold !text-[#EEF1F5]"
                             >
                                 Email address updated
                             </h2>
@@ -398,10 +463,12 @@ export default function Profile() {
                                         size={18}
                                         className="mt-0.5 shrink-0 text-[#B8C0CA]"
                                     />
+
                                     <div>
                                         <p className="text-[11px] font-semibold uppercase tracking-wider text-[#8792A1]">
                                             Verification required
                                         </p>
+
                                         <p className="mt-1 text-[13px] leading-5 text-[#D6DBE1]">
                                             Follow the email verification
                                             instructions sent to your new

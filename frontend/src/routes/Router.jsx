@@ -73,11 +73,15 @@ import AdminVolunteerDetails from '@/dashboard/admin/volunteers/VolunteerDetails
 import AdminHelpRequests from '@/dashboard/admin/helpRequests/HelpRequests';
 import AdminHelpRequestDetails from '@/dashboard/admin/helpRequests/HelpRequestDetails';
 
-// Other Admin Pages
+// Admin Donations
 import AdminDonations from '@/dashboard/admin/donations/Donations';
+import AdminDonationDetails from '@/dashboard/admin/donations/DonationDetails';
+
+// Other Admin Pages
 import AdminCampaigns from '@/dashboard/admin/campaigns/Campaigns';
 import AdminCampaignDetails from '@/dashboard/admin/campaigns/CampaignDetails';
 import AdminProfile from '@/dashboard/admin/profile/Profile';
+import AdminSecurity from '@/dashboard/admin/security/Security';
 import AdminSettings from '@/dashboard/admin/settings/Settings';
 
 // =========================
@@ -364,9 +368,16 @@ const router = createBrowserRouter([
                     // ==========================
                     // ADMIN DONATIONS
                     // ==========================
+                    // All Donations
                     {
                         path: 'donations',
                         element: <AdminDonations />,
+                    },
+
+                    // View Donation Details
+                    {
+                        path: 'donations/:donationId',
+                        element: <AdminDonationDetails />,
                     },
 
                     // ==========================
@@ -387,6 +398,14 @@ const router = createBrowserRouter([
                     {
                         path: 'profile',
                         element: <AdminProfile />,
+                    },
+                    {
+                        path: 'profile/edit',
+                        element: <AdminProfile />,
+                    },
+                    {
+                        path: 'security',
+                        element: <AdminSecurity />,
                     },
                     {
                         path: 'settings',

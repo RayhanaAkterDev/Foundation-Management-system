@@ -337,7 +337,7 @@ export const NAV_CONFIG = {
             children: [
                 {
                     key: 'donations-all',
-                    label: 'View All Donations',
+                    label: 'View Donations',
                     path: '/admin/dashboard/donations',
                 },
             ],

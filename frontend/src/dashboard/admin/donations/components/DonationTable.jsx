@@ -1,243 +1,650 @@
-import React from "react";
-import {
-  ArrowUpRight,
-  CalendarDays,
-  CreditCard,
-  HandCoins,
-  UserRound,
-} from "lucide-react";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-const formatAmount = (amount) => {
-  return `৳${Number(amount || 0).toLocaleString("en-BD", {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  })}`;
-};
+import { Eye, HandCoins, CreditCard, CalendarDays } from 'lucide-react';
 
-const formatPayment = (payment) => {
-  if (!payment) {
-    return "Not specified";
-  }
+import DataTable from '@/components/dashboard/DataTable';
 
-  return String(payment)
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (letter) => letter.toUpperCase());
-};
+/* ==========================================================================
+   HELPERS
+============================================================================ */
 
-const formatDate = (dateValue) => {
-  if (!dateValue) {
-    return "—";
-  }
+const money = (value) =>
+    `৳${Number(value || 0).toLocaleString('en-BD', {
+        maximumFractionDigits: 2,
+    })}`;
 
-  const date = new Date(dateValue);
-
-  if (Number.isNaN(date.getTime())) {
-    return "—";
-  }
-
-  return date.toLocaleDateString("en-BD", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
-};
-
-const getDonorName = (donation) => {
-  return (
+const donorName = (donation) =>
     donation?.user?.name ||
     donation?.donor?.name ||
     donation?.donor_name ||
-    "Guest donor"
-  );
-};
+    'Guest donor';
 
-const getDonorEmail = (donation) => {
-  return (
+const donorEmail = (donation) =>
     donation?.user?.email ||
     donation?.donor?.email ||
     donation?.donor_email ||
-    null
-  );
-};
+    'Guest donation';
 
-const getCampaignTitle = (donation) => {
-  return (
+const campaignName = (donation) =>
     donation?.campaign?.title ||
     donation?.campaign?.name ||
     donation?.campaign_title ||
-    "Campaign unavailable"
-  );
+    'Campaign unavailable';
+
+const paymentName = (donation) =>
+    String(
+        donation?.payment_method || donation?.paymentMethod || 'Not specified',
+    )
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, (char) => char.toUpperCase());
+
+const formatDate = (value) => {
+    if (!value) return '—';
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) return '—';
+
+    return date.toLocaleDateString('en-BD', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+    });
 };
 
-const DonationTable = ({
-  donations,
-  onViewDonation,
-  onViewDonor,
-  onViewCampaign,
-}) => {
-  if (!donations.length) {
+const getDonationId = (donation) =>
+    donation?.id ?? donation?.donation_id ?? null;
+
+const getDonorId = (donation) =>
+    donation?.user?.id ??
+    donation?.donor?.id ??
+    donation?.user_id ??
+    donation?.donor_id ??
+    null;
+
+const getCampaignId = (donation) =>
+    donation?.campaign?.id ?? donation?.campaign_id ?? null;
+
+/* ==========================================================================
+   DONOR AVATAR
+============================================================================ */
+
+const DonorAvatar = ({ donation, mobile = false }) => {
+    const [failedPhoto, setFailedPhoto] = useState(null);
+
+    const person = donation?.user || donation?.donor;
+
+    const photo =
+        typeof person?.photo === 'string' && person.photo.trim()
+            ? person.photo.trim()
+            : null;
+
+    const showPhoto = Boolean(photo) && failedPhoto !== photo;
+
+    const initial = donorName(donation).trim().charAt(0).toUpperCase() || 'D';
+
     return (
-      <div className="px-6 py-16 mt-12 text-center">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-text-secondary">
-          <HandCoins size={21} />
+        <div
+            className={`
+                flex shrink-0 items-center justify-center
+                overflow-hidden border border-[#29323E]
+                bg-[#151B24]
+                ${mobile ? 'h-10 w-10' : 'h-8 w-8'}
+            `}
+        >
+            {showPhoto ? (
+                <img
+                    src={photo}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    onError={() => setFailedPhoto(photo)}
+                    className="h-full w-full object-cover"
+                />
+            ) : (
+                <span
+                    className={`
+                        font-semibold! uppercase text-[#B8C0CA]
+                        ${mobile ? 'text-[12px]' : 'text-[10px]'}
+                    `}
+                >
+                    {initial}
+                </span>
+            )}
         </div>
-
-        <h3 className="mt-4 text-sm font-semibold text-text">
-          No donations found
-        </h3>
-
-        <p className="mx-auto mt-1 max-w-sm text-xs leading-5 text-text-secondary">
-          Donation records will appear here after contributions are made.
-        </p>
-      </div>
     );
-  }
+};
 
-  return (
-    <div className="overflow-x-auto mt-12 border border-border">
-      <table className="w-full min-w-[950px] border-collapse">
-        <thead>
-          <tr className="border-b border-border bg-background-alt">
-            <th className="px-6 py-3.5 text-left text-[10px] font-bold uppercase tracking-[0.14em] text-text-secondary">
-              Donor
-            </th>
+/* ==========================================================================
+   MOBILE DONATION ROW
+============================================================================ */
 
-            <th className="px-4 py-3.5 text-left text-[10px] font-bold uppercase tracking-[0.14em] text-text-secondary">
-              Campaign
-            </th>
+const MobileDonationRow = ({
+    donation,
+    onViewDonation,
+    onViewDonor,
+    onViewCampaign,
+}) => {
+    const hasDonor = getDonorId(donation) != null;
+    const hasCampaign = getCampaignId(donation) != null;
+    const hasDonation = getDonationId(donation) != null;
 
-            <th className="px-4 py-3.5 text-left text-[10px] font-bold uppercase tracking-[0.14em] text-text-secondary">
-              Amount
-            </th>
+    return (
+        <article
+            className="
+                border-b border-[#202832]
+                bg-[#0E1219] px-4 py-4
+                transition-colors duration-150
+                last:border-b-0
+                hover:bg-[#111720]
+            "
+        >
+            {/* DONOR AND AMOUNT */}
 
-            <th className="px-4 py-3.5 text-left text-[10px] font-bold uppercase tracking-[0.14em] text-text-secondary">
-              Payment
-            </th>
+            <div className="flex min-w-0 items-start justify-between gap-3">
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                    <DonorAvatar donation={donation} mobile />
 
-            <th className="px-4 py-3.5 text-left text-[10px] font-bold uppercase tracking-[0.14em] text-text-secondary">
-              Date
-            </th>
+                    <div className="min-w-0 flex-1">
+                        <button
+                            type="button"
+                            disabled={!hasDonor}
+                            onClick={() => onViewDonor(donation)}
+                            title={donorName(donation)}
+                            className="
+                                block max-w-full truncate
+                                text-left text-[13px]
+                                font-semibold! text-[#EEF1F5]
+                                transition-colors
+                                enabled:hover:text-white
+                                disabled:cursor-default
+                                focus:outline-none focus:ring-0
+                            "
+                        >
+                            {donorName(donation)}
+                        </button>
 
-            <th className="px-6 py-3.5 text-right text-[10px] font-bold uppercase tracking-[0.14em] text-text-secondary">
-              Action
-            </th>
-          </tr>
-        </thead>
+                        <p
+                            title={donorEmail(donation)}
+                            className="
+                                mt-0.5 truncate
+                                text-[11px] text-[#7F8A99]
+                            "
+                        >
+                            {donorEmail(donation)}
+                        </p>
+                    </div>
+                </div>
 
-        <tbody>
-          {donations.map((donation) => {
-            const donorName = getDonorName(donation);
+                <span
+                    className="
+                        shrink-0 whitespace-nowrap
+                        text-[13px] font-semibold!
+                        tabular-nums text-[#EEF1F5]
+                    "
+                >
+                    {money(donation.amount)}
+                </span>
+            </div>
 
-            const donorEmail = getDonorEmail(donation);
+            {/* CAMPAIGN */}
 
-            const campaignTitle = getCampaignTitle(donation);
-
-            const hasDonor = Boolean(donation?.user?.id || donation?.donor?.id);
-
-            const hasCampaign = Boolean(donation?.campaign?.id);
-
-            return (
-              <tr
-                key={donation.id}
-                className="group border-b border-border last:border-b-0 hover:bg-background-alt bg-background">
-                <td className="px-6 py-4">
-                  <button
+            <div className="mt-3 ml-[52px] min-w-0">
+                <button
                     type="button"
-                    onClick={() => onViewDonor(donation)}
-                    className="flex max-w-[240px] items-center gap-3 text-left">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                      <UserRound size={16} strokeWidth={1.7} />
-                    </span>
-
-                    <span className="min-w-0">
-                      <span className="flex items-center gap-1 text-sm font-semibold text-text group-hover:text-primary">
-                        <span className="truncate">{donorName}</span>
-
-                        {hasDonor && (
-                          <ArrowUpRight
-                            size={12}
-                            className="shrink-0 opacity-0 transition group-hover:opacity-100"
-                          />
-                        )}
-                      </span>
-
-                      <span className="mt-0.5 block truncate text-xs text-text-secondary">
-                        {donorEmail || "Guest donation"}
-                      </span>
-                    </span>
-                  </button>
-                </td>
-
-                <td className="px-4 py-4">
-                  <button
-                    type="button"
-                    onClick={() => onViewCampaign(donation)}
                     disabled={!hasCampaign}
-                    className="group/campaign flex max-w-[250px] items-center gap-2 text-left disabled:cursor-default">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600">
-                      <HandCoins size={14} strokeWidth={1.7} />
-                    </span>
+                    onClick={() => onViewCampaign(donation)}
+                    title={campaignName(donation)}
+                    className="
+                        block max-w-full truncate
+                        text-left text-[12px]
+                        font-medium! text-[#B8C0CA]
+                        transition-colors
+                        enabled:hover:text-[#EEF1F5]
+                        disabled:cursor-default
+                        focus:outline-none focus:ring-0
+                    "
+                >
+                    {campaignName(donation)}
+                </button>
+            </div>
 
-                    <span className="min-w-0">
-                      <span
-                        className={`block truncate text-sm font-medium! ${
-                          hasCampaign
-                            ? "text-text group-hover/campaign:text-primary"
-                            : "text-text-secondary"
-                        }`}>
-                        {campaignTitle}
-                      </span>
+            {/* PAYMENT AND DATE */}
 
-                      {hasCampaign && (
-                        <span className="mt-0.5 flex items-center gap-1 text-[10px] text-text-secondary">
-                          Campaign details
-                          <ArrowUpRight size={10} />
-                        </span>
-                      )}
-                    </span>
-                  </button>
-                </td>
+            <div
+                className="
+                    mt-3 ml-[52px]
+                    flex flex-wrap items-center
+                    gap-x-4 gap-y-2
+                    border-t border-[#1B232D]
+                    pt-3
+                "
+            >
+                <span
+                    className="
+                        inline-flex min-w-0 items-center
+                        gap-1.5 text-[11px] text-[#8792A1]
+                    "
+                >
+                    <CreditCard
+                        size={13}
+                        strokeWidth={1.7}
+                        className="shrink-0"
+                    />
 
-                <td className="px-4 py-4">
-                  <span className="text-sm font-bold tabular-nums text-text">
-                    {formatAmount(donation.amount)}
-                  </span>
-                </td>
+                    <span className="truncate">{paymentName(donation)}</span>
+                </span>
 
-                <td className="px-4 py-4">
-                  <span className="inline-flex items-center gap-1.5 text-xs font-medium! text-text-secondary">
-                    <CreditCard size={14} strokeWidth={1.7} />
+                <span
+                    className="
+                        inline-flex items-center gap-1.5
+                        whitespace-nowrap
+                        text-[11px] text-[#8792A1]
+                    "
+                >
+                    <CalendarDays size={13} strokeWidth={1.7} />
 
-                    {formatPayment(
-                      donation.payment_method || donation.paymentMethod,
-                    )}
-                  </span>
-                </td>
+                    {formatDate(donation.created_at || donation.createdAt)}
+                </span>
+            </div>
 
-                <td className="px-4 py-4">
-                  <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-xs font-medium! text-text-secondary">
-                    <CalendarDays size={14} strokeWidth={1.7} />
+            {/* VIEW ACTION */}
 
-                    {formatDate(donation.created_at)}
-                  </span>
-                </td>
-
-                <td className="px-6 py-4 text-right">
-                  <button
+            <div
+                className="
+                    mt-3 ml-[52px]
+                    border-t border-[#1B232D]
+                    pt-3
+                "
+            >
+                <button
                     type="button"
+                    disabled={!hasDonation}
                     onClick={() => onViewDonation(donation)}
-                    className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-primary transition hover:bg-primary/10">
-                    View
-                    <ArrowUpRight size={13} strokeWidth={2} />
-                  </button>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
-  );
+                    className="
+                        inline-flex h-8 items-center gap-2
+                        border border-[#29323E]
+                        bg-[#151B24] px-3
+                        text-[11px] font-medium!
+                        text-[#AEB7C3]
+                        transition-colors duration-150
+                        hover:border-[#394555]
+                        hover:bg-[#1A222D]
+                        hover:text-[#EEF1F5]
+                        disabled:cursor-not-allowed
+                        disabled:opacity-40
+                        focus:outline-none focus:ring-0
+                    "
+                >
+                    <Eye size={13} strokeWidth={1.8} />
+                    View donation
+                </button>
+            </div>
+        </article>
+    );
+};
+
+/* ==========================================================================
+   DONATION TABLE
+============================================================================ */
+
+const DonationTable = ({ rows = [], onSort, getSortIcon, resultCount }) => {
+    const navigate = useNavigate();
+
+    /* ----------------------------------------------------------------------
+       NAVIGATION HANDLERS
+    ---------------------------------------------------------------------- */
+
+    const handleViewDonation = (donation) => {
+        const donationId = getDonationId(donation);
+
+        if (donationId == null) return;
+
+        navigate(
+            `/admin/dashboard/donations/${encodeURIComponent(donationId)}`,
+        );
+    };
+
+    const handleViewDonor = (donation) => {
+        const donorId = getDonorId(donation);
+
+        if (donorId == null) return;
+
+        navigate(`/admin/dashboard/users/${encodeURIComponent(donorId)}`);
+    };
+
+    const handleViewCampaign = (donation) => {
+        const campaignId = getCampaignId(donation);
+
+        if (campaignId == null) return;
+
+        navigate(
+            `/admin/dashboard/campaigns/${encodeURIComponent(campaignId)}`,
+        );
+    };
+
+    /* ----------------------------------------------------------------------
+       TABLE COLUMNS
+    ---------------------------------------------------------------------- */
+
+    const columns = [
+        /* SERIAL NUMBER */
+
+        {
+            key: 'serialNumber',
+            header: '#',
+            align: 'center',
+            width: '56px',
+
+            render: (value) => (
+                <span
+                    className="
+                        text-[11px] font-medium!
+                        tabular-nums text-[#697586]
+                    "
+                >
+                    {String(value).padStart(2, '0')}
+                </span>
+            ),
+        },
+
+        /* DONOR */
+
+        {
+            key: 'donorName',
+            header: 'Donor',
+            sortable: true,
+            sortKey: 'donor',
+            width: 'minmax(190px, 1.4fr)',
+
+            render: (_, donation) => {
+                const hasDonor = getDonorId(donation) != null;
+
+                return (
+                    <div
+                        className="
+                            flex min-w-0 max-w-[260px]
+                            items-center gap-3
+                        "
+                    >
+                        <DonorAvatar donation={donation} />
+
+                        <div className="min-w-0">
+                            <button
+                                type="button"
+                                disabled={!hasDonor}
+                                onClick={() => handleViewDonor(donation)}
+                                title={donorName(donation)}
+                                className="
+                                    block max-w-full truncate
+                                    text-left text-[12px]
+                                    font-semibold! leading-5
+                                    text-[#EEF1F5]
+                                    transition-colors duration-150
+                                    enabled:hover:text-white
+                                    disabled:cursor-default
+                                    focus:outline-none focus:ring-0
+                                "
+                            >
+                                {donorName(donation)}
+                            </button>
+
+                            <p
+                                title={donorEmail(donation)}
+                                className="
+                                    mt-0.5 truncate
+                                    text-[10px] leading-4
+                                    text-[#697586]
+                                "
+                            >
+                                {donorEmail(donation)}
+                            </p>
+                        </div>
+                    </div>
+                );
+            },
+        },
+
+        /* CAMPAIGN */
+
+        {
+            key: 'campaignName',
+            header: 'Campaign',
+            sortable: true,
+            sortKey: 'campaign',
+            width: 'minmax(190px, 1.5fr)',
+
+            render: (_, donation) => {
+                const hasCampaign = getCampaignId(donation) != null;
+
+                return (
+                    <button
+                        type="button"
+                        disabled={!hasCampaign}
+                        onClick={() => handleViewCampaign(donation)}
+                        title={campaignName(donation)}
+                        className="
+                            block max-w-full truncate
+                            text-left text-[11px]
+                            font-medium! leading-5
+                            text-[#B8C0CA]
+                            transition-colors duration-150
+                            enabled:hover:text-[#EEF1F5]
+                            disabled:cursor-default
+                            focus:outline-none focus:ring-0
+                        "
+                    >
+                        {campaignName(donation)}
+                    </button>
+                );
+            },
+        },
+
+        /* AMOUNT */
+
+        {
+            key: 'amount',
+            header: 'Amount',
+            sortable: true,
+            sortKey: 'amount',
+            width: 'minmax(100px, 0.7fr)',
+
+            render: (_, donation) => (
+                <span
+                    className="
+                        whitespace-nowrap
+                        text-[12px] font-semibold!
+                        tabular-nums text-[#EEF1F5]
+                    "
+                >
+                    {money(donation.amount)}
+                </span>
+            ),
+        },
+
+        /* PAYMENT METHOD */
+
+        {
+            key: 'paymentName',
+            header: 'Payment',
+            sortable: true,
+            sortKey: 'payment',
+            width: 'minmax(130px, 0.85fr)',
+
+            render: (_, donation) => (
+                <span
+                    title={paymentName(donation)}
+                    className="
+                        block max-w-full truncate
+                        text-[11px] font-medium!
+                        text-[#AEB7C3]
+                    "
+                >
+                    {paymentName(donation)}
+                </span>
+            ),
+        },
+
+        /* DATE */
+
+        {
+            key: 'created_at',
+            header: 'Date',
+            sortable: true,
+            sortKey: 'created_at',
+            width: 'minmax(115px, 0.7fr)',
+
+            render: (_, donation) => (
+                <span
+                    className="
+                        whitespace-nowrap
+                        text-[11px] font-medium!
+                        text-[#8792A1]
+                    "
+                >
+                    {formatDate(donation.created_at || donation.createdAt)}
+                </span>
+            ),
+        },
+
+        /* ACTIONS */
+
+        {
+            key: 'actions',
+            header: 'Actions',
+            align: 'right',
+            width: '78px',
+
+            render: (_, donation) => {
+                const hasDonation = getDonationId(donation) != null;
+
+                return (
+                    <button
+                        type="button"
+                        title="View donation"
+                        aria-label={`View donation from ${donorName(donation)}`}
+                        disabled={!hasDonation}
+                        onClick={() => handleViewDonation(donation)}
+                        className="
+                            inline-flex h-7 w-7
+                            shrink-0 items-center justify-center
+                            border border-transparent
+                            bg-transparent
+                            text-[#8792A1]
+                            transition-colors duration-150
+                            hover:border-[#303A47]
+                            hover:bg-[#1A222D]
+                            hover:text-[#EEF1F5]
+                            focus:outline-none focus:ring-0
+                            disabled:cursor-not-allowed
+                            disabled:opacity-40
+                        "
+                    >
+                        <Eye size={14} strokeWidth={1.8} />
+                    </button>
+                );
+            },
+        },
+    ];
+
+    /* ----------------------------------------------------------------------
+       MOBILE EMPTY STATE
+    ---------------------------------------------------------------------- */
+
+    const mobileEmptyState = (
+        <div
+            className="
+                flex min-h-[260px]
+                items-center justify-center
+                bg-[#0E1219]
+                px-6 py-10
+            "
+        >
+            <div className="text-center">
+                <div
+                    className="
+                        mx-auto flex h-10 w-10
+                        items-center justify-center
+                        border border-[#29323E]
+                        bg-[#151B24]
+                    "
+                >
+                    <HandCoins
+                        size={17}
+                        strokeWidth={1.7}
+                        className="text-[#697586]"
+                    />
+                </div>
+
+                <p
+                    className="
+                        mt-3 text-[13px]
+                        font-semibold! text-[#EEF1F5]
+                    "
+                >
+                    No donations found
+                </p>
+
+                <p
+                    className="
+                        mt-1 text-[11px]
+                        leading-5 text-[#697586]
+                    "
+                >
+                    Try changing your search or filters.
+                </p>
+            </div>
+        </div>
+    );
+
+    /* ----------------------------------------------------------------------
+       RENDER
+    ---------------------------------------------------------------------- */
+
+    return (
+        <>
+            {/* MOBILE DONATION DIRECTORY */}
+
+            <div className="bg-[#0E1219] lg:hidden">
+                {rows.length === 0
+                    ? mobileEmptyState
+                    : rows.map((donation, index) => (
+                          <MobileDonationRow
+                              key={getDonationId(donation) ?? index}
+                              donation={donation}
+                              onViewDonation={handleViewDonation}
+                              onViewDonor={handleViewDonor}
+                              onViewCampaign={handleViewCampaign}
+                          />
+                      ))}
+            </div>
+
+            {/* DESKTOP — SHARED DATA TABLE */}
+
+            <div
+                className="
+                    hidden min-w-0
+                    bg-[#0E1219]
+                    lg:block
+                "
+            >
+                <DataTable
+                    columns={columns}
+                    rows={rows}
+                    onSort={onSort}
+                    getSortIcon={getSortIcon}
+                    resultCount={resultCount}
+                    resizableColumns
+                    empty={{
+                        icon: HandCoins,
+                        title: 'No donations found',
+                        message: 'Try changing your search or payment filter.',
+                    }}
+                />
+            </div>
+        </>
+    );
 };
 
 export default DonationTable;

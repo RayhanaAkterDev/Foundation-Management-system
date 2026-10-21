@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import DashboardInput from '@/components/dashboard/DashboardInput';
+import LoadingUI from '@/components/dashboard/LoadingUI';
 
 import {
     ArrowLeft,
@@ -14,59 +16,10 @@ import {
    FIELD
 ========================================================= */
 
-const inputClass = `
-    block h-[48px] w-full min-w-0
-    appearance-none rounded-none
-    border border-[#343E4B]
-    bg-[#1A222D]
-    pl-10 pr-3.5
-    font-sans text-[14px] font-medium
-    !text-[#DCE4ED]
-    caret-[#DCE4ED]
-    outline-none
-    placeholder:!text-[#697586]
-    transition-colors duration-150
-    hover:border-[#4B596A]
-    focus:border-[#0F766E]
-    focus:bg-[#1A222D]
-    focus:ring-1 focus:ring-[#0F766E]/25
-    disabled:cursor-not-allowed
-    disabled:opacity-50
-`;
-
-function EditField({
-    id,
-    label,
-    icon: Icon,
-    value,
-    onChange,
-    className = '',
-    ...props
-}) {
+function EditField({ icon: Icon, className = '', ...props }) {
     return (
         <div className={`min-w-0 ${className}`}>
-            <label
-                htmlFor={id}
-                className="mb-2 block text-[13px] font-medium !text-[#B8C0CA]"
-            >
-                {label}
-            </label>
-
-            <div className="relative">
-                <Icon
-                    size={16}
-                    strokeWidth={1.7}
-                    className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 !text-[#697586]"
-                />
-
-                <input
-                    {...props}
-                    id={id}
-                    value={value ?? ''}
-                    onChange={onChange}
-                    className={inputClass}
-                />
-            </div>
+            <DashboardInput leftIcon={Icon} {...props} />
         </div>
     );
 }
@@ -511,7 +464,14 @@ export default function ProfileEdit({
                             >
                                 <Save size={16} strokeWidth={1.8} />
 
-                                {saving ? 'Saving changes...' : 'Save changes'}
+                                {saving ? (
+                                    <LoadingUI
+                                        variant="button"
+                                        title="Saving changes..."
+                                    />
+                                ) : (
+                                    'Save changes'
+                                )}
                             </button>
                         </div>
                     </div>

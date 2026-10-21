@@ -875,6 +875,51 @@ class AuthController extends Controller
         ]);
     }
 
+    public function updatePassword(Request $request)
+    {
+        $validated = $request->validate([
+            'current_password' => [
+                'required',
+                'current_password',
+            ],
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+                'confirmed',
+                'different:current_password',
+            ],
+        ], [
+            'current_password.required' =>
+            'Please enter your current password.',
+
+            'current_password.current_password' =>
+            'The current password is incorrect.',
+
+            'password.required' =>
+            'Please enter your new password.',
+
+            'password.min' =>
+            'The new password must be at least 8 characters.',
+
+            'password.confirmed' =>
+            'The new password and confirmation password do not match.',
+
+            'password.different' =>
+            'The new password must be different from your current password.',
+        ]);
+
+        $user = $request->user();
+
+        // The User model's "hashed" cast hashes the password on save.
+        $user->password = $validated['password'];
+        $user->save();
+
+        return response()->json([
+            'message' => 'Password updated successfully.',
+        ]);
+    }
+
 
     /**
      * Upload the authenticated individual's profile photo.

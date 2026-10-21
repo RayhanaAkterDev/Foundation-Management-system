@@ -1,4 +1,3 @@
-
 import React, { useCallback, useEffect, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 
@@ -201,7 +200,10 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
        QUICK ACTIONS
     ====================================================================== */
 
-    const dashboardBase = `/${userRole}/dashboard`;
+    const normalizedRole =
+        typeof userRole === 'string' ? userRole.toLowerCase() : 'individual';
+
+    const dashboardBase = `/${normalizedRole}/dashboard`;
 
     const quickActions = [
         {
@@ -215,9 +217,9 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
             to: `${dashboardBase}/settings`,
         },
         {
-            label: 'Support',
+            label: 'Help & Support',
             icon: CircleHelp,
-            to: '/help',
+            to: `${dashboardBase}/help`,
         },
     ];
 

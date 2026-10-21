@@ -53,7 +53,7 @@ export const footerLinks = [
 export const legalLinks = [
     {
         label: 'গোপনীয়তা নীতি',
-        to: '/privacy',
+        to: '/privacy-policy',
     },
     {
         label: 'ব্যবহারের শর্ত',

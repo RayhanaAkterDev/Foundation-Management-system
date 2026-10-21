@@ -852,7 +852,7 @@ const Login = () => {
                                         </Link>
 
                                         <Link
-                                            to="/privacy"
+                                            to="/privacy-policy"
                                             className="
                                                 transition-colors
                                                 hover:text-[#0f766e]

@@ -15,6 +15,7 @@ use App\Http\Controllers\PublicCommunityController;
 use App\Http\Controllers\TestimonialController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ChatbotController;
+use App\Http\Controllers\ContactMessageController;
 use Illuminate\Support\Facades\Route;
 
 // =============================================================
@@ -25,6 +26,8 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+Route::post('/contact-messages', [ContactMessageController::class, 'store'])
+    ->middleware('throttle:5,1');
 
 Route::get(
     '/campaigns',

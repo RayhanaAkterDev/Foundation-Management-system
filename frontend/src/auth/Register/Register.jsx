@@ -1869,7 +1869,7 @@ const Register = () => {
                                         ও{' '}
                                         <button
                                             type="button"
-                                            onClick={() => navigate('/privacy')}
+                                            onClick={() => navigate('/privacy-policy')}
                                             className="font-medium! text-[#52646a] underline decoration-[#bdc8cc] underline-offset-4 transition hover:text-[#0f766e]"
                                         >
                                             গোপনীয়তা নীতি

@@ -36,6 +36,10 @@ import Impact from '@/pages/public/about/impact/Impact';
 import Report from '@/pages/public/about/report/Report';
 import TrustSafety from '@/pages/public/about/trustSafety/TrustSafety';
 import Community from '@/pages/public/communityPage/Community';
+import PrivacyPolicyPage from '@/pages/public/legal/PrivacyPolicyPage';
+import AccessibilityPage from '@/pages/public/legal/AccessibilityPage';
+import TermsPage from '@/pages/public/legal/TermsPage';
+import ContactPage from '@/pages/public/contactPage/ContactPage';
 
 // =========================
 // AUTHENTICATION
@@ -109,6 +113,13 @@ import IndividualSettings from '@/dashboard/individual/settings/IndividualSettin
 import MyDonations from '@/dashboard/individual/myDonations/MyDonations';
 import MyHelpRequests from '@/dashboard/individual/myHelpRequests/MyHelpRequests';
 import MyVolunteerActivities from '@/dashboard/individual/myVolunteerActivities/MyVolunteerActivities';
+
+// =========================
+// SHARED HELP PAGE
+// =========================
+
+// Create this component in the next step.
+import HelpPage from '@/pages/help/HelpPage';
 
 // =========================
 // ROUTER CONFIGURATION
@@ -228,6 +239,21 @@ const router = createBrowserRouter([
                 path: 'community',
                 element: <Community />,
             },
+
+            // General Help & Support
+            {
+                path: 'help',
+                element: <HelpPage />,
+            },
+
+            { path: 'privacy', element: <PrivacyPolicyPage /> },
+            { path: 'terms', element: <TermsPage /> },
+            { path: 'accessibility', element: <AccessibilityPage /> },
+
+            {
+                path: 'contact',
+                element: <ContactPage />,
+            },
         ],
     },
 
@@ -281,15 +307,12 @@ const router = createBrowserRouter([
             {
                 element: <ProtectedRoute allowedRoles={['admin']} />,
                 children: [
-                    // Dashboard Overview
                     {
                         index: true,
                         element: <AdminDashboard />,
                     },
 
-                    // ==========================
-                    // ADMIN USERS
-                    // ==========================
+                    // Admin Users
                     {
                         path: 'users',
                         element: <AdminUsers />,
@@ -307,9 +330,7 @@ const router = createBrowserRouter([
                         element: <AdminUserDetails />,
                     },
 
-                    // ==========================
-                    // ADMIN ORGANIZATIONS
-                    // ==========================
+                    // Admin Organizations
                     {
                         path: 'organizations',
                         element: <AdminOrganizations />,
@@ -327,9 +348,7 @@ const router = createBrowserRouter([
                         element: <AdminOrganizationsDetails />,
                     },
 
-                    // ==========================
-                    // ADMIN VOLUNTEERS
-                    // ==========================
+                    // Admin Volunteers
                     {
                         path: 'volunteers',
                         element: <AdminVolunteers />,
@@ -343,46 +362,31 @@ const router = createBrowserRouter([
                         element: <AdminVolunteerDetails />,
                     },
 
-                    // ==========================
-                    // ADMIN HELP REQUESTS
-                    // ==========================
-
-                    // All Help Requests
+                    // Admin Help Requests
                     {
                         path: 'help-requests',
                         element: <AdminHelpRequests />,
                     },
-
-                    // View Help Request
                     {
                         path: 'help-requests/:requestId',
                         element: <AdminHelpRequestDetails />,
                     },
-
-                    // Edit Help Request
                     {
                         path: 'help-requests/:requestId/edit',
                         element: <AdminHelpRequestDetails />,
                     },
 
-                    // ==========================
-                    // ADMIN DONATIONS
-                    // ==========================
-                    // All Donations
+                    // Admin Donations
                     {
                         path: 'donations',
                         element: <AdminDonations />,
                     },
-
-                    // View Donation Details
                     {
                         path: 'donations/:donationId',
                         element: <AdminDonationDetails />,
                     },
 
-                    // ==========================
-                    // ADMIN CAMPAIGNS
-                    // ==========================
+                    // Admin Campaigns
                     {
                         path: 'campaigns',
                         element: <AdminCampaigns />,
@@ -392,9 +396,7 @@ const router = createBrowserRouter([
                         element: <AdminCampaignDetails />,
                     },
 
-                    // ==========================
-                    // ADMIN PROFILE & SETTINGS
-                    // ==========================
+                    // Admin Profile & Settings
                     {
                         path: 'profile',
                         element: <AdminProfile />,
@@ -410,6 +412,12 @@ const router = createBrowserRouter([
                     {
                         path: 'settings',
                         element: <AdminSettings />,
+                    },
+
+                    // Admin Help
+                    {
+                        path: 'help',
+                        element: <HelpPage />,
                     },
                 ],
             },
@@ -462,6 +470,12 @@ const router = createBrowserRouter([
                         path: 'settings',
                         element: <IndividualSettings />,
                     },
+
+                    // Individual Help
+                    {
+                        path: 'help',
+                        element: <HelpPage />,
+                    },
                 ],
             },
         ],
@@ -508,6 +522,12 @@ const router = createBrowserRouter([
                     {
                         path: 'settings',
                         element: <OrganizationSettings />,
+                    },
+
+                    // Organization Help
+                    {
+                        path: 'help',
+                        element: <HelpPage />,
                     },
                 ],
             },

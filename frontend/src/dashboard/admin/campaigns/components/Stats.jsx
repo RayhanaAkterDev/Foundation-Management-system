@@ -1,377 +1,197 @@
 import React from 'react';
-
 import {
     Megaphone,
     Clock3,
-    PlayCircle,
+    BadgeCheck,
     CircleCheck,
     XCircle,
     Ban,
 } from 'lucide-react';
 
+const STATUS = [
+    {
+        key: 'unverified',
+        label: 'Unverified',
+        icon: Clock3,
+        color: '#C5A16D',
+        background: '#29251F',
+    },
+    {
+        key: 'active',
+        label: 'Active',
+        icon: BadgeCheck,
+        color: '#91B9B0',
+        background: '#1B2A2A',
+    },
+    {
+        key: 'cancelled',
+        label: 'Cancelled',
+        icon: Ban,
+        color: '#91A9CC',
+        background: '#202B3D',
+    },
+    {
+        key: 'completed',
+        label: 'Completed',
+        icon: CircleCheck,
+        color: '#98B9A4',
+        background: '#202F29',
+    },
+    {
+        key: 'rejected',
+        label: 'Rejected',
+        icon: XCircle,
+        color: '#BD9299',
+        background: '#30252A',
+    },
+];
+
 const Stats = ({
     total,
     unverified,
     active,
+    cancelled,
     completed,
     rejected,
-    cancelled,
 }) => {
     const totalValue = Number(total) || 0;
-
-    const statusRows = [
-        {
-            label: 'Unverified',
-            value: unverified,
-            description: 'Awaiting review',
-            icon: Clock3,
-            tone: 'amber',
-        },
-        {
-            label: 'Active',
-            value: active,
-            description: 'Currently running',
-            icon: PlayCircle,
-            tone: 'teal',
-        },
-        {
-            label: 'Completed',
-            value: completed,
-            description: 'Successfully finished',
-            icon: CircleCheck,
-            tone: 'green',
-        },
-        {
-            label: 'Rejected',
-            value: rejected,
-            description: 'Not approved',
-            icon: XCircle,
-            tone: 'red',
-        },
-        {
-            label: 'Cancelled',
-            value: cancelled,
-            description: 'Ended early',
-            icon: Ban,
-            tone: 'slate',
-        },
-    ];
-
-    const toneStyles = {
-        amber: {
-            icon: 'bg-amber-50 text-amber-600',
-            dot: 'bg-amber-500',
-            number: 'text-amber-700',
-        },
-        teal: {
-            icon: 'bg-primary/[0.08] text-primary',
-            dot: 'bg-primary',
-            number: 'text-primary',
-        },
-        green: {
-            icon: 'bg-emerald-50 text-emerald-600',
-            dot: 'bg-emerald-500',
-            number: 'text-emerald-700',
-        },
-        red: {
-            icon: 'bg-red-50 text-red-600',
-            dot: 'bg-red-500',
-            number: 'text-red-700',
-        },
-        slate: {
-            icon: 'bg-slate-100 text-slate-500',
-            dot: 'bg-slate-400',
-            number: 'text-slate-700',
-        },
-    };
-
-    const getPercentage = (value) => {
-        const numericValue = Number(value) || 0;
-
-        if (!totalValue) return 0;
-
-        return Math.min((numericValue / totalValue) * 100, 100);
-    };
+    const values = { unverified, active, cancelled, completed, rejected };
 
     return (
-        <section className="overflow-hidden border border-border bg-white">
-            {/* =========================================================
-                HEADER
-            ========================================================== */}
-            <header className="flex min-h-24 items-center justify-between gap-4 border-b border-border px-5 py-4 sm:px-6 lg:px-7">
-                <div className="flex min-w-0 items-center gap-3">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary text-white!">
-                        <Megaphone size={17} strokeWidth={1.8} />
-                    </div>
+        <section>
+            <div
+                className="min-w-0
+                    mb-5
+                    sm:mb-6
+                    sm:gap-6"
+            >
+                <h2
+                    id="organization-overview-heading"
+                    className="
 
-                    <div className="min-w-0">
-                        <h2 className="text-[15px] font-bold tracking-[-0.02em] text-text-primary">
-                            Campaigns
-                        </h2>
+                                    font-sans!
 
-                        <p className="mt-0.5 truncate text-[11px] text-text-secondary">
-                            Current campaign activity and status overview
-                        </p>
-                    </div>
-                </div>
+                                    text-[18px]
+                                    font-semibold!
+                                    leading-tight
+                                    tracking-[-0.02em]
+                                    text-[#EEF1F5]!
+                        "
+                >
+                    Campaigns overview
+                </h2>
+            </div>
 
-                <div className="hidden shrink-0 items-center gap-2 sm:flex">
-                    <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-
-                    <span className="text-[9px] font-bold uppercase tracking-[0.18em] text-text-secondary/55">
-                        Overview
-                    </span>
-                </div>
-            </header>
-
-            {/* =========================================================
-                CONTENT
-            ========================================================== */}
-            <div className="grid lg:grid-cols-[32%_68%]">
-                {/* =====================================================
-                    TOTAL CAMPAIGNS
-                ====================================================== */}
-                <div className="relative overflow-hidden bg-primary px-6 py-7 flex flex-col justify-between text-white! sm:px-7 sm:py-8 lg:px-8 lg:py-9">
-                    {/* Decorative circles */}
-                    <div className="pointer-events-none absolute -right-14 -top-14 h-40 w-40 rounded-full border border-white/10" />
-
-                    <div className="pointer-events-none absolute -bottom-20 -left-20 h-44 w-44 rounded-full border border-white/[0.07]" />
-
-                    <div className="relative flex min-h-110 flex-col">
-                        {/* Label */}
-                        <div className="flex items-center gap-2">
-                            <span className="h-1.5 w-1.5 rounded-full bg-white/70" />
-
-                            <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-white!/65">
+            <div
+                aria-label="Campaign statistics"
+                className="min-w-0 overflow-hidden border border-[#29323E] bg-[#0E1219]"
+            >
+                <div className="grid min-w-0 lg:grid-cols-[minmax(220px,26%)_minmax(0,1fr)]">
+                    <div className="flex min-w-0 flex-col justify-start border-b border-[#29323E] bg-[#19212C] px-5 py-6 sm:px-7 lg:border-b-0 lg:border-r lg:py-6">
+                        <div>
+                            <div className="flex items-center gap-2.5">
+                                <span className="flex h-8 w-8 items-center justify-center border border-[#384453] bg-[#202B38] text-[#B4C0CE]">
+                                    <Megaphone size={16} strokeWidth={1.8} />
+                                </span>
+                                <h2 className="text-[15px] font-semibold! tracking-[-0.02em] text-[#E5EAF0]!">
+                                    Campaigns
+                                </h2>
+                            </div>
+                            <p className="mt-5 text-[10px] font-semibold! uppercase tracking-[0.12em] text-[#8492A5]">
                                 Total campaigns
-                            </span>
-                        </div>
-
-                        {/* Main metric */}
-                        <div className="mt-9">
-                            <div className="flex items-end gap-3">
-                                <span className="text-[76px] font-bold leading-[0.78] tracking-[-0.085em] sm:text-[84px]">
+                            </p>
+                            <div className="mt-2 flex items-end gap-2.5">
+                                <span className="text-[58px] font-semibold! leading-none tracking-[-0.065em] tabular-nums text-[#EEF1F5] sm:text-[66px]">
                                     {totalValue}
                                 </span>
-
-                                <span className="mb-1.5 text-[12px] font-medium! text-white!/60">
+                                <span className="mb-1.5 text-[12px] text-[#91A0B3]">
                                     campaigns
                                 </span>
                             </div>
-
-                            <p className="mt-6 max-w-56.25 text-[12px] leading-[1.7] text-white!/65">
-                                Total campaigns currently recorded across the
-                                platform.
-                            </p>
                         </div>
-
-                        {/* Bottom summary */}
-                        <div className="mt-auto pt-10">
-                            <div className="border-t border-white/15 pt-5">
-                                <div className="flex items-center justify-between gap-4">
-                                    <div>
-                                        <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white!/45">
-                                            Campaign activity
-                                        </p>
-
-                                        <p className="mt-1.5 text-[11px] text-white!/65">
-                                            {totalValue === 0
-                                                ? 'No campaigns recorded'
-                                                : `${totalValue} campaigns across ${statusRows.length} states`}
-                                        </p>
-                                    </div>
-
-                                    <div className="flex shrink-0 items-center gap-1.5">
-                                        <span className="h-1.5 w-1.5 rounded-full bg-white/60" />
-                                        <span className="h-1.5 w-1.5 rounded-full bg-white/35" />
-                                        <span className="h-1.5 w-1.5 rounded-full bg-white/20" />
-                                    </div>
-                                </div>
-                            </div>
+                        <div className="mt-6 border-t border-[#35404D] pt-3.5 text-[11px] text-[#91A0B3]">
+                            Across{' '}
+                            <span className="font-medium! text-[#D6DDE6]">
+                                {STATUS.length} workflow statuses
+                            </span>
                         </div>
                     </div>
-                </div>
-
-                {/* =====================================================
-                    STATUS AREA
-                ====================================================== */}
-                <div className="min-w-0">
-                    {/* Status heading */}
-                    <div className="flex min-h-18 items-center justify-between gap-4 border-b border-border px-5 py-4 sm:px-6 lg:px-7">
-                        <div className="min-w-0">
-                            <h3 className="text-[15px] font-bold tracking-[-0.02em] text-text-primary sm:text-[16px]">
+                    <div className="min-w-0 px-4 py-4 sm:px-6 sm:py-5">
+                        <div className="mb-3 flex items-center justify-between gap-3">
+                            <h3 className="text-[13px] font-semibold! text-[#DDE4ED]!">
                                 Campaign status
                             </h3>
-
-                            <p className="mt-1.5 text-[11px] leading-5 text-text-secondary sm:text-[12px]">
-                                Current distribution across campaign states
-                            </p>
+                            <span className="text-[10px] text-[#718096]">
+                                Distribution
+                            </span>
                         </div>
-
-                        <span className="hidden shrink-0 text-[10px] font-semibold text-text-secondary/50 sm:block">
-                            5 states
-                        </span>
-                    </div>
-
-                    {/* Desktop column labels */}
-                    <div className="hidden grid-cols-[40px_minmax(145px,1fr)_minmax(170px,1.3fr)_55px] items-center gap-5 border-b border-border px-5 py-3.5 sm:px-6 lg:px-7 md:grid">
-                        <span />
-
-                        <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-text-secondary/45">
-                            Status
-                        </span>
-
-                        <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-text-secondary/45">
-                            Distribution
-                        </span>
-
-                        <span className="text-right text-[9px] font-bold uppercase tracking-[0.15em] text-text-secondary/45">
-                            Count
-                        </span>
-                    </div>
-
-                    {/* Status rows */}
-                    <div className="px-5 sm:px-6 lg:px-7">
-                        {statusRows.map((stat, index) => {
-                            const Icon = stat.icon;
-                            const tone = toneStyles[stat.tone];
-                            const currentValue = Number(stat.value) || 0;
-                            const percentage = getPercentage(currentValue);
-
-                            return (
-                                <div
-                                    key={stat.label}
-                                    className={`py-5 sm:py-4.5 ${
-                                        index !== statusRows.length - 1
-                                            ? 'border-b border-border'
-                                            : ''
-                                    }`}
-                                >
-                                    {/* =================================================
-                                        DESKTOP
-                                    ================================================== */}
-                                    <div className="hidden grid-cols-[40px_minmax(145px,1fr)_minmax(170px,1.3fr)_55px] items-center gap-5 md:grid">
-                                        {/* Icon */}
+                        <div className="divide-y divide-[#252E3A]">
+                            {STATUS.map(
+                                ({
+                                    key,
+                                    label,
+                                    icon: Icon,
+                                    color,
+                                    background,
+                                }) => {
+                                    const count = Number(values[key]) || 0;
+                                    const percentage =
+                                        totalValue > 0
+                                            ? Math.min(
+                                                  100,
+                                                  Math.max(
+                                                      0,
+                                                      (count / totalValue) *
+                                                          100,
+                                                  ),
+                                              )
+                                            : 0;
+                                    return (
                                         <div
-                                            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${tone.icon}`}
+                                            key={key}
+                                            className="grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(75px,38%)_38px] items-center gap-3 py-3.5 sm:grid-cols-[minmax(0,1fr)_minmax(110px,42%)_45px] sm:gap-5"
                                         >
-                                            <Icon size={17} strokeWidth={1.8} />
-                                        </div>
-
-                                        {/* Status */}
-                                        <div className="min-w-0">
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex min-w-0 items-center gap-2.5">
                                                 <span
-                                                    className={`h-1.5 w-1.5 shrink-0 rounded-full ${tone.dot}`}
-                                                />
-
-                                                <span className="truncate text-[13px] font-bold text-text-primary">
-                                                    {stat.label}
-                                                </span>
-                                            </div>
-
-                                            <p className="mt-1 text-[11px] leading-5 text-text-secondary">
-                                                {stat.description}
-                                            </p>
-                                        </div>
-
-                                        {/* Distribution */}
-                                        <div className="min-w-0">
-                                            <div className="flex items-center justify-between gap-4">
-                                                <span className="text-[11px] text-text-secondary">
-                                                    Campaign share
-                                                </span>
-
-                                                <span className="text-[11px] font-bold text-text-primary">
-                                                    {Math.round(percentage)}%
-                                                </span>
-                                            </div>
-
-                                            <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-slate-100">
-                                                <div
-                                                    className={`h-full rounded-full ${tone.dot}`}
+                                                    className="flex h-8 w-8 shrink-0 items-center justify-center"
                                                     style={{
-                                                        width: `${percentage}%`,
+                                                        backgroundColor:
+                                                            background,
+                                                        color,
                                                     }}
-                                                />
-                                            </div>
-                                        </div>
-
-                                        {/* Count */}
-                                        <div className="text-right">
-                                            <span
-                                                className={`text-[27px] font-bold leading-none tracking-[-0.055em] ${tone.number}`}
-                                            >
-                                                {currentValue}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    {/* =================================================
-                                        MOBILE
-                                    ================================================== */}
-                                    <div className="md:hidden">
-                                        <div className="flex items-center gap-3.5">
-                                            {/* Icon */}
-                                            <div
-                                                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${tone.icon}`}
-                                            >
-                                                <Icon
-                                                    size={17}
-                                                    strokeWidth={1.8}
-                                                />
-                                            </div>
-
-                                            {/* Status */}
-                                            <div className="min-w-0 flex-1">
-                                                <div className="flex items-center gap-2">
-                                                    <span
-                                                        className={`h-1.5 w-1.5 shrink-0 rounded-full ${tone.dot}`}
+                                                >
+                                                    <Icon
+                                                        size={15}
+                                                        strokeWidth={1.8}
                                                     />
-
-                                                    <span className="truncate text-[13px] font-bold text-text-primary">
-                                                        {stat.label}
-                                                    </span>
-                                                </div>
-
-                                                <p className="mt-1 text-[11px] leading-5 text-text-secondary">
-                                                    {stat.description}
-                                                </p>
-                                            </div>
-
-                                            {/* Count */}
-                                            <span
-                                                className={`shrink-0 text-[25px] font-bold leading-none tracking-[-0.055em] ${tone.number}`}
-                                            >
-                                                {currentValue}
-                                            </span>
-                                        </div>
-
-                                        {/* Distribution */}
-                                        <div className="mt-4 pl-13.5">
-                                            <div className="flex items-center justify-between gap-3">
-                                                <span className="text-[10px] font-medium! text-text-secondary">
-                                                    Campaign share
                                                 </span>
-
-                                                <span className="text-[11px] font-bold text-text-primary">
+                                                <span className="truncate text-[12px] font-medium! text-[#CDD6E1]">
+                                                    {label}
+                                                </span>
+                                            </div>
+                                            <div className="flex min-w-0 items-center gap-2.5">
+                                                <div className="h-1.5 min-w-0 flex-1 overflow-hidden bg-[#293440]">
+                                                    <div
+                                                        className="h-full transition-[width] duration-300"
+                                                        style={{
+                                                            width: `${percentage}%`,
+                                                            backgroundColor:
+                                                                color,
+                                                        }}
+                                                    />
+                                                </div>
+                                                <span className="w-8 shrink-0 text-right text-[10px] tabular-nums text-[#8492A5]">
                                                     {Math.round(percentage)}%
                                                 </span>
                                             </div>
-
-                                            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100">
-                                                <div
-                                                    className={`h-full rounded-full ${tone.dot}`}
-                                                    style={{
-                                                        width: `${percentage}%`,
-                                                    }}
-                                                />
-                                            </div>
+                                            <span className="text-right text-[19px] font-semibold! tabular-nums text-[#E2E8F0]">
+                                                {count}
+                                            </span>
                                         </div>
-                                    </div>
-                                </div>
-                            );
-                        })}
+                                    );
+                                },
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

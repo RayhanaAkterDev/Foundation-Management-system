@@ -1,210 +1,116 @@
 import React, { useMemo } from 'react';
+import {
+    ChevronDown,
+    FolderOpen,
+    Building2,
+    Layers3,
+    RotateCcw,
+} from 'lucide-react';
 
-import { ChevronDown } from 'lucide-react';
+const label = (value) =>
+    String(value ?? '')
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, (x) => x.toUpperCase());
 
-const Filters = ({
-    typeFilter,
-    categoryFilter,
-    organizationFilter,
-    campaigns,
+function FilterSelect({ title, icon: Icon, value, onChange, options }) {
+    return (
+        <section className="border-t border-[#252D38] px-4 py-4">
+            <div className="mb-3 flex items-center gap-2 px-1">
+                <Icon size={14} strokeWidth={1.7} className="text-[#697586]" />
+                <h4 className="text-[10px] font-semibold uppercase tracking-[0.09em] text-[#8792A1]">
+                    {title}
+                </h4>
+            </div>
+            <div className="relative">
+                <select
+                    value={value ?? 'all'}
+                    onChange={onChange}
+                    aria-label={title}
+                    className="h-10 w-full appearance-none border border-[#343E4B] bg-[#151C25] px-3 pr-9 text-[12px] font-medium text-[#DCE3EC] outline-none transition-colors hover:border-[#455160] focus:border-[#64748B]"
+                >
+                    {options.map((item) => (
+                        <option
+                            key={String(item.value)}
+                            value={item.value}
+                            className="bg-[#151C25] text-[#DCE3EC]"
+                        >
+                            {item.label}
+                        </option>
+                    ))}
+                </select>
+                <ChevronDown
+                    size={15}
+                    className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#8792A1]"
+                />
+            </div>
+        </section>
+    );
+}
+
+export default function Filters({
+    typeFilter = 'all',
+    categoryFilter = 'all',
+    organizationFilter = 'all',
+    campaigns = [],
     onTypeChange,
     onCategoryChange,
     onOrganizationChange,
-}) => {
-    // --------------------------------
-    // Categories
-    // --------------------------------
-
-    const categories = useMemo(() => {
-        return [
-            ...new Set(
-                campaigns.map((campaign) => campaign.category).filter(Boolean),
-            ),
-        ];
-    }, [campaigns]);
-
-    // --------------------------------
-    // Organizations
-    // --------------------------------
-
+}) {
+    const categories = useMemo(
+        () =>
+            [
+                ...new Set(campaigns.map((c) => c.category).filter(Boolean)),
+            ].sort(),
+        [campaigns],
+    );
     const organizations = useMemo(() => {
-        const organizationMap = new Map();
-
-        campaigns.forEach((campaign) => {
-            const organization = campaign.organization;
-
-            if (organization?.id && organization?.name) {
-                organizationMap.set(organization.id, organization.name);
-            }
+        const map = new Map();
+        campaigns.forEach((c) => {
+            const org = c.organization || c.assigned_organization;
+            if (org?.id != null && org?.name) map.set(String(org.id), org.name);
         });
-
-        return Array.from(organizationMap.entries()).map(([id, name]) => ({
-            id,
-            name,
-        }));
+        return [...map].map(([value, name]) => ({ value, label: name }));
     }, [campaigns]);
-
-    // --------------------------------
-    // Shared select styles
-    // --------------------------------
-
-    const selectClassName = `
-        h-10 w-full appearance-none
-        border border-white/10
-        bg-white
-        px-3.5 pr-9
-        text-[12px] font-medium! text-slate-800
-        outline-none transition-colors
-        hover:border-white/20
-        focus:border-white/30
-        focus:bg-white
-    `;
-
-    const optionClassName = 'bg-white text-slate-800';
-
     return (
-        <div className="space-y-6">
-            {/* ================================================
-                CAMPAIGN TYPE
-            ================================================= */}
-
-            <div>
-                <div className="mb-2.5 px-1">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white!/45">
-                        Campaign type
-                    </p>
-                </div>
-
-                <div className="relative">
-                    <select
-                        value={typeFilter}
-                        onChange={onTypeChange}
-                        className={selectClassName}
-                    >
-                        <option value="all" className={optionClassName}>
-                            All campaign types
-                        </option>
-
-                        <option value="local_case" className={optionClassName}>
-                            Local Case
-                        </option>
-
-                        <option
-                            value="organization_proposed"
-                            className={optionClassName}
-                        >
-                            Organization Proposed
-                        </option>
-
-                        <option
-                            value="global_situation"
-                            className={optionClassName}
-                        >
-                            Global Situation
-                        </option>
-                    </select>
-
-                    <ChevronDown
-                        size={14}
-                        strokeWidth={2}
-                        className="
-                            pointer-events-none absolute right-3
-                            top-1/2 -translate-y-1/2
-                            text-slate-500
-                        "
-                    />
-                </div>
-            </div>
-
-            {/* ================================================
-                CATEGORY
-            ================================================= */}
-
-            <div>
-                <div className="mb-2.5 px-1">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white!/45">
-                        Category
-                    </p>
-                </div>
-
-                <div className="relative">
-                    <select
-                        value={categoryFilter}
-                        onChange={onCategoryChange}
-                        className={selectClassName}
-                    >
-                        <option value="all" className={optionClassName}>
-                            All categories
-                        </option>
-
-                        {categories.map((category) => (
-                            <option
-                                key={category}
-                                value={category}
-                                className={optionClassName}
-                            >
-                                {category}
-                            </option>
-                        ))}
-                    </select>
-
-                    <ChevronDown
-                        size={14}
-                        strokeWidth={2}
-                        className="
-                            pointer-events-none absolute right-3
-                            top-1/2 -translate-y-1/2
-                            text-slate-500
-                        "
-                    />
-                </div>
-            </div>
-
-            {/* ================================================
-                ORGANIZATION
-            ================================================= */}
-
-            <div>
-                <div className="mb-2.5 px-1">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white!/45">
-                        Organization
-                    </p>
-                </div>
-
-                <div className="relative">
-                    <select
-                        value={organizationFilter}
-                        onChange={onOrganizationChange}
-                        className={selectClassName}
-                    >
-                        <option value="all" className={optionClassName}>
-                            All organizations
-                        </option>
-
-                        {organizations.map((organization) => (
-                            <option
-                                key={organization.id}
-                                value={organization.id}
-                                className={optionClassName}
-                            >
-                                {organization.name}
-                            </option>
-                        ))}
-                    </select>
-
-                    <ChevronDown
-                        size={14}
-                        strokeWidth={2}
-                        className="
-                            pointer-events-none absolute right-3
-                            top-1/2 -translate-y-1/2
-                            text-slate-500
-                        "
-                    />
-                </div>
-            </div>
+        <div className="min-w-0">
+            <FilterSelect
+                title="Campaign type"
+                icon={Layers3}
+                value={typeFilter}
+                onChange={onTypeChange}
+                options={[
+                    { value: 'all', label: 'All campaign types' },
+                    { value: 'local_case', label: 'Local Case' },
+                    {
+                        value: 'organization_proposed',
+                        label: 'Organization Proposed',
+                    },
+                    { value: 'global_situation', label: 'Global Situation' },
+                ]}
+            />
+            <FilterSelect
+                title="Category"
+                icon={FolderOpen}
+                value={categoryFilter}
+                onChange={onCategoryChange}
+                options={[
+                    { value: 'all', label: 'All categories' },
+                    ...categories.map((value) => ({
+                        value,
+                        label: label(value),
+                    })),
+                ]}
+            />
+            <FilterSelect
+                title="Organization"
+                icon={Building2}
+                value={organizationFilter}
+                onChange={onOrganizationChange}
+                options={[
+                    { value: 'all', label: 'All organizations' },
+                    ...organizations,
+                ]}
+            />
         </div>
     );
-};
-
-export default Filters;
+}

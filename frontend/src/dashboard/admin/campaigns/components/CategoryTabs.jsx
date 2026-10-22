@@ -1,41 +1,21 @@
 import React from 'react';
-
 import {
-    ClipboardList,
     Megaphone,
     Ban,
     XCircle,
     PlayCircle,
     Clock3,
-    BadgeCheck,
-    CircleX,
     CircleCheck,
-    Activity,
     ListChecks,
-    Building2,
 } from 'lucide-react';
 
-/* ==========================================================================
-   CATEGORY TABS
-============================================================================ */
-
 const CATEGORY_ICONS = {
-    all: ClipboardList,
-    Megaphone,
-    Ban,
-    XCircle,
-    PlayCircle,
-    pending: Clock3,
-    verified: BadgeCheck,
-    rejected: CircleX,
-    completed: CircleCheck,
-    assigned: Building2,
-    in_progress: Activity,
-    active: PlayCircle,
-    // all: Megaphone,
+    all: Megaphone,
     unverified: Clock3,
+    active: PlayCircle,
+    completed: CircleCheck,
+    rejected: XCircle,
     cancelled: Ban,
-    // rejected: XCircle,
 };
 
 const getCategoryIcon = (value) => {

@@ -298,13 +298,24 @@ admin: [
         icon: ClipboardList,
         path: '/admin/dashboard/help-requests',
     },
-    {
-        key: 'campaigns',
-        label: 'Campaigns',
-        icon: Megaphone,
-        path: '/admin/dashboard/campaigns',
-
-    },
+  {
+    key: 'campaigns',
+    label: 'Campaigns',
+    icon: Megaphone,
+    path: '/admin/dashboard/campaigns',
+    children: [
+        {
+            key: 'all-campaigns',
+            label: 'All Campaigns',
+            path: '/admin/dashboard/campaigns',
+        },
+        {
+            key: 'add-campaign',
+            label: 'Add Campaign',
+            path: '/admin/dashboard/campaigns/add',
+        },
+    ],
+},
 
     // Finance
     {

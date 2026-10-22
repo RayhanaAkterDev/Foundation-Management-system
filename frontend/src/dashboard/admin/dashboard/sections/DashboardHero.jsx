@@ -1,563 +1,488 @@
 import React from 'react';
+import {
+    AlertTriangle,
+    Building2,
+    ClipboardList,
+    Megaphone,
+    UsersRound,
+} from 'lucide-react';
 
-import { ArrowUpRight, CheckCircle2, ShieldCheck } from 'lucide-react';
-
+import PageHeader from '@/components/dashboard/PageHeader';
 import { formatNumber } from '../utils/dashboardHelpers';
 
-/* =================================================
-   ATTENTION ITEM
-================================================== */
+/* =========================================================
+   COLORS
+========================================================= */
 
-const AttentionItem = ({
-    label,
+const QUEUE_COLORS = {
+    urgent: '#E8A56E',
+    organizations: '#58AFA2',
+    volunteers: '#A998C8',
+    campaigns: '#88A9D7',
+};
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+const safeCount = (value) => {
+    const number = Number(value);
+
+    return Number.isFinite(number) ? Math.max(0, number) : 0;
+};
+
+/* =========================================================
+   REVIEW ROW
+========================================================= */
+
+const ReviewRow = ({
+    icon: Icon,
+    title,
     count,
-    suffix,
-    description,
-    footer,
-    highlight = false,
-    borderRight = false,
-}) => (
-    <article
-        className={`
-            group relative flex min-h-52 flex-col
-            bg-white
-            px-5 py-5
-            sm:px-6
-            lg:px-7 lg:py-6
-            ${borderRight ? 'xl:border-r xl:border-slate-200' : ''}
-            transition-colors duration-200
-            hover:bg-slate-50
-        `}
-    >
-        {/* Header */}
-        <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2.5">
-                <span
-                    className={`
-                        h-2 w-2 rounded-full
-                        ${highlight ? 'bg-accent' : 'bg-primary'}
-                    `}
-                />
+    color,
+    loading,
+    isFirst,
+    isLast,
+}) => {
+    const hasItems = count > 0;
 
+    return (
+        <div className="group grid min-w-0 grid-cols-[20px_minmax(0,1fr)] gap-3 sm:gap-4">
+            {/* TIMELINE COLUMN */}
+            <div className="relative flex items-center justify-center">
+                {/* CONNECTOR ABOVE DOT */}
+                {!isFirst && (
+                    <span
+                        aria-hidden="true"
+                        className="
+                            absolute left-1/2 top-0
+                            h-1/2 w-px
+                            -translate-x-1/2
+                            bg-[#3A4858]
+                        "
+                    />
+                )}
+
+                {/* CONNECTOR BELOW DOT */}
+                {!isLast && (
+                    <span
+                        aria-hidden="true"
+                        className="
+                            absolute bottom-0 left-1/2
+                            h-1/2 w-px
+                            -translate-x-1/2
+                            bg-[#3A4858]
+                        "
+                    />
+                )}
+
+                {/* TIMELINE DOT */}
                 <span
                     className="
-                        font-poppins
-                        text-[10px]
-                        font-semibold
-                        uppercase
-                        tracking-[0.12em]
-                        text-slate-600
+                        relative z-10
+                        h-[10px] w-[10px]
+                        shrink-0 rounded-full
+                        ring-[4px] ring-[#17212B]
                     "
-                >
-                    {label}
-                </span>
+                    style={{
+                        backgroundColor: hasItems ? color : '#59697C',
+                    }}
+                />
             </div>
 
-            <ArrowUpRight
-                size={16}
-                strokeWidth={1.8}
-                className="
-                    text-slate-300
-                    transition-all duration-200
-                    group-hover:-translate-y-0.5
-                    group-hover:translate-x-0.5
-                    group-hover:text-primary
-                "
-            />
-        </div>
-
-        {/* Number */}
-        <div className="mt-8 flex items-end gap-3">
-            <span
+            {/* ROW CONTENT */}
+            <div
                 className={`
-                    font-fraunces
-                    text-[50px]
-                    leading-[0.8]
-                    tracking-[-0.055em]
-                    sm:text-[54px]
-                    lg:text-[58px]
-                    ${highlight ? 'text-accent' : 'text-slate-900'}
+                    flex min-w-0 items-center
+                    justify-between gap-3
+                    py-[18px] sm:gap-5
+                    ${!isLast ? 'border-b border-[#303B47]/65' : ''}
                 `}
             >
-                {count}
-            </span>
+                {/* LABEL */}
+                <div className="flex min-w-0 items-center gap-3">
+                    <div
+                        className="
+                            flex h-9 w-9 shrink-0
+                            items-center justify-center
+                            rounded-[5px]
+                            bg-[#293644]
+                            text-[#A9B7C6]
+                            transition-colors duration-200
+                            group-hover:bg-[#334252]
+                        "
+                    >
+                        <Icon size={17} strokeWidth={1.8} />
+                    </div>
 
-            <span
-                className="
-                    mb-0.5
-                    max-w-32
-                    font-jost
-                    text-[11px]
-                    leading-[1.4]
-                    text-slate-500
-                "
-            >
-                {suffix}
-            </span>
+                    <h3
+                        className="
+                            min-w-0
+                            text-[13px] font-semibold
+                            leading-5 text-[#EDF1F5]!
+                            sm:text-[14px]
+                        "
+                    >
+                        {title}
+                    </h3>
+                </div>
+
+                {/* COUNT */}
+                <div className="flex shrink-0 items-center gap-3">
+                    <span
+                        className="
+                            text-[25px] font-semibold
+                            leading-none tabular-nums
+                        "
+                        style={{
+                            color: hasItems ? '#EEF1F5' : '#8792A1',
+                        }}
+                    >
+                        {loading ? '—' : formatNumber(count)}
+                    </span>
+
+                    <span
+                        className="
+                            h-6 w-[2px]
+                            rounded-full
+                        "
+                        style={{
+                            backgroundColor: hasItems ? color : '#526173',
+                        }}
+                    />
+                </div>
+            </div>
         </div>
+    );
+};
 
-        {/* Description */}
-        <p
+/* =========================================================
+   WORKLOAD RING
+========================================================= */
+
+const WorkloadRing = ({ loading, total, activeQueues, items }) => {
+    const radius = 68;
+    const circumference = 2 * Math.PI * radius;
+    const gap = 5;
+
+    const activeItems = items.filter((item) => item.count > 0);
+
+    let currentOffset = 0;
+
+    const segments = activeItems.map((item) => {
+        const segmentLength =
+            total > 0 ? (item.count / total) * circumference : 0;
+
+        const segment = {
+            ...item,
+            offset: currentOffset,
+            length: Math.max(0, segmentLength - gap),
+        };
+
+        currentOffset += segmentLength;
+
+        return segment;
+    });
+
+    return (
+        <div
             className="
-                mt-4
-                max-w-72
-                font-jost
-                text-[11px]
-                leading-[1.55]
-                text-slate-500
-                sm:text-[12px]
+                flex h-full items-center
+                justify-center gap-5
+                px-5 py-6
+                md:flex-col md:gap-4
+                md:px-6 md:py-7
             "
         >
-            {description}
-        </p>
-
-        {/* Footer */}
-        <div className="mt-auto flex items-center gap-2 border-t border-slate-100 pt-4">
-            <span
-                className={`
-                    h-1.5 w-5
-                    ${highlight ? 'bg-accent' : 'bg-primary/35'}
-                `}
-            />
-
-            <span
+            {/* PROGRESS RING */}
+            <div
                 className="
-                    font-poppins
-                    text-[8px]
-                    font-semibold
-                    uppercase
-                    tracking-[0.11em]
-                    text-slate-400
+                    relative flex h-[112px] w-[112px]
+                    shrink-0 items-center
+                    justify-center
+                    sm:h-[128px] sm:w-[128px]
+                    md:h-[146px] md:w-[146px]
                 "
             >
-                {footer}
-            </span>
-        </div>
-    </article>
-);
+                <svg
+                    viewBox="0 0 160 160"
+                    className="
+                        absolute inset-0
+                        h-full w-full
+                        -rotate-90
+                    "
+                    aria-hidden="true"
+                >
+                    {/* BACKGROUND TRACK */}
+                    <circle
+                        cx="80"
+                        cy="80"
+                        r={radius}
+                        fill="none"
+                        stroke="#3A4857"
+                        strokeWidth="8"
+                    />
 
-/* =================================================
+                    {/* COLORED SEGMENTS */}
+                    {!loading &&
+                        segments.map((segment) => (
+                            <circle
+                                key={segment.title}
+                                cx="80"
+                                cy="80"
+                                r={radius}
+                                fill="none"
+                                stroke={segment.color}
+                                strokeWidth="8"
+                                strokeLinecap="butt"
+                                strokeDasharray={`
+                                    ${segment.length}
+                                    ${circumference}
+                                `}
+                                strokeDashoffset={-segment.offset}
+                                className="
+                                    transition-all
+                                    duration-500
+                                "
+                            />
+                        ))}
+                </svg>
+
+                {/* CENTER COUNT */}
+                <div className="relative text-center">
+                    <p
+                        className="
+                            text-[35px] font-semibold
+                            leading-none
+                            tracking-[-0.05em]
+                            tabular-nums
+                            text-[#F0F3F7]
+                            sm:text-[40px]
+                            md:text-[43px]
+                        "
+                    >
+                        {loading ? '—' : formatNumber(total)}
+                    </p>
+
+                    <p
+                        className="
+                            mt-1.5 text-[9px]
+                            font-medium uppercase
+                            tracking-[0.06em]
+                            text-[#A5B1C0]
+                        "
+                    >
+                        Needs attention
+                    </p>
+                </div>
+            </div>
+
+            {/* SUMMARY */}
+            <div className="min-w-0 text-left md:text-center">
+                <p
+                    className="
+                        text-[13px] font-semibold
+                        text-[#E5EAF0]
+                    "
+                >
+                    {loading
+                        ? 'Review workload'
+                        : total === 0
+                          ? 'No pending decisions'
+                          : `${activeQueues} active review ${
+                                activeQueues === 1 ? 'queue' : 'queues'
+                            }`}
+                </p>
+
+                <p
+                    className="
+                        mt-1 text-[12px]
+                        leading-5 text-[#9BA9B9]
+                    "
+                >
+                    Across four categories
+                </p>
+            </div>
+        </div>
+    );
+};
+
+/* =========================================================
    DASHBOARD HERO
-================================================== */
+========================================================= */
 
 const DashboardHero = ({
-    loading,
-    urgentRequestCount,
+    loading = false,
+    urgentRequestCount = 0,
     pendingVerificationCount = 0,
     pendingCampaignCount = 0,
     pendingVolunteerCount = 0,
 }) => {
-    const urgentCount = loading ? '—' : formatNumber(urgentRequestCount);
+    const urgent = safeCount(urgentRequestCount);
 
-    const organizationCount = loading
-        ? '—'
-        : formatNumber(pendingVerificationCount);
+    const organizations = safeCount(pendingVerificationCount);
 
-    const volunteerCount = loading ? '—' : formatNumber(pendingVolunteerCount);
+    const volunteers = safeCount(pendingVolunteerCount);
 
-    const campaignCount = loading ? '—' : formatNumber(pendingCampaignCount);
+    const campaigns = safeCount(pendingCampaignCount);
 
-    const hasUrgentRequests = !loading && Number(urgentRequestCount) > 0;
+    const total = urgent + organizations + volunteers + campaigns;
 
-    const attentionCards = [
+    const reviewItems = [
         {
-            label: 'Organizations',
-            count: organizationCount,
-            suffix: 'awaiting verification',
-            description: 'Registrations waiting for administrative review.',
-            footer: 'Organization verification',
+            icon: AlertTriangle,
+            title: 'Urgent help requests',
+            count: urgent,
+            color: QUEUE_COLORS.urgent,
         },
-
         {
-            label: 'Volunteers',
-            count: volunteerCount,
-            suffix: 'to review',
-            description: 'Applications waiting for administrative review.',
-            footer: 'Volunteer applications',
+            icon: Building2,
+            title: 'Organization verification',
+            count: organizations,
+            color: QUEUE_COLORS.organizations,
         },
-
         {
-            label: 'Campaigns',
-            count: campaignCount,
-            suffix: 'need review',
-            description:
-                'Campaign proposals waiting for administrative verification.',
-            footer: 'Campaign review',
+            icon: UsersRound,
+            title: 'Volunteer applications',
+            count: volunteers,
+            color: QUEUE_COLORS.volunteers,
+        },
+        {
+            icon: Megaphone,
+            title: 'Campaign reviews',
+            count: campaigns,
+            color: QUEUE_COLORS.campaigns,
         },
     ];
 
+    const activeQueues = reviewItems.filter((item) => item.count > 0).length;
+
     return (
-        <header className="space-y-6">
-            {/* =================================================
-                TEAL HERO
-            ================================================== */}
+        <div className="min-w-0">
+            {/* SHARED PAGE HEADER */}
+            <PageHeader
+                title="Operations overview"
+                subtitle="Monitor pending reviews, priority humanitarian requests, and the decisions that need your attention across Stand For People."
+            />
 
-            <section className="overflow-hidden bg-primary">
-                <div className="grid lg:grid-cols-[minmax(0,1fr)_320px]">
-                    {/* Main hero */}
-                    <div
-                        className="
-                            relative
-                            px-6
-                            py-9
-                            sm:px-8
-                            sm:py-10
-                            lg:px-10
-                            lg:py-11
-                        "
-                    >
-                        {/* Subtle vertical accent */}
-                        <div className="absolute bottom-0 left-0 top-0 w-1 bg-accent" />
-
-                        <div className="max-w-2xl">
-                            <div className="flex items-center gap-2">
-                                <span className="h-2 w-2 rounded-full bg-white/80" />
-
-                                <span
-                                    className="
-                                        font-poppins
-                                        text-[9px]
-                                        font-semibold
-                                        uppercase
-                                        tracking-[0.14em]
-                                        text-white!/75
-                                    "
-                                >
-                                    Admin Dashboard
-                                </span>
-                            </div>
-
-                            <h1
-                                className="
-                                    mt-5
-                                    font-fraunces
-                                    text-[38px]
-                                    leading-[0.98]
-                                    tracking-[-0.045em]
-                                    text-white!
-                                    sm:text-[46px]
-                                    lg:text-[52px]
-                                "
-                            >
-                                Here's what needs
-                                <span className="block text-white!/80">
-                                    your attention.
-                                </span>
-                            </h1>
-
-                            <p
-                                className="
-                                    mt-5
-                                    max-w-xl
-                                    font-jost
-                                    text-[12px]
-                                    leading-[1.65]
-                                    text-white!/70
-                                    sm:text-[13px]
-                                "
-                            >
-                                Review pending decisions and priority requests
-                                across Stand For People.
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* Priority */}
-                    <aside
-                        className={`
-                            relative
-                            border-t
-                            border-white/10
-                            px-6
-                            py-7
-                            sm:px-8
-                            lg:border-l
-                            lg:border-t-0
-                            lg:px-8
-                            lg:py-8
-                            ${
-                                hasUrgentRequests
-                                    ? 'bg-primary-hover'
-                                    : 'bg-primary-hover/70'
-                            }
-                        `}
-                    >
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2.5">
-                                <div
-                                    className={`
-                                        flex h-8 w-8 items-center justify-center
-                                        ${
-                                            hasUrgentRequests
-                                                ? 'bg-accent'
-                                                : 'bg-white/10'
-                                        }
-                                    `}
-                                >
-                                    <ShieldCheck
-                                        size={16}
-                                        strokeWidth={1.8}
-                                        className={
-                                            hasUrgentRequests
-                                                ? 'text-white!'
-                                                : 'text-white!'
-                                        }
-                                    />
-                                </div>
-
-                                <span className="font-poppins text-[9px] font-semibold uppercase tracking-[0.12em] text-white!/70">
-                                    Priority Queue
-                                </span>
-                            </div>
-
-                            <span
-                                className={`
-                                    h-2 w-2 rounded-full
-                                    ${
-                                        hasUrgentRequests
-                                            ? 'bg-accent'
-                                            : 'bg-white/50'
-                                    }
-                                `}
-                            />
+            {/* OPERATIONAL SNAPSHOT */}
+            <section
+                className="
+                    min-w-0 overflow-hidden
+                    rounded-[7px]
+                    border border-[#34404D]
+                    bg-[#1B242E]
+                "
+            >
+                {/* SNAPSHOT HEADER */}
+                <div
+                    className="
+                        flex flex-wrap items-center
+                        justify-between gap-3
+                        border-b border-[#34404D]
+                        px-5 py-4
+                        sm:px-6
+                    "
+                >
+                    <div className="flex min-w-0 items-center gap-3">
+                        <div
+                            className="
+                                flex h-8 w-8
+                                shrink-0 items-center
+                                justify-center
+                                rounded-[5px]
+                                bg-[#293744]
+                                text-[#A9B7C6]
+                            "
+                        >
+                            <ClipboardList size={16} strokeWidth={1.8} />
                         </div>
 
-                        <div className="mt-9">
-                            <p className="font-jost text-[11px] text-white!/60">
-                                Priority help requests
-                            </p>
-
-                            <div className="mt-3 flex items-end gap-3">
-                                <span
-                                    className={`
-                                        font-fraunces
-                                        text-[58px]
-                                        leading-[0.8]
-                                        tracking-[-0.06em]
-                                        ${
-                                            hasUrgentRequests
-                                                ? 'text-accent'
-                                                : 'text-white!'
-                                        }
-                                    `}
-                                >
-                                    {urgentCount}
-                                </span>
-
-                                <span className="mb-0.5 max-w-28 font-jost text-[10px] leading-[1.4] text-white!/60">
-                                    requiring administrative attention
-                                </span>
-                            </div>
-                        </div>
-
-                        <div className="mt-7 border-t border-white/10 pt-4">
-                            <div className="flex items-center gap-2">
-                                <CheckCircle2
-                                    size={14}
-                                    strokeWidth={1.8}
-                                    className={
-                                        hasUrgentRequests
-                                            ? 'text-accent'
-                                            : 'text-white!/60'
-                                    }
-                                />
-
-                                <span className="font-jost text-[10px] text-white!/65">
-                                    {hasUrgentRequests
-                                        ? 'Priority requests are waiting for action.'
-                                        : 'No priority requests require immediate action.'}
-                                </span>
-                            </div>
-                        </div>
-                    </aside>
-                </div>
-            </section>
-
-            {/* =================================================
-                OPERATIONAL SNAPSHOT
-            ================================================== */}
-            <section className="overflow-hidden border border-slate-200 bg-white">
-                {/* Header */}
-                <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5 lg:px-8">
-                    <div>
-                        <h2 className="font-fraunces text-[25px] leading-none tracking-[-0.03em] text-slate-900">
+                        <h2
+                            className="
+                                text-[16px] font-semibold
+                                leading-6 text-[#EEF1F5]!
+                            "
+                        >
                             Operational Snapshot
                         </h2>
-
-                        <p className="mt-2 font-jost text-[12px] text-slate-500">
-                            Current administrative workload
-                        </p>
                     </div>
 
-                    <div className="flex h-9 w-9 items-center justify-center bg-primary/10">
-                        <CheckCircle2
-                            size={18}
-                            strokeWidth={1.8}
-                            className="text-primary"
+                    {/* STATUS */}
+                    <div className="flex items-center gap-2">
+                        <span
+                            className={`
+                                h-1.5 w-1.5
+                                rounded-full
+                                ${
+                                    !loading && total > 0
+                                        ? 'bg-[#E8A56E]'
+                                        : 'bg-[#58AFA2]'
+                                }
+                            `}
                         />
+
+                        <span
+                            className="
+                                text-[12px] font-medium
+                                text-[#B0BCCB]
+                            "
+                        >
+                            {loading
+                                ? 'Checking workload'
+                                : total === 0
+                                  ? 'All queues clear'
+                                  : `${formatNumber(total)} awaiting review`}
+                        </span>
                     </div>
                 </div>
 
-                {/* Main content */}
-                <div className="grid lg:grid-cols-[260px_minmax(0,1fr)]">
-                    {/* Workload visual */}
-                    <div className="flex items-center justify-center border-b border-slate-200 px-6 py-9 lg:border-b-0 lg:border-r">
-                        <div className="relative flex h-[168px] w-[168px] items-center justify-center">
-                            {/* Progress ring */}
-                            <svg
-                                viewBox="0 0 168 168"
-                                className="absolute inset-0 h-full w-full -rotate-90"
-                            >
-                                <circle
-                                    cx="84"
-                                    cy="84"
-                                    r="72"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="8"
-                                    className="text-slate-100"
-                                />
-
-                                <circle
-                                    cx="84"
-                                    cy="84"
-                                    r="72"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="8"
-                                    strokeLinecap="round"
-                                    strokeDasharray="452"
-                                    strokeDashoffset={
-                                        loading
-                                            ? 452
-                                            : Math.max(
-                                                  0,
-                                                  452 -
-                                                      Math.min(
-                                                          452,
-                                                          (Number(
-                                                              pendingVerificationCount ||
-                                                                  0,
-                                                          ) +
-                                                              Number(
-                                                                  pendingVolunteerCount ||
-                                                                      0,
-                                                              ) +
-                                                              Number(
-                                                                  pendingCampaignCount ||
-                                                                      0,
-                                                              )) *
-                                                              18,
-                                                      ),
-                                              )
-                                    }
-                                    className="text-primary"
-                                />
-                            </svg>
-
-                            <div className="relative text-center">
-                                <div className="font-fraunces text-[46px] leading-none tracking-[-0.05em] text-slate-900">
-                                    {loading
-                                        ? '—'
-                                        : formatNumber(
-                                              Number(
-                                                  pendingVerificationCount || 0,
-                                              ) +
-                                                  Number(
-                                                      pendingVolunteerCount ||
-                                                          0,
-                                                  ) +
-                                                  Number(
-                                                      pendingCampaignCount || 0,
-                                                  ),
-                                          )}
-                                </div>
-
-                                <div className="mt-2 font-jost text-[10px] font-semibold text-slate-400">
-                                    NEEDS ATTENTION
-                                </div>
-                            </div>
-                        </div>
+                {/* SNAPSHOT CONTENT */}
+                <div
+                    className="
+                        grid min-w-0
+                        md:grid-cols-[260px_minmax(0,1fr)]
+                        lg:grid-cols-[300px_minmax(0,1fr)]
+                    "
+                >
+                    {/* LEFT: WORKLOAD RING */}
+                    <div
+                        className="
+                            bg-[#202C38]
+                            md:border-r
+                            md:border-[#34404D]
+                        "
+                    >
+                        <WorkloadRing
+                            loading={loading}
+                            total={total}
+                            activeQueues={activeQueues}
+                            items={reviewItems}
+                        />
                     </div>
 
-                    {/* Workflow */}
-                    <div className="px-6 py-7 lg:px-8 lg:py-8">
-                        <div className="relative">
-                            {/* Connecting line */}
-                            <div className="absolute left-[7px] top-3 bottom-3 w-px bg-slate-200" />
-
-                            {attentionCards.map((item, index) => {
-                                const progressColor =
-                                    index === 0
-                                        ? 'bg-primary'
-                                        : index === 1
-                                          ? 'bg-amber-500'
-                                          : 'bg-blue-500';
-
-                                const count = Number(item.count) || 0;
-
-                                return (
-                                    <div
-                                        key={item.label}
-                                        className={`relative flex gap-5 ${
-                                            index !== attentionCards.length - 1
-                                                ? 'pb-8'
-                                                : ''
-                                        }`}
-                                    >
-                                        {/* Timeline point */}
-                                        <div className="relative z-10 mt-1.5 flex h-[15px] w-[15px] shrink-0 items-center justify-center bg-white">
-                                            <span
-                                                className={`h-[7px] w-[7px] rounded-full ${progressColor}`}
-                                            />
-                                        </div>
-
-                                        {/* Content */}
-                                        <div className="min-w-0 flex-1">
-                                            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                                                <div>
-                                                    <h3 className="font-jost text-[14px] font-semibold text-slate-900">
-                                                        {item.label}
-                                                    </h3>
-
-                                                    <p className="mt-1.5 max-w-lg font-jost text-[11px] leading-5 text-slate-500">
-                                                        {item.description}
-                                                    </p>
-                                                </div>
-
-                                                <div className="flex shrink-0 items-baseline gap-2 sm:pl-6">
-                                                    <span className="font-fraunces text-[32px] leading-none tracking-[-0.04em] text-slate-900">
-                                                        {item.count}
-                                                    </span>
-
-                                                    <span className="font-jost text-[10px] font-medium! text-slate-400">
-                                                        {item.suffix}
-                                                    </span>
-                                                </div>
-                                            </div>
-
-                                            {/* Workload indicator */}
-                                            <div className="mt-4 h-1 w-full overflow-hidden bg-slate-100">
-                                                <div
-                                                    className={`h-full ${progressColor} transition-all`}
-                                                    style={{
-                                                        width: loading
-                                                            ? '0%'
-                                                            : count === 0
-                                                              ? '0%'
-                                                              : `${Math.min(100, Math.max(8, count * 8))}%`,
-                                                    }}
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
+                    {/* RIGHT: FIXED TIMELINE */}
+                    <div
+                        className="
+                            min-w-0 bg-[#17212B]
+                            px-4 py-2
+                            sm:px-6
+                            lg:px-7
+                        "
+                    >
+                        {reviewItems.map((item, index) => (
+                            <ReviewRow
+                                key={item.title}
+                                {...item}
+                                loading={loading}
+                                isFirst={index === 0}
+                                isLast={index === reviewItems.length - 1}
+                            />
+                        ))}
                     </div>
                 </div>
             </section>
-        </header>
+        </div>
     );
 };
 

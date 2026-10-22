@@ -375,7 +375,6 @@ const Dashboard = () => {
 
         pendingHelpRequests,
         pendingVerifications,
-        latestCampaigns,
         recentActivity,
 
         totalUsers,
@@ -478,18 +477,6 @@ const Dashboard = () => {
                 }
                 onOpenVerification={() =>
                     navigateTo('/admin/dashboard/verification')
-                }
-            />
-
-            <ResponseFlowSection
-                loading={loading}
-                latestCampaigns={latestCampaigns}
-                pendingCampaignCount={pendingCampaignCount}
-                totalCampaigns={totalCampaigns}
-                activeCampaigns={activeCampaigns}
-                onOpenCampaigns={() => navigateTo('/admin/dashboard/campaigns')}
-                onOpenCampaign={(campaign) =>
-                    navigateTo(`/admin/dashboard/campaigns/${campaign.id}`)
                 }
             />
 

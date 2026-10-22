@@ -3,18 +3,12 @@ import { createBrowserRouter } from 'react-router-dom';
 import ProtectedRoute from './ProtectedRoute';
 import NotFound from '../pages/NotFound';
 
-// =========================
-// LAYOUTS
-// =========================
-
+// Layouts
 import PublicLayout from '@/layouts/PublicLayout/PublicLayout';
 import AuthLayout from '@/layouts/AuthLayout/AuthLayout';
 import DashboardLayout from '@/layouts/DashboardLayout/DashboardLayout';
 
-// =========================
-// PUBLIC PAGES
-// =========================
-
+// Public pages
 import Home from '@/pages/public/home/Home';
 import HowItWorksPage from '@/pages/public/howItWorksPage/HowItWorksPage';
 import Categories from '@/pages/public/categoriesPage/CategoriesPage';
@@ -41,10 +35,7 @@ import AccessibilityPage from '@/pages/public/legal/AccessibilityPage';
 import TermsPage from '@/pages/public/legal/TermsPage';
 import ContactPage from '@/pages/public/contactPage/ContactPage';
 
-// =========================
-// AUTHENTICATION
-// =========================
-
+// Authentication
 import Login from '@/auth/Login/Login';
 import Register from '@/auth/Register/Register';
 import AdminLogin from '@/auth/AdminLogin/AdminLogin';
@@ -52,53 +43,48 @@ import EmailVerification from '@/auth/EmailVerification/EmailVerification';
 import ResetPassword from '@/auth/ResetPassword/ResetPassword';
 import ForgotPassword from '@/auth/ForgotPassword/ForgotPassword';
 
-// =========================
-// ADMIN DASHBOARD
-// =========================
-
+// Admin dashboard
 import AdminDashboard from '@/dashboard/admin/dashboard/Dashboard';
 
-// Admin Users
+// Admin users
 import AdminUsers from '@/dashboard/admin/users/Users';
 import AdminAddUser from '@/dashboard/admin/users/AddUser';
 import AdminUserDetails from '@/dashboard/admin/users/UserDetails';
 
-// Admin Organizations
+// Admin organizations
 import AdminOrganizations from '@/dashboard/admin/organizations/Organizations';
 import AdminAddOrganization from '@/dashboard/admin/organizations/AddOrganization';
 import AdminOrganizationsDetails from '@/dashboard/admin/organizations/OrganizationDetails';
 
-// Admin Volunteers
+// Admin volunteers
 import AdminVolunteers from '@/dashboard/admin/volunteers/Volunteers';
 import AdminVolunteerRequests from '@/dashboard/admin/volunteers/VolunteerRequests';
 import AdminVolunteerDetails from '@/dashboard/admin/volunteers/VolunteerDetails';
 
-// Admin Help Requests
+// Admin help requests
 import AdminHelpRequests from '@/dashboard/admin/helpRequests/HelpRequests';
 import AdminHelpRequestDetails from '@/dashboard/admin/helpRequests/HelpRequestDetails';
 
-// Admin Donations
+// Admin donations
 import AdminDonations from '@/dashboard/admin/donations/Donations';
 import AdminDonationDetails from '@/dashboard/admin/donations/DonationDetails';
 
-// Admin Campaigns
+// Admin campaigns
 import AdminCampaigns from '@/dashboard/admin/campaigns/Campaigns';
+import AdminAddCampaign from '@/dashboard/admin/campaigns/AddCampaign';
 import AdminCampaignDetails from '@/dashboard/admin/campaigns/CampaignDetails';
 
-// Admin Contact Messages
+// Admin contact messages
 import AdminContactMessages from '@/dashboard/admin/contactMessages/ContactMessages';
 import AdminContactMessageDetails from '@/dashboard/admin/contactMessages/ContactMessageDetails';
 
-// Other Admin Pages
+// Other admin pages
 import AdminProfile from '@/dashboard/admin/profile/Profile';
 import AdminSecurity from '@/dashboard/admin/security/Security';
 import AdminSettings from '@/dashboard/admin/settings/Settings';
 import AdminNotifications from '@/dashboard/admin/notifications/Notifications';
 
-// =========================
-// ORGANIZATION DASHBOARD
-// =========================
-
+// Organization dashboard
 import OrgDashboard from '@/dashboard/organization/dashboard/OrgDashboard';
 import OrganizationHelpRequests from '@/dashboard/organization/helpRequests/OrgHelpRequests';
 import OrganizationCampaigns from '@/dashboard/organization/campaigns/OrgCampaigns';
@@ -108,10 +94,7 @@ import OrganizationProfile from '@/dashboard/organization/profile/OrgProfile';
 import OrganizationNotifications from '@/dashboard/organization/notification/OrgNotifications';
 import OrganizationSettings from '@/dashboard/organization/settings/OrgSettings';
 
-// =========================
-// INDIVIDUAL DASHBOARD
-// =========================
-
+// Individual dashboard
 import IndividualDashboard from '@/dashboard/individual/dashboard/IndividualDashboard';
 import IndividualCampaigns from '@/dashboard/individual/campaigns/IndividualCampaigns';
 import IndividualNotifications from '@/dashboard/individual/notifications/IndividualNotifications';
@@ -121,192 +104,69 @@ import MyDonations from '@/dashboard/individual/myDonations/MyDonations';
 import MyHelpRequests from '@/dashboard/individual/myHelpRequests/MyHelpRequests';
 import MyVolunteerActivities from '@/dashboard/individual/myVolunteerActivities/MyVolunteerActivities';
 
-// =========================
-// SHARED HELP PAGE
-// =========================
-
-// Create this component in the next step.
+// Shared help page
 import HelpPage from '@/pages/help/HelpPage';
 
-// =========================
-// ROUTER CONFIGURATION
-// =========================
-
 const router = createBrowserRouter([
-    // ==========================================
     // PUBLIC ROUTES
-    // ==========================================
     {
         path: '/',
         element: <PublicLayout />,
         children: [
-            {
-                index: true,
-                element: <Home />,
-            },
-            {
-                path: 'how-it-works',
-                element: <HowItWorksPage />,
-            },
-            {
-                path: 'about',
-                element: <About />,
-            },
-            {
-                path: 'about/mission',
-                element: <Mission />,
-            },
-            {
-                path: 'about/story',
-                element: <Story />,
-            },
-            {
-                path: 'about/team',
-                element: <Team />,
-            },
-            {
-                path: 'about/impact',
-                element: <Impact />,
-            },
-            {
-                path: 'about/reports',
-                element: <Report />,
-            },
-            {
-                path: 'about/trust-safety',
-                element: <TrustSafety />,
-            },
+            { index: true, element: <Home /> },
+            { path: 'how-it-works', element: <HowItWorksPage /> },
 
-            // Categories
-            {
-                path: 'categories',
-                element: <Categories />,
-            },
-            {
-                path: 'categories/:categoryId',
-                element: <Categories />,
-            },
+            { path: 'about', element: <About /> },
+            { path: 'about/mission', element: <Mission /> },
+            { path: 'about/story', element: <Story /> },
+            { path: 'about/team', element: <Team /> },
+            { path: 'about/impact', element: <Impact /> },
+            { path: 'about/reports', element: <Report /> },
+            { path: 'about/trust-safety', element: <TrustSafety /> },
 
-            // Campaigns
-            {
-                path: 'campaigns',
-                element: <Campaigns />,
-            },
-            {
-                path: 'campaigns/category/:categoryId',
-                element: <Campaigns />,
-            },
-            {
-                path: 'campaigns/featured',
-                element: <FeaturedCampaigns />,
-            },
-            {
-                path: 'campaigns/urgent',
-                element: <UrgentCampaigns />,
-            },
-            {
-                path: 'campaign/:id',
-                element: <CampaignDetails />,
-            },
+            { path: 'categories', element: <Categories /> },
+            { path: 'categories/:categoryId', element: <Categories /> },
 
-            // Donations
-            {
-                path: 'donate',
-                element: <DonateHub />,
-            },
-            {
-                path: 'donate/:id',
-                element: <Donate />,
-            },
-            {
-                path: 'donation/payment-result',
-                element: <PaymentResult />,
-            },
+            { path: 'campaigns', element: <Campaigns /> },
+            { path: 'campaigns/category/:categoryId', element: <Campaigns /> },
+            { path: 'campaigns/featured', element: <FeaturedCampaigns /> },
+            { path: 'campaigns/urgent', element: <UrgentCampaigns /> },
+            { path: 'campaign/:id', element: <CampaignDetails /> },
 
-            // Volunteer
-            {
-                path: 'volunteer',
-                element: <Volunteer />,
-            },
+            { path: 'donate', element: <DonateHub /> },
+            { path: 'donate/:id', element: <Donate /> },
+            { path: 'donation/payment-result', element: <PaymentResult /> },
 
-            // Request Help
-            {
-                path: 'request-help',
-                element: <RequestHelp />,
-            },
-
-            // Organizations
-            {
-                path: 'organizations',
-                element: <Organizations />,
-            },
-
-            // Community
-            {
-                path: 'community',
-                element: <Community />,
-            },
-
-            // General Help & Support
-            {
-                path: 'help',
-                element: <HelpPage />,
-            },
+            { path: 'volunteer', element: <Volunteer /> },
+            { path: 'request-help', element: <RequestHelp /> },
+            { path: 'organizations', element: <Organizations /> },
+            { path: 'community', element: <Community /> },
+            { path: 'help', element: <HelpPage /> },
 
             { path: 'privacy', element: <PrivacyPolicyPage /> },
             { path: 'terms', element: <TermsPage /> },
             { path: 'accessibility', element: <AccessibilityPage /> },
-
-            {
-                path: 'contact',
-                element: <ContactPage />,
-            },
+            { path: 'contact', element: <ContactPage /> },
         ],
     },
 
-    // ==========================================
     // AUTHENTICATION ROUTES
-    // ==========================================
     {
         path: '/login',
         element: <AuthLayout />,
-        children: [
-            {
-                index: true,
-                element: <Login />,
-            },
-        ],
+        children: [{ index: true, element: <Login /> }],
     },
     {
         path: '/register',
         element: <AuthLayout />,
-        children: [
-            {
-                index: true,
-                element: <Register />,
-            },
-        ],
+        children: [{ index: true, element: <Register /> }],
     },
-    {
-        path: '/email-verification',
-        element: <EmailVerification />,
-    },
-    {
-        path: '/reset-password',
-        element: <ResetPassword />,
-    },
-    {
-        path: '/forgot-password',
-        element: <ForgotPassword />,
-    },
-    {
-        path: '/admin/login',
-        element: <AdminLogin />,
-    },
+    { path: '/email-verification', element: <EmailVerification /> },
+    { path: '/reset-password', element: <ResetPassword /> },
+    { path: '/forgot-password', element: <ForgotPassword /> },
+    { path: '/admin/login', element: <AdminLogin /> },
 
-    // ==========================================
     // ADMIN DASHBOARD ROUTES
-    // ==========================================
     {
         path: '/admin/dashboard',
         element: <DashboardLayout />,
@@ -314,34 +174,19 @@ const router = createBrowserRouter([
             {
                 element: <ProtectedRoute allowedRoles={['admin']} />,
                 children: [
-                    {
-                        index: true,
-                        element: <AdminDashboard />,
-                    },
+                    { index: true, element: <AdminDashboard /> },
 
-                    // Admin Users
-                    {
-                        path: 'users',
-                        element: <AdminUsers />,
-                    },
-                    {
-                        path: 'users/add',
-                        element: <AdminAddUser />,
-                    },
-                    {
-                        path: 'users/:userId',
-                        element: <AdminUserDetails />,
-                    },
+                    // Users
+                    { path: 'users', element: <AdminUsers /> },
+                    { path: 'users/add', element: <AdminAddUser /> },
+                    { path: 'users/:userId', element: <AdminUserDetails /> },
                     {
                         path: 'users/:userId/edit',
                         element: <AdminUserDetails />,
                     },
 
-                    // Admin Organizations
-                    {
-                        path: 'organizations',
-                        element: <AdminOrganizations />,
-                    },
+                    // Organizations
+                    { path: 'organizations', element: <AdminOrganizations /> },
                     {
                         path: 'organizations/add',
                         element: <AdminAddOrganization />,
@@ -355,11 +200,8 @@ const router = createBrowserRouter([
                         element: <AdminOrganizationsDetails />,
                     },
 
-                    // Admin Volunteers
-                    {
-                        path: 'volunteers',
-                        element: <AdminVolunteers />,
-                    },
+                    // Volunteers
+                    { path: 'volunteers', element: <AdminVolunteers /> },
                     {
                         path: 'volunteers/requests',
                         element: <AdminVolunteerRequests />,
@@ -369,11 +211,8 @@ const router = createBrowserRouter([
                         element: <AdminVolunteerDetails />,
                     },
 
-                    // Admin Help Requests
-                    {
-                        path: 'help-requests',
-                        element: <AdminHelpRequests />,
-                    },
+                    // Help requests
+                    { path: 'help-requests', element: <AdminHelpRequests /> },
                     {
                         path: 'help-requests/:requestId',
                         element: <AdminHelpRequestDetails />,
@@ -383,45 +222,31 @@ const router = createBrowserRouter([
                         element: <AdminHelpRequestDetails />,
                     },
 
-                    // Admin Donations
-                    {
-                        path: 'donations',
-                        element: <AdminDonations />,
-                    },
+                    // Donations
+                    { path: 'donations', element: <AdminDonations /> },
                     {
                         path: 'donations/:donationId',
                         element: <AdminDonationDetails />,
                     },
 
-                    // Admin Campaigns
+                    // Campaigns
+                    { path: 'campaigns', element: <AdminCampaigns /> },
                     {
-                        path: 'campaigns',
-                        element: <AdminCampaigns />,
+                        path: 'campaigns/add',
+                        element: <AdminAddCampaign />,
                     },
                     {
                         path: 'campaigns/:id',
                         element: <AdminCampaignDetails />,
                     },
 
-                    // Admin Profile & Settings
-                    {
-                        path: 'profile',
-                        element: <AdminProfile />,
-                    },
-                    {
-                        path: 'profile/edit',
-                        element: <AdminProfile />,
-                    },
-                    {
-                        path: 'security',
-                        element: <AdminSecurity />,
-                    },
-                    {
-                        path: 'settings',
-                        element: <AdminSettings />,
-                    },
+                    // Profile and settings
+                    { path: 'profile', element: <AdminProfile /> },
+                    { path: 'profile/edit', element: <AdminProfile /> },
+                    { path: 'security', element: <AdminSecurity /> },
+                    { path: 'settings', element: <AdminSettings /> },
 
-                    // Admin Contact Messages
+                    // Contact messages
                     {
                         path: 'contact-messages',
                         element: <AdminContactMessages />,
@@ -431,25 +256,15 @@ const router = createBrowserRouter([
                         element: <AdminContactMessageDetails />,
                     },
 
-                    // Admin Help
-                    {
-                        path: 'help',
-                        element: <HelpPage />,
-                    },
-                    
-                    // Admin Notifications
-                    {
-                        path: 'notifications',
-                        element: <AdminNotifications />,
-                    },
+                    // Help and notifications
+                    { path: 'help', element: <HelpPage /> },
+                    { path: 'notifications', element: <AdminNotifications /> },
                 ],
             },
         ],
     },
 
-    // ==========================================
     // INDIVIDUAL DASHBOARD ROUTES
-    // ==========================================
     {
         path: '/individual/dashboard',
         element: <DashboardLayout />,
@@ -457,56 +272,28 @@ const router = createBrowserRouter([
             {
                 element: <ProtectedRoute allowedRoles={['individual']} />,
                 children: [
-                    {
-                        index: true,
-                        element: <IndividualDashboard />,
-                    },
-                    {
-                        path: 'help-requests',
-                        element: <MyHelpRequests />,
-                    },
-                    {
-                        path: 'donations',
-                        element: <MyDonations />,
-                    },
+                    { index: true, element: <IndividualDashboard /> },
+                    { path: 'help-requests', element: <MyHelpRequests /> },
+                    { path: 'donations', element: <MyDonations /> },
                     {
                         path: 'donation/payment-result',
                         element: <PaymentResult />,
                     },
-                    {
-                        path: 'volunteer',
-                        element: <MyVolunteerActivities />,
-                    },
-                    {
-                        path: 'campaigns',
-                        element: <IndividualCampaigns />,
-                    },
+                    { path: 'volunteer', element: <MyVolunteerActivities /> },
+                    { path: 'campaigns', element: <IndividualCampaigns /> },
                     {
                         path: 'notifications',
                         element: <IndividualNotifications />,
                     },
-                    {
-                        path: 'profile',
-                        element: <IndividualProfile />,
-                    },
-                    {
-                        path: 'settings',
-                        element: <IndividualSettings />,
-                    },
-
-                    // Individual Help
-                    {
-                        path: 'help',
-                        element: <HelpPage />,
-                    },
+                    { path: 'profile', element: <IndividualProfile /> },
+                    { path: 'settings', element: <IndividualSettings /> },
+                    { path: 'help', element: <HelpPage /> },
                 ],
             },
         ],
     },
 
-    // ==========================================
     // ORGANIZATION DASHBOARD ROUTES
-    // ==========================================
     {
         path: '/organization/dashboard',
         element: <DashboardLayout />,
@@ -514,52 +301,27 @@ const router = createBrowserRouter([
             {
                 element: <ProtectedRoute allowedRoles={['organization']} />,
                 children: [
-                    {
-                        index: true,
-                        element: <OrgDashboard />,
-                    },
+                    { index: true, element: <OrgDashboard /> },
                     {
                         path: 'help-requests',
                         element: <OrganizationHelpRequests />,
                     },
-                    {
-                        path: 'campaigns',
-                        element: <OrganizationCampaigns />,
-                    },
-                    {
-                        path: 'volunteers',
-                        element: <OrganizationVolunteers />,
-                    },
-                    {
-                        path: 'reports',
-                        element: <OrganizationReports />,
-                    },
-                    {
-                        path: 'profile',
-                        element: <OrganizationProfile />,
-                    },
+                    { path: 'campaigns', element: <OrganizationCampaigns /> },
+                    { path: 'volunteers', element: <OrganizationVolunteers /> },
+                    { path: 'reports', element: <OrganizationReports /> },
+                    { path: 'profile', element: <OrganizationProfile /> },
                     {
                         path: 'notifications',
                         element: <OrganizationNotifications />,
                     },
-                    {
-                        path: 'settings',
-                        element: <OrganizationSettings />,
-                    },
-
-                    // Organization Help
-                    {
-                        path: 'help',
-                        element: <HelpPage />,
-                    },
+                    { path: 'settings', element: <OrganizationSettings /> },
+                    { path: 'help', element: <HelpPage /> },
                 ],
             },
         ],
     },
 
-    // ==========================================
-    // 404 NOT FOUND
-    // ==========================================
+    // NOT FOUND
     {
         path: '*',
         element: <NotFound />,

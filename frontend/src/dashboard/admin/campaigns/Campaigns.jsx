@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import {
     ArrowDown,
@@ -17,7 +18,6 @@ import LoadingError from '@/components/dashboard/LoadingError';
 import SuccessDialog from '@/components/dashboard/SuccessDialog';
 
 import CampaignStats from './components/Stats';
-import CampaignCategoryTabs from './components/CategoryTabs';
 import CampaignFilters from './components/Filters';
 import CampaignTable from './components/Table';
 import CampaignPagination from './components/Pagination';
@@ -27,7 +27,6 @@ import CampaignVerificationModal from './modals/VerificationModal';
 // import CampaignStatusUpdateModal from "./modals/StatusUpdateModal";
 import CampaignEditModal from './modals/EditModal';
 import CampaignRelatedDetailsModal from './modals/RelatedDetailsModal';
-import CampaignCreateModal from './modals/CampaignCreateModal';
 import CampaignAssignmentModal from './modals/AssignmentModal';
 
 import {
@@ -38,7 +37,6 @@ import {
     verifyCampaign,
     // updateCampaignStatus,
     updateCampaign,
-    createCampaign,
 } from './api/campaignsAPI';
 
 const CAMPAIGNS_PER_PAGE = 25;
@@ -111,6 +109,7 @@ const getCampaignTypeLabel = (type) => {
 };
 
 const Campaigns = () => {
+    const navigate = useNavigate();
     // =========================================================
     // Campaign data
     // =========================================================
@@ -138,10 +137,6 @@ const Campaigns = () => {
     // =========================================================
     // Create modal
     // =========================================================
-
-    const [createCampaignOpen, setCreateCampaignOpen] = useState(false);
-    const [createLoading, setCreateLoading] = useState(false);
-    const [createError, setCreateError] = useState('');
 
     // =========================================================
     // View modal
@@ -497,11 +492,6 @@ const Campaigns = () => {
         setCurrentPage(1);
     };
 
-    const handleStatusChange = (event) => {
-        setStatusFilter(event.target.value);
-        setCurrentPage(1);
-    };
-
     const handleSearchChange = (event) => {
         setSearchTerm(event.target.value);
         setCurrentPage(1);
@@ -550,47 +540,7 @@ const Campaigns = () => {
     // Create campaign
     // =========================================================
 
-    const handleCreate = () => {
-        setCreateError('');
-        setCreateCampaignOpen(true);
-    };
-
-    const handleCreateConfirm = async (payload) => {
-        try {
-            setCreateLoading(true);
-            setCreateError('');
-
-            const data = await createCampaign(payload);
-
-            const createdCampaign = data?.campaign || data?.data || data;
-
-            if (createdCampaign) {
-                const normalizedCampaign = normalizeCampaign({
-                    ...createdCampaign,
-                    status: createdCampaign.status || 'unverified',
-                });
-
-                setCampaigns((current) => [normalizedCampaign, ...current]);
-            } else {
-                const refreshed = await fetchCampaigns();
-
-                const fetchedCampaigns =
-                    refreshed?.campaigns || refreshed?.data || [];
-
-                setCampaigns(normalizeCampaigns(fetchedCampaigns));
-            }
-
-            setCreateCampaignOpen(false);
-            setCreateError('');
-            setCurrentPage(1);
-
-            showSuccessToast('Campaign created successfully.');
-        } catch (err) {
-            setCreateError(err?.message || 'Campaign creation failed.');
-        } finally {
-            setCreateLoading(false);
-        }
-    };
+    const handleCreate = () => navigate('/admin/dashboard/campaigns/add');
 
     // =========================================================
     // View
@@ -1252,43 +1202,19 @@ const Campaigns = () => {
     };
 
     const filterPanel = (
-        <div className="min-w-0">
-            <div className="border-b border-[#29323E] bg-[#151C25] px-5 py-5">
-                <h3 className="text-[15px] font-semibold text-[#EEF1F5]">
-                    Filter campaigns
-                </h3>
-                <p className="mt-1 text-[12px] text-[#8792A1]">
-                    Narrow down campaign records.
-                </p>
-            </div>
-            <div className="px-4 py-5 sm:px-5">
-                <CampaignCategoryTabs
-                    tabs={categoryTabs}
-                    activeCategory={activeCategory}
-                    onChange={handleCategoryChange}
-                />
-                <div className="mt-6 border-t border-[#29323E] pt-5">
-                    <CampaignFilters
-                        typeFilter={typeFilter}
-                        categoryFilter={categoryFilter}
-                        organizationFilter={organizationFilter}
-                        statusFilter={statusFilter}
-                        campaigns={campaigns}
-                        onTypeChange={handleTypeChange}
-                        onCategoryChange={handleCategoryFilterChange}
-                        onOrganizationChange={handleOrganizationChange}
-                        onStatusChange={handleStatusChange}
-                    />
-                </div>
-                <button
-                    type="button"
-                    onClick={resetFilters}
-                    className="mt-5 h-9 w-full border border-[#343E4B] text-[12px] font-medium text-[#AEB7C3] transition-colors hover:bg-[#1A222D]"
-                >
-                    Clear filters
-                </button>
-            </div>
-        </div>
+        <CampaignFilters
+            categoryTabs={categoryTabs}
+            activeCategory={activeCategory}
+            onStatusCategoryChange={handleCategoryChange}
+            typeFilter={typeFilter}
+            categoryFilter={categoryFilter}
+            organizationFilter={organizationFilter}
+            campaigns={campaigns}
+            onTypeChange={handleTypeChange}
+            onCategoryChange={handleCategoryFilterChange}
+            onOrganizationChange={handleOrganizationChange}
+            onClearFilters={resetFilters}
+        />
     );
 
     return (
@@ -1446,24 +1372,6 @@ const Campaigns = () => {
                 message={successToast.message}
                 onClose={() => setSuccessToast({ show: false, message: '' })}
             />
-
-            {/* =====================================================
-          CREATE MODAL
-      ===================================================== */}
-
-            {createCampaignOpen && (
-                <CampaignCreateModal
-                    loading={createLoading}
-                    error={createError}
-                    onClose={() => {
-                        if (!createLoading) {
-                            setCreateCampaignOpen(false);
-                            setCreateError('');
-                        }
-                    }}
-                    onConfirm={handleCreateConfirm}
-                />
-            )}
 
             {/* =====================================================
           VIEW MODAL

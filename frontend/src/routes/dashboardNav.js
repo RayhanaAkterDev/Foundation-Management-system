@@ -46,49 +46,25 @@ export const NAV_CONFIG = {
             key: 'help-requests',
             label: 'Help Requests',
             icon: HeartHandshake,
-            children: [
-                {
-                    key: 'help-requests-all',
-                    label: 'My Help Requests',
-                    path: '/individual/dashboard/help-requests',
-                },
-            ],
+            path: '/individual/dashboard/help-requests',
         },
         {
             key: 'donations',
             label: 'Donations',
             icon: HandCoins,
-            children: [
-                {
-                    key: 'donations-all',
-                    label: 'My Donations',
-                    path: '/individual/dashboard/donations',
-                },
-            ],
+            path: '/individual/dashboard/donations',
         },
         {
             key: 'volunteer',
             label: 'Volunteer Activities',
             icon: Users,
-            children: [
-                {
-                    key: 'volunteer-all',
-                    label: 'My Activities',
-                    path: '/individual/dashboard/volunteer',
-                },
-            ],
+            path: '/individual/dashboard/volunteer',
         },
         {
             key: 'campaigns',
             label: 'Campaigns',
             icon: Megaphone,
-            children: [
-                {
-                    key: 'campaigns-all',
-                    label: 'Browse Campaigns',
-                    path: '/individual/dashboard/campaigns',
-                },
-            ],
+            path: '/individual/dashboard/campaigns',
         },
 
         {
@@ -141,50 +117,32 @@ export const NAV_CONFIG = {
             key: 'help-requests',
             label: 'Help Requests',
             icon: ClipboardList,
-            children: [
-                {
-                    key: 'help-requests-all',
-                    label: 'View All Requests',
-                    path: '/organization/dashboard/help-requests',
-                },
-            ],
+            path: '/organization/dashboard/help-requests',
         },
         {
             key: 'campaigns',
             label: 'Campaigns',
             icon: Megaphone,
-            children: [
-                {
-                    key: 'campaigns-all',
-                    label: 'View All Campaigns',
-                    path: '/organization/dashboard/campaigns',
-                },
-            ],
+            path: '/organization/dashboard/campaigns',
         },
         {
             key: 'volunteers',
             label: 'Volunteers',
             icon: Users,
-            children: [
-                {
-                    key: 'volunteers-all',
-                    label: 'View Volunteers',
-                    path: '/organization/dashboard/volunteers',
-                },
-            ],
+            path: '/organization/dashboard/volunteers',
         },
 
-        {
-            type: 'section',
-            key: 'insights',
-            label: 'Insights',
-        },
-        {
-            key: 'reports',
-            label: 'Impact & Reports',
-            icon: BarChart3,
-            path: '/organization/dashboard/reports',
-        },
+        // {
+        //     type: 'section',
+        //     key: 'insights',
+        //     label: 'Insights',
+        // },
+        // {
+        //     key: 'reports',
+        //     label: 'Impact & Reports',
+        //     icon: BarChart3,
+        //     path: '/organization/dashboard/reports',
+        // },
 
         {
             type: 'section',
@@ -331,18 +289,18 @@ admin: [
     },
 
     // Communication
-    {
-        type: 'section',
-        key: 'communication',
-        label: 'Communication',
-    },
-    {
-        key: 'contact-messages',
-        label: 'Contact Messages',
-        icon: MessageSquareText,
-        path: '/admin/dashboard/contact-messages',
+    // {
+    //     type: 'section',
+    //     key: 'communication',
+    //     label: 'Communication',
+    // },
+    // {
+    //     key: 'contact-messages',
+    //     label: 'Contact Messages',
+    //     icon: MessageSquareText,
+    //     path: '/admin/dashboard/contact-messages',
 
-    },
+    // },
     {
         key: 'notifications',
         label: 'Notifications',

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
     ArrowUpRight,
     Eye,
@@ -62,8 +62,47 @@ async function parseResponse(response) {
 }
 
 /* =========================================================
+   ROLE CONFIGURATION
+========================================================= */
+
+const ROLE_CONFIG = {
+    admin: {
+        accountType: 'administrator',
+        accessTitle: 'Administrator access',
+        accessDescription: 'Access to the administration dashboard.',
+        profilePath: '/admin/dashboard/profile',
+        editPath: '/admin/dashboard/profile/edit',
+    },
+    individual: {
+        accountType: 'individual',
+        accessTitle: 'Individual account',
+        accessDescription: 'Access to your individual dashboard.',
+        profilePath: '/individual/dashboard/profile',
+        editPath: '/individual/dashboard/profile/edit',
+    },
+    organization: {
+        accountType: 'organization',
+        accessTitle: 'Organization account',
+        accessDescription: 'Access to your organization dashboard.',
+        profilePath: '/organization/dashboard/profile',
+        editPath: '/organization/dashboard/profile/edit',
+    },
+};
+
+function getDashboardRole(pathname) {
+    if (pathname.startsWith('/organization/dashboard')) {
+        return 'organization';
+    }
+
+    if (pathname.startsWith('/individual/dashboard')) {
+        return 'individual';
+    }
+
+    return 'admin';
+}
+
+/* =========================================================
    PASSWORD FIELD
-   Uses shared DashboardInput
 ========================================================= */
 
 function PasswordField({
@@ -121,7 +160,6 @@ function PasswordField({
 
 /* =========================================================
    SIDEBAR INFORMATION ROW
-   Icons on items only, no icon boxes
 ========================================================= */
 
 function SecurityRow({
@@ -196,8 +234,9 @@ function SecurityRow({
    ACCOUNT SECURITY SIDEBAR
 ========================================================= */
 
-function AccountSecuritySidebar() {
+function AccountSecuritySidebar({ role }) {
     const navigate = useNavigate();
+    const config = ROLE_CONFIG[role];
 
     return (
         <aside
@@ -206,8 +245,6 @@ function AccountSecuritySidebar() {
                 border border-[#29323E] bg-[#0E1219]
             "
         >
-            {/* SIDEBAR HEADER - NO ICON */}
-
             <div
                 className="
                     border-b border-[#29323E]
@@ -235,13 +272,11 @@ function AccountSecuritySidebar() {
                 </p>
             </div>
 
-            {/* INFORMATION ITEMS */}
-
             <div className="min-w-0 flex-1 px-5 sm:px-6">
                 <SecurityRow
                     icon={ShieldCheck}
-                    title="Administrator access"
-                    description="Access to the administration dashboard."
+                    title={config.accessTitle}
+                    description={config.accessDescription}
                 />
 
                 <SecurityRow
@@ -249,7 +284,7 @@ function AccountSecuritySidebar() {
                     title="Email verification"
                     description="Review your registered email and verification status."
                     action="View profile"
-                    onAction={() => navigate('/admin/dashboard/profile')}
+                    onAction={() => navigate(config.profilePath)}
                 />
 
                 <SecurityRow
@@ -257,7 +292,7 @@ function AccountSecuritySidebar() {
                     title="Account information"
                     description="Manage your personal and contact details."
                     action="Edit profile"
-                    onAction={() => navigate('/admin/dashboard/profile/edit')}
+                    onAction={() => navigate(config.editPath)}
                     last
                 />
             </div>
@@ -270,6 +305,11 @@ function AccountSecuritySidebar() {
 ========================================================= */
 
 export default function Security() {
+    const location = useLocation();
+
+    const role = getDashboardRole(location.pathname);
+    const config = ROLE_CONFIG[role];
+
     const [form, setForm] = useState(initialForm);
     const [visibleFields, setVisibleFields] = useState({});
     const [saving, setSaving] = useState(false);
@@ -396,18 +436,10 @@ export default function Security() {
 
     return (
         <div className="min-w-0 space-y-6 pb-8 font-sans">
-            {/* =============================================
-                PAGE HEADER
-            ============================================= */}
-
             <PageHeader
                 title="Account Security"
-                subtitle="Manage your password and administrator account security."
+                subtitle={`Manage your password and ${config.accountType} account security.`}
             />
-
-            {/* =============================================
-                MAIN TWO-COLUMN LAYOUT
-            ============================================= */}
 
             <div
                 className="
@@ -416,9 +448,7 @@ export default function Security() {
                     xl:grid-cols-[minmax(0,1fr)_360px]
                 "
             >
-                {/* =========================================
-                    PASSWORD MANAGEMENT
-                ========================================= */}
+                {/* PASSWORD MANAGEMENT */}
 
                 <section
                     className="
@@ -427,8 +457,6 @@ export default function Security() {
                         bg-[#0E1219]
                     "
                 >
-                    {/* PASSWORD SECTION HEADER */}
-
                     <div
                         className="
                             border-b border-[#29323E]
@@ -465,19 +493,15 @@ export default function Security() {
                                 <p
                                     className="
                                         mt-1 text-[13px]
-                                        leading-5
-                                        text-[#909CAB]!
+                                        leading-5 text-[#909CAB]!
                                     "
                                 >
-                                    Update your administrator account password.
+                                    Update your {config.accountType} account
+                                    password.
                                 </p>
                             </div>
                         </div>
                     </div>
-
-                    {/* =====================================
-                        PASSWORD FORM
-                    ===================================== */}
 
                     <form
                         onSubmit={handleSubmit}
@@ -490,8 +514,6 @@ export default function Security() {
                                 sm:px-7 sm:py-7
                             "
                         >
-                            {/* ERROR STATE */}
-
                             {error && (
                                 <div className="mb-6">
                                     <LoadingError
@@ -522,20 +544,11 @@ export default function Security() {
                                 disabled={saving}
                             />
 
-                            {/* DIVIDER */}
+                            <div className="my-6 border-t border-[#27313D]" />
 
-                            <div
-                                className="
-                                    my-6 border-t
-                                    border-[#27313D]
-                                "
-                            />
-
-                            {/* NEW PASSWORD GROUP */}
+                            {/* NEW PASSWORD */}
 
                             <div className="space-y-5">
-                                {/* NEW PASSWORD */}
-
                                 <div className="min-w-0">
                                     <PasswordField
                                         id="password"
@@ -555,8 +568,6 @@ export default function Security() {
                                         placeholder="Create a new password"
                                         disabled={saving}
                                     />
-
-                                    {/* SUBTLE REQUIREMENT HINT */}
 
                                     <p
                                         className="
@@ -595,8 +606,6 @@ export default function Security() {
                                         disabled={saving}
                                     />
 
-                                    {/* PASSWORD MATCH STATUS */}
-
                                     {form.password_confirmation && (
                                         <div
                                             className={`
@@ -630,9 +639,7 @@ export default function Security() {
                             </div>
                         </div>
 
-                        {/* =================================
-                            FORM ACTION FOOTER
-                        ================================= */}
+                        {/* FORM ACTIONS */}
 
                         <div
                             className="
@@ -640,14 +647,10 @@ export default function Security() {
                                 border-t border-[#29323E]
                                 bg-[#131A23]
                                 px-5 py-4
-                                sm:flex-row
-                                sm:items-center
-                                sm:justify-end
-                                sm:px-7
+                                sm:flex-row sm:items-center
+                                sm:justify-end sm:px-7
                             "
                         >
-                            {/* CLEAR FIELDS */}
-
                             <button
                                 type="button"
                                 onClick={handleReset}
@@ -656,8 +659,7 @@ export default function Security() {
                                     inline-flex min-h-10
                                     items-center justify-center
                                     border border-[#343E4B]
-                                    px-5
-                                    text-[13px] font-medium
+                                    px-5 text-[13px] font-medium
                                     text-[#AFBAC7]!
                                     transition-colors
                                     hover:bg-[#1B2530]
@@ -668,25 +670,20 @@ export default function Security() {
                                 Clear fields
                             </button>
 
-                            {/* UPDATE PASSWORD */}
-
                             <button
                                 type="submit"
                                 disabled={saving}
                                 className="
                                     inline-flex min-h-10 w-full
                                     items-center justify-center
-                                    gap-2.5
-                                    bg-[#0F766E]
-                                    px-5
+                                    gap-2.5 bg-[#0F766E] px-5
                                     text-[13px] font-semibold
                                     text-white!
                                     transition-colors
                                     hover:bg-[#115E59]
                                     disabled:cursor-not-allowed
                                     disabled:opacity-60
-                                    sm:w-auto
-                                    sm:min-w-[174px]
+                                    sm:w-auto sm:min-w-[174px]
                                 "
                             >
                                 {saving ? (
@@ -708,27 +705,21 @@ export default function Security() {
                     </form>
                 </section>
 
-                {/* =========================================
-                    ACCOUNT SECURITY SIDEBAR
-                ========================================= */}
+                {/* ROLE-SPECIFIC ACCOUNT INFORMATION */}
 
-                <AccountSecuritySidebar />
+                <AccountSecuritySidebar role={role} />
             </div>
 
-            {/* =============================================
-                SHARED SUCCESS DIALOG
-            ============================================= */}
+            {/* SUCCESS DIALOG */}
 
             <SuccessDialog
                 open={successOpen}
                 title="Password updated"
-                message="Your administrator password has been changed successfully."
+                message={`Your ${config.accountType} password has been changed successfully.`}
                 onClose={() => setSuccessOpen(false)}
             />
 
-            {/* =============================================
-                PASSWORD AUTOFILL STYLING
-            ============================================= */}
+            {/* PASSWORD AUTOFILL STYLING */}
 
             <style>
                 {`

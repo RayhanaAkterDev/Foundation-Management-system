@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 
+import PageHeader from '@/components/dashboard/PageHeader';
 import LoadingUI from '@/components/dashboard/LoadingUI';
 import LoadingError from '@/components/dashboard/LoadingError';
 import SuccessDialog from '@/components/dashboard/SuccessDialog';
@@ -136,38 +138,80 @@ function HelpRequestDetails() {
         });
     };
 
+    const handleBack = () => {
+        navigate(BASE);
+    };
+
+    const handleCancelEdit = () => {
+        navigate(`${BASE}/${requestId}`);
+    };
+
+    const header = (
+        <PageHeader
+            title={isEditing ? 'Edit help request' : 'Help request details'}
+            subtitle={
+                isEditing
+                    ? 'Update the information associated with this request.'
+                    : 'Review request information, verification and assignments.'
+            }
+            action={
+                <button
+                    type="button"
+                    onClick={isEditing ? handleCancelEdit : handleBack}
+                    className="
+                        inline-flex min-h-10 items-center
+                        justify-center gap-2
+                        border border-[#343E4B]
+                        bg-[#151C25] px-4
+                        text-[13px] font-medium text-[#C4CDD8]
+                        transition-colors
+                        hover:bg-[#202A35]
+                        hover:text-[#EEF1F5]
+                    "
+                >
+                    <ArrowLeft size={15} strokeWidth={1.8} />
+                    {isEditing ? 'Back to details' : 'All help requests'}
+                </button>
+            }
+        />
+    );
+
     if (loading) {
         return (
-            <LoadingUI
-                variant="page"
-                title="Loading help request..."
-                description="Please wait while we retrieve the request details."
-            />
+            <div className="min-w-0 space-y-6 pb-10 font-sans">
+                {header}
+
+                <LoadingUI
+                    variant="page"
+                    title={
+                        isEditing
+                            ? 'Loading request for editing...'
+                            : 'Loading help request...'
+                    }
+                    description="Retrieving help request information."
+                />
+            </div>
         );
     }
 
     if (error || !request) {
         return (
-            <div className="space-y-4 py-5">
+            <div className="min-w-0 space-y-6 pb-10 font-sans">
+                {header}
+
                 <LoadingError
                     title="Unable to load help request"
                     message={error || 'Help request not found.'}
                     onRetry={handleRetry}
                 />
-
-                <button
-                    type="button"
-                    onClick={() => navigate(BASE)}
-                    className="text-sm text-[#AEB7C3] transition-colors hover:text-[#EEF1F5]"
-                >
-                    Back to all help requests
-                </button>
             </div>
         );
     }
 
     return (
-        <>
+        <div className="min-w-0 space-y-6 pb-10 font-sans">
+            {header}
+
             {isEditing ? (
                 <HelpRequestEditView
                     key={request.id}
@@ -175,13 +219,13 @@ function HelpRequestDetails() {
                     saving={saving}
                     error={saveError}
                     onSave={handleSave}
-                    onCancel={() => navigate(`${BASE}/${requestId}`)}
+                    onCancel={handleCancelEdit}
                 />
             ) : (
                 <HelpRequestDetailsView
                     request={request}
                     onEdit={() => navigate(`${BASE}/${requestId}/edit`)}
-                    onBack={() => navigate(BASE)}
+                    onBack={handleBack}
                 />
             )}
 
@@ -191,7 +235,7 @@ function HelpRequestDetails() {
                 message="The help request has been updated successfully."
                 onClose={handleSuccessClose}
             />
-        </>
+        </div>
     );
 }
 

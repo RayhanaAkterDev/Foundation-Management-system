@@ -14,6 +14,7 @@ use App\Models\Volunteer;
 use App\Models\VolunteerRequest;
 use App\Models\CampaignVolunteerAssignment;
 use App\Notifications\PlatformNotification;
+use ImageKit\ImageKit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -1367,7 +1368,7 @@ class AdminController extends Controller
 
         $helpRequests = HelpRequest::with([
             'user',
-            'assignments.organization',
+            'assignments.organization.user:id,email',
             'assignments.volunteer',
             'assignments.assignedBy',
         ])
@@ -2313,6 +2314,7 @@ class AdminController extends Controller
     |--------------------------------------------------------------------------
     */
 
+
     public function storeCampaign(Request $request)
     {
         $user = $this->authorizeAdmin($request);
@@ -2337,58 +2339,48 @@ class AdminController extends Controller
                 'string',
                 'max:255',
             ],
-
             'description' => [
                 'required',
                 'string',
             ],
-
             'category' => [
                 'required',
                 'string',
                 Rule::in($categories),
             ],
-
             'scope' => [
                 'nullable',
                 'string',
                 'in:global',
             ],
-
             'district' => [
                 'nullable',
                 'string',
                 'max:255',
             ],
-
             'location' => [
                 'nullable',
                 'string',
                 'max:255',
             ],
-
             'affected_areas' => [
                 'nullable',
                 'string',
             ],
-
             'target_amount' => [
                 'required',
                 'numeric',
                 'min:0',
             ],
-
             'start_date' => [
                 'nullable',
                 'date',
             ],
-
             'end_date' => [
                 'nullable',
                 'date',
                 'after_or_equal:start_date',
             ],
-
             'cover_image' => [
                 'nullable',
                 'image',
@@ -2397,12 +2389,51 @@ class AdminController extends Controller
             ],
         ]);
 
+        // Upload the campaign cover to ImageKit.
         $coverImagePath = null;
 
         if ($request->hasFile('cover_image')) {
-            $coverImagePath = $request
-                ->file('cover_image')
-                ->store('campaigns', 'public');
+            $file = $request->file('cover_image');
+            $fileContents = file_get_contents($file->getRealPath());
+
+            if ($fileContents === false) {
+                return response()->json([
+                    'message' => 'The campaign cover could not be read.',
+                ], 500);
+            }
+
+            try {
+                $imageKit = new ImageKit(
+                    config('services.imagekit.public_key'),
+                    config('services.imagekit.private_key'),
+                    config('services.imagekit.url_endpoint')
+                );
+
+                $uploadResponse = $imageKit->uploadFile([
+                    'file' => base64_encode($fileContents),
+                    'fileName' => $file->getClientOriginalName(),
+                    'folder' => '/campaigns',
+                    'useUniqueFileName' => true,
+                ]);
+            } catch (\Throwable $exception) {
+                report($exception);
+
+                return response()->json([
+                    'message' => 'The campaign cover could not be uploaded. Please try again.',
+                ], 500);
+            }
+
+            if (
+                !isset($uploadResponse->result) ||
+                !isset($uploadResponse->result->url)
+            ) {
+                return response()->json([
+                    'message' => 'ImageKit did not return a campaign cover URL.',
+                ], 500);
+            }
+
+            // Store the ImageKit URL, not a local file path.
+            $coverImagePath = $uploadResponse->result->url;
         }
 
         $campaign = DB::transaction(function () use (
@@ -2412,51 +2443,27 @@ class AdminController extends Controller
         ) {
             return Campaign::create([
                 'organization_id' => null,
-
                 'help_request_id' => null,
-
                 'type' => Campaign::TYPE_GLOBAL_SITUATION,
-
                 'created_by' => $user->id,
-
                 'title' => $validated['title'],
-
                 'description' => $validated['description'],
-
                 'category' => $validated['category'],
-
                 'scope' => 'global',
-
-                'district' =>
-                $validated['district'] ?? null,
-
-                'location' =>
-                $validated['location'] ?? null,
-
-                'affected_areas' =>
-                $validated['affected_areas'] ?? null,
-
-                'target_amount' =>
-                $validated['target_amount'],
-
-                'start_date' =>
-                $validated['start_date'] ?? null,
-
-                'end_date' =>
-                $validated['end_date'] ?? null,
-
+                'district' => $validated['district'] ?? null,
+                'location' => $validated['location'] ?? null,
+                'affected_areas' => $validated['affected_areas'] ?? null,
+                'target_amount' => $validated['target_amount'],
+                'start_date' => $validated['start_date'] ?? null,
+                'end_date' => $validated['end_date'] ?? null,
                 'cover_image' => $coverImagePath,
-
                 'status' => Campaign::STATUS_UNVERIFIED,
-
                 'proposal_date' => now(),
             ]);
         });
 
         return response()->json([
-            'message' =>
-            'Global situation campaign created successfully and is awaiting verification.',
-
+            'message' => 'Global situation campaign created successfully and is awaiting verification.',
             'campaign' => $campaign
                 ->fresh()
                 ->load([
@@ -2467,6 +2474,7 @@ class AdminController extends Controller
                 ]),
         ], 201);
     }
+
 
     /*
     |--------------------------------------------------------------------------
@@ -2503,6 +2511,7 @@ class AdminController extends Controller
     | Campaigns - Edit
     |--------------------------------------------------------------------------
     */
+
 
     public function updateCampaign(
         Request $request,
@@ -2581,7 +2590,67 @@ class AdminController extends Controller
                 'date',
                 'after_or_equal:start_date',
             ],
+
+            'cover_image' => [
+                'nullable',
+                'image',
+                'mimes:jpg,jpeg,png,webp',
+                'max:5120',
+            ],
+
+            'remove_cover_image' => [
+                'nullable',
+                'boolean',
+            ],
         ]);
+
+        // Preserve the existing cover unless the user replaces or removes it.
+        $coverImagePath = $campaign->cover_image;
+
+        if ($request->hasFile('cover_image')) {
+            $file = $request->file('cover_image');
+            $fileContents = file_get_contents($file->getRealPath());
+
+            if ($fileContents === false) {
+                return response()->json([
+                    'message' => 'The campaign cover could not be read.',
+                ], 500);
+            }
+
+            try {
+                $imageKit = new ImageKit(
+                    config('services.imagekit.public_key'),
+                    config('services.imagekit.private_key'),
+                    config('services.imagekit.url_endpoint')
+                );
+
+                $uploadResponse = $imageKit->uploadFile([
+                    'file' => base64_encode($fileContents),
+                    'fileName' => $file->getClientOriginalName(),
+                    'folder' => '/campaigns',
+                    'useUniqueFileName' => true,
+                ]);
+            } catch (\Throwable $exception) {
+                report($exception);
+
+                return response()->json([
+                    'message' => 'The campaign cover could not be uploaded. Please try again.',
+                ], 500);
+            }
+
+            if (
+                !isset($uploadResponse->result) ||
+                !isset($uploadResponse->result->url)
+            ) {
+                return response()->json([
+                    'message' => 'ImageKit did not return a campaign cover URL.',
+                ], 500);
+            }
+
+            $coverImagePath = $uploadResponse->result->url;
+        } elseif (!empty($validated['remove_cover_image'])) {
+            $coverImagePath = null;
+        }
 
         $campaign->update([
             'title' => $validated['title'],
@@ -2593,6 +2662,7 @@ class AdminController extends Controller
             'target_amount' => $validated['target_amount'],
             'start_date' => $validated['start_date'] ?? null,
             'end_date' => $validated['end_date'] ?? null,
+            'cover_image' => $coverImagePath,
         ]);
 
         return response()->json([
@@ -2608,6 +2678,7 @@ class AdminController extends Controller
                 ]),
         ]);
     }
+
 
     /*
     |--------------------------------------------------------------------------

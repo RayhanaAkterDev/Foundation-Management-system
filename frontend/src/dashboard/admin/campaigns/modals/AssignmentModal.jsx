@@ -1,18 +1,18 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
-    X,
-    Search,
-    UserRound,
-    UsersRound,
+    AlertCircle,
     Check,
     CheckCircle2,
     ClipboardCheck,
-    AlertCircle,
     LoaderCircle,
     MapPin,
+    Search,
+    UserRound,
+    UsersRound,
+    X,
 } from 'lucide-react';
 
-const scrollbarHidden =
+const hiddenScrollbar =
     '[scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden';
 
 const ACTIVE_STATUSES = [
@@ -64,6 +64,160 @@ const getStatusLabel = (status) => {
     return labels[status] || status?.replace(/_/g, ' ') || 'Assigned';
 };
 
+function SectionTitle({ icon: Icon, title, description, trailing }) {
+    return (
+        <div className="flex min-w-0 flex-wrap items-start justify-between gap-3">
+            <div className="flex min-w-0 items-start gap-3">
+                <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center border border-[#354251] bg-[#202A36] text-[#AAB8C8]">
+                    <Icon size={17} strokeWidth={1.8} />
+                </span>
+
+                <div className="min-w-0">
+                    <h3 className="m-0 text-[14px] font-semibold! leading-6 text-[#EEF1F5]!">
+                        {title}
+                    </h3>
+
+                    {description && (
+                        <p className="mt-0.5 text-[12px] leading-5 text-[#8792A1]">
+                            {description}
+                        </p>
+                    )}
+                </div>
+            </div>
+
+            {trailing}
+        </div>
+    );
+}
+
+function VolunteerOption({ volunteer, selected, disabled, onToggle }) {
+    const name = getVolunteerName(volunteer);
+    const email = getVolunteerEmail(volunteer);
+    const district = getVolunteerDistrict(volunteer);
+
+    return (
+        <label
+            className={[
+                'group flex min-w-0 cursor-pointer items-center gap-3 border px-3.5 py-3.5 transition-colors sm:gap-4 sm:px-4',
+                selected
+                    ? 'border-[#7389A5] bg-[#202C3B]'
+                    : 'border-[#303A47] bg-[#151C25] hover:border-[#4A5A6E] hover:bg-[#1B2531]',
+                disabled ? 'cursor-not-allowed opacity-50' : '',
+                'focus-within:outline focus-within:outline-1 focus-within:outline-[#8297B8]',
+            ].join(' ')}
+        >
+            <input
+                type="checkbox"
+                checked={selected}
+                disabled={disabled}
+                onChange={onToggle}
+                className="sr-only"
+                aria-label={`Select ${name}`}
+            />
+
+            <div
+                className={[
+                    'flex h-10 w-10 shrink-0 items-center justify-center border',
+                    selected
+                        ? 'border-[#536C89] bg-[#304158] text-[#D0DDF0]'
+                        : 'border-[#364352] bg-[#202A36] text-[#B8C5D3]',
+                ].join(' ')}
+            >
+                <UserRound size={19} strokeWidth={1.7} />
+            </div>
+
+            <div className="min-w-0 flex-1">
+                <p className="truncate text-[13px] font-semibold! leading-5 text-[#EEF1F5]!">
+                    {name}
+                </p>
+
+                {email && (
+                    <p className="mt-0.5 truncate text-[12px] leading-5 text-[#A1ACB9]">
+                        {email}
+                    </p>
+                )}
+
+                {district && (
+                    <div className="mt-1.5 flex min-w-0 items-center gap-1.5 text-[11px] text-[#8792A1]">
+                        <MapPin size={12} className="shrink-0" />
+                        <span className="truncate">{district}</span>
+                    </div>
+                )}
+            </div>
+
+            <span
+                aria-hidden="true"
+                className={[
+                    'flex h-[21px] w-[21px] shrink-0 items-center justify-center rounded-full border-[1.5px] transition-colors',
+                    selected
+                        ? 'border-[#AFC3DD] bg-[#AFC3DD] text-[#182332]'
+                        : 'border-[#68788B] bg-[#111821] text-transparent group-hover:border-[#AFC3DD]',
+                ].join(' ')}
+            >
+                <Check size={12} strokeWidth={3} />
+            </span>
+        </label>
+    );
+}
+
+function HistoryGroup({ title, assignments }) {
+    if (!assignments.length) return null;
+
+    return (
+        <div>
+            <div className="mb-2.5 flex items-center justify-between gap-3">
+                <h4 className="m-0 text-[12px] font-semibold! text-[#C5CFDB]">
+                    {title}
+                </h4>
+
+                <span className="text-[11px] tabular-nums text-[#8792A1]">
+                    {assignments.length}
+                </span>
+            </div>
+
+            <div className="overflow-hidden border border-[#303A47] bg-[#121922]">
+                {assignments.map((assignment, index) => {
+                    const volunteer =
+                        assignment.volunteer || assignment.user || assignment;
+
+                    return (
+                        <div
+                            key={
+                                assignment.id ??
+                                `${title}-${assignment._volunteerId}-${index}`
+                            }
+                            className={[
+                                'flex min-w-0 items-center gap-3 px-3.5 py-3',
+                                index > 0 ? 'border-t border-[#303A47]' : '',
+                            ].join(' ')}
+                        >
+                            <span className="flex h-8 w-8 shrink-0 items-center justify-center border border-[#34404F] bg-[#202A36] text-[#AAB8C8]">
+                                <UserRound size={15} />
+                            </span>
+
+                            <div className="min-w-0 flex-1">
+                                <p className="truncate text-[12px] font-medium! text-[#EEF1F5]!">
+                                    {getVolunteerName(volunteer)}
+                                </p>
+
+                                {getVolunteerEmail(volunteer) && (
+                                    <p className="mt-0.5 truncate text-[11px] text-[#8792A1]">
+                                        {getVolunteerEmail(volunteer)}
+                                    </p>
+                                )}
+                            </div>
+
+                            <span className="max-w-[110px] shrink-0 text-right text-[11px] leading-4 text-[#AAB8C8]">
+                                {getStatusLabel(assignment.status)}
+                            </span>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
 function AssignmentModal({
     campaign,
     volunteers = [],
@@ -76,6 +230,7 @@ function AssignmentModal({
     const [selectedIds, setSelectedIds] = useState([]);
     const [search, setSearch] = useState('');
     const [note, setNote] = useState('');
+    const [showHistory, setShowHistory] = useState(false);
 
     const existingAssignments = useMemo(() => {
         if (!Array.isArray(assignments)) return [];
@@ -163,6 +318,12 @@ function AssignmentModal({
 
     const selectedCount = selectedIds.length;
 
+    const historyGroups = [
+        { key: 'connected', title: 'Connected', items: connected },
+        { key: 'rejected', title: 'Rejected', items: rejected },
+        { key: 'previous', title: 'Previous', items: previous },
+    ].filter((group) => group.items.length > 0);
+
     const toggleVolunteer = (id) => {
         if (loading) return;
 
@@ -192,88 +353,47 @@ function AssignmentModal({
 
             onClose?.();
         } catch {
-            // Assignment errors are handled by the parent.
+            // Parent handles assignment errors.
         }
     };
 
     if (!campaign) return null;
 
-    const overviewItems = [
-        { label: 'Connected', value: connected.length },
-        { label: 'Rejected', value: rejected.length },
-        { label: 'Previous', value: previous.length },
-    ];
-
-    const historyGroups = [
-        { key: 'connected', title: 'Connected', items: connected },
-        { key: 'rejected', title: 'Rejected', items: rejected },
-        { key: 'previous', title: 'Previous', items: previous },
-    ].filter((group) => group.items.length > 0);
-
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#05070A]/80 p-0 backdrop-blur-[3px] sm:p-5">
-            {/* BACKDROP */}
-
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#05070A]/80 p-0 backdrop-blur-[3px] sm:p-4 lg:p-6">
             <button
                 type="button"
                 aria-label="Close assignment modal"
-                onClick={handleClose}
                 disabled={loading}
+                onClick={handleClose}
                 className="absolute inset-0 cursor-default"
             />
-
-            {/* MODAL */}
 
             <div
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="assignment-title"
-                className="
-                    relative z-10 flex w-full max-w-[1040px]
-                    flex-col overflow-hidden
-                    border border-[#303A47]
-                    bg-[#0E1219]
-                    font-['Poppins',sans-serif]
-                    shadow-[0_28px_90px_rgba(0,0,0,0.5)]
-                    max-sm:h-[100dvh]
-                    sm:max-h-[90dvh]
-                "
+                className="relative z-10 flex h-[100dvh] w-full max-w-[1060px] flex-col overflow-hidden border border-[#303A47] bg-[#0E1219] font-['Poppins',sans-serif] shadow-[0_28px_90px_rgba(0,0,0,0.5)] sm:h-auto sm:max-h-[92dvh]"
             >
-                {/* ================================================
-                    HEADER
-                ================================================ */}
+                {/* Header */}
+                <header className="shrink-0 border-b border-[#303A47] bg-[#19212B] px-5 py-4 sm:px-7 sm:py-5">
+                    <div className="flex items-start justify-between gap-4">
+                        <div className="flex min-w-0 items-start gap-3.5">
+                            <span className="flex h-10 w-10 shrink-0 items-center justify-center border border-[#3B4858] bg-[#253140] text-[#C3CFDD]">
+                                <ClipboardCheck size={19} strokeWidth={1.8} />
+                            </span>
 
-                <header className="shrink-0 border-b border-[#303A47] bg-[#1A222D] px-5 py-5 sm:px-7">
-                    <div className="flex items-start justify-between gap-5">
-                        <div className="min-w-0">
-                            <div className="flex items-center gap-3">
-                                <div className="hidden h-10 w-10 shrink-0 items-center justify-center border border-[#394656] bg-[#222D3A] text-[#B9C6D5] sm:flex">
-                                    <ClipboardCheck
-                                        size={19}
-                                        strokeWidth={1.7}
-                                    />
-                                </div>
+                            <div className="min-w-0">
+                                <h2
+                                    id="assignment-title"
+                                    className="m-0 text-[18px] font-semibold! leading-6 tracking-[-0.025em] text-[#EEF1F5]!"
+                                >
+                                    Assign volunteers
+                                </h2>
 
-                                <div className="min-w-0">
-                                    <h2
-                                        id="assignment-title"
-                                        className="
-                                            !m-0
-                                            !font-['Poppins',sans-serif]
-                                            !text-[19px]
-                                            !font-semibold
-                                            !leading-[1.4]
-                                            !tracking-[-0.025em]
-                                            !text-[#EEF1F5]
-                                        "
-                                    >
-                                        Assign volunteers
-                                    </h2>
-
-                                    <p className="mt-1 text-[12px] leading-5 text-[#96A2B1]">
-                                        {campaign.title || 'Campaign'}
-                                    </p>
-                                </div>
+                                <p className="mt-1.5 truncate text-[12px] leading-5 text-[#9BA8B7]">
+                                    {campaign.title || 'Campaign'}
+                                </p>
                             </div>
                         </div>
 
@@ -282,58 +402,37 @@ function AssignmentModal({
                             onClick={handleClose}
                             disabled={loading}
                             aria-label="Close"
-                            className="
-                                flex h-9 w-9 shrink-0
-                                items-center justify-center
-                                border border-[#343E4B]
-                                text-[#8792A1]
-                                transition-colors
-                                hover:bg-[#252F3B]
-                                hover:text-[#EEF1F5]
-                                focus-visible:outline-none
-                                focus-visible:ring-2
-                                focus-visible:ring-[#8297B8]
-                                disabled:opacity-40
-                            "
+                            className="flex h-9 w-9 shrink-0 items-center justify-center border border-[#3B4654] text-[#AAB5C3] transition-colors hover:bg-[#2A3542] hover:text-[#EEF1F5]! disabled:opacity-40"
                         >
                             <X size={17} />
                         </button>
                     </div>
                 </header>
 
-                {/* ================================================
-                    FORM
-                ================================================ */}
-
                 <form
                     onSubmit={handleSubmit}
                     className="flex min-h-0 flex-1 flex-col"
                 >
-                    {/* MAIN SCROLL AREA */}
-
                     <div
-                        className={`
-                            min-h-0 flex-1 overflow-y-auto
-                            ${scrollbarHidden}
-                        `}
+                        className={`min-h-0 flex-1 overflow-y-auto ${hiddenScrollbar}`}
                     >
                         {error && (
                             <div className="px-5 pt-5 sm:px-7">
                                 <div
                                     role="alert"
-                                    className="flex items-start gap-3 border border-[#59343B] bg-[#38272C] px-4 py-3"
+                                    className="flex items-start gap-3 border border-[#59343B] bg-[#38272C] px-4 py-3.5"
                                 >
                                     <AlertCircle
                                         size={17}
                                         className="mt-0.5 shrink-0 text-[#E9A6AF]"
                                     />
 
-                                    <div>
-                                        <p className="text-[13px] font-semibold text-[#F2B8BF]">
+                                    <div className="min-w-0">
+                                        <p className="text-[13px] font-semibold! text-[#F2B8BF]">
                                             Assignment failed
                                         </p>
 
-                                        <p className="mt-1 break-words text-[12px] text-[#E9A6AF]">
+                                        <p className="mt-1 text-[12px] leading-5 text-[#E9A6AF]">
                                             {error}
                                         </p>
                                     </div>
@@ -341,388 +440,232 @@ function AssignmentModal({
                             </div>
                         )}
 
-                        {/* TWO-COLUMN WORKSPACE */}
-
-                        <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
-                            {/* =====================================
-                                LEFT — VOLUNTEER SELECTION
-                            ===================================== */}
-
+                        <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1.55fr)_minmax(290px,0.9fr)]">
+                            {/* Main selection area */}
                             <section className="min-w-0 px-5 py-6 sm:px-7 sm:py-7">
-                                {/* SECTION HEADER */}
+                                <SectionTitle
+                                    icon={UsersRound}
+                                    title="Select volunteers"
+                                    description="Choose the volunteers you want to assign to this campaign."
+                                    trailing={
+                                        <span className="mt-1 text-[12px] tabular-nums text-[#AAB8C8]">
+                                            {available.length} available
+                                        </span>
+                                    }
+                                />
 
-                                <div className="mb-5 flex items-center justify-between gap-3">
-                                    <div className="flex items-center gap-2.5">
-                                        <UsersRound
+                                <div className="mt-6">
+                                    <div className="flex h-11 items-center gap-3 border border-[#394554] bg-[#151C25] px-3.5 transition-colors focus-within:border-[#8297B8]">
+                                        <Search
                                             size={17}
-                                            className="text-[#AAB8C8]"
+                                            className="shrink-0 text-[#8792A1]"
                                         />
 
-                                        <h3 className="!m-0 !font-['Poppins',sans-serif] !text-[14px] !font-semibold !text-[#EEF1F5]">
-                                            Available volunteers
-                                        </h3>
+                                        <input
+                                            type="text"
+                                            value={search}
+                                            onChange={(event) =>
+                                                setSearch(event.target.value)
+                                            }
+                                            placeholder="Search name, email or district"
+                                            aria-label="Search volunteers"
+                                            className="min-w-0 flex-1 bg-transparent text-[13px] text-[#EEF1F5]! outline-none placeholder:text-[#748193]"
+                                        />
+
+                                        {search && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setSearch('')}
+                                                className="text-[12px] text-[#B8C5D3] hover:text-white"
+                                            >
+                                                Clear
+                                            </button>
+                                        )}
                                     </div>
 
-                                    <span className="shrink-0 text-[12px] tabular-nums text-[#96A2B1]">
-                                        {available.length} available
-                                    </span>
-                                </div>
+                                    <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+                                        <span className="text-[12px] text-[#AAB8C8]">
+                                            {search
+                                                ? `${filtered.length} matching volunteers`
+                                                : 'Available for assignment'}
+                                        </span>
 
-                                {/* SEARCH */}
+                                        {selectedCount > 0 && (
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setSelectedIds([])
+                                                }
+                                                disabled={loading}
+                                                className="text-[12px] font-medium! text-[#B6C8E0] hover:text-white disabled:opacity-40"
+                                            >
+                                                Clear selection
+                                            </button>
+                                        )}
+                                    </div>
 
-                                <div className="flex h-11 items-center gap-3 border border-[#343E4B] bg-[#151C25] px-3.5 transition-colors focus-within:border-[#8297B8]">
-                                    <Search
-                                        size={16}
-                                        className="shrink-0 text-[#8792A1]"
-                                    />
+                                    <div
+                                        className={`mt-3 max-h-[370px] space-y-2 overflow-y-auto ${hiddenScrollbar}`}
+                                    >
+                                        {filtered.length > 0 ? (
+                                            filtered.map((volunteer) => {
+                                                const id =
+                                                    getVolunteerId(volunteer);
 
-                                    <input
-                                        type="text"
-                                        value={search}
-                                        onChange={(event) =>
-                                            setSearch(event.target.value)
-                                        }
-                                        placeholder="Search volunteers..."
-                                        aria-label="Search volunteers"
-                                        className="
-                                            min-w-0 flex-1
-                                            bg-transparent
-                                            text-[13px] text-[#EEF1F5]
-                                            outline-none
-                                            placeholder:text-[#697586]
-                                        "
-                                    />
-
-                                    {search && (
-                                        <button
-                                            type="button"
-                                            onClick={() => setSearch('')}
-                                            className="shrink-0 text-[12px] text-[#AEB7C3] hover:text-[#EEF1F5]"
-                                        >
-                                            Clear
-                                        </button>
-                                    )}
-                                </div>
-
-                                {/* VOLUNTEER LIST */}
-
-                                <div
-                                    className={`
-                                        mt-4 max-h-[330px]
-                                        space-y-2.5 overflow-y-auto
-                                        ${scrollbarHidden}
-                                    `}
-                                >
-                                    {filtered.length > 0 ? (
-                                        filtered.map((volunteer) => {
-                                            const id =
-                                                getVolunteerId(volunteer);
-
-                                            const checked =
-                                                selectedIds.includes(id);
-
-                                            const name =
-                                                getVolunteerName(volunteer);
-
-                                            const email =
-                                                getVolunteerEmail(volunteer);
-
-                                            const district =
-                                                getVolunteerDistrict(volunteer);
-
-                                            return (
-                                                <label
-                                                    key={id}
-                                                    className={`
-                                                        group flex cursor-pointer
-                                                        items-center gap-3.5
-                                                        border px-4 py-4
-                                                        transition-colors
-                                                        ${
-                                                            checked
-                                                                ? 'border-[#647C9D] bg-[#202B3A]'
-                                                                : 'border-[#303A47] bg-[#141B24] hover:border-[#455469] hover:bg-[#1A2430]'
-                                                        }
-                                                        ${
-                                                            loading
-                                                                ? 'cursor-not-allowed opacity-50'
-                                                                : ''
-                                                        }
-                                                        focus-within:outline
-                                                        focus-within:outline-1
-                                                        focus-within:outline-[#8297B8]
-                                                    `}
-                                                >
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={checked}
-                                                        onChange={() =>
+                                                return (
+                                                    <VolunteerOption
+                                                        key={id}
+                                                        volunteer={volunteer}
+                                                        selected={selectedIds.includes(
+                                                            id,
+                                                        )}
+                                                        disabled={loading}
+                                                        onToggle={() =>
                                                             toggleVolunteer(id)
                                                         }
-                                                        disabled={loading}
-                                                        className="sr-only"
                                                     />
+                                                );
+                                            })
+                                        ) : (
+                                            <div className="border border-[#303A47] bg-[#141B24] px-5 py-12 text-center">
+                                                <UsersRound
+                                                    size={25}
+                                                    className="mx-auto text-[#718093]"
+                                                />
 
-                                                    {/* AVATAR */}
+                                                <p className="mt-3 text-[13px] font-semibold! text-[#D5DDE6]">
+                                                    {search
+                                                        ? 'No matching volunteers'
+                                                        : 'No volunteers available'}
+                                                </p>
 
-                                                    <div
-                                                        className={`
-                                                            flex h-10 w-10
-                                                            shrink-0 items-center
-                                                            justify-center border
-                                                            ${
-                                                                checked
-                                                                    ? 'border-[#526783] bg-[#2B3B50] text-[#C0D1E9]'
-                                                                    : 'border-[#343E4B] bg-[#202A36] text-[#B8C5D3]'
-                                                            }
-                                                        `}
-                                                    >
-                                                        <UserRound
-                                                            size={18}
-                                                            strokeWidth={1.7}
-                                                        />
-                                                    </div>
-
-                                                    {/* VOLUNTEER INFORMATION */}
-
-                                                    <div className="min-w-0 flex-1">
-                                                        <p className="truncate text-[13px] font-semibold text-[#EEF1F5]">
-                                                            {name}
-                                                        </p>
-
-                                                        {email && (
-                                                            <p className="mt-1 truncate text-[12px] text-[#96A2B1]">
-                                                                {email}
-                                                            </p>
-                                                        )}
-
-                                                        {district && (
-                                                            <p className="mt-1.5 flex items-center gap-1.5 text-[11px] text-[#96A2B1]">
-                                                                <MapPin
-                                                                    size={12}
-                                                                    className="shrink-0"
-                                                                />
-                                                                <span className="truncate">
-                                                                    {district}
-                                                                </span>
-                                                            </p>
-                                                        )}
-                                                    </div>
-
-                                                    {/* CIRCULAR CHECKBOX */}
-
-                                                    <div
-                                                        aria-hidden="true"
-                                                        className={`
-                                                            flex h-[22px] w-[22px]
-                                                            shrink-0 items-center
-                                                            justify-center
-                                                            rounded-full
-                                                            border-[1.5px]
-                                                            transition-colors
-                                                            ${
-                                                                checked
-                                                                    ? 'border-[#A5B9D8] bg-[#A5B9D8] text-[#182332]'
-                                                                    : 'border-[#637184] bg-[#111821] text-transparent group-hover:border-[#A5B9D8]'
-                                                            }
-                                                        `}
-                                                    >
-                                                        <Check
-                                                            size={13}
-                                                            strokeWidth={2.8}
-                                                        />
-                                                    </div>
-                                                </label>
-                                            );
-                                        })
-                                    ) : (
-                                        <div className="border border-[#303A47] bg-[#141B24] px-5 py-10 text-center">
-                                            <UsersRound
-                                                size={23}
-                                                className="mx-auto text-[#697586]"
-                                            />
-
-                                            <p className="mt-3 text-[13px] font-semibold text-[#D5DDE6]">
-                                                {search
-                                                    ? 'No matching volunteers'
-                                                    : 'No volunteers available'}
-                                            </p>
-
-                                            <p className="mt-1.5 text-[12px] text-[#8792A1]">
-                                                {search
-                                                    ? 'Try a different search term.'
-                                                    : 'There are no additional volunteers to assign.'}
-                                            </p>
-                                        </div>
-                                    )}
+                                                <p className="mt-1.5 text-[12px] leading-5 text-[#8792A1]">
+                                                    {search
+                                                        ? 'Try another name, email or district.'
+                                                        : 'There are no additional volunteers to assign.'}
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
 
-                                {/* ASSIGNMENT HISTORY */}
-
                                 {historyGroups.length > 0 && (
-                                    <div className="mt-7 border-t border-[#303A47] pt-6">
-                                        <h3 className="!m-0 !font-['Poppins',sans-serif] !text-[13px] !font-semibold !text-[#EEF1F5]">
-                                            Existing assignments
-                                        </h3>
+                                    <div className="mt-7 border-t border-[#303A47] pt-5">
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setShowHistory(
+                                                    (current) => !current,
+                                                )
+                                            }
+                                            aria-expanded={showHistory}
+                                            className="flex w-full items-center justify-between gap-3 text-left"
+                                        >
+                                            <span className="text-[13px] font-semibold! text-[#D9E1EB]">
+                                                Existing assignments
+                                            </span>
 
-                                        <div className="mt-4 space-y-4">
-                                            {historyGroups.map((group) => (
-                                                <div key={group.key}>
-                                                    <div className="mb-2 flex items-center justify-between gap-3">
-                                                        <span className="text-[12px] font-medium text-[#B8C2CF]">
-                                                            {group.title}
-                                                        </span>
+                                            <span className="text-[12px] text-[#AAB8C8]">
+                                                {existingAssignments.length}{' '}
+                                                total ·{' '}
+                                                {showHistory ? 'Hide' : 'View'}
+                                            </span>
+                                        </button>
 
-                                                        <span className="text-[12px] tabular-nums text-[#8792A1]">
-                                                            {group.items.length}
-                                                        </span>
-                                                    </div>
-
-                                                    <div className="overflow-hidden border border-[#303A47] bg-[#141B24]">
-                                                        {group.items.map(
-                                                            (
-                                                                assignment,
-                                                                index,
-                                                            ) => {
-                                                                const volunteer =
-                                                                    assignment.volunteer ||
-                                                                    assignment.user ||
-                                                                    assignment;
-
-                                                                return (
-                                                                    <div
-                                                                        key={
-                                                                            assignment.id ??
-                                                                            `${group.key}-${assignment._volunteerId}-${index}`
-                                                                        }
-                                                                        className={`flex flex-wrap items-center gap-3 px-3.5 py-3 ${
-                                                                            index >
-                                                                            0
-                                                                                ? 'border-t border-[#303A47]'
-                                                                                : ''
-                                                                        }`}
-                                                                    >
-                                                                        <div className="flex h-8 w-8 shrink-0 items-center justify-center border border-[#343E4B] bg-[#202A36] text-[#B8C5D3]">
-                                                                            <UserRound
-                                                                                size={
-                                                                                    15
-                                                                                }
-                                                                            />
-                                                                        </div>
-
-                                                                        <div className="min-w-0 flex-1">
-                                                                            <p className="truncate text-[12px] font-medium text-[#EEF1F5]">
-                                                                                {getVolunteerName(
-                                                                                    volunteer,
-                                                                                )}
-                                                                            </p>
-
-                                                                            {getVolunteerEmail(
-                                                                                volunteer,
-                                                                            ) && (
-                                                                                <p className="mt-1 truncate text-[11px] text-[#8792A1]">
-                                                                                    {getVolunteerEmail(
-                                                                                        volunteer,
-                                                                                    )}
-                                                                                </p>
-                                                                            )}
-                                                                        </div>
-
-                                                                        <span className="text-[11px] text-[#AEB7C3]">
-                                                                            {getStatusLabel(
-                                                                                assignment.status,
-                                                                            )}
-                                                                        </span>
-                                                                    </div>
-                                                                );
-                                                            },
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
+                                        {showHistory && (
+                                            <div className="mt-5 space-y-5">
+                                                {historyGroups.map((group) => (
+                                                    <HistoryGroup
+                                                        key={group.key}
+                                                        title={group.title}
+                                                        assignments={
+                                                            group.items
+                                                        }
+                                                    />
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </section>
 
-                            {/* =====================================
-                                RIGHT — ASSIGNMENT DETAILS
-                            ===================================== */}
+                            {/* Sidebar */}
+                            <aside className="min-w-0 border-t border-[#303A47] bg-[#17202A] px-5 py-6 sm:px-7 sm:py-7 md:border-l md:border-t-0">
+                                <SectionTitle
+                                    icon={ClipboardCheck}
+                                    title="Assignment details"
+                                    description="Review the selection and add instructions."
+                                />
 
-                            <aside className="min-w-0 border-t border-[#303A47] bg-[#151C25] px-5 py-6 sm:px-7 sm:py-7 md:border-l md:border-t-0 md:px-6">
-                                {/* PANEL HEADER */}
+                                <div className="mt-6 border border-[#39485B] bg-[#202D3C] px-4 py-4">
+                                    <div className="flex items-center gap-2 text-[#B6C8E0]">
+                                        <CheckCircle2 size={16} />
 
-                                <div className="flex items-center gap-2.5">
-                                    <ClipboardCheck
-                                        size={17}
-                                        className="text-[#AAB8C8]"
-                                    />
-
-                                    <h3 className="!m-0 !font-['Poppins',sans-serif] !text-[14px] !font-semibold !text-[#EEF1F5]">
-                                        Assignment details
-                                    </h3>
-                                </div>
-
-                                {/* CAMPAIGN STATUS */}
-
-                                {campaign.status && (
-                                    <div className="mt-5 flex items-center justify-between gap-3">
-                                        <span className="text-[12px] text-[#96A2B1]">
-                                            Campaign status
-                                        </span>
-
-                                        <span className="inline-flex items-center gap-2 text-[12px] font-medium capitalize text-[#D7DEE7]">
-                                            <span className="h-1.5 w-1.5 rounded-full bg-[#8196B6]" />
-                                            {campaign.status.replace(/_/g, ' ')}
-                                        </span>
-                                    </div>
-                                )}
-
-                                {/* OVERVIEW */}
-
-                                <div className="mt-5 space-y-4 border-t border-[#303A47] pt-5">
-                                    {overviewItems.map((item) => (
-                                        <div
-                                            key={item.label}
-                                            className="flex items-center justify-between gap-3"
-                                        >
-                                            <span className="text-[12px] text-[#96A2B1]">
-                                                {item.label}
-                                            </span>
-
-                                            <span className="text-[13px] font-semibold tabular-nums text-[#EEF1F5]">
-                                                {item.value}
-                                            </span>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                {/* SELECTED COUNT */}
-
-                                <div className="mt-5 flex items-center justify-between gap-3 border-t border-[#303A47] pt-5">
-                                    <div className="flex items-center gap-2">
-                                        <CheckCircle2
-                                            size={15}
-                                            className="text-[#A5B9D8]"
-                                        />
-
-                                        <span className="text-[12px] font-medium text-[#C5D0DE]">
-                                            New selection
+                                        <span className="text-[12px] font-medium!">
+                                            Selected volunteers
                                         </span>
                                     </div>
 
-                                    <span className="text-[14px] font-semibold tabular-nums text-[#EEF1F5]">
-                                        {selectedCount}
-                                    </span>
+                                    <div className="mt-3 flex items-baseline gap-2.5">
+                                        <span className="text-[34px] font-semibold! leading-none tabular-nums tracking-[-0.045em] text-[#EEF1F5]!">
+                                            {selectedCount}
+                                        </span>
+
+                                        <span className="text-[12px] text-[#AAB8C8]">
+                                            {selectedCount === 1
+                                                ? 'volunteer'
+                                                : 'volunteers'}
+                                        </span>
+                                    </div>
+
+                                    <p className="mt-3 text-[12px] leading-5 text-[#AAB8C8]">
+                                        {selectedCount > 0
+                                            ? 'Ready to assign to this campaign.'
+                                            : 'Choose volunteers from the list to continue.'}
+                                    </p>
                                 </div>
 
-                                {/* NOTE */}
+                                <div className="mt-6">
+                                    <h4 className="m-0 text-[13px] font-semibold! text-[#EEF1F5]!">
+                                        Assignment overview
+                                    </h4>
 
-                                <div className="mt-7 border-t border-[#303A47] pt-6">
-                                    <div className="mb-3 flex items-center justify-between gap-2">
+                                    <div className="mt-3 divide-y divide-[#34404D] border-y border-[#34404D]">
+                                        {[
+                                            {
+                                                label: 'Connected',
+                                                value: connected.length,
+                                            },
+                                            {
+                                                label: 'Rejected',
+                                                value: rejected.length,
+                                            },
+                                            {
+                                                label: 'Previous',
+                                                value: previous.length,
+                                            },
+                                        ].map((item) => (
+                                            <div
+                                                key={item.label}
+                                                className="flex items-center justify-between gap-3 py-3"
+                                            >
+                                                <span className="text-[12px] text-[#AAB8C8]">
+                                                    {item.label}
+                                                </span>
+
+                                                <span className="text-[13px] font-semibold! tabular-nums text-[#EEF1F5]!">
+                                                    {item.value}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="mt-7">
+                                    <div className="flex items-center justify-between gap-3">
                                         <label
                                             htmlFor="assignment-note"
-                                            className="text-[13px] font-semibold text-[#EEF1F5]"
+                                            className="text-[13px] font-semibold! text-[#EEF1F5]!"
                                         >
                                             Assignment note
                                         </label>
@@ -732,87 +675,61 @@ function AssignmentModal({
                                         </span>
                                     </div>
 
+                                    <p className="mt-1.5 text-[12px] leading-5 text-[#96A2B1]">
+                                        Add instructions for the selected
+                                        volunteers.
+                                    </p>
+
                                     <textarea
                                         id="assignment-note"
+                                        rows={5}
                                         value={note}
                                         onChange={(event) =>
                                             setNote(event.target.value)
                                         }
                                         disabled={loading}
-                                        rows={5}
-                                        placeholder="Add instructions for selected volunteers..."
-                                        className="
-                                            block w-full resize-y
-                                            border border-[#343E4B]
-                                            bg-[#10161F]
-                                            px-3.5 py-3
-                                            text-[12px] leading-6
-                                            text-[#EEF1F5]
-                                            outline-none
-                                            placeholder:text-[#697586]
-                                            transition-colors
-                                            hover:border-[#455469]
-                                            focus:border-[#8297B8]
-                                            disabled:opacity-50
-                                        "
+                                        placeholder="Write assignment instructions..."
+                                        className="mt-3 block min-h-[130px] w-full resize-y border border-[#394554] bg-[#10161F] px-3.5 py-3 text-[13px] leading-6 text-[#EEF1F5]! outline-none transition-colors placeholder:text-[#748193] hover:border-[#4A5A6E] focus:border-[#8297B8] disabled:opacity-50"
                                     />
                                 </div>
                             </aside>
                         </div>
                     </div>
 
-                    {/* ================================================
-                        FOOTER
-                    ================================================ */}
-
-                    <footer className="shrink-0 border-t border-[#303A47] bg-[#1A222D] px-5 py-4 sm:px-7">
+                    {/* Footer */}
+                    <footer className="shrink-0 border-t border-[#303A47] bg-[#19212B] px-5 py-3.5 sm:px-7 sm:py-4">
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                            <p className="text-[12px] text-[#AEB7C3]">
-                                <span className="font-semibold text-[#EEF1F5]">
-                                    {selectedCount}
-                                </span>{' '}
-                                {selectedCount === 1
-                                    ? 'volunteer selected'
-                                    : 'volunteers selected'}
-                            </p>
+                            <div className="flex items-center gap-2.5 text-[12px] text-[#AAB8C8]">
+                                <UsersRound size={16} />
 
-                            <div className="flex w-full items-center gap-2.5 sm:w-auto">
+                                <span>
+                                    <strong className="font-semibold! tabular-nums text-[#EEF1F5]!">
+                                        {selectedCount}
+                                    </strong>{' '}
+                                    {selectedCount === 1
+                                        ? 'volunteer selected'
+                                        : 'volunteers selected'}
+                                </span>
+                            </div>
+
+                            <div className="flex w-full items-center gap-2 sm:w-auto">
                                 <button
                                     type="button"
                                     onClick={handleClose}
                                     disabled={loading}
-                                    className="
-                                        inline-flex h-10 flex-1
-                                        items-center justify-center
-                                        border border-[#343E4B]
-                                        px-5 text-[12px] font-medium
-                                        text-[#B8C2CF]
-                                        transition-colors
-                                        hover:bg-[#252F3B]
-                                        hover:text-[#EEF1F5]
-                                        disabled:opacity-40
-                                        sm:flex-none
-                                    "
+                                    className="inline-flex h-10 flex-1 items-center justify-center border border-[#3B4654] px-5 text-[12px] font-medium! text-[#C2CBD6] transition-colors hover:bg-[#283340] hover:text-white disabled:opacity-40 sm:flex-none"
                                 >
                                     Cancel
                                 </button>
 
                                 <button
                                     type="submit"
-                                    disabled={loading || !selectedCount}
-                                    className="
-                                        inline-flex h-10 flex-1
-                                        items-center justify-center gap-2
-                                        border border-[#0F766E]
-                                        bg-[#0F766E]
-                                        px-5 text-[12px] font-semibold
-                                        text-white
-                                        transition-colors
-                                        hover:bg-[#115E59]
-                                        disabled:cursor-not-allowed
-                                        disabled:opacity-40
-                                        sm:flex-none
-                                    "
+                                    disabled={
+                                        loading ||
+                                        selectedCount === 0 ||
+                                        !onConfirm
+                                    }
+                                    className="inline-flex h-10 flex-1 items-center justify-center gap-2 border border-[#0F766E] bg-[#0F766E] px-5 text-[12px] font-semibold! text-white transition-colors hover:bg-[#115E59] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8297B8] disabled:cursor-not-allowed disabled:opacity-40 sm:flex-none"
                                 >
                                     {loading && (
                                         <LoaderCircle

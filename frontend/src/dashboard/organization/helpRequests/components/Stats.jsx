@@ -1,359 +1,199 @@
 import React from 'react';
-
 import {
     Activity,
     CircleCheck,
     ClipboardList,
     Clock3,
-    UserCheck,
+    UserRoundCheck,
     XCircle,
 } from 'lucide-react';
 
-const Stats = ({
+const STATUS = [
+    {
+        key: 'pending',
+        label: 'Pending',
+        icon: Clock3,
+        color: '#C5A16D',
+        background: '#29251F',
+    },
+    {
+        key: 'verified',
+        label: 'Verified',
+        icon: UserRoundCheck,
+        color: '#91A9CC',
+        background: '#202B3D',
+    },
+    {
+        key: 'in_progress',
+        label: 'In Progress',
+        icon: Activity,
+        color: '#B4ADD9',
+        background: '#222136',
+    },
+    {
+        key: 'completed',
+        label: 'Completed',
+        icon: CircleCheck,
+        color: '#98B9A4',
+        background: '#202F29',
+    },
+    {
+        key: 'rejected',
+        label: 'Rejected',
+        icon: XCircle,
+        color: '#BD9299',
+        background: '#30252A',
+    },
+];
+
+export default function Stats({
     total = 0,
     pending = 0,
-    assigned = 0,
-    active = 0,
+    verified = 0,
+    in_progress = 0,
     completed = 0,
     rejected = 0,
-}) => {
+}) {
     const totalValue = Number(total) || 0;
 
-    const statusRows = [
-        {
-            label: 'Needs response',
-            value: Number(pending) || 0,
-            description: 'Assigned requests awaiting your response',
-            icon: Clock3,
-            tone: 'amber',
-        },
-        {
-            label: 'Accepted',
-            value: Number(assigned) || 0,
-            description: 'Requests accepted by your organization',
-            icon: UserCheck,
-            tone: 'sky',
-        },
-        {
-            label: 'Active',
-            value: Number(active) || 0,
-            description: 'Support currently underway',
-            icon: Activity,
-            tone: 'teal',
-        },
-        {
-            label: 'Completed',
-            value: Number(completed) || 0,
-            description: 'Requests successfully resolved',
-            icon: CircleCheck,
-            tone: 'green',
-        },
-        {
-            label: 'Declined',
-            value: Number(rejected) || 0,
-            description: 'Requests declined by your organization',
-            icon: XCircle,
-            tone: 'slate',
-        },
-    ];
-
-    const toneStyles = {
-        amber: {
-            icon: 'bg-amber-50 text-amber-600',
-            dot: 'bg-amber-500',
-            number: 'text-amber-700',
-        },
-
-        teal: {
-            icon: 'bg-primary/[0.08] text-primary',
-            dot: 'bg-primary',
-            number: 'text-primary',
-        },
-
-        sky: {
-            icon: 'bg-sky-50 text-sky-600',
-            dot: 'bg-sky-500',
-            number: 'text-sky-700',
-        },
-
-        green: {
-            icon: 'bg-emerald-50 text-emerald-600',
-            dot: 'bg-emerald-500',
-            number: 'text-emerald-700',
-        },
-
-        slate: {
-            icon: 'bg-slate-100 text-slate-500',
-            dot: 'bg-slate-400',
-            number: 'text-slate-700',
-        },
-    };
-
-    const getPercentage = (value) => {
-        const numericValue = Number(value) || 0;
-
-        if (!totalValue) {
-            return 0;
-        }
-
-        return Math.min((numericValue / totalValue) * 100, 100);
+    const values = {
+        pending,
+        verified,
+        in_progress,
+        completed,
+        rejected,
     };
 
     return (
-        <section className="overflow-hidden border border-border bg-white">
-            <header className="flex min-h-24 items-center justify-between gap-4 border-b border-border px-5 py-4 sm:px-6 lg:px-7">
-                <div className="flex min-w-0 items-center gap-3">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary text-white!">
-                        <ClipboardList size={17} strokeWidth={1.8} />
-                    </div>
+        <section>
+            <h2 className="mb-5 text-[18px] font-semibold tracking-[-0.02em] text-[#EEF1F5]! sm:mb-6">
+                Help Requests overview
+            </h2>
 
-                    <div className="min-w-0">
-                        <h2 className="text-[15px] font-bold tracking-[-0.02em] text-text-primary">
-                            Help Requests
-                        </h2>
+            <div
+                aria-label="Help request statistics"
+                className="min-w-0 overflow-hidden border border-[#29323E] bg-[#0E1219]"
+            >
+                <div className="grid min-w-0 lg:grid-cols-[minmax(220px,26%)_minmax(0,1fr)]">
+                    <div className="flex min-w-0 flex-col justify-between border-b border-[#29323E] bg-[#19212C] px-5 py-6 sm:px-7 lg:border-r lg:border-b-0">
+                        <div>
+                            <div className="flex items-center gap-2.5">
+                                <span className="flex h-8 w-8 items-center justify-center border border-[#384453] bg-[#202B38] text-[#B4C0CE]">
+                                    <ClipboardList size={16} />
+                                </span>
 
-                        <p className="mt-0.5 truncate text-[11px] text-text-secondary">
-                            Current assigned request activity and workflow
-                            overview
-                        </p>
-                    </div>
-                </div>
+                                <h3 className="text-[15px] font-semibold text-[#E5EAF0]!">
+                                    Help Requests
+                                </h3>
+                            </div>
 
-                <div className="hidden shrink-0 items-center gap-2 sm:flex">
-                    <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-
-                    <span className="text-[9px] font-bold uppercase tracking-[0.18em] text-text-secondary/55">
-                        Overview
-                    </span>
-                </div>
-            </header>
-
-            <div className="grid lg:grid-cols-[32%_68%]">
-                <div className="relative flex flex-col justify-between overflow-hidden bg-primary px-6 py-7 text-white! sm:px-7 sm:py-8 lg:px-8 lg:py-9">
-                    <div className="pointer-events-none absolute -right-14 -top-14 h-40 w-40 rounded-full border border-white/10" />
-
-                    <div className="pointer-events-none absolute -bottom-20 -left-20 h-44 w-44 rounded-full border border-white/[0.07]" />
-
-                    <div className="relative flex min-h-110 flex-col">
-                        <div className="flex items-center gap-2">
-                            <span className="h-1.5 w-1.5 rounded-full bg-white/70" />
-
-                            <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-white!/65">
+                            <p className="mt-5 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8492A5]">
                                 Total requests
-                            </span>
-                        </div>
+                            </p>
 
-                        <div className="mt-9">
-                            <div className="flex items-end gap-3">
-                                <span className="text-[76px] font-bold leading-[0.78] tracking-[-0.085em] sm:text-[84px]">
+                            <div className="mt-2 flex items-end gap-2.5">
+                                <span className="text-[58px] font-semibold leading-none tracking-[-0.065em] tabular-nums text-[#EEF1F5]! sm:text-[66px]">
                                     {totalValue}
                                 </span>
 
-                                <span className="mb-1.5 text-[12px] font-medium! text-white!/60">
+                                <span className="mb-1.5 text-[12px] text-[#91A0B3]">
                                     requests
                                 </span>
                             </div>
-
-                            <p className="mt-6 max-w-56.25 text-[12px] leading-[1.7] text-white!/65">
-                                Total help requests currently assigned to your
-                                organization.
-                            </p>
                         </div>
 
-                        <div className="mt-auto pt-10">
-                            <div className="border-t border-white/15 pt-5">
-                                <div className="flex items-center justify-between gap-4">
-                                    <div>
-                                        <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-white!/45">
-                                            Request workflow
-                                        </p>
-
-                                        <p className="mt-1.5 text-[11px] text-white!/65">
-                                            {totalValue === 0
-                                                ? 'No requests assigned'
-                                                : `${totalValue} requests across ${statusRows.length} states`}
-                                        </p>
-                                    </div>
-
-                                    <div className="flex shrink-0 items-center gap-1.5">
-                                        <span className="h-1.5 w-1.5 rounded-full bg-white/60" />
-                                        <span className="h-1.5 w-1.5 rounded-full bg-white/35" />
-                                        <span className="h-1.5 w-1.5 rounded-full bg-white/20" />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <p className="mt-6 border-t border-[#35404D] pt-3.5 text-[11px] text-[#91A0B3]">
+                            Assigned to your organization
+                        </p>
                     </div>
-                </div>
 
-                <div className="min-w-0">
-                    <div className="flex min-h-18 items-center justify-between gap-4 border-b border-border px-5 py-4 sm:px-6 lg:px-7">
-                        <div className="min-w-0">
-                            <h3 className="text-[15px] font-bold tracking-[-0.02em] text-text-primary sm:text-[16px]">
+                    <div className="min-w-0 px-4 py-4 sm:px-6 sm:py-5">
+                        <div className="mb-3 flex items-center justify-between gap-3">
+                            <h3 className="text-[13px] font-semibold text-[#DDE4ED]!">
                                 Request status
                             </h3>
 
-                            <p className="mt-1.5 text-[11px] leading-5 text-text-secondary sm:text-[12px]">
-                                Current distribution across your organization's
-                                requests
-                            </p>
+                            <span className="text-[11px] text-[#718096]">
+                                Distribution
+                            </span>
                         </div>
 
-                        <span className="hidden shrink-0 text-[10px] font-semibold text-text-secondary/50 sm:block">
-                            5 states
-                        </span>
-                    </div>
+                        <div className="divide-y divide-[#252E3A]">
+                            {STATUS.map(
+                                ({
+                                    key,
+                                    label,
+                                    icon: Icon,
+                                    color,
+                                    background,
+                                }) => {
+                                    const count = Number(values[key]) || 0;
 
-                    <div className="hidden grid-cols-[40px_minmax(145px,1fr)_minmax(170px,1.3fr)_55px] items-center gap-5 border-b border-border px-5 py-3.5 sm:px-6 lg:px-7 md:grid">
-                        <span />
+                                    const percentage =
+                                        totalValue > 0
+                                            ? Math.min(
+                                                  100,
+                                                  Math.max(
+                                                      0,
+                                                      (count / totalValue) *
+                                                          100,
+                                                  ),
+                                              )
+                                            : 0;
 
-                        <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-text-secondary/45">
-                            Status
-                        </span>
-
-                        <span className="text-[9px] font-bold uppercase tracking-[0.15em] text-text-secondary/45">
-                            Distribution
-                        </span>
-
-                        <span className="text-right text-[9px] font-bold uppercase tracking-[0.15em] text-text-secondary/45">
-                            Count
-                        </span>
-                    </div>
-
-                    <div className="px-5 sm:px-6 lg:px-7">
-                        {statusRows.map((stat, index) => {
-                            const Icon = stat.icon;
-                            const tone = toneStyles[stat.tone];
-
-                            const currentValue = Number(stat.value) || 0;
-
-                            const percentage = getPercentage(currentValue);
-
-                            return (
-                                <div
-                                    key={stat.label}
-                                    className={`py-5 sm:py-4.5 ${
-                                        index !== statusRows.length - 1
-                                            ? 'border-b border-border'
-                                            : ''
-                                    }`}
-                                >
-                                    <div className="hidden grid-cols-[40px_minmax(145px,1fr)_minmax(170px,1.3fr)_55px] items-center gap-5 md:grid">
+                                    return (
                                         <div
-                                            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${tone.icon}`}
+                                            key={key}
+                                            className="grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(75px,38%)_38px] items-center gap-3 py-3.5 sm:grid-cols-[minmax(0,1fr)_minmax(110px,42%)_45px] sm:gap-5"
                                         >
-                                            <Icon size={17} strokeWidth={1.8} />
-                                        </div>
-
-                                        <div className="min-w-0">
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex min-w-0 items-center gap-2.5">
                                                 <span
-                                                    className={`h-1.5 w-1.5 shrink-0 rounded-full ${tone.dot}`}
-                                                />
-
-                                                <span className="truncate text-[13px] font-bold text-text-primary">
-                                                    {stat.label}
-                                                </span>
-                                            </div>
-
-                                            <p className="mt-1 text-[11px] leading-5 text-text-secondary">
-                                                {stat.description}
-                                            </p>
-                                        </div>
-
-                                        <div className="min-w-0">
-                                            <div className="flex items-center justify-between gap-4">
-                                                <span className="text-[11px] text-text-secondary">
-                                                    Request share
-                                                </span>
-
-                                                <span className="text-[11px] font-bold text-text-primary">
-                                                    {Math.round(percentage)}%
-                                                </span>
-                                            </div>
-
-                                            <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-slate-100">
-                                                <div
-                                                    className={`h-full rounded-full ${tone.dot}`}
+                                                    className="flex h-8 w-8 shrink-0 items-center justify-center"
                                                     style={{
-                                                        width: `${percentage}%`,
+                                                        backgroundColor:
+                                                            background,
+                                                        color,
                                                     }}
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="text-right">
-                                            <span
-                                                className={`text-[27px] font-bold leading-none tracking-[-0.055em] ${tone.number}`}
-                                            >
-                                                {currentValue}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <div className="md:hidden">
-                                        <div className="flex items-center gap-3.5">
-                                            <div
-                                                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${tone.icon}`}
-                                            >
-                                                <Icon
-                                                    size={17}
-                                                    strokeWidth={1.8}
-                                                />
-                                            </div>
-
-                                            <div className="min-w-0 flex-1">
-                                                <div className="flex items-center gap-2">
-                                                    <span
-                                                        className={`h-1.5 w-1.5 shrink-0 rounded-full ${tone.dot}`}
+                                                >
+                                                    <Icon
+                                                        size={15}
+                                                        strokeWidth={1.8}
                                                     />
+                                                </span>
 
-                                                    <span className="truncate text-[13px] font-bold text-text-primary">
-                                                        {stat.label}
-                                                    </span>
+                                                <span className="truncate text-[12px] font-medium text-[#CDD6E1]">
+                                                    {label}
+                                                </span>
+                                            </div>
+
+                                            <div className="flex min-w-0 items-center gap-2.5">
+                                                <div className="h-1.5 min-w-0 flex-1 overflow-hidden bg-[#293440]">
+                                                    <div
+                                                        className="h-full transition-[width] duration-300"
+                                                        style={{
+                                                            width: `${percentage}%`,
+                                                            backgroundColor:
+                                                                color,
+                                                        }}
+                                                    />
                                                 </div>
 
-                                                <p className="mt-1 text-[11px] leading-5 text-text-secondary">
-                                                    {stat.description}
-                                                </p>
-                                            </div>
-
-                                            <span
-                                                className={`shrink-0 text-[25px] font-bold leading-none tracking-[-0.055em] ${tone.number}`}
-                                            >
-                                                {currentValue}
-                                            </span>
-                                        </div>
-
-                                        <div className="mt-4 pl-13.5">
-                                            <div className="flex items-center justify-between gap-3">
-                                                <span className="text-[10px] font-medium! text-text-secondary">
-                                                    Request share
-                                                </span>
-
-                                                <span className="text-[11px] font-bold text-text-primary">
+                                                <span className="w-8 shrink-0 text-right text-[10px] tabular-nums text-[#8492A5]">
                                                     {Math.round(percentage)}%
                                                 </span>
                                             </div>
 
-                                            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100">
-                                                <div
-                                                    className={`h-full rounded-full ${tone.dot}`}
-                                                    style={{
-                                                        width: `${percentage}%`,
-                                                    }}
-                                                />
-                                            </div>
+                                            <span className="text-right text-[19px] font-semibold tabular-nums text-[#E2E8F0]">
+                                                {count}
+                                            </span>
                                         </div>
-                                    </div>
-                                </div>
-                            );
-                        })}
+                                    );
+                                },
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
     );
-};
-
-export default Stats;
+}

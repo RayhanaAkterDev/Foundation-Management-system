@@ -1,47 +1,70 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import {
+    Activity,
     ArrowRight,
-    BriefcaseBusiness,
+    ArrowUpRight,
     CalendarDays,
     CheckCircle2,
     ChevronRight,
     Clock3,
     HeartHandshake,
-    Loader2,
     MapPin,
-    Users,
-    XCircle,
+    Megaphone,
+    RefreshCw,
+    ShieldCheck,
+    UsersRound,
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+
+import LoadingUI from '@/components/dashboard/LoadingUI';
+import LoadingError from '@/components/dashboard/LoadingError';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
 
-const getToken = () => {
-    return (
-        localStorage.getItem('auth_token') ||
-        sessionStorage.getItem('auth_token')
-    );
+const ROUTES = {
+    profile: '/dashboard/organization/profile',
+    requests: '/dashboard/organization/requests',
+    requestDetails: (id) => `/dashboard/organization/responses/${id}`,
+    campaigns: '/dashboard/organization/campaigns',
+    campaignDetails: (id) => `/dashboard/organization/campaigns/${id}`,
+    volunteers: '/dashboard/organization/volunteers',
 };
 
-const formatDate = (date) => {
-    if (!date) return '—';
+const getToken = () =>
+    localStorage.getItem('auth_token') || sessionStorage.getItem('auth_token');
 
-    return new Date(date).toLocaleDateString('en-BD', {
+const formatNumber = (value) => Number(value || 0).toLocaleString('en-BD');
+
+const formatLabel = (value) =>
+    String(value || 'Unknown')
+        .replace(/[_-]/g, ' ')
+        .replace(/\b\w/g, (letter) => letter.toUpperCase());
+
+const formatDate = (value) => {
+    if (!value) return '—';
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) return '—';
+
+    return date.toLocaleDateString('en-BD', {
         day: 'numeric',
         month: 'short',
         year: 'numeric',
     });
 };
 
-const formatRelativeDate = (date) => {
-    if (!date) return '';
+const formatRelativeDate = (value) => {
+    if (!value) return '—';
 
-    const now = new Date();
-    const target = new Date(date);
+    const date = new Date(value);
 
-    const diff = now.getTime() - target.getTime();
-    const minutes = Math.floor(diff / 60000);
+    if (Number.isNaN(date.getTime())) return '—';
+
+    const minutes = Math.floor(
+        Math.max(0, Date.now() - date.getTime()) / 60000,
+    );
 
     if (minutes < 1) return 'Just now';
     if (minutes < 60) return `${minutes}m ago`;
@@ -54,100 +77,737 @@ const formatRelativeDate = (date) => {
 
     if (days < 7) return `${days}d ago`;
 
-    return formatDate(date);
+    return formatDate(value);
 };
 
-const statusStyles = {
-    verified: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    completed: 'bg-slate-100 text-slate-600 border-slate-200',
-    active: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    pending: 'bg-amber-50 text-amber-700 border-amber-200',
-    unverified: 'bg-amber-50 text-amber-700 border-amber-200',
-    rejected: 'bg-red-50 text-red-700 border-red-200',
-    cancelled: 'bg-slate-100 text-slate-600 border-slate-200',
+const normalizeStatus = (value) =>
+    String(value || '')
+        .trim()
+        .toLowerCase()
+        .replace(/[\s-]+/g, '_');
+
+const STATUS_STYLES = {
+    active: 'border-[#36516E] bg-[#203247] text-[#A7C8EA]',
+    in_progress: 'border-[#36516E] bg-[#203247] text-[#A7C8EA]',
+    completed: 'border-[#315849] bg-[#1D332B] text-[#9FD6B5]',
+    resolved: 'border-[#315849] bg-[#1D332B] text-[#9FD6B5]',
+    verified: 'border-[#315849] bg-[#1D332B] text-[#9FD6B5]',
+    pending: 'border-[#655036] bg-[#33291F] text-[#E8C18A]',
+    rejected: 'border-[#6A414A] bg-[#34232B] text-[#EBA8B2]',
+    cancelled: 'border-[#47515D] bg-[#252D38] text-[#A8B5C5]',
 };
 
-const urgencyStyles = {
-    critical: 'text-red-700 bg-red-50 border-red-200',
-    high: 'text-orange-700 bg-orange-50 border-orange-200',
-    normal: 'text-slate-600 bg-slate-50 border-slate-200',
-    low: 'text-sky-700 bg-sky-50 border-sky-200',
+const URGENCY_STYLES = {
+    critical: 'border-[#70404A] bg-[#35232B] text-[#F1A3AF]',
+    urgent: 'border-[#70404A] bg-[#35232B] text-[#F1A3AF]',
+    high: 'border-[#685133] bg-[#33291D] text-[#E9BD7D]',
+    medium: 'border-[#46536A] bg-[#242E3D] text-[#B5C7DD]',
+    normal: 'border-[#46536A] bg-[#242E3D] text-[#B5C7DD]',
+    low: 'border-[#315849] bg-[#1D332B] text-[#9FD6B5]',
 };
 
-const StatCard = ({ icon: Icon, label, value, description }) => {
+function StatusBadge({ status, urgency = false }) {
+    const normalized = normalizeStatus(status);
+    const styles = urgency ? URGENCY_STYLES : STATUS_STYLES;
+
     return (
-        <div className="relative min-w-0 bg-white px-5 py-5">
-            <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center bg-teal-50 text-teal-700">
-                    <Icon size={17} strokeWidth={1.8} />
-                </div>
+        <span
+            className={`inline-flex shrink-0 items-center border px-2.5 py-1 text-[11px] font-medium ${
+                styles[normalized] ||
+                'border-[#3B4654] bg-[#222B36] text-[#B4C1D0]'
+            }`}
+        >
+            {formatLabel(status)}
+        </span>
+    );
+}
 
-                <p className="truncate text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-400">
-                    {label}
-                </p>
+function SectionHeading({ title, description, action, onAction }) {
+    return (
+        <div className="flex flex-wrap items-end justify-between gap-3">
+            <div className="min-w-0">
+                <h2 className="text-[17px] font-semibold tracking-tight text-[#EEF1F5] sm:text-[19px]">
+                    {title}
+                </h2>
+
+                {description && (
+                    <p className="mt-1.5 text-[12px] leading-5 text-[#94A5B8] sm:text-[13px]">
+                        {description}
+                    </p>
+                )}
             </div>
 
-            <p className="mt-4 text-[30px] font-semibold leading-none tracking-tight text-slate-900">
-                {value}
-            </p>
-
-            {description && (
-                <p className="mt-2 text-[11px] leading-4 text-slate-400">
-                    {description}
-                </p>
+            {action && (
+                <button
+                    type="button"
+                    onClick={onAction}
+                    className="inline-flex shrink-0 items-center gap-1.5 text-[12px] font-medium text-[#A9C3DF] transition-colors hover:text-white sm:text-[13px]"
+                >
+                    {action}
+                    <ArrowUpRight size={15} />
+                </button>
             )}
         </div>
     );
-};
+}
 
-const StatusBadge = ({ status }) => {
-    const normalized = String(status || '')
-        .toLowerCase()
-        .replaceAll(' ', '_');
-
-    const style =
-        statusStyles[normalized] ||
-        'bg-slate-50 text-slate-600 border-slate-200';
-
+function EmptyMessage({ children }) {
     return (
-        <span
-            className={`inline-flex items-center border px-2.5 py-1 text-[10px] font-semibold capitalize ${style}`}
-        >
-            {String(status || 'Unknown').replaceAll('_', ' ')}
-        </span>
+        <div className="py-10 text-center text-[13px] leading-6 text-[#8B9DB0]">
+            {children}
+        </div>
     );
-};
+}
 
-const UrgencyBadge = ({ urgency }) => {
-    if (!urgency || urgency === 'normal') return null;
+/* Organization banner */
 
-    const style =
-        urgencyStyles[urgency] || 'text-slate-600 bg-slate-50 border-slate-200';
+function HeroBanner({ organization, navigate }) {
+    const isVerified =
+        normalizeStatus(organization.verification_status) === 'verified';
+
+    const coverPhoto = organization.banner || organization.banner_url || '';
 
     return (
-        <span
-            className={`inline-flex items-center border px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] ${style}`}
-        >
-            {urgency}
-        </span>
-    );
-};
+        <section className="relative isolate min-h-[280px] overflow-hidden border border-[#303A47] bg-[#101720] sm:min-h-[320px]">
+            {coverPhoto && (
+                <img
+                    src={coverPhoto}
+                    alt=""
+                    aria-hidden="true"
+                    className="absolute inset-0 h-full w-full object-cover object-center"
+                    onError={(event) => {
+                        event.currentTarget.style.display = 'none';
+                    }}
+                />
+            )}
 
-const EmptyState = ({ icon: Icon, title, description }) => {
-    return (
-        <div className="flex min-h-52 flex-col items-center justify-center px-6 text-center">
-            <div className="flex h-12 w-12 items-center justify-center border border-slate-200 bg-slate-50 text-slate-400">
-                <Icon size={21} strokeWidth={1.6} />
+            <div
+                className="absolute inset-0"
+                style={{
+                    background: coverPhoto
+                        ? 'linear-gradient(90deg, rgba(10,17,24,.97) 0%, rgba(10,17,24,.87) 42%, rgba(10,17,24,.48) 100%), linear-gradient(0deg, rgba(10,17,24,.35), transparent)'
+                        : 'linear-gradient(115deg, #101720 0%, #172736 55%, #20382F 100%)',
+                }}
+            />
+
+            <div className="absolute right-0 bottom-0 h-40 w-2/3 bg-gradient-to-t from-[#101720]/35 to-transparent" />
+
+            <div className="relative flex min-h-[280px] flex-col justify-center px-5 py-8 sm:min-h-[320px] sm:px-8 lg:px-10">
+                <div className="max-w-2xl">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#C0D0DF]">
+                            Organization dashboard
+                        </span>
+
+                        {isVerified && (
+                            <span className="inline-flex items-center gap-1.5 border border-[#47705D] bg-[#172D25]/90 px-2.5 py-1 text-[11px] font-medium text-[#B7DEC6]">
+                                <ShieldCheck size={13} />
+                                Verified
+                            </span>
+                        )}
+                    </div>
+
+                    <h1 className="mt-4 max-w-2xl text-2xl leading-tight font-semibold tracking-tight text-[#F4F7FB] sm:text-3xl lg:text-[36px]">
+                        {organization.name || 'Your organization'}
+                    </h1>
+
+                    <p className="mt-3 max-w-xl text-[13px] leading-6 text-[#D0DAE5] sm:text-sm sm:leading-7">
+                        Coordinate community support, manage campaigns, and
+                        respond to help requests from one place.
+                    </p>
+
+                    <div className="mt-6 flex flex-wrap items-center gap-3">
+                        <button
+                            type="button"
+                            onClick={() => navigate(ROUTES.requests)}
+                            className="inline-flex min-h-10 items-center justify-center gap-2 bg-[#D4A05A] px-4 text-[12px] font-semibold text-[#111820] transition-colors hover:bg-[#E5B26F] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E5B26F] sm:text-[13px]"
+                        >
+                            View help requests
+                            <ArrowRight size={15} />
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => navigate(ROUTES.campaigns)}
+                            className="inline-flex min-h-10 items-center justify-center gap-2 border border-white/25 bg-[#101720]/45 px-4 text-[12px] font-medium text-[#F0F4F8] backdrop-blur-sm transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white sm:text-[13px]"
+                        >
+                            Manage campaigns
+                            <ArrowUpRight size={15} />
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => navigate(ROUTES.profile)}
+                            className="inline-flex min-h-10 items-center gap-1.5 px-1 text-[12px] font-medium text-[#D0DAE5] transition-colors hover:text-white sm:ml-1 sm:text-[13px]"
+                        >
+                            Edit organization profile
+                            <ChevronRight size={15} />
+                        </button>
+                    </div>
+                </div>
             </div>
+        </section>
+    );
+}
 
-            <p className="mt-4 text-sm font-semibold text-slate-700">{title}</p>
+/* Dashboard metrics */
 
-            <p className="mt-1 max-w-sm text-xs leading-5 text-slate-400">
-                {description}
+function ImpactStrip({ overview, volunteers }) {
+    const metrics = [
+        {
+            label: 'Assigned requests',
+            value: overview.assigned_requests,
+            detail: 'Total assigned',
+            icon: HeartHandshake,
+            color: '#92B9E1',
+        },
+        {
+            label: 'In progress',
+            value: overview.active_requests,
+            detail: 'Currently active',
+            icon: Activity,
+            color: '#E1B77C',
+        },
+        {
+            label: 'Completed',
+            value: overview.completed_requests,
+            detail: 'Resolved requests',
+            icon: CheckCircle2,
+            color: '#A5D2B8',
+        },
+        {
+            label: 'Active campaigns',
+            value: overview.active_campaigns,
+            detail: 'Ongoing initiatives',
+            icon: Megaphone,
+            color: '#C1AFE2',
+        },
+        {
+            label: 'Volunteers',
+            value: volunteers.total,
+            detail: `${formatNumber(volunteers.active_assignments)} active assignments`,
+            icon: UsersRound,
+            color: '#A7C5E8',
+        },
+    ];
+
+    return (
+        <section className="border-y border-[#303A47] py-6 sm:py-7">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-7 sm:grid-cols-3 xl:grid-cols-5">
+                {metrics.map((metric, index) => {
+                    const Icon = metric.icon;
+
+                    return (
+                        <div
+                            key={metric.label}
+                            className={`min-w-0 px-1 sm:px-3 xl:px-5 ${
+                                index > 0
+                                    ? 'xl:border-l xl:border-[#303A47]'
+                                    : ''
+                            }`}
+                        >
+                            <div className="flex items-start gap-3">
+                                <span
+                                    className="mt-0.5 flex size-9 shrink-0 items-center justify-center bg-[#202B39]"
+                                    style={{ color: metric.color }}
+                                >
+                                    <Icon size={18} strokeWidth={1.8} />
+                                </span>
+
+                                <div className="min-w-0">
+                                    <p className="text-[11px] leading-4 text-[#A4B3C5] sm:text-[12px]">
+                                        {metric.label}
+                                    </p>
+
+                                    <p className="mt-1.5 text-[26px] leading-none font-semibold tabular-nums text-[#EEF1F5] sm:text-[29px]">
+                                        {formatNumber(metric.value)}
+                                    </p>
+
+                                    <p className="mt-2 text-[10px] leading-4 text-[#8496AA] sm:text-[11px]">
+                                        {metric.detail}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        </section>
+    );
+}
+
+/* Request status chart */
+
+function RequestStatusChart({ overview, requests }) {
+    const assigned = Number(overview.assigned_requests || 0);
+    const active = Number(overview.active_requests || 0);
+    const completed = Number(overview.completed_requests || 0);
+
+    const remaining = Math.max(0, assigned - active - completed);
+
+    const segments = [
+        {
+            label: 'In progress',
+            value: active,
+            color: '#6C9FD6',
+        },
+        {
+            label: 'Completed',
+            value: completed,
+            color: '#78B99A',
+        },
+        {
+            label: 'Other statuses',
+            value: remaining,
+            color: '#536477',
+        },
+    ];
+
+    let position = 0;
+
+    const gradient = segments
+        .filter((segment) => segment.value > 0)
+        .map((segment) => {
+            const start = position;
+            position += (segment.value / Math.max(assigned, 1)) * 100;
+
+            return `${segment.color} ${start}% ${position}%`;
+        })
+        .join(', ');
+
+    return (
+        <div className="min-w-0">
+            <SectionHeading
+                title="Response status"
+                description="Current progress across assigned requests"
+            />
+
+            <div className="mt-6 flex flex-col items-center gap-6 sm:flex-row sm:items-center">
+                <div
+                    className="relative size-40 shrink-0 rounded-full sm:size-44"
+                    style={{
+                        background:
+                            assigned > 0
+                                ? `conic-gradient(${gradient})`
+                                : '#293645',
+                    }}
+                    role="img"
+                    aria-label={`${active} in progress, ${completed} completed, ${remaining} other requests`}
+                >
+                    <div className="absolute inset-7 flex flex-col items-center justify-center rounded-full bg-[#151C25]">
+                        <span className="text-[30px] font-semibold leading-none text-[#EEF1F5] sm:text-[33px]">
+                            {formatNumber(assigned)}
+                        </span>
+
+                        <span className="mt-1 text-[12px] text-[#91A3B8]">
+                            Assigned
+                        </span>
+                    </div>
+                </div>
+
+                <div className="w-full min-w-0 flex-1">
+                    {segments.map((segment) => (
+                        <div
+                            key={segment.label}
+                            className="flex items-center justify-between gap-4 border-b border-[#2D3845] py-3 last:border-b-0"
+                        >
+                            <span className="flex min-w-0 items-center gap-2.5 text-[12px] text-[#B5C2D1]">
+                                <span
+                                    className="size-2.5 shrink-0 rounded-sm"
+                                    style={{
+                                        backgroundColor: segment.color,
+                                    }}
+                                />
+                                {segment.label}
+                            </span>
+
+                            <span className="text-[13px] font-semibold tabular-nums text-[#EAF0F6]">
+                                {formatNumber(segment.value)}
+                            </span>
+                        </div>
+                    ))}
+
+                    {assigned > requests.length && (
+                        <p className="mt-3 text-[11px] leading-5 text-[#8193A8]">
+                            Recent requests are a subset of all assigned
+                            requests.
+                        </p>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+/* Recent request locations */
+
+function DistrictDistribution({ requests }) {
+    const counts = requests.reduce((result, request) => {
+        const district = String(request.district || 'Not specified').trim();
+
+        result[district] = (result[district] || 0) + 1;
+
+        return result;
+    }, {});
+
+    const districts = Object.entries(counts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5);
+
+    const maximum = Math.max(1, ...districts.map((district) => district[1]));
+
+    return (
+        <div className="min-w-0">
+            <SectionHeading
+                title="Where help is needed"
+                description="Geographic distribution of recent requests"
+            />
+
+            {districts.length === 0 ? (
+                <EmptyMessage>No location information available.</EmptyMessage>
+            ) : (
+                <div className="mt-6 space-y-5">
+                    {districts.map(([district, count]) => (
+                        <div
+                            key={district}
+                            className="grid grid-cols-[95px_minmax(0,1fr)_25px] items-center gap-3"
+                        >
+                            <span className="truncate text-[12px] text-[#B9C6D5]">
+                                {district}
+                            </span>
+
+                            <div className="h-2 overflow-hidden bg-[#283544]">
+                                <div
+                                    className="h-full bg-[#759BC2] transition-[width]"
+                                    style={{
+                                        width: `${(count / maximum) * 100}%`,
+                                    }}
+                                />
+                            </div>
+
+                            <span className="text-right text-[12px] font-semibold tabular-nums text-[#E5ECF5]">
+                                {count}
+                            </span>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            <p className="mt-6 text-[11px] leading-5 text-[#8193A8]">
+                Based on recent requests returned by the dashboard API.
             </p>
         </div>
     );
-};
+}
+
+/* Organization details */
+
+function OrganizationSnapshot({ organization, navigate }) {
+    const isVerified =
+        normalizeStatus(organization.verification_status) === 'verified';
+
+    const details = [
+        {
+            label: 'Organization type',
+            value: organization.type || 'Not specified',
+        },
+        {
+            label: 'Location',
+            value: organization.location || 'Not specified',
+        },
+        {
+            label: 'Verification',
+            value: isVerified
+                ? 'Verified'
+                : formatLabel(organization.verification_status || 'Pending'),
+        },
+    ];
+
+    const photo = organization.photo || organization.photo_url || '';
+
+    return (
+        <aside className="min-w-0">
+            <SectionHeading
+                title="Organization snapshot"
+                description="Your organization at a glance"
+                action="View profile"
+                onAction={() => navigate(ROUTES.profile)}
+            />
+
+            <div className="mt-5">
+                <div className="flex items-center gap-3 border-b border-[#303A47] pb-5">
+                    {photo ? (
+                        <img
+                            src={photo}
+                            alt=""
+                            className="size-12 shrink-0 border border-[#344150] bg-[#1B2632] object-cover"
+                            onError={(event) => {
+                                event.currentTarget.style.display = 'none';
+                            }}
+                        />
+                    ) : (
+                        <span className="flex size-12 shrink-0 items-center justify-center bg-[#21342D] text-[#A3D5B8]">
+                            <ShieldCheck size={22} />
+                        </span>
+                    )}
+
+                    <div className="min-w-0">
+                        <p className="truncate text-[13px] font-semibold text-[#E9F0F6]">
+                            {organization.name || 'Organization'}
+                        </p>
+
+                        <p className="mt-1 text-[12px] text-[#91A3B6]">
+                            {isVerified
+                                ? 'Verified organization'
+                                : 'Organization profile'}
+                        </p>
+                    </div>
+                </div>
+
+                <div className="divide-y divide-[#2D3845]">
+                    {details.map((detail) => (
+                        <div
+                            key={detail.label}
+                            className="flex items-start justify-between gap-4 py-3.5"
+                        >
+                            <span className="text-[12px] text-[#8EA0B4]">
+                                {detail.label}
+                            </span>
+
+                            <span className="max-w-[55%] text-right text-[12px] font-medium text-[#DCE6F0]">
+                                {detail.value}
+                            </span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </aside>
+    );
+}
+
+/* Recent help requests */
+
+function RecentRequests({ requests, navigate }) {
+    const urgencyRank = {
+        critical: 0,
+        urgent: 1,
+        high: 2,
+        medium: 3,
+        normal: 4,
+        low: 5,
+    };
+
+    const sortedRequests = [...requests]
+        .sort((a, b) => {
+            const aRank = urgencyRank[normalizeStatus(a.urgency)] ?? 6;
+            const bRank = urgencyRank[normalizeStatus(b.urgency)] ?? 6;
+
+            return aRank - bRank;
+        })
+        .slice(0, 5);
+
+    return (
+        <section className="min-w-0">
+            <SectionHeading
+                title="Recent help requests"
+                description="Assigned cases requiring attention"
+                action="View all"
+                onAction={() => navigate(ROUTES.requests)}
+            />
+
+            <div className="mt-5 border-t border-[#34404E]">
+                {sortedRequests.length === 0 ? (
+                    <EmptyMessage>
+                        No recent help requests available.
+                    </EmptyMessage>
+                ) : (
+                    <div className="divide-y divide-[#2B3643]">
+                        {sortedRequests.map((request, index) => (
+                            <button
+                                key={request.id ?? index}
+                                type="button"
+                                onClick={() =>
+                                    navigate(
+                                        ROUTES.requestDetails(
+                                            request.help_request_id ||
+                                                request.id,
+                                        ),
+                                    )
+                                }
+                                className="group flex w-full min-w-0 items-center gap-3 py-3.5 text-left transition-colors hover:bg-[#1A2430]"
+                            >
+                                <span className="flex size-9 shrink-0 items-center justify-center bg-[#223043] text-[#9CBCE0]">
+                                    <HeartHandshake size={17} />
+                                </span>
+
+                                <div className="min-w-0 flex-1">
+                                    <p className="line-clamp-1 text-[13px] font-medium text-[#E8EEF5] group-hover:text-white">
+                                        {request.title || 'Untitled request'}
+                                    </p>
+
+                                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-[#8FA2B7]">
+                                        <span className="inline-flex items-center gap-1">
+                                            <MapPin size={12} />
+                                            {request.district ||
+                                                'Not specified'}
+                                        </span>
+
+                                        <span className="inline-flex items-center gap-1">
+                                            <Clock3 size={12} />
+                                            {formatRelativeDate(
+                                                request.updated_at,
+                                            )}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div className="hidden sm:block">
+                                    <StatusBadge
+                                        status={
+                                            request.urgency || request.status
+                                        }
+                                        urgency={Boolean(request.urgency)}
+                                    />
+                                </div>
+
+                                <ChevronRight
+                                    size={16}
+                                    className="shrink-0 text-[#70849A] transition-colors group-hover:text-[#DDE7F2]"
+                                />
+                            </button>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </section>
+    );
+}
+
+/* Campaign list */
+
+function CampaignList({ campaigns, navigate }) {
+    const visibleCampaigns = campaigns.slice(0, 5);
+
+    return (
+        <section className="min-w-0">
+            <SectionHeading
+                title="Active campaigns"
+                description="Ongoing humanitarian initiatives"
+                action="View all"
+                onAction={() => navigate(ROUTES.campaigns)}
+            />
+
+            <div className="mt-5 border-t border-[#34404E]">
+                {visibleCampaigns.length === 0 ? (
+                    <EmptyMessage>No recent campaigns available.</EmptyMessage>
+                ) : (
+                    <div className="divide-y divide-[#2B3643]">
+                        {visibleCampaigns.map((campaign, index) => (
+                            <button
+                                key={campaign.id ?? index}
+                                type="button"
+                                onClick={() =>
+                                    navigate(
+                                        ROUTES.campaignDetails(campaign.id),
+                                    )
+                                }
+                                className="group flex w-full min-w-0 items-center gap-3 py-3.5 text-left transition-colors hover:bg-[#1A2430]"
+                            >
+                                <span className="flex size-9 shrink-0 items-center justify-center bg-[#2A263B] text-[#C1B0E4]">
+                                    <Megaphone size={17} />
+                                </span>
+
+                                <div className="min-w-0 flex-1">
+                                    <p className="line-clamp-2 text-[13px] leading-5 font-medium text-[#E8EEF5] group-hover:text-white">
+                                        {campaign.title || 'Untitled campaign'}
+                                    </p>
+
+                                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-[#8FA2B7]">
+                                        <span className="inline-flex items-center gap-1">
+                                            <CalendarDays size={12} />
+                                            {formatDate(campaign.start_date)}
+                                        </span>
+
+                                        {campaign.end_date && (
+                                            <span>
+                                                Ends{' '}
+                                                {formatDate(campaign.end_date)}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="hidden sm:block">
+                                    <StatusBadge status={campaign.status} />
+                                </div>
+
+                                <ChevronRight
+                                    size={16}
+                                    className="shrink-0 text-[#70849A] transition-colors group-hover:text-[#DDE7F2]"
+                                />
+                            </button>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </section>
+    );
+}
+
+/* Volunteer involvement */
+
+function VolunteerInvolvement({ volunteers, navigate }) {
+    const total = Number(volunteers.total || 0);
+    const assignments = Number(volunteers.active_assignments || 0);
+
+    return (
+        <section className="min-w-0">
+            <SectionHeading
+                title="Volunteer involvement"
+                description="People supporting your response"
+            />
+
+            <div className="mt-6 flex items-center gap-4">
+                <span className="flex size-12 shrink-0 items-center justify-center bg-[#273044] text-[#B3BDE5]">
+                    <UsersRound size={24} />
+                </span>
+
+                <div>
+                    <p className="text-[30px] font-semibold leading-none text-[#EDF2F7] sm:text-[32px]">
+                        {formatNumber(total)}
+                    </p>
+
+                    <p className="mt-2 text-[12px] text-[#95A7BB]">
+                        Assigned volunteers
+                    </p>
+                </div>
+            </div>
+
+            <div className="mt-6 border-y border-[#303A47] py-4">
+                <div className="flex items-center justify-between gap-3">
+                    <span className="text-[12px] text-[#A2B1C2]">
+                        Active assignments
+                    </span>
+
+                    <span className="text-[14px] font-semibold text-[#EDF2F7]">
+                        {formatNumber(assignments)}
+                    </span>
+                </div>
+            </div>
+
+            <button
+                type="button"
+                onClick={() => navigate(ROUTES.volunteers)}
+                className="mt-5 inline-flex min-h-10 w-full items-center justify-between border border-[#394657] px-4 text-[12px] font-medium text-[#D6E2EE] transition-colors hover:bg-[#222E3C]"
+            >
+                Manage volunteers
+                <ArrowRight size={15} />
+            </button>
+        </section>
+    );
+}
+
+/* Main dashboard */
 
 export default function OrgDashboard() {
     const navigate = useNavigate();
@@ -156,7 +816,56 @@ export default function OrgDashboard() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
-    const fetchDashboard = async () => {
+    useEffect(() => {
+        const controller = new AbortController();
+        const token = getToken();
+
+        if (!token) {
+            setError('Authentication token not found.');
+            setLoading(false);
+
+            return () => controller.abort();
+        }
+
+        axios
+            .get(`${API_URL}/organization/dashboard`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    Accept: 'application/json',
+                },
+                signal: controller.signal,
+            })
+            .then((response) => {
+                if (controller.signal.aborted) return;
+
+                setDashboard(response.data?.data || null);
+                setError('');
+            })
+            .catch((err) => {
+                if (axios.isCancel(err) || controller.signal.aborted) {
+                    return;
+                }
+
+                console.error('Organization dashboard error:', err);
+
+                setError(
+                    err.response?.data?.message ||
+                        'Unable to load organization dashboard.',
+                );
+            })
+            .finally(() => {
+                if (!controller.signal.aborted) {
+                    setLoading(false);
+                }
+            });
+
+        return () => controller.abort();
+    }, []);
+
+    const handleRetry = async () => {
+        setLoading(true);
+        setError('');
+
         const token = getToken();
 
         if (!token) {
@@ -166,8 +875,6 @@ export default function OrgDashboard() {
         }
 
         try {
-            setError('');
-
             const response = await axios.get(
                 `${API_URL}/organization/dashboard`,
                 {
@@ -179,6 +886,7 @@ export default function OrgDashboard() {
             );
 
             setDashboard(response.data?.data || null);
+            setError('');
         } catch (err) {
             console.error('Organization dashboard error:', err);
 
@@ -191,632 +899,100 @@ export default function OrgDashboard() {
         }
     };
 
-    useEffect(() => {
-        let cancelled = false;
-
-        const loadDashboard = async () => {
-            const token = getToken();
-
-            if (!token) {
-                if (!cancelled) {
-                    setError('Authentication token not found.');
-                    setLoading(false);
-                }
-
-                return;
-            }
-
-            try {
-                const response = await axios.get(
-                    `${API_URL}/organization/dashboard`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                            Accept: 'application/json',
-                        },
-                    },
-                );
-
-                if (!cancelled) {
-                    setDashboard(response.data?.data || null);
-
-                    setLoading(false);
-                }
-            } catch (err) {
-                console.error('Organization dashboard error:', err);
-
-                if (!cancelled) {
-                    setError(
-                        err.response?.data?.message ||
-                            'Unable to load organization dashboard.',
-                    );
-
-                    setLoading(false);
-                }
-            }
-        };
-
-        loadDashboard();
-
-        return () => {
-            cancelled = true;
-        };
-    }, []);
-
+    // Use the shared loading UI without page-specific wrappers.
     if (loading) {
-        return (
-            <div className="min-h-[70vh] bg-background">
-                <div className="mx-auto flex max-w-7xl items-center justify-center py-32">
-                    <div className="text-center">
-                        <Loader2
-                            className="mx-auto animate-spin text-teal-700"
-                            size={28}
-                        />
+        return <LoadingUI />;
+    }
 
-                        <p className="mt-4 text-sm text-slate-500">
-                            Loading organization dashboard...
-                        </p>
-                    </div>
+    if (error || !dashboard) {
+        return (
+            <div className="px-4 py-8 sm:px-6">
+                <LoadingError
+                    title="Unable to load dashboard"
+                    message={
+                        error || 'Dashboard data is currently unavailable.'
+                    }
+                />
+
+                <div className="mt-5 flex justify-center">
+                    <button
+                        type="button"
+                        onClick={handleRetry}
+                        className="inline-flex min-h-10 items-center gap-2 border border-[#394657] bg-[#202B38] px-4 text-[13px] font-medium text-[#D8E3EF] transition-colors hover:bg-[#2A3949]"
+                    >
+                        <RefreshCw size={15} />
+                        Try again
+                    </button>
                 </div>
             </div>
         );
-    }
-
-    if (error) {
-        return (
-            <div className="min-h-[70vh] bg-background">
-                <div className="mx-auto max-w-2xl">
-                    <div className="border border-red-200 bg-white px-6 py-8 text-center">
-                        <XCircle className="mx-auto text-red-500" size={30} />
-
-                        <h2 className="mt-4 text-lg font-semibold text-slate-900">
-                            Dashboard could not be loaded
-                        </h2>
-
-                        <p className="mt-2 text-sm text-slate-500">{error}</p>
-
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setLoading(true);
-                                fetchDashboard();
-                            }}
-                            className="mt-6 inline-flex items-center gap-2 bg-teal-700 px-5 py-2.5 text-sm font-medium! text-white! transition hover:bg-teal-800"
-                        >
-                            Try again
-                            <ArrowRight size={16} />
-                        </button>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    if (!dashboard) {
-        return null;
     }
 
     const organization = dashboard.organization || {};
-
     const overview = dashboard.overview || {};
-
-    const requests = dashboard.requests || [];
-
-    const campaigns = dashboard.campaigns || [];
-
     const volunteers = dashboard.volunteers || {};
 
-    const completionRate =
-        overview.assigned_requests > 0
-            ? Math.round(
-                  (overview.completed_requests / overview.assigned_requests) *
-                      100,
-              )
-            : 0;
+    const requests = Array.isArray(dashboard.requests)
+        ? dashboard.requests
+        : [];
+
+    const campaigns = Array.isArray(dashboard.campaigns)
+        ? dashboard.campaigns
+        : [];
 
     return (
-        <div className="min-h-screen bg-background">
-            <main className="mx-auto max-w-[1400px]">
-                {/* =====================================================
-                    ORGANIZATION HERO
-                ====================================================== */}
+        <div className="min-h-screen bg-[#151A22] text-[#EEF1F5]">
+            <main className="mx-auto w-full max-w-[1500px] space-y-8 px-4 py-5 sm:px-6 sm:py-7 xl:px-8">
+                <HeroBanner organization={organization} navigate={navigate} />
 
-                <section className="overflow-hidden border border-slate-200 bg-white">
-                    <div className="flex flex-col lg:flex-row">
-                        <div className="relative flex-1 overflow-hidden bg-teal-800 px-6 py-7 sm:px-8 lg:px-10 lg:py-9">
-                            <div className="absolute -right-20 -top-24 h-64 w-64 rounded-full border-[40px] border-teal-700/50" />
+                <ImpactStrip overview={overview} volunteers={volunteers} />
 
-                            <div className="absolute -bottom-28 right-20 h-48 w-48 rounded-full border-[28px] border-teal-700/40" />
+                <section className="grid min-w-0 grid-cols-1 gap-8 border-b border-[#303A47] pb-8 xl:grid-cols-[minmax(0,1fr)_300px] xl:gap-10 xl:pb-9">
+                    <div className="grid min-w-0 grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-9">
+                        <RequestStatusChart
+                            overview={overview}
+                            requests={requests}
+                        />
 
-                            <div className="relative">
-                                <div className="flex flex-wrap items-center gap-2">
-                                    <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-teal-200">
-                                        Organization workspace
-                                    </span>
+                        <DistrictDistribution requests={requests} />
+                    </div>
 
-                                    <span className="h-1 w-1 rounded-full bg-teal-400" />
-
-                                    <span className="text-[10px] font-medium! text-teal-200">
-                                        {organization.type || 'Organization'}
-                                    </span>
-                                </div>
-
-                                <h1 className="mt-3 max-w-2xl text-3xl font-semibold tracking-tight text-white! sm:text-4xl">
-                                    {organization.name || 'Organization'}
-                                </h1>
-
-                                <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-teal-100">
-                                    {organization.location && (
-                                        <span className="inline-flex items-center gap-1.5">
-                                            <MapPin size={14} />
-
-                                            {organization.location}
-                                        </span>
-                                    )}
-
-                                    <span className="inline-flex items-center gap-1.5">
-                                        <CheckCircle2 size={14} />
-
-                                        {organization.verification_status ===
-                                        'verified'
-                                            ? 'Verified organization'
-                                            : 'Verification pending'}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="flex w-full flex-col justify-between border-t border-slate-200 bg-white p-6 lg:w-[250px] lg:border-l lg:border-t-0">
-                            <div>
-                                <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-slate-400">
-                                    Workspace
-                                </p>
-
-                                <p className="mt-2 text-sm font-semibold text-slate-800">
-                                    Organization operations
-                                </p>
-
-                                <p className="mt-1 text-xs leading-5 text-slate-400">
-                                    Manage requests, campaigns and volunteer
-                                    activity.
-                                </p>
-                            </div>
-
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    navigate('/dashboard/organization/profile')
-                                }
-                                className="mt-6 inline-flex h-10 items-center justify-between border border-slate-200 px-3.5 text-xs font-semibold text-slate-700 transition hover:border-teal-600 hover:text-teal-700"
-                            >
-                                Organization profile
-                                <ChevronRight size={15} />
-                            </button>
-                        </div>
+                    <div className="border-t border-[#303A47] pt-7 xl:border-t-0 xl:border-l xl:pt-0 xl:pl-8">
+                        <OrganizationSnapshot
+                            organization={organization}
+                            navigate={navigate}
+                        />
                     </div>
                 </section>
 
-                {/* =====================================================
-                    OVERVIEW STRIP
-                ====================================================== */}
+                <section className="grid min-w-0 grid-cols-1 gap-8 lg:grid-cols-2 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)_290px] xl:gap-8">
+                    <RecentRequests requests={requests} navigate={navigate} />
 
-                <section className="mt-5 grid grid-cols-1 gap-px overflow-hidden border border-slate-200 bg-slate-200 sm:grid-cols-2 xl:grid-cols-4">
-                    <StatCard
-                        icon={HeartHandshake}
-                        label="Assigned requests"
-                        value={overview.assigned_requests ?? 0}
-                        description="Requests assigned to your organization"
-                    />
-
-                    <StatCard
-                        icon={Clock3}
-                        label="Active requests"
-                        value={overview.active_requests ?? 0}
-                        description="Requests currently in progress"
-                    />
-
-                    <StatCard
-                        icon={BriefcaseBusiness}
-                        label="Active campaigns"
-                        value={overview.active_campaigns ?? 0}
-                        description="Currently active campaigns"
-                    />
-
-                    <StatCard
-                        icon={Users}
-                        label="Volunteers"
-                        value={volunteers.total ?? 0}
-                        description={`${volunteers.active_assignments ?? 0} active assignments`}
-                    />
-                </section>
-
-                {/* =====================================================
-                    MAIN OPERATIONS AREA
-                ====================================================== */}
-
-                <section className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_330px]">
-                    {/* =================================================
-                        REQUEST QUEUE
-                    ================================================== */}
-
-                    <div className="overflow-hidden border border-slate-200 bg-white">
-                        <div className="flex flex-col gap-4 border-b border-slate-200 px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
-                            <div>
-                                <div className="flex items-center gap-2">
-                                    <span className="h-2 w-2 bg-teal-600" />
-
-                                    <h2 className="text-sm font-bold text-slate-900">
-                                        Request queue
-                                    </h2>
-                                </div>
-
-                                <p className="mt-1.5 text-xs text-slate-400">
-                                    Recent help requests requiring
-                                    organizational action
-                                </p>
-                            </div>
-
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    navigate('/dashboard/organization/requests')
-                                }
-                                className="inline-flex items-center gap-1.5 self-start text-xs font-bold text-teal-700 transition hover:text-teal-800 sm:self-auto"
-                            >
-                                View all requests
-                                <ArrowRight size={14} />
-                            </button>
-                        </div>
-
-                        {requests.length === 0 ? (
-                            <EmptyState
-                                icon={HeartHandshake}
-                                title="No assigned requests"
-                                description="Help requests assigned to your organization will appear here."
-                            />
-                        ) : (
-                            <div>
-                                {requests.map((request, index) => (
-                                    <button
-                                        key={request.id}
-                                        type="button"
-                                        onClick={() =>
-                                            navigate(
-                                                `/dashboard/organization/responses/${request.help_request_id || request.id}`,
-                                            )
-                                        }
-                                        className="group flex w-full items-center gap-4 border-b border-slate-100 px-5 py-4 text-left transition last:border-b-0 hover:bg-slate-50"
-                                    >
-                                        <span className="w-6 shrink-0 text-[10px] font-semibold tabular-nums text-slate-300">
-                                            {String(index + 1).padStart(2, '0')}
-                                        </span>
-
-                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-teal-50 text-teal-700">
-                                            <HeartHandshake
-                                                size={18}
-                                                strokeWidth={1.7}
-                                            />
-                                        </div>
-
-                                        <div className="min-w-0 flex-1">
-                                            <div className="flex flex-wrap items-center gap-2">
-                                                <p className="truncate text-sm font-semibold text-slate-800 transition group-hover:text-teal-700">
-                                                    {request.title}
-                                                </p>
-
-                                                <UrgencyBadge
-                                                    urgency={request.urgency}
-                                                />
-                                            </div>
-
-                                            <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-400">
-                                                {request.district && (
-                                                    <span className="inline-flex items-center gap-1">
-                                                        <MapPin size={11} />
-
-                                                        {request.district}
-                                                    </span>
-                                                )}
-
-                                                <span>
-                                                    Updated{' '}
-                                                    {formatRelativeDate(
-                                                        request.updated_at,
-                                                    )}
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        <div className="hidden shrink-0 sm:block">
-                                            <StatusBadge
-                                                status={request.status}
-                                            />
-                                        </div>
-
-                                        <ChevronRight
-                                            className="shrink-0 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-teal-600"
-                                            size={18}
-                                        />
-                                    </button>
-                                ))}
-                            </div>
-                        )}
+                    <div className="border-t border-[#303A47] pt-7 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-8">
+                        <CampaignList
+                            campaigns={campaigns}
+                            navigate={navigate}
+                        />
                     </div>
 
-                    {/* =================================================
-                        OPERATIONS SUMMARY
-                    ================================================== */}
-
-                    <aside className="border border-slate-200 bg-white">
-                        <div className="border-b border-slate-200 px-5 py-5">
-                            <div className="flex items-center gap-2">
-                                <span className="h-2 w-2 bg-amber-500" />
-
-                                <h2 className="text-sm font-bold text-slate-900">
-                                    Operations
-                                </h2>
-                            </div>
-
-                            <p className="mt-1.5 text-xs text-slate-400">
-                                Current response performance
-                            </p>
-                        </div>
-
-                        <div className="p-5">
-                            <div className="flex items-end justify-between">
-                                <div>
-                                    <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">
-                                        Completion rate
-                                    </p>
-
-                                    <p className="mt-2 text-[42px] font-semibold leading-none tracking-tight text-slate-900">
-                                        {completionRate}
-                                        <span className="text-xl text-slate-400">
-                                            %
-                                        </span>
-                                    </p>
-                                </div>
-
-                                <div className="flex h-10 w-10 items-center justify-center bg-emerald-50 text-emerald-600">
-                                    <CheckCircle2 size={20} strokeWidth={1.7} />
-                                </div>
-                            </div>
-
-                            <div className="mt-5 h-2 bg-slate-100">
-                                <div
-                                    className="h-full bg-teal-600 transition-all"
-                                    style={{
-                                        width: `${completionRate}%`,
-                                    }}
-                                />
-                            </div>
-
-                            <div className="mt-6 divide-y divide-slate-100 border-y border-slate-100">
-                                <div className="flex items-center justify-between py-3.5">
-                                    <span className="text-xs text-slate-500">
-                                        Completed requests
-                                    </span>
-
-                                    <span className="text-sm font-bold text-slate-900">
-                                        {overview.completed_requests ?? 0}
-                                    </span>
-                                </div>
-
-                                <div className="flex items-center justify-between py-3.5">
-                                    <span className="text-xs text-slate-500">
-                                        Active requests
-                                    </span>
-
-                                    <span className="text-sm font-bold text-slate-900">
-                                        {overview.active_requests ?? 0}
-                                    </span>
-                                </div>
-
-                                <div className="flex items-center justify-between py-3.5">
-                                    <span className="text-xs text-slate-500">
-                                        Active campaigns
-                                    </span>
-
-                                    <span className="text-sm font-bold text-slate-900">
-                                        {overview.active_campaigns ?? 0}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    navigate('/dashboard/organization/requests')
-                                }
-                                className="mt-5 flex w-full items-center justify-between border border-slate-200 px-3.5 py-3 text-xs font-bold text-slate-700 transition hover:border-teal-600 hover:text-teal-700"
-                            >
-                                Manage requests
-                                <ArrowRight size={15} />
-                            </button>
-                        </div>
-                    </aside>
-                </section>
-
-                {/* =====================================================
-                    CAMPAIGNS + VOLUNTEERS
-                ====================================================== */}
-
-                <section className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_330px]">
-                    {/* =================================================
-                        CAMPAIGNS
-                    ================================================== */}
-
-                    <div className="overflow-hidden border border-slate-200 bg-white">
-                        <div className="flex flex-col gap-4 border-b border-slate-200 px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
-                            <div>
-                                <div className="flex items-center gap-2">
-                                    <span className="h-2 w-2 bg-amber-500" />
-
-                                    <h2 className="text-sm font-bold text-slate-900">
-                                        Campaign activity
-                                    </h2>
-                                </div>
-
-                                <p className="mt-1.5 text-xs text-slate-400">
-                                    Latest campaigns managed by your
-                                    organization
-                                </p>
-                            </div>
-
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    navigate(
-                                        '/dashboard/organization/campaigns',
-                                    )
-                                }
-                                className="inline-flex items-center gap-1.5 self-start text-xs font-bold text-teal-700 transition hover:text-teal-800 sm:self-auto"
-                            >
-                                Manage campaigns
-                                <ArrowRight size={14} />
-                            </button>
-                        </div>
-
-                        {campaigns.length === 0 ? (
-                            <EmptyState
-                                icon={BriefcaseBusiness}
-                                title="No campaigns yet"
-                                description="Campaigns created or assigned to your organization will appear here."
-                            />
-                        ) : (
-                            <div>
-                                {campaigns.map((campaign) => (
-                                    <button
-                                        key={campaign.id}
-                                        type="button"
-                                        onClick={() =>
-                                            navigate(
-                                                `/dashboard/organization/campaigns/${campaign.id}`,
-                                            )
-                                        }
-                                        className="group flex w-full items-center gap-4 border-b border-slate-100 px-5 py-4 text-left transition last:border-b-0 hover:bg-slate-50"
-                                    >
-                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-amber-50 text-amber-700">
-                                            <BriefcaseBusiness
-                                                size={18}
-                                                strokeWidth={1.7}
-                                            />
-                                        </div>
-
-                                        <div className="min-w-0 flex-1">
-                                            <p className="truncate text-sm font-semibold text-slate-800 transition group-hover:text-teal-700">
-                                                {campaign.title}
-                                            </p>
-
-                                            <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-400">
-                                                {campaign.start_date && (
-                                                    <span className="inline-flex items-center gap-1">
-                                                        <CalendarDays
-                                                            size={11}
-                                                        />
-
-                                                        {formatDate(
-                                                            campaign.start_date,
-                                                        )}
-                                                    </span>
-                                                )}
-
-                                                {campaign.end_date && (
-                                                    <span>
-                                                        until{' '}
-                                                        {formatDate(
-                                                            campaign.end_date,
-                                                        )}
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        <StatusBadge status={campaign.status} />
-
-                                        <ChevronRight
-                                            className="shrink-0 text-slate-300 transition group-hover:text-teal-600"
-                                            size={18}
-                                        />
-                                    </button>
-                                ))}
-                            </div>
-                        )}
+                    <div className="border-t border-[#303A47] pt-7 xl:border-t-0 xl:border-l xl:pt-0 xl:pl-8">
+                        <VolunteerInvolvement
+                            volunteers={volunteers}
+                            navigate={navigate}
+                        />
                     </div>
-
-                    {/* =================================================
-                        VOLUNTEERS
-                    ================================================== */}
-
-                    <aside className="border border-slate-200 bg-white">
-                        <div className="border-b border-slate-200 px-5 py-5">
-                            <div className="flex items-center gap-2">
-                                <span className="h-2 w-2 bg-teal-600" />
-
-                                <h2 className="text-sm font-bold text-slate-900">
-                                    Volunteer capacity
-                                </h2>
-                            </div>
-
-                            <p className="mt-1.5 text-xs text-slate-400">
-                                Current volunteer allocation
-                            </p>
-                        </div>
-
-                        <div className="p-5">
-                            <div className="flex items-center gap-4">
-                                <div className="flex h-12 w-12 shrink-0 items-center justify-center bg-teal-50 text-teal-700">
-                                    <Users size={22} strokeWidth={1.7} />
-                                </div>
-
-                                <div>
-                                    <p className="text-[32px] font-semibold leading-none tracking-tight text-slate-900">
-                                        {volunteers.total ?? 0}
-                                    </p>
-
-                                    <p className="mt-1 text-[11px] text-slate-400">
-                                        Assigned volunteers
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="mt-6 divide-y divide-slate-100 border-y border-slate-100">
-                                <div className="flex items-center justify-between py-3.5">
-                                    <span className="text-xs text-slate-500">
-                                        Active assignments
-                                    </span>
-
-                                    <span className="text-sm font-bold text-slate-900">
-                                        {volunteers.active_assignments ?? 0}
-                                    </span>
-                                </div>
-
-                                <div className="flex items-center justify-between py-3.5">
-                                    <span className="text-xs text-slate-500">
-                                        Active campaigns
-                                    </span>
-
-                                    <span className="text-sm font-bold text-slate-900">
-                                        {overview.active_campaigns ?? 0}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    navigate(
-                                        '/dashboard/organization/volunteers',
-                                    )
-                                }
-                                className="mt-5 flex w-full items-center justify-between border border-slate-200 px-3.5 py-3 text-xs font-bold text-slate-700 transition hover:border-teal-600 hover:text-teal-700"
-                            >
-                                View volunteers
-                                <ArrowRight size={15} />
-                            </button>
-                        </div>
-                    </aside>
                 </section>
+
+                <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-[#303A47] pt-5">
+                    <p className="text-[12px] text-[#8294A8]">
+                        Stand For People · Organization workspace
+                    </p>
+
+                    <span className="inline-flex items-center gap-2 text-[12px] text-[#92A4B8]">
+                        <ShieldCheck size={14} />
+                        Humanitarian coordination
+                    </span>
+                </footer>
             </main>
         </div>
     );

@@ -1,7 +1,13 @@
 import { useState } from 'react';
-import { ArrowLeft, Save, FileText, MapPin } from 'lucide-react';
-import LoadingError from '@/components/dashboard/LoadingError';
-import LoadingUI from '@/components/dashboard/LoadingUI';
+import {
+    FileText,
+    MapPin,
+    Save,
+    LoaderCircle,
+    AlertCircle,
+} from 'lucide-react';
+
+import DashboardInput from '@/components/dashboard/DashboardInput';
 
 const CATEGORIES = [
     'Education',
@@ -19,42 +25,92 @@ const URGENCY_LEVELS = [
     { value: 'critical', label: 'Critical' },
 ];
 
-const inputClass = `
-    w-full min-w-0 border border-[#343E4B]
-    bg-[#151C25] px-3.5 py-3
-    text-[13px] text-[#DCE3EC]
-    outline-none transition-colors
-    placeholder:text-[#697586]
-    hover:border-[#455160]
-    focus:border-[#64748B]
+const SELECT_CLASS = `
+    block h-11 w-full min-w-0
+    appearance-auto rounded-[4px]
+
+    border border-[#29313D]
+    bg-[#151B23]
+    px-3.5
+
+    font-sans text-[14px] font-normal
+    text-[#D8DEE7]
+
+    shadow-[inset_0_1px_3px_rgba(0,0,0,0.18)]
+    outline-none
+
+    transition-[background-color,border-color,box-shadow]
+    duration-150
+
+    hover:border-[#3C4654]
+    hover:bg-[#171E27]
+
+    focus:border-[#637489]
+    focus:bg-[#1A222D]
     focus:ring-0
+
     disabled:cursor-not-allowed
     disabled:opacity-50
 `;
 
-function Field({ label, children, required = false }) {
+function PanelHeading({ icon: Icon, title }) {
     return (
-        <div className="min-w-0">
-            <label className="mb-2 block text-[12px] font-medium text-[#AEB7C3]">
-                {label}
-                {required && <span className="ml-1 text-[#CDA38C]">*</span>}
-            </label>
-            {children}
+        <div className="flex min-h-15 items-center gap-3 border-b border-[#303A47] bg-[#1B2531] px-5 sm:px-6">
+            <span className="flex size-8 shrink-0 items-center justify-center border border-[#3A495B] bg-[#263545] text-[#B9C8D8]">
+                <Icon size={16} strokeWidth={1.8} />
+            </span>
+
+            <h2 className="m-0! font-sans! text-[14px]! font-semibold! text-[#EEF1F5]!">
+                {title}
+            </h2>
         </div>
     );
 }
 
-function Section({ icon: Icon, title, children }) {
+function SelectField({
+    id,
+    name,
+    label,
+    value,
+    onChange,
+    disabled,
+    options,
+    placeholder,
+}) {
     return (
-        <section className="border border-[#29323E] bg-[#0E1219]">
-            <div className="flex items-center gap-3 border-b border-[#29323E] px-5 py-4 sm:px-6">
-                <Icon size={17} strokeWidth={1.7} className="text-[#8792A1]" />
-                <h2 className="text-[15px] font-semibold text-[#E5EAF0]!">
-                    {title}
-                </h2>
-            </div>
-            <div className="grid gap-5 p-5 sm:p-6">{children}</div>
-        </section>
+        <div className="min-w-0">
+            <label
+                htmlFor={id}
+                className="mb-[7px] block font-sans! text-[13px] font-medium! leading-5 text-[#9BA7B6]!"
+            >
+                {label}
+                <span aria-hidden="true" className="ml-1 text-[#8793A2]!">
+                    *
+                </span>
+            </label>
+
+            <select
+                id={id}
+                name={name}
+                value={value}
+                onChange={onChange}
+                disabled={disabled}
+                required
+                className={SELECT_CLASS}
+            >
+                {placeholder && <option value="">{placeholder}</option>}
+
+                {value && !options.some((option) => option.value === value) && (
+                    <option value={value}>{value}</option>
+                )}
+
+                {options.map((option) => (
+                    <option key={option.value} value={option.value}>
+                        {option.label}
+                    </option>
+                ))}
+            </select>
+        </div>
     );
 }
 
@@ -76,13 +132,11 @@ export default function HelpRequestEditView({
             ) ||
             request.category ||
             '',
-        urgency: ['normal', 'high', 'critical'].includes(
-            String(request.urgency ?? request.priority).toLowerCase(),
-        )
-            ? String(request.urgency ?? request.priority).toLowerCase()
-            : 'normal',
+        urgency: String(
+            request.urgency ?? request.priority ?? 'normal',
+        ).toLowerCase(),
         district: request.district ?? '',
-        address: request.address ?? '',
+        address: request.address ?? request.location ?? '',
     });
 
     const [validationError, setValidationError] = useState('');
@@ -92,6 +146,7 @@ export default function HelpRequestEditView({
             ...current,
             [field]: value,
         }));
+
         setValidationError('');
     };
 
@@ -137,173 +192,152 @@ export default function HelpRequestEditView({
         onSave?.(payload);
     };
 
+    const categoryOptions = CATEGORIES.map((category) => ({
+        value: category,
+        label: category,
+    }));
+
     return (
-        <main className="min-w-0 space-y-6 pb-8">
-            <header className="border-b border-[#29323E] pb-5">
+        <form onSubmit={handleSubmit} className="min-w-0 space-y-5 font-sans">
+            {(validationError || error) && (
+                <div
+                    role="alert"
+                    className="flex items-start gap-3 border border-[#66434A] bg-[#2C2027] px-4 py-3 text-[13px] leading-6 text-[#E9B9BE]"
+                >
+                    <AlertCircle size={17} className="mt-0.5 shrink-0" />
+
+                    <span>{validationError || error}</span>
+                </div>
+            )}
+
+            <div className="grid min-w-0 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_290px] xl:grid-cols-[minmax(0,1fr)_320px]">
+                <section className="min-w-0 overflow-hidden border border-[#303A47] bg-[#0E1219]">
+                    <PanelHeading icon={FileText} title="Request information" />
+
+                    <div className="space-y-6 px-5 py-6 sm:px-6">
+                        <DashboardInput
+                            id="help-request-title"
+                            name="title"
+                            label="Request title"
+                            required
+                            requiredMark
+                            maxLength={255}
+                            value={form.title}
+                            disabled={saving}
+                            placeholder="Enter request title"
+                            onChange={(event) =>
+                                update('title', event.target.value)
+                            }
+                        />
+
+                        <DashboardInput
+                            as="textarea"
+                            id="help-request-description"
+                            name="description"
+                            label="Description"
+                            required
+                            requiredMark
+                            rows={6}
+                            value={form.description}
+                            disabled={saving}
+                            placeholder="Describe the assistance required"
+                            onChange={(event) =>
+                                update('description', event.target.value)
+                            }
+                            className="min-h-40 leading-7"
+                        />
+
+                        <div className="grid min-w-0 gap-5 border-t border-[#2C3643] pt-6 sm:grid-cols-2">
+                            <SelectField
+                                id="help-request-category"
+                                name="category"
+                                label="Category"
+                                value={form.category}
+                                disabled={saving}
+                                options={categoryOptions}
+                                placeholder="Select category"
+                                onChange={(event) =>
+                                    update('category', event.target.value)
+                                }
+                            />
+
+                            <SelectField
+                                id="help-request-urgency"
+                                name="urgency"
+                                label="Urgency"
+                                value={form.urgency}
+                                disabled={saving}
+                                options={URGENCY_LEVELS}
+                                onChange={(event) =>
+                                    update('urgency', event.target.value)
+                                }
+                            />
+                        </div>
+                    </div>
+                </section>
+
+                <aside className="min-w-0 overflow-hidden border border-[#303A47] bg-[#0E1219] h-[546px]">
+                    <PanelHeading icon={MapPin} title="Location" />
+
+                    <div className="space-y-6 px-5 py-6 sm:px-6">
+                        <DashboardInput
+                            id="help-request-district"
+                            name="district"
+                            label="District"
+                            required
+                            requiredMark
+                            maxLength={255}
+                            value={form.district}
+                            disabled={saving}
+                            placeholder="Enter district"
+                            onChange={(event) =>
+                                update('district', event.target.value)
+                            }
+                        />
+
+                        <DashboardInput
+                            as="textarea"
+                            id="help-request-address"
+                            name="address"
+                            label="Address"
+                            rows={12}
+                            maxLength={1000}
+                            value={form.address}
+                            disabled={saving}
+                            placeholder="Enter detailed address"
+                            onChange={(event) =>
+                                update('address', event.target.value)
+                            }
+                            className="min-h-28"
+                        />
+                    </div>
+                </aside>
+            </div>
+
+            <div className="flex flex-col gap-3 border-t border-[#303A47] pt-5 sm:flex-row sm:items-center sm:justify-end">
                 <button
                     type="button"
                     onClick={onCancel}
                     disabled={saving}
-                    className="mb-5 inline-flex items-center gap-2 text-[12px] font-medium text-[#8792A1] hover:text-[#EEF1F5] disabled:opacity-50"
+                    className="inline-flex min-h-10 items-center justify-center border border-[#343E4B] bg-[#151C25] px-5 text-[13px] font-medium text-[#C4CDD8] transition-colors hover:bg-[#202A35] hover:text-[#EEF1F5] disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                    <ArrowLeft size={15} />
-                    Back to request
+                    Cancel
                 </button>
 
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div className="min-w-0">
-                        <p className="mb-2 text-[11px] text-[#8792A1]">
-                            Help request #{request.id}
-                        </p>
-                        <h1 className="text-[24px] font-semibold tracking-tight text-[#EEF1F5]!">
-                            Edit help request
-                        </h1>
-                    </div>
-                </div>
-            </header>
-
-            <form onSubmit={handleSubmit} className="space-y-5">
-                {(validationError || error) && (
-                    <LoadingError
-                        title={
-                            validationError
-                                ? 'Check request information'
-                                : 'Unable to save help request'
-                        }
-                        message={validationError || error}
-                    />
-                )}
-
-                {saving && (
-                    <LoadingUI
-                        title="Saving help request..."
-                        description="Please wait while your changes are saved."
-                    />
-                )}
-
-                <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_300px]">
-                    <Section icon={FileText} title="Request information">
-                        <Field label="Request title" required>
-                            <input
-                                type="text"
-                                maxLength={255}
-                                value={form.title}
-                                disabled={saving}
-                                onChange={(event) =>
-                                    update('title', event.target.value)
-                                }
-                                className={`${inputClass} h-11`}
-                            />
-                        </Field>
-
-                        <Field label="Description" required>
-                            <textarea
-                                rows={9}
-                                value={form.description}
-                                disabled={saving}
-                                onChange={(event) =>
-                                    update('description', event.target.value)
-                                }
-                                className={`${inputClass} resize-y leading-6`}
-                            />
-                        </Field>
-
-                        <div className="grid gap-5 sm:grid-cols-2">
-                            <Field label="Category" required>
-                                <select
-                                    value={form.category}
-                                    disabled={saving}
-                                    onChange={(event) =>
-                                        update('category', event.target.value)
-                                    }
-                                    className={`${inputClass} h-11 py-0`}
-                                >
-                                    <option value="">Select category</option>
-                                    {form.category &&
-                                        !CATEGORIES.includes(form.category) && (
-                                            <option value={form.category}>
-                                                {form.category}
-                                            </option>
-                                        )}
-                                    {CATEGORIES.map((category) => (
-                                        <option key={category} value={category}>
-                                            {category}
-                                        </option>
-                                    ))}
-                                </select>
-                            </Field>
-
-                            <Field label="Urgency" required>
-                                <select
-                                    value={form.urgency}
-                                    disabled={saving}
-                                    onChange={(event) =>
-                                        update('urgency', event.target.value)
-                                    }
-                                    className={`${inputClass} h-11 py-0`}
-                                >
-                                    {URGENCY_LEVELS.map((level) => (
-                                        <option
-                                            key={level.value}
-                                            value={level.value}
-                                        >
-                                            {level.label}
-                                        </option>
-                                    ))}
-                                </select>
-                            </Field>
-                        </div>
-                    </Section>
-
-                    <Section icon={MapPin} title="Location">
-                        <Field label="District" required>
-                            <input
-                                type="text"
-                                maxLength={255}
-                                value={form.district}
-                                disabled={saving}
-                                onChange={(event) =>
-                                    update('district', event.target.value)
-                                }
-                                className={`${inputClass} h-11`}
-                            />
-                        </Field>
-
-                        <Field label="Address">
-                            <textarea
-                                rows={5}
-                                maxLength={1000}
-                                value={form.address}
-                                disabled={saving}
-                                onChange={(event) =>
-                                    update('address', event.target.value)
-                                }
-                                className={`${inputClass} resize-y leading-6`}
-                            />
-                        </Field>
-                    </Section>
-                </div>
-
-                <div className="flex flex-wrap items-center justify-end gap-3 border-t border-[#29323E] pt-5">
-                    <button
-                        type="button"
-                        onClick={onCancel}
-                        disabled={saving}
-                        className="h-10 border border-[#343E4B] px-5 text-[12px] font-medium text-[#AEB7C3] hover:bg-[#1A222D] disabled:opacity-50"
-                    >
-                        Cancel
-                    </button>
-
-                    <button
-                        type="submit"
-                        disabled={saving}
-                        className="inline-flex h-10 items-center justify-center gap-2 border border-[#465365] bg-[#263343] px-5 text-[12px] font-semibold text-[#EEF1F5] hover:bg-[#344457] disabled:cursor-not-allowed disabled:opacity-50"
-                    >
+                <button
+                    type="submit"
+                    disabled={saving}
+                    className="inline-flex min-h-10 items-center justify-center gap-2 border border-[#586678] bg-[#2B3949] px-5 text-[13px] font-semibold text-[#EEF1F5] transition-colors hover:bg-[#37495D] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                    {saving ? (
+                        <LoaderCircle size={16} className="animate-spin" />
+                    ) : (
                         <Save size={15} />
-                        {saving ? 'Saving changes...' : 'Save changes'}
-                    </button>
-                </div>
-            </form>
-        </main>
+                    )}
+
+                    {saving ? 'Saving changes...' : 'Save changes'}
+                </button>
+            </div>
+        </form>
     );
 }

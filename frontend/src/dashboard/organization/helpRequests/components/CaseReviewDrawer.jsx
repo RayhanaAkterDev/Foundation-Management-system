@@ -1,1072 +1,701 @@
-import { useState } from 'react';
-
+import { useEffect, useId, useState } from 'react';
 import {
     Activity,
+    AlertCircle,
     ArrowRight,
     BriefcaseBusiness,
     Check,
     CheckCircle2,
-    Clock3,
+    ClipboardList,
     FileText,
     MapPin,
-    MessageSquareText,
     Pencil,
-    RotateCcw,
     Save,
-    ShieldCheck,
     UserRound,
     X,
+    XCircle,
 } from 'lucide-react';
 
-import UrgencyBadge from './UrgencyBadge';
-import { formatCurrency } from '../utils/helpRequestUtils';
-
-const categories = [
+const CATEGORIES = [
     'Education',
     'Healthcare',
     'Food Assistance',
     'Shelter',
     'Livelihood',
     'Disaster Relief',
+    'Clothing',
+    'Clean Water',
     'Other',
 ];
 
-// =========================================================
-// HELPERS
-// =========================================================
+const PRIORITIES = ['low', 'normal', 'high', 'critical', 'urgent'];
 
-const getProgressLabel = (status) => {
-    if (status === 'completed') return 'Completed';
-    if (status === 'active' || status === 'in_progress') return 'In progress';
-    if (status === 'accepted') return 'Accepted';
-    if (status === 'assigned') return 'Awaiting response';
+const formatLabel = (value) =>
+    String(value || 'Unknown')
+        .replace(/[_-]/g, ' ')
+        .replace(/\b\w/g, (letter) => letter.toUpperCase());
 
-    return 'Not started';
+const getAssignmentStatus = (request) =>
+    String(
+        request?.assignmentStatus ??
+            request?.rawAssignment?.status ??
+            request?.status ??
+            '',
+    ).toLowerCase();
+
+const getRequestStatus = (request) =>
+    String(
+        request?.helpRequestStatus ??
+            request?.rawHelpRequest?.status ??
+            request?.status ??
+            '',
+    ).toLowerCase();
+
+const isProgressStatus = (status) =>
+    ['active', 'in_progress', 'in-progress'].includes(status);
+
+const isRejected = (status) =>
+    ['rejected', 'declined', 'cancelled', 'canceled'].includes(status);
+
+const getStage = (request) => {
+    const assignment = getAssignmentStatus(request);
+    const status = getRequestStatus(request);
+
+    if (isRejected(assignment)) return 'rejected';
+
+    if (['completed', 'resolved'].includes(status)) {
+        return 'completed';
+    }
+
+    if (isProgressStatus(status)) {
+        return 'active';
+    }
+
+    if (assignment === 'accepted') {
+        return 'accepted';
+    }
+
+    return 'assigned';
 };
 
-const getProgressSteps = (status) => {
-    const normalizedStatus = status === 'in_progress' ? 'active' : status;
+const buttonBase =
+    'inline-flex min-h-10 items-center justify-center gap-2 border px-4 text-[13px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50';
 
-    const stages = ['assigned', 'accepted', 'active', 'completed'];
+const secondaryButton = `${buttonBase} border-[#35404D] bg-[#151C25] text-[#C4CDD8] hover:bg-[#222D39] hover:text-white`;
 
-    const currentIndex = stages.indexOf(normalizedStatus);
+const primaryButton = `${buttonBase} border-[#52677E] bg-[#304257] text-[#EEF1F5] hover:bg-[#3A526C]`;
 
-    return stages.map((stage, index) => ({
-        key: stage,
-        label:
-            stage === 'assigned'
-                ? 'Assigned'
-                : stage === 'accepted'
-                  ? 'Accepted'
-                  : stage === 'active'
-                    ? 'Support'
-                    : 'Completed',
-        active: currentIndex >= 0 && index <= currentIndex,
-        current: stage === normalizedStatus,
-    }));
-};
+const selectClass =
+    'h-11 w-full border border-[#35404D] bg-[#10161F] px-3 text-[13px] text-[#EEF1F5] outline-none focus:border-[#829AB5]';
 
-// =========================================================
-// EDIT PANEL
-// =========================================================
+function StatusBadge({ status }) {
+    const value = String(status || '').toLowerCase();
 
-const EditCasePanel = ({
+    const colors = isRejected(value)
+        ? 'border-[#65404A] bg-[#322229] text-[#E7ABB5]'
+        : ['completed', 'resolved', 'verified'].includes(value)
+          ? 'border-[#315A4E] bg-[#1B332D] text-[#90D3B7]'
+          : ['accepted', 'active', 'in_progress'].includes(value)
+            ? 'border-[#40546C] bg-[#213044] text-[#BDD2EA]'
+            : 'border-[#604B30] bg-[#30271D] text-[#E4C18B]';
+
+    return (
+        <span
+            className={`inline-flex items-center border px-2.5 py-1 text-[11px] font-medium ${colors}`}
+        >
+            {formatLabel(status)}
+        </span>
+    );
+}
+
+function PriorityBadge({ priority }) {
+    const value = String(priority || 'normal').toLowerCase();
+
+    const colors = ['urgent', 'critical'].includes(value)
+        ? 'border-[#70434B] bg-[#332229] text-[#E7A7B1]'
+        : value === 'high'
+          ? 'border-[#604B30] bg-[#30271D] text-[#E4C18B]'
+          : value === 'low'
+            ? 'border-[#354B44] bg-[#1B2B26] text-[#A8C9B4]'
+            : 'border-[#3B4655] bg-[#222B36] text-[#B9C4D1]';
+
+    return (
+        <span
+            className={`inline-flex items-center border px-2.5 py-1 text-[11px] font-medium ${colors}`}
+        >
+            {formatLabel(priority || 'normal')} priority
+        </span>
+    );
+}
+
+function SectionTitle({ icon: Icon, children, action }) {
+    return (
+        <div className="mb-5 flex items-center justify-between gap-4">
+            <h3 className="flex min-w-0 items-center gap-2.5 text-[14px] font-semibold text-[#EEF1F5]!">
+                <Icon
+                    size={17}
+                    strokeWidth={1.8}
+                    className="shrink-0 text-[#9FB1C6]"
+                />
+                {children}
+            </h3>
+
+            {action}
+        </div>
+    );
+}
+
+function InformationRow({ label, children }) {
+    return (
+        <div className="grid grid-cols-[125px_minmax(0,1fr)] items-center gap-5 border-b border-[#2B3542] py-4.5 last:border-b-0 sm:grid-cols-[175px_minmax(0,1fr)] sm:gap-6 sm:py-5">
+            <dt className="text-[13px] leading-6 text-[#91A0B2]">{label}</dt>
+
+            <dd className="min-w-0 wrap-break-word text-[13px] font-medium leading-6 text-[#E6EDF5]">
+                {children === undefined || children === null || children === ''
+                    ? 'Not provided'
+                    : children}
+            </dd>
+        </div>
+    );
+}
+
+const WORKFLOW = [
+    { key: 'assigned', label: 'Assigned' },
+    { key: 'accepted', label: 'Accepted' },
+    { key: 'active', label: 'In progress' },
+    { key: 'completed', label: 'Completed' },
+];
+
+function SupportWorkflow({ request }) {
+    const stage = getStage(request);
+    const currentIndex = WORKFLOW.findIndex((item) => item.key === stage);
+
+    const messages = {
+        assigned: 'Awaiting a response from your organization.',
+        accepted: 'The assignment has been accepted.',
+        active: 'Your organization is providing support.',
+        completed: 'Support has been completed.',
+    };
+
+    return (
+        <section className="border-t border-[#303A47] pt-7 sm:pt-8">
+            <SectionTitle icon={Activity}>Support progress</SectionTitle>
+
+            {stage === 'rejected' ? (
+                <div className="flex items-start gap-3 border-l-2 border-[#A56B75] bg-[#261D24] px-4 py-4">
+                    <XCircle
+                        size={19}
+                        className="mt-0.5 shrink-0 text-[#DFA7B0]"
+                    />
+
+                    <div>
+                        <p className="text-[13px] font-semibold text-[#F0D6DA]">
+                            Assignment declined
+                        </p>
+
+                        <p className="mt-1 text-[12px] leading-5 text-[#C9A7AD]">
+                            This organization is not actively handling the
+                            request.
+                        </p>
+                    </div>
+                </div>
+            ) : (
+                <div className="border border-[#303A47] bg-[#121923]">
+                    <div className="flex items-start gap-3 border-b border-[#303A47] px-4 py-4 sm:px-5 sm:py-5">
+                        <span className="flex size-9 shrink-0 items-center justify-center border border-[#40556D] bg-[#26374B] text-[#B9CEE5]">
+                            {stage === 'completed' ? (
+                                <CheckCircle2 size={18} />
+                            ) : (
+                                <Activity size={18} />
+                            )}
+                        </span>
+
+                        <div className="min-w-0">
+                            <p className="text-[13px] font-semibold text-[#EEF1F5]">
+                                {formatLabel(
+                                    stage === 'active' ? 'In progress' : stage,
+                                )}
+                            </p>
+
+                            <p className="mt-1.5 text-[12px] leading-5 text-[#9DADBF]">
+                                {messages[stage]}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-4 gap-1 px-3 py-6 sm:px-5 sm:py-7">
+                        {WORKFLOW.map((item, index) => {
+                            const complete = index < currentIndex;
+                            const current = index === currentIndex;
+
+                            return (
+                                <div
+                                    key={item.key}
+                                    className="relative min-w-0 text-center"
+                                    aria-current={current ? 'step' : undefined}
+                                >
+                                    {index > 0 && (
+                                        <div
+                                            className={`absolute right-1/2 top-3.75 h-px w-full ${
+                                                index <= currentIndex
+                                                    ? 'bg-[#7089A4]'
+                                                    : 'bg-[#344150]'
+                                            }`}
+                                        />
+                                    )}
+
+                                    <span
+                                        className={`relative z-10 mx-auto flex size-7.75 items-center justify-center rounded-full border text-[11px] font-semibold ${
+                                            complete
+                                                ? 'border-[#637F9A] bg-[#304559] text-[#D8E5F2]'
+                                                : current
+                                                  ? 'border-[#91ABC7] bg-[#3A5571] text-white'
+                                                  : 'border-[#3A4655] bg-[#151C25] text-[#78889B]'
+                                        }`}
+                                    >
+                                        {complete ? (
+                                            <Check size={15} />
+                                        ) : (
+                                            index + 1
+                                        )}
+                                    </span>
+
+                                    <p
+                                        className={`mt-2.5 px-0.5 text-[11px] leading-4 ${
+                                            current
+                                                ? 'font-semibold text-[#EEF1F5]'
+                                                : complete
+                                                  ? 'text-[#B9C7D7]'
+                                                  : 'text-[#78889B]'
+                                        }`}
+                                    >
+                                        {item.label}
+                                    </p>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+        </section>
+    );
+}
+
+function EditCasePanel({
     request,
     onUpdateAssignment,
     actionLoading,
     onCancel,
-}) => {
+}) {
     const [category, setCategory] = useState(request.category || '');
     const [urgency, setUrgency] = useState(request.urgency || 'normal');
     const [error, setError] = useState('');
 
-    const handleSave = async () => {
+    const handleSave = async (event) => {
+        event.preventDefault();
         setError('');
 
         if (!request.assignmentId) {
-            setError(
-                'Assignment information is missing. Please refresh the page and try again.',
-            );
+            setError('Assignment information is missing.');
             return;
         }
 
-        if (!onUpdateAssignment) {
-            setError(
-                'Update function is not available. Please refresh the page and try again.',
-            );
-            return;
-        }
-
-        const trimmedCategory = category.trim();
-
-        if (!trimmedCategory) {
+        if (!category.trim()) {
             setError('Please select a category.');
             return;
         }
 
-        if (!['low', 'normal', 'high', 'critical'].includes(urgency)) {
-            setError('Please select a valid priority.');
+        if (!onUpdateAssignment) {
+            setError('The update action is unavailable.');
             return;
         }
 
-        const fields = {
-            category: trimmedCategory,
-            urgency,
-        };
-
         try {
-            const success = await onUpdateAssignment(
-                request.assignmentId,
-                fields,
-            );
+            const success = await onUpdateAssignment(request.assignmentId, {
+                category: category.trim(),
+                urgency,
+            });
 
-            if (!success) {
-                setError(
-                    'The case could not be updated. Please check the error message and try again.',
-                );
-                return;
+            if (success) {
+                onCancel();
+            } else {
+                setError('Unable to update this case.');
             }
-
-            onCancel();
         } catch (err) {
-            console.error('Case update failed:', err);
-
-            setError(
-                err?.message ||
-                    'The case could not be updated. Please try again.',
-            );
+            setError(err?.message || 'Unable to update this case.');
         }
     };
 
     return (
-        <div className="mt-5 rounded-xl border border-[#d9e3e0] bg-[#f8faf9] p-4">
-            <div className="grid grid-cols-2 gap-3">
-                <div>
-                    <label className="mb-2 block text-[10px] font-medium! text-[#64777b]">
-                        Category
-                    </label>
+        <form
+            onSubmit={handleSave}
+            className="space-y-5 border border-[#303A47] bg-[#151C25] p-4 sm:p-5"
+        >
+            <div>
+                <label
+                    htmlFor="case-category"
+                    className="mb-2 block text-[13px] font-medium text-[#C2CDDA]"
+                >
+                    Category
+                </label>
 
-                    <select
-                        value={category}
-                        onChange={(e) => setCategory(e.target.value)}
-                        className="h-10 w-full rounded-lg border border-[#d4dfdc] bg-white px-3 text-[11px] text-[#243b40] outline-none focus:border-[#0f766e] focus:ring-2 focus:ring-[#0f766e]/10"
-                    >
-                        <option value="">Select category</option>
+                <select
+                    id="case-category"
+                    className={selectClass}
+                    value={category}
+                    disabled={actionLoading}
+                    onChange={(event) => setCategory(event.target.value)}
+                >
+                    <option value="">Select category</option>
 
-                        {categories.map((item) => (
-                            <option key={item} value={item}>
-                                {item}
-                            </option>
-                        ))}
-                    </select>
-                </div>
+                    {category && !CATEGORIES.includes(category) && (
+                        <option value={category}>{category}</option>
+                    )}
 
-                <div>
-                    <label className="mb-2 block text-[10px] font-medium! text-[#64777b]">
-                        Priority
-                    </label>
+                    {CATEGORIES.map((item) => (
+                        <option key={item} value={item}>
+                            {item}
+                        </option>
+                    ))}
+                </select>
+            </div>
 
-                    <select
-                        value={urgency}
-                        onChange={(e) => setUrgency(e.target.value)}
-                        className="h-10 w-full rounded-lg border border-[#d4dfdc] bg-white px-3 text-[11px] capitalize text-[#243b40] outline-none focus:border-[#0f766e] focus:ring-2 focus:ring-[#0f766e]/10"
-                    >
-                        <option value="low">Low</option>
-                        <option value="normal">Normal</option>
-                        <option value="high">High</option>
-                        <option value="critical">Critical</option>
-                    </select>
-                </div>
+            <div>
+                <label
+                    htmlFor="case-priority"
+                    className="mb-2 block text-[13px] font-medium text-[#C2CDDA]"
+                >
+                    Priority
+                </label>
+
+                <select
+                    id="case-priority"
+                    className={selectClass}
+                    value={urgency}
+                    disabled={actionLoading}
+                    onChange={(event) => setUrgency(event.target.value)}
+                >
+                    {PRIORITIES.map((item) => (
+                        <option key={item} value={item}>
+                            {formatLabel(item)}
+                        </option>
+                    ))}
+                </select>
             </div>
 
             {error && (
-                <p className="mt-3 rounded-lg bg-[#fff6f4] px-3 py-2 text-[10px] leading-4 text-[#92584e]">
+                <p
+                    role="alert"
+                    className="flex gap-2 border border-[#69404A] bg-[#302027] px-3 py-3 text-[12px] leading-5 text-[#DFA7B0]"
+                >
+                    <AlertCircle size={16} className="mt-0.5 shrink-0" />
                     {error}
                 </p>
             )}
 
-            <div className="mt-4 flex justify-end gap-2">
+            <div className="flex justify-end gap-2 pt-1">
                 <button
                     type="button"
+                    className={secondaryButton}
+                    disabled={actionLoading}
                     onClick={onCancel}
-                    className="h-9 rounded-lg px-4 text-[10px] font-semibold text-[#66787c] hover:bg-white"
                 >
                     Cancel
                 </button>
 
                 <button
-                    type="button"
-                    onClick={handleSave}
+                    type="submit"
+                    className={primaryButton}
                     disabled={actionLoading}
-                    className="flex h-9 items-center gap-2 rounded-lg bg-[#0f766e] px-4 text-[10px] font-semibold text-white! hover:bg-[#115e59] disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                    {actionLoading ? (
-                        <RotateCcw className="h-3.5 w-3.5 animate-spin" />
-                    ) : (
-                        <Save className="h-3.5 w-3.5" />
-                    )}
-                    Save changes
+                    <Save size={15} />
+                    {actionLoading ? 'Saving...' : 'Save changes'}
                 </button>
             </div>
-        </div>
+        </form>
     );
-};
+}
 
-// =========================================================
-// STATUS NOTICE
-// =========================================================
-
-const StatusNotice = ({ type }) => {
-    if (type === 'withdrawal') {
-        return (
-            <div className="mb-7 flex gap-3 rounded-xl border border-[#eadfc8] bg-[#fffbf2] px-4 py-3.5">
-                <Clock3 className="mt-0.5 h-4 w-4 shrink-0 text-[#9b7e47]" />
-
-                <div>
-                    <p className="text-[11px] font-semibold text-[#5d5035]">
-                        Withdrawal request under review
-                    </p>
-
-                    <p className="mt-1 text-[10px] leading-5 text-[#806f4e]">
-                        Administration is reviewing the request. This assignment
-                        remains active until a decision is made.
-                    </p>
-                </div>
-            </div>
-        );
-    }
-
-    if (type === 'assigned') {
-        return (
-            <div className="mb-7 flex gap-3 rounded-xl border border-[#d7e8e4] bg-[#f2f9f7] px-4 py-3.5">
-                <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[#0f766e]" />
-
-                <div>
-                    <p className="text-[11px] font-semibold text-[#294b4b]">
-                        This assignment needs your decision
-                    </p>
-
-                    <p className="mt-1 text-[10px] leading-5 text-[#668084]">
-                        Review the request and decide whether your organization
-                        can provide support.
-                    </p>
-                </div>
-            </div>
-        );
-    }
-
-    if (type === 'accepted') {
-        return (
-            <div className="mb-7 flex gap-3 rounded-xl border border-[#d7e8e4] bg-[#f2f9f7] px-4 py-3.5">
-                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#0f766e]" />
-
-                <div>
-                    <p className="text-[11px] font-semibold text-[#294b4b]">
-                        Assignment accepted
-                    </p>
-
-                    <p className="mt-1 text-[10px] leading-5 text-[#668084]">
-                        Your organization has accepted this case and can now
-                        begin providing support.
-                    </p>
-                </div>
-            </div>
-        );
-    }
-
-    if (type === 'active') {
-        return (
-            <div className="mb-7 flex gap-3 rounded-xl border border-[#d7e8e4] bg-[#f2f9f7] px-4 py-3.5">
-                <Activity className="mt-0.5 h-4 w-4 shrink-0 text-[#0f766e]" />
-
-                <div>
-                    <p className="text-[11px] font-semibold text-[#294b4b]">
-                        Support is currently active
-                    </p>
-
-                    <p className="mt-1 text-[10px] leading-5 text-[#668084]">
-                        Your organization is currently handling this case.
-                    </p>
-                </div>
-            </div>
-        );
-    }
-
-    return null;
-};
-
-// =========================================================
-// ACTION ITEM
-// =========================================================
-
-const CommandAction = ({
-    icon: Icon,
-    title,
-    description,
-    onClick,
-    danger = false,
-    disabled = false,
-}) => {
-    return (
-        <button
-            type="button"
-            onClick={onClick}
-            disabled={disabled}
-            className="group flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left transition hover:bg-[#f6f9f8] disabled:cursor-not-allowed disabled:opacity-50"
-        >
-            <div
-                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
-                    danger
-                        ? 'bg-[#fff1ef] text-[#a65c51]'
-                        : 'bg-[#e9f4f1] text-[#0f766e]'
-                }`}
-            >
-                <Icon className="h-3.5 w-3.5" strokeWidth={1.6} />
-            </div>
-
-            <div className="min-w-0 flex-1">
-                <p
-                    className={`text-[11px] font-semibold ${
-                        danger ? 'text-[#805048]' : 'text-[#30484e]'
-                    }`}
-                >
-                    {title}
-                </p>
-
-                <p className="mt-1 text-[9px] leading-4 text-[#829195]">
-                    {description}
-                </p>
-            </div>
-
-            <ArrowRight className="h-3.5 w-3.5 shrink-0 text-[#a0abad] transition-transform group-hover:translate-x-0.5" />
-        </button>
-    );
-};
-
-// =========================================================
-// FOOTER
-// =========================================================
-
-const DrawerFooter = ({
+export default function CaseReviewDrawer({
     request,
     onClose,
     onAction,
     onStartSupport,
-    actionLoading,
-}) => {
-    const withdrawalPending = request.withdrawalStatus === 'pending';
-
-    /*
-     * IMPORTANT:
-     *
-     * request.status is the Help Request lifecycle status.
-     * request.assignmentStatus is the actual organization
-     * assignment status.
-     *
-     * We must use assignmentStatus to decide whether the
-     * organization can Accept/Decline or Start Support.
-     */
-
-    const assignmentStatus = String(
-        request.assignmentStatus || request.rawAssignment?.status || '',
-    ).toLowerCase();
-
-    const helpRequestStatus = String(
-        request.helpRequestStatus || request.rawHelpRequest?.status || '',
-    ).toLowerCase();
-
-    if (withdrawalPending) {
-        return (
-            <div className="flex items-center justify-between border-t border-[#dce5e3] bg-white px-7 py-4">
-                <div>
-                    <p className="text-[11px] font-semibold text-[#4d6166]">
-                        Awaiting administration
-                    </p>
-
-                    <p className="mt-0.5 text-[9px] text-[#8b999c]">
-                        The withdrawal request is being reviewed.
-                    </p>
-                </div>
-
-                <button
-                    type="button"
-                    onClick={onClose}
-                    className="h-9 rounded-lg border border-[#d4dfdc] px-5 text-[10px] font-semibold text-[#465b60] hover:bg-[#f7f9f8]"
-                >
-                    Close
-                </button>
-            </div>
-        );
-    }
-
-    /*
-     * PENDING ASSIGNMENT
-     *
-     * Only a genuinely pending assignment can be
-     * accepted or rejected.
-     */
-    if (assignmentStatus === 'pending') {
-        return (
-            <div className="flex items-center justify-between border-t border-[#dce5e3] bg-white px-7 py-4">
-                <button
-                    type="button"
-                    onClick={onClose}
-                    className="h-9 px-2 text-[10px] font-semibold text-[#738287] hover:text-[#30484e]"
-                >
-                    Close
-                </button>
-
-                <div className="flex gap-2">
-                    <button
-                        type="button"
-                        onClick={() => onAction(request, 'reject')}
-                        disabled={actionLoading}
-                        className="h-9 rounded-lg border border-[#d4dfdc] px-5 text-[10px] font-semibold text-[#5f7075] hover:bg-[#f7f9f8] disabled:opacity-50"
-                    >
-                        Decline
-                    </button>
-
-                    <button
-                        type="button"
-                        onClick={() => onAction(request, 'accept')}
-                        disabled={actionLoading}
-                        className="flex h-9 items-center gap-2 rounded-lg bg-[#0f766e] px-5 text-[10px] font-semibold text-white! hover:bg-[#115e59] disabled:opacity-50"
-                    >
-                        {actionLoading ? (
-                            <RotateCcw className="h-3.5 w-3.5 animate-spin" />
-                        ) : (
-                            <Check className="h-3.5 w-3.5" />
-                        )}
-                        Accept assignment
-                    </button>
-                </div>
-            </div>
-        );
-    }
-
-    /*
-     * ACCEPTED ASSIGNMENT
-     *
-     * The assignment remains "accepted" even after the
-     * organization starts support.
-     *
-     * Start Support creates the Local Case Campaign.
-     */
-    if (assignmentStatus === 'accepted' && helpRequestStatus === 'verified') {
-        return (
-            <div className="flex items-center justify-between border-t border-[#dce5e3] bg-white px-7 py-4">
-                <button
-                    type="button"
-                    onClick={onClose}
-                    className="h-9 px-2 text-[10px] font-semibold text-[#738287] hover:text-[#30484e]"
-                >
-                    Close
-                </button>
-
-                <button
-                    type="button"
-                    onClick={() => onStartSupport?.(request)}
-                    disabled={actionLoading}
-                    className="flex h-9 items-center gap-2 rounded-lg bg-[#0f766e] px-5 text-[10px] font-semibold text-white! hover:bg-[#115e59] disabled:opacity-50"
-                >
-                    {actionLoading ? (
-                        <RotateCcw className="h-3.5 w-3.5 animate-spin" />
-                    ) : (
-                        <ArrowRight className="h-3.5 w-3.5" />
-                    )}
-                    Start support
-                </button>
-            </div>
-        );
-    }
-
-    /*
-     * ONGOING
-     *
-     * The Help Request is now in_progress.
-     * Only Close is available.
-     */
-    if (
-        helpRequestStatus === 'in_progress' ||
-        request.status === 'active' ||
-        request.status === 'in_progress'
-    ) {
-        return (
-            <div className="flex justify-end border-t border-[#dce5e3] bg-white px-7 py-4">
-                <button
-                    type="button"
-                    onClick={onClose}
-                    className="h-9 rounded-lg border border-[#d4dfdc] px-5 text-[10px] font-semibold text-[#465b60] hover:bg-[#f7f9f8]"
-                >
-                    Close
-                </button>
-            </div>
-        );
-    }
-
-    /*
-     * COMPLETED / REJECTED / OTHER TERMINAL STATES
-     */
-    return (
-        <div className="flex justify-end border-t border-[#dce5e3] bg-white px-7 py-4">
-            <button
-                type="button"
-                onClick={onClose}
-                className="h-9 rounded-lg border border-[#d4dfdc] px-5 text-[10px] font-semibold text-[#465b60] hover:bg-[#f7f9f8]"
-            >
-                Close
-            </button>
-        </div>
-    );
-};
-
-// =========================================================
-// MAIN DRAWER
-// =========================================================
-
-const CaseReviewDrawer = ({
-    request,
-    onClose,
-    onAction,
-    onStartSupport,
-    actionLoading,
-    statusConfig,
+    actionLoading = false,
     onUpdateAssignment,
-    onRequestWithdrawal,
-}) => {
+}) {
     const [isEditing, setIsEditing] = useState(false);
+    const titleId = useId();
+
+    useEffect(() => {
+        if (!request) return undefined;
+
+        const handleKeyDown = (event) => {
+            if (event.key === 'Escape' && !actionLoading) {
+                onClose?.();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [request, actionLoading, onClose]);
 
     if (!request) return null;
 
-    const config = statusConfig[request.status] || {
-        label: request.status,
-    };
+    const assignment = getAssignmentStatus(request);
+    const lifecycle = getRequestStatus(request);
 
-    const withdrawalPending = request.withdrawalStatus === 'pending';
+    const rejected = isRejected(assignment);
+    const pending = assignment === 'pending';
 
     const canEdit =
-        !withdrawalPending &&
-        (request.status === 'accepted' ||
-            request.status === 'active' ||
-            request.status === 'in_progress');
+        !rejected &&
+        (['accepted', 'assigned'].includes(assignment) ||
+            isProgressStatus(lifecycle));
 
-    const canRequestWithdrawal =
-        !withdrawalPending &&
-        (request.status === 'accepted' ||
-            request.status === 'active' ||
-            request.status === 'in_progress');
-
-    const handleClose = () => {
-        setIsEditing(false);
-        onClose();
-    };
-
-    const handleCancelEdit = () => {
-        setIsEditing(false);
-    };
-
-    const amount =
-        request.amountNeeded || request.amount
-            ? formatCurrency(request.amountNeeded || request.amount)
-            : null;
+    const canStartSupport =
+        !rejected &&
+        ['accepted', 'assigned'].includes(assignment) &&
+        lifecycle === 'verified';
 
     const requesterName =
-        request.requesterName || request.requester?.name || 'Unknown requester';
+        request.requesterName ||
+        request.requester?.name ||
+        request.individual ||
+        'Unknown requester';
 
-    const requesterLocation =
+    const location =
         request.address ||
         request.requesterAddress ||
         request.district ||
         'Location not provided';
 
-    const progress = Math.min(request.progress || 0, 100);
+    const displayStatus = assignment || lifecycle;
 
-    const progressSteps = getProgressSteps(request.status);
+    const close = () => {
+        if (actionLoading) return;
 
-    const isOngoing =
-        request.status === 'active' || request.status === 'in_progress';
+        setIsEditing(false);
+        onClose?.();
+    };
 
     return (
-        <div className="fixed inset-0 z-50">
-            {/* BACKDROP */}
+        <div className="fixed inset-0 z-50 font-sans">
             <button
                 type="button"
                 aria-label="Close case review"
-                onClick={handleClose}
-                className="absolute inset-0 h-full w-full cursor-default bg-[#10282c]/55 backdrop-blur-[1px]"
+                onClick={close}
+                disabled={actionLoading}
+                className="absolute inset-0 bg-[#05080D]/75 backdrop-blur-[2px]"
             />
 
-            {/* DRAWER */}
-            <aside className="absolute right-0 top-0 flex h-full w-full max-w-[900px] flex-col overflow-hidden bg-white shadow-[-20px_0_60px_rgba(17,38,42,0.18)]">
-                {/* HEADER */}
-                <header className="flex shrink-0 items-center justify-between border-b border-[#e2e9e7] px-8 py-4">
-                    <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#eaf4f1]">
-                            <BriefcaseBusiness
-                                className="h-4 w-4 text-[#0f766e]"
-                                strokeWidth={1.5}
-                            />
-                        </div>
+            <aside
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby={titleId}
+                className="absolute inset-y-0 right-0 flex w-full max-w-160 flex-col overflow-hidden border-l border-[#303A47] bg-[#0E1219] shadow-[-20px_0_65px_rgba(0,0,0,0.45)]"
+            >
+                {/* Drawer header */}
+                <header className="flex shrink-0 items-center justify-between gap-4 border-b border-[#303A47] bg-[#151C25] px-5 py-4 sm:px-8">
+                    <div className="flex min-w-0 items-center gap-3">
+                        <span className="flex size-10 shrink-0 items-center justify-center border border-[#354354] bg-[#202C39] text-[#B6C6D7]">
+                            <BriefcaseBusiness size={18} />
+                        </span>
 
                         <div>
-                            <p className="text-[11px] font-semibold text-[#334a50]">
+                            <h2
+                                id={titleId}
+                                className="text-[15px] font-semibold text-[#EEF1F5]!"
+                            >
                                 Case review
-                            </p>
+                            </h2>
 
-                            <p className="mt-0.5 font-mono text-[9px] text-[#9aa6a9]">
-                                #{request.id}
+                            <p className="mt-1 font-mono text-[11px] text-[#91A0B2]">
+                                #{request.id ?? request.assignmentId ?? '—'}
                             </p>
                         </div>
                     </div>
 
                     <button
                         type="button"
-                        onClick={handleClose}
-                        className="flex h-9 w-9 items-center justify-center rounded-lg text-[#829195] hover:bg-[#f4f7f6] hover:text-[#334a50]"
+                        aria-label="Close drawer"
+                        onClick={close}
+                        disabled={actionLoading}
+                        className="flex size-9 items-center justify-center text-[#9BAABD] transition-colors hover:bg-[#26313D] hover:text-white disabled:opacity-50"
                     >
-                        <X className="h-4 w-4" strokeWidth={1.6} />
+                        <X size={19} />
                     </button>
                 </header>
 
-                {/* SCROLLING CONTENT */}
-                <div className="min-h-0 flex-1 overflow-y-auto">
-                    {/* CASE INTRO */}
-                    <section className="border-b border-[#e2e9e7] bg-[#f8faf9] px-8 py-7">
-                        <div className="flex items-start justify-between gap-8">
-                            <div className="min-w-0">
-                                <div className="mb-3 flex flex-wrap items-center gap-2">
-                                    <span className="rounded-full bg-[#e6f3f0] px-2.5 py-1 text-[9px] font-semibold text-[#0f766e]">
-                                        {config?.label || request.status}
-                                    </span>
+                {/* Scrollable content */}
+                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-color:#354354_transparent] scrollbar-thin">
+                    {/* Request identity */}
+                    <section className="border-b border-[#303A47] bg-[#151C25] px-5 py-6 sm:px-8 sm:py-7">
+                        <div className="flex flex-wrap items-center gap-2">
+                            <StatusBadge status={displayStatus} />
+                            <PriorityBadge priority={request.urgency} />
+                        </div>
 
-                                    <UrgencyBadge urgency={request.urgency} />
-                                </div>
+                        <h1 className="mt-4 wrap-break-word text-[20px] font-semibold leading-snug tracking-tight text-[#EEF1F5]! sm:text-[23px]">
+                            {request.title || 'Help request'}
+                        </h1>
 
-                                <h1 className="max-w-[680px] text-[27px] font-semibold leading-[1.2] tracking-[-0.04em] text-[#1d343a]">
-                                    {request.title}
-                                </h1>
+                        <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2.5 text-[12px] text-[#AAB8C9]">
+                            <span className="inline-flex items-center gap-2">
+                                <UserRound size={15} />
+                                {requesterName}
+                            </span>
 
-                                <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[10px] text-[#7c8d91]">
-                                    <span className="flex items-center gap-1.5">
-                                        <UserRound className="h-3.5 w-3.5" />
-                                        {requesterName}
-                                    </span>
-
-                                    <span className="flex items-center gap-1.5">
-                                        <MapPin className="h-3.5 w-3.5" />
-                                        {requesterLocation}
-                                    </span>
-                                </div>
-                            </div>
-
-                            {amount && (
-                                <div className="shrink-0 border-l border-[#dce5e3] pl-7 text-right">
-                                    <p className="text-[10px] text-[#829195]">
-                                        Amount needed
-                                    </p>
-
-                                    <p className="mt-1 text-[21px] font-semibold tracking-[-0.035em] text-[#0f766e]">
-                                        {amount}
-                                    </p>
-                                </div>
-                            )}
+                            <span className="inline-flex items-center gap-2">
+                                <MapPin size={15} />
+                                {location}
+                            </span>
                         </div>
                     </section>
 
-                    <div className="px-8 py-8">
-                        <div className="grid grid-cols-[minmax(0,1fr)_250px] gap-9">
-                            {/* MAIN */}
-                            <main className="min-w-0">
-                                <StatusNotice
-                                    type={
-                                        withdrawalPending
-                                            ? 'withdrawal'
-                                            : request.assignmentStatus ===
-                                                'pending'
-                                              ? 'assigned'
-                                              : request.assignmentStatus ===
-                                                      'accepted' &&
-                                                  request.helpRequestStatus ===
-                                                      'verified'
-                                                ? 'accepted'
-                                                : isOngoing
-                                                  ? 'active'
-                                                  : null
-                                    }
+                    {/* Single-column content */}
+                    <div className="space-y-9 px-5 py-7 sm:space-y-10 sm:px-8 sm:py-8">
+                        {/* About request */}
+                        <section>
+                            <SectionTitle icon={FileText}>
+                                About this request
+                            </SectionTitle>
+
+                            <p className="max-w-[58ch] whitespace-pre-wrap wrap-break-word text-[14px] leading-8 text-[#C1CCD8]">
+                                {request.description ||
+                                    'No additional description was provided for this request.'}
+                            </p>
+                        </section>
+
+                        {/* Case information */}
+                        <section className="border-t border-[#303A47] pt-7 sm:pt-8">
+                            <SectionTitle
+                                icon={ClipboardList}
+                                action={
+                                    canEdit &&
+                                    !isEditing && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsEditing(true)}
+                                            className="inline-flex items-center gap-1.5 text-[12px] font-medium text-[#B9CDE2] transition-colors hover:text-white"
+                                        >
+                                            <Pencil size={14} />
+                                            Edit
+                                        </button>
+                                    )
+                                }
+                            >
+                                Case information
+                            </SectionTitle>
+
+                            {isEditing ? (
+                                <EditCasePanel
+                                    key={request.assignmentId}
+                                    request={request}
+                                    onUpdateAssignment={onUpdateAssignment}
+                                    actionLoading={actionLoading}
+                                    onCancel={() => setIsEditing(false)}
                                 />
+                            ) : (
+                                <dl>
+                                    <InformationRow label="Category">
+                                        {request.category}
+                                    </InformationRow>
 
-                                {/* DESCRIPTION */}
-                                <section>
-                                    <div className="mb-4 flex items-center gap-2.5">
-                                        <FileText
-                                            className="h-4 w-4 text-[#0f766e]"
-                                            strokeWidth={1.5}
+                                    <InformationRow label="District">
+                                        {request.district}
+                                    </InformationRow>
+
+                                    <InformationRow label="Priority">
+                                        <PriorityBadge
+                                            priority={request.urgency}
                                         />
+                                    </InformationRow>
 
-                                        <h2 className="text-[15px] font-semibold tracking-[-0.02em] text-[#273e44]">
-                                            Request details
-                                        </h2>
-                                    </div>
+                                    <InformationRow label="Support type">
+                                        {request.supportType ||
+                                            request.resourceType}
+                                    </InformationRow>
 
-                                    <div className="border-l-2 border-[#d9e9e5] pl-5">
-                                        <p className="text-[13px] leading-[2] text-[#52676c]">
-                                            {request.description ||
-                                                'No additional description was provided for this request.'}
-                                        </p>
-                                    </div>
-                                </section>
+                                    <InformationRow label="Received">
+                                        {request.createdAt ||
+                                            request.submittedAt}
+                                    </InformationRow>
 
-                                {/* PEOPLE */}
-                                <section className="mt-10">
-                                    <div className="mb-4 flex items-center gap-2.5">
-                                        <UserRound
-                                            className="h-4 w-4 text-[#0f766e]"
-                                            strokeWidth={1.5}
-                                        />
-
-                                        <h2 className="text-[15px] font-semibold tracking-[-0.02em] text-[#273e44]">
-                                            Requester
-                                        </h2>
-                                    </div>
-
-                                    <div className="flex items-center justify-between rounded-xl bg-[#f7f9f8] px-5 py-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#e3f1ed] text-[#0f766e]">
-                                                <UserRound
-                                                    className="h-4 w-4"
-                                                    strokeWidth={1.5}
-                                                />
-                                            </div>
-
-                                            <div>
-                                                <p className="text-[12px] font-semibold text-[#30464c]">
-                                                    {requesterName}
-                                                </p>
-
-                                                <p className="mt-1 flex items-center gap-1 text-[9px] text-[#89979a]">
-                                                    <MapPin className="h-3 w-3" />
-                                                    {requesterLocation}
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        <div className="max-w-[180px] text-right">
-                                            <p className="text-[9px] leading-4 text-[#87969a]">
-                                                {request.assignmentNote ||
-                                                    request.note ||
-                                                    'No additional administrative note has been provided.'}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </section>
-
-                                {/* LIFECYCLE */}
-                                {(request.status === 'assigned' ||
-                                    request.status === 'accepted' ||
-                                    request.status === 'active' ||
-                                    request.status === 'in_progress' ||
-                                    request.status === 'completed' ||
-                                    withdrawalPending) && (
-                                    <section className="mt-10">
-                                        <div className="mb-5 flex items-end justify-between">
-                                            <div>
-                                                <div className="flex items-center gap-2.5">
-                                                    <Activity
-                                                        className="h-4 w-4 text-[#0f766e]"
-                                                        strokeWidth={1.5}
-                                                    />
-
-                                                    <h2 className="text-[15px] font-semibold tracking-[-0.02em] text-[#273e44]">
-                                                        Support progress
-                                                    </h2>
-                                                </div>
-
-                                                <p className="mt-1.5 text-[10px] text-[#8a999c]">
-                                                    Follow the case through each
-                                                    stage of support.
-                                                </p>
-                                            </div>
-
-                                            <div className="text-right">
-                                                <p className="text-[18px] font-semibold text-[#30474d]">
-                                                    {progress}%
-                                                </p>
-
-                                                <p className="text-[9px] text-[#89979a]">
-                                                    {getProgressLabel(
-                                                        request.status,
-                                                    )}
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        <div className="relative pl-2">
-                                            <div className="absolute bottom-4 left-[7px] top-4 w-px bg-[#dce6e3]" />
-
-                                            <div
-                                                className="absolute left-[7px] top-4 w-px bg-[#0f766e] transition-all duration-500"
-                                                style={{
-                                                    height:
-                                                        request.status ===
-                                                        'completed'
-                                                            ? 'calc(100% - 32px)'
-                                                            : isOngoing
-                                                              ? '66%'
-                                                              : request.status ===
-                                                                  'accepted'
-                                                                ? '33%'
-                                                                : '0%',
-                                                }}
-                                            />
-
-                                            <div className="space-y-6">
-                                                {progressSteps.map((step) => (
-                                                    <div
-                                                        key={step.key}
-                                                        className="relative flex items-start gap-4"
-                                                    >
-                                                        <div
-                                                            className={`relative z-10 flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full border-2 ${
-                                                                step.active
-                                                                    ? 'border-[#0f766e] bg-[#0f766e]'
-                                                                    : 'border-[#cbd8d5] bg-white'
-                                                            }`}
-                                                        >
-                                                            {step.active && (
-                                                                <span className="h-1 w-1 rounded-full bg-white" />
-                                                            )}
-                                                        </div>
-
-                                                        <div className="-mt-0.5">
-                                                            <p
-                                                                className={`text-[11px] font-semibold ${
-                                                                    step.current
-                                                                        ? 'text-[#0f766e]'
-                                                                        : step.active
-                                                                          ? 'text-[#445b60]'
-                                                                          : 'text-[#9aa6a9]'
-                                                                }`}
-                                                            >
-                                                                {step.label}
-                                                            </p>
-
-                                                            {step.current && (
-                                                                <p className="mt-1 text-[9px] text-[#89979a]">
-                                                                    Current
-                                                                    stage
-                                                                </p>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </section>
-                                )}
-                            </main>
-
-                            {/* RIGHT INFORMATION RAIL */}
-                            <aside className="min-w-0">
-                                <div className="sticky top-0">
-                                    {/* CASE FACTS */}
-                                    <section>
-                                        <h3 className="mb-4 text-[11px] font-semibold text-[#42585d]">
-                                            Case information
-                                        </h3>
-
-                                        <div className="space-y-5">
-                                            <div>
-                                                <p className="text-[9px] text-[#95a1a4]">
-                                                    Category
-                                                </p>
-
-                                                <p className="mt-1 text-[11px] font-semibold text-[#344a50]">
-                                                    {request.category ||
-                                                        'Not provided'}
-                                                </p>
-                                            </div>
-
-                                            <div>
-                                                <p className="text-[9px] text-[#95a1a4]">
-                                                    District
-                                                </p>
-
-                                                <p className="mt-1 text-[11px] font-semibold text-[#344a50]">
-                                                    {request.district ||
-                                                        'Not provided'}
-                                                </p>
-                                            </div>
-
-                                            <div>
-                                                <p className="text-[9px] text-[#95a1a4]">
-                                                    Support type
-                                                </p>
-
-                                                <p className="mt-1 text-[11px] font-semibold text-[#344a50]">
-                                                    {request.supportType ||
-                                                        request.resourceType ||
-                                                        'Not provided'}
-                                                </p>
-                                            </div>
-
-                                            <div>
-                                                <p className="text-[9px] text-[#95a1a4]">
-                                                    Received
-                                                </p>
-
-                                                <p className="mt-1 text-[11px] font-semibold text-[#344a50]">
-                                                    {request.createdAt ||
-                                                        request.submittedAt ||
-                                                        'Not provided'}
-                                                </p>
-                                            </div>
-
-                                            {request.peopleAffected && (
-                                                <div>
-                                                    <p className="text-[9px] text-[#95a1a4]">
-                                                        People affected
-                                                    </p>
-
-                                                    <p className="mt-1 text-[11px] font-semibold text-[#344a50]">
-                                                        {request.peopleAffected}
-                                                    </p>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </section>
-
-                                    {/* CLASSIFICATION */}
-                                    {canEdit && (
-                                        <section className="mt-9 border-t border-[#e4eae8] pt-7">
-                                            <div className="flex items-center justify-between">
-                                                <h3 className="text-[11px] font-semibold text-[#42585d]">
-                                                    Classification
-                                                </h3>
-
-                                                {!isEditing && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() =>
-                                                            setIsEditing(true)
-                                                        }
-                                                        className="flex items-center gap-1.5 text-[9px] font-semibold text-[#0f766e] hover:text-[#115e59]"
-                                                    >
-                                                        <Pencil className="h-3 w-3" />
-                                                        Edit
-                                                    </button>
-                                                )}
-                                            </div>
-
-                                            {!isEditing ? (
-                                                <div className="mt-4 space-y-4">
-                                                    <div>
-                                                        <p className="text-[9px] text-[#95a1a4]">
-                                                            Category
-                                                        </p>
-
-                                                        <p className="mt-1 text-[11px] font-semibold text-[#344a50]">
-                                                            {request.category ||
-                                                                'Not provided'}
-                                                        </p>
-                                                    </div>
-
-                                                    <div>
-                                                        <p className="text-[9px] text-[#95a1a4]">
-                                                            Priority
-                                                        </p>
-
-                                                        <div className="mt-1 flex items-center gap-2">
-                                                            <span
-                                                                className={`h-1.5 w-1.5 rounded-full ${
-                                                                    request.urgency ===
-                                                                    'critical'
-                                                                        ? 'bg-red-500'
-                                                                        : request.urgency ===
-                                                                            'high'
-                                                                          ? 'bg-orange-400'
-                                                                          : request.urgency ===
-                                                                              'low'
-                                                                            ? 'bg-slate-400'
-                                                                            : 'bg-[#0f766e]'
-                                                                }`}
-                                                            />
-
-                                                            <span className="text-[11px] font-semibold capitalize text-[#344a50]">
-                                                                {request.urgency ||
-                                                                    'Normal'}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                <EditCasePanel
-                                                    request={request}
-                                                    onUpdateAssignment={
-                                                        onUpdateAssignment
-                                                    }
-                                                    actionLoading={
-                                                        actionLoading
-                                                    }
-                                                    onCancel={handleCancelEdit}
-                                                />
-                                            )}
-                                        </section>
+                                    {request.peopleAffected != null && (
+                                        <InformationRow label="People affected">
+                                            {request.peopleAffected}
+                                        </InformationRow>
                                     )}
+                                </dl>
+                            )}
+                        </section>
 
-                                    {/* ACTIONS */}
-                                    {canRequestWithdrawal && (
-                                        <section className="mt-9 border-t border-[#e4eae8] pt-7">
-                                            <h3 className="text-[11px] font-semibold text-[#42585d]">
-                                                Case actions
-                                            </h3>
-
-                                            <div className="mt-3 space-y-1">
-                                                <CommandAction
-                                                    icon={MessageSquareText}
-                                                    title="Request additional support"
-                                                    description="Notify administration if additional resources or coordination are needed."
-                                                    onClick={() =>
-                                                        onRequestWithdrawal?.(
-                                                            request,
-                                                            'additional_support',
-                                                        )
-                                                    }
-                                                    disabled={actionLoading}
-                                                />
-
-                                                <CommandAction
-                                                    icon={RotateCcw}
-                                                    title="Request withdrawal"
-                                                    description="Ask administration to review a withdrawal request."
-                                                    danger
-                                                    onClick={() =>
-                                                        onRequestWithdrawal?.(
-                                                            request,
-                                                            'withdrawal',
-                                                        )
-                                                    }
-                                                    disabled={actionLoading}
-                                                />
-                                            </div>
-                                        </section>
-                                    )}
-                                </div>
-                            </aside>
-                        </div>
+                        {/* Support progress */}
+                        <SupportWorkflow request={request} />
                     </div>
                 </div>
 
-                {/* FOOTER */}
-                <DrawerFooter
-                    request={request}
-                    onClose={handleClose}
-                    onAction={onAction}
-                    onStartSupport={onStartSupport}
-                    actionLoading={actionLoading}
-                />
+                {/* Fixed footer */}
+                <footer className="shrink-0 border-t border-[#303A47] bg-[#151C25] px-5 py-3.5 sm:px-8 sm:py-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                        <button
+                            type="button"
+                            onClick={close}
+                            disabled={actionLoading}
+                            className={secondaryButton}
+                        >
+                            Close
+                        </button>
+
+                        <div className="flex flex-wrap justify-end gap-2">
+                            {pending && (
+                                <>
+                                    <button
+                                        type="button"
+                                        disabled={actionLoading}
+                                        onClick={() =>
+                                            onAction?.(request, 'reject')
+                                        }
+                                        className={secondaryButton}
+                                    >
+                                        Decline
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        disabled={actionLoading}
+                                        onClick={() =>
+                                            onAction?.(request, 'accept')
+                                        }
+                                        className={primaryButton}
+                                    >
+                                        <Check size={15} />
+                                        {actionLoading
+                                            ? 'Processing...'
+                                            : 'Accept assignment'}
+                                    </button>
+                                </>
+                            )}
+
+                            {canStartSupport && (
+                                <button
+                                    type="button"
+                                    disabled={actionLoading}
+                                    onClick={() => onStartSupport?.(request)}
+                                    className={primaryButton}
+                                >
+                                    <ArrowRight size={15} />
+                                    Start support
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </footer>
             </aside>
         </div>
     );
-};
-
-export default CaseReviewDrawer;
+}

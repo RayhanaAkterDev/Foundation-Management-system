@@ -1,22 +1,21 @@
-import React, {
-    useEffect,
-    useLayoutEffect,
-    useMemo,
-    useRef,
-    useState,
-} from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
-import { ChevronsUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import {
+    ChevronsUpDown,
+    ArrowUp,
+    ArrowDown,
+    Download,
+    Plus,
+} from 'lucide-react';
+import PageHeader from '@/components/dashboard/PageHeader';
+import LoadingUI from '@/components/dashboard/LoadingUI';
+import LoadingError from '@/components/dashboard/LoadingError';
+import SuccessDialog from '@/components/dashboard/SuccessDialog';
 
 import { getMyHelpRequests, deleteHelpRequest } from './api/helpRequestAPI';
 
-import HelpRequestPageHeader from './components/HelpRequestPageHeader';
 import HelpRequestOverview from './components/HelpRequestOverview';
 import HelpRequestWorkspace from './components/HelpRequestWorkspace';
-import createHelpRequestColumns from './components/HelpRequestTableColumns';
-import HelpRequestErrorState from './components/HelpRequestErrorState';
-import HelpRequestLoadingState from './components/HelpRequestLoadingState';
-import HelpRequestSuccessToast from './components/HelpRequestSuccessToast';
 import HelpRequestModals from './modals/HelpRequestModals';
 
 import { HELP_REQUESTS_PER_PAGE } from './constants/helpRequestConstants';
@@ -62,54 +61,6 @@ const MyHelpRequests = () => {
     });
 
     const [currentPage, setCurrentPage] = useState(1);
-
-    /*
-     * --------------------------------------------------------------------------
-     * Workspace height
-     * --------------------------------------------------------------------------
-     */
-
-    const workspaceSidebarRef = useRef(null);
-    const [workspaceHeight, setWorkspaceHeight] = useState(null);
-
-    useLayoutEffect(() => {
-        const sidebar = workspaceSidebarRef.current;
-
-        if (!sidebar) {
-            return undefined;
-        }
-
-        const updateWorkspaceHeight = () => {
-            if (window.innerWidth < 1024) {
-                setWorkspaceHeight(null);
-                return;
-            }
-
-            const height = sidebar.getBoundingClientRect().height;
-
-            if (height > 0) {
-                const nextHeight = Math.ceil(height);
-
-                setWorkspaceHeight((currentHeight) =>
-                    currentHeight === nextHeight ? currentHeight : nextHeight,
-                );
-            }
-        };
-
-        updateWorkspaceHeight();
-
-        const resizeObserver = new ResizeObserver(() => {
-            updateWorkspaceHeight();
-        });
-
-        resizeObserver.observe(sidebar);
-        window.addEventListener('resize', updateWorkspaceHeight);
-
-        return () => {
-            resizeObserver.disconnect();
-            window.removeEventListener('resize', updateWorkspaceHeight);
-        };
-    }, []);
 
     /*
      * --------------------------------------------------------------------------
@@ -236,21 +187,21 @@ const MyHelpRequests = () => {
      * --------------------------------------------------------------------------
      */
 
-    const handleViewOrganization = (assignmentInfo, request) => {
-        const organization = assignmentInfo?.currentAssignment?.organization;
+    // const handleViewOrganization = (assignmentInfo, request) => {
+    //     const organization = assignmentInfo?.currentAssignment?.organization;
 
-        if (!organization) {
-            return;
-        }
+    //     if (!organization) {
+    //         return;
+    //     }
 
-        setSelectedOrganization({
-            organization,
-            currentAssignment: assignmentInfo.currentAssignment,
-            assignments: Array.isArray(request?.assignments)
-                ? request.assignments
-                : [],
-        });
-    };
+    //     setSelectedOrganization({
+    //         organization,
+    //         currentAssignment: assignmentInfo.currentAssignment,
+    //         assignments: Array.isArray(request?.assignments)
+    //             ? request.assignments
+    //             : [],
+    //     });
+    // };
 
     const handleCloseOrganization = () => {
         setSelectedOrganization(null);
@@ -533,7 +484,7 @@ const MyHelpRequests = () => {
             );
         };
 
-        return helpRequests.filter((request) => {
+        const matches = helpRequests.filter((request) => {
             /*
              * Category tab
              *
@@ -634,7 +585,22 @@ const MyHelpRequests = () => {
 
             return true;
         });
+        if (!sortConfig.key || !sortConfig.direction) return matches;
+        return [...matches].sort((a, b) => {
+            const key = sortConfig.key;
+            const left =
+                key === 'created_at'
+                    ? new Date(a[key] || 0).getTime()
+                    : String(a[key] ?? '').toLowerCase();
+            const right =
+                key === 'created_at'
+                    ? new Date(b[key] || 0).getTime()
+                    : String(b[key] ?? '').toLowerCase();
+            const order = left < right ? -1 : left > right ? 1 : 0;
+            return sortConfig.direction === 'asc' ? order : -order;
+        });
     }, [
+        sortConfig,
         helpRequests,
         activeCategory,
         categoryFilter,
@@ -804,11 +770,22 @@ const MyHelpRequests = () => {
      */
 
     if (loading) {
-        return <HelpRequestLoadingState />;
+        return (
+            <LoadingUI
+                variant="page"
+                title="Loading your help requests..."
+                description="Please wait while we retrieve your requests."
+            />
+        );
     }
 
     if (error) {
-        return <HelpRequestErrorState error={error} />;
+        return (
+            <LoadingError
+                title="Unable to load your help requests"
+                message={error}
+            />
+        );
     }
 
     /*
@@ -843,43 +820,42 @@ const MyHelpRequests = () => {
 
     /*
      * --------------------------------------------------------------------------
-     * Columns
-     * --------------------------------------------------------------------------
-     */
-
-    const columns = createHelpRequestColumns({
-        handleViewOrganization,
-        handleView,
-        handleEdit,
-        handleDelete,
-        deleteLoading,
-    });
-
-    /*
-     * --------------------------------------------------------------------------
      * Render
      * --------------------------------------------------------------------------
      */
 
     return (
         <div className="min-h-full">
-            <div className="mx-auto w-full max-w-400 space-y-10">
-                <HelpRequestSuccessToast
-                    show={successToast.show}
-                    message={successToast.message}
-                />
-
-                <HelpRequestPageHeader
-                    onNewRequest={handleOpenModal}
-                    onExport={handleExportCSV}
-                    exportDisabled={filteredHelpRequests.length === 0}
+            <div className="w-full space-y-10 lg:space-y-12">
+                <PageHeader
+                    title="My Help Requests"
+                    subtitle="Follow the progress of your requests and manage pending submissions."
+                    action={
+                        <div className="flex flex-wrap items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={handleExportCSV}
+                                disabled={filteredHelpRequests.length === 0}
+                                className="inline-flex h-10 items-center gap-2 border border-[#343E4B] px-4 text-[12px] text-[#B8C2CF] hover:bg-[#1C232D] disabled:opacity-40"
+                            >
+                                <Download size={16} />
+                                Export
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleOpenModal}
+                                className="inline-flex h-10 items-center gap-2 border border-[#46566B] bg-[#263343] px-4 text-[12px] font-medium text-[#EEF1F5] hover:bg-[#304156]"
+                            >
+                                <Plus size={16} />
+                                New Request
+                            </button>
+                        </div>
+                    }
                 />
 
                 <HelpRequestOverview statistics={statistics} />
 
                 <HelpRequestWorkspace
-                    workspaceHeight={workspaceHeight}
-                    workspaceSidebarRef={workspaceSidebarRef}
                     categoryTabs={categoryTabs}
                     activeCategory={activeCategory}
                     onCategoryChange={handleCategoryChange}
@@ -892,7 +868,9 @@ const MyHelpRequests = () => {
                     onCategoryFilterChange={handleCategoryFilterChange}
                     onPriorityChange={handlePriorityChange}
                     onStatusChange={handleStatusChange}
-                    columns={columns}
+                    onView={handleView}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
                     rows={rows}
                     onSort={handleSort}
                     getSortIcon={getSortIcon}
@@ -905,6 +883,12 @@ const MyHelpRequests = () => {
                 />
             </div>
 
+            <SuccessDialog
+                open={successToast.show}
+                title="Action completed"
+                message={successToast.message}
+                onClose={() => setSuccessToast({ show: false, message: '' })}
+            />
             <HelpRequestModals
                 showModal={showModal}
                 handleCloseModal={handleCloseModal}

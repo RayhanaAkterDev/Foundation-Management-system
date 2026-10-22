@@ -57,7 +57,7 @@ function CampaignPreview({ values, imageUrl }) {
         <aside
             className={`min-w-0 border-b border-[#303A47] bg-[#19222D] lg:h-full lg:overflow-y-auto lg:border-r lg:border-b-0 ${HIDE_SCROLLBAR}`}
         >
-            <div className="px-5 py-6 sm:px-6 sm:py-7">
+            <div className="px-5 py-5 sm:px-6 sm:py-6">
                 <div className="flex items-center gap-3">
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center border border-[#3B4857] bg-[#253242] text-[#C1CDD8]">
                         <Megaphone size={17} strokeWidth={1.8} />
@@ -73,7 +73,7 @@ function CampaignPreview({ values, imageUrl }) {
                     </div>
                 </div>
 
-                <div className="mt-6 border-t border-[#34404D] pt-6">
+                <div className="mt-5 border-t border-[#34404D] pt-5">
                     <div className="aspect-video overflow-hidden border border-[#465363] bg-[#111821]">
                         {imageUrl ? (
                             <img
@@ -92,7 +92,7 @@ function CampaignPreview({ values, imageUrl }) {
                     </div>
                 </div>
 
-                <div className="mt-6">
+                <div className="mt-5">
                     <p className="m-0! text-[10px] font-semibold uppercase tracking-[0.13em] text-[#91A0B0]">
                         Global campaign
                     </p>
@@ -106,7 +106,7 @@ function CampaignPreview({ values, imageUrl }) {
                     </p>
                 </div>
 
-                <div className="mt-6 border-t border-[#34404D]">
+                <div className="mt-5 border-t border-[#34404D]">
                     <PreviewRow
                         icon={MapPin}
                         label="Location"
@@ -136,6 +136,7 @@ export default function AddCampaign() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
+    const [formKey, setFormKey] = useState(0);
 
     const handleCoverChange = ({ previewUrl }) => {
         setImageUrl(previewUrl || '');
@@ -154,6 +155,9 @@ export default function AddCampaign() {
             });
 
             setSuccess(true);
+            setPreview({});
+            setImageUrl('');
+            setFormKey((current) => current + 1);
         } catch (err) {
             setError(err?.message || 'Unable to create campaign.');
         } finally {
@@ -178,11 +182,12 @@ export default function AddCampaign() {
                 }
             />
 
-            <div className="grid min-w-0 overflow-hidden border border-[#303A47] bg-[#0E1219] lg:h-185 lg:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[300px_minmax(0,1fr)]">
+            <div className="grid min-w-0 overflow-hidden border border-[#303A47] bg-[#0E1219] lg:h-[740px] lg:grid-cols-[320px_minmax(0,1fr)] xl:grid-cols-[350px_minmax(0,1fr)] 2xl:grid-cols-[370px_minmax(0,1fr)]">
                 <CampaignPreview values={preview} imageUrl={imageUrl} />
 
                 <main className="min-h-0 min-w-0 lg:h-full">
                     <CampaignForm
+                        key={formKey}
                         mode="add"
                         loading={loading}
                         error={error}
@@ -200,7 +205,6 @@ export default function AddCampaign() {
                 message="Campaign created successfully."
                 onClose={() => {
                     setSuccess(false);
-                    navigate(BASE, { replace: true });
                 }}
             />
         </div>

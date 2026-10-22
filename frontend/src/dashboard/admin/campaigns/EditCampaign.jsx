@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
     ArrowLeft,
+    CalendarDays,
     CircleDot,
     FileText,
     ImagePlus,
@@ -44,7 +45,7 @@ function getCover(campaign) {
     return typeof image === 'string' ? image : '';
 }
 
-function DetailRow({ icon: Icon, label, value }) {
+function PreviewRow({ icon: Icon, label, value }) {
     return (
         <div className="flex items-start gap-3 border-b border-[#34404D] py-4 last:border-b-0">
             <Icon
@@ -55,8 +56,9 @@ function DetailRow({ icon: Icon, label, value }) {
 
             <div className="min-w-0">
                 <p className="m-0! text-[11px] text-[#91A0B0]">{label}</p>
+
                 <p className="mt-1 mb-0! wrap-break-word text-[12px] font-medium leading-5 text-[#E0E7EE]">
-                    {value || 'Not provided'}
+                    {value || 'Not set'}
                 </p>
             </div>
         </div>
@@ -74,62 +76,105 @@ function CampaignSummary({ campaign, preview, imageUrl }) {
         target > 0 ? Math.min(100, Math.max(0, (collected / target) * 100)) : 0;
 
     const status = String(campaign.status || 'unknown').toLowerCase();
+
     const isActive = status === 'active';
+
+    const schedule =
+        preview.duration_type === 'open'
+            ? 'Open-ended'
+            : preview.start_date || preview.end_date
+              ? `${preview.start_date || 'Start not set'} → ${
+                    preview.end_date || 'End not set'
+                }`
+              : campaign.end_date
+                ? `${
+                      String(campaign.start_date || '').slice(0, 10) ||
+                      'Start not set'
+                  } → ${String(campaign.end_date).slice(0, 10)}`
+                : 'Open-ended';
 
     return (
         <aside
-            className={`min-w-0 border-b border-[#303A47] bg-[#19222D] lg:h-full lg:overflow-y-auto lg:border-r lg:border-b-0 ${HIDE_SCROLLBAR}`}
+            className={`
+                min-w-0
+                border-b border-[#303A47]
+                bg-[#19222D]
+                lg:h-full
+                lg:overflow-y-auto
+                lg:border-r
+                lg:border-b-0
+                ${HIDE_SCROLLBAR}
+            `}
         >
-            <div className="px-5 py-6 sm:px-6 sm:py-7">
+            <div className="px-5 py-5 sm:px-6 sm:py-6">
+                {/* Sidebar heading */}
                 <div className="flex items-center gap-3">
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center border border-[#3B4857] bg-[#253242] text-[#C1CDD8]">
                         <FileText size={17} strokeWidth={1.8} />
                     </span>
 
                     <div className="min-w-0">
-                        <p className="m-0! text-[10px] font-semibold uppercase tracking-[0.13em] text-[#91A0B0]">
-                            Campaign record
-                        </p>
-                        <p className="mt-1 mb-0! text-[12px] font-semibold text-[#EEF1F5]">
-                            #{campaign.id}
+                        <h2 className="m-0! font-sans! text-[14px]! font-semibold! text-[#EEF1F5]!">
+                            Campaign preview
+                        </h2>
+
+                        <p className="mt-1 mb-0! text-[11px] text-[#91A0B0]">
+                            Campaign #{campaign.id} · Live information preview
                         </p>
                     </div>
                 </div>
 
-                <div className="mt-6 border-t border-[#34404D] pt-6">
+                {/* Cover preview */}
+                <div className="mt-5 border-t border-[#34404D] pt-5">
                     <div className="aspect-video overflow-hidden border border-[#465363] bg-[#111821]">
                         {imageUrl ? (
                             <img
                                 src={imageUrl}
-                                alt={campaign.title || 'Campaign cover'}
+                                alt={
+                                    preview.title ||
+                                    campaign.title ||
+                                    'Campaign cover'
+                                }
                                 className="h-full w-full object-cover"
                             />
                         ) : (
-                            <div className="flex h-full flex-col items-center justify-center gap-2 text-[#8291A2]">
-                                <ImagePlus size={24} strokeWidth={1.5} />
+                            <div className="flex h-full flex-col items-center justify-center gap-2.5 text-[#8291A2]">
+                                <ImagePlus size={25} strokeWidth={1.5} />
+
                                 <span className="text-[11px]">
-                                    No campaign cover
+                                    Cover preview
                                 </span>
                             </div>
                         )}
                     </div>
+                </div>
 
-                    <h2 className="mt-5 mb-0! wrap-break-word font-sans! text-[17px]! font-semibold! leading-[1.45] text-[#EEF1F5]!">
+                {/* Campaign identity */}
+                <div className="mt-5">
+                    <p className="m-0! text-[10px] font-semibold uppercase tracking-[0.13em] text-[#91A0B0]">
+                        Global campaign
+                    </p>
+
+                    <h3 className="mt-3 mb-0! wrap-break-word font-sans! text-[17px]! font-semibold! leading-[1.45] text-[#EEF1F5]!">
                         {preview.title ?? campaign.title ?? 'Untitled campaign'}
-                    </h2>
+                    </h3>
 
                     <p className="mt-2 mb-0! text-[12px] text-[#AAB8C7]">
                         {preview.category ??
                             campaign.category ??
-                            'Uncategorized'}
+                            'Category not selected'}
                     </p>
 
                     <div
-                        className={`mt-4 inline-flex items-center gap-2 border px-2.5 py-1.5 ${
-                            isActive
-                                ? 'border-[#3B4D47] bg-[#203029]'
-                                : 'border-[#48505D] bg-[#28303A]'
-                        }`}
+                        className={`
+                            mt-4 inline-flex items-center gap-2
+                            border px-2.5 py-1.5
+                            ${
+                                isActive
+                                    ? 'border-[#3B4D47] bg-[#203029]'
+                                    : 'border-[#48505D] bg-[#28303A]'
+                            }
+                        `}
                     >
                         <CircleDot
                             size={13}
@@ -139,40 +184,54 @@ function CampaignSummary({ campaign, preview, imageUrl }) {
                         />
 
                         <span
-                            className={`text-[11px] font-medium ${
-                                isActive ? 'text-[#B6D2C3]' : 'text-[#D1D7DF]'
-                            }`}
+                            className={`
+                                text-[11px] font-medium
+                                ${
+                                    isActive
+                                        ? 'text-[#B6D2C3]'
+                                        : 'text-[#D1D7DF]'
+                                }
+                            `}
                         >
                             {formatLabel(campaign.status)}
                         </span>
                     </div>
                 </div>
 
-                <div className="mt-6 border-t border-[#34404D]">
-                    <DetailRow
+                {/* Information preview */}
+                <div className="mt-5 border-t border-[#34404D]">
+                    <PreviewRow
                         icon={MapPin}
                         label="Location"
                         value={preview.location ?? campaign.location}
                     />
 
-                    <DetailRow
-                        icon={Wallet}
-                        label="Funds collected"
-                        value={formatMoney(collected)}
-                    />
-
-                    <DetailRow
+                    <PreviewRow
                         icon={Target}
                         label="Funding target"
                         value={formatMoney(target)}
                     />
+
+                    <PreviewRow
+                        icon={CalendarDays}
+                        label="Campaign schedule"
+                        value={schedule}
+                    />
+
+                    <PreviewRow
+                        icon={Wallet}
+                        label="Funds collected"
+                        value={formatMoney(collected)}
+                    />
                 </div>
 
-                <div className="mt-5 border-t border-[#34404D] pt-6">
+                {/* Funding progress */}
+                <div className="mt-5 border-t border-[#34404D] pt-5">
                     <div className="flex items-center justify-between gap-3">
                         <span className="text-[11px] text-[#91A0B0]">
                             Funding progress
                         </span>
+
                         <span className="text-[12px] font-semibold tabular-nums text-[#DCE5ED]">
                             {progress.toFixed(1)}%
                         </span>
@@ -181,7 +240,9 @@ function CampaignSummary({ campaign, preview, imageUrl }) {
                     <div className="mt-3 h-1.5 overflow-hidden bg-[#34404D]">
                         <div
                             className="h-full bg-[#91B5A6] transition-[width] duration-200"
-                            style={{ width: `${progress}%` }}
+                            style={{
+                                width: `${progress}%`,
+                            }}
                         />
                     </div>
 
@@ -240,7 +301,9 @@ export default function EditCampaign() {
                     setLoadError(error?.message || 'Unable to load campaign.');
                 }
             } finally {
-                if (active) setLoading(false);
+                if (active) {
+                    setLoading(false);
+                }
             }
         }
 
@@ -278,7 +341,7 @@ export default function EditCampaign() {
                     <button
                         type="button"
                         onClick={() => navigate(detailsPath)}
-                        className="inline-flex h-10 items-center gap-2 border border-[#343E4B] bg-[#151C25] px-4 text-[12px] font-medium text-[#C4CDD8] hover:bg-[#202A35]"
+                        className="inline-flex h-10 items-center gap-2 border border-[#343E4B] bg-[#151C25] px-4 text-[12px] font-medium text-[#C4CDD8] transition-colors hover:bg-[#202A35]"
                     >
                         <ArrowLeft size={15} />
                         Back to details
@@ -298,7 +361,17 @@ export default function EditCampaign() {
                     message={loadError || 'Campaign not found.'}
                 />
             ) : (
-                <div className="grid min-w-0 overflow-hidden border border-[#303A47] bg-[#0E1219] lg:h-185 lg:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[300px_minmax(0,1fr)]">
+                <div
+                    className="
+                        grid min-w-0 overflow-hidden
+                        border border-[#303A47]
+                        bg-[#0E1219]
+                        lg:h-[740px]
+                        lg:grid-cols-[320px_minmax(0,1fr)]
+                        xl:grid-cols-[350px_minmax(0,1fr)]
+                        2xl:grid-cols-[370px_minmax(0,1fr)]
+                    "
+                >
                     <CampaignSummary
                         campaign={campaign}
                         preview={preview}
@@ -331,7 +404,9 @@ export default function EditCampaign() {
                 message="Campaign information updated successfully."
                 onClose={() => {
                     setSuccess(false);
-                    navigate(detailsPath, { replace: true });
+                    navigate(detailsPath, {
+                        replace: true,
+                    });
                 }}
             />
         </div>

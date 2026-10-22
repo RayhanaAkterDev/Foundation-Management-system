@@ -1,377 +1,603 @@
-import React from 'react';
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
-    ArrowLeft,
-    Pencil,
-    FileText,
-    UserRound,
-    Mail,
-    Phone,
-    MapPin,
+    ArrowUpRight,
     Building2,
-    ShieldCheck,
-    AlertCircle,
+    CalendarDays,
     Clock3,
+    FileText,
+    MapPin,
+    Pencil,
+    UserRound,
+    ClipboardList,
+    AlertCircle,
+    UsersRound,
 } from 'lucide-react';
-import PageHeader from '@/components/dashboard/PageHeader';
+
 import StatusBadge from '@/components/dashboard/StatusBadge';
 
-const show = (value) =>
-    value === null || value === undefined || value === '' ? '—' : String(value);
-const titleCase = (value) =>
-    show(value)
-        .replace(/_/g, ' ')
-        .replace(/\b\w/g, (c) => c.toUpperCase());
-const dateText = (value) => {
-    if (!value) return '—';
-    const date = new Date(value);
-    return Number.isNaN(date.getTime())
-        ? '—'
-        : date.toLocaleDateString('en-GB', {
-              day: '2-digit',
-              month: 'short',
-              year: 'numeric',
-          });
+const PANEL = 'min-w-0 overflow-hidden border border-[#303A47] bg-[#171D26]';
+
+const STATUS_COLORS = {
+    pending: 'border-[#66583D] bg-[#332D22] text-[#E4C995]',
+    active: 'border-[#416B5D] bg-[#20382F] text-[#A8D7C0]',
+    approved: 'border-[#416B5D] bg-[#20382F] text-[#A8D7C0]',
+    verified: 'border-[#416B5D] bg-[#20382F] text-[#A8D7C0]',
+    completed: 'border-[#46586D] bg-[#253242] text-[#C0D0E1]',
+    rejected: 'border-[#75464C] bg-[#322126] text-[#E9B8BD]',
+    cancelled: 'border-[#515967] bg-[#292E37] text-[#C2CAD5]',
 };
 
-function SectionTitle({ icon: Icon, title, extra }) {
+function show(value, fallback = 'Not provided') {
+    if (value === null || value === undefined) {
+        return fallback;
+    }
+
+    const result = String(value).trim();
+    return result || fallback;
+}
+
+function titleCase(value) {
+    return show(value, 'Not specified')
+        .replace(/[_-]+/g, ' ')
+        .replace(/\b\w/g, (character) => character.toUpperCase());
+}
+
+function dateText(value, withTime = false) {
+    if (!value) return 'Not set';
+
+    const parsed = new Date(value);
+
+    if (Number.isNaN(parsed.getTime())) {
+        return String(value);
+    }
+
+    const options = {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+    };
+
+    if (withTime) {
+        options.hour = 'numeric';
+        options.minute = '2-digit';
+    }
+
+    return parsed.toLocaleString('en-GB', options);
+}
+
+function getAssignments(request) {
+    if (Array.isArray(request.assignments)) {
+        return request.assignments;
+    }
+
+    if (Array.isArray(request.help_request_assignments)) {
+        return request.help_request_assignments;
+    }
+
+    if (Array.isArray(request.helpRequestAssignments)) {
+        return request.helpRequestAssignments;
+    }
+
+    return request.assignment ? [request.assignment] : [];
+}
+
+function getRequester(request) {
+    const requester = request.user || request.requester || {};
+
+    return {
+        id: request.user_id ?? request.requester_id ?? requester.id ?? null,
+
+        name:
+            requester.name ||
+            requester.full_name ||
+            request.requesterName ||
+            'Unknown requester',
+
+        email: requester.email || request.requesterEmail || null,
+
+        image:
+            requester.profile_image ||
+            requester.avatar ||
+            requester.photo ||
+            null,
+    };
+}
+
+function SectionHeader({ icon: Icon, title, subtitle, extra }) {
     return (
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#29323E] pb-4">
-            <div className="flex min-w-0 items-center gap-3">
-                <Icon
-                    size={18}
-                    strokeWidth={1.65}
-                    className="shrink-0 text-[#93A3B5]"
-                />
-                <h2 className="text-[17px] font-semibold! tracking-tight text-[#E6ECF3]! sm:text-[18px]">
-                    {title}
-                </h2>
+        <div className="flex min-w-0 flex-wrap items-center justify-between gap-3 border-b border-[#344150] bg-[#202B38] px-5 py-4 sm:px-7 sm:py-5">
+            <div className="flex min-w-0 items-start gap-3">
+                <span className="flex size-8 shrink-0 items-center justify-center border border-[#3A495B] bg-[#273646] text-[#C3D0DE]">
+                    <Icon size={16} strokeWidth={1.8} />
+                </span>
+
+                <div className="min-w-0">
+                    <h2 className="m-0! font-sans! text-[14px]! font-semibold! leading-5 text-[#EEF1F5]!">
+                        {title}
+                    </h2>
+
+                    {subtitle && (
+                        <p className="mt-1 mb-0! text-[12px] leading-5 text-[#9AAABD]">
+                            {subtitle}
+                        </p>
+                    )}
+                </div>
             </div>
+
             {extra}
         </div>
     );
 }
 
-function Field({ icon: Icon, label, value, wide = false }) {
+function Info({ title, value, className = '' }) {
     return (
-        <div className={`min-w-0 py-4 ${wide ? 'sm:col-span-2' : ''}`}>
-            <div className="flex items-center gap-2 text-[11px] font-medium! uppercase tracking-[0.075em] text-[#8290A1]!">
-                <Icon size={14} strokeWidth={1.7} className="shrink-0" />
-                {label}
-            </div>
-            <p className="mt-2 break-words text-[14px] font-medium! leading-6 text-[#DCE4ED]!">
+        <div className={`min-w-0 ${className}`}>
+            <dt className="text-[12px] font-medium text-[#8796A8]">{title}</dt>
+
+            <dd className="mt-1.5 mb-0 wrap-break-word whitespace-pre-wrap text-[14px] leading-6 text-[#E6EBF2]">
                 {show(value)}
-            </p>
+            </dd>
         </div>
     );
 }
 
-function MetaRow({ label, children }) {
+function Status({ value }) {
+    return <StatusBadge status={value || 'pending'} />;
+}
+
+function Identity({ request, requester, onEdit }) {
+    const [imageFailed, setImageFailed] = useState(false);
+
+    const status = String(request.status || 'pending').toLowerCase();
+
     return (
-        <div className="flex min-w-0 items-start justify-between gap-4 py-4">
-            <span className="shrink-0 text-[12px] text-[#92A0B0]!">
-                {label}
-            </span>
-            <div className="min-w-0 break-words text-right text-[12px] font-medium! text-[#D7E0EA]!">
-                {children}
+        <section className={PANEL}>
+            <div className="flex flex-col gap-5 px-5 py-5 sm:px-7 sm:py-6 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex min-w-0 items-start gap-4">
+                    <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden border border-[#3A495B] bg-[#253242] text-[#C3D0DE] sm:size-14">
+                        {requester.image && !imageFailed ? (
+                            <img
+                                src={requester.image}
+                                alt={requester.name}
+                                onError={() => setImageFailed(true)}
+                                className="size-full object-cover"
+                            />
+                        ) : (
+                            <FileText size={23} strokeWidth={1.5} />
+                        )}
+                    </div>
+
+                    <div className="min-w-0">
+                        <p className="m-0! text-[12px] font-medium text-[#94A3B4]">
+                            Help request #{show(request.id)}
+                        </p>
+
+                        <h1 className="mt-2 mb-0! wrap-break-word font-sans! text-[19px]! font-semibold! leading-[1.45] tracking-[-0.02em] text-[#F0F3F7]! sm:text-[23px]!">
+                            {show(request.title, 'Untitled help request')}
+                        </h1>
+
+                        <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] text-[#AAB8C7]">
+                            <span className="inline-flex items-center gap-2">
+                                <UserRound size={14} />
+                                {requester.name}
+                            </span>
+
+                            {request.district && (
+                                <span className="inline-flex items-center gap-2">
+                                    <MapPin size={14} />
+                                    {request.district}
+                                </span>
+                            )}
+
+                            {request.created_at && (
+                                <span className="inline-flex items-center gap-2">
+                                    <CalendarDays size={14} />
+                                    {dateText(request.created_at)}
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex shrink-0 flex-wrap items-center gap-2 lg:justify-end">
+                    <span
+                        className={`
+                            inline-flex min-h-9 items-center gap-2
+                            border px-3 text-[12px] font-medium
+                            ${
+                                STATUS_COLORS[status] ||
+                                'border-[#465363] bg-[#253242] text-[#D5DFE9]'
+                            }
+                        `}
+                    >
+                        <span className="size-1.5 rounded-full bg-current" />
+                        {titleCase(status)}
+                    </span>
+
+                    <button
+                        type="button"
+                        onClick={onEdit}
+                        className="inline-flex min-h-9 items-center justify-center gap-2 border border-[#586678] bg-[#2B3949] px-3.5 text-[12px] font-medium text-[#EEF1F5] transition-colors hover:bg-[#37495D]"
+                    >
+                        <Pencil size={14} strokeWidth={1.8} />
+                        Edit request
+                    </button>
+                </div>
             </div>
-        </div>
+        </section>
     );
 }
 
-function getAssignments(request) {
-    if (Array.isArray(request.assignments)) return request.assignments;
-    if (Array.isArray(request.help_request_assignments))
-        return request.help_request_assignments;
-    if (Array.isArray(request.helpRequestAssignments))
-        return request.helpRequestAssignments;
-    return request.assignment ? [request.assignment] : [];
+function RequesterLink({ requester }) {
+    const [imageFailed, setImageFailed] = useState(false);
+
+    const content = (
+        <>
+            <span className="flex size-11 shrink-0 items-center justify-center overflow-hidden border border-[#3A495B] bg-[#253242] text-[#B7C8D9]">
+                {requester.image && !imageFailed ? (
+                    <img
+                        src={requester.image}
+                        alt={requester.name}
+                        onError={() => setImageFailed(true)}
+                        className="size-full object-cover"
+                    />
+                ) : (
+                    <UserRound size={19} strokeWidth={1.7} />
+                )}
+            </span>
+
+            <span className="min-w-0 flex-1">
+                <span className="block truncate text-[14px] font-semibold text-[#E7EDF4]">
+                    {requester.name}
+                </span>
+
+                <span className="mt-1 block truncate text-[13px] text-[#98A8BA]">
+                    {show(requester.email)}
+                </span>
+            </span>
+
+            {requester.id != null && (
+                <ArrowUpRight
+                    size={17}
+                    strokeWidth={1.7}
+                    className="shrink-0 text-[#91A4B8] transition-colors group-hover:text-[#EEF1F5]"
+                />
+            )}
+        </>
+    );
+
+    if (requester.id == null) {
+        return (
+            <div className="flex min-w-0 items-center gap-3 border border-[#344150] bg-[#151D27] px-4 py-3">
+                {content}
+            </div>
+        );
+    }
+
+    return (
+        <Link
+            to={`/admin/dashboard/users/${requester.id}`}
+            title="View requester details"
+            className="group flex min-w-0 items-center gap-3 border border-[#344150] bg-[#151D27] px-4 py-3 transition-colors hover:border-[#526276] hover:bg-[#1D2936]"
+        >
+            {content}
+        </Link>
+    );
 }
 
-export default function HelpRequestDetailsView({ request, onEdit, onBack }) {
-    const requester = request.user || request.requester || {};
-    const requesterName =
-        requester.name ||
-        requester.full_name ||
-        request.requesterName ||
-        'Unknown requester';
-    const requesterEmail = requester.email || request.requesterEmail;
-    const requesterPhone = requester.phone || request.phone;
-    const assignments = getAssignments(request);
-    const urgency = request.urgency || request.priority;
-    const verification = request.verification_status;
+function RequestInformation({ request, requester }) {
     const address = request.address || request.location;
 
     return (
-        <main className="min-w-0 space-y-10 pb-10 font-sans lg:space-y-12">
-            <PageHeader
-                title="Help Request Details"
-                subtitle="Request information, verification and assistance assignments."
-                action={
-                    <button
-                        type="button"
-                        onClick={onBack}
-                        className="inline-flex h-10 items-center justify-center gap-2 border border-[#343E4B] px-3.5 text-[12px] font-medium text-[#B8C2CF] transition-colors hover:border-[#4B596A] hover:bg-[#1C232D] hover:text-[#F1F5F9]"
-                    >
-                        <ArrowLeft size={15} strokeWidth={1.8} /> All Help
-                        Requests
-                    </button>
+        <section className="min-w-0 overflow-hidden border border-[#354354] bg-[#1A222D]">
+            <SectionHeader
+                icon={FileText}
+                title="About this request"
+                subtitle="Request details and assistance requirements"
+            />
+
+            <div className="px-5 py-6 sm:px-7 sm:py-7">
+                <p className="m-0! wrap-break-word whitespace-pre-line text-[14px] leading-[1.95] text-[#D4DDE7]">
+                    {show(
+                        request.description,
+                        'No request description has been provided.',
+                    )}
+                </p>
+
+                <div className="mt-7 border-t border-[#344150] pt-6">
+                    <h3 className="m-0! font-sans! text-[14px]! font-semibold! text-[#E8EDF3]!">
+                        Request information
+                    </h3>
+
+                    <dl className="mt-5 grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2">
+                        <Info
+                            title="Category"
+                            value={titleCase(request.category)}
+                        />
+
+                        <Info
+                            title="Urgency"
+                            value={titleCase(
+                                request.urgency || request.priority,
+                            )}
+                        />
+
+                        <Info title="Request ID" value={request.id} />
+
+                        <Info title="District" value={request.district} />
+
+                        <Info
+                            title="Address"
+                            value={address}
+                            className="sm:col-span-2"
+                        />
+                    </dl>
+                </div>
+
+                <div className="mt-7 border-t border-[#344150] pt-6">
+                    <h3 className="m-0! font-sans! text-[14px]! font-semibold! text-[#E8EDF3]!">
+                        Requester information
+                    </h3>
+
+                    <div className="mt-4">
+                        <RequesterLink requester={requester} />
+                    </div>
+                </div>
+            </div>
+        </section>
+    );
+}
+
+function OverviewRow({ title, children }) {
+    return (
+        <div className="flex min-w-0 items-start justify-between gap-4 border-b border-[#303A47] py-4 last:border-b-0">
+            <dt className="shrink-0 text-[13px] text-[#9EADBD]">{title}</dt>
+
+            <dd className="m-0! min-w-0 wrap-break-word text-right text-[13px] font-medium text-[#E2EAF1]">
+                {children}
+            </dd>
+        </div>
+    );
+}
+
+function RequestOverview({ request, assignmentCount }) {
+    return (
+        <section className={PANEL}>
+            <SectionHeader
+                icon={ClipboardList}
+                title="Request overview"
+                subtitle="Status and request classification"
+            />
+
+            <div className="bg-[#0E1219] px-5 py-3 sm:px-6">
+                <dl>
+                    <OverviewRow title="Request status">
+                        <Status value={request.status} />
+                    </OverviewRow>
+
+                    <OverviewRow title="Verification">
+                        <Status value={request.verification_status} />
+                    </OverviewRow>
+
+                    <OverviewRow title="Category">
+                        {titleCase(request.category)}
+                    </OverviewRow>
+
+                    <OverviewRow title="Urgency level">
+                        {titleCase(request.urgency || request.priority)}
+                    </OverviewRow>
+
+                    <OverviewRow title="Assignments">
+                        {assignmentCount}
+                    </OverviewRow>
+                </dl>
+            </div>
+
+            {request.verification_note && (
+                <div className="border-t border-[#303A47] bg-[#151C25] px-5 py-5 sm:px-6">
+                    <div className="flex items-center gap-2">
+                        <AlertCircle size={15} className="text-[#A7B8CA]" />
+
+                        <h3 className="m-0! font-sans! text-[13px]! font-semibold! text-[#E6EDF5]!">
+                            Verification note
+                        </h3>
+                    </div>
+
+                    <p className="mt-3 mb-0! wrap-break-word whitespace-pre-wrap text-[13px] leading-6 text-[#B3C0CE]">
+                        {request.verification_note}
+                    </p>
+                </div>
+            )}
+        </section>
+    );
+}
+
+function RecordHistory({ request }) {
+    return (
+        <section className={PANEL}>
+            <SectionHeader
+                icon={Clock3}
+                title="Record history"
+                subtitle="Creation and last modification"
+            />
+
+            <dl className="grid grid-cols-1 gap-5 px-5 py-6 sm:grid-cols-2 sm:px-6 lg:grid-cols-1">
+                <Info
+                    title="Submitted"
+                    value={dateText(request.created_at, true)}
+                />
+
+                <Info
+                    title="Last updated"
+                    value={dateText(request.updated_at, true)}
+                />
+            </dl>
+        </section>
+    );
+}
+
+function getAssignmentOrganization(assignment) {
+    const organization =
+        assignment.organization ||
+        assignment.organization_user ||
+        assignment.organizationUser ||
+        {};
+
+    const name =
+        organization.name ||
+        assignment.organization_name ||
+        assignment.organizationName ||
+        'Assignment';
+
+    const id =
+        assignment.organization_id ??
+        assignment.organizationId ??
+        organization.id ??
+        null;
+
+    return { id, name };
+}
+
+function AssignmentHistory({ assignments }) {
+    return (
+        <section className={PANEL}>
+            <SectionHeader
+                icon={UsersRound}
+                title="Assignment history"
+                subtitle="Organizations and teams connected to this request"
+                extra={
+                    <span className="border border-[#435064] bg-[#293747] px-2.5 py-1 text-[12px] font-medium tabular-nums text-[#D4DFEA]">
+                        {assignments.length}{' '}
+                        {assignments.length === 1
+                            ? 'assignment'
+                            : 'assignments'}
+                    </span>
                 }
             />
 
-            <div className="space-y-6 sm:space-y-7">
-                {/* REQUEST IDENTITY */}
-                <section className="relative min-w-0 overflow-hidden border border-[#29323E] bg-[#101720]">
-                    <div
-                        aria-hidden="true"
-                        className="absolute inset-y-0 left-0 w-[3px] bg-[#75879B]"
+            {assignments.length === 0 ? (
+                <div className="flex min-h-40 flex-col items-center justify-center px-5 py-8 text-center">
+                    <Building2
+                        size={25}
+                        strokeWidth={1.5}
+                        className="text-[#8294A7]"
                     />
-                    <div className="flex flex-col gap-5 px-5 py-6 sm:px-7 sm:py-7 lg:flex-row lg:items-center lg:justify-between">
-                        <div className="flex min-w-0 items-start gap-4 sm:gap-5">
-                            <div className="flex h-14 w-14 shrink-0 items-center justify-center border border-[#394656] bg-[#222E3B] sm:h-16 sm:w-16">
-                                <FileText
-                                    size={26}
-                                    strokeWidth={1.45}
-                                    className="text-[#BAC8D6]"
-                                />
-                            </div>
-                            <div className="min-w-0">
-                                <p className="mb-1.5 text-[10px] font-semibold! uppercase tracking-[0.12em] text-[#8292A4]!">
-                                    Help request #{show(request.id)}
-                                </p>
-                                <h2 className="max-w-3xl break-words text-[21px] font-semibold! leading-snug tracking-tight text-[#E9EEF4]! sm:text-[25px]">
-                                    {request.title || 'Untitled help request'}
-                                </h2>
-                                <p className="mt-2 flex flex-wrap items-center gap-2 text-[12px] text-[#9BA8B8]! sm:text-[13px]">
-                                    <UserRound size={14} className="shrink-0" />
-                                    <span>{requesterName}</span>
-                                    {requesterEmail && (
-                                        <>
-                                            <span className="text-[#586779]">
-                                                ·
-                                            </span>
-                                            <span className="break-all">
-                                                {requesterEmail}
-                                            </span>
-                                        </>
-                                    )}
-                                </p>
-                            </div>
-                        </div>
-                        <div className="flex shrink-0 flex-wrap items-center gap-2 lg:justify-end">
-                            <StatusBadge status={request.status || 'pending'} />
-                            <button
-                                type="button"
-                                onClick={onEdit}
-                                className="inline-flex h-9 items-center justify-center gap-2 border border-[#465365] bg-[#263343] px-3.5 text-[12px] font-semibold text-[#E7EDF4] transition-colors hover:bg-[#344457]"
+
+                    <p className="mt-3 mb-0! text-[14px] font-medium text-[#DCE5EF]">
+                        No assignments recorded
+                    </p>
+
+                    <p className="mt-1 mb-0! text-[13px] text-[#91A0B0]">
+                        This help request has not been assigned yet.
+                    </p>
+                </div>
+            ) : (
+                <div className="divide-y divide-[#303A47]">
+                    {assignments.map((assignment, index) => {
+                        const organization =
+                            getAssignmentOrganization(assignment);
+
+                        return (
+                            <div
+                                key={assignment.id ?? index}
+                                className="flex min-w-0 flex-col gap-4 px-5 py-5 sm:flex-row sm:items-start sm:justify-between sm:px-7"
                             >
-                                <Pencil size={14} /> Edit Request
-                            </button>
-                        </div>
-                    </div>
-                </section>
+                                <div className="flex min-w-0 items-start gap-3">
+                                    <span className="flex size-9 shrink-0 items-center justify-center border border-[#3A495B] bg-[#253242] text-[#B7C8D9]">
+                                        <Building2
+                                            size={17}
+                                            strokeWidth={1.7}
+                                        />
+                                    </span>
 
-                {/* PRIMARY INFORMATION */}
-                <div className="grid min-w-0 items-start gap-6 xl:grid-cols-[minmax(0,1.65fr)_minmax(280px,0.8fr)]">
-                    <div className="min-w-0 space-y-6">
-                        <section className="min-w-0 border border-[#29323E] bg-[#0E1219] px-5 py-5 sm:px-7 sm:py-6">
-                            <SectionTitle
-                                icon={FileText}
-                                title="About this request"
-                            />
-                            <p className="mt-5 whitespace-pre-wrap break-words text-[14px] leading-7 text-[#B9C5D1]!">
-                                {request.description ||
-                                    'No description provided.'}
-                            </p>
-                        </section>
+                                    <div className="min-w-0">
+                                        {organization.id != null ? (
+                                            <Link
+                                                to={`/admin/dashboard/organizations/${organization.id}`}
+                                                className="group inline-flex max-w-full items-center gap-1.5 text-left text-[14px] font-semibold text-[#DCE8F5] transition-colors hover:text-white"
+                                                title="View organization details"
+                                            >
+                                                <span className="wrap-break-word underline decoration-[#70869C] underline-offset-4 group-hover:decoration-white">
+                                                    {organization.name}
+                                                </span>
 
-                        <section className="min-w-0 border border-[#29323E] bg-[#0E1219] px-5 py-5 sm:px-7 sm:py-6">
-                            <SectionTitle
-                                icon={UserRound}
-                                title="Requester information"
-                            />
-                            <div className="mt-2 grid min-w-0 grid-cols-1 gap-x-8 sm:grid-cols-2">
-                                <Field
-                                    icon={UserRound}
-                                    label="Full name"
-                                    value={requesterName}
-                                />
-                                <Field
-                                    icon={Mail}
-                                    label="Email address"
-                                    value={requesterEmail}
-                                />
-                                <Field
-                                    icon={Phone}
-                                    label="Phone number"
-                                    value={requesterPhone}
-                                />
-                                <Field
-                                    icon={MapPin}
-                                    label="District"
-                                    value={request.district}
-                                />
-                                <Field
-                                    icon={MapPin}
-                                    label="Address"
-                                    value={address}
-                                    wide
-                                />
-                            </div>
-                        </section>
-                    </div>
+                                                <ArrowUpRight
+                                                    size={14}
+                                                    className="shrink-0 text-[#94A9BE] group-hover:text-white"
+                                                />
+                                            </Link>
+                                        ) : (
+                                            <p className="m-0! wrap-break-word text-[14px] font-semibold text-[#E7EDF4]">
+                                                {organization.name}
+                                            </p>
+                                        )}
 
-                    <aside className="min-w-0 border border-[#29323E] bg-[#0E1219] px-5 py-5 sm:px-6 sm:py-6">
-                        <SectionTitle
-                            icon={ShieldCheck}
-                            title="Request overview"
-                        />
-                        <div className="divide-y divide-[#27313D]">
-                            <MetaRow label="Request ID">
-                                #{show(request.id)}
-                            </MetaRow>
-                            <MetaRow label="Status">
-                                <StatusBadge
-                                    status={request.status || 'pending'}
-                                />
-                            </MetaRow>
-                            <MetaRow label="Verification">
-                                <StatusBadge
-                                    status={verification || 'pending'}
-                                />
-                            </MetaRow>
-                            <MetaRow label="Category">
-                                {titleCase(request.category)}
-                            </MetaRow>
-                            <MetaRow label="Urgency">
-                                {titleCase(urgency)}
-                            </MetaRow>
-                            <MetaRow label="Submitted">
-                                {dateText(request.created_at)}
-                            </MetaRow>
-                            <MetaRow label="Last updated">
-                                {dateText(request.updated_at)}
-                            </MetaRow>
-                            <MetaRow label="Assignments">
-                                <span className="text-[16px] font-semibold! tabular-nums text-[#E7EDF4]!">
-                                    {assignments.length}
-                                </span>
-                            </MetaRow>
-                        </div>
-                        {request.verification_note && (
-                            <div className="mt-3 border-t border-[#29323E] pt-5">
-                                <div className="flex items-center gap-2 text-[12px] font-semibold text-[#CDD7E2]">
-                                    <AlertCircle
-                                        size={15}
-                                        className="text-[#A5B3C2]"
-                                    />{' '}
-                                    Verification note
+                                        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-[#94A3B4]">
+                                            <span className="inline-flex items-center gap-1.5">
+                                                <CalendarDays size={13} />
+
+                                                {dateText(
+                                                    assignment.assigned_at ||
+                                                        assignment.created_at,
+                                                )}
+                                            </span>
+
+                                            {assignment.id != null && (
+                                                <span>
+                                                    Assignment #{assignment.id}
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {assignment.rejection_note && (
+                                            <p className="mt-3 mb-0! wrap-break-word whitespace-pre-wrap text-[13px] leading-6 text-[#D6A9AC]">
+                                                {assignment.rejection_note}
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
-                                <p className="mt-2 whitespace-pre-wrap break-words text-[12px] leading-6 text-[#AAB8C7]">
-                                    {request.verification_note}
-                                </p>
+
+                                <div className="shrink-0 self-start">
+                                    <Status
+                                        value={assignment.status || 'pending'}
+                                    />
+                                </div>
                             </div>
-                        )}
-                    </aside>
+                        );
+                    })}
+                </div>
+            )}
+        </section>
+    );
+}
+
+export default function HelpRequestDetailsView({ request, onEdit }) {
+    const requester = getRequester(request);
+    const assignments = getAssignments(request);
+
+    return (
+        <main className="min-w-0 space-y-5 font-sans">
+            <Identity request={request} requester={requester} onEdit={onEdit} />
+
+            <div className="grid min-w-0 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_290px] xl:grid-cols-[minmax(0,1fr)_350px]">
+                <div className="min-w-0 space-y-5">
+                    <RequestInformation
+                        request={request}
+                        requester={requester}
+                    />
+
+                    <AssignmentHistory assignments={assignments} />
                 </div>
 
-                {/* ASSIGNMENT HISTORY */}
-                <section className="min-w-0 pt-3 sm:pt-5">
-                    <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
-                        <div>
-                            <h2 className="text-[20px] font-semibold! tracking-[-0.02em] text-[#EEF1F5]!">
-                                Assignment history
-                            </h2>
-                            <p className="mt-1.5 text-[12px] text-[#8792A1]">
-                                Organizations and teams connected to this
-                                request.
-                            </p>
-                        </div>
-                        <span className="text-[12px] tabular-nums text-[#96A4B4]!">
-                            {assignments.length}{' '}
-                            {assignments.length === 1
-                                ? 'assignment'
-                                : 'assignments'}
-                        </span>
-                    </div>
-                    <div className="min-w-0 overflow-hidden border border-[#29323E] bg-[#0E1219]">
-                        {assignments.length === 0 ? (
-                            <div className="flex min-h-40 flex-col items-center justify-center gap-2 px-5 py-8 text-center">
-                                <Building2
-                                    size={21}
-                                    strokeWidth={1.5}
-                                    className="text-[#728094]"
-                                />
-                                <p className="text-[13px] font-medium text-[#D5DEE9]">
-                                    No assignments recorded
-                                </p>
-                                <p className="text-[12px] text-[#8792A1]">
-                                    This help request has not been assigned yet.
-                                </p>
-                            </div>
-                        ) : (
-                            <div className="divide-y divide-[#29323E]">
-                                {assignments.map((assignment, index) => {
-                                    const org =
-                                        assignment.organization?.name ||
-                                        assignment.organization_name ||
-                                        assignment.organizationName ||
-                                        assignment.organization_user?.name ||
-                                        assignment.organizationUser?.name ||
-                                        'Assignment';
-                                    return (
-                                        <div
-                                            key={assignment.id ?? index}
-                                            className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6"
-                                        >
-                                            <div className="flex min-w-0 items-start gap-3">
-                                                <div className="flex h-9 w-9 shrink-0 items-center justify-center border border-[#35404E] bg-[#1A222D]">
-                                                    <Building2
-                                                        size={16}
-                                                        className="text-[#9EADBD]"
-                                                    />
-                                                </div>
-                                                <div className="min-w-0">
-                                                    <p className="break-words text-[13px] font-semibold text-[#DCE5EF]">
-                                                        {org}
-                                                    </p>
-                                                    <p className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-[#8998A9]">
-                                                        <Clock3 size={12} />{' '}
-                                                        {dateText(
-                                                            assignment.assigned_at ||
-                                                                assignment.created_at,
-                                                        )}
-                                                        {assignment.id !=
-                                                            null && (
-                                                            <span>
-                                                                · Assignment #
-                                                                {assignment.id}
-                                                            </span>
-                                                        )}
-                                                    </p>
-                                                    {assignment.rejection_note && (
-                                                        <p className="mt-2 break-words text-[12px] leading-5 text-[#D2A3A3]">
-                                                            {
-                                                                assignment.rejection_note
-                                                            }
-                                                        </p>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <div className="shrink-0 self-start sm:self-center">
-                                                <StatusBadge
-                                                    status={
-                                                        assignment.status ||
-                                                        'pending'
-                                                    }
-                                                />
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
-                    </div>
-                </section>
+                <aside className="min-w-0 space-y-5">
+                    <RequestOverview
+                        request={request}
+                        assignmentCount={assignments.length}
+                    />
+
+                    <RecordHistory request={request} />
+                </aside>
             </div>
         </main>
     );

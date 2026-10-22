@@ -22,9 +22,7 @@ import CampaignFilters from './components/Filters';
 import CampaignTable from './components/Table';
 import CampaignPagination from './components/Pagination';
 
-import CampaignViewModal from './modals/ViewModal';
 import CampaignVerificationModal from './modals/VerificationModal';
-import CampaignRelatedDetailsModal from './modals/RelatedDetailsModal';
 import CampaignAssignmentModal from './modals/AssignmentModal';
 
 import {
@@ -158,9 +156,6 @@ export default function Campaigns() {
     // =========================================================
     // MODALS
     // =========================================================
-
-    const [selectedCampaign, setSelectedCampaign] = useState(null);
-    const [relatedCampaign, setRelatedCampaign] = useState(null);
 
     const [verificationCampaign, setVerificationCampaign] = useState(null);
     const [verificationLoading, setVerificationLoading] = useState(false);
@@ -480,14 +475,8 @@ export default function Campaigns() {
         navigate(`${CAMPAIGNS_PATH}/add`);
     };
 
-    const handleView = (campaign) => {
-        setSelectedCampaign(campaign);
-    };
-
     const handleCampaignTypeClick = (campaign) => {
         if (!campaign) return;
-
-        setRelatedCampaign(campaign);
     };
 
     // Dedicated edit page — no edit modal.
@@ -930,7 +919,7 @@ export default function Campaigns() {
                     <div className="flex items-center justify-end gap-4">
                         <button
                             type="button"
-                            onClick={() => handleView(row)}
+                            onClick={() => row}
                             className="text-xs font-semibold text-[#8792A1] transition-colors hover:text-[#A9B7C7]"
                         >
                             View
@@ -1180,22 +1169,6 @@ export default function Campaigns() {
                 message={successToast.message}
                 onClose={closeSuccessToast}
             />
-
-            {/* CAMPAIGN VIEW MODAL */}
-            {selectedCampaign && (
-                <CampaignViewModal
-                    campaign={selectedCampaign}
-                    onClose={() => setSelectedCampaign(null)}
-                />
-            )}
-
-            {/* RELATED CAMPAIGN DETAILS MODAL */}
-            {relatedCampaign && (
-                <CampaignRelatedDetailsModal
-                    campaign={relatedCampaign}
-                    onClose={() => setRelatedCampaign(null)}
-                />
-            )}
 
             {/* VERIFICATION MODAL */}
             {verificationCampaign && (

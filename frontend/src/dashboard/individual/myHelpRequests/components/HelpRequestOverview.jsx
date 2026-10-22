@@ -1,241 +1,118 @@
-import { ArrowUpRight, CircleCheckBig, XCircle } from 'lucide-react';
+import React from 'react';
+import {
+    ClipboardList,
+    Clock3,
+    BadgeCheck,
+    Building2,
+    CircleCheck,
+    XCircle,
+} from 'lucide-react';
 
-const HelpRequestOverview = ({ statistics }) => (
-    <section>
-        {/* Section Header */}
-        <div className="mt-12 px-4">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                <div className="min-w-0">
-                    <div className="flex items-center gap-3">
-                        <span className="h-px w-8 shrink-0 bg-primary/50" />
+const statuses = [
+    ['pending', 'Pending', Clock3, '#C5A16D', '#29251F'],
+    ['verified', 'Verified', BadgeCheck, '#91B9B0', '#1B2A2A'],
+    ['assigned', 'Assigned', Building2, '#91A9CC', '#202B3D'],
+    ['completed', 'Completed', CircleCheck, '#98B9A4', '#202F29'],
+    ['rejected', 'Rejected', XCircle, '#BD9299', '#30252A'],
+];
 
-                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
-                            Request overview
-                        </p>
-                    </div>
-
-                    <h2 className="mt-2.5 text-[24px] font-extrabold leading-[1.12] tracking-[-0.03em] text-text-primary sm:text-[27px]">
-                        Where your requests stand
-                    </h2>
-                </div>
-
-                {statistics.total > 0 && (
-                    <div className="flex min-w-0 items-center gap-2 pb-0.5">
-                        <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary/60" />
-
-                        <p className="text-[11px] font-medium! leading-5 text-text-secondary">
-                            Updated from your submitted requests
-                        </p>
-                    </div>
-                )}
-            </div>
-        </div>
-
-        {/* Overview Card */}
-        <div className="mt-5 overflow-hidden rounded-2xl border border-border bg-white shadow-[0_5px_24px_rgba(15,23,42,0.04)]">
-            <div className="grid lg:grid-cols-[280px_minmax(0,1fr)]">
-                {/* Total Submitted */}
-                <div className="relative overflow-hidden border-b border-primary/10 bg-primary/7 px-6 py-7 sm:px-8 lg:border-b-0 lg:border-r lg:px-8 lg:py-8">
-                    <div className="pointer-events-none absolute -right-14 -top-14 h-36 w-36 rounded-full border-[18px] border-primary/4.5" />
-
-                    <div className="pointer-events-none absolute -bottom-16 -left-10 h-28 w-28 rounded-full bg-primary/2.5" />
-
-                    <div className="relative">
-                        <div className="flex items-start justify-between gap-4">
-                            <div className="min-w-0">
-                                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-secondary">
-                                    Total submitted
-                                </p>
-
-                                <p className="mt-1.5 text-xs leading-5 text-text-secondary">
-                                    Your request history
-                                </p>
-                            </div>
-
-                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-primary/15 bg-white text-primary shadow-sm">
-                                <ArrowUpRight size={16} strokeWidth={1.8} />
-                            </span>
-                        </div>
-
-                        <div className="mt-7 flex items-end gap-2.5">
-                            <span className="text-[52px] font-extrabold leading-[0.9] tracking-[-0.045em] text-text-primary">
-                                {statistics.total}
-                            </span>
-
-                            <span className="mb-0.5 text-xs font-bold text-text-secondary">
-                                requests
-                            </span>
-                        </div>
-
-                        <p className="mt-12 max-w-[230px] text-xs leading-5 text-text-secondary sm:mt-16 lg:mt-35">
-                            Every request you have submitted through Stand For
-                            People.
-                        </p>
-
-                        <div className="mt-6 flex items-center gap-1.5">
-                            <span className="h-1 w-7 rounded-full bg-primary/50" />
-                            <span className="h-1 w-2 rounded-full bg-primary/20" />
-                            <span className="h-1 w-2 rounded-full bg-primary/10" />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Request Flow */}
-                <div className="min-w-0 bg-white px-5 py-7 sm:px-8 lg:px-9 lg:py-8">
-                    <div className="flex items-start justify-between gap-4">
-                        <div className="min-w-0">
-                            <p className="text-[15px] font-bold leading-5 text-text-primary">
-                                Active request flow
-                            </p>
-
-                            <p className="mt-1.5 text-xs leading-5 text-text-secondary">
-                                Requests currently moving through support
-                            </p>
-                        </div>
-
-                        <span className="shrink-0 rounded-lg border border-primary/10 bg-primary/4.5 px-3 py-1.5 text-[11px] font-bold text-primary">
-                            {/* {statistics.pending +
-                                statistics.verified +
-                                statistics.assigned}{' '}
-                            active */}
-                            Status
-                        </span>
-                    </div>
-
-                    {/* Timeline */}
-                    <div className="relative mt-9">
-                        <div className="absolute left-3 right-3 top-3 h-px bg-border sm:left-4 sm:right-4" />
-
-                        <div className="relative grid grid-cols-3">
-                            {/* Pending */}
-                            <div className="min-w-0 text-left">
-                                <div className="flex justify-start">
-                                    <span className="relative z-10 flex h-6 w-6 items-center justify-center rounded-full border-4 border-white bg-amber-500 shadow-sm">
-                                        <span className="h-1.5 w-1.5 rounded-full bg-white" />
-                                    </span>
-                                </div>
-
-                                <div className="mt-5">
-                                    <p className="text-[28px] font-extrabold leading-none tracking-[-0.04em] text-text-primary">
-                                        {statistics.pending}
-                                    </p>
-
-                                    <p className="mt-2.5 text-[10px] font-bold uppercase tracking-[0.14em] text-text-secondary">
-                                        Pending
-                                    </p>
-
-                                    <p className="mt-2 max-w-[120px] text-xs leading-5 text-text-secondary">
-                                        Waiting for review
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Verified */}
-                            <div className="min-w-0 text-center">
-                                <div className="flex justify-center">
-                                    <span className="relative z-10 flex h-6 w-6 items-center justify-center rounded-full border-4 border-white bg-blue-500 shadow-sm">
-                                        <span className="h-1.5 w-1.5 rounded-full bg-white" />
-                                    </span>
-                                </div>
-
-                                <div className="mt-5">
-                                    <p className="text-[28px] font-extrabold leading-none tracking-[-0.04em] text-text-primary">
-                                        {statistics.verified}
-                                    </p>
-
-                                    <p className="mt-2.5 text-[10px] font-bold uppercase tracking-[0.14em] text-text-secondary">
-                                        Verified
-                                    </p>
-
-                                    <p className="mt-2 mx-auto max-w-[120px] text-xs leading-5 text-text-secondary">
-                                        Request confirmed
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Assigned */}
-                            <div className="min-w-0 text-right">
-                                <div className="flex justify-end">
-                                    <span className="relative z-10 flex h-6 w-6 items-center justify-center rounded-full border-4 border-white bg-primary shadow-sm">
-                                        <span className="h-1.5 w-1.5 rounded-full bg-white" />
-                                    </span>
-                                </div>
-
-                                <div className="mt-5">
-                                    <p className="text-[28px] font-extrabold leading-none tracking-[-0.04em] text-text-primary">
-                                        {statistics.assigned}
-                                    </p>
-
-                                    <p className="mt-2.5 text-[10px] font-bold uppercase tracking-[0.14em] text-text-secondary">
-                                        Assigned
-                                    </p>
-
-                                    <p className="mt-2 ml-auto max-w-[120px] text-xs leading-5 text-text-secondary">
-                                        Organization connected
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Completed / Rejected */}
-                    <div className="mt-12 grid border-t border-border sm:grid-cols-2">
-                        {/* Completed */}
-                        <div className="flex min-w-0 items-center justify-between gap-5 border-b border-border px-1 py-5 sm:border-b-0 sm:border-r sm:pr-7">
-                            <div className="flex min-w-0 items-center gap-3.5">
-                                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-emerald-200 bg-emerald-50">
-                                    <CircleCheckBig
-                                        className="h-4.5 w-4.5 text-emerald-500"
-                                        strokeWidth={2}
-                                    />
+export default function HelpRequestOverview({ statistics = {} }) {
+    const total = Number(statistics.total) || 0;
+    return (
+        <section>
+            <h2 className="mb-5 text-[18px] font-semibold text-[#EEF1F5]!">
+                Help Requests overview
+            </h2>
+            <div className="overflow-hidden border border-[#29323E] bg-[#0E1219]">
+                <div className="grid lg:grid-cols-[minmax(220px,26%)_minmax(0,1fr)]">
+                    <div className="flex flex-col justify-between border-b border-[#29323E] bg-[#19212C] px-5 py-6 sm:px-7 lg:border-b-0 lg:border-r">
+                        <div>
+                            <div className="flex items-center gap-2.5 text-[#E5EAF0]">
+                                <span className="flex h-8 w-8 items-center justify-center border border-[#384453] bg-[#202B38] text-[#B4C0CE]">
+                                    <ClipboardList size={16} />
                                 </span>
-
-                                <div className="min-w-0">
-                                    <p className="text-[13px] font-bold leading-5 text-text-primary">
-                                        Completed
-                                    </p>
-
-                                    <p className="mt-0.5 text-[11px] leading-5 text-text-secondary">
-                                        Successfully supported requests
-                                    </p>
-                                </div>
+                                <span className="text-[15px] font-semibold">
+                                    My Help Requests
+                                </span>
                             </div>
-
-                            <span className="shrink-0 text-[21px] font-extrabold leading-none tracking-tight text-emerald-600">
-                                {statistics.completed}
+                            <p className="mt-5 text-[11px] uppercase tracking-[0.1em] text-[#8492A5]">
+                                Total submitted
+                            </p>
+                            <div className="mt-2 flex items-end gap-2.5">
+                                <span className="text-[58px] font-semibold leading-none tracking-tight text-[#EEF1F5]! sm:text-[66px]">
+                                    {total}
+                                </span>
+                                <span className="mb-1.5 text-[12px] text-[#91A0B3]">
+                                    requests
+                                </span>
+                            </div>
+                        </div>
+                        <p className="mt-6 border-t border-[#35404D] pt-3.5 text-[11px] text-[#91A0B3]">
+                            Your submitted requests and their current progress
+                        </p>
+                    </div>
+                    <div className="min-w-0 px-4 py-4 sm:px-6 sm:py-5">
+                        <div className="mb-3 flex items-center justify-between gap-3">
+                            <h3 className="text-[13px] font-semibold text-[#DDE4ED]!">
+                                Request status
+                            </h3>
+                            <span className="text-[11px] text-[#718096]">
+                                Distribution
                             </span>
                         </div>
-
-                        {/* Rejected */}
-                        <div className="flex min-w-0 items-center justify-between gap-5 px-1 py-5 sm:pl-7">
-                            <div className="flex min-w-0 items-center gap-3.5">
-                                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-red-200 bg-red-50">
-                                    <XCircle
-                                        className="h-4.5 w-4.5 text-red-500"
-                                        strokeWidth={2}
-                                    />
-                                </span>
-
-                                <div className="min-w-0">
-                                    <p className="text-[13px] font-bold leading-5 text-text-primary">
-                                        Rejected
-                                    </p>
-
-                                    <p className="mt-0.5 text-[11px] leading-5 text-text-secondary">
-                                        Requests that could not proceed
-                                    </p>
-                                </div>
-                            </div>
-
-                            <span className="shrink-0 text-[21px] font-extrabold leading-none tracking-tight text-red-500">
-                                {statistics.rejected}
-                            </span>
+                        <div className="divide-y divide-[#252E3A]">
+                            {statuses.map(
+                                ([key, label, Icon, color, background]) => {
+                                    const count = Number(statistics[key]) || 0;
+                                    const percent = total
+                                        ? Math.min(100, (count / total) * 100)
+                                        : 0;
+                                    return (
+                                        <div
+                                            key={key}
+                                            className="grid grid-cols-[minmax(0,1fr)_minmax(65px,38%)_32px] items-center gap-2 py-3 sm:grid-cols-[minmax(0,1fr)_minmax(110px,42%)_45px] sm:gap-5"
+                                        >
+                                            <div className="flex min-w-0 items-center gap-2.5">
+                                                <span
+                                                    className="flex h-8 w-8 shrink-0 items-center justify-center"
+                                                    style={{
+                                                        color,
+                                                        backgroundColor:
+                                                            background,
+                                                    }}
+                                                >
+                                                    <Icon size={15} />
+                                                </span>
+                                                <span className="truncate text-[12px] text-[#CDD6E1]">
+                                                    {label}
+                                                </span>
+                                            </div>
+                                            <div className="flex min-w-0 items-center gap-2">
+                                                <div className="h-1.5 min-w-0 flex-1 bg-[#293440]">
+                                                    <div
+                                                        className="h-full"
+                                                        style={{
+                                                            width: `${percent}%`,
+                                                            backgroundColor:
+                                                                color,
+                                                        }}
+                                                    />
+                                                </div>
+                                                <span className="w-8 text-right text-[10px] text-[#8492A5]">
+                                                    {Math.round(percent)}%
+                                                </span>
+                                            </div>
+                                            <span className="text-right text-[18px] font-semibold tabular-nums text-[#E2E8F0]">
+                                                {count}
+                                            </span>
+                                        </div>
+                                    );
+                                },
+                            )}
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
-);
-
-export default HelpRequestOverview;
+        </section>
+    );
+}

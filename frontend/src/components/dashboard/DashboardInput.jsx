@@ -6,6 +6,7 @@ const DashboardInput = forwardRef(function DashboardInput(
         name,
         label,
         type = 'text',
+        as = 'input',
         variant = 'default',
         leftIcon: LeftIcon,
         rightElement,
@@ -15,11 +16,13 @@ const DashboardInput = forwardRef(function DashboardInput(
         invalid = false,
         disabled = false,
         readOnly = false,
+        rows = 4,
         ...props
     },
     ref,
 ) {
     const isBare = variant === 'bare';
+    const isTextarea = as === 'textarea';
 
     const hasError =
         invalid ||
@@ -28,7 +31,50 @@ const DashboardInput = forwardRef(function DashboardInput(
 
     const inputId = id || name;
 
-    const input = (
+    const commonClasses = `
+        block w-full min-w-0
+        appearance-none rounded-none
+
+        border-0! bg-transparent!
+        shadow-none! outline-none! ring-0!
+
+        font-sans! text-[14px] font-normal!
+        tracking-normal text-[#D8DEE7]!
+        caret-[#AAB7C8]
+
+        placeholder:text-[#778393]!
+        placeholder:font-normal!
+
+        focus:border-0!
+        focus:outline-none!
+        focus:ring-0!
+
+        disabled:cursor-not-allowed
+
+        ${isBare ? 'px-3.5' : LeftIcon ? 'pl-10 pr-3.5' : 'px-3.5'}
+
+        ${!isBare && rightElement ? 'pr-11' : ''}
+
+        ${className}
+    `;
+
+    const input = isTextarea ? (
+        <textarea
+            {...props}
+            id={inputId}
+            name={name}
+            ref={ref}
+            rows={rows}
+            disabled={disabled}
+            readOnly={readOnly}
+            aria-invalid={hasError || undefined}
+            className={`
+                ${commonClasses}
+                min-h-24 resize-y
+                py-3 leading-6
+            `}
+        />
+    ) : (
         <input
             {...props}
             id={inputId}
@@ -39,30 +85,8 @@ const DashboardInput = forwardRef(function DashboardInput(
             readOnly={readOnly}
             aria-invalid={hasError || undefined}
             className={`
-                block h-11 w-full min-w-0
-                appearance-none rounded-none
-
-                border-0! bg-transparent!
-                shadow-none! outline-none! ring-0!
-
-                font-sans! text-[14px] font-normal!
-                tracking-normal text-[#D8DEE7]!
-                caret-[#AAB7C8]
-
-                placeholder:text-[#778393]!
-                placeholder:font-normal!
-
-                focus:border-0!
-                focus:outline-none!
-                focus:ring-0!
-
-                disabled:cursor-not-allowed
-
-                ${isBare ? 'px-3.5' : LeftIcon ? 'pl-10 pr-3.5' : 'px-3.5'}
-
-                ${!isBare && rightElement ? 'pr-11' : ''}
-
-                ${className}
+                ${commonClasses}
+                h-11
             `}
         />
     );
@@ -103,7 +127,9 @@ const DashboardInput = forwardRef(function DashboardInput(
             <div
                 className={`
                     relative flex w-full min-w-0
-                    items-center overflow-hidden
+                    overflow-hidden
+
+                    ${isTextarea ? 'items-stretch' : 'items-center'}
 
                     rounded-[4px]
                     border
@@ -140,17 +166,18 @@ const DashboardInput = forwardRef(function DashboardInput(
                         size={16}
                         strokeWidth={1.7}
                         aria-hidden="true"
-                        className="
+                        className={`
                             pointer-events-none
-                            absolute left-3.5 top-1/2
-                            -translate-y-1/2
+                            absolute left-3.5
+
+                            ${isTextarea ? 'top-4' : 'top-1/2 -translate-y-1/2'}
 
                             text-[#8290A1]
 
                             transition-colors duration-150
 
                             group-focus-within:text-[#A9B7C8]
-                        "
+                        `}
                     />
                 )}
 
@@ -158,11 +185,12 @@ const DashboardInput = forwardRef(function DashboardInput(
 
                 {rightElement && (
                     <div
-                        className="
-                            absolute right-2 top-1/2
-                            z-10 flex -translate-y-1/2
-                            items-center justify-center
-                        "
+                        className={`
+                            absolute right-2 z-10
+                            flex items-center justify-center
+
+                            ${isTextarea ? 'top-3' : 'top-1/2 -translate-y-1/2'}
+                        `}
                     >
                         {rightElement}
                     </div>

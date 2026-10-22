@@ -8,10 +8,9 @@ import {
     UserRound,
     UserRoundCheck,
     UserRoundPlus,
-    RefreshCcw,
-    HandHeart,
     CalendarDays,
     AlertCircle,
+    Building2,
 } from 'lucide-react';
 
 import DataTable from '@/components/dashboard/DataTable';
@@ -42,9 +41,6 @@ const ACTIONS = {
     edit: Pencil,
     verify: UserRoundCheck,
     assign: UserRoundPlus,
-    reassign: RefreshCcw,
-    'add support': HandHeart,
-    'review withdrawal': AlertCircle,
 };
 
 const titleCase = (value) =>
@@ -67,27 +63,111 @@ const getRequester = (row) => {
 };
 
 // ============================================================
+// ASSIGNED ORGANIZATION DATA
+// ============================================================
+
+const firstValue = (...values) =>
+    values.find(
+        (value) => typeof value === 'string' && value.trim().length > 0,
+    ) || '';
+
+function getAssignedOrganization(row) {
+    const assignments = Array.isArray(row.assignments) ? row.assignments : [];
+
+    const assignment =
+        assignments.length > 0 ? assignments[assignments.length - 1] : {};
+
+    const directOrganization =
+        row.assignedOrganization ||
+        row.assigned_organization ||
+        row.organization ||
+        row.assigned_org ||
+        {};
+
+    const assignmentOrganization =
+        assignment.organization ||
+        assignment.assigned_organization ||
+        assignment.assignedOrganization ||
+        assignment.org ||
+        {};
+
+    const direct =
+        typeof directOrganization === 'object' && directOrganization !== null
+            ? directOrganization
+            : {};
+
+    const nested =
+        typeof assignmentOrganization === 'object' &&
+        assignmentOrganization !== null
+            ? assignmentOrganization
+            : {};
+
+    const name = firstValue(
+        row.assignedOrganizationName,
+        row.assigned_organization_name,
+        row.assignedOrgName,
+        row.organizationName,
+        row.organization_name,
+        typeof directOrganization === 'string' ? directOrganization : '',
+        direct.name,
+        direct.organization_name,
+        direct.organizationName,
+        direct.org_name,
+        assignment.organization_name,
+        assignment.organizationName,
+        assignment.assignedOrganizationName,
+        assignment.assigned_organization_name,
+        nested.name,
+        nested.organization_name,
+        nested.organizationName,
+        nested.org_name,
+    );
+
+    const email = firstValue(
+        row.assignedOrganizationEmail,
+        row.assigned_organization_email,
+        row.assignedOrgEmail,
+        row.organizationEmail,
+        row.organization_email,
+        direct.email,
+        direct.organization_email,
+        direct.contact_email,
+        direct.user?.email,
+        assignment.organization_email,
+        assignment.organizationEmail,
+        assignment.assigned_organization_email,
+        assignment.assignedOrganizationEmail,
+        assignment.email,
+        assignment.user?.email,
+        nested.email,
+        nested.organization_email,
+        nested.contact_email,
+        nested.user?.email,
+    );
+
+    const id =
+        row.assignedOrganizationId ??
+        row.assigned_organization_id ??
+        row.organization_id ??
+        direct.id ??
+        assignment.organization_id ??
+        assignment.organizationId ??
+        nested.id ??
+        null;
+
+    return {
+        id,
+        name: name || 'Not assigned',
+        email,
+        assigned: Boolean(name),
+    };
+}
+
+// ============================================================
 // REQUEST STATUS
 // ============================================================
 
 function RequestStatus({ row }) {
-    const withdrawal =
-        Array.isArray(row.assignments) &&
-        row.assignments.some(
-            (item) =>
-                item.withdrawal_status === 'pending' ||
-                item.withdrawal_request_status === 'pending',
-        );
-
-    if (withdrawal) {
-        return (
-            <span className="inline-flex items-center gap-1.5 whitespace-nowrap border border-[#443723] bg-[#241E15] px-2 py-1 text-[10px] font-medium text-[#D0AA70]">
-                <RefreshCcw size={11} />
-                Withdrawal requested
-            </span>
-        );
-    }
-
     const [label, classes] = STATUS[String(row.status || '').toLowerCase()] || [
         titleCase(row.status || 'Unknown'),
         'border-[#343E4B] bg-[#1A222D] text-[#AEB7C3]',
@@ -180,6 +260,62 @@ function RequesterCell({ row, onRequesterClick }) {
 }
 
 // ============================================================
+// ASSIGNED ORGANIZATION CELL
+// ============================================================
+
+function AssignedOrganizationCell({ row }) {
+    const organization = getAssignedOrganization(row);
+
+    if (!organization.assigned) {
+        return (
+            <div className="flex min-w-0 items-center gap-2.5">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center border border-[#29323E] bg-[#151B24]">
+                    <Building2
+                        size={15}
+                        strokeWidth={1.7}
+                        className="text-[#566272]"
+                    />
+                </span>
+
+                <span className="min-w-0 truncate text-[11px] text-[#697586]">
+                    Not assigned
+                </span>
+            </div>
+        );
+    }
+
+    return (
+        <div className="flex min-w-0 max-w-full items-center gap-2.5">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center border border-[#29323E] bg-[#151B24]">
+                <Building2
+                    size={15}
+                    strokeWidth={1.7}
+                    className="text-[#8792A1]"
+                />
+            </span>
+
+            <span className="min-w-0">
+                <span
+                    title={organization.name}
+                    className="block truncate text-[12px] font-semibold! text-[#EEF1F5]"
+                >
+                    {organization.name}
+                </span>
+
+                {organization.email && (
+                    <span
+                        title={organization.email}
+                        className="mt-0.5 block truncate text-[10px] text-[#697586]"
+                    >
+                        {organization.email}
+                    </span>
+                )}
+            </span>
+        </div>
+    );
+}
+
+// ============================================================
 // PRIORITY CELL
 // ============================================================
 
@@ -242,9 +378,8 @@ function getButtonLabel(button) {
 
 // ============================================================
 // ROW ACTIONS
-//
 // View / Edit -> Dedicated routes
-// All other actions -> Existing parent handlers
+// Other supported actions -> Existing parent handlers
 // ============================================================
 
 function RowActions({ column, row }) {
@@ -256,7 +391,15 @@ function RowActions({ column, row }) {
 
     const original = column.render(row[column.key] ?? row.id, row);
 
-    const buttons = extractButtons(original);
+    const buttons = extractButtons(original).filter((button) => {
+        const label = getButtonLabel(button).trim().toLowerCase();
+
+        return (
+            !label.includes('withdrawal') &&
+            !label.includes('reassign') &&
+            !label.includes('add support')
+        );
+    });
 
     const handleAction = (button, label, event) => {
         const action = label.trim().toLowerCase();
@@ -271,8 +414,6 @@ function RowActions({ column, row }) {
             return;
         }
 
-        // Preserve the original functionality for all
-        // non-navigation actions.
         button.props.onClick?.(event);
     };
 
@@ -281,10 +422,7 @@ function RowActions({ column, row }) {
             {buttons.map((button, index) => {
                 const label = getButtonLabel(button);
                 const action = label.trim().toLowerCase();
-
                 const Icon = ACTIONS[action] || AlertCircle;
-
-                const warning = action.includes('withdrawal');
 
                 const isNavigationAction =
                     action === 'view' || action === 'edit';
@@ -303,11 +441,8 @@ function RowActions({ column, row }) {
                     title: label,
                     'aria-label': `${label} ${row.title || 'request'}`,
                     onClick: (event) => handleAction(button, label, event),
-                    className: `inline-flex h-7 w-7 shrink-0 items-center justify-center border border-transparent bg-transparent p-0 transition-colors duration-150 focus:outline-none focus:ring-0 disabled:cursor-not-allowed disabled:opacity-40 ${
-                        warning
-                            ? 'text-[#D0AA70] hover:border-[#443723] hover:bg-[#241E15]'
-                            : 'text-[#8792A1] hover:border-[#303A47] hover:bg-[#1A222D] hover:text-[#EEF1F5]'
-                    }`,
+                    className:
+                        'inline-flex h-7 w-7 shrink-0 items-center justify-center border border-transparent bg-transparent p-0 text-[#8792A1] transition-colors duration-150 hover:border-[#303A47] hover:bg-[#1A222D] hover:text-[#EEF1F5] focus:outline-none focus:ring-0 disabled:cursor-not-allowed disabled:opacity-40',
                     children: <Icon size={14} strokeWidth={1.8} />,
                 });
             })}
@@ -320,27 +455,59 @@ function RowActions({ column, row }) {
 // ============================================================
 
 function MobileRequestRow({ row, actionColumn, onRequesterClick }) {
+    const requester = getRequester(row);
+    const organization = getAssignedOrganization(row);
+
     return (
-        <article className="border-b border-[#202832] bg-[#0E1219] px-4 py-4 last:border-b-0">
-            <RequestIdentity row={row} />
+        <article className="border-b border-[#29323E] px-4 py-3.5 last:border-b-0">
+            <div className="flex min-w-0 items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                    <RequestIdentity row={row} />
+                </div>
 
-            <div className="mt-3 border-t border-[#202832] pt-3">
-                <RequesterCell row={row} onRequesterClick={onRequesterClick} />
-            </div>
-
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                    <PriorityCell row={row} />
-                    <RequestStatus row={row} />
+                <div className="shrink-0 pt-0.5">
+                    <RowActions column={actionColumn} row={row} />
                 </div>
             </div>
 
-            <div className="mt-3 flex items-center justify-between border-t border-[#202832] pt-3">
-                <span className="text-[10px] text-[#697586]">
-                    Request #{row.serialNumber ?? row.id}
-                </span>
+            <div className="mt-2.5 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px]">
+                <button
+                    type="button"
+                    disabled={!requester.id || !onRequesterClick}
+                    onClick={() => onRequesterClick?.(requester.id, row)}
+                    className="min-w-0 max-w-full truncate text-left text-[#C4CDD8] hover:text-[#EEF1F5] disabled:cursor-default"
+                    title={requester.name}
+                >
+                    <UserRound
+                        size={12}
+                        strokeWidth={1.7}
+                        className="mr-1 inline-block text-[#8792A1]"
+                    />
+                    {requester.name}
+                </button>
 
-                <RowActions column={actionColumn} row={row} />
+                <span className="text-[#46515F]">·</span>
+
+                <span
+                    className={`min-w-0 max-w-full truncate ${
+                        organization.assigned
+                            ? 'text-[#AEB9C7]'
+                            : 'text-[#697586]'
+                    }`}
+                    title={organization.name}
+                >
+                    <Building2
+                        size={12}
+                        strokeWidth={1.7}
+                        className="mr-1 inline-block text-[#8792A1]"
+                    />
+                    {organization.name}
+                </span>
+            </div>
+
+            <div className="mt-2.5 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
+                <PriorityCell row={row} />
+                <RequestStatus row={row} />
             </div>
         </article>
     );
@@ -391,6 +558,12 @@ export default function Table({
             ),
         },
         {
+            key: 'assignedOrganizationName',
+            header: 'Assigned Organization',
+            width: 'minmax(175px, 1.15fr)',
+            render: (_, row) => <AssignedOrganizationCell row={row} />,
+        },
+        {
             key: 'priority',
             header: 'Urgency',
             sortable: true,
@@ -427,7 +600,7 @@ export default function Table({
                 No help requests found
             </p>
 
-            <p className="mt-1 text-[11px] text-[#697586]">
+            <p className="mt-1 text-[11px] font-medium! text-[#697586]">
                 Try changing your search or filter options.
             </p>
         </div>

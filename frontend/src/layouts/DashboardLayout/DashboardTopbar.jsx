@@ -1,15 +1,14 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-
 import {
     Bell,
     Check,
-    CheckCheck,
     ChevronDown,
     CircleHelp,
     ExternalLink,
     LogOut,
     Menu,
+    RefreshCw,
     Settings,
     UserRound,
 } from 'lucide-react';
@@ -20,10 +19,6 @@ import {
     markNotificationAsRead,
 } from '@/api/notificationApi';
 
-/* ==========================================================================
-   DASHBOARD TOPBAR
-============================================================================ */
-
 const NOTIFICATION_REFRESH_INTERVAL = 60000;
 const MAX_VISIBLE_NOTIFICATIONS = 8;
 
@@ -33,85 +28,89 @@ const NOTIFICATION_PATHS = {
     organization: '/organization/dashboard/notifications',
 };
 
-const normalizeNotificationResponse = (response) => {
-    const notifications = Array.isArray(response)
+function getStoredUser() {
+    try {
+        const value =
+            localStorage.getItem('user') || sessionStorage.getItem('user');
+
+        if (!value) return null;
+
+        const parsed = JSON.parse(value);
+        return parsed?.user || parsed;
+    } catch (error) {
+        console.error('Failed to parse stored user:', error);
+        return null;
+    }
+}
+
+function normalizeNotificationResponse(response) {
+    const items = Array.isArray(response)
         ? response
         : (response?.notifications ??
           response?.data?.notifications ??
           response?.data ??
           []);
 
-    return Array.isArray(notifications) ? notifications : [];
-};
+    return Array.isArray(items) ? items : [];
+}
 
-const formatNotificationTime = (dateValue) => {
-    if (!dateValue) return '';
+function isNotificationRead(notification) {
+    return Boolean(notification.read || notification.read_at);
+}
 
-    const date = new Date(dateValue);
+function formatNotificationTime(value) {
+    if (!value) return '';
+
+    const date = new Date(value);
 
     if (Number.isNaN(date.getTime())) return '';
 
-    const now = Date.now();
-    const elapsed = Math.max(0, now - date.getTime());
+    const elapsed = Math.max(0, Date.now() - date.getTime());
 
     const minute = 60 * 1000;
     const hour = 60 * minute;
     const day = 24 * hour;
 
     if (elapsed < minute) return 'Just now';
-    if (elapsed < hour) {
-        return `${Math.floor(elapsed / minute)}m ago`;
-    }
-    if (elapsed < day) {
-        return `${Math.floor(elapsed / hour)}h ago`;
-    }
-    if (elapsed < 7 * day) {
-        return `${Math.floor(elapsed / day)}d ago`;
-    }
+    if (elapsed < hour) return `${Math.floor(elapsed / minute)}m ago`;
+    if (elapsed < day) return `${Math.floor(elapsed / hour)}h ago`;
+    if (elapsed < 7 * day) return `${Math.floor(elapsed / day)}d ago`;
 
     return date.toLocaleDateString(undefined, {
         month: 'short',
         day: 'numeric',
     });
-};
+}
 
-const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
+export default function DashboardTopbar({ pageTitle, role, onMenuOpen }) {
     const navigate = useNavigate();
     const { pathname } = useLocation();
 
+    const notificationMenuRef = useRef(null);
+    const userMenuRef = useRef(null);
+
+    const [user, setUser] = useState(getStoredUser);
+    const [userAvatarError, setUserAvatarError] = useState(false);
+
     const [userMenuOpen, setUserMenuOpen] = useState(false);
     const [notificationMenuOpen, setNotificationMenuOpen] = useState(false);
-
-    const [user, setUser] = useState(() => getStoredUser());
-    const [userAvatarError, setUserAvatarError] = useState(false);
 
     const [notifications, setNotifications] = useState([]);
     const [notificationsLoading, setNotificationsLoading] = useState(false);
     const [notificationError, setNotificationError] = useState(false);
     const [markingReadIds, setMarkingReadIds] = useState([]);
 
-    const notificationMenuRef = useRef(null);
-    const userMenuRef = useRef(null);
+    // Store the route on which each menu was opened.
+    // Route changes close menus without calling setState inside an effect.
+    const [userMenuPath, setUserMenuPath] = useState(null);
+    const [notificationMenuPath, setNotificationMenuPath] = useState(null);
 
-    /* ======================================================================
-       USER
-    ====================================================================== */
+    const isUserMenuVisible = userMenuOpen && userMenuPath === pathname;
 
-    function getStoredUser() {
-        try {
-            const storedUser =
-                localStorage.getItem('user') || sessionStorage.getItem('user');
+    const isNotificationMenuVisible =
+        notificationMenuOpen && notificationMenuPath === pathname;
 
-            if (!storedUser) return null;
-
-            const parsedUser = JSON.parse(storedUser);
-
-            return parsedUser?.user || parsedUser;
-        } catch (error) {
-            console.error('Failed to parse stored user:', error);
-            return null;
-        }
-    }
+    // USER
 
     const refreshUser = useCallback(() => {
         setUser(getStoredUser());
@@ -125,16 +124,12 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
             }
         };
 
-        const handleUserUpdated = () => {
-            refreshUser();
-        };
-
         window.addEventListener('storage', handleStorageChange);
-        window.addEventListener('user-updated', handleUserUpdated);
+        window.addEventListener('user-updated', refreshUser);
 
         return () => {
             window.removeEventListener('storage', handleStorageChange);
-            window.removeEventListener('user-updated', handleUserUpdated);
+            window.removeEventListener('user-updated', refreshUser);
         };
     }, [refreshUser]);
 
@@ -148,6 +143,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
 
     const userEmail = user?.email || '';
     const userAvatar = user?.photo || null;
+
     const userRole = user?.role || role || 'individual';
 
     const normalizedRole =
@@ -173,15 +169,10 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
 
     const showAvatar = Boolean(userAvatar) && !userAvatarError;
 
-    const handleAvatarError = () => {
-        setUserAvatarError(true);
-    };
-
-    /* ======================================================================
-       PAGE TITLE — MAIN NAVIGATION LABEL
-    ====================================================================== */
+    // PAGE TITLE
 
     const normalizePath = (path) => path?.replace(/\/+$/, '') || '/';
+
     const currentPath = normalizePath(pathname);
 
     const navigationItems = NAV_CONFIG[normalizedRole] || [];
@@ -211,9 +202,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
 
     const resolvedPageTitle = activeMainItem?.label || pageTitle || 'Dashboard';
 
-    /* ======================================================================
-       NOTIFICATIONS
-    ====================================================================== */
+    // NOTIFICATION API
 
     const loadNotifications = useCallback(async (showLoader = false) => {
         if (showLoader) {
@@ -222,12 +211,13 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
 
         try {
             const response = await fetchNotifications();
-            const items = normalizeNotificationResponse(response);
 
-            setNotifications(items);
+            setNotifications(normalizeNotificationResponse(response));
+
             setNotificationError(false);
         } catch (error) {
             console.error('Failed to load notifications:', error);
+
             setNotificationError(true);
         } finally {
             if (showLoader) {
@@ -238,7 +228,6 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
 
     useEffect(() => {
         let mounted = true;
-        let intervalId;
 
         const refresh = async (showLoader = false) => {
             if (!mounted) return;
@@ -253,11 +242,13 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                 if (!mounted) return;
 
                 setNotifications(normalizeNotificationResponse(response));
+
                 setNotificationError(false);
             } catch (error) {
                 if (!mounted) return;
 
                 console.error('Failed to load notifications:', error);
+
                 setNotificationError(true);
             } finally {
                 if (mounted && showLoader) {
@@ -268,7 +259,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
 
         refresh(true);
 
-        intervalId = window.setInterval(() => {
+        const intervalId = window.setInterval(() => {
             if (document.visibilityState === 'visible') {
                 refresh(false);
             }
@@ -285,6 +276,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
         };
 
         document.addEventListener('visibilitychange', handleVisibilityChange);
+
         window.addEventListener(
             'notifications-updated',
             handleNotificationUpdate,
@@ -292,12 +284,14 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
 
         return () => {
             mounted = false;
+
             window.clearInterval(intervalId);
 
             document.removeEventListener(
                 'visibilitychange',
                 handleVisibilityChange,
             );
+
             window.removeEventListener(
                 'notifications-updated',
                 handleNotificationUpdate,
@@ -305,13 +299,10 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
         };
     }, []);
 
-    const unreadNotifications = notifications.filter(
-        (notification) =>
-            notification.read === false ||
-            (!notification.read && !notification.read_at),
-    );
+    const unreadCount = notifications.filter(
+        (notification) => !isNotificationRead(notification),
+    ).length;
 
-    const unreadCount = unreadNotifications.length;
     const notificationPath =
         NOTIFICATION_PATHS[normalizedRole] || NOTIFICATION_PATHS.individual;
 
@@ -322,8 +313,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
 
     const handleMarkNotificationRead = async (notification) => {
         if (
-            notification.read ||
-            notification.read_at ||
+            isNotificationRead(notification) ||
             markingReadIds.includes(notification.id)
         ) {
             return;
@@ -357,53 +347,72 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
     };
 
     const handleNotificationClick = async (notification) => {
-        if (!notification.read && !notification.read_at) {
+        if (!isNotificationRead(notification)) {
             await handleMarkNotificationRead(notification);
         }
 
         setNotificationMenuOpen(false);
 
-        if (notification.action_url) {
-            const actionUrl = notification.action_url;
-
-            if (actionUrl.startsWith('/') && !actionUrl.startsWith('//')) {
-                navigate(actionUrl);
-            } else {
-                try {
-                    const target = new URL(actionUrl, window.location.origin);
-
-                    if (target.origin === window.location.origin) {
-                        navigate(
-                            `${target.pathname}${target.search}${target.hash}`,
-                        );
-                    } else {
-                        window.open(
-                            target.href,
-                            '_blank',
-                            'noopener,noreferrer',
-                        );
-                    }
-                } catch {
-                    navigate(notificationPath);
-                }
-            }
-
+        if (!notification.action_url) {
+            navigate(notificationPath);
             return;
         }
 
-        navigate(notificationPath);
+        const actionUrl = notification.action_url;
+
+        if (actionUrl.startsWith('/') && !actionUrl.startsWith('//')) {
+            navigate(actionUrl);
+            return;
+        }
+
+        try {
+            const target = new URL(actionUrl, window.location.origin);
+
+            if (target.origin === window.location.origin) {
+                navigate(`${target.pathname}${target.search}${target.hash}`);
+            } else {
+                window.open(target.href, '_blank', 'noopener,noreferrer');
+            }
+        } catch {
+            navigate(notificationPath);
+        }
     };
+
+    // DROPDOWN HANDLERS
 
     const closeUserMenu = () => {
         setUserMenuOpen(false);
     };
 
-    /* ======================================================================
-       CLOSE MENUS ON ESCAPE / OUTSIDE CLICK
-    ====================================================================== */
+    const closeNotificationMenu = () => {
+        setNotificationMenuOpen(false);
+    };
+
+    const toggleNotificationMenu = () => {
+        const nextOpen = !isNotificationMenuVisible;
+
+        setNotificationMenuOpen(nextOpen);
+        setNotificationMenuPath(pathname);
+        setUserMenuOpen(false);
+
+        if (nextOpen) {
+            loadNotifications(true);
+        }
+    };
+
+    const toggleUserMenu = () => {
+        const nextOpen = !isUserMenuVisible;
+
+        setUserMenuOpen(nextOpen);
+        setUserMenuPath(pathname);
+        setNotificationMenuOpen(false);
+    };
+
+    // Close on outside click or Escape.
+    // State updates happen inside event handlers, not the effect body.
 
     useEffect(() => {
-        if (!userMenuOpen && !notificationMenuOpen) {
+        if (!isUserMenuVisible && !isNotificationMenuVisible) {
             return undefined;
         }
 
@@ -416,6 +425,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
 
         const handleOutsideClick = (event) => {
             if (
+                isUserMenuVisible &&
                 userMenuRef.current &&
                 !userMenuRef.current.contains(event.target)
             ) {
@@ -423,6 +433,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
             }
 
             if (
+                isNotificationMenuVisible &&
                 notificationMenuRef.current &&
                 !notificationMenuRef.current.contains(event.target)
             ) {
@@ -431,17 +442,17 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
         };
 
         document.addEventListener('keydown', handleKeyDown);
+
         document.addEventListener('mousedown', handleOutsideClick);
 
         return () => {
             document.removeEventListener('keydown', handleKeyDown);
+
             document.removeEventListener('mousedown', handleOutsideClick);
         };
-    }, [userMenuOpen, notificationMenuOpen]);
+    }, [isUserMenuVisible, isNotificationMenuVisible]);
 
-    /* ======================================================================
-       SIGN OUT
-    ====================================================================== */
+    // SIGN OUT
 
     const handleSignOut = () => {
         localStorage.removeItem('auth_token');
@@ -457,15 +468,13 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
         setUser(null);
         setUserAvatarError(false);
         setNotifications([]);
-        closeUserMenu();
+        setUserMenuOpen(false);
         setNotificationMenuOpen(false);
 
         navigate('/');
     };
 
-    /* ======================================================================
-       QUICK ACTIONS
-    ====================================================================== */
+    // QUICK ACTIONS
 
     const dashboardBase = `/${normalizedRole}/dashboard`;
 
@@ -487,24 +496,15 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
         },
     ];
 
-    /* ======================================================================
-       RENDER
-    ====================================================================== */
-
     return (
         <header
             className="
-                sticky top-0 z-30
+                sticky top-0 z-1000 isolate
                 border-b border-[#252D38]
                 bg-[#0E1219]
             "
         >
-            <div
-                className="
-                    flex min-h-20 items-center justify-between
-                    gap-4 px-4 sm:px-6 lg:px-7
-                "
-            >
+            <div className="flex min-h-20 items-center justify-between gap-4 px-4 sm:px-6 lg:px-7">
                 {/* LEFT */}
 
                 <div className="flex min-w-0 items-center gap-3">
@@ -516,11 +516,11 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                             flex h-9 w-9 shrink-0 items-center
                             justify-center rounded-md
                             border border-[#29323E]
-                            bg-[#141922] !text-[#7F8998]
+                            bg-[#141922] text-[#7F8998]
                             transition-colors duration-150
                             hover:border-[#36414F]
                             hover:bg-[#181F28]
-                            hover:!text-[#F1F3F5]
+                            hover:text-[#F1F3F5]
                             focus:outline-none
                             lg:hidden
                         "
@@ -531,9 +531,10 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                     <div className="min-w-0">
                         <span
                             className="
-                                truncate text-[9px] font-semibold
-                                uppercase tracking-[0.18em]
-                                !text-[#8792A1]
+                                block truncate text-[9px]
+                                font-semibold uppercase
+                                tracking-[0.18em]
+                                text-[#8792A1]
                             "
                         >
                             {roleLabel}
@@ -541,11 +542,13 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
 
                         <h1
                             className="
-                                max-w-[calc(100vw-170px)] truncate
-                                !font-sans text-[18px] font-semibold
-                                leading-5 tracking-[-0.015em]
-                                !text-[#EEF1F5]
-                                sm:max-w-125 sm:text-[19px]
+                                max-w-[calc(100vw-170px)]
+                                truncate font-sans!
+                                text-[18px] font-semibold!
+                                leading-6 tracking-[-0.015em]
+                                text-[#EEF1F5]!
+                                sm:max-w-125
+                                sm:text-[19px]
                             "
                         >
                             {resolvedPageTitle}
@@ -556,9 +559,9 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                 {/* RIGHT */}
 
                 <div className="flex shrink-0 items-center gap-2">
-                    {/* NOTIFICATIONS */}
+                    {/* NOTIFICATION CENTER */}
 
-                    <div className="relative" ref={notificationMenuRef}>
+                    <div ref={notificationMenuRef} className="relative z-1010">
                         <button
                             type="button"
                             aria-label={
@@ -566,25 +569,16 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                     ? `Notifications, ${unreadCount} unread`
                                     : 'Notifications'
                             }
-                            aria-expanded={notificationMenuOpen}
+                            aria-expanded={isNotificationMenuVisible}
                             aria-haspopup="dialog"
-                            onClick={() => {
-                                const nextOpen = !notificationMenuOpen;
-
-                                setNotificationMenuOpen(nextOpen);
-                                setUserMenuOpen(false);
-
-                                if (nextOpen) {
-                                    loadNotifications(true);
-                                }
-                            }}
+                            onClick={toggleNotificationMenu}
                             className="
-                                relative flex h-9 w-9 items-center
-                                justify-center rounded-md
-                                !text-[#7F8998]
+                                relative flex h-9 w-9
+                                items-center justify-center
+                                rounded-md text-[#7F8998]
                                 transition-colors duration-150
                                 hover:bg-[#181F28]
-                                hover:!text-[#F1F3F5]
+                                hover:text-[#F1F3F5]
                                 focus:outline-none
                                 focus-visible:ring-2
                                 focus-visible:ring-[#E6A15C]
@@ -596,7 +590,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                 <span
                                     className="
                                         absolute -right-1 -top-1
-                                        flex h-[17px] min-w-[17px]
+                                        flex h-4.25 min-w-4.25
                                         items-center justify-center
                                         rounded-full border-2
                                         border-[#0E1219]
@@ -610,13 +604,15 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                             )}
                         </button>
 
-                        {notificationMenuOpen && (
+                        {isNotificationMenuVisible && (
                             <div
                                 role="dialog"
                                 aria-label="Notifications"
                                 className="
-                                    absolute right-0 top-[calc(100%+14px)]
-                                    z-50 w-[min(380px,calc(100vw-24px))]
+                                    absolute right-0
+                                    top-[calc(100%+14px)]
+                                    z-1020
+                                    w-[min(380px,calc(100vw-24px))]
                                     overflow-hidden rounded-xl
                                     border border-[#29323E]
                                     bg-[#141922]
@@ -632,20 +628,22 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                         bg-[#11161E] px-4 py-3.5
                                     "
                                 >
-                                    <div>
+                                    <div className="min-w-0">
                                         <h2
                                             className="
-                                                text-[13px] font-semibold
-                                                !text-[#EEF1F5]
+                                                font-sans!
+                                                text-[13px]
+                                                font-semibold!
+                                                text-[#EEF1F5]!
                                             "
                                         >
                                             Notifications
                                         </h2>
 
-                                        <p className="mt-0.5 text-[10px] !text-[#7F8998]">
+                                        <p className="mt-0.5 text-[10px] text-[#7F8998]">
                                             {unreadCount > 0
                                                 ? `${unreadCount} unread notification${unreadCount === 1 ? '' : 's'}`
-                                                : 'You’re all caught up'}
+                                                : "You're all caught up"}
                                         </p>
                                     </div>
 
@@ -657,33 +655,22 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                         className="
                                             flex h-8 w-8 items-center
                                             justify-center rounded-md
-                                            !text-[#7F8998]
+                                            text-[#7F8998]
                                             transition-colors
                                             hover:bg-[#202834]
-                                            hover:!text-[#F1F3F5]
+                                            hover:text-[#F1F3F5]
                                             disabled:opacity-50
                                         "
                                     >
-                                        <svg
-                                            viewBox="0 0 24 24"
-                                            width="15"
-                                            height="15"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            strokeWidth="1.8"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
+                                        <RefreshCw
+                                            size={15}
+                                            strokeWidth={1.8}
                                             className={
                                                 notificationsLoading
                                                     ? 'animate-spin'
                                                     : ''
                                             }
-                                        >
-                                            <path d="M20 7v5h-5" />
-                                            <path d="M4 17v-5h5" />
-                                            <path d="M5.6 9a7 7 0 0 1 11.6-2L20 12" />
-                                            <path d="M4 12l2.8 5a7 7 0 0 0 11.6-2" />
-                                        </svg>
+                                        />
                                     </button>
                                 </div>
 
@@ -692,26 +679,50 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                 <div className="max-h-[min(420px,60vh)] overflow-y-auto">
                                     {notificationsLoading &&
                                     notifications.length === 0 ? (
-                                        <div className="flex items-center justify-center gap-2 px-4 py-10 text-[11px] !text-[#8792A1]">
-                                            <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#465364] border-t-[#E6A15C]" />
-                                            Loading notifications…
+                                        <div
+                                            className="
+                                                flex items-center
+                                                justify-center gap-2
+                                                px-4 py-10
+                                                text-[11px]
+                                                text-[#8792A1]
+                                            "
+                                        >
+                                            <span
+                                                className="
+                                                    h-4 w-4
+                                                    animate-spin
+                                                    rounded-full
+                                                    border-2
+                                                    border-[#465364]
+                                                    border-t-[#E6A15C]
+                                                "
+                                            />
+                                            Loading notifications...
                                         </div>
                                     ) : notificationError &&
                                       notifications.length === 0 ? (
                                         <div className="px-5 py-9 text-center">
-                                            <p className="text-[12px] font-medium !text-[#D9DEE6]">
-                                                Couldn’t load notifications
+                                            <p className="text-[12px] font-medium text-[#D9DEE6]">
+                                                Couldn't load notifications
                                             </p>
-                                            <p className="mt-1 text-[10px] !text-[#8792A1]">
+
+                                            <p className="mt-1 text-[10px] text-[#8792A1]">
                                                 Check your connection and try
                                                 again.
                                             </p>
+
                                             <button
                                                 type="button"
                                                 onClick={() =>
                                                     loadNotifications(true)
                                                 }
-                                                className="mt-3 text-[11px] font-semibold !text-[#E6A15C] hover:underline"
+                                                className="
+                                                    mt-3 text-[11px]
+                                                    font-semibold
+                                                    text-[#E6A15C]
+                                                    hover:underline
+                                                "
                                             >
                                                 Try again
                                             </button>
@@ -721,12 +732,14 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                             <Bell
                                                 size={23}
                                                 strokeWidth={1.4}
-                                                className="mx-auto !text-[#596576]"
+                                                className="mx-auto text-[#596576]"
                                             />
-                                            <p className="mt-3 text-[12px] font-medium !text-[#D9DEE6]">
+
+                                            <p className="mt-3 text-[12px] font-medium text-[#D9DEE6]">
                                                 No notifications yet
                                             </p>
-                                            <p className="mt-1 text-[10px] !text-[#8792A1]">
+
+                                            <p className="mt-1 text-[10px] text-[#8792A1]">
                                                 Updates will appear here when
                                                 available.
                                             </p>
@@ -735,11 +748,8 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                         visibleNotifications.map(
                                             (notification) => {
                                                 const isRead =
-                                                    Boolean(
-                                                        notification.read,
-                                                    ) ||
-                                                    Boolean(
-                                                        notification.read_at,
+                                                    isNotificationRead(
+                                                        notification,
                                                     );
 
                                                 const isMarking =
@@ -773,8 +783,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                                             }
                                                             className="
                                                                 flex w-full
-                                                                gap-3 px-4
-                                                                py-3.5
+                                                                gap-3 px-4 py-3.5
                                                                 text-left
                                                                 focus:outline-none
                                                                 focus-visible:ring-2
@@ -784,10 +793,8 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                                         >
                                                             <span
                                                                 className={`
-                                                                    mt-1.5
-                                                                    h-2 w-2
-                                                                    shrink-0
-                                                                    rounded-full
+                                                                    mt-1.5 h-2 w-2
+                                                                    shrink-0 rounded-full
                                                                     ${
                                                                         !isRead
                                                                             ? 'bg-[#E6A15C]'
@@ -804,8 +811,8 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                                                             leading-4
                                                                             ${
                                                                                 !isRead
-                                                                                    ? 'font-semibold !text-[#F1F3F5]'
-                                                                                    : 'font-medium !text-[#C7CFD9]'
+                                                                                    ? 'font-semibold text-[#F1F3F5]'
+                                                                                    : 'font-medium text-[#C7CFD9]'
                                                                             }
                                                                         `}
                                                                     >
@@ -813,7 +820,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                                                             'Notification'}
                                                                     </span>
 
-                                                                    <span className="shrink-0 pt-0.5 text-[9px] !text-[#657184]">
+                                                                    <span className="shrink-0 pt-0.5 text-[9px] text-[#657184]">
                                                                         {formatNotificationTime(
                                                                             notification.created_at,
                                                                         )}
@@ -821,7 +828,16 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                                                 </span>
 
                                                                 {notification.body && (
-                                                                    <span className="mt-1 block whitespace-normal break-words text-[10px] leading-[1.55] !text-[#8792A1]">
+                                                                    <span
+                                                                        className="
+                                                                            mt-1 block
+                                                                            whitespace-normal
+                                                                            wrap-break-word
+                                                                            text-[10px]
+                                                                            leading-[1.55]
+                                                                            text-[#8792A1]
+                                                                        "
+                                                                    >
                                                                         {
                                                                             notification.body
                                                                         }
@@ -829,7 +845,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                                                 )}
 
                                                                 {notification.category && (
-                                                                    <span className="mt-2 block text-[9px] capitalize !text-[#657184]">
+                                                                    <span className="mt-2 block text-[9px] capitalize text-[#657184]">
                                                                         {String(
                                                                             notification.category,
                                                                         ).replace(
@@ -856,19 +872,20 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                                                 }
                                                                 className="
                                                                     absolute bottom-3
-                                                                    right-3
-                                                                    flex h-7 w-7
+                                                                    right-3 flex
+                                                                    h-7 w-7
                                                                     items-center
                                                                     justify-center
                                                                     rounded-md
-                                                                    !text-[#8792A1]
+                                                                    text-[#8792A1]
                                                                     opacity-100
                                                                     transition-colors
                                                                     hover:bg-[#26303C]
-                                                                    hover:!text-[#E6A15C]
+                                                                    hover:text-[#E6A15C]
                                                                     disabled:opacity-40
                                                                     sm:opacity-0
                                                                     sm:group-hover:opacity-100
+                                                                    sm:group-focus-within:opacity-100
                                                                 "
                                                             >
                                                                 <Check
@@ -888,11 +905,16 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
 
                                 {/* FOOTER */}
 
-                                <div className="border-t border-[#252D38] bg-[#11161E] p-2.5">
+                                <div
+                                    className="
+                                        border-t border-[#252D38]
+                                        bg-[#11161E] p-2.5
+                                    "
+                                >
                                     <button
                                         type="button"
                                         onClick={() => {
-                                            setNotificationMenuOpen(false);
+                                            closeNotificationMenu();
                                             navigate(notificationPath);
                                         }}
                                         className="
@@ -900,10 +922,10 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                             items-center justify-center
                                             gap-2 rounded-md px-3
                                             text-[11px] font-semibold
-                                            !text-[#D7DEE8]
+                                            text-[#D7DEE8]
                                             transition-colors
                                             hover:bg-[#202834]
-                                            hover:!text-[#F1F3F5]
+                                            hover:text-[#F1F3F5]
                                         "
                                     >
                                         View all notifications
@@ -917,23 +939,23 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                         )}
                     </div>
 
+                    {/* DIVIDER */}
+
                     <div className="hidden h-6 w-px bg-[#252D38] sm:block" />
 
-                    {/* ACCOUNT */}
+                    {/* ACCOUNT MENU */}
 
-                    <div className="relative" ref={userMenuRef}>
+                    <div ref={userMenuRef} className="relative z-1010">
                         <button
                             type="button"
-                            onClick={() => {
-                                setUserMenuOpen((open) => !open);
-                                setNotificationMenuOpen(false);
-                            }}
-                            aria-expanded={userMenuOpen}
+                            onClick={toggleUserMenu}
+                            aria-expanded={isUserMenuVisible}
                             aria-haspopup="menu"
                             aria-controls="account-menu"
                             className="
-                                group flex items-center gap-2.5
-                                rounded-md px-1.5 py-1
+                                group flex items-center
+                                gap-2.5 rounded-md
+                                px-1.5 py-1
                                 transition-colors duration-150
                                 hover:bg-[#181F28]
                                 focus:outline-none
@@ -947,8 +969,8 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                     border border-[#303A47]
                                     bg-[#1B222C]
                                     text-[10px] font-semibold
-                                    !text-[#F1F3F5]
-                                    transition-colors duration-150
+                                    text-[#F1F3F5]
+                                    transition-colors
                                     group-hover:border-[#414D5C]
                                 "
                             >
@@ -957,7 +979,7 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                         src={userAvatar}
                                         alt={userName}
                                         className="h-full w-full object-cover"
-                                        onError={handleAvatarError}
+                                        onError={() => setUserAvatarError(true)}
                                     />
                                 ) : (
                                     initials
@@ -965,7 +987,14 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                             </div>
 
                             <div className="hidden min-w-0 text-left sm:block">
-                                <p className="max-w-37.5 truncate text-[12px] font-semibold leading-4 !text-[#E8EBEF]">
+                                <p
+                                    className="
+                                        max-w-37.5 truncate
+                                        text-[12px]
+                                        font-semibold leading-4
+                                        text-[#E8EBEF]
+                                    "
+                                >
                                     {userName}
                                 </p>
                             </div>
@@ -974,27 +1003,28 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                 size={13}
                                 strokeWidth={1.8}
                                 className={`
-                                    hidden !text-[#657184]
+                                    hidden text-[#657184]
                                     transition-transform duration-200
                                     sm:block
-                                    group-hover:!text-[#B8C0CC]
+                                    group-hover:text-[#B8C0CC]
                                     ${
-                                        userMenuOpen
-                                            ? 'rotate-180 !text-[#B8C0CC]'
+                                        isUserMenuVisible
+                                            ? 'rotate-180 text-[#B8C0CC]'
                                             : ''
                                     }
                                 `}
                             />
                         </button>
 
-                        {userMenuOpen && (
+                        {isUserMenuVisible && (
                             <div
                                 id="account-menu"
                                 role="menu"
                                 aria-label="Account menu"
                                 className="
                                     absolute right-0
-                                    top-[calc(100%+20px)] z-50
+                                    top-[calc(100%+20px)]
+                                    z-1020
                                     w-[min(320px,calc(100vw-24px))]
                                     overflow-hidden rounded-xl
                                     border border-[#29323E]
@@ -1002,14 +1032,34 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                     shadow-[0_18px_55px_rgba(0,0,0,0.38)]
                                 "
                             >
-                                <div className="flex items-center gap-3 border-b border-[#252D38] bg-[#11161E] px-4 py-4">
-                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[#303A47] bg-[#1B222C] text-[11px] font-semibold !text-[#F1F3F5]">
+                                {/* ACCOUNT HEADER */}
+
+                                <div
+                                    className="
+                                        flex items-center gap-3
+                                        border-b border-[#252D38]
+                                        bg-[#11161E] px-4 py-4
+                                    "
+                                >
+                                    <div
+                                        className="
+                                            flex h-10 w-10 shrink-0
+                                            items-center justify-center
+                                            overflow-hidden rounded-lg
+                                            border border-[#303A47]
+                                            bg-[#1B222C]
+                                            text-[11px] font-semibold
+                                            text-[#F1F3F5]
+                                        "
+                                    >
                                         {showAvatar ? (
                                             <img
                                                 src={userAvatar}
                                                 alt={userName}
                                                 className="h-full w-full object-cover"
-                                                onError={handleAvatarError}
+                                                onError={() =>
+                                                    setUserAvatarError(true)
+                                                }
                                             />
                                         ) : (
                                             initials
@@ -1017,17 +1067,27 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                     </div>
 
                                     <div className="min-w-0">
-                                        <p className="truncate text-[13px] font-semibold !text-[#F1F3F5]">
+                                        <p className="truncate text-[13px] font-semibold text-[#F1F3F5]">
                                             {userName}
                                         </p>
-                                        <p className="mt-0.5 truncate text-[10px] !text-[#7F8998]">
+
+                                        <p className="mt-0.5 truncate text-[10px] text-[#7F8998]">
                                             {userEmail || 'Account'}
                                         </p>
                                     </div>
                                 </div>
 
+                                {/* QUICK ACCESS */}
+
                                 <div className="p-3">
-                                    <p className="mb-2 px-1 text-[9px] font-semibold uppercase tracking-[0.14em] !text-[#657184]">
+                                    <p
+                                        className="
+                                            mb-2 px-1 text-[9px]
+                                            font-semibold uppercase
+                                            tracking-[0.14em]
+                                            text-[#657184]
+                                        "
+                                    >
                                         Quick access
                                     </p>
 
@@ -1052,12 +1112,20 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                                         size={16}
                                                         strokeWidth={1.75}
                                                         className="
-                                                            !text-[#7F8998]
+                                                            text-[#7F8998]
                                                             transition-colors
-                                                            group-hover:!text-[#CDD3DB]
+                                                            group-hover:text-[#CDD3DB]
                                                         "
                                                     />
-                                                    <span className="text-[11px] font-medium !text-[#B8C0CC] group-hover:!text-[#F1F3F5]">
+
+                                                    <span
+                                                        className="
+                                                            text-[11px]
+                                                            font-medium
+                                                            text-[#B8C0CC]
+                                                            group-hover:text-[#F1F3F5]
+                                                        "
+                                                    >
                                                         {label}
                                                     </span>
                                                 </NavLink>
@@ -1066,6 +1134,8 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                     </div>
                                 </div>
 
+                                {/* SIGN OUT */}
+
                                 <div className="border-t border-[#252D38] p-3">
                                     <button
                                         type="button"
@@ -1073,8 +1143,9 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                         role="menuitem"
                                         className="
                                             group flex min-h-10 w-full
-                                            items-center gap-3 rounded-md
-                                            px-2.5 text-left
+                                            items-center gap-3
+                                            rounded-md px-2.5
+                                            text-left
                                             transition-colors duration-150
                                             hover:bg-[#38272C]
                                             focus:outline-none
@@ -1083,9 +1154,20 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
                                         <LogOut
                                             size={16}
                                             strokeWidth={1.75}
-                                            className="!text-[#B08B91] group-hover:!text-[#E9A1A8]"
+                                            className="
+                                                text-[#B08B91]
+                                                group-hover:text-[#E9A1A8]
+                                            "
                                         />
-                                        <span className="text-[11px] font-medium !text-[#CBA2A7] group-hover:!text-[#E9A1A8]">
+
+                                        <span
+                                            className="
+                                                text-[11px]
+                                                font-medium
+                                                text-[#CBA2A7]
+                                                group-hover:text-[#E9A1A8]
+                                            "
+                                        >
                                             Sign out
                                         </span>
                                     </button>
@@ -1097,6 +1179,4 @@ const DashboardTopbar = ({ pageTitle, role, onMenuOpen }) => {
             </div>
         </header>
     );
-};
-
-export default DashboardTopbar;
+}

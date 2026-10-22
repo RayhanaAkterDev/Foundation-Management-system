@@ -1,5 +1,4 @@
 import React from 'react';
-
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const CampaignPagination = ({
@@ -9,69 +8,248 @@ const CampaignPagination = ({
     itemsPerPage,
     onPageChange,
 }) => {
-    const startItem =
-        totalItems === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
+    if (totalItems === 0) {
+        return null;
+    }
 
+    const startItem = (currentPage - 1) * itemsPerPage + 1;
     const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
-    const pages = Array.from({ length: totalPages }, (_, index) => index + 1);
+    const pages = Array.from(
+        { length: totalPages },
+        (_, index) => index + 1,
+    ).filter((page) => {
+        if (totalPages <= 5) {
+            return true;
+        }
+
+        return (
+            page === 1 ||
+            page === totalPages ||
+            Math.abs(page - currentPage) <= 1
+        );
+    });
+
+    const goToPrevious = () => {
+        onPageChange(Math.max(1, currentPage - 1));
+    };
+
+    const goToNext = () => {
+        onPageChange(Math.min(totalPages, currentPage + 1));
+    };
 
     return (
-        <div className="flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-[10px] font-medium! text-text-secondary">
-                Showing{' '}
-                <span className="font-semibold text-text-primary">
-                    {startItem}
-                </span>{' '}
-                to{' '}
-                <span className="font-semibold text-text-primary">
-                    {endItem}
-                </span>{' '}
-                of{' '}
-                <span className="font-semibold text-text-primary">
-                    {totalItems}
-                </span>{' '}
-                campaigns
-            </p>
+        <nav
+            aria-label="Pagination"
+            className="
+                bg-[#121821]
+                px-3 py-3
+                sm:px-4
+            "
+        >
+            <div
+                className="
+                    flex flex-col gap-3
+                    sm:flex-row
+                    sm:items-center
+                    sm:justify-between
+                "
+            >
+                {/* RESULT SUMMARY */}
 
-            <div className="flex items-center gap-1.5">
-                <button
-                    type="button"
-                    disabled={currentPage === 1}
-                    onClick={() => onPageChange(currentPage - 1)}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-white text-text-secondary transition-colors hover:border-primary/30 hover:text-primary disabled:pointer-events-none disabled:opacity-40"
-                    aria-label="Previous page"
+                <div
+                    className="
+                        flex min-w-0 items-center
+                        justify-between gap-3
+                        sm:justify-start
+                    "
                 >
-                    <ChevronLeft className="h-3.5 w-3.5" />
-                </button>
-
-                {pages.map((page) => (
-                    <button
-                        key={page}
-                        type="button"
-                        onClick={() => onPageChange(page)}
-                        className={[
-                            'flex h-8 min-w-8 items-center justify-center rounded-lg px-2 text-[10px] font-bold transition-colors',
-                            page === currentPage
-                                ? 'bg-primary text-white!'
-                                : 'border border-border bg-white text-text-secondary hover:border-primary/30 hover:text-primary',
-                        ].join(' ')}
+                    <p
+                        className="
+                            whitespace-nowrap
+                            text-[10px] leading-5
+                            text-[#697586]
+                            sm:text-[11px]
+                        "
                     >
-                        {page}
-                    </button>
-                ))}
+                        Showing{' '}
+                        <span
+                            className="
+                                font-semibold!
+                                tabular-nums
+                                text-[#B8C0CA]
+                            "
+                        >
+                            {startItem}–{endItem}
+                        </span>{' '}
+                        of{' '}
+                        <span
+                            className="
+                                font-semibold!
+                                tabular-nums
+                                text-[#B8C0CA]
+                            "
+                        >
+                            {totalItems}
+                        </span>
+                    </p>
+                </div>
 
-                <button
-                    type="button"
-                    disabled={currentPage === totalPages}
-                    onClick={() => onPageChange(currentPage + 1)}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-white text-text-secondary transition-colors hover:border-primary/30 hover:text-primary disabled:pointer-events-none disabled:opacity-40"
-                    aria-label="Next page"
+                {/* PAGINATION CONTROLS */}
+
+                <div
+                    className="
+                        flex min-w-0 items-center
+                        justify-between gap-2
+                        sm:justify-end
+                    "
                 >
-                    <ChevronRight className="h-3.5 w-3.5" />
-                </button>
+                    {/* PREVIOUS */}
+
+                    <button
+                        type="button"
+                        onClick={goToPrevious}
+                        disabled={currentPage === 1}
+                        aria-label="Previous page"
+                        className="
+                            inline-flex h-8 shrink-0
+                            items-center justify-center gap-1
+                            border border-[#29323E]
+                            bg-[#0E1219] px-2.5
+                            text-[10px] font-medium!
+                            text-[#8792A1]
+                            transition-[background-color,border-color,color]
+                            duration-150 ease-out
+                            hover:border-[#394555]
+                            hover:bg-[#151B24]
+                            hover:text-[#EEF1F5]
+                            focus:outline-none
+                            focus:ring-0
+                            disabled:cursor-not-allowed
+                            disabled:opacity-30
+                            disabled:hover:border-[#29323E]
+                            disabled:hover:bg-[#0E1219]
+                            disabled:hover:text-[#8792A1]
+                            sm:px-3
+                        "
+                    >
+                        <ChevronLeft size={13} strokeWidth={1.8} />
+
+                        <span className="hidden xs:inline sm:inline">
+                            Previous
+                        </span>
+                    </button>
+
+                    {/* PAGE NUMBERS */}
+
+                    <div
+                        className="
+                            flex min-w-0 items-center
+                            justify-center gap-1
+                        "
+                    >
+                        {pages.map((page, index) => {
+                            const previousPage = pages[index - 1];
+
+                            const showEllipsis =
+                                previousPage && page - previousPage > 1;
+
+                            const active = currentPage === page;
+
+                            return (
+                                <React.Fragment key={page}>
+                                    {showEllipsis && (
+                                        <span
+                                            aria-hidden="true"
+                                            className="
+                                                flex h-8 w-4
+                                                items-center justify-center
+                                                text-[10px]
+                                                text-[#5E6978]
+                                            "
+                                        >
+                                            …
+                                        </span>
+                                    )}
+
+                                    <button
+                                        type="button"
+                                        aria-current={
+                                            active ? 'page' : undefined
+                                        }
+                                        aria-label={`Go to page ${page}`}
+                                        onClick={() => onPageChange(page)}
+                                        className={`
+                                            flex h-8 min-w-8
+                                            items-center justify-center
+                                            border px-2
+                                            text-[10px] font-semibold!
+                                            tabular-nums
+                                            transition-[background-color,border-color,color]
+                                            duration-150 ease-out
+                                            focus:outline-none
+                                            focus:ring-0
+                                            ${
+                                                active
+                                                    ? `
+                                                        border-[#394555]
+                                                        bg-[#1D2632]
+                                                        text-[#EEF1F5]
+                                                    `
+                                                    : `
+                                                        border-transparent
+                                                        bg-transparent
+                                                        text-[#697586]
+                                                        hover:border-[#29323E]
+                                                        hover:bg-[#151B24]
+                                                        hover:text-[#B8C0CA]
+                                                    `
+                                            }
+                                        `}
+                                    >
+                                        {page}
+                                    </button>
+                                </React.Fragment>
+                            );
+                        })}
+                    </div>
+
+                    {/* NEXT */}
+
+                    <button
+                        type="button"
+                        onClick={goToNext}
+                        disabled={currentPage === totalPages}
+                        aria-label="Next page"
+                        className="
+                            inline-flex h-8 shrink-0
+                            items-center justify-center gap-1
+                            border border-[#29323E]
+                            bg-[#0E1219] px-2.5
+                            text-[10px] font-medium!
+                            text-[#8792A1]
+                            transition-[background-color,border-color,color]
+                            duration-150 ease-out
+                            hover:border-[#394555]
+                            hover:bg-[#151B24]
+                            hover:text-[#EEF1F5]
+                            focus:outline-none
+                            focus:ring-0
+                            disabled:cursor-not-allowed
+                            disabled:opacity-30
+                            disabled:hover:border-[#29323E]
+                            disabled:hover:bg-[#0E1219]
+                            disabled:hover:text-[#8792A1]
+                            sm:px-3
+                        "
+                    >
+                        <span className="hidden xs:inline sm:inline">Next</span>
+
+                        <ChevronRight size={13} strokeWidth={1.8} />
+                    </button>
+                </div>
             </div>
-        </div>
+        </nav>
     );
 };
 

@@ -1,233 +1,275 @@
-import React, { useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import {
-    X,
-    CircleCheck,
-    CircleX,
+    AlertCircle,
+    Check,
+    CheckCircle2,
     LoaderCircle,
     ShieldCheck,
+    X,
+    XCircle,
 } from 'lucide-react';
 
 import StatusBadge from '@/components/dashboard/StatusBadge';
 
-const VerificationModal = ({
+const CHOICES = [
+    {
+        value: 'verified',
+        label: 'Verify',
+        description: 'Approve request',
+        Icon: CheckCircle2,
+    },
+    {
+        value: 'rejected',
+        label: 'Reject',
+        description: 'Decline request',
+        Icon: XCircle,
+    },
+];
+
+export default function VerificationModal({
     request,
     loading = false,
     error = '',
     onClose,
     onConfirm,
-}) => {
-    const [selectedStatus, setSelectedStatus] = useState(null);
+}) {
+    const [selectedStatus, setSelectedStatus] = useState('');
+    const titleId = useId();
 
-    if (!request) {
-        return null;
-    }
+    useEffect(() => {
+        if (!request) return undefined;
 
-    const options = [
-        {
-            status: 'verified',
-            label: 'Verify request',
-            description:
-                'Approve this request so it can move forward for assistance coordination.',
-            icon: CircleCheck,
-            wrapper:
-                'border-emerald-200 bg-emerald-50/50 hover:border-emerald-300 hover:bg-emerald-50',
-            selectedWrapper:
-                'border-emerald-400 bg-emerald-50 ring-2 ring-emerald-100',
-            iconClass: 'bg-emerald-100 text-emerald-600',
-            selectedIconClass: 'bg-emerald-600 text-white!',
-            accent: 'bg-emerald-500',
-        },
-        {
-            status: 'rejected',
-            label: 'Reject request',
-            description:
-                'Reject this request if the submitted information does not meet platform requirements.',
-            icon: CircleX,
-            wrapper:
-                'border-red-200 bg-red-50/50 hover:border-red-300 hover:bg-red-50',
-            selectedWrapper: 'border-red-400 bg-red-50 ring-2 ring-red-100',
-            iconClass: 'bg-red-100 text-red-600',
-            selectedIconClass: 'bg-red-600 text-white!',
-            accent: 'bg-red-500',
-        },
-    ];
+        const onEscape = (event) => {
+            if (event.key === 'Escape' && !loading) {
+                onClose?.();
+            }
+        };
 
-    const handleConfirm = (status) => {
-        if (loading) {
-            return;
-        }
+        window.addEventListener('keydown', onEscape);
+        return () => window.removeEventListener('keydown', onEscape);
+    }, [request, loading, onClose]);
 
-        setSelectedStatus(status);
-        onConfirm(status);
-    };
+    if (!request) return null;
+
+    const currentStatus = request.verification_status || request.status;
 
     const handleClose = () => {
-        if (loading) {
-            return;
-        }
-
-        setSelectedStatus(null);
-        onClose();
+        if (loading) return;
+        setSelectedStatus('');
+        onClose?.();
     };
 
-    const currentVerificationStatus =
-        request.verification_status || request.status;
+    const handleSubmit = (event) => {
+        event.preventDefault();
+        if (!selectedStatus || loading) return;
+        onConfirm?.(selectedStatus);
+    };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-[5px] sm:p-6">
-            <div
-                className="absolute inset-0"
-                onClick={!loading ? handleClose : undefined}
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 font-sans sm:p-5">
+            <button
+                type="button"
+                aria-label="Close verification dialog"
+                onClick={handleClose}
+                disabled={loading}
+                className="absolute inset-0 bg-[#05080D]/80 backdrop-blur-[2px]"
             />
 
-            <div className="relative z-10 w-full max-w-135 overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_30px_100px_rgba(15,23,42,0.24)]">
-                {/* Header */}
-                <div className="relative border-b border-slate-100 px-6 py-6 sm:px-7">
-                    <div className="absolute inset-x-0 top-0 h-1 bg-primary" />
+            <section
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby={titleId}
+                className="relative z-10 flex max-h-[calc(100dvh-24px)] w-full max-w-[490px] flex-col overflow-hidden border border-[#35404D] bg-[#151C25] shadow-[0_24px_70px_rgba(0,0,0,0.5)]"
+            >
+                <header className="flex shrink-0 items-start justify-between gap-4 px-5 pb-4 pt-5 sm:px-6 sm:pt-6">
+                    <div className="min-w-0">
+                        <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.09em] text-[#91A2B6]">
+                            <ShieldCheck size={15} />
+                            Verification
+                        </div>
+
+                        <h2
+                            id={titleId}
+                            className="mt-2 text-[19px] font-semibold! leading-6 tracking-[-0.025em] text-[#EEF1F5]!"
+                        >
+                            Review help request
+                        </h2>
+                    </div>
 
                     <button
                         type="button"
                         onClick={handleClose}
                         disabled={loading}
-                        className="absolute right-5 top-5 flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
                         aria-label="Close"
+                        className="flex size-8 shrink-0 items-center justify-center text-[#8792A1] hover:bg-[#242E3A] hover:text-[#EEF1F5] disabled:opacity-40"
                     >
-                        <X size={18} strokeWidth={1.8} />
+                        <X size={18} />
                     </button>
+                </header>
 
-                    <div className="flex items-center gap-4 pr-10">
-                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                            <ShieldCheck size={21} strokeWidth={1.8} />
-                        </div>
+                <form
+                    onSubmit={handleSubmit}
+                    className="flex min-h-0 flex-1 flex-col"
+                >
+                    <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-5 [scrollbar-width:thin] [scrollbar-color:#354354_transparent] sm:px-6 sm:pb-6">
+                        <div className="border-y border-[#303A47] py-4">
+                            <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
+                                <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-[#8391A3]">
+                                    Request
+                                </span>
 
-                        <div className="min-w-0">
-                            <h2 className="text-xl font-bold tracking-tight text-slate-900">
-                                Verify request
-                            </h2>
+                                {currentStatus && (
+                                    <StatusBadge status={currentStatus} />
+                                )}
+                            </div>
 
-                            <p className="mt-1 truncate text-sm text-slate-500">
+                            <p className="mt-2 break-words text-[14px] font-semibold! leading-6 text-[#EEF1F5]">
                                 {request.title || 'Untitled request'}
                             </p>
                         </div>
-                    </div>
-                </div>
 
-                {/* Request */}
-                <div className="px-6 py-5 sm:px-7">
-                    <div className="flex items-center justify-between gap-4">
-                        <h3 className="min-w-0 truncate text-sm font-semibold text-slate-800">
-                            {request.title || 'Untitled request'}
-                        </h3>
+                        <fieldset disabled={loading} className="mt-5 min-w-0">
+                            <legend className="mb-3 text-[13px] font-semibold text-[#DCE4EE]">
+                                Choose an outcome
+                            </legend>
 
-                        {currentVerificationStatus && (
-                            <div className="shrink-0">
-                                <StatusBadge
-                                    status={currentVerificationStatus}
+                            <div className="grid grid-cols-1 gap-2 min-[390px]:grid-cols-2">
+                                {CHOICES.map((choice) => {
+                                    const selected =
+                                        selectedStatus === choice.value;
+                                    const isReject =
+                                        choice.value === 'rejected';
+                                    const Icon = choice.Icon;
+
+                                    return (
+                                        <label
+                                            key={choice.value}
+                                            className={`relative flex cursor-pointer items-center gap-3 border px-3.5 py-3.5 transition-colors ${
+                                                selected
+                                                    ? isReject
+                                                        ? 'border-[#A36A74] bg-[#30232A]'
+                                                        : 'border-[#2D8C80] bg-[#15352F]'
+                                                    : 'border-[#35404D] bg-[#1A222D] hover:border-[#536276] hover:bg-[#222D3A]'
+                                            } ${
+                                                loading
+                                                    ? 'cursor-not-allowed opacity-50'
+                                                    : ''
+                                            }`}
+                                        >
+                                            <input
+                                                type="radio"
+                                                name="verification-outcome"
+                                                value={choice.value}
+                                                checked={selected}
+                                                onChange={() =>
+                                                    setSelectedStatus(
+                                                        choice.value,
+                                                    )
+                                                }
+                                                className="sr-only"
+                                            />
+
+                                            <Icon
+                                                size={19}
+                                                strokeWidth={1.8}
+                                                className={
+                                                    selected
+                                                        ? isReject
+                                                            ? 'shrink-0 text-[#E0A3AD]'
+                                                            : 'shrink-0 text-[#69C5B3]'
+                                                        : 'shrink-0 text-[#8C9BAD]'
+                                                }
+                                            />
+
+                                            <span className="min-w-0 flex-1">
+                                                <span className="block text-[13px] font-semibold text-[#EEF1F5]">
+                                                    {choice.label}
+                                                </span>
+
+                                                <span className="mt-0.5 block text-[11px] text-[#91A0B2]">
+                                                    {choice.description}
+                                                </span>
+                                            </span>
+
+                                            <span
+                                                aria-hidden="true"
+                                                className={`flex size-4 shrink-0 items-center justify-center rounded-full border ${
+                                                    selected
+                                                        ? isReject
+                                                            ? 'border-[#C38D96] bg-[#9C606C]'
+                                                            : 'border-[#6BC7B5] bg-[#218B7C]'
+                                                        : 'border-[#607084]'
+                                                }`}
+                                            >
+                                                {selected && (
+                                                    <Check
+                                                        size={11}
+                                                        strokeWidth={2.5}
+                                                        className="text-white"
+                                                    />
+                                                )}
+                                            </span>
+                                        </label>
+                                    );
+                                })}
+                            </div>
+                        </fieldset>
+
+                        {error && (
+                            <div
+                                role="alert"
+                                className="mt-4 flex items-start gap-2 border border-[#69404A] bg-[#302027] px-3 py-2.5 text-[#DFA7B0]"
+                            >
+                                <AlertCircle
+                                    size={16}
+                                    className="mt-0.5 shrink-0"
                                 />
+                                <p className="text-[12px] leading-5">{error}</p>
                             </div>
                         )}
                     </div>
-                </div>
 
-                {/* Decision */}
-                <div className="px-6 pb-6 sm:px-7 sm:pb-7">
-                    {error && (
-                        <div className="mb-4 border border-red-200 bg-red-50 px-4 py-3">
-                            <p className="text-xs font-semibold text-red-700">
-                                Verification failed
-                            </p>
+                    <footer className="flex shrink-0 items-center justify-between gap-3 border-t border-[#303A47] bg-[#10161F] px-5 py-4 sm:px-6">
+                        <button
+                            type="button"
+                            onClick={handleClose}
+                            disabled={loading}
+                            className="h-10 px-2 text-[13px] font-medium text-[#AAB7C7] hover:text-[#EEF1F5] disabled:opacity-40"
+                        >
+                            Cancel
+                        </button>
 
-                            <p className="mt-1 text-xs leading-5 text-red-600">
-                                {error}
-                            </p>
-                        </div>
-                    )}
-
-                    <div className="space-y-2.5">
-                        {options.map((option) => {
-                            const Icon = option.icon;
-
-                            const isSelected = selectedStatus === option.status;
-
-                            const isSubmitting = loading && isSelected;
-
-                            return (
-                                <button
-                                    key={option.status}
-                                    type="button"
-                                    disabled={loading}
-                                    onClick={() => handleConfirm(option.status)}
-                                    className={`group relative flex w-full items-center gap-4 overflow-hidden rounded-xl border px-4 py-4 text-left transition-all duration-200 disabled:cursor-not-allowed ${
-                                        isSelected
-                                            ? option.selectedWrapper
-                                            : option.wrapper
-                                    } ${
-                                        loading && !isSelected
-                                            ? 'opacity-40'
-                                            : ''
-                                    }`}
-                                >
-                                    <span
-                                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${
-                                            isSelected
-                                                ? option.selectedIconClass
-                                                : option.iconClass
-                                        }`}
-                                    >
-                                        {isSubmitting ? (
-                                            <LoaderCircle
-                                                size={18}
-                                                strokeWidth={1.9}
-                                                className="animate-spin"
-                                            />
-                                        ) : (
-                                            <Icon size={18} strokeWidth={1.9} />
-                                        )}
-                                    </span>
-
-                                    <span className="min-w-0 flex-1">
-                                        <span className="block text-sm font-bold text-slate-900">
-                                            {option.label}
-                                        </span>
-
-                                        <span className="mt-0.5 block text-xs leading-5 text-slate-500">
-                                            {option.description}
-                                        </span>
-                                    </span>
-
-                                    <span
-                                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
-                                            isSelected
-                                                ? option.status === 'verified'
-                                                    ? 'border-emerald-500 bg-emerald-500'
-                                                    : 'border-red-500 bg-red-500'
-                                                : 'border-slate-300 bg-white'
-                                        }`}
-                                    >
-                                        {isSelected && (
-                                            <span className="h-1.5 w-1.5 rounded-full bg-white" />
-                                        )}
-                                    </span>
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-
-                {/* Footer */}
-                <div className="flex items-center justify-end border-t border-slate-100 bg-slate-50/60 px-6 py-4 sm:px-7">
-                    <button
-                        type="button"
-                        onClick={handleClose}
-                        disabled={loading}
-                        className="inline-flex h-10 items-center rounded-lg border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                        Cancel
-                    </button>
-                </div>
-            </div>
+                        <button
+                            type="submit"
+                            disabled={!selectedStatus || loading}
+                            className={`inline-flex h-10 min-w-[145px] items-center justify-center gap-2 border px-4 text-[12px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+                                selectedStatus === 'rejected'
+                                    ? 'border-[#80505A] bg-[#57313B] text-[#F0D2D7] hover:bg-[#69404A]'
+                                    : 'border-[#248B7E] bg-[#176F64] text-[#F0FFFC] hover:bg-[#208779]'
+                            }`}
+                        >
+                            {loading ? (
+                                <>
+                                    <LoaderCircle
+                                        size={15}
+                                        className="animate-spin"
+                                    />
+                                    Submitting
+                                </>
+                            ) : (
+                                <>
+                                    <Check size={15} />
+                                    {selectedStatus === 'verified'
+                                        ? 'Confirm verification'
+                                        : selectedStatus === 'rejected'
+                                          ? 'Confirm rejection'
+                                          : 'Submit decision'}
+                                </>
+                            )}
+                        </button>
+                    </footer>
+                </form>
+            </section>
         </div>
     );
-};
-
-export default VerificationModal;
+}

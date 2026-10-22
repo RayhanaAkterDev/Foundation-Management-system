@@ -1,46 +1,80 @@
-import { AlertCircle, RotateCcw, X } from 'lucide-react';
+import { useEffect } from 'react';
+import { AlertCircle, FileText, X } from 'lucide-react';
 
-const WithdrawalModal = ({
+import LoadingUI from '@/components/dashboard/LoadingUI';
+
+export default function RejectionModal({
     request,
-    reason,
-    setReason,
-    loading,
+    note,
+    setNote,
     error,
+    setError,
+    loading = false,
     onClose,
     onSubmit,
-}) => {
-    if (!request) {
-        return null;
-    }
+}) {
+    useEffect(() => {
+        if (!request) return undefined;
+
+        const handleEscape = (event) => {
+            if (event.key === 'Escape' && !loading) {
+                onClose?.();
+            }
+        };
+
+        window.addEventListener('keydown', handleEscape);
+
+        return () => {
+            window.removeEventListener('keydown', handleEscape);
+        };
+    }, [request, loading, onClose]);
+
+    if (!request) return null;
+
+    const value = note ?? '';
+
+    const handleSubmit = (event) => {
+        event.preventDefault();
+
+        if (loading) return;
+
+        onSubmit?.();
+    };
 
     return (
-        <div className="fixed inset-0 z-70 flex items-center justify-center bg-text-primary/55 px-4 backdrop-blur-sm">
-            <div className="w-full max-w-xl overflow-hidden border border-[#dce5e8] bg-white shadow-[0_25px_80px_rgba(15,23,42,0.22)]">
-                {/* HEADER */}
-                <div className="relative overflow-hidden bg-[#fff8f7] px-6 py-6 sm:px-7">
-                    <div className="pointer-events-none absolute -right-10 -top-12 h-40 w-40 rounded-full border-28 border-[#f9ecea]" />
-
-                    <div className="relative flex items-start justify-between gap-5">
-                        <div className="flex items-start gap-4">
-                            <div className="flex h-11 w-11 shrink-0 items-center justify-center bg-[#f9ecea] text-[#ad554b]">
-                                <RotateCcw
-                                    className="h-4 w-4"
-                                    strokeWidth={1.8}
-                                />
+        <div
+            className="fixed inset-0 z-[70] flex items-center justify-center bg-black/75 px-3 py-4 backdrop-blur-[3px] sm:px-5"
+            role="presentation"
+            onMouseDown={(event) => {
+                if (event.target === event.currentTarget && !loading) {
+                    onClose?.();
+                }
+            }}
+        >
+            <section
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="rejection-modal-title"
+                className="flex max-h-[min(90dvh,760px)] w-full max-w-[520px] flex-col overflow-hidden border border-[#303A47] bg-[#10161F] shadow-[0_24px_80px_rgba(0,0,0,0.45)]"
+            >
+                <header className="shrink-0 border-b border-[#29333F] bg-[#151C25] px-5 py-5 sm:px-6 sm:py-6">
+                    <div className="flex items-start justify-between gap-5">
+                        <div className="flex min-w-0 items-start gap-3.5">
+                            <div className="flex size-10 shrink-0 items-center justify-center border border-[#493038] bg-[#281A1F] text-[#D1959B]">
+                                <X size={19} strokeWidth={1.8} />
                             </div>
 
-                            <div>
-                                <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-[#ad554b]">
-                                    Case management
-                                </p>
-
-                                <h2 className="mt-1.5 text-[18px] font-bold tracking-tight text-[#3d4d53]">
-                                    Request withdrawal
+                            <div className="min-w-0 pt-0.5">
+                                <h2
+                                    id="rejection-modal-title"
+                                    className="text-[18px] font-semibold! leading-snug tracking-[-0.02em] text-[#EEF1F5]! sm:text-[19px]"
+                                >
+                                    Decline assignment
                                 </h2>
 
-                                <p className="mt-2 max-w-md text-[10px] leading-5 text-[#7c898e]">
-                                    Tell administration why your organization
-                                    can no longer continue this case.
+                                <p className="mt-1.5 max-w-[380px] text-[13px] leading-[1.7] text-[#8792A1]">
+                                    Explain why your organization cannot take
+                                    responsibility for this request.
                                 </p>
                             </div>
                         </div>
@@ -49,110 +83,139 @@ const WithdrawalModal = ({
                             type="button"
                             onClick={onClose}
                             disabled={loading}
-                            className="flex h-8 w-8 shrink-0 items-center justify-center border border-[#dce4e7] bg-white text-[#879399] transition hover:bg-[#f7f9fa] hover:text-[#46565c] disabled:cursor-not-allowed disabled:opacity-50"
-                            aria-label="Close withdrawal request"
+                            aria-label="Close rejection dialog"
+                            className="flex size-8 shrink-0 items-center justify-center border border-transparent text-[#8792A1] transition-colors hover:border-[#343E4B] hover:bg-[#202A35] hover:text-[#EEF1F5] disabled:cursor-not-allowed disabled:opacity-40"
                         >
-                            <X className="h-3.5 w-3.5" />
+                            <X size={18} strokeWidth={1.8} />
                         </button>
                     </div>
-                </div>
+                </header>
 
-                {/* CASE INFO */}
-                <div className="border-b border-[#e4eaec] bg-[#f8fafb] px-6 py-4 sm:px-7">
-                    <p className="text-[8px] font-bold uppercase tracking-[0.13em] text-[#929da2]">
-                        Case
-                    </p>
+                <form
+                    onSubmit={handleSubmit}
+                    className="flex min-h-0 flex-1 flex-col"
+                >
+                    <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-6 sm:py-6 [scrollbar-width:thin] [scrollbar-color:#303A47_transparent]">
+                        <div className="flex min-w-0 items-start gap-3 border border-[#29333F] bg-[#151C25] px-4 py-3.5">
+                            <FileText
+                                size={17}
+                                strokeWidth={1.7}
+                                className="mt-0.5 shrink-0 text-[#8792A1]"
+                            />
 
-                    <p className="mt-1.5 text-[12px] font-bold text-[#43545a]">
-                        {request.title || 'Help request'}
-                    </p>
+                            <div className="min-w-0">
+                                <p className="text-[11px] font-medium text-[#8792A1]">
+                                    Help request
+                                </p>
 
-                    {request.assignmentId && (
-                        <p className="mt-1 text-[9px] text-[#8b989d]">
-                            Assignment #{request.assignmentId}
-                        </p>
-                    )}
-                </div>
-
-                {/* FORM */}
-                <div className="px-6 py-6 sm:px-7">
-                    <label
-                        htmlFor="withdrawal-reason"
-                        className="mb-2.5 block text-[9px] font-bold uppercase tracking-[0.12em] text-[#65767b]"
-                    >
-                        Reason for withdrawal
-                    </label>
-
-                    <textarea
-                        id="withdrawal-reason"
-                        value={reason ?? ''}
-                        onChange={(event) => {
-                            setReason(event.target.value);
-                        }}
-                        disabled={loading}
-                        rows={7}
-                        maxLength={2000}
-                        placeholder="Please explain why your organization needs to withdraw from this case..."
-                        className="w-full resize-none border border-[#d7e2e5] bg-white px-4 py-3.5 text-[11px] leading-6 text-[#43545a] outline-none transition placeholder:text-[#aab4b8] focus:border-primary focus:ring-2 focus:ring-primary/10 disabled:cursor-not-allowed disabled:bg-[#f4f7f7]"
-                    />
-
-                    <div className="mt-2 flex items-center justify-between">
-                        <p className="text-[9px] text-[#929da2]">
-                            Minimum 10 characters
-                        </p>
-
-                        <p className="text-[9px] text-[#929da2]">
-                            {(reason ?? '').length}/2000
-                        </p>
-                    </div>
-
-                    {error && (
-                        <div className="mt-4 flex items-start gap-3 border border-[#ead3d0] bg-[#fff7f6] px-4 py-3.5">
-                            <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#ad554b]" />
-
-                            <p className="text-[10px] leading-5 text-[#9a5b53]">
-                                {error}
-                            </p>
+                                <p className="mt-1 break-words text-[13px] font-semibold! leading-5 text-[#EEF1F5]">
+                                    {request.title || 'Untitled request'}
+                                </p>
+                            </div>
                         </div>
-                    )}
 
-                    <div className="mt-6 border border-[#e8dddd] bg-[#fffafa] px-4 py-3.5">
-                        <p className="text-[10px] leading-5 text-[#806b68]">
-                            Your withdrawal request will be sent to
-                            administration for review. The case will remain
-                            assigned to your organization until the
-                            administrator makes a decision.
-                        </p>
+                        <div className="mt-6">
+                            <label
+                                htmlFor="rejection-note"
+                                className="mb-2.5 block text-[13px] font-medium text-[#D2DAE4]"
+                            >
+                                Reason for declining
+                                <span className="ml-1 text-[#D1959B]">*</span>
+                            </label>
+
+                            <textarea
+                                id="rejection-note"
+                                name="rejection-note"
+                                value={value}
+                                onChange={(event) => {
+                                    setNote?.(event.target.value);
+
+                                    if (error) {
+                                        setError?.('');
+                                    }
+                                }}
+                                disabled={loading}
+                                required
+                                rows={5}
+                                maxLength={2000}
+                                placeholder="Explain why your organization cannot accept this assignment..."
+                                aria-invalid={Boolean(error)}
+                                aria-describedby={
+                                    error
+                                        ? 'rejection-note-error'
+                                        : 'rejection-note-help'
+                                }
+                                className={`block min-h-[148px] w-full resize-y border bg-[#0E1219] px-4 py-3 text-[13px] leading-[1.7] text-[#EEF1F5] outline-none transition-colors placeholder:text-[#687587] disabled:cursor-not-allowed disabled:opacity-60 ${
+                                    error
+                                        ? 'border-[#9D555F] focus:border-[#C47B85]'
+                                        : 'border-[#343E4B] hover:border-[#48576A] focus:border-[#72839A]'
+                                }`}
+                            />
+
+                            <div className="mt-2 flex items-start justify-between gap-3">
+                                <p
+                                    id="rejection-note-help"
+                                    className="text-[11px] leading-5 text-[#8792A1]"
+                                >
+                                    This reason will be shared with the
+                                    administrator.
+                                </p>
+
+                                <span className="shrink-0 text-[11px] tabular-nums text-[#8792A1]">
+                                    {value.length}/2000
+                                </span>
+                            </div>
+
+                            {error && (
+                                <div
+                                    id="rejection-note-error"
+                                    role="alert"
+                                    className="mt-4 flex items-start gap-2.5 border border-[#493038] bg-[#281A1F] px-3.5 py-3"
+                                >
+                                    <AlertCircle
+                                        size={16}
+                                        strokeWidth={1.8}
+                                        className="mt-0.5 shrink-0 text-[#D1959B]"
+                                    />
+
+                                    <p className="text-[12px] leading-5 text-[#E2AAB0]">
+                                        {error}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
                     </div>
-                </div>
 
-                {/* FOOTER */}
-                <div className="flex items-center justify-end gap-2.5 border-t border-[#e0e7e9] bg-white px-6 py-4 sm:px-7">
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        disabled={loading}
-                        className="border border-[#d8e1e4] bg-white px-4 py-2.5 text-[10px] font-bold text-[#64747a] transition hover:bg-[#f8fafb] disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                        Cancel
-                    </button>
+                    <footer className="flex shrink-0 flex-wrap items-center justify-end gap-2.5 border-t border-[#29333F] bg-[#151C25] px-5 py-4 sm:px-6">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            disabled={loading}
+                            className="inline-flex h-10 items-center justify-center border border-[#343E4B] bg-[#151C25] px-4 text-[13px] font-medium text-[#B8C2CF] transition-colors hover:border-[#4B596A] hover:bg-[#202A35] hover:text-[#EEF1F5] disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            Cancel
+                        </button>
 
-                    <button
-                        type="button"
-                        onClick={onSubmit}
-                        disabled={loading || (reason ?? '').trim().length < 10}
-                        className="inline-flex items-center gap-2 bg-[#ad554b] px-5 py-2.5 text-[10px] font-bold text-white! shadow-[0_5px_14px_rgba(173,85,75,0.14)] transition hover:bg-[#98483f] disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                        <RotateCcw className="h-3.5 w-3.5" />
-
-                        {loading
-                            ? 'Submitting...'
-                            : 'Submit withdrawal request'}
-                    </button>
-                </div>
-            </div>
+                        <button
+                            type="submit"
+                            disabled={loading || !value.trim()}
+                            className="inline-flex h-10 min-w-[150px] items-center justify-center gap-2 border border-[#9D555F] bg-[#713640] px-4 text-[13px] font-semibold! text-[#FFF1F2]! transition-colors hover:border-[#BA6973] hover:bg-[#87434E] disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            {loading ? (
+                                <>
+                                    <LoadingUI variant="inline" />
+                                    Declining...
+                                </>
+                            ) : (
+                                <>
+                                    <X size={15} strokeWidth={1.9} />
+                                    Decline assignment
+                                </>
+                            )}
+                        </button>
+                    </footer>
+                </form>
+            </section>
         </div>
     );
-};
-
-export default WithdrawalModal;
+}

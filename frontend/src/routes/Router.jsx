@@ -89,6 +89,7 @@ import AdminNotifications from '@/dashboard/admin/notifications/Notifications';
 import OrgDashboard from '@/dashboard/organization/dashboard/OrgDashboard';
 import OrganizationHelpRequests from '@/dashboard/organization/helpRequests/OrgHelpRequests';
 import OrganizationCampaigns from '@/dashboard/organization/campaigns/OrgCampaigns';
+import OrganizationAddCampaign from '@/dashboard/organization/campaigns/AddCampaign';
 import OrganizationVolunteers from '@/dashboard/organization/volunteers/OrgVolunteers';
 import OrganizationReports from '@/dashboard/organization/reports/OrgReports';
 import OrganizationProfile from '@/dashboard/organization/profile/OrgProfile';
@@ -294,6 +295,8 @@ const router = createBrowserRouter([
                         element: <IndividualNotifications />,
                     },
                     { path: 'profile', element: <IndividualProfile /> },
+                    { path: 'profile/edit', element: <IndividualProfile /> },
+                    { path: 'security', element: <AdminSecurity /> },
                     { path: 'settings', element: <IndividualSettings /> },
                     { path: 'help', element: <HelpPage /> },
                 ],
@@ -315,9 +318,15 @@ const router = createBrowserRouter([
                         element: <OrganizationHelpRequests />,
                     },
                     { path: 'campaigns', element: <OrganizationCampaigns /> },
+                    {
+                        path: 'campaigns/add',
+                        element: <OrganizationAddCampaign />,
+                    },
                     { path: 'volunteers', element: <OrganizationVolunteers /> },
                     { path: 'reports', element: <OrganizationReports /> },
                     { path: 'profile', element: <OrganizationProfile /> },
+                    { path: 'profile/edit', element: <OrganizationProfile /> },
+                    { path: 'security', element: <AdminSecurity /> },
                     {
                         path: 'notifications',
                         element: <OrganizationNotifications />,

@@ -1,6 +1,5 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-
 import {
     CalendarDays,
     Eye,
@@ -15,22 +14,22 @@ import DataTable from '@/components/dashboard/DataTable';
 const CAMPAIGNS_PATH = '/admin/dashboard/campaigns';
 
 const STATUS = {
-    unverified: ['Unverified', 'border-[#443723] bg-[#241E15] text-[#D0AA70]'],
-    active: ['Active', 'border-[#294438] bg-[#14231D] text-[#8EC5A3]'],
-    completed: ['Completed', 'border-[#30445A] bg-[#192636] text-[#A4BEDC]'],
-    rejected: ['Rejected', 'border-[#493038] bg-[#281A1F] text-[#D1959B]'],
-    cancelled: ['Cancelled', 'border-[#343E4B] bg-[#1A222D] text-[#AEB7C3]'],
+    unverified: ['Unverified', 'border-[#51432F] bg-[#292318] text-[#D6B47C]'],
+    active: ['Active', 'border-[#345043] bg-[#1A2C24] text-[#9BCFB0]'],
+    completed: ['Completed', 'border-[#354B63] bg-[#1B2B3D] text-[#A9C5E4]'],
+    rejected: ['Rejected', 'border-[#56363F] bg-[#301E25] text-[#DEA2AB]'],
+    cancelled: ['Cancelled', 'border-[#3B4552] bg-[#202832] text-[#B3BFCD]'],
 };
 
 function Status({ value }) {
     const [label, style] = STATUS[String(value || '').toLowerCase()] || [
         String(value || 'Unknown'),
-        'border-[#343E4B] bg-[#1A222D] text-[#AEB7C3]',
+        'border-[#3B4552] bg-[#202832] text-[#B3BFCD]',
     ];
 
     return (
         <span
-            className={`inline-flex items-center gap-1.5 whitespace-nowrap border px-2 py-1 text-[10px] font-medium ${style}`}
+            className={`inline-flex items-center gap-1.5 whitespace-nowrap border px-2.5 py-1 text-[11px] font-medium ${style}`}
         >
             <span className="h-1.5 w-1.5 rounded-full bg-current" />
             {label}
@@ -48,16 +47,16 @@ function ActionButton({ icon: Icon, label, onClick, disabled = false }) {
             disabled={disabled}
             className="
                 inline-flex h-8 w-8 shrink-0 items-center justify-center
-                border border-transparent text-[#8792A1]
+                border border-transparent text-[#98A5B6]
                 transition-colors
-                hover:border-[#303A47] hover:bg-[#1A222D]
+                hover:border-[#3B4858] hover:bg-[#25303D]
                 hover:text-[#EEF1F5]
                 focus-visible:outline focus-visible:outline-2
                 focus-visible:outline-offset-2 focus-visible:outline-[#8792A1]
                 disabled:cursor-not-allowed disabled:opacity-40
             "
         >
-            <Icon size={15} strokeWidth={1.8} />
+            <Icon size={16} strokeWidth={1.8} />
         </button>
     );
 }
@@ -114,9 +113,7 @@ function Actions({ column, row }) {
     const campaignId = row.id;
 
     const handleView = () => {
-        if (campaignId === null || campaignId === undefined) {
-            return;
-        }
+        if (campaignId === null || campaignId === undefined) return;
 
         navigate(`${CAMPAIGNS_PATH}/${campaignId}`);
     };
@@ -170,25 +167,96 @@ function Actions({ column, row }) {
 
 function Identity({ row }) {
     return (
-        <div className="min-w-0">
+        <div className="min-w-0 py-1">
             <p
                 title={row.title}
-                className="truncate text-[12px] font-semibold text-[#EEF1F5]"
+                className="m-0 line-clamp-2 text-[13px] leading-[1.65] font-semibold text-[#EEF1F5]!"
+                style={{
+                    fontFamily: "'Poppins', 'Noto Sans Bengali', sans-serif",
+                }}
             >
                 {row.title || 'Untitled campaign'}
             </p>
 
-            <div className="mt-1 flex min-w-0 items-center gap-2 text-[10px] text-[#697586]">
-                <span className="truncate capitalize">
-                    {row.category || 'General'}
-                </span>
-
-                {row.locationName &&
-                    row.locationName !== 'Location not specified' && (
-                        <span className="truncate">· {row.locationName}</span>
-                    )}
-            </div>
+            <p className="m-0 mt-1 text-[11px] font-medium leading-4 text-[#8FA0B4]!">
+                {row.category || 'General'}
+            </p>
         </div>
+    );
+}
+
+function CampaignType({ value, row }) {
+    const raw = value ?? row?.campaignType ?? row?.type;
+
+    const type = String(raw ?? '')
+        .trim()
+        .toLowerCase()
+        .replace(/[\s-]+/g, '_');
+
+    const isLocalCase =
+        type === 'local_case' ||
+        type === 'localcase' ||
+        row?.help_request_id != null ||
+        row?.helpRequest?.id != null ||
+        row?.help_request?.id != null;
+
+    const helpRequestId =
+        row?.help_request_id ?? row?.helpRequest?.id ?? row?.help_request?.id;
+
+    const isOrganizationProposed = [
+        'organization_proposed',
+        'org_proposed',
+        'organization',
+        'org',
+    ].includes(type);
+
+    const label = isLocalCase
+        ? 'Local Case'
+        : isOrganizationProposed
+          ? 'Organization Proposed'
+          : 'Global';
+
+    return (
+        <span
+            title={
+                isLocalCase && helpRequestId != null
+                    ? `Local Case #${helpRequestId}`
+                    : label
+            }
+            className={`
+                inline-flex max-w-full items-center gap-1.5
+                border px-2.5 py-1.5
+                text-[11px] leading-4 font-medium
+                ${
+                    isLocalCase
+                        ? 'border-[#416B5D] bg-[#20382F] text-[#A8D7C0]'
+                        : isOrganizationProposed
+                          ? 'border-[#685B40] bg-[#342F23] text-[#E4D0A0]'
+                          : 'border-[#3A495B] bg-[#202B38] text-[#C4D2E3]'
+                }
+            `}
+        >
+            <span className="truncate">{label}</span>
+
+            {isLocalCase && helpRequestId != null && (
+                <span className="shrink-0 font-semibold">#{helpRequestId}</span>
+            )}
+        </span>
+    );
+}
+
+function Amount({ value, emphasized = false }) {
+    return (
+        <span
+            className={[
+                'whitespace-nowrap text-[12px] tabular-nums',
+                emphasized
+                    ? 'font-semibold text-[#E3EAF3]'
+                    : 'font-medium text-[#B9C5D3]',
+            ].join(' ')}
+        >
+            {value ?? '—'}
+        </span>
     );
 }
 
@@ -201,17 +269,17 @@ export default function Table({
 }) {
     const actionColumn = columns.find((column) => column.key === 'actions');
 
-    const typeColumn = columns.find((column) => column.key === 'campaignType');
-
     const empty = (
-        <div className="flex min-h-64 flex-col items-center justify-center bg-[#0E1219] px-6 text-center">
-            <Megaphone size={23} className="text-[#697586]" />
+        <div className="flex min-h-64 flex-col items-center justify-center bg-[#10161E] px-6 text-center">
+            <span className="flex h-12 w-12 items-center justify-center border border-[#344150] bg-[#1B2632] text-[#91A3B8]">
+                <Megaphone size={22} strokeWidth={1.6} />
+            </span>
 
-            <p className="mt-3 text-[13px] font-semibold text-[#EEF1F5]">
+            <p className="m-0 mt-4 text-[14px] font-semibold text-[#EEF1F5]!">
                 No campaigns found
             </p>
 
-            <p className="mt-1 text-[11px] text-[#697586]">
+            <p className="m-0 mt-1 text-[12px] text-[#8998AA]!">
                 Try changing your search or filter options.
             </p>
         </div>
@@ -221,54 +289,52 @@ export default function Table({
         {
             key: 'serialNumber',
             header: '#',
-            width: '56px',
+            width: '52px',
             align: 'center',
             render: (value) => (
-                <span className="text-[11px] tabular-nums text-[#697586]">
-                    {String(value ?? '—').padStart(2, '0')}
+                <span className="text-[11px] tabular-nums text-[#8291A3]">
+                    {value === null || value === undefined
+                        ? '—'
+                        : String(value).padStart(2, '0')}
                 </span>
             ),
         },
         {
             key: 'title',
             header: 'Campaign',
-            width: 'minmax(200px,1.8fr)',
+            width: 'minmax(310px,2.6fr)',
             sortable: true,
             sortKey: 'title',
             render: (_value, row) => <Identity row={row} />,
         },
         {
             key: 'campaignType',
-            header: 'Source',
-            width: 'minmax(130px,1fr)',
+            header: 'Campaign Type',
+            width: 'minmax(150px,1.15fr)',
             sortable: true,
             sortKey: 'type',
-            render: (value, row) => typeColumn?.render?.(value, row) ?? value,
+            render: (value, row) => <CampaignType value={value} row={row} />,
         },
         {
             key: 'target',
             header: 'Target',
-            width: 'minmax(100px,0.8fr)',
+            width: 'minmax(105px,0.8fr)',
             sortable: true,
             sortKey: 'target_amount',
-            render: (value) => (
-                <span className="text-[11px] text-[#CDD6E1]">{value}</span>
-            ),
+            render: (value) => <Amount value={value} />,
         },
         {
             key: 'collected',
             header: 'Collected',
-            width: 'minmax(100px,0.8fr)',
+            width: 'minmax(105px,0.8fr)',
             sortable: true,
             sortKey: 'collected_amount',
-            render: (value) => (
-                <span className="text-[11px] text-[#CDD6E1]">{value}</span>
-            ),
+            render: (value) => <Amount value={value} emphasized />,
         },
         {
             key: 'status',
             header: 'Status',
-            width: 'minmax(110px,0.7fr)',
+            width: 'minmax(115px,0.75fr)',
             sortable: true,
             sortKey: 'status',
             render: (value) => <Status value={value} />,
@@ -276,7 +342,7 @@ export default function Table({
         {
             key: 'actions',
             header: 'Actions',
-            width: '165px',
+            width: '152px',
             align: 'right',
             render: (_value, row) => (
                 <Actions column={actionColumn} row={row} />
@@ -286,52 +352,57 @@ export default function Table({
 
     return (
         <>
-            {/* MOBILE TABLE */}
-            <div className="bg-[#0E1219] lg:hidden">
+            {/* Mobile and tablet */}
+            <div className="bg-[#10161E] lg:hidden">
                 {rows.length
-                    ? rows.map((row) => (
+                    ? rows.map((row, index) => (
                           <article
-                              key={row.id}
-                              className="border-b border-[#252D38] px-4 py-4 last:border-b-0"
+                              key={row.id ?? index}
+                              className="border-b border-[#2D3744] px-4 py-4 last:border-b-0 sm:px-5"
                           >
-                              <Identity row={row} />
-
-                              <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-                                  <span className="text-[11px] text-[#AEB7C3]">
-                                      {typeColumn?.render?.(
-                                          row.campaignType,
-                                          row,
-                                      ) ?? row.campaignType}
-                                  </span>
+                              <div className="flex items-start justify-between gap-3">
+                                  <div className="min-w-0 flex-1">
+                                      <Identity row={row} />
+                                  </div>
 
                                   <Status value={row.status} />
                               </div>
 
-                              <div className="mt-3 grid grid-cols-2 gap-3 border-t border-[#252D38] pt-3 text-[11px]">
-                                  <div>
-                                      <span className="text-[#697586]">
-                                          Target
-                                      </span>
+                              <div className="mt-3">
+                                  <CampaignType
+                                      value={row.campaignType}
+                                      row={row}
+                                  />
+                              </div>
 
-                                      <p className="mt-1 text-[#CDD6E1]">
-                                          {row.target}
+                              <div className="mt-3 grid grid-cols-2 gap-3 border-y border-[#2D3744] py-3">
+                                  <div className="min-w-0">
+                                      <p className="m-0 text-[11px] text-[#8291A3]!">
+                                          Target
                                       </p>
+
+                                      <div className="mt-1">
+                                          <Amount value={row.target} />
+                                      </div>
                                   </div>
 
-                                  <div>
-                                      <span className="text-[#697586]">
+                                  <div className="min-w-0">
+                                      <p className="m-0 text-[11px] text-[#8291A3]!">
                                           Collected
-                                      </span>
-
-                                      <p className="mt-1 text-[#CDD6E1]">
-                                          {row.collected}
                                       </p>
+
+                                      <div className="mt-1">
+                                          <Amount
+                                              value={row.collected}
+                                              emphasized
+                                          />
+                                      </div>
                                   </div>
                               </div>
 
-                              <div className="mt-3 flex items-center justify-between border-t border-[#252D38] pt-3">
-                                  <span className="flex items-center gap-1 text-[10px] text-[#697586]">
-                                      <CalendarDays size={12} />
+                              <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                                  <span className="inline-flex items-center gap-1.5 text-[11px] text-[#8392A4]">
+                                      <CalendarDays size={14} />
                                       {row.formattedStartDate || '—'}
                                   </span>
 
@@ -342,8 +413,8 @@ export default function Table({
                     : empty}
             </div>
 
-            {/* DESKTOP TABLE */}
-            <div className="hidden min-w-0 bg-[#0E1219] lg:block">
+            {/* Desktop */}
+            <div className="hidden min-w-0 bg-[#10161E] lg:block">
                 <DataTable
                     columns={enhancedColumns}
                     rows={rows}

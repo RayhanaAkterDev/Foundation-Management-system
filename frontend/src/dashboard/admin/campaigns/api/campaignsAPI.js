@@ -382,28 +382,49 @@ export const updateCampaignStatus = async (
 |
 */
 
-export const updateCampaign = async (
-    campaignId,
-    payload,
-) => {
+export const updateCampaign = async (campaignId, payload) => {
     if (!campaignId) {
         throw new Error('Campaign ID is required.');
     }
 
     if (!payload || typeof payload !== 'object') {
-        throw new Error(
-            'Campaign update data is required.',
-        );
+        throw new Error('Campaign update data is required.');
     }
+
+    const formData = new FormData();
+
+    Object.entries(payload).forEach(([key, value]) => {
+        if (key === 'cover_image' && value === null) {
+            formData.append('remove_cover_image', '1');
+            return;
+        }
+
+        if (value === undefined || value === null) {
+            return;
+        }
+
+        if (value instanceof File) {
+            formData.append(key, value);
+            return;
+        }
+
+        formData.append(
+            key,
+            typeof value === 'object'
+                ? JSON.stringify(value)
+                : String(value),
+        );
+    });
+
+    // Use POST with Laravel method spoofing for multipart uploads.
+    formData.append('_method', 'PUT');
 
     const response = await fetch(
         `${API_BASE_URL}/admin/campaigns/${campaignId}`,
         {
-            method: 'PUT',
-            headers: getHeaders({
-                json: true,
-            }),
-            body: JSON.stringify(payload),
+            method: 'POST',
+            headers: getHeaders(),
+            body: formData,
         },
     );
 

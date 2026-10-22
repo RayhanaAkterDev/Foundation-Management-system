@@ -9,7 +9,7 @@ import { NAV_CONFIG, ROLE_LABELS } from '@/routes/dashboardNav';
 // CONFIGURATION
 // ============================================================
 
-const COLLAPSED_WIDTH = 68;
+const COLLAPSED_WIDTH = 64;
 const EXPANDED_WIDTH = 272;
 
 const DASHBOARD_ROOTS = [
@@ -101,7 +101,7 @@ function SectionLabel({ label, first }) {
 }
 
 // ============================================================
-// COLLAPSED RAIL GROUP
+// COMPRESSED COLLAPSED RAIL GROUP
 // ============================================================
 
 function RailGroup({ items, currentPath, onExpand, first }) {
@@ -110,16 +110,15 @@ function RailGroup({ items, currentPath, onExpand, first }) {
     return (
         <div
             className={`
-                flex w-full flex-col items-center gap-1
-                ${first ? '' : 'mt-3.5'}
+                flex w-full flex-col items-center
+                gap-0.5
+                ${first ? '' : 'mt-2.5'}
             `}
         >
-            {!first && (
-                <div
-                    aria-hidden="true"
-                    className="mb-2 h-px w-7 bg-[#303A47]"
-                />
-            )}
+            {/*
+                A small spacing break distinguishes groups
+                without adding divider lines or extra icons.
+            */}
 
             {items.map((item) => (
                 <RailItem
@@ -134,7 +133,7 @@ function RailGroup({ items, currentPath, onExpand, first }) {
 }
 
 // ============================================================
-// COLLAPSED RAIL ITEM
+// COMPRESSED COLLAPSED RAIL ITEM
 // ============================================================
 
 function RailItem({ item, currentPath, onExpand }) {
@@ -144,7 +143,7 @@ function RailItem({ item, currentPath, onExpand }) {
 
     const className = `
         group relative
-        flex h-[38px] w-[38px]
+        flex h-9 w-9
         shrink-0 items-center justify-center
         rounded-md
         transition-colors duration-150
@@ -174,15 +173,15 @@ function RailItem({ item, currentPath, onExpand }) {
                 <span
                     aria-hidden="true"
                     className="
-                        absolute -left-[9px] top-1/2
-                        h-[18px] w-[2px]
+                        absolute -left-[7px] top-1/2
+                        h-4 w-0.5
                         -translate-y-1/2
                         rounded-full bg-[#D8DDE5]
                     "
                 />
             )}
 
-            {Icon && <Icon size={17} strokeWidth={1.7} className="shrink-0" />}
+            {Icon && <Icon size={16} strokeWidth={1.7} className="shrink-0" />}
         </>
     );
 
@@ -525,9 +524,6 @@ export default function DashboardSidebar({
         onCollapsedChange?.(false);
     };
 
-    // Build rail groups from the existing section configuration.
-    // The expanded menu configuration is not modified.
-
     const railGroups = useMemo(() => {
         const groups = [];
         let currentGroup = [];
@@ -569,10 +565,7 @@ export default function DashboardSidebar({
                 lg:flex
             "
         >
-            {/* ==================================================
-                BRAND
-            ================================================== */}
-
+            {/* BRAND */}
             <div
                 className={`
                     flex h-[72px] shrink-0
@@ -635,11 +628,10 @@ export default function DashboardSidebar({
                 </Link>
             </div>
 
-            {/* ==================================================
-                COLLAPSED RAIL
-            ================================================== */}
-
             {collapsed ? (
+                // ============================================
+                // COMPRESSED RAIL
+                // ============================================
                 <nav
                     aria-label="Dashboard navigation"
                     style={{
@@ -651,7 +643,7 @@ export default function DashboardSidebar({
                         overflow-x-hidden
                         overflow-y-auto
                         overscroll-contain
-                        px-2 py-3
+                        px-1.5 py-2
 
                         [scrollbar-width:none]
                         [-ms-overflow-style:none]
@@ -671,10 +663,9 @@ export default function DashboardSidebar({
                     </div>
                 </nav>
             ) : (
-                /* ==============================================
-                    EXPANDED NAVIGATION — UNCHANGED
-                ============================================== */
-
+                // ============================================
+                // EXPANDED NAVIGATION — UNCHANGED
+                // ============================================
                 <nav
                     aria-label="Dashboard navigation"
                     style={{
@@ -723,10 +714,7 @@ export default function DashboardSidebar({
                 </nav>
             )}
 
-            {/* ==================================================
-                COLLAPSE / EXPAND CONTROL
-            ================================================== */}
-
+            {/* COLLAPSE / EXPAND CONTROL */}
             <div
                 className={`
                     flex shrink-0

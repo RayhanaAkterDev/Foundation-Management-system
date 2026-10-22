@@ -1,133 +1,237 @@
-import { RefreshCcw, X } from 'lucide-react';
+import { useEffect } from 'react';
+import { AlertCircle, FileText, RotateCcw, X } from 'lucide-react';
 
-const RejectionModal = ({
+import LoadingUI from '@/components/dashboard/LoadingUI';
+
+export default function WithdrawalModal({
     request,
-    note,
-    setNote,
+    reason,
+    setReason,
+    loading = false,
     error,
-    setError,
-    loading,
     onClose,
     onSubmit,
-}) => {
-    if (!request) {
-        return null;
-    }
+}) {
+    useEffect(() => {
+        if (!request) return undefined;
+
+        const handleEscape = (event) => {
+            if (event.key === 'Escape' && !loading) {
+                onClose?.();
+            }
+        };
+
+        window.addEventListener('keydown', handleEscape);
+
+        return () => {
+            window.removeEventListener('keydown', handleEscape);
+        };
+    }, [request, loading, onClose]);
+
+    if (!request) return null;
+
+    const value = reason ?? '';
+    const isValid = value.trim().length >= 10;
+
+    const handleSubmit = (event) => {
+        event.preventDefault();
+
+        if (loading || !isValid) return;
+
+        onSubmit?.();
+    };
 
     return (
-        <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/45 p-4 backdrop-blur-[2px]">
-            <div className="w-full max-w-lg overflow-hidden bg-white shadow-2xl">
-                <div className="border-b border-[#e1e8ea] bg-[#f7f9fa] px-6 py-5">
-                    <div className="flex items-start justify-between gap-4">
-                        <div>
-                            <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-[#9aa6aa]">
-                                Reject assignment
-                            </p>
+        <div
+            className="fixed inset-0 z-[70] flex items-center justify-center bg-black/75 px-3 py-4 backdrop-blur-[3px] sm:px-5"
+            role="presentation"
+            onMouseDown={(event) => {
+                if (event.target === event.currentTarget && !loading) {
+                    onClose?.();
+                }
+            }}
+        >
+            <section
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="withdrawal-modal-title"
+                className="flex max-h-[min(90dvh,780px)] w-full max-w-[540px] flex-col overflow-hidden border border-[#303A47] bg-[#10161F] shadow-[0_24px_80px_rgba(0,0,0,0.45)]"
+            >
+                <header className="shrink-0 border-b border-[#29333F] bg-[#151C25] px-5 py-5 sm:px-6 sm:py-6">
+                    <div className="flex items-start justify-between gap-5">
+                        <div className="flex min-w-0 items-start gap-3.5">
+                            <div className="flex size-10 shrink-0 items-center justify-center border border-[#443723] bg-[#241E15] text-[#D0AA70]">
+                                <RotateCcw size={19} strokeWidth={1.8} />
+                            </div>
 
-                            <h3 className="mt-2 text-[20px] font-semibold tracking-tight text-[#263940]">
-                                Why can’t your organization take this case?
-                            </h3>
+                            <div className="min-w-0 pt-0.5">
+                                <h2
+                                    id="withdrawal-modal-title"
+                                    className="text-[18px] font-semibold! leading-snug tracking-[-0.02em] text-[#EEF1F5]! sm:text-[19px]"
+                                >
+                                    Request withdrawal
+                                </h2>
 
-                            <p className="mt-2 text-[12px] leading-5 text-[#7d8b90]">
-                                Please provide a reason. This message will be
-                                sent to the admin who assigned this case.
-                            </p>
+                                <p className="mt-1.5 max-w-[400px] text-[13px] leading-[1.7] text-[#8792A1]">
+                                    Submit a request to withdraw your
+                                    organization from this case.
+                                </p>
+                            </div>
                         </div>
 
                         <button
                             type="button"
                             onClick={onClose}
                             disabled={loading}
-                            className="flex h-8 w-8 shrink-0 items-center justify-center text-[#8c999d] transition hover:bg-[#eaf0f1] hover:text-[#263940] disabled:cursor-not-allowed disabled:opacity-50"
-                            aria-label="Close rejection modal"
+                            aria-label="Close withdrawal dialog"
+                            className="flex size-8 shrink-0 items-center justify-center border border-transparent text-[#8792A1] transition-colors hover:border-[#343E4B] hover:bg-[#202A35] hover:text-[#EEF1F5] disabled:cursor-not-allowed disabled:opacity-40"
                         >
-                            <X className="h-4 w-4" />
+                            <X size={18} strokeWidth={1.8} />
                         </button>
                     </div>
-                </div>
+                </header>
 
-                <div className="px-6 py-6">
-                    <div className="mb-4 border border-[#e1e8ea] bg-[#fafcfc] px-4 py-3">
-                        <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-[#9aa6aa]">
-                            Help request
-                        </p>
+                <form
+                    onSubmit={handleSubmit}
+                    className="flex min-h-0 flex-1 flex-col"
+                >
+                    <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 sm:px-6 sm:py-6 [scrollbar-width:thin] [scrollbar-color:#303A47_transparent]">
+                        <div className="flex min-w-0 items-start gap-3 border border-[#29333F] bg-[#151C25] px-4 py-3.5">
+                            <FileText
+                                size={17}
+                                strokeWidth={1.7}
+                                className="mt-0.5 shrink-0 text-[#8792A1]"
+                            />
 
-                        <p className="mt-1 text-[13px] font-semibold text-[#34484f]">
-                            {request.title}
-                        </p>
-                    </div>
+                            <div className="min-w-0">
+                                <p className="text-[11px] font-medium text-[#8792A1]">
+                                    Assigned help request
+                                </p>
 
-                    <label
-                        htmlFor="rejection-note"
-                        className="block text-[10px] font-bold uppercase tracking-[0.12em] text-[#66777d]"
-                    >
-                        Rejection reason
-                    </label>
+                                <p className="mt-1 break-words text-[13px] font-semibold! leading-5 text-[#EEF1F5]">
+                                    {request.title || 'Help request'}
+                                </p>
 
-                    <textarea
-                        id="rejection-note"
-                        value={note}
-                        onChange={(event) => {
-                            setNote(event.target.value);
+                                {request.assignmentId && (
+                                    <p className="mt-1 text-[11px] text-[#8792A1]">
+                                        Assignment #{request.assignmentId}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
 
-                            if (error) {
-                                setError('');
-                            }
-                        }}
-                        disabled={loading}
-                        rows={6}
-                        maxLength={2000}
-                        placeholder="Explain why your organization cannot take this help request..."
-                        className="mt-2 w-full resize-none border border-[#d5e0e3] bg-white px-4 py-3 text-[13px] leading-6 text-[#34484f] outline-none transition placeholder:text-[#a4afb3] focus:border-primary focus:ring-2 focus:ring-primary/10 disabled:bg-[#f5f7f7]"
-                    />
+                        <div className="mt-6">
+                            <label
+                                htmlFor="withdrawal-reason"
+                                className="mb-2.5 block text-[13px] font-medium text-[#D2DAE4]"
+                            >
+                                Reason for withdrawal
+                                <span className="ml-1 text-[#D0AA70]">*</span>
+                            </label>
 
-                    <div className="mt-2 flex items-center justify-between">
-                        {error ? (
-                            <p className="text-[11px] font-medium! text-red-600">
-                                {error}
+                            <textarea
+                                id="withdrawal-reason"
+                                name="withdrawal-reason"
+                                value={value}
+                                onChange={(event) => {
+                                    setReason?.(event.target.value);
+                                }}
+                                disabled={loading}
+                                required
+                                minLength={10}
+                                maxLength={2000}
+                                rows={5}
+                                placeholder="Explain why your organization can no longer continue supporting this case..."
+                                aria-invalid={Boolean(error)}
+                                aria-describedby={
+                                    error
+                                        ? 'withdrawal-reason-error'
+                                        : 'withdrawal-reason-help'
+                                }
+                                className={`block min-h-[148px] w-full resize-y border bg-[#0E1219] px-4 py-3 text-[13px] leading-[1.7] text-[#EEF1F5] outline-none transition-colors placeholder:text-[#687587] disabled:cursor-not-allowed disabled:opacity-60 ${
+                                    error
+                                        ? 'border-[#9D555F] focus:border-[#C47B85]'
+                                        : 'border-[#343E4B] hover:border-[#48576A] focus:border-[#72839A]'
+                                }`}
+                            />
+
+                            <div className="mt-2 flex items-center justify-between gap-3">
+                                <p
+                                    id="withdrawal-reason-help"
+                                    className="text-[11px] text-[#8792A1]"
+                                >
+                                    Minimum 10 characters
+                                </p>
+
+                                <span className="text-[11px] tabular-nums text-[#8792A1]">
+                                    {value.length}/2000
+                                </span>
+                            </div>
+
+                            {error && (
+                                <div
+                                    id="withdrawal-reason-error"
+                                    role="alert"
+                                    className="mt-4 flex items-start gap-2.5 border border-[#493038] bg-[#281A1F] px-3.5 py-3"
+                                >
+                                    <AlertCircle
+                                        size={16}
+                                        strokeWidth={1.8}
+                                        className="mt-0.5 shrink-0 text-[#D1959B]"
+                                    />
+
+                                    <p className="text-[12px] leading-5 text-[#E2AAB0]">
+                                        {error}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="mt-5 flex items-start gap-3 border border-[#443723] bg-[#241E15] px-4 py-3.5">
+                            <AlertCircle
+                                size={17}
+                                strokeWidth={1.8}
+                                className="mt-0.5 shrink-0 text-[#D0AA70]"
+                            />
+
+                            <p className="text-[12px] leading-[1.7] text-[#C4B49A]">
+                                Your organization remains assigned to this case
+                                until administration reviews and approves the
+                                withdrawal request.
                             </p>
-                        ) : (
-                            <span />
-                        )}
-
-                        <span className="text-[10px] text-[#9aa6aa]">
-                            {note.length}/2000
-                        </span>
+                        </div>
                     </div>
-                </div>
 
-                <div className="flex items-center justify-end gap-3 border-t border-[#e1e8ea] bg-[#fafbfb] px-6 py-4">
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        disabled={loading}
-                        className="border border-[#d5e0e3] px-4 py-2.5 text-[10px] font-bold uppercase tracking-[0.08em] text-[#66777d] transition hover:bg-[#eef3f4] disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                        Cancel
-                    </button>
+                    <footer className="flex shrink-0 flex-wrap items-center justify-end gap-2.5 border-t border-[#29333F] bg-[#151C25] px-5 py-4 sm:px-6">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            disabled={loading}
+                            className="inline-flex h-10 items-center justify-center border border-[#343E4B] bg-[#151C25] px-4 text-[13px] font-medium text-[#B8C2CF] transition-colors hover:border-[#4B596A] hover:bg-[#202A35] hover:text-[#EEF1F5] disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            Cancel
+                        </button>
 
-                    <button
-                        type="button"
-                        onClick={onSubmit}
-                        disabled={loading}
-                        className="inline-flex items-center gap-2 bg-[#b43d3d] px-4 py-2.5 text-[10px] font-bold uppercase tracking-[0.08em] text-white! transition hover:bg-[#983333] disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                        {loading ? (
-                            <>
-                                <RefreshCcw className="h-3.5 w-3.5 animate-spin" />
-                                Rejecting...
-                            </>
-                        ) : (
-                            <>
-                                <X className="h-3.5 w-3.5" />
-                                Reject assignment
-                            </>
-                        )}
-                    </button>
-                </div>
-            </div>
+                        <button
+                            type="submit"
+                            disabled={loading || !isValid}
+                            className="inline-flex h-10 min-w-[180px] items-center justify-center gap-2 border border-[#665035] bg-[#5A4329] px-4 text-[13px] font-semibold! text-[#F7E5C8]! transition-colors hover:border-[#846744] hover:bg-[#6B5132] disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            {loading ? (
+                                <>
+                                    <LoadingUI variant="inline" />
+                                    Submitting...
+                                </>
+                            ) : (
+                                <>
+                                    <RotateCcw size={15} strokeWidth={1.8} />
+                                    Submit withdrawal
+                                </>
+                            )}
+                        </button>
+                    </footer>
+                </form>
+            </section>
         </div>
     );
-};
-
-export default RejectionModal;
+}

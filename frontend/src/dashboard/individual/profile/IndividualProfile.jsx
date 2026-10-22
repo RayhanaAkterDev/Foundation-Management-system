@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { AlertCircle } from 'lucide-react';
 
 import PageHeader from '@/components/dashboard/PageHeader';
@@ -118,11 +119,15 @@ const parseResponse = async (response) => {
 ========================================================= */
 
 export default function IndividualProfile() {
+    const navigate = useNavigate();
+    const location = useLocation();
+    const editing =
+        location.pathname.replace(/\/$/, '') ===
+        '/individual/dashboard/profile/edit';
     const [profile, setProfile] = useState(null);
     const [form, setForm] = useState(EMPTY_FORM);
     const [memberSince, setMemberSince] = useState(null);
 
-    const [editing, setEditing] = useState(false);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [uploadingPhoto, setUploadingPhoto] = useState(false);
@@ -145,17 +150,17 @@ export default function IndividualProfile() {
 
         const timeoutId = window.setTimeout(() => {
             setSuccessOpen(false);
-            setEditing(false);
+            navigate('/individual/dashboard/profile', { replace: true });
         }, 1500);
 
         return () => {
             window.clearTimeout(timeoutId);
         };
-    }, [successOpen]);
+    }, [successOpen, navigate]);
 
     const handleSuccessClose = () => {
         setSuccessOpen(false);
-        setEditing(false);
+        navigate('/individual/dashboard/profile', { replace: true });
     };
 
     /* =====================================================
@@ -266,7 +271,7 @@ export default function IndividualProfile() {
         clearPendingPhoto();
 
         setError('');
-        setEditing(true);
+        navigate('/individual/dashboard/profile/edit');
     };
 
     /* =====================================================
@@ -281,7 +286,7 @@ export default function IndividualProfile() {
         clearPendingPhoto();
 
         setError('');
-        setEditing(false);
+        navigate('/individual/dashboard/profile', { replace: true });
     };
 
     /* =====================================================

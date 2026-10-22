@@ -35,33 +35,31 @@ import { fetchCampaigns } from './api/campaignsAPI';
 
 const CAMPAIGNS_ROUTE = '/admin/dashboard/campaigns';
 
-const PANEL = 'min-w-0 border border-[#29323E] bg-[#0E1219]';
-
 const STATUS_CONFIG = {
     active: {
         label: 'Active',
         icon: CheckCircle2,
-        className: 'border-[#345044] bg-[#1B3029] !text-[#A3C8B4]',
+        className: 'border-[#345044] bg-[#1B3029] text-[#A3C8B4]',
     },
     unverified: {
         label: 'Unverified',
         icon: CircleAlert,
-        className: 'border-[#5A472D] bg-[#30271C] !text-[#D8B37C]',
+        className: 'border-[#5A472D] bg-[#30271C] text-[#D8B37C]',
     },
     completed: {
         label: 'Completed',
         icon: CheckCircle2,
-        className: 'border-[#394A60] bg-[#202D40] !text-[#B1C3DD]',
+        className: 'border-[#394A60] bg-[#202D40] text-[#B1C3DD]',
     },
     rejected: {
         label: 'Rejected',
         icon: CircleAlert,
-        className: 'border-[#593A41] bg-[#342126] !text-[#DEA7AE]',
+        className: 'border-[#593A41] bg-[#342126] text-[#DEA7AE]',
     },
     cancelled: {
         label: 'Cancelled',
         icon: CircleAlert,
-        className: 'border-[#343E4B] bg-[#20252D] !text-[#ABB5C1]',
+        className: 'border-[#343E4B] bg-[#20252D] text-[#ABB5C1]',
     },
 };
 
@@ -175,7 +173,7 @@ function CampaignStatus({ status }) {
     const config = STATUS_CONFIG[status] || {
         label: formatText(status, 'Unknown'),
         icon: CircleAlert,
-        className: 'border-[#343E4B] bg-[#20252D] !text-[#ABB5C1]',
+        className: 'border-[#343E4B] bg-[#20252D] text-[#ABB5C1]',
     };
 
     const Icon = config.icon;
@@ -195,32 +193,28 @@ function CampaignStatus({ status }) {
 }
 
 // ============================================================
-// SECTION HEADINGS
+// SHARED SECTION HEADING
 // ============================================================
 
 function SectionHeading({ icon: Icon, title, detail }) {
     return (
         <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
-                <Icon
-                    size={18}
-                    strokeWidth={1.65}
-                    className="shrink-0 !text-[#92AAA9]"
-                />
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center border border-[#34404D] bg-[#202A35]">
+                    <Icon
+                        size={16}
+                        strokeWidth={1.7}
+                        className="text-[#A2B8B6]"
+                    />
+                </span>
 
-                <h2
-                    className="
-                        !m-0 !font-sans !text-[17px] !font-semibold
-                        !tracking-[-0.02em] !text-[#EEF1F5]
-                        sm:!text-[18px]
-                    "
-                >
+                <h2 className="!m-0 !font-sans !text-[16px] !font-semibold !tracking-[-0.02em] !text-[#EEF1F5]">
                     {title}
                 </h2>
             </div>
 
             {detail && (
-                <span className="text-[11px] !text-[#8792A1]">{detail}</span>
+                <span className="text-[11px] text-[#8792A1]">{detail}</span>
             )}
         </div>
     );
@@ -228,11 +222,11 @@ function SectionHeading({ icon: Icon, title, detail }) {
 
 function SidebarHeading({ icon: Icon, title }) {
     return (
-        <div className="flex min-h-[52px] items-center gap-3 border-b border-[#29323E] px-5 sm:px-6">
+        <div className="flex min-h-[54px] items-center gap-3 border-b border-[#303A47] bg-[#1C242E] px-5 sm:px-6">
             <Icon
                 size={16}
                 strokeWidth={1.7}
-                className="shrink-0 !text-[#92AAA9]"
+                className="shrink-0 text-[#9DAFAF]"
             />
 
             <h2 className="!m-0 !font-sans !text-[13px] !font-semibold !text-[#EEF1F5]">
@@ -252,10 +246,10 @@ function IdentityMeta({ icon: Icon, children }) {
             <Icon
                 size={14}
                 strokeWidth={1.7}
-                className="shrink-0 !text-[#92AAA9]"
+                className="shrink-0 text-[#92AAA9]"
             />
 
-            <span className="min-w-0 wrap-break-word text-[12px] leading-5 !text-[#B8C5D2]">
+            <span className="min-w-0 break-words text-[12px] leading-5 text-[#B8C5D2]">
                 {children}
             </span>
         </div>
@@ -264,22 +258,24 @@ function IdentityMeta({ icon: Icon, children }) {
 
 function CampaignIdentity({ campaign }) {
     return (
-        <section className="min-w-0">
+        <section className="min-w-0 border-b border-[#303A47] pb-6 sm:pb-7">
             <div className="flex flex-wrap items-center gap-3">
-                <span className="text-[11px] font-medium uppercase tracking-[0.1em] !text-[#8792A1]">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#91A0AF]">
                     Campaign #{campaign.id}
                 </span>
+
+                <span className="h-3 w-px bg-[#3B4653]" />
 
                 <CampaignStatus status={campaign.status} />
             </div>
 
             <h1
                 className="
-                    !mb-0 !mt-4 max-w-5xl wrap-break-word
+                    !mb-0 !mt-4 max-w-5xl break-words
                     !font-sans !text-[26px] !font-semibold
                     !leading-[1.3] !tracking-[-0.035em]
                     !text-[#EEF1F5]
-                    sm:!text-[32px] xl:!text-[35px]
+                    sm:!text-[31px] xl:!text-[34px]
                 "
             >
                 {campaign.title || 'Untitled campaign'}
@@ -306,14 +302,14 @@ function CampaignIdentity({ campaign }) {
 
 function AboutCampaign({ campaign }) {
     return (
-        <section className="min-w-0">
+        <section className="min-w-0 px-5 py-6 sm:px-7 sm:py-7">
             <SectionHeading icon={FileText} title="About campaign" />
 
-            <div className="mt-4 sm:pl-[30px]">
+            <div className="mt-4 sm:pl-11">
                 <p
                     className="
-                        !m-0 max-w-4xl whitespace-pre-wrap wrap-break-word
-                        text-[14px] leading-[1.9] !text-[#B8C5D2]
+                        !m-0 max-w-4xl whitespace-pre-wrap break-words
+                        text-[14px] leading-[1.9] !text-[#BAC5D1]
                         sm:text-[15px]
                     "
                 >
@@ -334,24 +330,24 @@ function InformationRow({ icon: Icon, label, value, last = false }) {
         <div
             className={`
                 grid min-w-0 grid-cols-1 gap-1.5 py-3.5
-                sm:grid-cols-[minmax(110px,0.8fr)_minmax(0,1.2fr)]
+                sm:grid-cols-[minmax(120px,0.8fr)_minmax(0,1.2fr)]
                 sm:items-start sm:gap-4
-                ${last ? '' : 'border-b border-[#252D38]'}
+                ${last ? '' : 'border-b border-[#303A47]'}
             `}
         >
             <div className="flex min-w-0 items-center gap-2.5">
                 <Icon
                     size={14}
                     strokeWidth={1.65}
-                    className="shrink-0 !text-[#879AAA]"
+                    className="shrink-0 text-[#879AAA]"
                 />
 
-                <span className="text-[12px] leading-5 !text-[#94A3B4]">
+                <span className="text-[12px] leading-5 text-[#94A3B4]">
                     {label}
                 </span>
             </div>
 
-            <span className="min-w-0 wrap-break-word text-[13px] font-medium leading-[1.7] !text-[#E1E8F0]">
+            <span className="min-w-0 break-words text-[13px] font-medium leading-[1.7] text-[#E1E8F0]">
                 {value}
             </span>
         </div>
@@ -399,10 +395,10 @@ function KeyInformation({ campaign }) {
     ];
 
     return (
-        <section className="min-w-0">
+        <section className="min-w-0 px-5 py-6 sm:px-7 sm:py-7">
             <SectionHeading icon={Info} title="Key information" />
 
-            <div className="mt-4 grid min-w-0 grid-cols-1 gap-x-7 lg:grid-cols-2">
+            <div className="mt-4 grid min-w-0 grid-cols-1 gap-x-8 lg:grid-cols-2">
                 <div className="min-w-0">
                     {leftRows.map((row, index) => (
                         <InformationRow
@@ -413,7 +409,7 @@ function KeyInformation({ campaign }) {
                     ))}
                 </div>
 
-                <div className="min-w-0 border-t border-[#29323E] lg:border-l lg:border-t-0 lg:pl-7">
+                <div className="min-w-0 border-t border-[#303A47] lg:border-l lg:border-t-0 lg:pl-8">
                     {rightRows.map((row, index) => (
                         <InformationRow
                             key={row.label}
@@ -428,9 +424,23 @@ function KeyInformation({ campaign }) {
 }
 
 // ============================================================
+// MAIN CAMPAIGN INFORMATION PANEL
+// ============================================================
+
+function CampaignInformation({ campaign }) {
+    return (
+        <div className="min-w-0 overflow-hidden border border-[#343E4B] bg-[#1B222C]">
+            <AboutCampaign campaign={campaign} />
+
+            <div className="mx-5 border-t border-[#343E4B] sm:mx-7" />
+
+            <KeyInformation campaign={campaign} />
+        </div>
+    );
+}
+
+// ============================================================
 // CAMPAIGN TIMELINE
-// Horizontal on desktop; vertical on mobile.
-// Proposal, start, and end dates appear only here.
 // ============================================================
 
 function CampaignTimeline({ campaign }) {
@@ -463,8 +473,8 @@ function CampaignTimeline({ campaign }) {
         );
 
     return (
-        <section className={`${PANEL} min-w-0`}>
-            <div className="border-b border-[#29323E] px-5 py-4 sm:px-6">
+        <section className="min-w-0 overflow-hidden border border-[#343E4B] bg-[#1B222C]">
+            <div className="border-b border-[#343E4B] px-5 py-4 sm:px-7">
                 <SectionHeading
                     icon={CalendarDays}
                     title="Campaign timeline"
@@ -476,47 +486,37 @@ function CampaignTimeline({ campaign }) {
                 />
             </div>
 
-            <div className="p-5 sm:p-6">
+            <div className="px-5 py-6 sm:px-7">
                 {events.length > 0 ? (
                     <>
-                        {/* Desktop: horizontal timeline */}
-                        <ol className="relative hidden min-w-0 grid-cols-3 gap-0 md:grid">
+                        {/* DESKTOP TIMELINE */}
+                        <ol className="relative !m-0 hidden min-w-0 !list-none grid-cols-3 !p-0 md:grid">
                             {events.map((event, index) => (
                                 <li
                                     key={event.key}
                                     className="relative min-w-0 px-3 first:pl-0 last:pr-0"
                                 >
-                                    {/* Connecting line */}
                                     {index < events.length - 1 && (
                                         <span
                                             aria-hidden="true"
-                                            className="
-                                                absolute left-3 right-0 top-[7px]
-                                                h-px bg-[#40564F]
-                                            "
+                                            className="absolute left-3 right-0 top-[7px] h-px bg-[#52645F]"
                                         />
                                     )}
 
-                                    <span
-                                        className="
-                                            relative z-10 flex h-[15px] w-[15px]
-                                            items-center justify-center rounded-full
-                                            border border-[#82AEA2] bg-[#0E1219]
-                                        "
-                                    >
+                                    <span className="relative z-10 flex h-[15px] w-[15px] items-center justify-center rounded-full border border-[#82AEA2] bg-[#1B222C]">
                                         <span className="h-[5px] w-[5px] rounded-full bg-[#82AEA2]" />
                                     </span>
 
-                                    <div className="mt-4 min-w-0 pr-2">
-                                        <p className="!m-0 text-[11px] font-medium leading-5 !text-[#92AAA9]">
+                                    <div className="mt-4 min-w-0 pr-3">
+                                        <p className="!m-0 text-[11px] font-medium leading-5 text-[#92AAA9]">
                                             {event.description}
                                         </p>
 
-                                        <h3 className="!mb-0 !mt-1.5 wrap-break-word text-[13px] font-semibold leading-5 !text-[#E8EDF3]">
+                                        <h3 className="!mb-0 !mt-1.5 break-words text-[13px] font-semibold leading-5 text-[#E8EDF3]">
                                             {event.title}
                                         </h3>
 
-                                        <p className="!mb-0 !mt-2 wrap-break-word text-[12px] leading-5 !text-[#AAB7C5]">
+                                        <p className="!mb-0 !mt-2 break-words text-[12px] leading-5 text-[#AAB7C5]">
                                             {formatDate(event.date)}
                                         </p>
                                     </div>
@@ -524,7 +524,7 @@ function CampaignTimeline({ campaign }) {
                             ))}
                         </ol>
 
-                        {/* Mobile: vertical timeline */}
+                        {/* MOBILE TIMELINE */}
                         <ol className="!m-0 !list-none !p-0 md:hidden">
                             {events.map((event, index) => (
                                 <li
@@ -532,22 +532,12 @@ function CampaignTimeline({ campaign }) {
                                     className="relative flex min-w-0 gap-4"
                                 >
                                     <div className="relative flex w-4 shrink-0 justify-center">
-                                        <span
-                                            className="
-                                                relative z-10 mt-1 h-[13px] w-[13px]
-                                                rounded-full border-2 border-[#82AEA2]
-                                                bg-[#0E1219]
-                                            "
-                                        />
+                                        <span className="relative z-10 mt-1 h-[13px] w-[13px] rounded-full border-2 border-[#82AEA2] bg-[#1B222C]" />
 
                                         {index < events.length - 1 && (
                                             <span
                                                 aria-hidden="true"
-                                                className="
-                                                    absolute left-1/2 top-4 bottom-0
-                                                    w-px -translate-x-1/2
-                                                    bg-[#40564F]
-                                                "
+                                                className="absolute bottom-0 left-1/2 top-4 w-px -translate-x-1/2 bg-[#52645F]"
                                             />
                                         )}
                                     </div>
@@ -558,15 +548,15 @@ function CampaignTimeline({ campaign }) {
                                             ${index < events.length - 1 ? 'pb-6' : ''}
                                         `}
                                     >
-                                        <p className="!m-0 text-[11px] font-medium !text-[#92AAA9]">
+                                        <p className="!m-0 text-[11px] font-medium text-[#92AAA9]">
                                             {event.description}
                                         </p>
 
-                                        <h3 className="!mb-0 !mt-1.5 wrap-break-word text-[13px] font-semibold leading-5 !text-[#E8EDF3]">
+                                        <h3 className="!mb-0 !mt-1.5 break-words text-[13px] font-semibold leading-5 text-[#E8EDF3]">
                                             {event.title}
                                         </h3>
 
-                                        <p className="!mb-0 !mt-1.5 wrap-break-word text-[12px] leading-5 !text-[#AAB7C5]">
+                                        <p className="!mb-0 !mt-1.5 break-words text-[12px] leading-5 text-[#AAB7C5]">
                                             {formatDate(event.date)}
                                         </p>
                                     </div>
@@ -578,10 +568,10 @@ function CampaignTimeline({ campaign }) {
                     <div className="flex items-start gap-3 py-1">
                         <CalendarDays
                             size={17}
-                            className="mt-0.5 shrink-0 !text-[#8792A1]"
+                            className="mt-0.5 shrink-0 text-[#8792A1]"
                         />
 
-                        <p className="!m-0 text-[12px] leading-6 !text-[#8792A1]">
+                        <p className="!m-0 text-[12px] leading-6 text-[#8792A1]">
                             No campaign dates have been provided.
                         </p>
                     </div>
@@ -599,21 +589,21 @@ function FinanceRow({ icon: Icon, label, value, last = false }) {
     return (
         <div
             className={`
-                flex min-w-0 items-center justify-between gap-3 py-3
-                ${last ? '' : 'border-b border-[#252D38]'}
+                flex min-w-0 items-center justify-between gap-3 py-3.5
+                ${last ? '' : 'border-b border-[#303A47]'}
             `}
         >
             <div className="flex min-w-0 items-center gap-2.5">
                 <Icon
                     size={14}
                     strokeWidth={1.7}
-                    className="shrink-0 !text-[#8792A1]"
+                    className="shrink-0 text-[#8792A1]"
                 />
 
-                <span className="text-[12px] !text-[#9DAAB9]">{label}</span>
+                <span className="text-[12px] text-[#9DAAB9]">{label}</span>
             </div>
 
-            <span className="min-w-0 text-right text-[12px] font-semibold tabular-nums !text-[#DCE4ED]">
+            <span className="min-w-0 text-right text-[12px] font-semibold tabular-nums text-[#DCE4ED]">
                 {value}
             </span>
         </div>
@@ -624,48 +614,50 @@ function FundingOverview({ campaign, progress, remaining }) {
     const collected = campaign.collected_amount ?? campaign.raised_amount ?? 0;
 
     return (
-        <aside className={PANEL}>
+        <section className="min-w-0 overflow-hidden border border-[#343E4B] bg-[#1B222C]">
             <SidebarHeading icon={Wallet} title="Funding overview" />
 
-            <div className="p-5 sm:p-6">
-                <p className="!m-0 text-[12px] !text-[#94A3B4]">
-                    Total funds raised
-                </p>
+            <div className="px-5 pb-5 pt-6 sm:px-6">
+                <div>
+                    <p className="!m-0 text-[12px] font-medium text-[#9EACBB]">
+                        Total funds raised
+                    </p>
 
-                <p
-                    className="
-                        !mb-0 !mt-2 wrap-break-word !font-sans
-                        !text-[29px] !font-semibold !leading-tight
-                        !tracking-[-0.04em] tabular-nums !text-[#EEF1F5]
-                        sm:!text-[32px]
-                    "
-                >
-                    {formatMoney(collected)}
-                </p>
+                    <p
+                        className="
+                            !mb-0 !mt-2 break-words !font-sans
+                            !text-[30px] !font-semibold !leading-tight
+                            !tracking-[-0.045em] tabular-nums !text-[#EEF1F5]
+                            sm:!text-[34px]
+                        "
+                    >
+                        {formatMoney(collected)}
+                    </p>
 
-                <div className="mt-2 flex items-center justify-between gap-3">
-                    <span className="text-[12px] !text-[#8792A1]">
-                        Target amount
-                    </span>
+                    <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                        <span className="text-[12px] text-[#8792A1]">
+                            Target amount
+                        </span>
 
-                    <span className="text-[12px] font-medium tabular-nums !text-[#C3CDD8]">
-                        {formatMoney(campaign.target_amount)}
-                    </span>
+                        <span className="text-[13px] font-semibold tabular-nums text-[#CED8E2]">
+                            {formatMoney(campaign.target_amount)}
+                        </span>
+                    </div>
                 </div>
 
-                <div className="mt-6 border-t border-[#29323E] pt-5">
+                <div className="mt-6 border-t border-[#343E4B] pt-5">
                     <div className="flex items-end justify-between gap-3">
-                        <span className="text-[12px] !text-[#A8B5C2]">
+                        <span className="text-[12px] font-medium text-[#B0BCC8]">
                             Goal completion
                         </span>
 
-                        <span className="text-[20px] font-semibold leading-none tracking-[-0.03em] !text-[#A3C8B4] tabular-nums">
+                        <span className="text-[21px] font-semibold leading-none tracking-[-0.03em] tabular-nums text-[#A3C8B4]">
                             {progress.toFixed(1)}%
                         </span>
                     </div>
 
                     <div
-                        className="mt-3 h-[6px] overflow-hidden bg-[#2A3542]"
+                        className="mt-4 h-[7px] overflow-hidden bg-[#303C49]"
                         role="progressbar"
                         aria-label="Funding progress"
                         aria-valuemin={0}
@@ -678,13 +670,13 @@ function FundingOverview({ campaign, progress, remaining }) {
                         />
                     </div>
 
-                    <div className="mt-2 flex justify-between text-[11px] tabular-nums !text-[#798899]">
+                    <div className="mt-2 flex justify-between text-[11px] tabular-nums text-[#8792A1]">
                         <span>0%</span>
                         <span>100%</span>
                     </div>
                 </div>
 
-                <div className="mt-5 border-t border-[#29323E]">
+                <div className="mt-5 border-t border-[#343E4B]">
                     <FinanceRow
                         icon={HandCoins}
                         label="Collected"
@@ -699,7 +691,7 @@ function FundingOverview({ campaign, progress, remaining }) {
                     />
                 </div>
             </div>
-        </aside>
+        </section>
     );
 }
 
@@ -709,29 +701,27 @@ function FundingOverview({ campaign, progress, remaining }) {
 
 function RecordHistory({ campaign }) {
     return (
-        <aside className={PANEL}>
+        <section className="min-w-0 overflow-hidden border border-[#343E4B] bg-[#1B222C]">
             <SidebarHeading icon={Clock3} title="Record history" />
 
             <dl className="!m-0 px-5 py-1 sm:px-6">
-                <div className="flex items-start justify-between gap-3 border-b border-[#252D38] py-4">
-                    <dt className="text-[12px] !text-[#8792A1]">Created</dt>
+                <div className="flex items-start justify-between gap-3 border-b border-[#303A47] py-4">
+                    <dt className="text-[12px] text-[#94A3B4]">Created</dt>
 
-                    <dd className="!m-0 max-w-[65%] text-right text-[12px] font-medium tabular-nums !text-[#DCE4ED]">
+                    <dd className="!m-0 max-w-[65%] text-right text-[12px] font-medium tabular-nums text-[#DCE4ED]">
                         {formatDate(campaign.created_at, true)}
                     </dd>
                 </div>
 
                 <div className="flex items-start justify-between gap-3 py-4">
-                    <dt className="text-[12px] !text-[#8792A1]">
-                        Last updated
-                    </dt>
+                    <dt className="text-[12px] text-[#94A3B4]">Last updated</dt>
 
-                    <dd className="!m-0 max-w-[65%] text-right text-[12px] font-medium tabular-nums !text-[#DCE4ED]">
+                    <dd className="!m-0 max-w-[65%] text-right text-[12px] font-medium tabular-nums text-[#DCE4ED]">
                         {formatDate(campaign.updated_at, true)}
                     </dd>
                 </div>
             </dl>
-        </aside>
+        </section>
     );
 }
 
@@ -941,26 +931,20 @@ export default function CampaignDetails() {
 
             <div
                 className="
-                    grid min-w-0 grid-cols-1 items-start gap-6
+                    grid min-w-0 grid-cols-1 items-start gap-5
                     xl:grid-cols-[minmax(0,1fr)_320px]
-                    xl:gap-7
+                    xl:gap-6
                     2xl:grid-cols-[minmax(0,1fr)_350px]
-                    2xl:gap-8
                 "
             >
                 {/* MAIN CONTENT */}
-                <div className="flex min-w-0 flex-col gap-7 border-t border-[#303A47] pt-6 sm:gap-8 sm:pt-7">
-                    <AboutCampaign campaign={campaign} />
+                <div className="flex min-w-0 flex-col gap-5">
+                    <CampaignInformation campaign={campaign} />
 
-                    <div className="border-t border-[#252D38]" />
-
-                    <KeyInformation campaign={campaign} />
-
-                    {/* Timeline immediately follows Key Information */}
                     <CampaignTimeline campaign={campaign} />
                 </div>
 
-                {/* SIDEBAR */}
+                {/* RIGHT SIDEBAR */}
                 <aside className="flex min-w-0 flex-col gap-5 xl:sticky xl:top-5">
                     <FundingOverview
                         campaign={campaign}

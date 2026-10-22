@@ -217,26 +217,41 @@ export const assignCampaignVolunteer = async (
 |
 */
 
+
 export const createCampaign = async (payload) => {
     if (!payload || typeof payload !== 'object') {
-        throw new Error(
-            'Campaign creation data is required.',
-        );
+        throw new Error('Campaign creation data is required.');
     }
 
-    const response = await fetch(
-        `${API_BASE_URL}/admin/campaigns`,
-        {
-            method: 'POST',
-            headers: getHeaders({
-                json: true,
-            }),
-            body: JSON.stringify(payload),
-        },
-    );
+    const formData = new FormData();
+
+    Object.entries(payload).forEach(([key, value]) => {
+        if (value === undefined || value === null) {
+            return;
+        }
+
+        if (value instanceof File) {
+            formData.append(key, value);
+            return;
+        }
+
+        formData.append(
+            key,
+            typeof value === 'object'
+                ? JSON.stringify(value)
+                : String(value),
+        );
+    });
+
+    const response = await fetch(`${API_BASE_URL}/admin/campaigns`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: formData,
+    });
 
     return parseResponse(response);
 };
+
 
 /*
 |--------------------------------------------------------------------------

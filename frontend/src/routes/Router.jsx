@@ -73,6 +73,7 @@ import AdminDonationDetails from '@/dashboard/admin/donations/DonationDetails';
 import AdminCampaigns from '@/dashboard/admin/campaigns/Campaigns';
 import AdminAddCampaign from '@/dashboard/admin/campaigns/AddCampaign';
 import AdminCampaignDetails from '@/dashboard/admin/campaigns/CampaignDetails';
+import AdminEditCampaign from '@/dashboard/admin/campaigns/EditCampaign';
 
 // Admin contact messages
 import AdminContactMessages from '@/dashboard/admin/contactMessages/ContactMessages';
@@ -230,7 +231,10 @@ const router = createBrowserRouter([
                     },
 
                     // Campaigns
-                    { path: 'campaigns', element: <AdminCampaigns /> },
+                    {
+                        path: 'campaigns',
+                        element: <AdminCampaigns />,
+                    },
                     {
                         path: 'campaigns/add',
                         element: <AdminAddCampaign />,
@@ -238,6 +242,10 @@ const router = createBrowserRouter([
                     {
                         path: 'campaigns/:id',
                         element: <AdminCampaignDetails />,
+                    },
+                    {
+                        path: 'campaigns/:id/edit',
+                        element: <AdminEditCampaign />,
                     },
 
                     // Profile and settings

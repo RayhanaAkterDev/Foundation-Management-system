@@ -1,4 +1,6 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+
 import {
     CalendarDays,
     Eye,
@@ -7,7 +9,10 @@ import {
     UserRoundPlus,
     Megaphone,
 } from 'lucide-react';
+
 import DataTable from '@/components/dashboard/DataTable';
+
+const CAMPAIGNS_PATH = '/admin/dashboard/campaigns';
 
 const STATUS = {
     unverified: ['Unverified', 'border-[#443723] bg-[#241E15] text-[#D0AA70]'],
@@ -16,18 +21,13 @@ const STATUS = {
     rejected: ['Rejected', 'border-[#493038] bg-[#281A1F] text-[#D1959B]'],
     cancelled: ['Cancelled', 'border-[#343E4B] bg-[#1A222D] text-[#AEB7C3]'],
 };
-const ICONS = {
-    view: Eye,
-    edit: Pencil,
-    verify: BadgeCheck,
-    'assign volunteers': UserRoundPlus,
-};
 
 function Status({ value }) {
     const [label, style] = STATUS[String(value || '').toLowerCase()] || [
         String(value || 'Unknown'),
         'border-[#343E4B] bg-[#1A222D] text-[#AEB7C3]',
     ];
+
     return (
         <span
             className={`inline-flex items-center gap-1.5 whitespace-nowrap border px-2 py-1 text-[10px] font-medium ${style}`}
@@ -38,46 +38,132 @@ function Status({ value }) {
     );
 }
 
+function ActionButton({ icon: Icon, label, onClick, disabled = false }) {
+    return (
+        <button
+            type="button"
+            title={label}
+            aria-label={label}
+            onClick={onClick}
+            disabled={disabled}
+            className="
+                inline-flex h-8 w-8 shrink-0 items-center justify-center
+                border border-transparent text-[#8792A1]
+                transition-colors
+                hover:border-[#303A47] hover:bg-[#1A222D]
+                hover:text-[#EEF1F5]
+                focus-visible:outline focus-visible:outline-2
+                focus-visible:outline-offset-2 focus-visible:outline-[#8792A1]
+                disabled:cursor-not-allowed disabled:opacity-40
+            "
+        >
+            <Icon size={15} strokeWidth={1.8} />
+        </button>
+    );
+}
+
 function Actions({ column, row }) {
-    if (typeof column?.render !== 'function') return null;
-    const original = column.render(row[column.key], row);
-    const buttons = [];
-    const visit = (node) =>
+    const navigate = useNavigate();
+
+    if (!row) return null;
+
+    const status = String(row.status || '').toLowerCase();
+
+    const canEdit = ['unverified', 'active'].includes(status);
+    const canVerify = status === 'unverified';
+    const canAssign = status === 'active';
+
+    const original =
+        typeof column?.render === 'function'
+            ? column.render(row[column.key], row)
+            : null;
+
+    const handlers = {};
+
+    const visit = (node) => {
         React.Children.forEach(node, (child) => {
             if (!React.isValidElement(child)) return;
-            if (child.type === 'button') buttons.push(child);
-            else if (child.props?.children) visit(child.props.children);
+
+            if (child.type === 'button') {
+                const labelParts = [];
+
+                React.Children.forEach(child.props.children, (content) => {
+                    if (typeof content === 'string') {
+                        labelParts.push(content);
+                    }
+                });
+
+                const label = (
+                    labelParts.join(' ').trim() ||
+                    child.props['aria-label'] ||
+                    child.props.title ||
+                    ''
+                ).toLowerCase();
+
+                if (label) {
+                    handlers[label] = child.props.onClick;
+                }
+            } else if (child.props?.children) {
+                visit(child.props.children);
+            }
         });
+    };
+
     visit(original);
-    if (!buttons.length) return original;
+
+    const campaignId = row.id;
+
+    const handleView = () => {
+        if (campaignId === null || campaignId === undefined) {
+            return;
+        }
+
+        navigate(`${CAMPAIGNS_PATH}/${campaignId}`);
+    };
+
+    const handleEdit = () => {
+        if (!canEdit || campaignId === null || campaignId === undefined) {
+            return;
+        }
+
+        navigate(`${CAMPAIGNS_PATH}/${campaignId}/edit`);
+    };
+
     return (
         <div className="flex flex-wrap items-center justify-end gap-1">
-            {buttons.map((button, index) => {
-                const parts = [];
-                const read = (node) =>
-                    React.Children.forEach(node, (child) => {
-                        if (typeof child === 'string') parts.push(child);
-                        else if (
-                            React.isValidElement(child) &&
-                            child.props?.children
-                        )
-                            read(child.props.children);
-                    });
-                read(button.props.children);
-                const text =
-                    parts.join(' ').trim() ||
-                    button.props['aria-label'] ||
-                    'Action';
-                const Icon = ICONS[text.toLowerCase()] || Eye;
-                return React.cloneElement(button, {
-                    key: button.key ?? `${text}-${index}`,
-                    title: text,
-                    'aria-label': `${text}: ${row.title || 'campaign'}`,
-                    className:
-                        'inline-flex h-8 w-8 items-center justify-center border border-transparent text-[#8792A1] transition-colors hover:border-[#303A47] hover:bg-[#1A222D] hover:text-[#EEF1F5] disabled:opacity-40',
-                    children: <Icon size={15} strokeWidth={1.8} />,
-                });
-            })}
+            <ActionButton
+                icon={Eye}
+                label={`View ${row.title || 'campaign'}`}
+                onClick={handleView}
+            />
+
+            {canEdit && (
+                <ActionButton
+                    icon={Pencil}
+                    label={`Edit ${row.title || 'campaign'}`}
+                    onClick={handleEdit}
+                />
+            )}
+
+            {canVerify && (
+                <ActionButton
+                    icon={BadgeCheck}
+                    label={`Verify ${row.title || 'campaign'}`}
+                    onClick={handlers.verify}
+                    disabled={typeof handlers.verify !== 'function'}
+                />
+            )}
+
+            {canAssign && (
+                <ActionButton
+                    icon={UserRoundPlus}
+                    label={`Assign volunteers to ${row.title || 'campaign'}`}
+                    onClick={handlers['assign volunteers']}
+                    disabled={
+                        typeof handlers['assign volunteers'] !== 'function'
+                    }
+                />
+            )}
         </div>
     );
 }
@@ -91,10 +177,12 @@ function Identity({ row }) {
             >
                 {row.title || 'Untitled campaign'}
             </p>
+
             <div className="mt-1 flex min-w-0 items-center gap-2 text-[10px] text-[#697586]">
                 <span className="truncate capitalize">
                     {row.category || 'General'}
                 </span>
+
                 {row.locationName &&
                     row.locationName !== 'Location not specified' && (
                         <span className="truncate">· {row.locationName}</span>
@@ -111,19 +199,24 @@ export default function Table({
     getSortIcon,
     resultCount,
 }) {
-    const actionColumn = columns.find((c) => c.key === 'actions');
-    const typeColumn = columns.find((c) => c.key === 'campaignType');
+    const actionColumn = columns.find((column) => column.key === 'actions');
+
+    const typeColumn = columns.find((column) => column.key === 'campaignType');
+
     const empty = (
         <div className="flex min-h-64 flex-col items-center justify-center bg-[#0E1219] px-6 text-center">
             <Megaphone size={23} className="text-[#697586]" />
+
             <p className="mt-3 text-[13px] font-semibold text-[#EEF1F5]">
                 No campaigns found
             </p>
+
             <p className="mt-1 text-[11px] text-[#697586]">
                 Try changing your search or filter options.
             </p>
         </div>
     );
+
     const enhancedColumns = [
         {
             key: 'serialNumber',
@@ -142,7 +235,7 @@ export default function Table({
             width: 'minmax(200px,1.8fr)',
             sortable: true,
             sortKey: 'title',
-            render: (_, row) => <Identity row={row} />,
+            render: (_value, row) => <Identity row={row} />,
         },
         {
             key: 'campaignType',
@@ -185,11 +278,15 @@ export default function Table({
             header: 'Actions',
             width: '165px',
             align: 'right',
-            render: (_, row) => <Actions column={actionColumn} row={row} />,
+            render: (_value, row) => (
+                <Actions column={actionColumn} row={row} />
+            ),
         },
     ];
+
     return (
         <>
+            {/* MOBILE TABLE */}
             <div className="bg-[#0E1219] lg:hidden">
                 {rows.length
                     ? rows.map((row) => (
@@ -198,6 +295,7 @@ export default function Table({
                               className="border-b border-[#252D38] px-4 py-4 last:border-b-0"
                           >
                               <Identity row={row} />
+
                               <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
                                   <span className="text-[11px] text-[#AEB7C3]">
                                       {typeColumn?.render?.(
@@ -205,37 +303,46 @@ export default function Table({
                                           row,
                                       ) ?? row.campaignType}
                                   </span>
+
                                   <Status value={row.status} />
                               </div>
+
                               <div className="mt-3 grid grid-cols-2 gap-3 border-t border-[#252D38] pt-3 text-[11px]">
                                   <div>
                                       <span className="text-[#697586]">
                                           Target
                                       </span>
+
                                       <p className="mt-1 text-[#CDD6E1]">
                                           {row.target}
                                       </p>
                                   </div>
+
                                   <div>
                                       <span className="text-[#697586]">
                                           Collected
                                       </span>
+
                                       <p className="mt-1 text-[#CDD6E1]">
                                           {row.collected}
                                       </p>
                                   </div>
                               </div>
+
                               <div className="mt-3 flex items-center justify-between border-t border-[#252D38] pt-3">
                                   <span className="flex items-center gap-1 text-[10px] text-[#697586]">
                                       <CalendarDays size={12} />
                                       {row.formattedStartDate || '—'}
                                   </span>
+
                                   <Actions column={actionColumn} row={row} />
                               </div>
                           </article>
                       ))
                     : empty}
             </div>
+
+            {/* DESKTOP TABLE */}
             <div className="hidden min-w-0 bg-[#0E1219] lg:block">
                 <DataTable
                     columns={enhancedColumns}

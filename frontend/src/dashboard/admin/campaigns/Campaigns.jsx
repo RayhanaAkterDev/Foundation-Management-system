@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import {
@@ -24,8 +24,6 @@ import CampaignPagination from './components/Pagination';
 
 import CampaignViewModal from './modals/ViewModal';
 import CampaignVerificationModal from './modals/VerificationModal';
-// import CampaignStatusUpdateModal from "./modals/StatusUpdateModal";
-import CampaignEditModal from './modals/EditModal';
 import CampaignRelatedDetailsModal from './modals/RelatedDetailsModal';
 import CampaignAssignmentModal from './modals/AssignmentModal';
 
@@ -35,42 +33,15 @@ import {
     fetchCampaignVolunteerAssignments,
     assignCampaignVolunteer,
     verifyCampaign,
-    // updateCampaignStatus,
-    updateCampaign,
 } from './api/campaignsAPI';
 
 const CAMPAIGNS_PER_PAGE = 25;
-
-/*
-|--------------------------------------------------------------------------
-| CAMPAIGN STATUS WORKFLOW
-|--------------------------------------------------------------------------
-|
-| unverified → active
-| unverified → rejected
-|
-| active → completed
-| active → cancelled
-|
-| rejected / completed / cancelled → no further transition
-|
-| IMPORTANT:
-| There is NO pending_review status.
-|
-*/
+const CAMPAIGNS_PATH = '/admin/dashboard/campaigns';
 
 const EDITABLE_STATUSES = ['unverified', 'active'];
 
-/*
-|--------------------------------------------------------------------------
-| Normalize campaign
-|--------------------------------------------------------------------------
-*/
-
 const normalizeCampaign = (campaign) => {
-    if (!campaign) {
-        return campaign;
-    }
+    if (!campaign) return campaign;
 
     return {
         ...campaign,
@@ -79,39 +50,82 @@ const normalizeCampaign = (campaign) => {
 };
 
 const normalizeCampaigns = (campaigns) => {
-    if (!Array.isArray(campaigns)) {
-        return [];
-    }
+    if (!Array.isArray(campaigns)) return [];
 
     return campaigns.map(normalizeCampaign);
 };
 
-/*
-|--------------------------------------------------------------------------
-| Campaign type label
-|--------------------------------------------------------------------------
-*/
+const extractCampaigns = (response) => {
+    const campaigns =
+        response?.campaigns ??
+        response?.data?.campaigns ??
+        response?.data ??
+        response;
+
+    return normalizeCampaigns(campaigns);
+};
 
 const getCampaignTypeLabel = (type) => {
     switch (type) {
         case 'local_case':
             return 'Local Case';
-
         case 'organization_proposed':
             return 'Organization Proposed';
-
         case 'global_situation':
             return 'Global Situation';
-
         default:
             return type || '—';
     }
 };
 
-const Campaigns = () => {
+const formatDate = (value) => {
+    if (!value) return '—';
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) return '—';
+
+    return date.toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+    });
+};
+
+const formatMoney = (value) => {
+    const number = Number(value ?? 0);
+
+    return `৳${Number.isFinite(number) ? number.toLocaleString('en-BD') : '0'}`;
+};
+
+const compareValues = (first, second, key, direction) => {
+    if (
+        ['created_at', 'start_date', 'end_date', 'proposal_date'].includes(key)
+    ) {
+        first = first ? new Date(first).getTime() : 0;
+        second = second ? new Date(second).getTime() : 0;
+
+        first = Number.isFinite(first) ? first : 0;
+        second = Number.isFinite(second) ? second : 0;
+    } else if (['target_amount', 'collected_amount'].includes(key)) {
+        first = Number(first ?? 0);
+        second = Number(second ?? 0);
+    } else {
+        first = String(first ?? '').toLowerCase();
+        second = String(second ?? '').toLowerCase();
+    }
+
+    if (first < second) return direction === 'asc' ? -1 : 1;
+    if (first > second) return direction === 'asc' ? 1 : -1;
+
+    return 0;
+};
+
+export default function Campaigns() {
     const navigate = useNavigate();
+
     // =========================================================
-    // Campaign data
+    // CAMPAIGN DATA
     // =========================================================
 
     const [campaigns, setCampaigns] = useState([]);
@@ -119,7 +133,7 @@ const Campaigns = () => {
     const [error, setError] = useState('');
 
     // =========================================================
-    // Success toast
+    // SUCCESS DIALOG
     // =========================================================
 
     const [successToast, setSuccessToast] = useState({
@@ -134,49 +148,23 @@ const Campaigns = () => {
         });
     };
 
-    // =========================================================
-    // Create modal
-    // =========================================================
+    const closeSuccessToast = () => {
+        setSuccessToast({
+            show: false,
+            message: '',
+        });
+    };
 
     // =========================================================
-    // View modal
+    // MODALS
     // =========================================================
 
     const [selectedCampaign, setSelectedCampaign] = useState(null);
-
-    // =========================================================
-    // Related campaign details modal
-    // =========================================================
-
     const [relatedCampaign, setRelatedCampaign] = useState(null);
-
-    // =========================================================
-    // Verification modal
-    // =========================================================
 
     const [verificationCampaign, setVerificationCampaign] = useState(null);
     const [verificationLoading, setVerificationLoading] = useState(false);
     const [verificationError, setVerificationError] = useState('');
-
-    // =========================================================
-    // Status update modal
-    // =========================================================
-
-    // const [statusCampaign, setStatusCampaign] = useState(null);
-    // const [statusLoading, setStatusLoading] = useState(false);
-    // const [statusError, setStatusError] = useState("");
-
-    // =========================================================
-    // Edit modal
-    // =========================================================
-
-    const [editCampaign, setEditCampaign] = useState(null);
-    const [editLoading, setEditLoading] = useState(false);
-    const [editError, setEditError] = useState('');
-
-    // =========================================================
-    // Assignment modal
-    // =========================================================
 
     const [assignmentCampaign, setAssignmentCampaign] = useState(null);
     const [assignmentVolunteers, setAssignmentVolunteers] = useState([]);
@@ -186,7 +174,7 @@ const Campaigns = () => {
     const [assignmentError, setAssignmentError] = useState('');
 
     // =========================================================
-    // Filters
+    // FILTERS
     // =========================================================
 
     const [activeCategory, setActiveCategory] = useState('all');
@@ -196,8 +184,10 @@ const Campaigns = () => {
     const [organizationFilter, setOrganizationFilter] = useState('all');
     const [statusFilter, setStatusFilter] = useState('all');
 
+    const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+
     // =========================================================
-    // Sorting
+    // SORTING & PAGINATION
     // =========================================================
 
     const [sortConfig, setSortConfig] = useState({
@@ -205,34 +195,25 @@ const Campaigns = () => {
         direction: 'desc',
     });
 
-    // =========================================================
-    // Pagination
-    // =========================================================
-
     const [currentPage, setCurrentPage] = useState(1);
-    const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
     // =========================================================
-    // Load campaigns
+    // LOAD CAMPAIGNS
     // =========================================================
 
     useEffect(() => {
         let cancelled = false;
 
-        const fetchData = async () => {
+        const loadCampaigns = async () => {
             try {
                 setLoading(true);
                 setError('');
 
-                const data = await fetchCampaigns();
+                const response = await fetchCampaigns();
 
-                if (cancelled) {
-                    return;
-                }
+                if (cancelled) return;
 
-                const fetchedCampaigns = data?.campaigns || data?.data || [];
-
-                setCampaigns(normalizeCampaigns(fetchedCampaigns));
+                setCampaigns(extractCampaigns(response));
             } catch (err) {
                 if (!cancelled) {
                     setError(
@@ -247,7 +228,7 @@ const Campaigns = () => {
             }
         };
 
-        fetchData();
+        loadCampaigns();
 
         return () => {
             cancelled = true;
@@ -255,37 +236,29 @@ const Campaigns = () => {
     }, []);
 
     // =========================================================
-    // Statistics
+    // STATISTICS
     // =========================================================
 
-    const statistics = useMemo(() => {
-        return {
+    const statistics = useMemo(
+        () => ({
             total: campaigns.length,
-
             unverified: campaigns.filter(
                 (campaign) => campaign.status === 'unverified',
             ).length,
-
             active: campaigns.filter((campaign) => campaign.status === 'active')
                 .length,
-
             completed: campaigns.filter(
                 (campaign) => campaign.status === 'completed',
             ).length,
-
             rejected: campaigns.filter(
                 (campaign) => campaign.status === 'rejected',
             ).length,
-
             cancelled: campaigns.filter(
                 (campaign) => campaign.status === 'cancelled',
             ).length,
-        };
-    }, [campaigns]);
-
-    // =========================================================
-    // Status tabs
-    // =========================================================
+        }),
+        [campaigns],
+    );
 
     const categoryTabs = useMemo(
         () => [
@@ -324,7 +297,7 @@ const Campaigns = () => {
     );
 
     // =========================================================
-    // Filtering + sorting
+    // FILTERING & SORTING
     // =========================================================
 
     const filteredCampaigns = useMemo(() => {
@@ -364,77 +337,34 @@ const Campaigns = () => {
 
         if (search) {
             result = result.filter((campaign) => {
-                const title = String(campaign.title || '').toLowerCase();
+                const searchableValues = [
+                    campaign.title,
+                    campaign.description,
+                    campaign.category,
+                    campaign.organization?.name,
+                    campaign.organization_name,
+                    campaign.location,
+                    campaign.district,
+                ];
 
-                const description = String(
-                    campaign.description || '',
-                ).toLowerCase();
-
-                const category = String(campaign.category || '').toLowerCase();
-
-                const organizationName = String(
-                    campaign.organization?.name || '',
-                ).toLowerCase();
-
-                const location = String(
-                    campaign.location || campaign.district || '',
-                ).toLowerCase();
-
-                return (
-                    title.includes(search) ||
-                    description.includes(search) ||
-                    category.includes(search) ||
-                    organizationName.includes(search) ||
-                    location.includes(search)
+                return searchableValues.some((value) =>
+                    String(value ?? '')
+                        .toLowerCase()
+                        .includes(search),
                 );
             });
         }
 
-        if (!sortConfig.key || !sortConfig.direction) {
-            return result;
+        if (sortConfig.key && sortConfig.direction) {
+            result.sort((a, b) =>
+                compareValues(
+                    a[sortConfig.key],
+                    b[sortConfig.key],
+                    sortConfig.key,
+                    sortConfig.direction,
+                ),
+            );
         }
-
-        result.sort((a, b) => {
-            let first = a[sortConfig.key];
-            let second = b[sortConfig.key];
-
-            if (
-                [
-                    'created_at',
-                    'start_date',
-                    'end_date',
-                    'proposal_date',
-                ].includes(sortConfig.key)
-            ) {
-                first = first ? new Date(first).getTime() : 0;
-                second = second ? new Date(second).getTime() : 0;
-            }
-
-            if (
-                ['target_amount', 'collected_amount'].includes(sortConfig.key)
-            ) {
-                first = Number(first || 0);
-                second = Number(second || 0);
-            }
-
-            first = first ?? '';
-            second = second ?? '';
-
-            if (typeof first === 'string') {
-                first = first.toLowerCase();
-                second = String(second).toLowerCase();
-            }
-
-            if (first < second) {
-                return sortConfig.direction === 'asc' ? -1 : 1;
-            }
-
-            if (first > second) {
-                return sortConfig.direction === 'asc' ? 1 : -1;
-            }
-
-            return 0;
-        });
 
         return result;
     }, [
@@ -449,7 +379,7 @@ const Campaigns = () => {
     ]);
 
     // =========================================================
-    // Pagination
+    // PAGINATION
     // =========================================================
 
     const totalPages = Math.max(
@@ -460,16 +390,13 @@ const Campaigns = () => {
     const safeCurrentPage = Math.min(currentPage, totalPages);
 
     const paginatedCampaigns = useMemo(() => {
-        const startIndex = (safeCurrentPage - 1) * CAMPAIGNS_PER_PAGE;
+        const start = (safeCurrentPage - 1) * CAMPAIGNS_PER_PAGE;
 
-        return filteredCampaigns.slice(
-            startIndex,
-            startIndex + CAMPAIGNS_PER_PAGE,
-        );
+        return filteredCampaigns.slice(start, start + CAMPAIGNS_PER_PAGE);
     }, [filteredCampaigns, safeCurrentPage]);
 
     // =========================================================
-    // Filter controls
+    // FILTER HANDLERS
     // =========================================================
 
     const handleCategoryChange = (category) => {
@@ -497,8 +424,17 @@ const Campaigns = () => {
         setCurrentPage(1);
     };
 
+    const resetFilters = () => {
+        setActiveCategory('all');
+        setTypeFilter('all');
+        setCategoryFilter('all');
+        setOrganizationFilter('all');
+        setStatusFilter('all');
+        setCurrentPage(1);
+    };
+
     // =========================================================
-    // Sorting
+    // SORT HANDLERS
     // =========================================================
 
     const handleSort = (key) => {
@@ -537,98 +473,47 @@ const Campaigns = () => {
     };
 
     // =========================================================
-    // Create campaign
+    // PAGE NAVIGATION
     // =========================================================
 
-    const handleCreate = () => navigate('/admin/dashboard/campaigns/add');
-
-    // =========================================================
-    // View
-    // =========================================================
+    const handleCreate = () => {
+        navigate(`${CAMPAIGNS_PATH}/add`);
+    };
 
     const handleView = (campaign) => {
         setSelectedCampaign(campaign);
     };
 
-    // =========================================================
-    // Campaign type / related information
-    // =========================================================
-
     const handleCampaignTypeClick = (campaign) => {
-        if (!campaign) {
-            return;
-        }
+        if (!campaign) return;
 
         setRelatedCampaign(campaign);
     };
 
-    // =========================================================
-    // Edit
-    // =========================================================
-
+    // Dedicated edit page — no edit modal.
     const handleEdit = (campaign) => {
+        if (!campaign?.id) return;
+
         if (!EDITABLE_STATUSES.includes(campaign.status)) {
             return;
         }
 
-        setEditError('');
-        setEditCampaign(campaign);
-    };
-
-    const handleEditConfirm = async (payload) => {
-        if (!editCampaign) {
-            return;
-        }
-
-        try {
-            setEditLoading(true);
-            setEditError('');
-
-            const data = await updateCampaign(editCampaign.id, payload);
-
-            const updatedCampaign = normalizeCampaign(
-                data?.campaign ||
-                    data?.data || {
-                        ...editCampaign,
-                        ...payload,
-                    },
-            );
-
-            setCampaigns((current) =>
-                current.map((campaign) =>
-                    campaign.id === editCampaign.id
-                        ? updatedCampaign
-                        : campaign,
-                ),
-            );
-
-            setEditCampaign(null);
-
-            showSuccessToast('Campaign information updated successfully.');
-        } catch (err) {
-            setEditError(err?.message || 'Campaign information update failed.');
-        } finally {
-            setEditLoading(false);
-        }
+        navigate(`${CAMPAIGNS_PATH}/${campaign.id}/edit`);
     };
 
     // =========================================================
-    // Verification
+    // CAMPAIGN VERIFICATION
     // =========================================================
 
     const handleReview = (campaign) => {
-        if (campaign.status !== 'unverified') {
-            return;
-        }
+        if (campaign.status !== 'unverified') return;
 
         setVerificationError('');
         setVerificationCampaign(campaign);
     };
 
     const handleVerificationConfirm = async ({ status, verification_note }) => {
-        if (!verificationCampaign) {
-            return;
-        }
+        if (!verificationCampaign) return;
 
         if (status !== 'active' && status !== 'rejected') {
             setVerificationError('Invalid verification decision.');
@@ -673,13 +558,11 @@ const Campaigns = () => {
             );
 
             try {
-                const data = await fetchCampaigns();
+                const response = await fetchCampaigns();
 
-                const fetchedCampaigns = data?.campaigns || data?.data || [];
-
-                setCampaigns(normalizeCampaigns(fetchedCampaigns));
+                setCampaigns(extractCampaigns(response));
             } catch {
-                // Local state is already updated.
+                // The local campaign status has already been updated.
             }
         } catch (err) {
             setVerificationError(
@@ -691,74 +574,7 @@ const Campaigns = () => {
     };
 
     // =========================================================
-    // Change Status
-    // =========================================================
-
-    // const handleStatusUpdate = (campaign) => {
-    //   if (!STATUS_CHANGEABLE_STATUSES.includes(campaign.status)) {
-    //     return;
-    //   }
-
-    //   setStatusError("");
-    //   setStatusCampaign(campaign);
-    // };
-
-    // const handleStatusConfirm = async ({
-    //   status: newStatus,
-    //   status_note,
-    // }) => {
-    //   if (!statusCampaign) {
-    //     return;
-    //   }
-
-    //   const allowedStatuses =
-    //     CAMPAIGN_STATUS_TRANSITIONS[statusCampaign.status] || [];
-
-    //   if (!allowedStatuses.includes(newStatus)) {
-    //     setStatusError("This status transition is not allowed.");
-    //     return;
-    //   }
-
-    //   try {
-    //     setStatusLoading(true);
-    //     setStatusError("");
-
-    //     const data = await updateCampaignStatus(statusCampaign.id, {
-    //       status: newStatus,
-    //       status_note: status_note || null,
-    //     });
-
-    //     const updatedCampaign = normalizeCampaign(
-    //       data?.campaign ||
-    //         data?.data || {
-    //           ...statusCampaign,
-    //           status: newStatus,
-    //           status_note: status_note || null,
-    //         },
-    //     );
-
-    //     setCampaigns((current) =>
-    //       current.map((campaign) =>
-    //         campaign.id === statusCampaign.id ? updatedCampaign : campaign,
-    //       ),
-    //     );
-
-    //     setStatusCampaign(null);
-
-    //     showSuccessToast(
-    //       newStatus === "completed"
-    //         ? "Campaign marked as completed successfully."
-    //         : "Campaign cancelled successfully.",
-    //     );
-    //   } catch (err) {
-    //     setStatusError(err?.message || "Campaign status update failed.");
-    //   } finally {
-    //     setStatusLoading(false);
-    //   }
-    // };
-
-    // =========================================================
-    // Campaign volunteer assignment
+    // VOLUNTEER ASSIGNMENT
     // =========================================================
 
     const handleAssignment = async (campaign) => {
@@ -779,14 +595,21 @@ const Campaigns = () => {
             ]);
 
             const volunteers =
-                candidateData?.volunteers || candidateData?.data || [];
+                candidateData?.volunteers ||
+                candidateData?.data?.volunteers ||
+                candidateData?.data ||
+                [];
 
             const assignments =
-                assignmentData?.assignments || assignmentData?.data || [];
+                assignmentData?.assignments ||
+                assignmentData?.data?.assignments ||
+                assignmentData?.data ||
+                [];
 
             setAssignmentVolunteers(
                 Array.isArray(volunteers) ? volunteers : [],
             );
+
             setAssignmentHistory(Array.isArray(assignments) ? assignments : []);
         } catch (err) {
             setAssignmentError(
@@ -799,9 +622,7 @@ const Campaigns = () => {
     };
 
     const handleAssignmentConfirm = async (payload) => {
-        if (!assignmentCampaign) {
-            return;
-        }
+        if (!assignmentCampaign) return;
 
         try {
             setAssignmentSubmitting(true);
@@ -815,14 +636,21 @@ const Campaigns = () => {
             ]);
 
             const volunteers =
-                candidateData?.volunteers || candidateData?.data || [];
+                candidateData?.volunteers ||
+                candidateData?.data?.volunteers ||
+                candidateData?.data ||
+                [];
 
             const assignments =
-                assignmentData?.assignments || assignmentData?.data || [];
+                assignmentData?.assignments ||
+                assignmentData?.data?.assignments ||
+                assignmentData?.data ||
+                [];
 
             setAssignmentVolunteers(
                 Array.isArray(volunteers) ? volunteers : [],
             );
+
             setAssignmentHistory(Array.isArray(assignments) ? assignments : []);
 
             showSuccessToast('Volunteer assigned to campaign successfully.');
@@ -836,9 +664,7 @@ const Campaigns = () => {
     };
 
     const handleAssignmentClose = () => {
-        if (assignmentSubmitting) {
-            return;
-        }
+        if (assignmentSubmitting) return;
 
         setAssignmentCampaign(null);
         setAssignmentVolunteers([]);
@@ -848,13 +674,11 @@ const Campaigns = () => {
     };
 
     // =========================================================
-    // CSV export
+    // CSV EXPORT
     // =========================================================
 
     const handleExportCSV = () => {
-        if (filteredCampaigns.length === 0) {
-            return;
-        }
+        if (filteredCampaigns.length === 0) return;
 
         const headers = [
             'Campaign',
@@ -871,49 +695,45 @@ const Campaigns = () => {
             campaign.type || '',
             campaign.target_amount ?? '',
             campaign.collected_amount ?? 0,
-
-            campaign.start_date
-                ? new Date(campaign.start_date).toLocaleDateString()
-                : '',
-
-            campaign.end_date
-                ? new Date(campaign.end_date).toLocaleDateString()
-                : '',
-
+            campaign.start_date ? formatDate(campaign.start_date) : '',
+            campaign.end_date ? formatDate(campaign.end_date) : '',
             campaign.status || '',
         ]);
 
         const csvContent = [headers, ...csvRows]
             .map((row) =>
                 row
-                    .map(
-                        (value) =>
-                            `"${String(value ?? '').replace(/"/g, '""')}"`,
-                    )
+                    .map((value) => {
+                        const text = String(value ?? '')
+                            .replace(/^[=+\-@\t\r]/, "'")
+                            .replace(/"/g, '""');
+
+                        return `"${text}"`;
+                    })
                     .join(','),
             )
-            .join('\n');
+            .join('\r\n');
 
-        const blob = new Blob([csvContent], {
+        const blob = new Blob(['\uFEFF', csvContent], {
             type: 'text/csv;charset=utf-8;',
         });
 
         const url = URL.createObjectURL(blob);
-
         const link = document.createElement('a');
 
         link.href = url;
-
         link.download = 'stand-for-people-campaigns.csv';
 
         document.body.appendChild(link);
-
         link.click();
-
         document.body.removeChild(link);
 
         URL.revokeObjectURL(url);
     };
+
+    // =========================================================
+    // LOADING / ERROR
+    // =========================================================
 
     if (loading || error) {
         return (
@@ -922,6 +742,7 @@ const Campaigns = () => {
                     title="Campaigns"
                     subtitle="Review, verify, and manage fundraising campaigns across the Stand For People platform."
                 />
+
                 {loading ? (
                     <LoadingUI
                         variant="page"
@@ -939,7 +760,7 @@ const Campaigns = () => {
     }
 
     // =========================================================
-    // Prepare table rows
+    // PREPARE TABLE ROWS
     // =========================================================
 
     const rows = paginatedCampaigns.map((campaign, index) => ({
@@ -952,33 +773,20 @@ const Campaigns = () => {
         target:
             campaign.target_amount !== null &&
             campaign.target_amount !== undefined
-                ? `৳${Number(campaign.target_amount).toLocaleString()}`
+                ? formatMoney(campaign.target_amount)
                 : '—',
 
-        collected: `৳${Number(campaign.collected_amount || 0).toLocaleString()}`,
+        collected: formatMoney(campaign.collected_amount),
 
-        formattedStartDate: campaign.start_date
-            ? new Date(campaign.start_date).toLocaleDateString('en-GB', {
-                  day: '2-digit',
-                  month: 'short',
-                  year: 'numeric',
-              })
-            : '—',
-
-        formattedEndDate: campaign.end_date
-            ? new Date(campaign.end_date).toLocaleDateString('en-GB', {
-                  day: '2-digit',
-                  month: 'short',
-                  year: 'numeric',
-              })
-            : '—',
+        formattedStartDate: formatDate(campaign.start_date),
+        formattedEndDate: formatDate(campaign.end_date),
 
         locationName:
             campaign.location || campaign.district || 'Location not specified',
     }));
 
     // =========================================================
-    // Table columns
+    // TABLE COLUMNS
     // =========================================================
 
     const columns = [
@@ -988,7 +796,6 @@ const Campaigns = () => {
             align: 'center',
             width: '60px',
         },
-
         {
             key: 'title',
             header: 'Campaign',
@@ -1020,7 +827,7 @@ const Campaigns = () => {
                                     •
                                 </span>
 
-                                <span className="truncate text-[10px] font-medium! text-[#8792A1]">
+                                <span className="truncate text-[10px] font-medium text-[#8792A1]">
                                     {row.locationName}
                                 </span>
                             </>
@@ -1029,7 +836,6 @@ const Campaigns = () => {
                 </div>
             ),
         },
-
         {
             key: 'campaignType',
             header: 'Campaign Type',
@@ -1053,7 +859,6 @@ const Campaigns = () => {
                 </button>
             ),
         },
-
         {
             key: 'target',
             header: 'Target',
@@ -1067,7 +872,6 @@ const Campaigns = () => {
                 </span>
             ),
         },
-
         {
             key: 'collected',
             header: 'Collected',
@@ -1081,7 +885,6 @@ const Campaigns = () => {
                 </span>
             ),
         },
-
         {
             key: 'formattedStartDate',
             header: 'Start Date',
@@ -1089,12 +892,11 @@ const Campaigns = () => {
             sortKey: 'start_date',
 
             render: (value) => (
-                <span className="whitespace-nowrap text-sm font-medium! text-[#E5EAF0]">
+                <span className="whitespace-nowrap text-sm font-medium text-[#E5EAF0]">
                     {value}
                 </span>
             ),
         },
-
         {
             key: 'formattedEndDate',
             header: 'End Date',
@@ -1102,33 +904,26 @@ const Campaigns = () => {
             sortKey: 'end_date',
 
             render: (value) => (
-                <span className="whitespace-nowrap text-sm font-medium! text-[#E5EAF0]">
+                <span className="whitespace-nowrap text-sm font-medium text-[#E5EAF0]">
                     {value}
                 </span>
             ),
         },
-
         {
             key: 'status',
             header: 'Status',
             sortable: true,
             sortKey: 'status',
         },
-
         {
             key: 'actions',
             header: 'Actions',
             align: 'right',
 
-            render: (_, row) => {
+            render: (_value, row) => {
                 const canEdit = EDITABLE_STATUSES.includes(row.status);
 
                 const canVerify = row.status === 'unverified';
-
-                // const canChangeStatus = STATUS_CHANGEABLE_STATUSES.includes(
-                //   row.status,
-                // );
-
                 const canAssign = row.status === 'active';
 
                 return (
@@ -1170,18 +965,6 @@ const Campaigns = () => {
                                 Assign Volunteers
                             </button>
                         )}
-
-                        {/*
-              {canChangeStatus && (
-                <button
-                  type="button"
-                  onClick={() => handleStatusUpdate(row)}
-                  className="text-xs font-semibold text-[#8792A1] transition-colors hover:text-[#A9B7C7]"
-                >
-                  Change Status
-                </button>
-              )}
-            */}
                     </div>
                 );
             },
@@ -1189,17 +972,8 @@ const Campaigns = () => {
     ];
 
     // =========================================================
-    // Render
+    // FILTER PANEL
     // =========================================================
-
-    const resetFilters = () => {
-        setActiveCategory('all');
-        setTypeFilter('all');
-        setCategoryFilter('all');
-        setOrganizationFilter('all');
-        setStatusFilter('all');
-        setCurrentPage(1);
-    };
 
     const filterPanel = (
         <CampaignFilters
@@ -1217,6 +991,10 @@ const Campaigns = () => {
         />
     );
 
+    // =========================================================
+    // RENDER
+    // =========================================================
+
     return (
         <>
             <div className="space-y-10 lg:space-y-12">
@@ -1229,20 +1007,24 @@ const Campaigns = () => {
                                 type="button"
                                 onClick={handleExportCSV}
                                 disabled={!filteredCampaigns.length}
-                                className="inline-flex h-10 items-center gap-2 border border-[#343E4B] px-4 text-[12px] font-medium text-[#B8C2CF] hover:bg-[#1C232D] disabled:opacity-40"
+                                className="inline-flex h-10 items-center gap-2 border border-[#343E4B] px-4 text-[12px] font-medium text-[#B8C2CF] transition-colors hover:bg-[#1C232D] disabled:opacity-40"
                             >
-                                <Download size={15} /> Export
+                                <Download size={15} />
+                                Export
                             </button>
+
                             <button
                                 type="button"
                                 onClick={handleCreate}
-                                className="inline-flex h-10 items-center gap-2 bg-[#263343] px-4 text-[12px] font-semibold text-[#EEF1F5] hover:bg-[#354559]"
+                                className="inline-flex h-10 items-center gap-2 bg-[#263343] px-4 text-[12px] font-semibold text-[#EEF1F5] transition-colors hover:bg-[#354559]"
                             >
-                                <Plus size={16} /> Add Campaign
+                                <Plus size={16} />
+                                Add Campaign
                             </button>
                         </div>
                     }
                 />
+
                 <CampaignStats
                     total={statistics.total}
                     unverified={statistics.unverified}
@@ -1251,15 +1033,19 @@ const Campaigns = () => {
                     rejected={statistics.rejected}
                     cancelled={statistics.cancelled}
                 />
+
                 <section className="pt-2 lg:pt-3">
                     <div className="pb-5 sm:pb-6">
-                        <h2 className="font-sans! text-[20px]! font-semibold! tracking-[-0.02em] text-[#EEF1F5]!">
+                        <h2 className="!font-sans !text-[20px] !font-semibold !tracking-[-0.02em] !text-[#EEF1F5]">
                             Campaign Directory
                         </h2>
+
                         <p className="mt-2 text-[12px] leading-relaxed text-[#8792A1]">
                             Browse and manage fundraising campaigns.
                         </p>
                     </div>
+
+                    {/* MOBILE FILTER BUTTON */}
                     <div className="mb-5 xl:hidden">
                         <button
                             type="button"
@@ -1267,13 +1053,17 @@ const Campaigns = () => {
                             className="flex h-10 w-full items-center justify-between border border-[#29323E] bg-[#0E1219] px-3.5 text-[12px] text-[#AEB7C3]"
                         >
                             <span className="flex items-center gap-2">
-                                <SlidersHorizontal size={15} /> Filters
+                                <SlidersHorizontal size={15} />
+                                Filters
                             </span>
+
                             <span className="text-[#697586]">
                                 Refine campaigns
                             </span>
                         </button>
                     </div>
+
+                    {/* MOBILE FILTER DRAWER */}
                     {mobileFiltersOpen && (
                         <div className="fixed inset-0 z-50 xl:hidden">
                             <button
@@ -1282,27 +1072,32 @@ const Campaigns = () => {
                                 onClick={() => setMobileFiltersOpen(false)}
                                 className="absolute inset-0 bg-black/70"
                             />
+
                             <div className="absolute inset-y-0 right-0 w-[min(340px,90vw)] overflow-y-auto border-l border-[#29323E] bg-[#0E1219]">
                                 <div className="flex items-center justify-between border-b border-[#29323E] px-4 py-3 text-[13px] text-[#EEF1F5]">
-                                    Campaign filters
+                                    <span>Campaign filters</span>
+
                                     <button
                                         type="button"
                                         aria-label="Close filters"
                                         onClick={() =>
                                             setMobileFiltersOpen(false)
                                         }
+                                        className="text-[#AEB7C3] hover:text-white"
                                     >
                                         <X size={18} />
                                     </button>
                                 </div>
+
                                 {filterPanel}
+
                                 <div className="p-4">
                                     <button
                                         type="button"
                                         onClick={() =>
                                             setMobileFiltersOpen(false)
                                         }
-                                        className="h-10 w-full bg-[#263343] text-[12px] text-[#EEF1F5]"
+                                        className="h-10 w-full bg-[#263343] text-[12px] font-medium text-[#EEF1F5]"
                                     >
                                         Show results
                                     </button>
@@ -1310,9 +1105,12 @@ const Campaigns = () => {
                             </div>
                         </div>
                     )}
+
+                    {/* TABLE + FILTER SIDEBAR */}
                     <div className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_300px] xl:items-stretch xl:gap-7 2xl:grid-cols-[minmax(0,1fr)_320px]">
                         <div className="relative min-h-0 min-w-0 xl:h-full">
                             <div className="flex min-h-0 min-w-0 flex-col overflow-hidden border border-[#252D38] bg-[#0E1219] xl:absolute xl:inset-0">
+                                {/* TABLE TOOLBAR */}
                                 <div className="shrink-0 border-b border-[#252D38] bg-[#1A222D] px-4 py-3.5 sm:px-5">
                                     <div className="flex flex-col gap-3.5 lg:flex-row lg:items-center lg:justify-between">
                                         <div className="relative min-w-0 flex-1">
@@ -1320,14 +1118,16 @@ const Campaigns = () => {
                                                 size={15}
                                                 className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#697586]"
                                             />
+
                                             <input
-                                                type="text"
+                                                type="search"
                                                 value={searchTerm}
                                                 onChange={handleSearchChange}
                                                 placeholder="Search campaigns by title, organization or location"
-                                                className="h-10 w-full border border-[#35404E] bg-[#0E1219] pl-9 pr-4 text-[12px] text-[#DCE3EC] outline-none placeholder:text-[#697586] hover:border-[#455160] focus:border-[#455160]"
+                                                className="h-10 w-full border border-[#35404E] bg-[#0E1219] pl-9 pr-4 text-[12px] text-[#DCE3EC] outline-none placeholder:text-[#697586] transition-colors hover:border-[#455160] focus:border-[#455160]"
                                             />
                                         </div>
+
                                         <span className="shrink-0 text-[11px] font-medium text-[#AAB3BF]">
                                             {filteredCampaigns.length}{' '}
                                             {filteredCampaigns.length === 1
@@ -1336,6 +1136,8 @@ const Campaigns = () => {
                                         </span>
                                     </div>
                                 </div>
+
+                                {/* TABLE */}
                                 <div className="min-h-0 min-w-0 flex-1 overflow-auto bg-[#0E1219] [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-[#303A47]">
                                     <CampaignTable
                                         columns={columns}
@@ -1345,6 +1147,8 @@ const Campaigns = () => {
                                         resultCount={filteredCampaigns.length}
                                     />
                                 </div>
+
+                                {/* PAGINATION */}
                                 {filteredCampaigns.length > 0 && (
                                     <div className="shrink-0 border-t border-[#252D38] bg-[#1A222D]">
                                         <CampaignPagination
@@ -1360,23 +1164,24 @@ const Campaigns = () => {
                                 )}
                             </div>
                         </div>
+
+                        {/* DESKTOP FILTER SIDEBAR */}
                         <aside className="hidden min-w-0 border border-[#252D38] bg-[#0E1219] xl:block">
                             {filterPanel}
                         </aside>
                     </div>
                 </section>
             </div>
+
+            {/* SUCCESS DIALOG */}
             <SuccessDialog
                 open={successToast.show}
                 title="Action completed"
                 message={successToast.message}
-                onClose={() => setSuccessToast({ show: false, message: '' })}
+                onClose={closeSuccessToast}
             />
 
-            {/* =====================================================
-          VIEW MODAL
-      ===================================================== */}
-
+            {/* CAMPAIGN VIEW MODAL */}
             {selectedCampaign && (
                 <CampaignViewModal
                     campaign={selectedCampaign}
@@ -1384,10 +1189,7 @@ const Campaigns = () => {
                 />
             )}
 
-            {/* =====================================================
-          RELATED CAMPAIGN DETAILS
-      ===================================================== */}
-
+            {/* RELATED CAMPAIGN DETAILS MODAL */}
             {relatedCampaign && (
                 <CampaignRelatedDetailsModal
                     campaign={relatedCampaign}
@@ -1395,10 +1197,7 @@ const Campaigns = () => {
                 />
             )}
 
-            {/* =====================================================
-          VERIFICATION MODAL
-      ===================================================== */}
-
+            {/* VERIFICATION MODAL */}
             {verificationCampaign && (
                 <CampaignVerificationModal
                     campaign={verificationCampaign}
@@ -1414,51 +1213,7 @@ const Campaigns = () => {
                 />
             )}
 
-            {/* =====================================================
-          STATUS UPDATE MODAL
-      ===================================================== */}
-
-            {/* {statusCampaign && (
-        <CampaignStatusUpdateModal
-          campaign={statusCampaign}
-          allowedStatuses={
-            CAMPAIGN_STATUS_TRANSITIONS[statusCampaign.status] || []
-          }
-          loading={statusLoading}
-          error={statusError}
-          onClose={() => {
-            if (!statusLoading) {
-              setStatusCampaign(null);
-              setStatusError("");
-            }
-          }}
-          onConfirm={handleStatusConfirm}
-        />
-      )} */}
-
-            {/* =====================================================
-          EDIT MODAL
-      ===================================================== */}
-
-            {editCampaign && (
-                <CampaignEditModal
-                    campaign={editCampaign}
-                    loading={editLoading}
-                    error={editError}
-                    onClose={() => {
-                        if (!editLoading) {
-                            setEditCampaign(null);
-                            setEditError('');
-                        }
-                    }}
-                    onConfirm={handleEditConfirm}
-                />
-            )}
-
-            {/* =====================================================
-          ASSIGN VOLUNTEER MODAL
-      ===================================================== */}
-
+            {/* VOLUNTEER ASSIGNMENT MODAL */}
             {assignmentCampaign && (
                 <CampaignAssignmentModal
                     campaign={assignmentCampaign}
@@ -1472,6 +1227,4 @@ const Campaigns = () => {
             )}
         </>
     );
-};
-
-export default Campaigns;
+}

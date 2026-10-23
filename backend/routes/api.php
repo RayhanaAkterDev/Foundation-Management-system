@@ -507,6 +507,11 @@ Route::middleware('auth:sanctum')->group(function () {
         [CampaignController::class, 'organizationCampaigns']
     );
 
+    Route::put(
+        '/organization/campaigns/{id}',
+        [CampaignController::class, 'updateOrganizationCampaign']
+    );
+
     // ---------------------------------------------------------
     // CAMPAIGNS
     // ---------------------------------------------------------

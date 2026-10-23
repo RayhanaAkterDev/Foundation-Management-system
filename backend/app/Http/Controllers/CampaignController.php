@@ -55,6 +55,128 @@ class CampaignController extends Controller
         ]);
     }
 
+    public function updateOrganizationCampaign(Request $request, int $id)
+    {
+        $user = $request->user();
+
+        if (!$user || $user->role !== 'organization') {
+            return response()->json([
+                'message' => 'You do not have permission to update campaigns.',
+            ], 403);
+        }
+
+        $organization = $user->organization;
+
+        if (!$organization) {
+            return response()->json([
+                'message' => 'Organization profile not found.',
+            ], 403);
+        }
+
+        // Ensure the campaign belongs to the authenticated organization.
+        $campaign = Campaign::where('id', $id)
+            ->where('organization_id', $organization->id)
+            ->first();
+
+        if (!$campaign) {
+            return response()->json([
+                'message' => 'Campaign not found or you do not have permission to edit it.',
+            ], 404);
+        }
+
+        $validated = $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'description' => ['required', 'string'],
+            'category' => ['required', 'string', 'max:255'],
+            'scope' => ['nullable', 'string', 'max:255'],
+            'district' => ['nullable', 'string', 'max:255'],
+            'location' => ['nullable', 'string', 'max:255'],
+            'affected_areas' => ['nullable', 'string'],
+            'target_amount' => ['required', 'numeric', 'min:1'],
+            'start_date' => ['nullable', 'date'],
+            'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
+            'cover_image' => [
+                'nullable',
+                'image',
+                'mimes:jpg,jpeg,png,webp',
+                'max:5120',
+            ],
+            'remove_cover_image' => ['nullable', 'boolean'],
+        ]);
+
+        // Keep the existing cover unless a replacement or removal is requested.
+        $coverImagePath = $campaign->cover_image;
+
+        if ($request->hasFile('cover_image')) {
+            $file = $request->file('cover_image');
+            $fileContents = file_get_contents($file->getRealPath());
+
+            if ($fileContents === false) {
+                return response()->json([
+                    'message' => 'The campaign cover could not be read.',
+                ], 500);
+            }
+
+            try {
+                $imageKit = new \ImageKit\ImageKit(
+                    config('services.imagekit.public_key'),
+                    config('services.imagekit.private_key'),
+                    config('services.imagekit.url_endpoint')
+                );
+
+                $uploadResponse = $imageKit->uploadFile([
+                    'file' => base64_encode($fileContents),
+                    'fileName' => $file->getClientOriginalName(),
+                    'folder' => '/campaigns',
+                    'useUniqueFileName' => true,
+                ]);
+            } catch (\Throwable $exception) {
+                report($exception);
+
+                return response()->json([
+                    'message' => 'The campaign cover could not be uploaded. Please try again.',
+                ], 500);
+            }
+
+            if (
+                !isset($uploadResponse->result) ||
+                !isset($uploadResponse->result->url)
+            ) {
+                return response()->json([
+                    'message' => 'ImageKit did not return a campaign cover URL.',
+                ], 500);
+            }
+
+            $coverImagePath = $uploadResponse->result->url;
+        } elseif (!empty($validated['remove_cover_image'])) {
+            $coverImagePath = null;
+        }
+
+        $campaign->update([
+            'title' => $validated['title'],
+            'description' => $validated['description'],
+            'category' => $validated['category'],
+            'scope' => $validated['scope'] ?? null,
+            'district' => $validated['district'] ?? null,
+            'location' => $validated['location'] ?? null,
+            'affected_areas' => $validated['affected_areas'] ?? null,
+            'target_amount' => $validated['target_amount'],
+            'start_date' => $validated['start_date'] ?? null,
+            'end_date' => $validated['end_date'] ?? null,
+            'cover_image' => $coverImagePath,
+        ]);
+
+        return response()->json([
+            'message' => 'Campaign updated successfully.',
+            'campaign' => $campaign->fresh()->load([
+                'organization:id,name',
+                'creator:id,name,email',
+                'verifier:id,name,email',
+                'helpRequest:id,title,status',
+            ]),
+        ]);
+    }
+
     public function show(int $id)
     {
         $campaign = Campaign::with([

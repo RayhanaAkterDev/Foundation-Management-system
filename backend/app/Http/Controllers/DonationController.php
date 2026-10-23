@@ -62,7 +62,7 @@ class DonationController extends Controller
             ], 404);
         }
 
-        $user = $request->user();
+        $user = auth('sanctum')->user();
 
         /*
          * Admin, individual and organization accounts may donate.

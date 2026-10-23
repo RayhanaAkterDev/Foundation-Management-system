@@ -808,8 +808,19 @@ const Donate = () => {
 
                         {/* Error */}
                         {error && (
-                            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 font-bengali text-sm text-red-700">
-                                {error}
+                            <div className="mt-4 text-sm text-[#e28080]">
+                                <p>{error}</p>
+
+                                {error.includes(
+                                    'এই ইমেইল দিয়ে একটি অ্যাকাউন্ট রয়েছে',
+                                ) && (
+                                    <Link
+                                        to="/login"
+                                        className="mt-4 inline-block text-right font-medium text-teal-700 underline underline-offset-2 hover:text-teal-800"
+                                    >
+                                        লগইন করুন
+                                    </Link>
+                                )}
                             </div>
                         )}
 

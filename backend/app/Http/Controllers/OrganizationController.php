@@ -874,13 +874,14 @@ class OrganizationController extends Controller
         return response()->json([
             'success' => true,
             'data' => [
+
                 'organization' => [
                     'id' => $organization->id,
                     'name' => $organization->name,
                     'type' => $organization->type,
                     'location' => $organization->location,
-                    'verification_status' =>
-                    $organization->verification_status,
+                    'banner' => $organization->banner,
+                    'verification_status' => $organization->verification_status,
                 ],
 
                 'overview' => [

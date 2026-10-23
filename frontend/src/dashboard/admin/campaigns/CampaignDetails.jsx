@@ -10,12 +10,18 @@ import {
     Megaphone,
     Target,
     UsersRound,
+    UserRound,
     ImageOff,
 } from 'lucide-react';
+
 import PageHeader from '@/components/dashboard/PageHeader';
 import LoadingUI from '@/components/dashboard/LoadingUI';
 import LoadingError from '@/components/dashboard/LoadingError';
-import { fetchCampaigns } from './api/campaignsAPI';
+
+import {
+    fetchCampaigns,
+    fetchCampaignVolunteerAssignments,
+} from './api/campaignsAPI';
 
 const ROUTE = '/admin/dashboard/campaigns';
 
@@ -27,6 +33,16 @@ const statusStyles = {
     completed: 'border-[#46586D] bg-[#253242] text-[#C0D0E1]',
     rejected: 'border-[#75464C] bg-[#322126] text-[#E9B8BD]',
     cancelled: 'border-[#515967] bg-[#292E37] text-[#C2CAD5]',
+};
+
+const assignmentStatusStyles = {
+    assigned: 'border-[#46586D] bg-[#253242] text-[#C0D0E1]',
+    accepted: 'border-[#416B5D] bg-[#20382F] text-[#A8D7C0]',
+    in_progress: 'border-[#416B5D] bg-[#20382F] text-[#A8D7C0]',
+    completed: 'border-[#46586D] bg-[#253242] text-[#C0D0E1]',
+    rejected: 'border-[#75464C] bg-[#322126] text-[#E9B8BD]',
+    withdrawn: 'border-[#515967] bg-[#292E37] text-[#C2CAD5]',
+    withdrawal_requested: 'border-[#685B40] bg-[#342F23] text-[#E4D0A0]',
 };
 
 function text(value, fallback = 'Not provided') {
@@ -116,20 +132,6 @@ function getOrganization(campaign) {
     };
 }
 
-/**
- * Creator and organization are separate concepts.
- * Keep creator information out of the organization name fallback.
- */
-// function getCreator(campaign) {
-//     return (
-//         campaign?.creator?.name ||
-//         campaign?.creator_name ||
-//         campaign?.created_by_user?.name ||
-//         campaign?.user?.name ||
-//         null
-//     );
-// }
-
 function getHelpRequestId(campaign) {
     return (
         campaign?.help_request_id ??
@@ -151,20 +153,20 @@ function Info({ title, value, className = '' }) {
     );
 }
 
-function Heading({ icon: Icon, title, subtitle }) {
+function SectionHeader({ icon: Icon, title, subtitle }) {
     return (
-        <div className="flex min-w-0 items-start gap-3">
-            <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center border border-[#354252] bg-[#202B37] text-[#B7C5D4]">
+        <div className="flex items-start gap-3 border-b border-[#344150] bg-[#202B38] px-5 py-4 sm:px-7 sm:py-5">
+            <span className="flex size-8 shrink-0 items-center justify-center border border-[#3A495B] bg-[#273646] text-[#C3D0DE]">
                 <Icon size={16} strokeWidth={1.8} />
             </span>
 
             <div className="min-w-0">
-                <h2 className="m-0! font-sans! text-[15px]! font-semibold! leading-6 text-[#EEF1F5]!">
+                <h2 className="m-0! font-sans! text-[14px]! font-semibold! leading-5 text-[#EEF1F5]!">
                     {title}
                 </h2>
 
                 {subtitle && (
-                    <p className="mt-0.5 mb-0! text-[12px] leading-5 text-[#91A0B0]">
+                    <p className="mt-1 mb-0! text-[12px] leading-5 text-[#9AAABD]">
                         {subtitle}
                     </p>
                 )}
@@ -230,7 +232,6 @@ function Identity({ campaign }) {
 
                     <span className="inline-flex min-w-0 items-center gap-2">
                         <MapPin size={14} className="shrink-0" />
-
                         <span className="wrap-break-word">
                             {text(campaign.location, 'Location not set')}
                         </span>
@@ -243,28 +244,6 @@ function Identity({ campaign }) {
                 </div>
             </div>
         </section>
-    );
-}
-
-function SectionHeader({ icon: Icon, title, subtitle }) {
-    return (
-        <div className="flex items-start gap-3 border-b border-[#344150] bg-[#202B38] px-5 py-4 sm:px-7 sm:py-5">
-            <span className="flex size-8 shrink-0 items-center justify-center border border-[#3A495B] bg-[#273646] text-[#C3D0DE]">
-                <Icon size={16} strokeWidth={1.8} />
-            </span>
-
-            <div className="min-w-0">
-                <h2 className="m-0! font-sans! text-[14px]! font-semibold! leading-5 text-[#EEF1F5]!">
-                    {title}
-                </h2>
-
-                {subtitle && (
-                    <p className="mt-1 mb-0! text-[12px] leading-5 text-[#9AAABD]">
-                        {subtitle}
-                    </p>
-                )}
-            </div>
-        </div>
     );
 }
 
@@ -337,7 +316,6 @@ function Funding({ campaign }) {
     const raised = collectedAmount(campaign);
 
     const percent = target > 0 ? Math.min(100, (raised / target) * 100) : 0;
-
     const remaining = Math.max(0, target - raised);
 
     return (
@@ -440,22 +418,12 @@ function Funding({ campaign }) {
 }
 
 /**
- * Handles both admin-created campaigns and organization-proposed campaigns.
- *
- * Organization information comes only from organization-related fields.
- * Creator information is displayed separately and is never used as the
- * organization name.
+ * Organization and related records are resolved only from organization-
+ * related fields. The campaign creator is not treated as its organization.
  */
 function Organization({ campaign, navigate }) {
     const organization = getOrganization(campaign);
-    // const creator = getCreator(campaign);
     const helpRequestId = getHelpRequestId(campaign);
-
-    // const creatorId =
-    //     campaign?.creator?.id ??
-    //     campaign?.creator_id ??
-    //     campaign?.created_by_user?.id ??
-    //     campaign?.user?.id;
 
     const referenceLink =
         'inline-flex max-w-full items-center gap-1.5 text-left text-[#C3D4E5] underline decoration-[#70869C] underline-offset-4 transition-colors hover:text-white hover:decoration-white';
@@ -489,6 +457,7 @@ function Organization({ campaign, navigate }) {
                                     <span className="wrap-break-word">
                                         {organization.name}
                                     </span>
+
                                     <ArrowUpRight
                                         size={13}
                                         className="shrink-0"
@@ -529,41 +498,220 @@ function Organization({ campaign, navigate }) {
                         )}
                     </dd>
                 </div>
-
-                {/* <div className="min-w-0">
-                    <dt className="text-[12px] font-medium text-[#8796A8]">
-                        Campaign creator
-                    </dt>
-
-                    <dd className="mt-1.5 mb-0 wrap-break-word whitespace-pre-wrap text-[13px] leading-6 text-[#E6EBF2]">
-                        {creator ? (
-                            creatorId != null ? (
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        navigate(
-                                            `/admin/dashboard/users/${creatorId}`,
-                                        )
-                                    }
-                                    className={referenceLink}
-                                >
-                                    <span className="wrap-break-word">
-                                        {creator}
-                                    </span>
-                                    <ArrowUpRight
-                                        size={13}
-                                        className="shrink-0"
-                                    />
-                                </button>
-                            ) : (
-                                creator
-                            )
-                        ) : (
-                            'Creator information unavailable'
-                        )}
-                    </dd>
-                </div> */}
             </dl>
+        </section>
+    );
+}
+
+/**
+ * Loads the assignment history for this campaign and displays its
+ * associated volunteers. Assignment status and account status are
+ * displayed separately because they represent different things.
+ */
+function ConnectedVolunteers({ campaignId, navigate }) {
+    const [state, setState] = useState({
+        loading: true,
+        error: '',
+        assignments: [],
+    });
+
+    const [retryKey, setRetryKey] = useState(0);
+
+    useEffect(() => {
+        let active = true;
+
+        fetchCampaignVolunteerAssignments(campaignId)
+            .then((response) => {
+                if (!active) return;
+
+                const records = Array.isArray(response)
+                    ? response
+                    : (response?.assignments ??
+                      response?.data?.assignments ??
+                      []);
+
+                setState({
+                    loading: false,
+                    error: '',
+                    assignments: Array.isArray(records) ? records : [],
+                });
+            })
+            .catch((error) => {
+                if (!active) return;
+
+                setState({
+                    loading: false,
+                    error:
+                        error?.message ||
+                        'Unable to load connected volunteers.',
+                    assignments: [],
+                });
+            });
+
+        return () => {
+            active = false;
+        };
+    }, [campaignId, retryKey]);
+
+    const retry = () => {
+        setRetryKey((value) => value + 1);
+    };
+
+    return (
+        <section className="min-w-0 overflow-hidden border border-[#303A47] bg-[#171E27]">
+            <SectionHeader
+                icon={UsersRound}
+                title="Connected volunteers"
+                subtitle="Volunteers assigned to this campaign"
+            />
+
+            <div className="bg-[#0E1219]">
+                {state.loading ? (
+                    <div className="flex items-center gap-3 px-5 py-6 text-[13px] text-[#AAB8C7]">
+                        <span className="size-4 animate-spin rounded-full border-2 border-[#526273] border-t-[#C3D4E5]" />
+                        Loading volunteers...
+                    </div>
+                ) : state.error ? (
+                    <div className="px-5 py-5">
+                        <p className="m-0! text-[13px] leading-6 text-[#E5B5B9]">
+                            {state.error}
+                        </p>
+
+                        <button
+                            type="button"
+                            onClick={retry}
+                            className="mt-3 text-[12px] font-medium text-[#C3D4E5] underline underline-offset-4 transition-colors hover:text-white"
+                        >
+                            Try again
+                        </button>
+                    </div>
+                ) : state.assignments.length === 0 ? (
+                    <div className="px-5 py-7 text-center">
+                        <UsersRound
+                            size={23}
+                            strokeWidth={1.5}
+                            className="mx-auto text-[#667789]"
+                        />
+
+                        <p className="mt-3 mb-1! text-[13px] font-medium text-[#D5DEE8]">
+                            No volunteers assigned
+                        </p>
+
+                        <p className="m-0! text-[12px] leading-5 text-[#8999AA]">
+                            Assigned volunteers will appear here.
+                        </p>
+                    </div>
+                ) : (
+                    <div className="divide-y divide-[#303A47]">
+                        <div className="px-5 py-3">
+                            <p className="m-0! text-[12px] text-[#9DADBD]">
+                                {state.assignments.length}{' '}
+                                {state.assignments.length === 1
+                                    ? 'assignment'
+                                    : 'assignments'}
+                            </p>
+                        </div>
+
+                        {state.assignments.map((assignment) => {
+                            const volunteer = assignment.volunteer;
+
+                            const volunteerId =
+                                assignment.volunteer_id ??
+                                volunteer?.id ??
+                                null;
+
+                            const assignmentStatus = String(
+                                assignment.status || 'unknown',
+                            ).toLowerCase();
+
+                            return (
+                                <div
+                                    key={assignment.id}
+                                    className="min-w-0 px-5 py-4 transition-colors hover:bg-[#151C25]"
+                                >
+                                    <div className="flex min-w-0 items-start gap-3">
+                                        <span className="flex size-9 shrink-0 items-center justify-center border border-[#354252] bg-[#202B37] text-[#B7C5D4]">
+                                            <UserRound size={17} />
+                                        </span>
+
+                                        <div className="min-w-0 flex-1">
+                                            <div className="flex min-w-0 flex-wrap items-start justify-between gap-2">
+                                                <div className="min-w-0">
+                                                    {volunteer?.name ? (
+                                                        volunteerId != null ? (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() =>
+                                                                    navigate(
+                                                                        `/admin/dashboard/users/${volunteerId}`,
+                                                                    )
+                                                                }
+                                                                className="inline-flex max-w-full items-center gap-1.5 text-left text-[13px] font-medium text-[#E6EBF2] transition-colors hover:text-white"
+                                                            >
+                                                                <span className="wrap-break-word">
+                                                                    {
+                                                                        volunteer.name
+                                                                    }
+                                                                </span>
+
+                                                                <ArrowUpRight
+                                                                    size={13}
+                                                                    className="shrink-0 text-[#9AAABD]"
+                                                                />
+                                                            </button>
+                                                        ) : (
+                                                            <p className="m-0! wrap-break-word text-[13px] font-medium text-[#E6EBF2]">
+                                                                {volunteer.name}
+                                                            </p>
+                                                        )
+                                                    ) : (
+                                                        <p className="m-0! text-[13px] font-medium text-[#E6EBF2]">
+                                                            Volunteer
+                                                            {volunteerId != null
+                                                                ? ` #${volunteerId}`
+                                                                : ''}
+                                                        </p>
+                                                    )}
+                                                </div>
+
+                                                <span
+                                                    className={`inline-flex shrink-0 items-center border px-2 py-1 text-[10px] font-medium ${
+                                                        assignmentStatusStyles[
+                                                            assignmentStatus
+                                                        ] ||
+                                                        'border-[#515967] bg-[#292E37] text-[#C2CAD5]'
+                                                    }`}
+                                                >
+                                                    {label(assignmentStatus)}
+                                                </span>
+                                            </div>
+
+                                            {volunteer?.email && (
+                                                <p className="mt-1 mb-0! wrap-break-word text-[12px] leading-5 text-[#9DADBD]">
+                                                    {volunteer.email}
+                                                </p>
+                                            )}
+
+                                            {volunteer?.phone && (
+                                                <p className="mt-0.5 mb-0! text-[12px] leading-5 text-[#9DADBD]">
+                                                    {volunteer.phone}
+                                                </p>
+                                            )}
+
+                                            {volunteer?.status && (
+                                                <p className="mt-2 mb-0! text-[11px] text-[#77889A]">
+                                                    Account:{' '}
+                                                    {label(volunteer.status)}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+            </div>
         </section>
     );
 }
@@ -745,7 +893,13 @@ export default function CampaignDetails() {
 
                 <aside className="min-w-0 space-y-5">
                     <Funding campaign={campaign} />
+
                     <Organization campaign={campaign} navigate={navigate} />
+
+                    <ConnectedVolunteers
+                        campaignId={campaign.id}
+                        navigate={navigate}
+                    />
                 </aside>
             </div>
         </div>

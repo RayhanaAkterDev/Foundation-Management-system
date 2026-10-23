@@ -62,17 +62,15 @@ class DonationController extends Controller
             ], 404);
         }
 
+        // Resolve the authenticated user through Sanctum.
         $user = auth('sanctum')->user();
 
         /*
-         * Admin, individual and organization accounts may donate.
-         *
-         * For authenticated users, use the phone number stored
-         * on users.phone unless a donor_phone was explicitly supplied.
-         *
-         * For guests, donor_phone must be supplied because
-         * SSLCOMMERZ requires cus_phone.
-         */
+     * Admin, individual and organization accounts may donate.
+     *
+     * Guests must provide a phone number because SSLCOMMERZ
+     * requires cus_phone.
+     */
         $donorPhone = $validated['donor_phone']
             ?? $user?->phone;
 
@@ -90,6 +88,24 @@ class DonationController extends Controller
         $donorEmail = $validated['donor_email']
             ?? $user?->email
             ?? 'guest@example.com';
+
+        /*
+     * If the requester is not authenticated, prevent them from
+     * using an email address already registered to an account.
+     * Guest donations with unregistered email addresses remain allowed.
+     */
+        if (
+            !$user
+            && \App\Models\User::whereRaw(
+                'LOWER(email) = ?',
+                [strtolower(trim($donorEmail))]
+            )->exists()
+        ) {
+            return response()->json([
+                'message' =>
+                'এই ইমেইল দিয়ে একটি অ্যাকাউন্ট রয়েছে। অনুদানটি আপনার অ্যাকাউন্টের সঙ্গে যুক্ত করতে অনুগ্রহ করে লগইন করে আবার চেষ্টা করুন।',
+            ], 409);
+        }
 
         $transactionId = 'SP-DON-' . Str::upper(
             Str::random(20)
@@ -121,9 +137,7 @@ class DonationController extends Controller
                 'status' => DonationAttempt::STATUS_FAILED,
             ]);
 
-            /*
-             * TEMPORARY DEBUG RESPONSE
-             */
+            // Keep the existing debug response behavior unchanged.
             return response()->json([
                 'message' => 'Unable to start the payment process.',
                 'error' => $exception->getMessage(),
@@ -139,9 +153,6 @@ class DonationController extends Controller
                 'status' => DonationAttempt::STATUS_FAILED,
             ]);
 
-            /*
-             * TEMPORARY DEBUG RESPONSE
-             */
             return response()->json([
                 'message' => 'Unable to start the payment process.',
                 'payment_response' => $payment,

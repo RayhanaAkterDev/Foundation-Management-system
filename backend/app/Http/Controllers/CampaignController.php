@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Campaign;
 use App\Services\Campaign\CampaignService;
+use ImageKit\ImageKit;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -209,10 +210,10 @@ class CampaignController extends Controller
         }
 
         /*
-        |--------------------------------------------------------------------------
-        | Validate campaign type first
-        |--------------------------------------------------------------------------
-        */
+    |--------------------------------------------------------------------------
+    | Validate campaign type first
+    |--------------------------------------------------------------------------
+    */
 
         $validatedType = $request->validate([
             'type' => [
@@ -225,20 +226,20 @@ class CampaignController extends Controller
         $type = $validatedType['type'];
 
         /*
-        |--------------------------------------------------------------------------
-        | Creation permissions
-        |--------------------------------------------------------------------------
-        |
-        | Admin:
-        |   local_case
-        |   organization_proposed
-        |   global_situation
-        |
-        | Organization:
-        |   local_case
-        |   organization_proposed
-        |
-        */
+    |--------------------------------------------------------------------------
+    | Creation permissions
+    |--------------------------------------------------------------------------
+    |
+    | Admin:
+    |   local_case
+    |   organization_proposed
+    |   global_situation
+    |
+    | Organization:
+    |   local_case
+    |   organization_proposed
+    |
+    */
 
         $isAdmin = $user->role === 'admin';
         $isOrganization = $user->role === 'organization';
@@ -250,14 +251,14 @@ class CampaignController extends Controller
         }
 
         /*
-        |--------------------------------------------------------------------------
-        | Organization validation
-        |--------------------------------------------------------------------------
-        |
-        | An organization must be verified before it can create
-        | either type of organization-created campaign.
-        |
-        */
+    |--------------------------------------------------------------------------
+    | Organization validation
+    |--------------------------------------------------------------------------
+    |
+    | An organization must be verified before it can create
+    | either type of organization-created campaign.
+    |
+    */
 
         $organization = null;
 
@@ -284,10 +285,10 @@ class CampaignController extends Controller
         }
 
         /*
-        |--------------------------------------------------------------------------
-        | Common campaign fields
-        |--------------------------------------------------------------------------
-        */
+    |--------------------------------------------------------------------------
+    | Validate common campaign fields
+    |--------------------------------------------------------------------------
+    */
 
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
@@ -300,13 +301,20 @@ class CampaignController extends Controller
             'target_amount' => ['required', 'numeric', 'min:1'],
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
-            'cover_image' => ['nullable', 'string'],
+
+            // Accept an uploaded image instead of requiring a string.
+            'cover_image' => [
+                'nullable',
+                'image',
+                'mimes:jpg,jpeg,png,webp',
+                'max:5120',
+            ],
 
             /*
-            |--------------------------------------------------------------------------
-            | Type-specific identifiers
-            |--------------------------------------------------------------------------
-            */
+        |--------------------------------------------------------------------------
+        | Type-specific identifiers
+        |--------------------------------------------------------------------------
+        */
 
             'help_request_id' => [
                 'nullable',
@@ -322,27 +330,85 @@ class CampaignController extends Controller
         ]);
 
         /*
-        |--------------------------------------------------------------------------
-        | Never trust client-supplied ownership for organization users
-        |--------------------------------------------------------------------------
-        */
+    |--------------------------------------------------------------------------
+    | Upload campaign cover to ImageKit
+    |--------------------------------------------------------------------------
+    |
+    | The frontend sends cover_image as a file using FormData.
+    | Upload it to ImageKit and save the resulting URL in the database.
+    |
+    */
+
+        $coverImagePath = null;
+
+        if ($request->hasFile('cover_image')) {
+            $file = $request->file('cover_image');
+            $fileContents = file_get_contents($file->getRealPath());
+
+            if ($fileContents === false) {
+                return response()->json([
+                    'message' => 'The campaign cover could not be read.',
+                ], 500);
+            }
+
+            try {
+                $imageKit = new \ImageKit\ImageKit(
+                    config('services.imagekit.public_key'),
+                    config('services.imagekit.private_key'),
+                    config('services.imagekit.url_endpoint')
+                );
+
+                $uploadResponse = $imageKit->uploadFile([
+                    'file' => base64_encode($fileContents),
+                    'fileName' => $file->getClientOriginalName(),
+                    'folder' => '/campaigns',
+                    'useUniqueFileName' => true,
+                ]);
+            } catch (\Throwable $exception) {
+                report($exception);
+
+                return response()->json([
+                    'message' => 'The campaign cover could not be uploaded. Please try again.',
+                ], 500);
+            }
+
+            if (
+                !isset($uploadResponse->result) ||
+                !isset($uploadResponse->result->url)
+            ) {
+                return response()->json([
+                    'message' => 'ImageKit did not return a campaign cover URL.',
+                ], 500);
+            }
+
+            $coverImagePath = $uploadResponse->result->url;
+        }
+
+        // CampaignService receives the ImageKit URL, not the uploaded file.
+        $validated['cover_image'] = $coverImagePath;
+
+        /*
+    |--------------------------------------------------------------------------
+    | Never trust client-supplied ownership for organization users
+    |--------------------------------------------------------------------------
+    */
 
         if ($isOrganization) {
             $validated['organization_id'] = $organization->id;
         }
 
         /*
-        |--------------------------------------------------------------------------
-        | LOCAL CASE
-        |--------------------------------------------------------------------------
-        |
-        | Must have a Help Request.
-        |
-        | Organization-created local campaigns are additionally
-        | validated inside CampaignService to ensure the selected
-        | Help Request is actually assigned to that organization.
-        |
-        */
+    |--------------------------------------------------------------------------
+    | LOCAL CASE
+    |--------------------------------------------------------------------------
+    |
+    | Must have a Help Request.
+    |
+    | Organization-created local campaigns are additionally validated
+    | inside CampaignService to ensure the selected Help Request is
+    | actually assigned to that organization.
+    |
+    */
 
         if ($type === Campaign::TYPE_LOCAL_CASE) {
             if (empty($validated['help_request_id'])) {
@@ -352,13 +418,13 @@ class CampaignController extends Controller
             }
 
             /*
-            | For an organization-created local campaign,
-            | organization_id is always the authenticated organization's ID.
-            |
-            | For an admin-created local campaign, organization_id may be
-            | supplied or left null because the fundamental requirement
-            | is the Help Request itself.
-            */
+         * For an organization-created local campaign, organization_id
+         * is always the authenticated organization's ID.
+         *
+         * For an admin-created local campaign, organization_id may
+         * be supplied or left null because the fundamental requirement
+         * is the Help Request itself.
+         */
 
             $campaign = $campaignService->createLocalCaseCampaign([
                 ...$validated,
@@ -376,20 +442,20 @@ class CampaignController extends Controller
         }
 
         /*
-        |--------------------------------------------------------------------------
-        | ORGANIZATION PROPOSED
-        |--------------------------------------------------------------------------
-        |
-        | Must NOT be connected to a Help Request.
-        |
-        | Organization:
-        |   organization_id is automatically taken from authenticated user.
-        |
-        | Admin:
-        |   organization_id must be supplied because this campaign type
-        |   represents an organization-proposed campaign.
-        |
-        */
+    |--------------------------------------------------------------------------
+    | ORGANIZATION PROPOSED
+    |--------------------------------------------------------------------------
+    |
+    | Must NOT be connected to a Help Request.
+    |
+    | Organization:
+    |   organization_id is automatically taken from authenticated user.
+    |
+    | Admin:
+    |   organization_id must be supplied because this campaign type
+    |   represents an organization-proposed campaign.
+    |
+    */
 
         if ($type === Campaign::TYPE_ORGANIZATION_PROPOSED) {
             if (!empty($validated['help_request_id'])) {
@@ -420,16 +486,16 @@ class CampaignController extends Controller
         }
 
         /*
-        |--------------------------------------------------------------------------
-        | GLOBAL SITUATION
-        |--------------------------------------------------------------------------
-        |
-        | Admin only.
-        |
-        | A global situation campaign is not owned by an organization
-        | and cannot be connected to a Help Request.
-        |
-        */
+    |--------------------------------------------------------------------------
+    | GLOBAL SITUATION
+    |--------------------------------------------------------------------------
+    |
+    | Admin only.
+    |
+    | A global situation campaign is not owned by an organization
+    | and cannot be connected to a Help Request.
+    |
+    */
 
         if ($type === Campaign::TYPE_GLOBAL_SITUATION) {
             if (!$isAdmin) {
@@ -463,10 +529,10 @@ class CampaignController extends Controller
         }
 
         /*
-        |--------------------------------------------------------------------------
-        | Safety fallback
-        |--------------------------------------------------------------------------
-        */
+    |--------------------------------------------------------------------------
+    | Safety fallback
+    |--------------------------------------------------------------------------
+    */
 
         return response()->json([
             'message' => 'Unsupported campaign type.',

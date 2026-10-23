@@ -351,6 +351,12 @@ export default function OrgCampaigns() {
         navigate(`${BASE}/${campaign.id}`);
     };
 
+    const handleEdit = (campaign) => {
+        if (campaign?.id == null) return;
+
+        navigate(`${BASE}/${campaign.id}/edit`);
+    };
+
     const handleExportCSV = () => {
         if (!filteredCampaigns.length) return;
 
@@ -619,6 +625,7 @@ export default function OrgCampaigns() {
                                     onSort={handleSort}
                                     getSortIcon={getSortIcon}
                                     onView={handleView}
+                                    onEdit={handleEdit}
                                     resultCount={filteredCampaigns.length}
                                 />
                             </div>

@@ -1,4 +1,4 @@
-import { CalendarDays, Eye, Megaphone } from 'lucide-react';
+import { CalendarDays, Edit2, Eye, Megaphone } from 'lucide-react';
 
 import DataTable from '@/components/dashboard/DataTable';
 
@@ -134,7 +134,7 @@ function formatDate(value) {
     });
 }
 
-function ActionButton({ label, onClick }) {
+function ActionButton({ label, onClick, icon: Icon }) {
     return (
         <button
             type="button"
@@ -143,17 +143,24 @@ function ActionButton({ label, onClick }) {
             onClick={onClick}
             className="inline-flex h-8 w-8 shrink-0 items-center justify-center border border-transparent text-[#98A5B6] transition-colors hover:border-[#3B4858] hover:bg-[#25303D] hover:text-[#EEF1F5] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8792A1]"
         >
-            <Eye size={16} strokeWidth={1.8} />
+            <Icon size={16} strokeWidth={1.8} />
         </button>
     );
 }
 
-function Actions({ row, onView }) {
+function Actions({ row, onView, onEdit }) {
     return (
         <div className="flex items-center justify-end gap-1">
             <ActionButton
                 label={`View ${row.title || 'campaign'}`}
-                onClick={() => onView(row)}
+                icon={Eye}
+                onClick={() => onView?.(row)}
+            />
+
+            <ActionButton
+                label={`Edit ${row.title || 'campaign'}`}
+                icon={Edit2}
+                onClick={() => onEdit?.(row)}
             />
         </div>
     );
@@ -164,6 +171,7 @@ export default function CampaignTable({
     onSort,
     getSortIcon,
     onView,
+    onEdit,
     resultCount,
 }) {
     const columns = [
@@ -223,7 +231,9 @@ export default function CampaignTable({
             header: 'Actions',
             width: '100px',
             align: 'right',
-            render: (_value, row) => <Actions row={row} onView={onView} />,
+            render: (_value, row) => (
+                <Actions row={row} onView={onView} onEdit={onEdit} />
+            ),
         },
     ];
 
@@ -298,7 +308,11 @@ export default function CampaignTable({
                                       )}
                                   </span>
 
-                                  <Actions row={row} onView={onView} />
+                                  <Actions
+                                      row={row}
+                                      onView={onView}
+                                      onEdit={onEdit}
+                                  />
                               </div>
                           </article>
                       ))

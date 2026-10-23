@@ -12,6 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('testimonials', function (Blueprint $table) {
+            $table->dropIndex(['status']);
             $table->dropColumn('status');
 
             $table->boolean('is_featured')

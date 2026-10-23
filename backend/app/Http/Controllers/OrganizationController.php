@@ -7,6 +7,8 @@ use App\Models\CampaignVolunteerAssignment;
 use App\Models\HelpRequestAssignment;
 use App\Models\Organization;
 
+use App\Notifications\PlatformNotification;
+
 use ImageKit\ImageKit;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\Rule;
@@ -205,9 +207,23 @@ class OrganizationController extends Controller
         }
 
         $assignment->update([
-            'status' =>
-            HelpRequestAssignment::STATUS_ACCEPTED,
+            'status' => HelpRequestAssignment::STATUS_ACCEPTED,
         ]);
+
+        $assignment->loadMissing('helpRequest.user');
+
+        $helpRequest = $assignment->helpRequest;
+
+        if ($helpRequest?->user) {
+            $helpRequest->user->notify(
+                new PlatformNotification(
+                    'Help request accepted',
+                    "An organization has accepted your help request \"{$helpRequest->title}\".",
+                    '/individual/dashboard/help-requests',
+                    'help_request'
+                )
+            );
+        }
 
         return response()->json([
             'message' =>

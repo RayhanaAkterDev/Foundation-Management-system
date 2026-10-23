@@ -2328,6 +2328,19 @@ class VolunteerController extends Controller
             ));
         }
 
+        $assignment->campaign->loadMissing('organization.user');
+
+        if ($assignment->campaign->organization?->user) {
+            $assignment->campaign->organization->user->notify(
+                new PlatformNotification(
+                    'Volunteer accepted campaign assignment',
+                    "{$user->name} has accepted an assignment for your campaign \"{$assignment->campaign->title}\".",
+                    '/organization/dashboard/campaigns',
+                    'campaign_assignment'
+                )
+            );
+        }
+
         return response()->json([
             'message' =>
             'Campaign assignment accepted successfully.',

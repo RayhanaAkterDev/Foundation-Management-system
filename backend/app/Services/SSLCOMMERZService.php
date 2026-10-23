@@ -438,6 +438,19 @@ class SSLCOMMERZService
                 ));
             });
 
+        $donation->campaign->loadMissing('organization.user');
+
+        if ($donation->campaign->organization?->user) {
+            $donation->campaign->organization->user->notify(
+                new PlatformNotification(
+                    'New donation received',
+                    "A donation of {$donation->amount} was received for your campaign \"{$donation->campaign->title}\".",
+                    '/organization/dashboard/donations',
+                    'donation'
+                )
+            );
+        }
+
         return $donation;
     }
 }

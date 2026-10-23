@@ -405,11 +405,6 @@ class AdminController extends Controller
                 'in:individual,organization,admin',
             ],
 
-            'verification_method' => [
-                'required',
-                'in:demo',
-            ],
-
             'phone' => [
                 'nullable',
                 'string',
@@ -471,7 +466,11 @@ class AdminController extends Controller
                 'phone' => $validated['phone'] ?? null,
                 'password' => $validated['password'],
                 'role' => $validated['role'],
-                'verification_method' => $validated['verification_method'],
+
+                // Use the internal demo verification workflow.
+                'verification_method' => 'demo',
+
+                // New accounts remain inactive until verified.
                 'status' => 'inactive',
                 'email_verified_at' => null,
             ]);
@@ -489,24 +488,34 @@ class AdminController extends Controller
                 $organization = Organization::create([
                     'user_id' => $newUser->id,
                     'name' => $validated['name'],
+
                     'organization_type' =>
                     $validated['organization_type'] ?? null,
+
                     'registration_number' =>
                     $validated['registration_number'] ?? null,
+
                     'website' =>
                     $validated['website'] ?? null,
+
                     'address' =>
                     $validated['address'] ?? null,
+
                     'mission' =>
                     $validated['mission'] ?? null,
+
                     'focus_areas' =>
                     $validated['focus_areas'] ?? null,
+
                     'communities_served' =>
                     $validated['communities_served'] ?? null,
+
                     'team_size' =>
                     $validated['team_size'] ?? null,
+
                     'primary_activities' =>
                     $validated['primary_activities'] ?? null,
+
                     'verification_status' => 'pending',
                 ]);
             }
@@ -520,9 +529,7 @@ class AdminController extends Controller
 
         return response()->json([
             'message' =>
-            $result['user']->verification_method === 'email'
-                ? 'User created successfully. The account is inactive until email verification.'
-                : 'Demo user created successfully. The account remains inactive until demo verification.',
+            'Demo user created successfully. The account remains inactive until demo verification.',
 
             'user' => $result['user']
                 ->fresh()
@@ -580,36 +587,34 @@ class AdminController extends Controller
                 'in:active,inactive,suspended',
             ],
 
+            // Optional for API compatibility.
+            // The application uses the internal demo verification workflow.
             'verification_method' => [
-                'required',
+                'sometimes',
                 'in:demo',
             ],
         ]);
 
-        $emailChanged =
-            $targetUser->email !== $validated['email'];
-
-        $verificationMethodChanged =
-            $targetUser->verification_method !==
-            $validated['verification_method'];
+        $emailChanged = $targetUser->email !== $validated['email'];
 
         $targetUser->name = $validated['name'];
         $targetUser->email = $validated['email'];
         $targetUser->phone = $validated['phone'] ?? null;
-        $targetUser->status = $validated['status'];
-        $targetUser->verification_method =
-            $validated['verification_method'];
+
+        // Always use demo verification internally.
+        $targetUser->verification_method = 'demo';
 
         if ($emailChanged) {
-            $targetUser->verification_method = 'demo';
+            // A changed email must be verified again.
             $targetUser->email_verified_at = null;
             $targetUser->verification_email_sent_at = null;
             $targetUser->status = 'inactive';
         } else {
-            $targetUser->verification_method = 'demo';
-
+            // Preserve existing verification state.
             if (!$targetUser->hasVerifiedEmail()) {
                 $targetUser->status = 'inactive';
+            } else {
+                $targetUser->status = $validated['status'];
             }
 
             $targetUser->verification_email_sent_at = null;
@@ -617,6 +622,7 @@ class AdminController extends Controller
 
         $targetUser->save();
 
+        // Keep the organization name synchronized with its linked user.
         if ($targetUser->role === 'organization') {
             $organization = $targetUser->organization;
 
@@ -1517,6 +1523,32 @@ class AdminController extends Controller
             $validated['verification_note'] ?? null,
         ]);
 
+        if ($helpRequest->user) {
+            $title = $validated['status'] === HelpRequest::STATUS_VERIFIED
+                ? 'Help request approved'
+                : 'Help request rejected';
+
+            $body = $validated['status'] === HelpRequest::STATUS_VERIFIED
+                ? "Your help request \"{$helpRequest->title}\" has been approved."
+                : "Your help request \"{$helpRequest->title}\" has been rejected.";
+
+            if (
+                $validated['status'] === HelpRequest::STATUS_REJECTED &&
+                !empty($validated['verification_note'])
+            ) {
+                $body .= ' Reason: ' . $validated['verification_note'];
+            }
+
+            $helpRequest->user->notify(
+                new PlatformNotification(
+                    $title,
+                    $body,
+                    '/individual/dashboard/help-requests',
+                    'help_request'
+                )
+            );
+        }
+
         return response()->json([
             'message' =>
             $validated['status'] === HelpRequest::STATUS_VERIFIED
@@ -1711,6 +1743,19 @@ class AdminController extends Controller
                 'assigned_at' => now(),
             ]);
         });
+
+        $organization->loadMissing('user');
+
+        if ($organization->user) {
+            $organization->user->notify(
+                new PlatformNotification(
+                    'New help request assigned',
+                    "A help request titled \"{$helpRequest->title}\" has been assigned to your organization.",
+                    '/organization/dashboard/help-requests',
+                    'help_request'
+                )
+            );
+        }
 
         return response()->json([
             'message' =>
@@ -2813,6 +2858,19 @@ class AdminController extends Controller
                     return $campaign;
                 });
 
+                $campaign->loadMissing('organization.user');
+
+                if ($campaign->organization?->user) {
+                    $campaign->organization->user->notify(
+                        new PlatformNotification(
+                            'Campaign approved',
+                            "Your campaign \"{$campaign->title}\" has been approved.",
+                            '/organization/dashboard/campaigns',
+                            'campaign'
+                        )
+                    );
+                }
+
                 return response()->json([
                     'message' =>
                     'Campaign verified successfully.',
@@ -2833,6 +2891,24 @@ class AdminController extends Controller
                 $user->id,
                 $validated['verification_note'] ?? null
             );
+
+            $campaign->loadMissing('organization.user');
+
+            if ($campaign->organization?->user) {
+                $campaign->organization->user->notify(
+                    new PlatformNotification(
+                        'Campaign rejected',
+                        "Your campaign \"{$campaign->title}\" has been rejected."
+                            . (
+                                !empty($validated['verification_note'])
+                                ? ' Reason: ' . $validated['verification_note']
+                                : ''
+                            ),
+                        '/organization/dashboard/campaigns',
+                        'campaign'
+                    )
+                );
+            }
 
             return response()->json([
                 'message' =>

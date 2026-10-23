@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Campaign;
 use App\Services\Campaign\CampaignService;
+use App\Notifications\PlatformNotification;
 use ImageKit\ImageKit;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -430,6 +431,23 @@ class CampaignController extends Controller
                 ...$validated,
                 'created_by' => $user->id,
             ]);
+
+            if ($isOrganization && $campaign->help_request_id) {
+                $campaign->loadMissing('helpRequest.user');
+
+                $helpRequest = $campaign->helpRequest;
+
+                if ($helpRequest?->user) {
+                    $helpRequest->user->notify(
+                        new PlatformNotification(
+                            'Campaign created for your help request',
+                            "An organization has created the campaign \"{$campaign->title}\" to support your help request \"{$helpRequest->title}\". It is waiting for admin review.",
+                            '/individual/dashboard/help-requests',
+                            'campaign'
+                        )
+                    );
+                }
+            }
 
             return response()->json([
                 'message' => 'Local case campaign created successfully and is waiting for admin review.',

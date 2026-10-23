@@ -298,11 +298,34 @@ class DonationController extends Controller
             $transactionId
         )->first();
 
+
         if (!$attempt) {
+            /*
+     * SSLCOMMERZ may send the IPN before the browser's
+     * success callback. The IPN can complete the donation
+     * and delete its attempt before the browser returns.
+     *
+     * If the donation already exists, treat this callback
+     * as an already-completed payment instead of returning
+     * a 404 response.
+     */
+            $donation = Donation::with('campaign')
+                ->where('transaction_id', $transactionId)
+                ->first();
+
+            if ($donation) {
+                return response()->json([
+                    'message' => 'Donation payment already confirmed successfully.',
+                    'donation' => $donation,
+                ], 200);
+            }
+
+            // Neither the attempt nor a completed donation exists.
             return response()->json([
                 'message' => 'Donation attempt not found.',
             ], 404);
         }
+
 
         /*
          * Idempotency:
@@ -380,43 +403,53 @@ class DonationController extends Controller
         );
 
         /*
-     * Determine whether this donation belongs to a
-     * registered/authenticated user or a guest.
+     * Determine whether the donation belongs to a registered
+     * user or a guest.
      *
-     * The SSLCOMMERZ callback itself is not authenticated,
-     * so we use the DonationAttempt created when the
-     * payment was started.
+     * The payment attempt may have been deleted after the
+     * IPN callback completed the donation. If so, use the
+     * saved Donation record to identify the donor.
      */
         $attempt = null;
+        $donation = null;
 
         if ($transactionId) {
             $attempt = DonationAttempt::where(
                 'transaction_id',
                 $transactionId
             )->first();
+
+            if (!$attempt) {
+                $donation = Donation::where(
+                    'transaction_id',
+                    $transactionId
+                )->first();
+            }
         }
 
         /*
-     * Registered user donation
-     * → Individual dashboard payment result
+     * Registered user donation:
+     * /individual/dashboard/donation/payment-result
      *
-     * Guest donation
-     * → Public payment result
+     * Guest donation:
+     * /donation/payment-result
      */
-        if ($attempt?->user_id) {
-            $path = '/individual/dashboard/donation/payment-result';
-        } else {
-            $path = '/donation/payment-result';
-        }
+        $isRegisteredUser = $attempt
+            ? (bool) $attempt->user_id
+            : (bool) $donation?->user_id;
 
-        $url = $frontendUrl .
-            $path .
-            '?status=' .
-            urlencode($status);
+        $path = $isRegisteredUser
+            ? '/individual/dashboard/donation/payment-result'
+            : '/donation/payment-result';
+
+        $url = $frontendUrl
+            . $path
+            . '?status='
+            . urlencode($status);
 
         if ($transactionId) {
-            $url .= '&transaction_id=' .
-                urlencode($transactionId);
+            $url .= '&transaction_id='
+                . urlencode($transactionId);
         }
 
         return redirect()->away($url);

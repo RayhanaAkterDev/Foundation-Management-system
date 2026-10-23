@@ -90,6 +90,8 @@ import OrgDashboard from '@/dashboard/organization/dashboard/OrgDashboard';
 import OrganizationHelpRequests from '@/dashboard/organization/helpRequests/OrgHelpRequests';
 import OrganizationCampaigns from '@/dashboard/organization/campaigns/OrgCampaigns';
 import OrganizationAddCampaign from '@/dashboard/organization/campaigns/AddCampaign';
+import OrganizationCampaignDetails from '@/dashboard/organization/campaigns/CampaignDetails';
+import OrganizationEditCampaign from '@/dashboard/organization/campaigns/CampaignEdit';
 import OrganizationVolunteers from '@/dashboard/organization/volunteers/OrgVolunteers';
 import OrganizationReports from '@/dashboard/organization/reports/OrgReports';
 import OrganizationProfile from '@/dashboard/organization/profile/OrgProfile';
@@ -313,17 +315,36 @@ const router = createBrowserRouter([
                 element: <ProtectedRoute allowedRoles={['organization']} />,
                 children: [
                     { index: true, element: <OrgDashboard /> },
+
+                    // Help requests
                     {
                         path: 'help-requests',
                         element: <OrganizationHelpRequests />,
                     },
-                    { path: 'campaigns', element: <OrganizationCampaigns /> },
+
+                    // Campaigns
+                    {
+                        path: 'campaigns',
+                        element: <OrganizationCampaigns />,
+                    },
                     {
                         path: 'campaigns/add',
                         element: <OrganizationAddCampaign />,
                     },
+                    {
+                        path: 'campaigns/:id',
+                        element: <OrganizationCampaignDetails />,
+                    },
+                    {
+                        path: 'campaigns/:id/edit',
+                        element: <OrganizationEditCampaign />,
+                    },
+
+                    // Volunteers and reports
                     { path: 'volunteers', element: <OrganizationVolunteers /> },
                     { path: 'reports', element: <OrganizationReports /> },
+
+                    // Profile and settings
                     { path: 'profile', element: <OrganizationProfile /> },
                     { path: 'profile/edit', element: <OrganizationProfile /> },
                     { path: 'security', element: <AdminSecurity /> },

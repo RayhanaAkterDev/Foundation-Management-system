@@ -1,61 +1,147 @@
 import React from 'react';
 
-const HelpRequestCategoryTabs = ({ tabs, activeCategory, onChange }) => {
-    return (
-        <div className="w-full mt-6">
-            <div className="space-y-1">
-                {tabs.map((tab) => {
-                    const active = activeCategory === tab.key;
+import {
+    ClipboardList,
+    Clock3,
+    BadgeCheck,
+    CircleX,
+    CircleCheck,
+    Activity,
+    ListChecks,
+    Building2,
+} from 'lucide-react';
 
-                    return (
-                        <button
-                            key={tab.key}
-                            type="button"
-                            onClick={() => onChange(tab.key)}
+/* ==========================================================================
+   CATEGORY TABS
+============================================================================ */
+
+const CATEGORY_ICONS = {
+    all: ClipboardList,
+    pending: Clock3,
+    verified: BadgeCheck,
+    rejected: CircleX,
+    completed: CircleCheck,
+    assigned: Building2,
+    in_progress: Activity,
+    active: Activity,
+};
+
+const getCategoryIcon = (value) => {
+    const normalized = String(value || '').toLowerCase();
+
+    return CATEGORY_ICONS[normalized] || ListChecks;
+};
+
+const CategoryTabs = ({ tabs = [], activeCategory, onChange }) => {
+    return (
+        <div className="w-full space-y-1">
+            {tabs.map((tab) => {
+                const value = tab.value ?? tab.key ?? tab.id;
+
+                const label = tab.label ?? tab.name ?? value;
+
+                const count = tab.count;
+
+                const active = activeCategory === value;
+
+                const Icon = getCategoryIcon(value);
+
+                return (
+                    <button
+                        key={value}
+                        type="button"
+                        onClick={() => onChange(value)}
+                        aria-pressed={active}
+                        className={`
+                            group relative flex min-h-10 w-full
+                            items-center gap-3
+                            px-3 py-2.5
+                            text-left
+                            transition-[background-color,color]
+                            duration-150 ease-out
+                            focus:outline-none
+                            focus:ring-0
+                            ${
+                                active
+                                    ? 'bg-[#171E28]'
+                                    : 'bg-transparent hover:bg-[#151B24]'
+                            }
+                        `}
+                    >
+                        {/* ACTIVE INDICATOR */}
+
+                        {active && (
+                            <span
+                                aria-hidden="true"
+                                className="
+                                    absolute inset-y-0 left-0
+                                    w-0.5 bg-[#718096]
+                                "
+                            />
+                        )}
+
+                        {/* CATEGORY ICON */}
+
+                        <Icon
+                            size={15}
+                            strokeWidth={1.8}
                             className={`
-                                group flex w-full items-center justify-between
-                                rounded-xl border px-3.5 py-3
-                                text-left transition-all duration-200
+                                shrink-0
+                                transition-colors duration-150
                                 ${
                                     active
-                                        ? 'border-primary/15 bg-primary/[0.07] text-primary'
-                                        : 'border-transparent text-text-secondary hover:border-border/70 hover:bg-white hover:text-text-primary'
+                                        ? 'text-[#C2CBD6]'
+                                        : `
+                                            text-[#657181]
+                                            group-hover:text-[#AEB7C3]
+                                        `
+                                }
+                            `}
+                        />
+
+                        {/* CATEGORY NAME */}
+
+                        <span
+                            className={`
+                                min-w-0 flex-1
+                                truncate text-[12px]
+                                transition-colors duration-150
+                                ${
+                                    active
+                                        ? 'font-semibold! text-[#EEF1F5]'
+                                        : `
+                                            font-medium! text-[#8792A1]
+                                            group-hover:text-[#B8C0CA]
+                                        `
                                 }
                             `}
                         >
-                            <span
-                                className={`
-                                    min-w-0 truncate text-[12px]
-                                    ${
-                                        active
-                                            ? 'font-bold text-primary'
-                                            : 'font-medium!'
-                                    }
-                                `}
-                            >
-                                {tab.label}
-                            </span>
+                            {label}
+                        </span>
 
+                        {/* CATEGORY COUNT */}
+
+                        {count !== undefined && count !== null && (
                             <span
                                 className={`
-                                    ml-3 flex h-6 min-w-6 shrink-0 items-center
-                                    justify-center rounded-md px-1.5
-                                    text-[10px] font-bold
+                                    shrink-0
+                                    text-[10px]
+                                    tabular-nums
                                     ${
                                         active
-                                            ? 'bg-primary text-white!'
-                                            : 'bg-background-alt text-text-secondary group-hover:bg-primary/10 group-hover:text-primary'
+                                            ? 'font-semibold! text-[#B8C0CA]'
+                                            : 'font-medium! text-[#697586]'
                                     }
                                 `}
                             >
-                                {tab.count}
+                                {count}
                             </span>
-                        </button>
-                    );
-                })}
-            </div>
+                        )}
+                    </button>
+                );
+            })}
         </div>
     );
 };
 
-export default HelpRequestCategoryTabs;
+export default CategoryTabs;

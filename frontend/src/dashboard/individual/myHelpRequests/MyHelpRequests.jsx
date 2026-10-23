@@ -1,11 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
-
 import {
     ChevronsUpDown,
     ArrowUp,
     ArrowDown,
     Download,
     Plus,
+    Search,
+    SlidersHorizontal,
+    X,
 } from 'lucide-react';
 import PageHeader from '@/components/dashboard/PageHeader';
 import LoadingUI from '@/components/dashboard/LoadingUI';
@@ -14,8 +16,11 @@ import SuccessDialog from '@/components/dashboard/SuccessDialog';
 
 import { getMyHelpRequests, deleteHelpRequest } from './api/helpRequestAPI';
 
-import HelpRequestOverview from './components/HelpRequestOverview';
-import HelpRequestWorkspace from './components/HelpRequestWorkspace';
+import Stats from './components/HelpRequestStats';
+import Filters from './components/HelpRequestFilters';
+import Table from './components/HelpRequestTable';
+import Pagination from './components/HelpRequestPagination';
+
 import HelpRequestModals from './modals/HelpRequestModals';
 
 import { HELP_REQUESTS_PER_PAGE } from './constants/helpRequestConstants';
@@ -61,6 +66,7 @@ const MyHelpRequests = () => {
     });
 
     const [currentPage, setCurrentPage] = useState(1);
+    const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
     /*
      * --------------------------------------------------------------------------
@@ -187,21 +193,21 @@ const MyHelpRequests = () => {
      * --------------------------------------------------------------------------
      */
 
-    // const handleViewOrganization = (assignmentInfo, request) => {
-    //     const organization = assignmentInfo?.currentAssignment?.organization;
+    const handleViewOrganization = (assignmentInfo, request) => {
+        const organization = assignmentInfo?.currentAssignment?.organization;
 
-    //     if (!organization) {
-    //         return;
-    //     }
+        if (!organization) {
+            return;
+        }
 
-    //     setSelectedOrganization({
-    //         organization,
-    //         currentAssignment: assignmentInfo.currentAssignment,
-    //         assignments: Array.isArray(request?.assignments)
-    //             ? request.assignments
-    //             : [],
-    //     });
-    // };
+        setSelectedOrganization({
+            organization,
+            currentAssignment: assignmentInfo.currentAssignment,
+            assignments: Array.isArray(request?.assignments)
+                ? request.assignments
+                : [],
+        });
+    };
 
     const handleCloseOrganization = () => {
         setSelectedOrganization(null);
@@ -484,7 +490,7 @@ const MyHelpRequests = () => {
             );
         };
 
-        const matches = helpRequests.filter((request) => {
+        return helpRequests.filter((request) => {
             /*
              * Category tab
              *
@@ -585,22 +591,7 @@ const MyHelpRequests = () => {
 
             return true;
         });
-        if (!sortConfig.key || !sortConfig.direction) return matches;
-        return [...matches].sort((a, b) => {
-            const key = sortConfig.key;
-            const left =
-                key === 'created_at'
-                    ? new Date(a[key] || 0).getTime()
-                    : String(a[key] ?? '').toLowerCase();
-            const right =
-                key === 'created_at'
-                    ? new Date(b[key] || 0).getTime()
-                    : String(b[key] ?? '').toLowerCase();
-            const order = left < right ? -1 : left > right ? 1 : 0;
-            return sortConfig.direction === 'asc' ? order : -order;
-        });
     }, [
-        sortConfig,
         helpRequests,
         activeCategory,
         categoryFilter,
@@ -608,6 +599,29 @@ const MyHelpRequests = () => {
         statusFilter,
         searchTerm,
     ]);
+
+    const sortedHelpRequests = useMemo(() => {
+        const result = [...filteredHelpRequests];
+        if (!sortConfig.key || !sortConfig.direction) return result;
+        result.sort((a, b) => {
+            let first = a[sortConfig.key];
+            let second = b[sortConfig.key];
+            if (sortConfig.key === 'created_at') {
+                first = first ? new Date(first).getTime() : 0;
+                second = second ? new Date(second).getTime() : 0;
+            }
+            if (typeof first === 'string') first = first.toLowerCase();
+            if (typeof second === 'string') second = second.toLowerCase();
+            first ??= '';
+            second ??= '';
+            if (first === second) return 0;
+            return (
+                (first < second ? -1 : 1) *
+                (sortConfig.direction === 'asc' ? 1 : -1)
+            );
+        });
+        return result;
+    }, [filteredHelpRequests, sortConfig]);
 
     /*
      * --------------------------------------------------------------------------
@@ -625,11 +639,11 @@ const MyHelpRequests = () => {
     const paginatedHelpRequests = useMemo(() => {
         const startIndex = (safeCurrentPage - 1) * HELP_REQUESTS_PER_PAGE;
 
-        return filteredHelpRequests.slice(
+        return sortedHelpRequests.slice(
             startIndex,
             startIndex + HELP_REQUESTS_PER_PAGE,
         );
-    }, [filteredHelpRequests, safeCurrentPage]);
+    }, [sortedHelpRequests, safeCurrentPage]);
 
     /*
      * --------------------------------------------------------------------------
@@ -659,6 +673,14 @@ const MyHelpRequests = () => {
 
     const handleStatusChange = (event) => {
         setStatusFilter(event.target.value);
+        setCurrentPage(1);
+    };
+
+    const clearFilters = () => {
+        setActiveCategory('all');
+        setCategoryFilter('all');
+        setPriorityFilter('all');
+        setStatusFilter('all');
         setCurrentPage(1);
     };
 
@@ -763,49 +785,61 @@ const MyHelpRequests = () => {
         URL.revokeObjectURL(url);
     };
 
-    /*
-     * --------------------------------------------------------------------------
-     * Loading / error
-     * --------------------------------------------------------------------------
-     */
+    const header = (
+        <PageHeader
+            title="My Help Requests"
+            subtitle="Follow the progress of your requests and manage pending submissions."
+            action={
+                <div className="flex flex-wrap items-center gap-2">
+                    <button
+                        type="button"
+                        onClick={handleExportCSV}
+                        disabled={!filteredHelpRequests.length}
+                        className="inline-flex h-10 items-center gap-2 border border-[#343E4B] px-4 text-[12px] font-medium text-[#B8C2CF] hover:bg-[#1C232D] disabled:opacity-40"
+                    >
+                        <Download size={15} />
+                        Export
+                    </button>
+                    <button
+                        type="button"
+                        onClick={handleOpenModal}
+                        className="inline-flex h-10 items-center gap-2 border border-[#46566A] bg-[#263343] px-4 text-[12px] font-medium text-[#EEF1F5] hover:bg-[#304155]"
+                    >
+                        <Plus size={15} />
+                        New Request
+                    </button>
+                </div>
+            }
+        />
+    );
 
-    if (loading) {
+    if (loading || error) {
         return (
-            <LoadingUI
-                variant="page"
-                title="Loading your help requests..."
-                description="Please wait while we retrieve your requests."
-            />
+            <div className="space-y-10 lg:space-y-12">
+                {header}
+                {loading ? (
+                    <LoadingUI
+                        variant="page"
+                        title="Loading help requests..."
+                        description="Retrieving your submitted requests."
+                    />
+                ) : (
+                    <LoadingError
+                        title="Unable to load help requests"
+                        message={error}
+                    />
+                )}
+            </div>
         );
     }
-
-    if (error) {
-        return (
-            <LoadingError
-                title="Unable to load your help requests"
-                message={error}
-            />
-        );
-    }
-
-    /*
-     * --------------------------------------------------------------------------
-     * Table rows
-     * --------------------------------------------------------------------------
-     */
 
     const rows = paginatedHelpRequests.map((request, index) => ({
         ...request,
-
         serialNumber:
             (safeCurrentPage - 1) * HELP_REQUESTS_PER_PAGE + index + 1,
-
         statusLabel: getStatusLabel(request.status),
-
         urgencyLabel: getUrgencyLabel(request.urgency),
-
         assignmentInfo: getAssignmentInfo(request),
-
         formattedCreatedDate: request.created_at
             ? new Date(request.created_at).toLocaleDateString('en-GB', {
                   day: '2-digit',
@@ -813,76 +847,145 @@ const MyHelpRequests = () => {
                   year: 'numeric',
               })
             : '—',
-
         locationName:
             request.district || request.address || 'Location not specified',
     }));
 
-    /*
-     * --------------------------------------------------------------------------
-     * Render
-     * --------------------------------------------------------------------------
-     */
+    const filterProps = {
+        categoryTabs,
+        activeCategory,
+        onCategoryChange: handleCategoryChange,
+        categoryFilter,
+        priorityFilter,
+        statusFilter,
+        helpRequests,
+        onCategoryFilterChange: handleCategoryFilterChange,
+        onPriorityChange: handlePriorityChange,
+        onStatusChange: handleStatusChange,
+        onClearFilters: clearFilters,
+    };
 
     return (
-        <div className="min-h-full">
-            <div className="w-full space-y-10 lg:space-y-12">
-                <PageHeader
-                    title="My Help Requests"
-                    subtitle="Follow the progress of your requests and manage pending submissions."
-                    action={
-                        <div className="flex flex-wrap items-center gap-2">
+        <>
+            <div className="space-y-10 lg:space-y-12">
+                {header}
+                <Stats {...statistics} />
+                <section className="pt-2 lg:pt-3">
+                    <div className="mb-5">
+                        <h2 className="font-sans! text-[20px]! font-semibold! tracking-[-0.02em] !text-[#EEF1F5]">
+                            My Help Request Directory
+                        </h2>
+                        <p className="mt-2 text-[12px] leading-5 text-[#8792A1]">
+                            View and manage requests you have submitted.
+                        </p>
+                    </div>
+                    <div className="mb-5 xl:hidden">
+                        <button
+                            type="button"
+                            onClick={() => setMobileFiltersOpen(true)}
+                            className="flex h-10 w-full items-center justify-between border border-[#29323E] bg-[#0E1219] px-3.5 text-[12px] text-[#AEB7C3]"
+                        >
+                            <span className="flex items-center gap-2">
+                                <SlidersHorizontal size={15} />
+                                Filters
+                            </span>
+                            <span className="text-[#697586]">
+                                Refine requests
+                            </span>
+                        </button>
+                    </div>
+                    {mobileFiltersOpen && (
+                        <div className="fixed inset-0 z-50 xl:hidden">
                             <button
                                 type="button"
-                                onClick={handleExportCSV}
-                                disabled={filteredHelpRequests.length === 0}
-                                className="inline-flex h-10 items-center gap-2 border border-[#343E4B] px-4 text-[12px] text-[#B8C2CF] hover:bg-[#1C232D] disabled:opacity-40"
-                            >
-                                <Download size={16} />
-                                Export
-                            </button>
-                            <button
-                                type="button"
-                                onClick={handleOpenModal}
-                                className="inline-flex h-10 items-center gap-2 border border-[#46566B] bg-[#263343] px-4 text-[12px] font-medium text-[#EEF1F5] hover:bg-[#304156]"
-                            >
-                                <Plus size={16} />
-                                New Request
-                            </button>
+                                aria-label="Close filters"
+                                onClick={() => setMobileFiltersOpen(false)}
+                                className="absolute inset-0 bg-black/70"
+                            />
+                            <div className="absolute inset-y-0 right-0 w-[min(340px,90vw)] overflow-y-auto border-l border-[#29323E] bg-[#0E1219]">
+                                <div className="flex items-center justify-between border-b border-[#29323E] px-4 py-3 text-[13px] text-[#EEF1F5]">
+                                    Request filters
+                                    <button
+                                        type="button"
+                                        aria-label="Close filters"
+                                        onClick={() =>
+                                            setMobileFiltersOpen(false)
+                                        }
+                                    >
+                                        <X size={18} />
+                                    </button>
+                                </div>
+                                <Filters {...filterProps} />
+                                <div className="p-4">
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            setMobileFiltersOpen(false)
+                                        }
+                                        className="h-10 w-full bg-[#263343] text-[12px] text-[#EEF1F5]"
+                                    >
+                                        Show results
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                    }
-                />
-
-                <HelpRequestOverview statistics={statistics} />
-
-                <HelpRequestWorkspace
-                    categoryTabs={categoryTabs}
-                    activeCategory={activeCategory}
-                    onCategoryChange={handleCategoryChange}
-                    searchTerm={searchTerm}
-                    categoryFilter={categoryFilter}
-                    priorityFilter={priorityFilter}
-                    statusFilter={statusFilter}
-                    helpRequests={helpRequests}
-                    onSearchChange={handleSearchChange}
-                    onCategoryFilterChange={handleCategoryFilterChange}
-                    onPriorityChange={handlePriorityChange}
-                    onStatusChange={handleStatusChange}
-                    onView={handleView}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                    rows={rows}
-                    onSort={handleSort}
-                    getSortIcon={getSortIcon}
-                    resultCount={filteredHelpRequests.length}
-                    currentPage={safeCurrentPage}
-                    totalPages={totalPages}
-                    totalItems={filteredHelpRequests.length}
-                    itemsPerPage={HELP_REQUESTS_PER_PAGE}
-                    onPageChange={setCurrentPage}
-                />
+                    )}
+                    <div className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_300px] xl:items-start xl:gap-7 2xl:grid-cols-[minmax(0,1fr)_320px]">
+                        <div className="min-w-0 overflow-hidden border border-[#252D38] bg-[#0E1219]">
+                            <div className="border-b border-[#252D38] bg-[#1A222D] px-4 py-3.5 sm:px-5">
+                                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                                    <div className="relative min-w-0 flex-1">
+                                        <Search
+                                            size={15}
+                                            className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[#697586]"
+                                        />
+                                        <input
+                                            type="search"
+                                            value={searchTerm}
+                                            onChange={handleSearchChange}
+                                            placeholder="Search by request, category or location"
+                                            className="h-10 w-full border border-[#35404E] bg-[#0E1219] pr-4 pl-9 text-[12px] text-[#DCE3EC] outline-none placeholder:text-[#697586] focus:border-[#64748B]"
+                                        />
+                                    </div>
+                                    <span className="shrink-0 text-[11px] text-[#AAB3BF]">
+                                        {filteredHelpRequests.length}{' '}
+                                        {filteredHelpRequests.length === 1
+                                            ? 'result'
+                                            : 'results'}
+                                    </span>
+                                </div>
+                            </div>
+                            <div className="min-w-0 overflow-x-auto">
+                                <Table
+                                    rows={rows}
+                                    onSort={handleSort}
+                                    getSortIcon={getSortIcon}
+                                    resultCount={filteredHelpRequests.length}
+                                    onView={handleView}
+                                    onEdit={handleEdit}
+                                    onDelete={handleDelete}
+                                    onViewOrganization={handleViewOrganization}
+                                    deleteLoading={deleteLoading}
+                                />
+                            </div>
+                            {filteredHelpRequests.length > 0 && (
+                                <div className="border-t border-[#252D38] bg-[#1A222D]">
+                                    <Pagination
+                                        currentPage={safeCurrentPage}
+                                        totalPages={totalPages}
+                                        totalItems={filteredHelpRequests.length}
+                                        itemsPerPage={HELP_REQUESTS_PER_PAGE}
+                                        onPageChange={setCurrentPage}
+                                    />
+                                </div>
+                            )}
+                        </div>
+                        <div className="hidden min-w-0 border border-[#252D38] bg-[#0E1219] xl:block">
+                            <Filters {...filterProps} />
+                        </div>
+                    </div>
+                </section>
             </div>
-
             <SuccessDialog
                 open={successToast.show}
                 title="Action completed"
@@ -907,7 +1010,7 @@ const MyHelpRequests = () => {
                 selectedOrganization={selectedOrganization}
                 handleCloseOrganization={handleCloseOrganization}
             />
-        </div>
+        </>
     );
 };
 

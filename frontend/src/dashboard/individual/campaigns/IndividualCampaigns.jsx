@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 
-import { Loader2, Megaphone } from "lucide-react";
+import { Megaphone } from "lucide-react";
 
 import { apiRequest } from "@/api/client";
+import LoadingUI from "@/components/dashboard/LoadingUI";
+import LoadingError from "@/components/dashboard/LoadingError";
 import EmptyState from "@/components/dashboard/EmptyState";
 import PageHeader from "@/components/dashboard/PageHeader";
 
@@ -40,24 +42,17 @@ const IndividualCampaigns = () => {
 
   return (
     <>
-      <div className="min-h-full bg-background">
+      <div className="min-h-full bg-transparent">
         <PageHeader
           title="Campaigns"
-          description="Support humanitarian campaigns and help communities in need."
+          subtitle="Support humanitarian campaigns and help communities in need."
         />
 
         <div className="mx-auto max-w-7xl">
           {loading ? (
-            <div className="flex min-h-80 items-center justify-center">
-              <div className="flex items-center gap-3 text-sm font-medium! text-slate-500">
-                <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                Loading campaigns...
-              </div>
-            </div>
+            <LoadingUI variant="page" title="Loading campaigns..." description="Retrieving available campaigns." />
           ) : error ? (
-            <div className="rounded-xl border border-red-200 bg-red-50 px-6 py-5">
-              <p className="text-sm font-medium! text-red-700">{error}</p>
-            </div>
+            <LoadingError title="Unable to load campaigns" message={error} />
           ) : campaigns.length === 0 ? (
             <EmptyState
               icon={Megaphone}
@@ -65,7 +60,7 @@ const IndividualCampaigns = () => {
               description="There are currently no active campaigns available for donation."
             />
           ) : (
-            <div className="grid gap-6 lg:grid-cols-3">
+            <div className="grid gap-5 md:grid-cols-2 2xl:grid-cols-3">
               {campaigns.map((campaign) => (
                 <CampaignCard
                   key={campaign.id}

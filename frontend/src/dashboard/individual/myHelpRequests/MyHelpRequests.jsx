@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     ChevronsUpDown,
     ArrowUp,
@@ -21,12 +22,11 @@ import Filters from './components/HelpRequestFilters';
 import Table from './components/HelpRequestTable';
 import Pagination from './components/HelpRequestPagination';
 
-import HelpRequestModals from './modals/HelpRequestModals';
+import HelpRequestDeleteModal from './modals/HelpRequestDeleteModal';
 
 import { HELP_REQUESTS_PER_PAGE } from './constants/helpRequestConstants';
 
 import {
-    normalizeHelpRequest,
     normalizeHelpRequests,
     getStatusLabel,
     getUrgencyLabel,
@@ -34,21 +34,15 @@ import {
 } from './utils/helpRequestUtils';
 
 const MyHelpRequests = () => {
+    const navigate = useNavigate();
     const [helpRequests, setHelpRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-
-    const [showModal, setShowModal] = useState(false);
-    const [editingRequest, setEditingRequest] = useState(null);
-    const [showEditModal, setShowEditModal] = useState(false);
 
     const [successToast, setSuccessToast] = useState({
         show: false,
         message: '',
     });
-
-    const [selectedRequest, setSelectedRequest] = useState(null);
-    const [selectedOrganization, setSelectedOrganization] = useState(null);
 
     const [deleteRequestItem, setDeleteRequestItem] = useState(null);
     const [deleteLoading, setDeleteLoading] = useState(false);
@@ -189,32 +183,6 @@ const MyHelpRequests = () => {
 
     /*
      * --------------------------------------------------------------------------
-     * Organization drawer
-     * --------------------------------------------------------------------------
-     */
-
-    const handleViewOrganization = (assignmentInfo, request) => {
-        const organization = assignmentInfo?.currentAssignment?.organization;
-
-        if (!organization) {
-            return;
-        }
-
-        setSelectedOrganization({
-            organization,
-            currentAssignment: assignmentInfo.currentAssignment,
-            assignments: Array.isArray(request?.assignments)
-                ? request.assignments
-                : [],
-        });
-    };
-
-    const handleCloseOrganization = () => {
-        setSelectedOrganization(null);
-    };
-
-    /*
-     * --------------------------------------------------------------------------
      * Load help requests
      * --------------------------------------------------------------------------
      */
@@ -261,99 +229,16 @@ const MyHelpRequests = () => {
         };
     }, []);
 
-    /*
-     * --------------------------------------------------------------------------
-     * Create request
-     * --------------------------------------------------------------------------
-     */
-
-    const handleOpenModal = () => {
-        setShowModal(true);
-    };
-
-    const handleCloseModal = () => {
-        setShowModal(false);
-    };
-
-    const handleRequestCreated = (createdRequest) => {
-        if (createdRequest) {
-            const formattedRequest = normalizeHelpRequest(createdRequest);
-
-            setHelpRequests((previousRequests) => [
-                formattedRequest,
-                ...previousRequests,
-            ]);
-
-            setCurrentPage(1);
-        }
-
-        setShowModal(false);
-
-        showSuccessToast('Your help request was submitted successfully.');
-    };
-
-    /*
-     * --------------------------------------------------------------------------
-     * View request
-     * --------------------------------------------------------------------------
-     */
-
     const handleView = (request) => {
-        setSelectedRequest(request);
+        if (request?.id != null) {
+            navigate(`/individual/dashboard/help-requests/${request.id}`);
+        }
     };
-
-    const handleCloseDetails = () => {
-        setSelectedRequest(null);
-    };
-
-    /*
-     * --------------------------------------------------------------------------
-     * Edit request
-     * --------------------------------------------------------------------------
-     */
 
     const handleEdit = (request) => {
-        if (!request || request.status !== 'pending') {
-            return;
+        if (request?.id != null && request.status === 'pending') {
+            navigate(`/individual/dashboard/help-requests/${request.id}/edit`);
         }
-
-        setEditingRequest(request);
-        setShowEditModal(true);
-    };
-
-    const handleCloseEditModal = () => {
-        if (deleteLoading) {
-            return;
-        }
-
-        setShowEditModal(false);
-        setEditingRequest(null);
-    };
-
-    const handleRequestUpdated = (updatedRequest) => {
-        if (!updatedRequest) {
-            handleCloseEditModal();
-            return;
-        }
-
-        const formattedRequest = normalizeHelpRequest(updatedRequest);
-
-        setHelpRequests((previousRequests) =>
-            previousRequests.map((request) =>
-                request.id === formattedRequest.id ? formattedRequest : request,
-            ),
-        );
-
-        setShowEditModal(false);
-        setEditingRequest(null);
-
-        setSelectedRequest((currentRequest) =>
-            currentRequest?.id === formattedRequest.id
-                ? formattedRequest
-                : currentRequest,
-        );
-
-        showSuccessToast('Your help request was updated successfully.');
     };
 
     /*
@@ -396,15 +281,6 @@ const MyHelpRequests = () => {
             setHelpRequests((currentRequests) =>
                 currentRequests.filter((request) => request.id !== deletedId),
             );
-
-            setSelectedRequest((currentRequest) =>
-                currentRequest?.id === deletedId ? null : currentRequest,
-            );
-
-            if (editingRequest?.id === deletedId) {
-                setShowEditModal(false);
-                setEditingRequest(null);
-            }
 
             setDeleteRequestItem(null);
 
@@ -802,7 +678,7 @@ const MyHelpRequests = () => {
                     </button>
                     <button
                         type="button"
-                        onClick={handleOpenModal}
+                        onClick={() => navigate('/request-help')}
                         className="inline-flex h-10 items-center gap-2 border border-[#46566A] bg-[#263343] px-4 text-[12px] font-medium text-[#EEF1F5] hover:bg-[#304155]"
                     >
                         <Plus size={15} />
@@ -930,9 +806,11 @@ const MyHelpRequests = () => {
                             </div>
                         </div>
                     )}
-                    <div className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_300px] xl:items-start xl:gap-7 2xl:grid-cols-[minmax(0,1fr)_320px]">
-                        <div className="min-w-0 overflow-hidden border border-[#252D38] bg-[#0E1219]">
-                            <div className="border-b border-[#252D38] bg-[#1A222D] px-4 py-3.5 sm:px-5">
+                    <div className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_300px] xl:items-stretch xl:gap-7 2xl:grid-cols-[minmax(0,1fr)_320px]">
+                        {/* Table panel */}
+                        <div className="flex h-full min-w-0 flex-col overflow-hidden border border-[#252D38] bg-[#0E1219]">
+                            {/* Search header */}
+                            <div className="shrink-0 border-b border-[#252D38] bg-[#1A222D] px-4 py-3.5 sm:px-5">
                                 <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                                     <div className="relative min-w-0 flex-1">
                                         <Search
@@ -947,6 +825,7 @@ const MyHelpRequests = () => {
                                             className="h-10 w-full border border-[#35404E] bg-[#0E1219] pr-4 pl-9 text-[12px] text-[#DCE3EC] outline-none placeholder:text-[#697586] focus:border-[#64748B]"
                                         />
                                     </div>
+
                                     <span className="shrink-0 text-[11px] text-[#AAB3BF]">
                                         {filteredHelpRequests.length}{' '}
                                         {filteredHelpRequests.length === 1
@@ -955,7 +834,9 @@ const MyHelpRequests = () => {
                                     </span>
                                 </div>
                             </div>
-                            <div className="min-w-0 overflow-x-auto">
+
+                            {/* Table area */}
+                            <div className="min-h-0 min-w-0 flex-1 overflow-x-auto">
                                 <Table
                                     rows={rows}
                                     onSort={handleSort}
@@ -964,12 +845,13 @@ const MyHelpRequests = () => {
                                     onView={handleView}
                                     onEdit={handleEdit}
                                     onDelete={handleDelete}
-                                    onViewOrganization={handleViewOrganization}
                                     deleteLoading={deleteLoading}
                                 />
                             </div>
+
+                            {/* Pagination */}
                             {filteredHelpRequests.length > 0 && (
-                                <div className="border-t border-[#252D38] bg-[#1A222D]">
+                                <div className="shrink-0 border-t border-[#252D38] bg-[#1A222D]">
                                     <Pagination
                                         currentPage={safeCurrentPage}
                                         totalPages={totalPages}
@@ -980,7 +862,9 @@ const MyHelpRequests = () => {
                                 </div>
                             )}
                         </div>
-                        <div className="hidden min-w-0 border border-[#252D38] bg-[#0E1219] xl:block">
+
+                        {/* Filter sidebar */}
+                        <div className="hidden h-full min-w-0 border border-[#252D38] bg-[#0E1219] xl:block">
                             <Filters {...filterProps} />
                         </div>
                     </div>
@@ -992,24 +876,17 @@ const MyHelpRequests = () => {
                 message={successToast.message}
                 onClose={() => setSuccessToast({ show: false, message: '' })}
             />
-            <HelpRequestModals
-                showModal={showModal}
-                handleCloseModal={handleCloseModal}
-                handleRequestCreated={handleRequestCreated}
-                selectedRequest={selectedRequest}
-                handleCloseDetails={handleCloseDetails}
-                editingRequest={editingRequest}
-                showEditModal={showEditModal}
-                handleCloseEditModal={handleCloseEditModal}
-                handleRequestUpdated={handleRequestUpdated}
-                deleteRequestItem={deleteRequestItem}
-                deleteLoading={deleteLoading}
-                deleteError={deleteError}
-                handleCloseDeleteModal={handleCloseDeleteModal}
-                handleDeleteConfirm={handleDeleteConfirm}
-                selectedOrganization={selectedOrganization}
-                handleCloseOrganization={handleCloseOrganization}
-            />
+            {deleteRequestItem && (
+                <HelpRequestDeleteModal
+                    isOpen
+                    request={deleteRequestItem}
+                    loading={deleteLoading}
+                    deleting={deleteLoading}
+                    error={deleteError}
+                    onClose={handleCloseDeleteModal}
+                    onConfirm={handleDeleteConfirm}
+                />
+            )}
         </>
     );
 };

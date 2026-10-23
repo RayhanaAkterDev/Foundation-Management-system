@@ -106,13 +106,7 @@ const DonationModal = ({ campaign, onClose }) => {
       setSubmitting(true);
       setError("");
 
-      console.log("Starting donation:", {
-        campaignId: campaign.id,
-        amount: numericAmount,
-        donorName,
-        donorEmail,
-        donorPhone,
-      });
+      
 
       const response = await initiateDonation({
         campaignId: campaign.id,
@@ -122,7 +116,7 @@ const DonationModal = ({ campaign, onClose }) => {
         donorPhone,
       });
 
-      console.log("Donation API response:", response);
+      
 
       if (!response) {
         throw new Error("The server returned an empty response.");
@@ -153,19 +147,19 @@ const DonationModal = ({ campaign, onClose }) => {
           onClose();
         }
       }}>
-      <div className="flex max-h-[calc(100dvh-1.5rem)] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-white shadow-[0_30px_100px_rgba(15,23,42,0.30)] sm:max-h-[calc(100dvh-2.5rem)]">
-        <header className="flex shrink-0 items-center justify-between border-b border-slate-200 bg-white px-5 py-4 sm:px-7">
+      <div className="flex max-h-[calc(100dvh-1.5rem)] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0E1219] shadow-[0_30px_100px_rgba(0,0,0,0.55)] sm:max-h-[calc(100dvh-2.5rem)]">
+        <header className="flex shrink-0 items-center justify-between border-b border-[#252D38] bg-[#0E1219] px-5 py-4 sm:px-7">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#0F766E]/15 text-[#5EEAD4]">
               <HandCoins className="h-[18px] w-[18px]" strokeWidth={1.9} />
             </div>
 
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-slate-900">
+              <p className="text-sm font-semibold text-[#EEF1F5]">
                 Make a donation
               </p>
 
-              <p className="truncate text-[11px] text-slate-400">
+              <p className="truncate text-[11px] text-[#8792A1]">
                 Support a humanitarian campaign
               </p>
             </div>
@@ -176,13 +170,13 @@ const DonationModal = ({ campaign, onClose }) => {
             onClick={onClose}
             disabled={submitting}
             aria-label="Close donation modal"
-            className="ml-4 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-50">
+            className="ml-4 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[#8792A1] transition hover:bg-[#1A222D] hover:text-[#B8C2CF] disabled:cursor-not-allowed disabled:opacity-50">
             <X className="h-5 w-5" strokeWidth={1.8} />
           </button>
         </header>
 
         <div className="grid min-h-0 flex-1 overflow-hidden md:grid-cols-[0.92fr_1.08fr]">
-          <div className="min-h-0 overflow-y-auto border-b border-slate-200 md:border-b-0 md:border-r">
+          <div className="min-h-0 overflow-y-auto border-b border-[#252D38] md:border-b-0 md:border-r">
             <DonationCampaignSummary campaign={campaign} />
           </div>
 
@@ -197,7 +191,7 @@ const DonationModal = ({ campaign, onClose }) => {
           </div>
         </div>
 
-        <div className="shrink-0 border-t border-slate-200 bg-white">
+        <div className="shrink-0 border-t border-[#252D38] bg-[#0E1219]">
           <DonationTrustBar />
         </div>
       </div>

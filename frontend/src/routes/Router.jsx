@@ -106,6 +106,8 @@ import IndividualProfile from '@/dashboard/individual/profile/IndividualProfile'
 import IndividualSettings from '@/dashboard/individual/settings/IndividualSettings';
 import MyDonations from '@/dashboard/individual/myDonations/MyDonations';
 import MyHelpRequests from '@/dashboard/individual/myHelpRequests/MyHelpRequests';
+import HelpRequestDetails from '@/dashboard/individual/myHelpRequests/HelpRequestDetails';
+import HelpRequestEdit from '@/dashboard/individual/myHelpRequests/HelpRequestEdit';
 import MyVolunteerActivities from '@/dashboard/individual/myVolunteerActivities/MyVolunteerActivities';
 
 // Shared help page
@@ -284,7 +286,16 @@ const router = createBrowserRouter([
                 element: <ProtectedRoute allowedRoles={['individual']} />,
                 children: [
                     { index: true, element: <IndividualDashboard /> },
+                    // Individual help requests
                     { path: 'help-requests', element: <MyHelpRequests /> },
+                    {
+                        path: 'help-requests/:requestId',
+                        element: <HelpRequestDetails />,
+                    },
+                    {
+                        path: 'help-requests/:requestId/edit',
+                        element: <HelpRequestEdit />,
+                    },
                     { path: 'donations', element: <MyDonations /> },
                     {
                         path: 'donation/payment-result',
